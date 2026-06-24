@@ -36,6 +36,7 @@
 
         // Selectors to extract the post description text body
         text: [
+            '[data-testid="expandable-text-box"]',
             '.feed-shared-inline-show-more-text',
             '[class*="inline-show-more-text"]',
             '[class*="show-more-text"]',

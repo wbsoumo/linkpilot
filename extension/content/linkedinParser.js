@@ -9,11 +9,17 @@
      * @returns {boolean}
      */
     const isMetadataLine = (line) => {
-        const lower = line.toLowerCase();
-        return lower.includes('•') ||
-               !!lower.match(/^\d+[hmdy]$/) ||
-               lower.includes('edited') ||
-               ['1st', '2nd', '3rd', 'following', 'follow', 'commented', 'reposted', 'liked'].includes(lower);
+        const lower = line.toLowerCase().trim();
+        const isTime = !!lower.match(/^\d+[hmdyw]$/);
+        const isConnection = /^(1st|2nd|3rd|\+)+$/i.test(lower) || ['1st', '2nd', '3rd'].some(degree => lower.includes(degree));
+        const isOther = lower.includes('•') ||
+                        lower.includes('edited') ||
+                        lower === 'following' ||
+                        lower === 'follow' ||
+                        lower === 'commented' ||
+                        lower === 'reposted' ||
+                        lower === 'liked';
+        return isTime || isConnection || isOther;
     };
 
     /**
@@ -131,11 +137,40 @@
                     if (text) return text;
                 }
             }
-            const profileLink = postElement.querySelector(window.LinkPilotSelectors.links.profile);
-            if (profileLink) {
-                const text = profileLink.innerText.split('\n')[0].trim();
-                if (text) return text;
+
+            const profileLinks = postElement.querySelectorAll(window.LinkPilotSelectors.links.profile);
+            for (const profileLink of profileLinks) {
+                const ariaLabelEl = profileLink.querySelector('[aria-label]');
+                if (ariaLabelEl) {
+                    const label = ariaLabelEl.getAttribute('aria-label');
+                    if (label) {
+                        const cleanLabel = label.replace(/\s*(1st|2nd|3rd|following|follow|\+|•).*$/i, '').trim();
+                        if (cleanLabel) return cleanLabel;
+                    }
+                }
+
+                const text = profileLink.innerText.trim();
+                if (text && !isMetadataLine(text)) {
+                    const firstLine = text.split('\n')[0].trim();
+                    const cleanText = firstLine.replace(/\s*(•|1st|2nd|3rd|\+).*$/g, '').trim();
+                    if (cleanText) return cleanText;
+                }
             }
+
+            const firstImg = postElement.querySelector('a[href*="/in/"] img');
+            if (firstImg) {
+                const alt = (firstImg.getAttribute('alt') || '').trim();
+                if (alt && (alt.toLowerCase().includes('profile') || alt.toLowerCase().includes('photo'))) {
+                    const cleanAlt = alt
+                        .replace(/view\s+/i, '')
+                        .replace(/’s\s+profile/i, '')
+                        .replace(/'s\s+profile/i, '')
+                        .replace(/photo\s+of\s+/i, '')
+                        .trim();
+                    if (cleanAlt) return cleanAlt;
+                }
+            }
+
             return 'Post Author';
         },
 
@@ -152,6 +187,36 @@
                     if (text) return text;
                 }
             }
+
+            const profileLinks = postElement.querySelectorAll(window.LinkPilotSelectors.links.profile);
+            let nameLink = null;
+            for (const link of profileLinks) {
+                const text = link.innerText.trim();
+                if (text && !isMetadataLine(text)) {
+                    nameLink = link;
+                    break;
+                }
+            }
+
+            if (nameLink) {
+                let current = nameLink.parentElement;
+                for (let i = 0; i < 4 && current; i++) {
+                    const paragraphs = current.querySelectorAll('p, span, div');
+                    for (const cand of paragraphs) {
+                        if (nameLink.contains(cand)) continue;
+
+                        const text = cand.innerText.trim();
+                        if (text &&
+                            text.length > 2 &&
+                            !text.includes(nameLink.innerText.split('\n')[0].trim()) &&
+                            !isMetadataLine(text)) {
+                            return text;
+                        }
+                    }
+                    current = current.parentElement;
+                }
+            }
+
             const actorContainer = postElement.querySelector('.update-components-actor, .feed-shared-actor, [class*="actor"]');
             if (actorContainer) {
                 const textLines = actorContainer.innerText.split('\n').map(l => l.trim()).filter(Boolean);

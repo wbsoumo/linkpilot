@@ -298,7 +298,7 @@ function initButtonInjection() {
 
 // Scans page and injects button into feed cards
 function injectActionButtons() {
-    // 1. Collect all candidate containers using class selectors
+    // 1. Collect all candidate containers using class selectors (excluding comment box buttons)
     const classSelectors = [
         '.feed-shared-social-action-bar',
         '.social-details-social-actions',
@@ -310,8 +310,7 @@ function injectActionButtons() {
         'div[class*="social-actions"]',
         'div[class*="social-action-bar"]',
         'div[class*="social-actions-button-bar"]',
-        'div[class*="social-details-social-actions"]',
-        '.comments-comment-box__buttons'
+        'div[class*="social-details-social-actions"]'
     ];
     
     const candidateContainers = new Set();
@@ -356,14 +355,19 @@ function injectActionButtons() {
     });
     
     candidateContainers.forEach((bar) => {
+        // Exclude containers that are inside comments list, comment boxes, or replies
+        if (bar.closest('.comments-comment-item, .comments-reply-item, .comments-comment-box, .comments-comment-box__buttons, .comment-social-bar, [class*="comment-item"], [class*="comment-box"], [class*="reply-item"]')) {
+            return;
+        }
+
         // Prevent duplicate injections
         if (bar.querySelector('.linkpilot-btn')) {
             return;
         }
         
-        console.log(`[LinkPilot AI] Injecting ✨ AI Action button into:`, bar);
+        console.log(`[LinkPilot AI] Injecting AI button into:`, bar);
         
-        // Create Sparkles Action Button
+        // Create Action Button
         const button = document.createElement('button');
         button.className = 'linkpilot-btn artdeco-button artdeco-button--muted artdeco-button--4 artdeco-button--tertiary';
         button.type = 'button';
@@ -371,13 +375,20 @@ function injectActionButtons() {
         button.style.fontWeight = 'bold';
         button.style.display = 'inline-flex';
         button.style.alignItems = 'center';
-        button.style.gap = '4px';
+        button.style.justifyContent = 'center';
+        button.style.gap = '6px';
         button.style.transition = 'background-color 0.2s';
         button.style.marginLeft = '8px'; // Add separation
+        button.style.marginRight = '8px';
+        button.style.border = '1px solid rgba(140, 140, 140, 0.4)';
+        button.style.borderRadius = '4px';
+        button.style.padding = '4px 8px';
+        button.style.cursor = 'pointer';
         
+        const iconUrl = chrome.runtime.getURL('gemini-color.png');
         button.innerHTML = `
-            <span style="font-size: 14px;">✨</span>
-            <span>AI Action</span>
+            <img src="${iconUrl}" alt="AI" style="width: 16px; height: 16px; object-fit: contain; display: inline-block;" />
+            <span style="font-size: 13px; font-weight: 600;">AI</span>
         `;
         
         // Determine if we need to wrap the button in a sibling tag type (like LI or SPAN)
@@ -390,11 +401,21 @@ function injectActionButtons() {
             wrapper.style.alignItems = 'center';
         }
         
-        if (wrapper) {
-            wrapper.appendChild(button);
-            bar.appendChild(wrapper);
+        // Place the button right after the first child (Like button) to match the layout in the image
+        if (sister) {
+            if (wrapper) {
+                wrapper.appendChild(button);
+                sister.after(wrapper);
+            } else {
+                sister.after(button);
+            }
         } else {
-            bar.appendChild(button);
+            if (wrapper) {
+                wrapper.appendChild(button);
+                bar.appendChild(wrapper);
+            } else {
+                bar.appendChild(button);
+            }
         }
         
         // Bind Click Action

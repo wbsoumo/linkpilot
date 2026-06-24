@@ -442,146 +442,141 @@ function injectActionButtons() {
             e.stopPropagation();
             
             console.log("[LinkPilot AI] Sparkles Action button clicked.");
-            
-            // Locate root post element using the new robust helper
-            const post = findPostContainer(bar);
-            activePostElement = post;
-            
-            console.log("[LinkPilot AI] Active post container found:", post);
-            openActionModal(post);
+            openActionModal(bar);
         });
     });
 }
 
-// Helper to find the main post container from the action bar
-function findPostContainer(bar) {
-    // 1. Try standard selectors first
-    const closestPost = bar.closest('div[data-urn], [data-id], article, .feed-shared-update-v2, .occludable-update, [class*="feed-shared-update"], [class*="occludable-update"], [class*="update-v2"]');
-    if (closestPost) {
-        return closestPost;
-    }
+// Scrape post contents by walking up from the action bar container
+function scrapePostDetails(bar) {
+    if (!bar) return { text: 'No text content detected.', author: 'Post Author', company: 'LinkedIn Member', postUrl: '', authorUrl: '', postElement: null };
     
-    // 2. Walk up and find the first ancestor that contains a profile/actor link or title
     let current = bar.parentElement;
-    while (current && current !== document.body) {
-        const hasActor = current.querySelector('.update-components-actor, .feed-shared-actor, [class*="actor"], a[href*="/in/"]');
-        if (hasActor && (current.tagName === 'DIV' || current.tagName === 'ARTICLE')) {
-            return current;
-        }
-        current = current.parentElement;
-    }
-    return bar.parentElement || bar;
-}
-
-// Scrape post contents
-function scrapePostDetails(postElement) {
-    if (!postElement) return { text: '', author: '', company: '', postUrl: '', authorUrl: '' };
-    
-    // 1. Post content text
-    const textSelectors = [
-        '.feed-shared-inline-show-more-text',
-        '[class*="inline-show-more-text"]',
-        '[class*="show-more-text"]',
-        '.feed-shared-update-v2__description',
-        '.feed-shared-update-v2__commentary',
-        '.update-components-text',
-        '.feed-shared-text',
-        '.feed-shared-annotated-text',
-        '.comments-comment-item__main-content',
-        '[class*="update-v2__description"]',
-        '[class*="update-v2__commentary"]',
-        '[class*="update-components-text"]',
-        '[class*="feed-shared-text"]',
-        '[class*="description"]'
-    ];
-    let text = '';
-    for (const selector of textSelectors) {
-        const el = postElement.querySelector(selector);
-        if (el) {
-            // Clone element and strip "see more" link if present so it doesn't clutter the scraped content
-            const cloned = el.cloneNode(true);
-            const seeMore = cloned.querySelector('button, .see-more, [class*="see-more"]');
-            if (seeMore) seeMore.remove();
-            text = cloned.innerText.trim();
-            break;
-        }
-    }
-    // Fallback: search broad text blocks if selectors fail
-    if (!text) {
-        const textBlock = postElement.querySelector('.feed-shared-text-view, [class*="break-words"]');
-        if (textBlock) text = textBlock.innerText.trim();
-    }
-    
-    // 2. Author Name & Company/Job Title
     let author = '';
     let company = '';
-    
-    // Attempt 1: Try finding specific title and description selectors
-    const authorEl = postElement.querySelector('.update-components-actor__title, .feed-shared-actor__title, [class*="actor__title"], [class*="actor-title"]');
-    if (authorEl) author = authorEl.innerText.split('\n')[0].trim();
-    
-    const companyEl = postElement.querySelector('.update-components-actor__description, .feed-shared-actor__description, [class*="actor__description"], [class*="actor-description"]');
-    if (companyEl) company = companyEl.innerText.trim();
-    
-    // Attempt 2: Walk the actor/author header container text lines (very robust fallback)
-    if (!author || !company) {
-        const actorContainer = postElement.querySelector('.update-components-actor, .feed-shared-actor, [class*="actor-container"], [class*="actor__container"], [class*="actor"]');
-        if (actorContainer) {
-            const textLines = actorContainer.innerText.split('\n').map(l => l.trim()).filter(Boolean);
-            // Filter out metadata lines commonly found in actor headers
-            const cleanLines = textLines.filter(line => {
-                const lower = line.toLowerCase();
-                return !lower.includes('•') && 
-                       !lower.match(/^\d+[hmdy]$/) && 
-                       !lower.includes('edited') &&
-                       lower !== '1st' && 
-                       lower !== '2nd' && 
-                       lower !== '3rd' &&
-                       lower !== 'following' &&
-                       lower !== 'follow';
-            });
-            if (cleanLines.length > 0 && !author) {
-                author = cleanLines[0];
-            }
-            if (cleanLines.length > 1 && !company) {
-                company = cleanLines[1];
-            }
-        }
-    }
-    
-    // Attempt 3: Get from profile link
-    if (!author) {
-        const profileLink = postElement.querySelector('a[href*="/in/"]');
-        if (profileLink) {
-            // Filter out any nested images/icons text
-            author = profileLink.innerText.split('\n')[0].trim();
-        }
-    }
-    
-    // 4. Author LinkedIn URL
+    let text = '';
     let authorUrl = '';
-    const authorLink = postElement.querySelector('a.app-aware-link, a[href*="/in/"]');
-    if (authorLink) {
-        authorUrl = authorLink.href.split('?')[0];
-    }
-    
-    // 5. Post URL (If available)
     let postUrl = '';
-    const urn = postElement.getAttribute('data-urn');
-    if (urn) {
-        postUrl = `https://www.linkedin.com/feed/update/${urn}`;
-    } else {
-        // Fallback: look for organic post link
-        const postLink = postElement.querySelector('a[href*="/feed/update/"]');
-        if (postLink) postUrl = postLink.href.split('?')[0];
+    let postContainer = null;
+    
+    while (current && current !== document.body) {
+        // Exclude containers inside comment sections
+        if (current.matches && current.matches('[class*="comments-"], [class*="comment-"], [class*="reply-"], .comment-social-bar')) {
+            return { text: 'No text content detected.', author: 'Post Author', company: 'LinkedIn Member', postUrl: '', authorUrl: '', postElement: null };
+        }
+        
+        // 1. Try to find the profile link and name
+        if (!author) {
+            const profileLink = current.querySelector('a[href*="/in/"]');
+            if (profileLink) {
+                author = profileLink.innerText.split('\n')[0].trim();
+                authorUrl = profileLink.href.split('?')[0];
+            }
+        }
+        
+        // 2. Try to find the actor/author headline
+        if (!company && author) {
+            const descEl = current.querySelector('.update-components-actor__description, .feed-shared-actor__description, [class*="actor-description"], [class*="actor__description"], [class*="headline"], [class*="sub-title"]');
+            if (descEl && descEl.innerText.trim() !== author) {
+                company = descEl.innerText.trim();
+            } else {
+                // Sibling/Parent text line fallback
+                const profileLink = current.querySelector('a[href*="/in/"]');
+                if (profileLink) {
+                    const actorParent = profileLink.closest('[class*="actor"], [class*="header"], [class*="profile-info"]') || profileLink.parentElement;
+                    if (actorParent) {
+                        const textLines = actorParent.innerText.split('\n').map(l => l.trim()).filter(Boolean);
+                        const cleanLines = textLines.filter(line => {
+                            const lower = line.toLowerCase();
+                            return !lower.includes('•') && 
+                                   !lower.match(/^\d+[hmdy]$/) && 
+                                   !lower.includes('edited') &&
+                                   lower !== '1st' && 
+                                   lower !== '2nd' && 
+                                   lower !== '3rd' &&
+                                   lower !== 'following' &&
+                                   lower !== 'follow' &&
+                                   !lower.includes(author.toLowerCase());
+                        });
+                        if (cleanLines.length > 0) {
+                            company = cleanLines[0];
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 3. Try to find the post description text
+        if (!text) {
+            const textSelectors = [
+                '.feed-shared-inline-show-more-text',
+                '[class*="inline-show-more-text"]',
+                '[class*="show-more-text"]',
+                '.feed-shared-update-v2__description',
+                '.feed-shared-update-v2__commentary',
+                '.update-components-text',
+                '.update-components-update-v2__commentary',
+                '.feed-shared-text',
+                '[class*="update-v2__description"]',
+                '[class*="update-v2__commentary"]',
+                '[class*="update-components-text"]',
+                '[class*="feed-shared-text"]',
+                '[class*="commentary"]',
+                '[class*="description"]'
+            ];
+            for (const selector of textSelectors) {
+                const el = current.querySelector(selector);
+                if (el && el !== bar) {
+                    const cloned = el.cloneNode(true);
+                    const seeMore = cloned.querySelector('button, .see-more, [class*="see-more"]');
+                    if (seeMore) seeMore.remove();
+                    text = cloned.innerText.trim();
+                    if (text) {
+                        postContainer = current;
+                        break;
+                    }
+                }
+            }
+            
+            // Sibling break-words search fallback
+            if (!text) {
+                const breakWords = current.querySelector('[class*="break-words"]');
+                if (breakWords && breakWords !== bar && !breakWords.closest('a[href*="/in/"]')) {
+                    text = breakWords.innerText.trim();
+                    if (text) {
+                        postContainer = current;
+                    }
+                }
+            }
+        }
+        
+        // 4. Try to find URN for post URL
+        if (!postUrl) {
+            const urn = current.getAttribute('data-urn');
+            if (urn) {
+                postUrl = `https://www.linkedin.com/feed/update/${urn}`;
+            } else {
+                const postLink = current.querySelector('a[href*="/feed/update/"]');
+                if (postLink) postUrl = postLink.href.split('?')[0];
+            }
+        }
+        
+        // Break early if we successfully found both author and post text
+        if (author && text) {
+            postContainer = current;
+            break;
+        }
+        
+        current = current.parentElement;
     }
     
     return {
-        text,
+        text: text || 'No text content detected.',
         author: author || 'Post Author',
         company: company || 'LinkedIn Member',
         postUrl,
-        authorUrl
+        authorUrl,
+        postElement: postContainer || bar.parentElement || bar
     };
 }
 
@@ -592,6 +587,7 @@ function openActionModal(postElement) {
     if (existing) existing.remove();
     
     const details = scrapePostDetails(postElement);
+    activePostElement = details.postElement;
     
     // Check session first
     chrome.runtime.sendMessage({ action: 'getSession' }, (session) => {

@@ -158,7 +158,6 @@ function updateStatistic($userId, $column, $increment = 1) {
 // Call OpenRouter API
 function callOpenRouter($systemPrompt, $userPrompt, $userId = null) {
     $apiKey = OPENROUTER_API_KEY;
-    $model = OPENROUTER_MODEL;
     
     if ($userId !== null) {
         try {
@@ -183,48 +182,79 @@ function callOpenRouter($systemPrompt, $userPrompt, $userId = null) {
         throw new Exception("OpenRouter API Key not configured. Please go to your LinkPilot Dashboard settings (SMTP & AI Configuration) and save your OpenRouter API Key.");
     }
     
-    $headers = [
-        "Authorization: Bearer " . $apiKey,
-        "Content-Type: application/json",
-        "HTTP-Referer: http://localhost:8000",
-        "X-Title: LinkPilot AI"
+    $modelsToTry = [
+        OPENROUTER_MODEL,
+        'google/gemini-2.5-flash:free',
+        'google/gemini-2.5-flash',
+        'meta-llama/llama-3.3-70b-instruct:free',
+        'google/gemini-2.0-flash-lite:free',
+        'meta-llama/llama-3.1-8b-instruct:free',
+        'meta-llama/llama-3-8b-instruct:free',
+        'google/gemini-2.0-flash-exp'
     ];
-    
-    $postFields = [
-        "model" => $model,
-        "messages" => [
-            ["role" => "system", "content" => $systemPrompt],
-            ["role" => "user", "content" => $userPrompt]
-        ]
-    ];
-    
-    $ch = curl_init("https://openrouter.ai/api/v1/chat/completions");
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $error = curl_error($ch);
-    curl_close($ch);
-    
-    if ($error) {
-        throw new Exception("OpenRouter connection error: " . $error);
+    $modelsToTry = array_unique($modelsToTry);
+
+    $lastError = '';
+
+    foreach ($modelsToTry as $currentModel) {
+        try {
+            $headers = [
+                "Authorization: Bearer " . $apiKey,
+                "Content-Type: application/json",
+                "HTTP-Referer: http://localhost:8000",
+                "X-Title: LinkPilot AI"
+            ];
+            
+            $postFields = [
+                "model" => $currentModel,
+                "messages" => [
+                    ["role" => "system", "content" => $systemPrompt],
+                    ["role" => "user", "content" => $userPrompt]
+                ]
+            ];
+            
+            $ch = curl_init("https://openrouter.ai/api/v1/chat/completions");
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
+            curl_close($ch);
+            
+            if ($error) {
+                throw new Exception("OpenRouter connection error: " . $error);
+            }
+            
+            $data = json_decode($response, true);
+            if ($httpCode !== 200) {
+                // If it's an authorization/invalid key issue, stop trying other models and throw immediately
+                if (isset($data['error']['code']) && $data['error']['code'] === 401) {
+                    throw new Exception("Unauthorized: Invalid OpenRouter API Key.");
+                }
+                $msg = $data['error']['message'] ?? "Unknown OpenRouter Error";
+                throw new Exception("OpenRouter API Error (HTTP {$httpCode}) with model {$currentModel}: " . $msg);
+            }
+            
+            $generatedText = $data['choices'][0]['message']['content'] ?? '';
+            $tokensUsed = $data['usage']['total_tokens'] ?? 0;
+            
+            return [
+                "text" => trim($generatedText),
+                "tokens" => $tokensUsed
+            ];
+        } catch (Exception $ex) {
+            $lastError = $ex->getMessage();
+            // If it's an API Key or Authorization error, throw immediately
+            if (strpos($lastError, 'Unauthorized') !== false || strpos($lastError, 'API Key') !== false) {
+                throw $ex;
+            }
+            // Otherwise proceed to next model in list
+        }
     }
-    
-    $data = json_decode($response, true);
-    if ($httpCode !== 200) {
-        $msg = $data['error']['message'] ?? "Unknown OpenRouter Error";
-        throw new Exception("OpenRouter API Error (HTTP {$httpCode}): " . $msg);
-    }
-    
-    $generatedText = $data['choices'][0]['message']['content'] ?? '';
-    $tokensUsed = $data['usage']['total_tokens'] ?? 0;
-    
-    return [
-        "text" => trim($generatedText),
-        "tokens" => $tokensUsed
-    ];
+
+    throw new Exception("Failed to generate outreach content using OpenRouter. Last error: " . $lastError);
 }

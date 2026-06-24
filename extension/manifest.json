@@ -12,7 +12,19 @@
     "https://*.linkedin.com/*",
     "https://linkpilot.work/*"
   ],
+  "icons": {
+    "16": "logo.png",
+    "32": "logo.png",
+    "48": "logo.png",
+    "128": "logo.png"
+  },
   "action": {
+    "default_icon": {
+      "16": "logo.png",
+      "32": "logo.png",
+      "48": "logo.png",
+      "128": "logo.png"
+    },
     "default_popup": "popup.html",
     "default_title": "LinkPilot AI"
   },
@@ -33,7 +45,8 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "gemini-color.png"
+        "gemini-color.png",
+        "logo.png"
       ],
       "matches": [
         "https://*.linkedin.com/*"

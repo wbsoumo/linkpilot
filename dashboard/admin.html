@@ -240,6 +240,9 @@
 
             } catch (err) {
                 showNotification('error', err.message || 'Failed to load Admin Control center.');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
             }
         }
 

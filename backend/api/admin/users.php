@@ -55,12 +55,17 @@ try {
                 sendJsonResponse('error', 'User not found.', [], 404);
             }
             
-            $newRole = ($currentRole === 'admin') ? 'user' : 'admin';
+            // Strictly disable promoting any user to admin to ensure only the original admin exists
+            if ($currentRole !== 'admin') {
+                sendJsonResponse('error', 'Promoting users to Admin privilege is disabled to secure the platform.', [], 403);
+            }
+            
+            $newRole = 'user';
             $stmtUpdate = $db->prepare("UPDATE users SET role = ? WHERE id = ?");
             $stmtUpdate->execute([$newRole, $targetUserId]);
             
-            logActivity($adminId, "Toggled role for user ID {$targetUserId} to: {$newRole}");
-            sendJsonResponse('success', "User role updated successfully to {$newRole}.");
+            logActivity($adminId, "Demoted admin user ID {$targetUserId} to regular user.");
+            sendJsonResponse('success', "User role updated successfully to regular user.");
             
         } elseif ($action === 'delete') {
             // Delete user (cascade will clean up user_profiles, stats, logs, etc.)

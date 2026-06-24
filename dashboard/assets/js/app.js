@@ -278,6 +278,31 @@ document.addEventListener('DOMContentLoaded', () => {
     requireAuth();
     setupNavigation();
     
+    // Refresh user profile details asynchronously to sync roles securely
+    apiCall('profile/get.php').then(data => {
+        if (data.user) {
+            const localUser = getCurrentUser();
+            if (localUser) {
+                localUser.role = data.user.role;
+                localUser.name = data.user.name;
+                localUser.email = data.user.email;
+                localStorage.setItem('linkpilot_user', JSON.stringify(localUser));
+                
+                // Re-setup navigation to reflect correct role
+                const adminLink = document.getElementById('admin-nav-link');
+                if (adminLink) {
+                    if (data.user.role === 'admin') {
+                        adminLink.classList.remove('hidden');
+                    } else {
+                        adminLink.classList.add('hidden');
+                    }
+                }
+            }
+        }
+    }).catch(err => {
+        console.error("Failed to sync user role from server:", err);
+    });
+    
     // Register Logout button handler
     const logoutBtn = document.getElementById('logout-action-btn');
     if (logoutBtn) {

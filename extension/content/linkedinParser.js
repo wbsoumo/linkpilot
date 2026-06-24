@@ -41,6 +41,44 @@
         return !el.closest(blacklistedAncestors.join(', '));
     };
 
+    /**
+     * Helper to find the main social action bar by walking up from a button/link.
+     * @param {HTMLElement} btn
+     * @returns {HTMLElement|null}
+     */
+    const findMainActionBar = (btn) => {
+        let current = btn.parentElement;
+        while (current && current !== document.body) {
+            if (window.isMainActionBar(current)) {
+                return current;
+            }
+            current = current.parentElement;
+        }
+        return null;
+    };
+
+    /**
+     * Helper to find the main post container from the action bar.
+     * @param {HTMLElement} bar
+     * @returns {HTMLElement}
+     */
+    const findPostContainer = (bar) => {
+        const closestPost = bar.closest('div[data-urn], [data-id], article, .feed-shared-update-v2, .occludable-update, [class*="feed-shared-update"], [class*="occludable-update"], [class*="update-v2"]');
+        if (closestPost) {
+            return closestPost;
+        }
+        
+        let current = bar.parentElement;
+        while (current && current !== document.body) {
+            const hasActor = current.querySelector('.update-components-actor, .feed-shared-actor, [class*="actor"], a[href*="/in/"]');
+            if (hasActor && (current.tagName === 'DIV' || current.tagName === 'ARTICLE')) {
+                return current;
+            }
+            current = current.parentElement;
+        }
+        return bar.parentElement || bar;
+    };
+
     window.LinkPilotParser = {
         /**
          * Find all valid feed posts inside a given root node.
@@ -48,16 +86,36 @@
          * @returns {Array<HTMLElement>}
          */
         findFeedPosts: (root = document) => {
-            const posts = [];
-            const selectors = window.LinkPilotSelectors.post;
-
-            root.querySelectorAll(selectors.join(', ')).forEach(el => {
-                if (el instanceof HTMLElement && isValidFeedPost(el)) {
-                    posts.push(el);
+            const posts = new Set();
+            
+            // Gather elements that look like Comment/Like buttons
+            const interactiveElements = root.querySelectorAll('button, [role="button"], a');
+            interactiveElements.forEach(btn => {
+                const label = (btn.getAttribute('aria-label') || '').toLowerCase();
+                const text = (btn.textContent || btn.innerText || '').toLowerCase().trim();
+                const className = (btn.className || '').toLowerCase();
+                
+                const isCommentOrLike = 
+                    label.includes('comment') || 
+                    label.includes('like') || 
+                    label.includes('react') || 
+                    className.includes('comment') || 
+                    className.includes('react') || 
+                    text === 'comment' || 
+                    text === 'like';
+                    
+                if (isCommentOrLike) {
+                    const bar = findMainActionBar(btn);
+                    if (bar) {
+                        const post = findPostContainer(bar);
+                        if (post && isValidFeedPost(post)) {
+                            posts.add(post);
+                        }
+                    }
                 }
             });
 
-            return posts;
+            return Array.from(posts);
         },
 
         /**

@@ -355,8 +355,8 @@ function injectActionButtons() {
     });
     
     candidateContainers.forEach((bar) => {
-        // Exclude containers that are inside comments list, comment boxes, or replies
-        if (bar.closest('.comments-comment-item, .comments-reply-item, .comments-comment-box, .comments-comment-box__buttons, .comment-social-bar, [class*="comment-item"], [class*="comment-box"], [class*="reply-item"]')) {
+        // Exclude containers that are inside comments list, comment boxes, replies, or any comment-related area
+        if (bar.closest('[class*="comments-"], [class*="comment-"], [class*="reply-"], .comment-social-bar, .comments-shared-social-action-bar')) {
             return;
         }
 
@@ -401,21 +401,12 @@ function injectActionButtons() {
             wrapper.style.alignItems = 'center';
         }
         
-        // Place the button right after the first child (Like button) to match the layout in the image
-        if (sister) {
-            if (wrapper) {
-                wrapper.appendChild(button);
-                sister.after(wrapper);
-            } else {
-                sister.after(button);
-            }
+        // Append the button to the end of the action bar (after the Share/Send icon)
+        if (wrapper) {
+            wrapper.appendChild(button);
+            bar.appendChild(wrapper);
         } else {
-            if (wrapper) {
-                wrapper.appendChild(button);
-                bar.appendChild(wrapper);
-            } else {
-                bar.appendChild(button);
-            }
+            bar.appendChild(button);
         }
         
         // Bind Click Action

@@ -37,7 +37,15 @@
         "https://*.linkedin.com/*"
       ],
       "js": [
-        "content.js"
+        "content/logger.js",
+        "content/selectors.js",
+        "content/utils.js",
+        "content/storage.js",
+        "content/linkedinParser.js",
+        "content/commentHandler.js",
+        "content/injector.js",
+        "content/observer.js",
+        "content/content.js"
       ],
       "run_at": "document_end"
     }

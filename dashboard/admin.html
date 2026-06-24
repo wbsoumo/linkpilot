@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - LinkPilot AI</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="h-full bg-slate-950 text-slate-100 flex flex-col">
+    <!-- Top Navigation -->
+    <nav class="glass-panel rounded-none border-t-0 border-x-0 sticky top-0 z-40 bg-slate-900/80 text-white px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-8">
+            <a href="index.html" class="flex items-center space-x-2 text-xl font-bold tracking-wider">
+                <span class="text-teal-400">✨ LinkPilot</span> <span class="text-xs px-2 py-0.5 bg-slate-800 text-teal-400 border border-slate-700 rounded-full font-semibold">AI</span>
+            </a>
+            <div class="hidden md:flex items-center space-x-1">
+                <a href="index.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">Dashboard</a>
+                <a href="history.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">History</a>
+                <a href="smtp.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">SMTP Settings</a>
+                <a href="profile.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">Profile</a>
+                <a href="admin.html" id="admin-nav-link" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150 hidden">Admin</a>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="text-right hidden sm:block">
+                <div class="text-sm font-semibold user-name-display">Loading...</div>
+                <div class="text-xs text-slate-400 user-email-display">...</div>
+            </div>
+            <div class="h-9 w-9 rounded-full bg-teal-500 text-slate-950 font-bold flex items-center justify-center border border-teal-400" id="user-avatar-initials">
+                LP
+            </div>
+            <button id="logout-action-btn" class="p-2 text-slate-400 hover:text-red-400 rounded-lg hover:bg-slate-800/50 transition">
+                <i data-lucide="log-out" class="h-5 w-5"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow p-6 md:p-8 space-y-8 max-w-7xl w-full mx-auto animate-fade-in">
+        <div>
+            <h1 class="text-2xl font-extrabold text-white">System Admin Control Center</h1>
+            <p class="text-slate-400 text-sm mt-1">Review global platform statistics, manage registered users, and audit system logs.</p>
+        </div>
+
+        <!-- Admin Metrics Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Total Users -->
+            <div class="glass-panel p-6 bg-slate-900/40 border-slate-800 flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Total Users</span>
+                    <span class="text-3xl font-extrabold text-white mt-1 block" id="admin-stat-total-users">0</span>
+                    <span class="text-xs text-slate-500 mt-1 block" id="admin-stat-active-users">0 active last 30d</span>
+                </div>
+                <div class="p-3 bg-teal-500/10 text-teal-400 rounded-lg"><i data-lucide="users" class="h-6 w-6"></i></div>
+            </div>
+
+            <!-- Total AI Requests -->
+            <div class="glass-panel p-6 bg-slate-900/40 border-slate-800 flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">AI Requests</span>
+                    <span class="text-3xl font-extrabold text-white mt-1 block" id="admin-stat-ai-requests">0</span>
+                    <span class="text-xs text-slate-500 mt-1 block">System-wide requests</span>
+                </div>
+                <div class="p-3 bg-indigo-500/10 text-indigo-400 rounded-lg"><i data-lucide="cpu" class="h-6 w-6"></i></div>
+            </div>
+
+            <!-- Outbox Stats -->
+            <div class="glass-panel p-6 bg-slate-900/40 border-slate-800 flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Outbox Traffic</span>
+                    <span class="text-3xl font-extrabold text-white mt-1 block" id="admin-stat-emails-sent">0</span>
+                    <span class="text-xs text-slate-500 mt-1 block" id="admin-stat-others-generated">Comments / WhatsApp</span>
+                </div>
+                <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-lg"><i data-lucide="send" class="h-6 w-6"></i></div>
+            </div>
+
+            <!-- Token Usage & Cost -->
+            <div class="glass-panel p-6 bg-slate-900/40 border-slate-800 flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">API Usage (Billing)</span>
+                    <span class="text-xl font-extrabold text-white mt-1 block" id="admin-stat-tokens-used">0 tokens</span>
+                    <span class="text-xs text-teal-400 font-bold mt-1 block" id="admin-stat-estimated-cost">Est. Cost: $0.00</span>
+                </div>
+                <div class="p-3 bg-amber-500/10 text-amber-400 rounded-lg"><i data-lucide="credit-card" class="h-6 w-6"></i></div>
+            </div>
+        </div>
+
+        <!-- Section: User Management -->
+        <div class="glass-panel bg-slate-900/40 border-slate-800 p-6 space-y-4">
+            <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                <i data-lucide="shield-alert" class="h-5 w-5 text-teal-400"></i>
+                <span>User Management</span>
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse custom-table">
+                    <thead>
+                        <tr class="border-b border-slate-800">
+                            <th class="py-3 px-4">User</th>
+                            <th class="py-3 px-4">Type</th>
+                            <th class="py-3 px-4">Company</th>
+                            <th class="py-3 px-4">Role</th>
+                            <th class="py-3 px-4">Requests</th>
+                            <th class="py-3 px-4">Registered</th>
+                            <th class="py-3 px-4 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-users-table-body" class="divide-y divide-slate-800/50">
+                        <tr>
+                            <td colspan="7" class="py-8 text-center text-slate-500 text-sm">Loading users list...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Section: Audit Log -->
+        <div class="glass-panel bg-slate-900/40 border-slate-800 p-6 space-y-4">
+            <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                <i data-lucide="history" class="h-5 w-5 text-teal-400"></i>
+                <span>System Audit Logs</span>
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse custom-table">
+                    <thead>
+                        <tr class="border-b border-slate-800">
+                            <th class="py-3 px-4">User</th>
+                            <th class="py-3 px-4">Action</th>
+                            <th class="py-3 px-4">IP Address</th>
+                            <th class="py-3 px-4">Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-logs-table-body" class="divide-y divide-slate-800/50">
+                        <tr>
+                            <td colspan="4" class="py-8 text-center text-slate-500 text-sm">Loading system audits...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Central JS Handler -->
+    <script src="assets/js/app.js"></script>
+    <script>
+        // Check admin role before running
+        function verifyAdminAccess() {
+            const user = getCurrentUser();
+            if (!user || user.role !== 'admin') {
+                showNotification('danger', 'Unauthorized. Redirecting to user dashboard.');
+                setTimeout(() => window.location.href = 'index.html', 1500);
+            }
+        }
+
+        async function loadAdminDashboard() {
+            try {
+                // 1. Fetch Stats
+                const statsRes = await apiCall('admin/dashboard.php');
+                document.getElementById('admin-stat-total-users').textContent = statsRes.statistics.total_users;
+                document.getElementById('admin-stat-active-users').textContent = `${statsRes.statistics.active_users} active last 30d`;
+                document.getElementById('admin-stat-ai-requests').textContent = statsRes.statistics.ai_requests;
+                document.getElementById('admin-stat-emails-sent').textContent = statsRes.statistics.emails_sent;
+                
+                const otherGens = statsRes.statistics.whatsapp_generated + statsRes.statistics.comments_generated;
+                document.getElementById('admin-stat-others-generated').textContent = `${statsRes.statistics.whatsapp_generated} WhatsApp, ${statsRes.statistics.comments_generated} Comments`;
+                
+                document.getElementById('admin-stat-tokens-used').textContent = statsRes.statistics.tokens_used.toLocaleString();
+                document.getElementById('admin-stat-estimated-cost').textContent = `Est. Cost: $${statsRes.statistics.estimated_cost_usd}`;
+
+                // 2. Fetch Users
+                const usersRes = await apiCall('admin/users.php');
+                const usersTableBody = document.getElementById('admin-users-table-body');
+                
+                if (usersRes.users.length === 0) {
+                    usersTableBody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-500">No users found.</td></tr>`;
+                } else {
+                    const currentUser = getCurrentUser();
+                    usersTableBody.innerHTML = usersRes.users.map(u => {
+                        const date = new Date(u.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                        const isSelf = u.id === currentUser.id;
+                        
+                        const roleColor = u.role === 'admin' ? 'bg-teal-500/10 text-teal-400 border-teal-500/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+                        
+                        const actionButtons = isSelf ? 
+                            `<span class="text-xs text-slate-500 italic px-3">Current Admin</span>` : 
+                            `<div class="flex justify-end space-x-2">
+                                <button onclick="toggleUserRole(${u.id})" class="px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-md text-xs font-semibold hover:border-teal-400 hover:text-teal-400 transition">Change Privilege</button>
+                                <button onclick="deleteUser(${u.id})" class="px-2.5 py-1 bg-red-950/20 border border-red-900/30 rounded-md text-xs font-semibold text-red-400 hover:bg-red-900/40 transition">Delete</button>
+                             </div>`;
+
+                        return `
+                            <tr class="hover:bg-slate-900/40">
+                                <td class="py-3 px-4">
+                                    <div class="font-semibold text-white">${u.name}</div>
+                                    <div class="text-xs text-slate-500">${u.email}</div>
+                                </td>
+                                <td class="py-3 px-4 text-sm text-slate-300">${u.user_type || '<span class="text-slate-600">-</span>'}</td>
+                                <td class="py-3 px-4 text-sm text-slate-300">${u.company_name || '<span class="text-slate-600">-</span>'}</td>
+                                <td class="py-3 px-4">
+                                    <span class="px-2 py-0.5 text-xs border rounded-full font-medium ${roleColor}">${u.role.toUpperCase()}</span>
+                                </td>
+                                <td class="py-3 px-4 text-sm text-slate-300 font-bold">${u.total_requests || 0}</td>
+                                <td class="py-3 px-4 text-sm text-slate-400">${date}</td>
+                                <td class="py-3 px-4 text-right">${actionButtons}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+
+                // 3. Fetch Logs
+                const logsRes = await apiCall('admin/logs.php');
+                const logsTableBody = document.getElementById('admin-logs-table-body');
+                
+                if (logsRes.logs.length === 0) {
+                    logsTableBody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-slate-500">No logs found.</td></tr>`;
+                } else {
+                    logsTableBody.innerHTML = logsRes.logs.map(log => {
+                        const date = new Date(log.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                        return `
+                            <tr class="hover:bg-slate-900/40">
+                                <td class="py-3 px-4">
+                                    <div class="font-semibold text-white">${log.user_name}</div>
+                                    <div class="text-xs text-slate-500">${log.user_email}</div>
+                                </td>
+                                <td class="py-3 px-4 text-sm text-slate-300">${log.action}</td>
+                                <td class="py-3 px-4 text-sm text-slate-400 font-mono">${log.ip_address || '-'}</td>
+                                <td class="py-3 px-4 text-sm text-slate-400">${date}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+                
+                lucide.createIcons();
+
+            } catch (err) {
+                showNotification('error', err.message || 'Failed to load Admin Control center.');
+            }
+        }
+
+        // Toggle user admin/user role
+        async function toggleUserRole(userId) {
+            if (!confirm('Are you sure you want to change this user\'s access privilege level?')) return;
+            try {
+                const res = await apiCall('admin/users.php', 'POST', { action: 'toggle_role', user_id: userId });
+                showNotification('success', res.message);
+                loadAdminDashboard();
+            } catch (err) {
+                showNotification('error', err.message);
+            }
+        }
+
+        // Delete user
+        async function deleteUser(userId) {
+            if (!confirm('WARNING: Deleting this user will permanently erase their profile, SMTP configurations, generations, leads, and analytics. This cannot be undone. Proceed?')) return;
+            try {
+                const res = await apiCall('admin/users.php', 'POST', { action: 'delete', user_id: userId });
+                showNotification('success', res.message);
+                loadAdminDashboard();
+            } catch (err) {
+                showNotification('error', err.message);
+            }
+        }
+
+        // Initialize Admin page
+        document.addEventListener('DOMContentLoaded', () => {
+            verifyAdminAccess();
+            loadAdminDashboard();
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

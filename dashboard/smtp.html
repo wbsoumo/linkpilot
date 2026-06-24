@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect SMTP - LinkPilot AI</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="h-full bg-slate-950 text-slate-100 flex flex-col">
+    <!-- Top Navigation -->
+    <nav class="glass-panel rounded-none border-t-0 border-x-0 sticky top-0 z-40 bg-slate-900/80 text-white px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-8">
+            <a href="index.html" class="flex items-center space-x-2 text-xl font-bold tracking-wider">
+                <span class="text-teal-400">✨ LinkPilot</span> <span class="text-xs px-2 py-0.5 bg-slate-800 text-teal-400 border border-slate-700 rounded-full font-semibold">AI</span>
+            </a>
+            <div class="hidden md:flex items-center space-x-1">
+                <a href="index.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">Dashboard</a>
+                <a href="history.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">History</a>
+                <a href="smtp.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">SMTP Settings</a>
+                <a href="profile.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">Profile</a>
+                <a href="admin.html" id="admin-nav-link" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150 hidden">Admin</a>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="text-right hidden sm:block">
+                <div class="text-sm font-semibold user-name-display">Loading...</div>
+                <div class="text-xs text-slate-400 user-email-display">...</div>
+            </div>
+            <div class="h-9 w-9 rounded-full bg-teal-500 text-slate-950 font-bold flex items-center justify-center border border-teal-400" id="user-avatar-initials">
+                LP
+            </div>
+            <button id="logout-action-btn" class="p-2 text-slate-400 hover:text-red-400 rounded-lg hover:bg-slate-800/50 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow flex items-center justify-center p-6 bg-gradient-to-tr from-slate-950 via-slate-900 to-slate-950">
+        <div class="max-w-xl w-full animate-fade-in">
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-extrabold text-white tracking-tight">Connect Your SMTP Account</h1>
+                <p class="text-sm text-slate-400 mt-1">Configure SMTP details to send generated outreach emails directly.</p>
+            </div>
+            
+            <div class="glass-panel p-8 bg-slate-900/60 border border-slate-800 rounded-2xl shadow-2xl">
+                <form id="smtp-form" class="space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-2">
+                            <label for="host" class="block text-xs font-semibold text-slate-400 uppercase">SMTP Host *</label>
+                            <input id="host" name="host" type="text" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="smtp.mailgun.org">
+                        </div>
+                        <div>
+                            <label for="port" class="block text-xs font-semibold text-slate-400 uppercase">SMTP Port *</label>
+                            <input id="port" name="port" type="number" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="587">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="username" class="block text-xs font-semibold text-slate-400 uppercase">SMTP Username *</label>
+                        <input id="username" name="username" type="text" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="postmaster@yourdomain.com">
+                    </div>
+
+                    <div>
+                        <label for="password" class="block text-xs font-semibold text-slate-400 uppercase">SMTP Password *</label>
+                        <input id="password" name="password" type="password" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="••••••••">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="sender_name" class="block text-xs font-semibold text-slate-400 uppercase">Sender Name *</label>
+                            <input id="sender_name" name="sender_name" type="text" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="John Doe">
+                        </div>
+                        <div>
+                            <label for="sender_email" class="block text-xs font-semibold text-slate-400 uppercase">Sender Email *</label>
+                            <input id="sender_email" name="sender_email" type="email" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="john@yourdomain.com">
+                        </div>
+                    </div>
+
+                    <div class="pt-4 flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
+                        <button type="button" id="test-connection-btn" class="flex-1 py-3 px-4 rounded-md border border-slate-700 hover:border-teal-500 font-semibold text-sm hover:text-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150">
+                            Test Connection
+                        </button>
+                        <button type="submit" class="flex-1 py-3 px-4 rounded-md border border-transparent font-semibold text-sm text-slate-950 bg-teal-400 hover:bg-teal-300 focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150">
+                            Save Configuration
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Central JS Handler -->
+    <script src="assets/js/app.js"></script>
+    <script>
+        // Load existing SMTP settings on load
+        async function loadSMTPSettings() {
+            try {
+                const data = await apiCall('profile/get.php');
+                if (data.smtp) {
+                    document.getElementById('host').value = data.smtp.host || '';
+                    document.getElementById('port').value = data.smtp.port || '';
+                    document.getElementById('username').value = data.smtp.username || '';
+                    document.getElementById('sender_name').value = data.smtp.sender_name || '';
+                    document.getElementById('sender_email').value = data.smtp.sender_email || '';
+                    // Placeholder for password since it's encrypted and hidden
+                    document.getElementById('password').value = '••••••••';
+                }
+            } catch (err) {
+                console.error("Error loading SMTP configuration:", err);
+            }
+        }
+
+        // Test SMTP connection button
+        document.getElementById('test-connection-btn').addEventListener('click', async () => {
+            const host = document.getElementById('host').value;
+            const port = document.getElementById('port').value;
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const senderName = document.getElementById('sender_name').value;
+            const senderEmail = document.getElementById('sender_email').value;
+
+            if (!host || !port || !username || !password || !senderName || !senderEmail) {
+                showNotification('warning', 'Please fill out all fields before testing.');
+                return;
+            }
+
+            const btn = document.getElementById('test-connection-btn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="flex justify-center items-center"><span class="loader-spinner mr-2"></span>Testing...</span>`;
+
+            try {
+                // If password is still placeholder, use saved credentials test
+                const payload = password === '••••••••' ? { use_saved: true } : {
+                    host, port, username, password, sender_name: senderName, sender_email: senderEmail, use_saved: false
+                };
+                
+                const res = await apiCall('smtp/test.php', 'POST', payload);
+                showNotification('success', res.message || 'SMTP Connection Test Successful!');
+            } catch (err) {
+                showNotification('error', err.message || 'SMTP Connection Test Failed.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        });
+
+        // Submit form
+        document.getElementById('smtp-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            setFormLoading('smtp-form', true);
+            
+            const host = document.getElementById('host').value;
+            const port = document.getElementById('port').value;
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const senderName = document.getElementById('sender_name').value;
+            const senderEmail = document.getElementById('sender_email').value;
+
+            const payload = {
+                host,
+                port: parseInt(port),
+                username,
+                password,
+                sender_name: senderName,
+                sender_email: senderEmail
+            };
+
+            try {
+                await apiCall('smtp/save.php', 'POST', payload);
+                showNotification('success', 'SMTP settings saved successfully!');
+                
+                // Redirect to dashboard
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+            } catch (err) {
+                showNotification('error', err.message || 'Failed to save SMTP configuration.');
+            } finally {
+                setFormLoading('smtp-form', false);
+            }
+        });
+
+        // Initialize SMTP page
+        loadSMTPSettings();
+    </script>
+</body>
+</html>

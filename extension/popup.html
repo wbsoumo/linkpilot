@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            width: 320px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #0F172A;
+            color: #F8FAFC;
+            margin: 0;
+            padding: 16px;
+        }
+        h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        .teal-text {
+            color: #14B8A6;
+            margin-right: 4px;
+        }
+        p {
+            font-size: 12px;
+            color: #94A3B8;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        label {
+            display: block;
+            font-size: 10px;
+            font-weight: 600;
+            color: #94A3B8;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            background-color: #1E293B;
+            border: 1px solid #334155;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            outline: none;
+        }
+        input:focus {
+            border-color: #14B8A6;
+        }
+        button {
+            width: 100%;
+            background-color: #14B8A6;
+            color: #0F172A;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #0D9488;
+        }
+        .btn-secondary {
+            background-color: transparent;
+            color: #F8FAFC;
+            border: 1px solid #334155;
+            margin-top: 8px;
+        }
+        .btn-secondary:hover {
+            background-color: #1E293B;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .menu-link {
+            display: block;
+            padding: 10px 12px;
+            background-color: #1E293B;
+            border: 1px solid #334155;
+            color: #E2E8F0;
+            text-decoration: none;
+            font-size: 13px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            text-align: center;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .menu-link:hover {
+            border-color: #14B8A6;
+            color: #14B8A6;
+        }
+        .error-message {
+            color: #EF4444;
+            font-size: 11px;
+            margin-top: 6px;
+            text-align: center;
+        }
+        .footer {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 10px;
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+    <div id="login-view">
+        <h2><span class="teal-text">✨ LinkPilot</span> AI</h2>
+        <p>Log in to active your LinkedIn outreach assistant.</p>
+        
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="you@example.com">
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="••••••••">
+        </div>
+        
+        <button id="login-btn">Log In</button>
+        <div id="login-error" class="error-message"></div>
+        
+        <div class="footer">
+            Don't have an account? Register on the web dashboard.
+        </div>
+    </div>
+
+    <div id="dashboard-view" class="hidden">
+        <h2><span class="teal-text">✨ Welcome back,</span> <span id="user-name">User</span></h2>
+        <p>Your LinkPilot Chrome assistant is active and running.</p>
+        
+        <a href="#" id="open-dashboard-btn" class="menu-link">Open Dashboard Overview</a>
+        <a href="#" id="open-smtp-btn" class="menu-link">SMTP Settings</a>
+        <a href="#" id="open-leads-btn" class="menu-link">Lead Vault</a>
+        
+        <button id="logout-btn" class="btn-secondary">Log Out</button>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

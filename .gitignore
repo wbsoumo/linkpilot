@@ -1,0 +1,10 @@
+# LinkPilot AI Git Ignore Rules
+# Exclude sensitive configuration settings containing database passwords
+backend/config.php
+
+# Exclude system files and IDE configurations
+.DS_Store
+.vscode/
+.idea/
+*.log
+*.tmp

@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "LinkPilot AI",
+  "version": "1.0",
+  "description": "Generate personalized outreach emails, comments, and WhatsApp messages directly from LinkedIn posts.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://*.linkedin.com/*",
+    "https://linkpilot.work/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "LinkPilot AI"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.linkedin.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_end"
+    }
+  ]
+}

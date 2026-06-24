@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Vault - LinkPilot AI</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="h-full bg-slate-950 text-slate-100 flex flex-col">
+    <!-- Top Navigation -->
+    <nav class="glass-panel rounded-none border-t-0 border-x-0 sticky top-0 z-40 bg-slate-900/80 text-white px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-8">
+            <a href="index.html" class="flex items-center space-x-2 text-xl font-bold tracking-wider">
+                <span class="text-teal-400">✨ LinkPilot</span> <span class="text-xs px-2 py-0.5 bg-slate-800 text-teal-400 border border-slate-700 rounded-full font-semibold">AI</span>
+            </a>
+            <div class="hidden md:flex items-center space-x-1">
+                <a href="index.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">Dashboard</a>
+                <a href="history.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">History</a>
+                <a href="smtp.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">SMTP Settings</a>
+                <a href="profile.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">Profile</a>
+                <a href="admin.html" id="admin-nav-link" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150 hidden">Admin</a>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="text-right hidden sm:block">
+                <div class="text-sm font-semibold user-name-display">Loading...</div>
+                <div class="text-xs text-slate-400 user-email-display">...</div>
+            </div>
+            <div class="h-9 w-9 rounded-full bg-teal-500 text-slate-950 font-bold flex items-center justify-center border border-teal-400" id="user-avatar-initials">
+                LP
+            </div>
+            <button id="logout-action-btn" class="p-2 text-slate-400 hover:text-red-400 rounded-lg hover:bg-slate-800/50 transition">
+                <i data-lucide="log-out" class="h-5 w-5"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow p-6 md:p-8 space-y-6 max-w-7xl w-full mx-auto animate-fade-in">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+            <div>
+                <h1 class="text-2xl font-extrabold text-white">Lead Vault</h1>
+                <p class="text-slate-400 text-sm mt-1">Manage and export leads captured automatically by the LinkPilot extension.</p>
+            </div>
+            <div>
+                <button onclick="exportLeads()" class="flex items-center space-x-2 px-4 py-2 bg-teal-400 text-slate-950 font-semibold rounded-lg text-sm hover:bg-teal-300 transition shadow-lg shadow-teal-500/10">
+                    <i data-lucide="download" class="h-4 w-4"></i>
+                    <span>Export Leads (CSV)</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Filters Grid -->
+        <div class="glass-panel p-4 bg-slate-900/40 border-slate-800 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <!-- Keyword Search -->
+            <div class="relative">
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Search Contacts</label>
+                <div class="relative">
+                    <input type="text" id="lead-search" oninput="triggerFilters()" class="w-full pl-10 pr-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm" placeholder="Search name, company, email...">
+                    <i data-lucide="search" class="absolute left-3 top-2.5 h-4 w-4 text-slate-500"></i>
+                </div>
+            </div>
+
+            <!-- Filter by Company -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Filter Company</label>
+                <select id="filter-company" onchange="fetchLeads()" class="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm">
+                    <option value="">All Companies</option>
+                </select>
+            </div>
+
+            <!-- Filter by Source -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Filter Source</label>
+                <select id="filter-source" onchange="fetchLeads()" class="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm">
+                    <option value="">All Sources</option>
+                </select>
+            </div>
+
+            <!-- Reset Filters -->
+            <div>
+                <button onclick="resetFilters()" class="w-full py-2 border border-slate-700 hover:border-slate-500 rounded-lg text-sm hover:text-white font-semibold transition">
+                    Reset Filters
+                </button>
+            </div>
+        </div>
+
+        <!-- Leads Table -->
+        <div class="glass-panel bg-slate-900/40 border-slate-800 overflow-x-auto">
+            <table class="w-full text-left border-collapse custom-table">
+                <thead>
+                    <tr class="border-b border-slate-800">
+                        <th class="py-4 px-6">Name</th>
+                        <th class="py-4 px-6">Company</th>
+                        <th class="py-4 px-6">Contact Info</th>
+                        <th class="py-4 px-6">Post Details</th>
+                        <th class="py-4 px-6">Source</th>
+                        <th class="py-4 px-6">Date Added</th>
+                    </tr>
+                </thead>
+                <tbody id="leads-table-body" class="divide-y divide-slate-800/50">
+                    <tr>
+                        <td colspan="6" class="py-12 text-center text-slate-500 text-sm">Loading contacts data...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex items-center justify-between mt-4">
+            <span class="text-xs text-slate-400" id="pagination-info">Showing 0 of 0 leads</span>
+            <div class="flex space-x-2">
+                <button id="prev-page-btn" onclick="changePage(-1)" class="px-3 py-1.5 border border-slate-700 hover:border-slate-500 rounded-md text-xs font-semibold hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
+                <button id="next-page-btn" onclick="changePage(1)" class="px-3 py-1.5 border border-slate-700 hover:border-slate-500 rounded-md text-xs font-semibold hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Central JS Handler -->
+    <script src="assets/js/app.js"></script>
+    <script>
+        let currentPage = 1;
+        let totalPages = 1;
+        let searchTimeout = null;
+
+        async function fetchLeads() {
+            const search = document.getElementById('lead-search').value;
+            const company = document.getElementById('filter-company').value;
+            const source = document.getElementById('filter-source').value;
+            
+            let endpoint = `leads/index.php?page=${currentPage}&limit=10`;
+            if (search) endpoint += `&search=${encodeURIComponent(search)}`;
+            if (company) endpoint += `&company=${encodeURIComponent(company)}`;
+            if (source) endpoint += `&source=${encodeURIComponent(source)}`;
+
+            try {
+                const res = await apiCall(endpoint);
+                const tableBody = document.getElementById('leads-table-body');
+                
+                // Populate filters dropdowns if not populated yet
+                populateFilterDropdowns(res.filters);
+                
+                if (res.leads.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="py-16 text-center text-slate-500 text-sm">No contacts found in the vault.</td>
+                        </tr>
+                    `;
+                    document.getElementById('pagination-info').textContent = `Showing 0 of 0 leads`;
+                    document.getElementById('prev-page-btn').disabled = true;
+                    document.getElementById('next-page-btn').disabled = true;
+                    return;
+                }
+
+                tableBody.innerHTML = res.leads.map(lead => {
+                    const date = new Date(lead.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                    
+                    const linkedinLink = lead.linkedin_url ? `<a href="${lead.linkedin_url}" target="_blank" class="text-teal-400 hover:underline flex items-center space-x-1"><span>${lead.name}</span><i data-lucide="external-link" class="h-3.5 w-3.5 inline"></i></a>` : lead.name;
+                    const postLink = lead.post_url ? `<a href="${lead.post_url}" target="_blank" class="text-slate-400 hover:text-white transition flex items-center space-x-1"><i data-lucide="link" class="h-3.5 w-3.5 mr-1"></i>View Post</a>` : '<span class="text-slate-600">-</span>';
+                    
+                    // Contact details cell
+                    let contacts = '';
+                    if (lead.email) contacts += `<div class="flex items-center text-xs text-slate-300"><i data-lucide="mail" class="h-3 w-3 mr-1 text-slate-500"></i>${lead.email}</div>`;
+                    if (lead.phone_number) contacts += `<div class="flex items-center text-xs text-slate-300 mt-1"><i data-lucide="phone" class="h-3 w-3 mr-1 text-slate-500"></i>${lead.phone_number}</div>`;
+                    if (!lead.email && !lead.phone_number) contacts = '<span class="text-slate-600">None detected</span>';
+
+                    return `
+                        <tr class="hover:bg-slate-900/40">
+                            <td class="py-4 px-6 text-sm font-semibold text-white whitespace-nowrap">${linkedinLink}</td>
+                            <td class="py-4 px-6 text-sm text-slate-300 whitespace-nowrap">${lead.company_name || '<span class="text-slate-600">Not specified</span>'}</td>
+                            <td class="py-4 px-6 text-sm text-slate-300 whitespace-nowrap">${contacts}</td>
+                            <td class="py-4 px-6 text-sm text-slate-300 max-w-xs truncate">${postLink}</td>
+                            <td class="py-4 px-6 text-sm text-slate-400 whitespace-nowrap">${lead.source}</td>
+                            <td class="py-4 px-6 text-sm text-slate-400 whitespace-nowrap">${date}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                // Trigger icons
+                lucide.createIcons();
+
+                // Pagination updates
+                totalPages = res.pagination.pages;
+                const startLog = (currentPage - 1) * res.pagination.limit + 1;
+                const endLog = Math.min(currentPage * res.pagination.limit, res.pagination.total);
+                document.getElementById('pagination-info').textContent = `Showing ${startLog}-${endLog} of ${res.pagination.total} leads`;
+                
+                document.getElementById('prev-page-btn').disabled = currentPage <= 1;
+                document.getElementById('next-page-btn').disabled = currentPage >= totalPages;
+
+            } catch (err) {
+                showNotification('error', err.message || 'Failed to load leads.');
+            }
+        }
+
+        let filtersPopulated = false;
+        function populateFilterDropdowns(filters) {
+            if (filtersPopulated) return;
+            
+            const companyDropdown = document.getElementById('filter-company');
+            const sourceDropdown = document.getElementById('filter-source');
+            
+            // Retain original "All" values
+            const originalCompanyVal = companyDropdown.value;
+            const originalSourceVal = sourceDropdown.value;
+            
+            // Populate companies
+            companyDropdown.innerHTML = '<option value="">All Companies</option>' + 
+                filters.companies.map(c => `<option value="${c}">${c}</option>`).join('');
+                
+            // Populate sources
+            sourceDropdown.innerHTML = '<option value="">All Sources</option>' + 
+                filters.sources.map(s => `<option value="${s}">${s}</option>`).join('');
+                
+            companyDropdown.value = originalCompanyVal;
+            sourceDropdown.value = originalSourceVal;
+            
+            filtersPopulated = true;
+        }
+
+        function triggerFilters() {
+            currentPage = 1;
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                fetchLeads();
+            }, 300);
+        }
+
+        function resetFilters() {
+            document.getElementById('lead-search').value = '';
+            document.getElementById('filter-company').value = '';
+            document.getElementById('filter-source').value = '';
+            currentPage = 1;
+            fetchLeads();
+        }
+
+        function changePage(direction) {
+            const targetPage = currentPage + direction;
+            if (targetPage >= 1 && targetPage <= totalPages) {
+                currentPage = targetPage;
+                fetchLeads();
+            }
+        }
+
+        function exportLeads() {
+            const search = document.getElementById('lead-search').value;
+            const company = document.getElementById('filter-company').value;
+            const source = document.getElementById('filter-source').value;
+            const token = getAuthToken();
+            
+            let exportUrl = `${API_BASE_URL}/leads/export.php?token=${token}`;
+            if (search) exportUrl += `&search=${encodeURIComponent(search)}`;
+            if (company) exportUrl += `&company=${encodeURIComponent(company)}`;
+            if (source) exportUrl += `&source=${encodeURIComponent(source)}`;
+            
+            window.open(exportUrl, '_blank');
+            showNotification('success', 'Exporting Lead database to CSV...');
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchLeads();
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

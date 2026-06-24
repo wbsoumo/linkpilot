@@ -1,6 +1,6 @@
 // extension/popup.js
 
-const DASHBOARD_URL = 'http://localhost:8000/dashboard';
+const DASHBOARD_URL = 'https://linkpilot.work/dashboard';
 
 document.addEventListener('DOMContentLoaded', () => {
     checkSession();

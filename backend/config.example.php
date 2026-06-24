@@ -357,7 +357,7 @@ function callAI($systemPrompt, $userPrompt, $userId = null) {
                 $headers = [
                     "Authorization: Bearer " . $apiKey,
                     "Content-Type: application/json",
-                    "HTTP-Referer: http://localhost:8000",
+                    "HTTP-Referer: https://linkpilot.work",
                     "X-Title: LinkPilot AI"
                 ];
 

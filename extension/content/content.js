@@ -561,25 +561,95 @@
             shadow.appendChild(overlay);
 
             if (!isAuth) {
-                // Securely render unauthenticated message
+                // Render a professional, inline login form directly in the middle of the screen
+                const emailInput = window.LinkPilotUtils.safeCreate('input', {
+                    type: 'email',
+                    placeholder: 'Enter your email...',
+                    style: 'width: 100%; padding: 10px 12px; background: #1E293B; border: 1px solid #334155; border-radius: 8px; color: white; outline: none; margin-bottom: 12px; box-sizing: border-box;'
+                });
+
+                const passwordInput = window.LinkPilotUtils.safeCreate('input', {
+                    type: 'password',
+                    placeholder: 'Enter your password...',
+                    style: 'width: 100%; padding: 10px 12px; background: #1E293B; border: 1px solid #334155; border-radius: 8px; color: white; outline: none; margin-bottom: 16px; box-sizing: border-box;'
+                });
+
+                const loginErrorDiv = window.LinkPilotUtils.safeCreate('div', {
+                    style: 'color: #EF4444; font-size: 12px; margin-bottom: 12px; display: none; text-align: center; font-weight: 500;'
+                });
+
                 const loginBtn = window.LinkPilotUtils.safeCreate('button', {
                     class: 'btn btn-primary',
-                    id: 'go-to-popup-btn',
-                    onclick: () => {
-                        alert('Please click the LinkPilot AI extension icon in your browser toolbar to log in.');
-                        container.remove();
+                    style: 'width: 100%; justify-content: center; height: 38px; font-weight: 600;',
+                    onclick: (e) => {
+                        e.preventDefault();
+                        const email = emailInput.value.trim();
+                        const password = passwordInput.value;
+
+                        if (!email || !password) {
+                            loginErrorDiv.textContent = 'Please enter both email and password.';
+                            loginErrorDiv.style.display = 'block';
+                            return;
+                        }
+
+                        loginErrorDiv.style.display = 'none';
+                        loginBtn.disabled = true;
+                        loginBtn.innerHTML = '<span class="spinner"></span> Logging in...';
+
+                        window.LinkPilotUtils.safeSendMessage({
+                            action: 'login',
+                            email: email,
+                            password: password
+                        }, (res) => {
+                            if (res && res.status === 'success') {
+                                // Successful login! Re-open the modal with details to transition to full active view
+                                container.remove();
+                                window.openActionModal(details);
+                            } else {
+                                loginBtn.disabled = false;
+                                loginBtn.textContent = 'Log In';
+                                loginErrorDiv.textContent = (res && res.message) ? res.message : 'Invalid credentials or connection error.';
+                                loginErrorDiv.style.display = 'block';
+                            }
+                        });
                     }
-                }, ['Open Extension Login']);
+                }, ['Log In']);
+
+                const loginForm = window.LinkPilotUtils.safeCreate('form', {
+                    style: 'width: 100%; text-align: left; margin-top: 8px; box-sizing: border-box;'
+                }, [
+                    window.LinkPilotUtils.safeCreate('label', {
+                        style: 'display: block; font-size: 10px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;'
+                    }, ['Email Address']),
+                    emailInput,
+                    window.LinkPilotUtils.safeCreate('label', {
+                        style: 'display: block; font-size: 10px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;'
+                    }, ['Password']),
+                    passwordInput,
+                    loginErrorDiv,
+                    loginBtn
+                ]);
 
                 const unauthBody = window.LinkPilotUtils.safeCreate('div', {
-                    class: 'unauth-container'
+                    class: 'unauth-container',
+                    style: 'max-width: 380px; margin: 0 auto; padding: 30px 20px;'
                 }, [
-                    window.LinkPilotUtils.safeCreate('div', { style: 'font-size: 32px; margin-bottom: 8px;' }, ['\u2728']),
-                    window.LinkPilotUtils.safeCreate('h3', { style: 'margin: 0; font-size: 16px;' }, ['Authentication Required']),
-                    window.LinkPilotUtils.safeCreate('p', { style: 'margin: 4px 0 16px 0; font-size: 13px; color: #94A3B8;' }, [
-                        'Please log in to your LinkPilot AI extension first to generate outreach responses.'
+                    window.LinkPilotUtils.safeCreate('div', { style: 'font-size: 36px; margin-bottom: 4px;' }, ['✨']),
+                    window.LinkPilotUtils.safeCreate('h3', { style: 'margin: 0; font-size: 18px; font-weight: 800; color: white;' }, ['LinkPilot AI Login']),
+                    window.LinkPilotUtils.safeCreate('p', { style: 'margin: 6px 0 16px 0; font-size: 13px; color: #94A3B8; text-align: center; line-height: 1.4;' }, [
+                        'Log in to activate your outreach assistant directly on this page.'
                     ]),
-                    loginBtn
+                    loginForm,
+                    window.LinkPilotUtils.safeCreate('div', {
+                        style: 'margin-top: 20px; font-size: 11px; color: #64748B; text-align: center;'
+                    }, [
+                        'Need an account? ',
+                        window.LinkPilotUtils.safeCreate('a', {
+                            href: 'https://linkpilot.work/dashboard/register.html',
+                            target: '_blank',
+                            style: 'color: #14B8A6; text-decoration: none; font-weight: 600;'
+                        }, ['Register Here'])
+                    ])
                 ]);
                 modal.appendChild(unauthBody);
                 document.body.appendChild(container);

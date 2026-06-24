@@ -3,11 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMTP & AI Settings - LinkPilot AI</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="icon" type="image/png" href="assets/img/logo.png">
 </head>
 <body class="h-full bg-slate-950 text-slate-100 flex flex-col">
     <!-- Top Navigation -->
@@ -42,16 +38,88 @@
     </nav>
 
     <!-- Main Content Container -->
-    <main class="flex-grow flex items-center justify-center p-6 bg-gradient-to-tr from-slate-950 via-slate-900 to-slate-950">
-        <div class="max-w-xl w-full animate-fade-in">
+    <main class="flex-grow flex items-center justify-center p-6 bg-gradient-to-tr from-slate-950 via-slate-900 to-slate-950 overflow-y-auto">
+        <div class="max-w-xl w-full animate-fade-in py-8">
             <div class="text-center mb-6">
                 <h1 class="text-2xl font-extrabold text-white tracking-tight">Connect Your SMTP Account</h1>
                 <p class="text-sm text-slate-400 mt-1">Configure SMTP details to send generated outreach emails directly.</p>
             </div>
             
+            <!-- SMTP Type Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <!-- Custom SMTP Card -->
+                <div id="smtp-card-custom" class="smtp-type-card glass-panel p-5 bg-slate-900/60 border border-slate-800 rounded-xl cursor-pointer hover:border-slate-700 hover:bg-slate-900/80 transition duration-200 flex items-center justify-between" onclick="selectSmtpType('custom')">
+                    <div class="flex items-center space-x-4">
+                        <div class="p-2.5 bg-teal-500/10 rounded-lg text-teal-400">
+                            <!-- Server SVG Icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-white">Custom SMTP</h4>
+                            <p class="text-xs text-slate-400 mt-0.5">Use your own SMTP server details.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gmail SMTP Card -->
+                <div id="smtp-card-gmail" class="smtp-type-card glass-panel p-5 bg-slate-900/60 border border-slate-800 rounded-xl cursor-pointer hover:border-slate-700 hover:bg-slate-900/80 transition duration-200 flex items-center justify-between" onclick="selectSmtpType('gmail')">
+                    <div class="flex items-center space-x-4">
+                        <div class="p-2.5 bg-slate-800 rounded-lg">
+                            <img src="https://images.icon-icons.com/2631/PNG/512/gmail_new_logo_icon_159149.png" class="h-6 w-6 object-contain" alt="Gmail logo">
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-white">Gmail SMTP</h4>
+                            <p class="text-xs text-slate-400 mt-0.5">Connect easily using Google App Passwords.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gmail App Password Guide Box -->
+            <div id="gmail-guide-box" class="glass-panel p-6 bg-slate-900/40 border border-slate-800 rounded-xl space-y-3 hidden mb-6">
+                <div class="flex items-center space-x-2.5 text-teal-400">
+                    <img src="https://images.icon-icons.com/2631/PNG/512/gmail_new_logo_icon_159149.png" class="h-5 w-5 object-contain" alt="Gmail logo">
+                    <h4 class="text-xs font-bold uppercase tracking-wider">Gmail SMTP Setup Instructions</h4>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    To send emails using your Gmail account, Google requires you to configure an **App Password** for security. Standard passwords will be blocked.
+                </p>
+                <div class="space-y-2 text-xs text-slate-300">
+                    <div class="flex items-start space-x-2">
+                        <span class="flex-shrink-0 w-4 h-4 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-[10px] flex items-center justify-center mt-0.5">1</span>
+                        <span>Go to your <a href="https://myaccount.google.com/" target="_blank" class="text-teal-400 hover:underline font-semibold">Google Account Dashboard</a>.</span>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <span class="flex-shrink-0 w-4 h-4 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-[10px] flex items-center justify-center mt-0.5">2</span>
+                        <span>Navigate to the **Security** tab in the left-hand menu.</span>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <span class="flex-shrink-0 w-4 h-4 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-[10px] flex items-center justify-center mt-0.5">3</span>
+                        <span>Enable **2-Step Verification** under *How you sign in to Google* if it's not active.</span>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <span class="flex-shrink-0 w-4 h-4 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-[10px] flex items-center justify-center mt-0.5">4</span>
+                        <span>Click **2-Step Verification**, scroll to the bottom, and select **App passwords**.</span>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <span class="flex-shrink-0 w-4 h-4 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-[10px] flex items-center justify-center mt-0.5">5</span>
+                        <span>Enter `LinkPilot AI` in the app name, click **Create**, and copy the **16-character code**.</span>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <span class="flex-shrink-0 w-4 h-4 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-[10px] flex items-center justify-center mt-0.5">6</span>
+                        <span>Use this code as your **Google App Password** in the credentials form below.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Card -->
             <div class="glass-panel p-8 bg-slate-900/60 border border-slate-800 rounded-2xl shadow-2xl">
                 <form id="smtp-form" class="space-y-5">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <input type="hidden" id="smtp_type" name="smtp_type" value="custom">
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="host-port-row">
                         <div class="md:col-span-2">
                             <label for="host" class="block text-xs font-semibold text-slate-400 uppercase">SMTP Host *</label>
                             <input id="host" name="host" type="text" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="smtp.mailgun.org">
@@ -63,12 +131,12 @@
                     </div>
 
                     <div>
-                        <label for="username" class="block text-xs font-semibold text-slate-400 uppercase">SMTP Username *</label>
+                        <label for="username" id="username-label" class="block text-xs font-semibold text-slate-400 uppercase">SMTP Username *</label>
                         <input id="username" name="username" type="text" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="postmaster@yourdomain.com">
                     </div>
 
                     <div>
-                        <label for="password" class="block text-xs font-semibold text-slate-400 uppercase">SMTP Password *</label>
+                        <label for="password" id="password-label" class="block text-xs font-semibold text-slate-400 uppercase">SMTP Password *</label>
                         <input id="password" name="password" type="password" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="••••••••">
                     </div>
 
@@ -78,7 +146,7 @@
                             <input id="sender_name" name="sender_name" type="text" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="John Doe">
                         </div>
                         <div>
-                            <label for="sender_email" class="block text-xs font-semibold text-slate-400 uppercase">Sender Email *</label>
+                            <label for="sender_email" id="sender-email-label" class="block text-xs font-semibold text-slate-400 uppercase">Sender Email *</label>
                             <input id="sender_email" name="sender_email" type="email" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="john@yourdomain.com">
                         </div>
                     </div>
@@ -99,20 +167,96 @@
     <!-- Central JS Handler -->
     <script src="assets/js/app.js"></script>
     <script>
+        let activeSmtpType = 'custom';
+
         // Load existing SMTP settings on load
         async function loadSMTPSettings() {
             try {
                 const data = await apiCall('profile/get.php');
                 if (data.smtp) {
+                    activeSmtpType = data.smtp.smtp_type || 'custom';
+                    
                     document.getElementById('host').value = data.smtp.host || '';
                     document.getElementById('port').value = data.smtp.port || '';
                     document.getElementById('username').value = data.smtp.username || '';
                     document.getElementById('sender_name').value = data.smtp.sender_name || '';
                     document.getElementById('sender_email').value = data.smtp.sender_email || '';
                     document.getElementById('password').value = '••••••••';
+                    
+                    selectSmtpType(activeSmtpType);
+                } else {
+                    selectSmtpType('custom');
                 }
             } catch (err) {
                 console.error("Error loading SMTP configuration:", err);
+            }
+        }
+
+        // Toggle SMTP configuration display
+        function selectSmtpType(type) {
+            activeSmtpType = type;
+            document.getElementById('smtp_type').value = type;
+
+            // Highlight card
+            document.querySelectorAll('.smtp-type-card').forEach(card => {
+                card.classList.remove('border-teal-500', 'bg-slate-900/90', 'ring-2', 'ring-teal-500/20');
+                card.classList.add('border-slate-800', 'bg-slate-900/60');
+            });
+
+            const activeCard = document.getElementById(`smtp-card-${type}`);
+            if (activeCard) {
+                activeCard.classList.remove('border-slate-800', 'bg-slate-900/60');
+                activeCard.classList.add('border-teal-500', 'bg-slate-900/90', 'ring-2', 'ring-teal-500/20');
+            }
+
+            const gmailGuide = document.getElementById('gmail-guide-box');
+            const hostPortRow = document.getElementById('host-port-row');
+            
+            const usernameLabel = document.getElementById('username-label');
+            const passwordLabel = document.getElementById('password-label');
+            const senderEmailLabel = document.getElementById('sender-email-label');
+            
+            const hostInput = document.getElementById('host');
+            const portInput = document.getElementById('port');
+            const usernameInput = document.getElementById('username');
+            const senderEmailInput = document.getElementById('sender_email');
+
+            if (type === 'gmail') {
+                gmailGuide.classList.remove('hidden');
+                hostPortRow.classList.add('hidden'); // Hide host/port inputs since they are fixed for Gmail
+                
+                hostInput.value = 'smtp.gmail.com';
+                portInput.value = '465';
+                
+                usernameLabel.textContent = 'Gmail Address *';
+                passwordLabel.textContent = 'Google App Password *';
+                senderEmailLabel.textContent = 'Sender Email (Must match Gmail Address) *';
+                
+                usernameInput.setAttribute('placeholder', 'yourname@gmail.com');
+                
+                // Add event listener to sync username with sender_email
+                usernameInput.addEventListener('input', syncGmailSenderEmail);
+                syncGmailSenderEmail();
+            } else {
+                gmailGuide.classList.add('hidden');
+                hostPortRow.classList.remove('hidden');
+                
+                if (hostInput.value === 'smtp.gmail.com') hostInput.value = '';
+                if (portInput.value === '465') portInput.value = '587';
+                
+                usernameLabel.textContent = 'SMTP Username *';
+                passwordLabel.textContent = 'SMTP Password *';
+                senderEmailLabel.textContent = 'Sender Email *';
+                
+                usernameInput.setAttribute('placeholder', 'postmaster@yourdomain.com');
+                
+                usernameInput.removeEventListener('input', syncGmailSenderEmail);
+            }
+        }
+
+        function syncGmailSenderEmail() {
+            if (activeSmtpType === 'gmail') {
+                document.getElementById('sender_email').value = document.getElementById('username').value;
             }
         }
 
@@ -169,7 +313,8 @@
                 username,
                 password,
                 sender_name: senderName,
-                sender_email: senderEmail
+                sender_email: senderEmail,
+                smtp_type: activeSmtpType
             };
 
             try {

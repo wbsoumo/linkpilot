@@ -39,7 +39,7 @@ try {
     $profileData = $stmtProfile->fetch();
     
     // 3. Fetch SMTP account (only status and configuration meta, no decrypted passwords)
-    $stmtSMTP = $db->prepare("SELECT host, port, username, sender_name, sender_email, updated_at FROM smtp_accounts WHERE user_id = ?");
+    $stmtSMTP = $db->prepare("SELECT host, port, username, sender_name, sender_email, smtp_type, updated_at FROM smtp_accounts WHERE user_id = ?");
     $stmtSMTP->execute([$userId]);
     $smtpData = $stmtSMTP->fetch();
     

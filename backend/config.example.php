@@ -111,6 +111,11 @@ class Database {
                     if (!$stmt->fetch()) {
                         self::$instance->exec("ALTER TABLE `users` ADD COLUMN `active_ai_model` VARCHAR(100) DEFAULT NULL");
                     }
+                    
+                    $stmt = self::$instance->query("SHOW COLUMNS FROM `smtp_accounts` LIKE 'smtp_type'");
+                    if (!$stmt->fetch()) {
+                        self::$instance->exec("ALTER TABLE `smtp_accounts` ADD COLUMN `smtp_type` VARCHAR(20) DEFAULT 'custom'");
+                    }
                 } catch (Exception $migrationError) {
                     // Ignore migration issues
                 }

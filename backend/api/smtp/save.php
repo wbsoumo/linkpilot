@@ -25,6 +25,7 @@ $username = trim($input['username'] ?? '');
 $password = $input['password'] ?? '';
 $senderName = trim($input['sender_name'] ?? '');
 $senderEmail = trim($input['sender_email'] ?? '');
+$smtpType = trim($input['smtp_type'] ?? 'custom');
 
 if (empty($host) || empty($port) || empty($username) || empty($password) || empty($senderName) || empty($senderEmail)) {
     sendJsonResponse('error', 'All fields (host, port, username, password, sender_name, sender_email) are required.', [], 400);
@@ -40,15 +41,16 @@ try {
     if ($password !== '••••••••') {
         $encryptedPassword = encryptData($password);
         $stmt = $db->prepare("
-            INSERT INTO smtp_accounts (user_id, host, port, username, password, sender_name, sender_email) 
-            VALUES (:user_id, :host, :port, :username, :password, :sender_name, :sender_email)
+            INSERT INTO smtp_accounts (user_id, host, port, username, password, sender_name, sender_email, smtp_type) 
+            VALUES (:user_id, :host, :port, :username, :password, :sender_name, :sender_email, :smtp_type)
             ON DUPLICATE KEY UPDATE 
                 host = VALUES(host),
                 port = VALUES(port),
                 username = VALUES(username),
                 password = VALUES(password),
                 sender_name = VALUES(sender_name),
-                sender_email = VALUES(sender_email)
+                sender_email = VALUES(sender_email),
+                smtp_type = VALUES(smtp_type)
         ");
         $stmt->execute([
             'user_id' => $userId,
@@ -57,15 +59,16 @@ try {
             'username' => $username,
             'password' => $encryptedPassword,
             'sender_name' => $senderName,
-            'sender_email' => $senderEmail
+            'sender_email' => $senderEmail,
+            'smtp_type' => $smtpType
         ]);
     } else {
         $stmt = $db->prepare("
             UPDATE smtp_accounts 
-            SET host = ?, port = ?, username = ?, sender_name = ?, sender_email = ? 
+            SET host = ?, port = ?, username = ?, sender_name = ?, sender_email = ?, smtp_type = ? 
             WHERE user_id = ?
         ");
-        $stmt->execute([$host, $port, $username, $senderName, $senderEmail, $userId]);
+        $stmt->execute([$host, $port, $username, $senderName, $senderEmail, $smtpType, $userId]);
     }
 
     logActivity($userId, "Updated SMTP Configuration settings.");

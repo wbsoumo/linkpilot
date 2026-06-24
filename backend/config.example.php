@@ -94,10 +94,30 @@ class Database {
 function sendJsonResponse($status, $message, $data = [], $statusCode = 200) {
     http_response_code($statusCode);
     header('Content-Type: application/json');
-    echo json_encode(array_merge([
+    
+    $responseArray = array_merge([
         "status" => $status,
         "message" => $message
-    ], $data));
+    ], $data);
+    
+    $json = json_encode($responseArray);
+    if ($json === false) {
+        // Fallback: recursively sanitize and convert strings to valid UTF-8
+        array_walk_recursive($responseArray, function(&$item) {
+            if (is_string($item)) {
+                $item = mb_convert_encoding($item, 'UTF-8', 'UTF-8');
+            }
+        });
+        $json = json_encode($responseArray);
+        if ($json === false) {
+            $json = json_encode([
+                "status" => "error",
+                "message" => "JSON encoding failed: " . json_last_error_msg()
+            ]);
+        }
+    }
+    
+    echo $json;
     exit;
 }
 

@@ -64,6 +64,15 @@ class SMTPHelper {
                 $mail->SMTPAutoTLS = false;
             }
             
+            // Bypass certificate verification mismatch errors
+            $mail->SMTPOptions = [
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true
+                ]
+            ];
+            
             // Recipients
             $mail->setFrom($smtp['sender_email'], $smtp['sender_name']);
             $mail->addAddress($recipientEmail);
@@ -119,6 +128,15 @@ class SMTPHelper {
                 $mail->SMTPSecure = '';
                 $mail->SMTPAutoTLS = false;
             }
+            
+            // Bypass certificate verification mismatch errors
+            $mail->SMTPOptions = [
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true
+                ]
+            ];
             
             $mail->setFrom($senderEmail, $senderName);
             $mail->addAddress($senderEmail); // send to self for testing

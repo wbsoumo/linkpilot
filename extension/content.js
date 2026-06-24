@@ -297,16 +297,14 @@ function initButtonInjection() {
 
 // Scans page and injects button into feed cards
 function injectActionButtons() {
-    // Select LinkedIn action bars on feed posts
-    const actionBars = document.querySelectorAll('.feed-shared-social-action-bar, .social-actions-button');
+    // Select LinkedIn action bars on feed posts (using wildcard class matching for resilience)
+    const actionBars = document.querySelectorAll('.feed-shared-social-action-bar, .social-actions, .social-action-bar, [class*="social-action-bar"], [class*="social-actions"], .comments-comment-box__buttons');
     
     actionBars.forEach(bar => {
-        // Prevent duplicate injections
-        if (bar.querySelector('.linkpilot-btn') || bar.dataset.linkpilotInjected) {
+        // Prevent duplicate injections (check if button already exists in this bar)
+        if (bar.querySelector('.linkpilot-btn')) {
             return;
         }
-        
-        bar.dataset.linkpilotInjected = "true";
         
         // Create Sparkles Action Button
         const button = document.createElement('button');
@@ -318,6 +316,7 @@ function injectActionButtons() {
         button.style.alignItems = 'center';
         button.style.gap = '4px';
         button.style.transition = 'background-color 0.2s';
+        button.style.marginLeft = '8px'; // Add separation
         
         button.innerHTML = `
             <span style="font-size: 14px;">✨</span>
@@ -332,8 +331,8 @@ function injectActionButtons() {
             e.preventDefault();
             e.stopPropagation();
             
-            // Locate root post element
-            const post = bar.closest('div[data-urn], article, .feed-shared-update-v2, .occludable-update');
+            // Locate root post element (with fallback class-substring selectors)
+            const post = bar.closest('div[data-urn], [data-id], article, .feed-shared-update-v2, .occludable-update, [class*="feed-shared-update"], [class*="occludable-update"]');
             activePostElement = post;
             
             openActionModal(post);

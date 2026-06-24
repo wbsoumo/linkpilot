@@ -88,10 +88,27 @@
                 return false;
             }
             
-            // Check for presence of key post action buttons
-            const hasLike = el.querySelector('[aria-label*="Reaction" i], [aria-label*="Like" i]');
-            const hasComment = el.querySelector('[aria-label*="Comment" i]');
-            const hasSendOrRepost = el.querySelector('[aria-label*="Send" i], [aria-label*="Repost" i], [aria-label*="Share" i]');
+            // Check for presence of key post action buttons by walking children
+            let hasLike = false;
+            let hasComment = false;
+            let hasSendOrRepost = false;
+            
+            const interactiveElements = el.querySelectorAll('button, a, [role="button"]');
+            interactiveElements.forEach(item => {
+                const label = (item.getAttribute('aria-label') || '').toLowerCase();
+                const text = (item.textContent || item.innerText || '').toLowerCase().trim();
+                const className = (item.className || '').toLowerCase();
+                
+                if (label.includes('like') || label.includes('react') || className.includes('react') || text === 'like') {
+                    hasLike = true;
+                }
+                if (label.includes('comment') || className.includes('comment') || text === 'comment') {
+                    hasComment = true;
+                }
+                if (label.includes('send') || label.includes('repost') || label.includes('share') || text === 'share' || text === 'repost' || text === 'send') {
+                    hasSendOrRepost = true;
+                }
+            });
             
             let matchCount = 0;
             if (hasLike) matchCount++;

@@ -16,13 +16,16 @@ $db = Database::getConnection();
 
 try {
     // 1. Fetch User details
-    $stmtUser = $db->prepare("SELECT id, name, email, role, created_at FROM users WHERE id = ?");
+    $stmtUser = $db->prepare("SELECT id, name, email, role, openrouter_key, created_at FROM users WHERE id = ?");
     $stmtUser->execute([$userId]);
     $userData = $stmtUser->fetch();
     
     if (!$userData) {
         sendJsonResponse('error', 'User not found.', [], 404);
     }
+    
+    $userData['has_openrouter_key'] = !empty($userData['openrouter_key']);
+    unset($userData['openrouter_key']);
     
     // 2. Fetch Profile details
     $stmtProfile = $db->prepare("SELECT * FROM user_profiles WHERE user_id = ?");

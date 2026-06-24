@@ -78,6 +78,16 @@ class Database {
                     PDO::ATTR_EMULATE_PREPARES   => false,
                 ];
                 self::$instance = new PDO($dsn, DB_USER, DB_PASS, $options);
+                
+                // Self-healing database migration for OpenRouter Key
+                try {
+                    $stmt = self::$instance->query("SHOW COLUMNS FROM `users` LIKE 'openrouter_key'");
+                    if (!$stmt->fetch()) {
+                        self::$instance->exec("ALTER TABLE `users` ADD COLUMN `openrouter_key` TEXT DEFAULT NULL");
+                    }
+                } catch (Exception $migrationError) {
+                    // Ignore migration issues
+                }
             } catch (PDOException $e) {
                 http_response_code(500);
                 echo json_encode([
@@ -146,9 +156,32 @@ function updateStatistic($userId, $column, $increment = 1) {
 }
 
 // Call OpenRouter API
-function callOpenRouter($systemPrompt, $userPrompt) {
+function callOpenRouter($systemPrompt, $userPrompt, $userId = null) {
     $apiKey = OPENROUTER_API_KEY;
     $model = OPENROUTER_MODEL;
+    
+    if ($userId !== null) {
+        try {
+            $db = Database::getConnection();
+            $stmt = $db->prepare("SELECT openrouter_key FROM users WHERE id = ?");
+            $stmt->execute([$userId]);
+            $res = $stmt->fetch();
+            if ($res && !empty($res['openrouter_key'])) {
+                $decrypted = decryptData($res['openrouter_key']);
+                if ($decrypted !== false) {
+                    $apiKey = $decrypted;
+                } else {
+                    $apiKey = $res['openrouter_key'];
+                }
+            }
+        } catch (Exception $e) {
+            // Ignore DB error, fallback to default key
+        }
+    }
+    
+    if (empty($apiKey) || strpos($apiKey, 'placeholder') !== false) {
+        throw new Exception("OpenRouter API Key not configured. Please go to your LinkPilot Dashboard settings (SMTP & AI Configuration) and save your OpenRouter API Key.");
+    }
     
     $headers = [
         "Authorization: Bearer " . $apiKey,

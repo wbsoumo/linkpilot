@@ -62,7 +62,7 @@ Post Author: {$authorName}
 Generate the LinkedIn comment. Return ONLY the comment content.";
 
     // 3. Call OpenRouter
-    $aiResult = callOpenRouter($systemPrompt, $userPrompt);
+    $aiResult = callOpenRouter($systemPrompt, $userPrompt, $userId);
     $comment = $aiResult['text'];
     $tokensUsed = $aiResult['tokens'];
     

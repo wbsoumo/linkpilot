@@ -67,7 +67,7 @@ Recipient Name: {$authorName}
 Generate the WhatsApp outreach message. Return ONLY the message content.";
 
     // 3. Call OpenRouter
-    $aiResult = callOpenRouter($systemPrompt, $userPrompt);
+    $aiResult = callOpenRouter($systemPrompt, $userPrompt, $userId);
     $message = $aiResult['text'];
     $tokensUsed = $aiResult['tokens'];
     

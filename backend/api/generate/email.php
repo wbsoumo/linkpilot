@@ -96,7 +96,7 @@ Recipient Email Address (if available): {$recipientEmail}
 Generate a personalized outreach email to {$authorName} referencing their post. Build a bridge between their post and the sender's professional background where natural. Do not make up fake accomplishments. Keep it polite, clear, and focused. Return ONLY the JSON object.";
 
     // 3. Call OpenRouter
-    $aiResult = callOpenRouter($systemPrompt, $userPrompt);
+    $aiResult = callOpenRouter($systemPrompt, $userPrompt, $userId);
     $responseText = $aiResult['text'];
     $tokensUsed = $aiResult['tokens'];
     

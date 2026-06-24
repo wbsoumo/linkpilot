@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `email` VARCHAR(255) UNIQUE NOT NULL,
     `password` VARCHAR(255) NOT NULL,
     `role` VARCHAR(50) DEFAULT 'user', -- 'user', 'admin'
+    `openrouter_key` TEXT DEFAULT NULL, -- Encrypted OpenRouter API Key
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX `idx_users_email` (`email`)

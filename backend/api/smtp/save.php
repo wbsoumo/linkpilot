@@ -25,76 +25,53 @@ $username = trim($input['username'] ?? '');
 $password = $input['password'] ?? '';
 $senderName = trim($input['sender_name'] ?? '');
 $senderEmail = trim($input['sender_email'] ?? '');
-$openrouterKey = trim($input['openrouter_key'] ?? '');
 
-$hasSmtp = !empty($host) || !empty($username) || ($password !== '••••••••' && !empty($password));
+if (empty($host) || empty($port) || empty($username) || empty($password) || empty($senderName) || empty($senderEmail)) {
+    sendJsonResponse('error', 'All fields (host, port, username, password, sender_name, sender_email) are required.', [], 400);
+}
 
-if ($hasSmtp) {
-    if (empty($host) || empty($port) || empty($username) || empty($password) || empty($senderName) || empty($senderEmail)) {
-        sendJsonResponse('error', 'All SMTP fields (host, port, username, password, sender_name, sender_email) are required to save SMTP.', [], 400);
-    }
-    if (!filter_var($senderEmail, FILTER_VALIDATE_EMAIL)) {
-        sendJsonResponse('error', 'Invalid sender email address.', [], 400);
-    }
+if (!filter_var($senderEmail, FILTER_VALIDATE_EMAIL)) {
+    sendJsonResponse('error', 'Invalid sender email address.', [], 400);
 }
 
 $db = Database::getConnection();
 
 try {
-    $db->beginTransaction();
-
-    if ($hasSmtp) {
-        if ($password !== '••••••••') {
-            $encryptedPassword = encryptData($password);
-            $stmt = $db->prepare("
-                INSERT INTO smtp_accounts (user_id, host, port, username, password, sender_name, sender_email) 
-                VALUES (:user_id, :host, :port, :username, :password, :sender_name, :sender_email)
-                ON DUPLICATE KEY UPDATE 
-                    host = VALUES(host),
-                    port = VALUES(port),
-                    username = VALUES(username),
-                    password = VALUES(password),
-                    sender_name = VALUES(sender_name),
-                    sender_email = VALUES(sender_email)
-            ");
-            $stmt->execute([
-                'user_id' => $userId,
-                'host' => $host,
-                'port' => $port,
-                'username' => $username,
-                'password' => $encryptedPassword,
-                'sender_name' => $senderName,
-                'sender_email' => $senderEmail
-            ]);
-        } else {
-            $stmt = $db->prepare("
-                UPDATE smtp_accounts 
-                SET host = ?, port = ?, username = ?, sender_name = ?, sender_email = ? 
-                WHERE user_id = ?
-            ");
-            $stmt->execute([$host, $port, $username, $senderName, $senderEmail, $userId]);
-        }
-    }
-
-    if ($openrouterKey !== '') {
-        if ($openrouterKey !== '••••••••') {
-            $encryptedKey = encryptData($openrouterKey);
-            $stmtUser = $db->prepare("UPDATE users SET openrouter_key = ? WHERE id = ?");
-            $stmtUser->execute([$encryptedKey, $userId]);
-        }
+    if ($password !== '••••••••') {
+        $encryptedPassword = encryptData($password);
+        $stmt = $db->prepare("
+            INSERT INTO smtp_accounts (user_id, host, port, username, password, sender_name, sender_email) 
+            VALUES (:user_id, :host, :port, :username, :password, :sender_name, :sender_email)
+            ON DUPLICATE KEY UPDATE 
+                host = VALUES(host),
+                port = VALUES(port),
+                username = VALUES(username),
+                password = VALUES(password),
+                sender_name = VALUES(sender_name),
+                sender_email = VALUES(sender_email)
+        ");
+        $stmt->execute([
+            'user_id' => $userId,
+            'host' => $host,
+            'port' => $port,
+            'username' => $username,
+            'password' => $encryptedPassword,
+            'sender_name' => $senderName,
+            'sender_email' => $senderEmail
+        ]);
     } else {
-        $stmtUser = $db->prepare("UPDATE users SET openrouter_key = NULL WHERE id = ?");
-        $stmtUser->execute([$userId]);
+        $stmt = $db->prepare("
+            UPDATE smtp_accounts 
+            SET host = ?, port = ?, username = ?, sender_name = ?, sender_email = ? 
+            WHERE user_id = ?
+        ");
+        $stmt->execute([$host, $port, $username, $senderName, $senderEmail, $userId]);
     }
 
-    $db->commit();
-    logActivity($userId, "Updated SMTP & AI Configuration settings.");
+    logActivity($userId, "Updated SMTP Configuration settings.");
     
-    sendJsonResponse('success', 'SMTP & AI Configuration saved successfully.');
+    sendJsonResponse('success', 'SMTP Configuration saved successfully.');
     
 } catch (Exception $e) {
-    if ($db->inTransaction()) {
-        $db->rollBack();
-    }
-    sendJsonResponse('error', 'Server error saving SMTP & AI settings: ' . $e->getMessage(), [], 500);
+    sendJsonResponse('error', 'Server error saving SMTP settings: ' . $e->getMessage(), [], 500);
 }

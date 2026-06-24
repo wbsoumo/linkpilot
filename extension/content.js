@@ -273,8 +273,9 @@ const MODAL_STYLES = `
 // Global variable tracking the active post DOM container
 let activePostElement = null;
 
-// Initialize mutation observer to inject buttons dynamically
+// Start Injection Observer
 function initButtonInjection() {
+    console.log("[LinkPilot AI] Initializing button injection observer...");
     // Run injection once immediately
     injectActionButtons();
     
@@ -297,14 +298,70 @@ function initButtonInjection() {
 
 // Scans page and injects button into feed cards
 function injectActionButtons() {
-    // Select LinkedIn action bars on feed posts (using wildcard class matching for resilience)
-    const actionBars = document.querySelectorAll('.feed-shared-social-action-bar, .social-actions, .social-action-bar, [class*="social-action-bar"], [class*="social-actions"], .comments-comment-box__buttons');
+    // 1. Collect all candidate containers using class selectors
+    const classSelectors = [
+        '.feed-shared-social-action-bar',
+        '.social-details-social-actions',
+        '.social-actions-button-bar',
+        '.social-actions',
+        '.social-action-bar',
+        'ul[class*="social-actions"]',
+        'ul[class*="social-action-bar"]',
+        'div[class*="social-actions"]',
+        'div[class*="social-action-bar"]',
+        'div[class*="social-actions-button-bar"]',
+        'div[class*="social-details-social-actions"]',
+        '.comments-comment-box__buttons'
+    ];
     
-    actionBars.forEach(bar => {
-        // Prevent duplicate injections (check if button already exists in this bar)
+    const candidateContainers = new Set();
+    document.querySelectorAll(classSelectors.join(', ')).forEach(el => {
+        candidateContainers.add(el);
+    });
+    
+    // 2. Collect candidates by looking for comment/like/repost buttons and finding their parent containers
+    document.querySelectorAll('button, [role="button"]').forEach(btn => {
+        const label = (btn.getAttribute('aria-label') || '').toLowerCase();
+        const text = (btn.textContent || btn.innerText || '').toLowerCase().trim();
+        const className = (btn.className || '').toLowerCase();
+        
+        // Match buttons that look like Like, Comment, Repost, Share, or Send
+        const matchesButton = 
+            className.includes('comment-button') || 
+            className.includes('react-button') ||
+            className.includes('share-button') ||
+            className.includes('repost-button') ||
+            label.includes('comment') || 
+            label.includes('like') || 
+            label.includes('react') || 
+            label.includes('repost') ||
+            label.includes('share') ||
+            text === 'comment' || 
+            text === 'like' || 
+            text === 'repost' || 
+            text === 'share';
+            
+        if (matchesButton) {
+            let container = btn.parentElement;
+            if (container) {
+                // If the parent is a list item (LI) or similar small inline wrapper, go up to its parent
+                if (container.tagName === 'LI' || container.tagName === 'SPAN') {
+                    container = container.parentElement;
+                }
+                if (container && (container.tagName === 'DIV' || container.tagName === 'UL')) {
+                    candidateContainers.add(container);
+                }
+            }
+        }
+    });
+    
+    candidateContainers.forEach((bar) => {
+        // Prevent duplicate injections
         if (bar.querySelector('.linkpilot-btn')) {
             return;
         }
+        
+        console.log(`[LinkPilot AI] Injecting ✨ AI Action button into:`, bar);
         
         // Create Sparkles Action Button
         const button = document.createElement('button');
@@ -323,19 +380,42 @@ function injectActionButtons() {
             <span>AI Action</span>
         `;
         
-        // Append near the end of the action bar
-        bar.appendChild(button);
+        // Determine if we need to wrap the button in a sibling tag type (like LI or SPAN)
+        let wrapper = null;
+        const sister = bar.firstElementChild;
+        if (sister && (sister.tagName === 'LI' || sister.tagName === 'SPAN' || sister.tagName === 'DIV')) {
+            wrapper = document.createElement(sister.tagName);
+            wrapper.className = sister.className;
+            wrapper.style.display = 'inline-flex';
+            wrapper.style.alignItems = 'center';
+        }
+        
+        if (wrapper) {
+            wrapper.appendChild(button);
+            bar.appendChild(wrapper);
+        } else {
+            bar.appendChild(button);
+        }
         
         // Bind Click Action
         button.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             
+            console.log("[LinkPilot AI] Sparkles Action button clicked.");
+            
             // Locate root post element (with fallback class-substring selectors)
             const post = bar.closest('div[data-urn], [data-id], article, .feed-shared-update-v2, .occludable-update, [class*="feed-shared-update"], [class*="occludable-update"]');
             activePostElement = post;
             
-            openActionModal(post);
+            if (post) {
+                console.log("[LinkPilot AI] Active post container found:", post);
+            } else {
+                console.warn("[LinkPilot AI] Active post container not found. Using bar parent.");
+                activePostElement = bar.parentElement;
+            }
+            
+            openActionModal(post || bar.parentElement);
         });
     });
 }
@@ -347,10 +427,16 @@ function scrapePostDetails(postElement) {
     // 1. Post content text
     const textSelectors = [
         '.feed-shared-update-v2__description',
+        '.feed-shared-update-v2__commentary',
         '.update-components-text',
         '.feed-shared-text',
         '.feed-shared-annotated-text',
-        '.comments-comment-item__main-content'
+        '.comments-comment-item__main-content',
+        '[class*="update-v2__description"]',
+        '[class*="update-v2__commentary"]',
+        '[class*="update-components-text"]',
+        '[class*="feed-shared-text"]',
+        '[class*="description"]'
     ];
     let text = '';
     for (const selector of textSelectors) {
@@ -362,7 +448,7 @@ function scrapePostDetails(postElement) {
     }
     // Fallback: search broad text blocks if selectors fail
     if (!text) {
-        const textBlock = postElement.querySelector('.feed-shared-text-view');
+        const textBlock = postElement.querySelector('.feed-shared-text-view, [class*="break-words"]');
         if (textBlock) text = textBlock.innerText.trim();
     }
     
@@ -371,6 +457,8 @@ function scrapePostDetails(postElement) {
         '.update-components-actor__title',
         '.feed-shared-actor__title',
         '.comments-post-meta__name-text',
+        '[class*="actor__title"]',
+        '[class*="actor-title"]',
         'span[dir="ltr"]'
     ];
     let author = '';
@@ -386,7 +474,9 @@ function scrapePostDetails(postElement) {
     const descSelectors = [
         '.update-components-actor__description',
         '.feed-shared-actor__description',
-        '.comments-post-meta__headline'
+        '.comments-post-meta__headline',
+        '[class*="actor__description"]',
+        '[class*="actor-description"]'
     ];
     let company = '';
     for (const selector of descSelectors) {

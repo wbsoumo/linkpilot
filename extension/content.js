@@ -296,6 +296,42 @@ function initButtonInjection() {
     observer.observe(document.body, { childList: true, subtree: true });
 }
 
+// Helper to check if an element is a main post social action bar
+function isMainActionBar(el) {
+    if (!el || (el.tagName !== 'DIV' && el.tagName !== 'UL')) {
+        return false;
+    }
+    
+    // Ensure it is not inside comments, replies, or comment text boxes
+    if (el.closest('[class*="comments-"], [class*="comment-"], [class*="reply-"], .comment-social-bar, .comments-shared-social-action-bar')) {
+        return false;
+    }
+    
+    // Check for presence of key post action buttons
+    const hasLike = el.querySelector('[aria-label*="Reaction" i], [aria-label*="Like" i]');
+    const hasComment = el.querySelector('[aria-label*="Comment" i]');
+    const hasSendOrRepost = el.querySelector('[aria-label*="Send" i], [aria-label*="Repost" i], [aria-label*="Share" i]');
+    
+    let matchCount = 0;
+    if (hasLike) matchCount++;
+    if (hasComment) matchCount++;
+    if (hasSendOrRepost) matchCount++;
+    
+    return matchCount >= 2;
+}
+
+// Helper to find the main social action bar by walking up the tree from any matched button/link
+function findMainActionBar(btn) {
+    let current = btn.parentElement;
+    while (current && current !== document.body) {
+        if (isMainActionBar(current)) {
+            return current;
+        }
+        current = current.parentElement;
+    }
+    return null;
+}
+
 // Scans page and injects button into feed cards
 function injectActionButtons() {
     // 1. Collect all candidate containers using class selectors (excluding comment box buttons)
@@ -315,11 +351,13 @@ function injectActionButtons() {
     
     const candidateContainers = new Set();
     document.querySelectorAll(classSelectors.join(', ')).forEach(el => {
-        candidateContainers.add(el);
+        if (isMainActionBar(el)) {
+            candidateContainers.add(el);
+        }
     });
     
     // 2. Collect candidates by looking for comment/like/repost buttons and finding their parent containers
-    document.querySelectorAll('button, [role="button"]').forEach(btn => {
+    document.querySelectorAll('button, [role="button"], a').forEach(btn => {
         const label = (btn.getAttribute('aria-label') || '').toLowerCase();
         const text = (btn.textContent || btn.innerText || '').toLowerCase().trim();
         const className = (btn.className || '').toLowerCase();
@@ -341,25 +379,14 @@ function injectActionButtons() {
             text === 'share';
             
         if (matchesButton) {
-            let container = btn.parentElement;
-            if (container) {
-                // If the parent is a list item (LI) or similar small inline wrapper, go up to its parent
-                if (container.tagName === 'LI' || container.tagName === 'SPAN') {
-                    container = container.parentElement;
-                }
-                if (container && (container.tagName === 'DIV' || container.tagName === 'UL')) {
-                    candidateContainers.add(container);
-                }
+            const mainBar = findMainActionBar(btn);
+            if (mainBar) {
+                candidateContainers.add(mainBar);
             }
         }
     });
     
     candidateContainers.forEach((bar) => {
-        // Exclude containers that are inside comments list, comment boxes, replies, or any comment-related area
-        if (bar.closest('[class*="comments-"], [class*="comment-"], [class*="reply-"], .comment-social-bar, .comments-shared-social-action-bar')) {
-            return;
-        }
-
         // Prevent duplicate injections
         if (bar.querySelector('.linkpilot-btn')) {
             return;

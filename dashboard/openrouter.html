@@ -46,22 +46,177 @@
         <div class="max-w-2xl w-full animate-fade-in space-y-6">
             <div class="text-center md:text-left">
                 <h1 class="text-2xl font-extrabold text-white">AI Configuration</h1>
-                <p class="text-sm text-slate-400 mt-1">Configure your OpenRouter API Key to power the outreach response generation engine.</p>
+                <p class="text-sm text-slate-400 mt-1">Select your preferred AI API provider to power the outreach response generation engine.</p>
             </div>
             
-            <!-- OpenRouter Form -->
+            <!-- Provider Selection Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="provider-selection-container">
+                <!-- OpenRouter Card -->
+                <div id="provider-card-openrouter" class="provider-card glass-panel p-5 bg-slate-900/60 border border-slate-800 rounded-xl cursor-pointer hover:border-slate-700 hover:bg-slate-900/80 transition duration-200 flex flex-col justify-between" onclick="selectProvider('openrouter')">
+                    <div class="flex items-start justify-between">
+                        <div class="p-2 bg-teal-500/10 rounded-lg text-teal-400">
+                            <!-- OpenRouter Network SVG -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
+                            </svg>
+                        </div>
+                        <span class="text-[10px] px-2 py-0.5 bg-teal-400/10 text-teal-400 border border-teal-400/20 rounded-full font-bold">Free & Paid</span>
+                    </div>
+                    <div class="mt-4">
+                        <h4 class="text-sm font-bold text-white">OpenRouter</h4>
+                        <p class="text-xs text-slate-400 mt-1">Aggregated model hub. Includes Gemini Lite & Llama 3.</p>
+                    </div>
+                </div>
+
+                <!-- GitHub Models Card -->
+                <div id="provider-card-github_models" class="provider-card glass-panel p-5 bg-slate-900/60 border border-slate-800 rounded-xl cursor-pointer hover:border-slate-700 hover:bg-slate-900/80 transition duration-200 flex flex-col justify-between" onclick="selectProvider('github_models')">
+                    <div class="flex items-start justify-between">
+                        <div class="p-2 bg-purple-500/10 rounded-lg text-purple-400">
+                            <!-- GitHub Logo SVG -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                            </svg>
+                        </div>
+                        <span class="text-[10px] px-2 py-0.5 bg-purple-400/10 text-purple-400 border border-purple-400/20 rounded-full font-bold">Free PAT</span>
+                    </div>
+                    <div class="mt-4">
+                        <h4 class="text-sm font-bold text-white">GitHub Models</h4>
+                        <p class="text-xs text-slate-400 mt-1">Free developer access to GPT-4o-mini, Llama 3 & Phi-4.</p>
+                    </div>
+                </div>
+
+                <!-- Google AI Studio Card -->
+                <div id="provider-card-google_ai_studio" class="provider-card glass-panel p-5 bg-slate-900/60 border border-slate-800 rounded-xl cursor-pointer hover:border-slate-700 hover:bg-slate-900/80 transition duration-200 flex flex-col justify-between" onclick="selectProvider('google_ai_studio')">
+                    <div class="flex items-start justify-between">
+                        <div class="p-2 bg-blue-500/10 rounded-lg text-blue-400">
+                            <!-- Gemini Spark SVG -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                            </svg>
+                        </div>
+                        <span class="text-[10px] px-2 py-0.5 bg-blue-400/10 text-blue-400 border border-blue-400/20 rounded-full font-bold">Free Tier</span>
+                    </div>
+                    <div class="mt-4">
+                        <h4 class="text-sm font-bold text-white">Google AI Studio</h4>
+                        <p class="text-xs text-slate-400 mt-1">Direct integration using free Gemini 1.5/2.0 Flash models.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Form -->
             <div class="glass-panel p-8 bg-slate-900/60 border border-slate-800 rounded-2xl shadow-2xl">
-                <form id="openrouter-form" class="space-y-5">
-                    <h3 class="text-sm font-bold text-teal-400 uppercase tracking-wider">OpenRouter Settings</h3>
-                    <div>
-                        <label for="openrouter_key" class="block text-xs font-semibold text-slate-400 uppercase">OpenRouter API Key *</label>
-                        <input id="openrouter_key" name="openrouter_key" type="password" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="sk-or-v1-••••••••">
-                        <p class="text-xs text-slate-500 mt-1">Get your API key from <a href="https://openrouter.ai/keys" target="_blank" class="text-teal-400 hover:underline">OpenRouter</a>. Standard model used is <code>google/gemini-2.0-flash-lite:free</code>.</p>
+                <form id="ai-settings-form" class="space-y-6">
+                    <!-- Hidden Provider Input -->
+                    <input type="hidden" id="active_ai_provider" name="active_ai_provider" value="openrouter">
+
+                    <!-- OpenRouter Fields Block -->
+                    <div id="fields-openrouter" class="provider-fields space-y-5 hidden">
+                        <h3 class="text-sm font-bold text-teal-400 uppercase tracking-wider">OpenRouter API Settings</h3>
+                        
+                        <div>
+                            <label for="openrouter_key" class="block text-xs font-semibold text-slate-400 uppercase">OpenRouter API Key *</label>
+                            <div class="relative mt-1">
+                                <input id="openrouter_key" name="openrouter_key" type="password" class="block w-full pl-3 pr-10 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="sk-or-v1-••••••••">
+                                <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white" onclick="togglePasswordVisibility('openrouter_key')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1.5">Get your API key from <a href="https://openrouter.ai/keys" target="_blank" class="text-teal-400 hover:underline">OpenRouter</a>. Standard model used is <code>google/gemini-2.0-flash-lite:free</code>.</p>
+                        </div>
+
+                        <div>
+                            <label for="openrouter_model" class="block text-xs font-semibold text-slate-400 uppercase">Model *</label>
+                            <select id="openrouter_model" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" onchange="handleModelChange('openrouter')">
+                                <option value="google/gemini-2.0-flash-lite:free">Gemini 2.0 Flash Lite (Free) - Recommended</option>
+                                <option value="google/gemini-2.5-flash:free">Gemini 2.5 Flash (Free)</option>
+                                <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B Instruct (Free)</option>
+                                <option value="meta-llama/llama-3.1-8b-instruct:free">Llama 3.1 8B Instruct (Free)</option>
+                                <option value="custom">Custom Model...</option>
+                            </select>
+                        </div>
+                        
+                        <div id="openrouter_custom_model_container" class="hidden">
+                            <label for="openrouter_custom_model" class="block text-xs font-semibold text-slate-400 uppercase mt-2">Custom OpenRouter Model Identifier</label>
+                            <input id="openrouter_custom_model" type="text" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="e.g. anthropic/claude-3-haiku">
+                        </div>
+                    </div>
+
+                    <!-- GitHub Models Fields Block -->
+                    <div id="fields-github_models" class="provider-fields space-y-5 hidden">
+                        <h3 class="text-sm font-bold text-purple-400 uppercase tracking-wider">GitHub Models Settings</h3>
+                        
+                        <div>
+                            <label for="github_key" class="block text-xs font-semibold text-slate-400 uppercase">GitHub Personal Access Token (PAT) *</label>
+                            <div class="relative mt-1">
+                                <input id="github_key" name="github_key" type="password" class="block w-full pl-3 pr-10 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="ghp_•••••••• or github_pat_••••••••">
+                                <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white" onclick="togglePasswordVisibility('github_key')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1.5">Generate a PAT with <code>models:read</code> scope from your <a href="https://github.com/settings/tokens" target="_blank" class="text-purple-400 hover:underline">GitHub Developer Settings</a>.</p>
+                        </div>
+
+                        <div>
+                            <label for="github_model" class="block text-xs font-semibold text-slate-400 uppercase">Model *</label>
+                            <select id="github_model" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" onchange="handleModelChange('github_models')">
+                                <option value="gpt-4o-mini">gpt-4o-mini (GPT-4o Mini) - Recommended</option>
+                                <option value="gpt-4o">gpt-4o (GPT-4o)</option>
+                                <option value="meta-llama-3.3-70b-instruct">meta-llama-3.3-70b-instruct (Llama 3.3 70B)</option>
+                                <option value="cohere-command-r-plus">cohere-command-r-plus (Cohere Command R+)</option>
+                                <option value="Phi-4-mini-instruct">Phi-4-mini-instruct (Phi-4 Mini Reasoning)</option>
+                                <option value="custom">Custom Model...</option>
+                            </select>
+                        </div>
+
+                        <div id="github_custom_model_container" class="hidden">
+                            <label for="github_custom_model" class="block text-xs font-semibold text-slate-400 uppercase mt-2">Custom GitHub Model Identifier</label>
+                            <input id="github_custom_model" type="text" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="e.g. meta-llama-3.1-405b-instruct">
+                        </div>
+                    </div>
+
+                    <!-- Google AI Studio Fields Block -->
+                    <div id="fields-google_ai_studio" class="provider-fields space-y-5 hidden">
+                        <h3 class="text-sm font-bold text-blue-400 uppercase tracking-wider">Google AI Studio Settings</h3>
+                        
+                        <div>
+                            <label for="google_key" class="block text-xs font-semibold text-slate-400 uppercase">Google Gemini API Key *</label>
+                            <div class="relative mt-1">
+                                <input id="google_key" name="google_key" type="password" class="block w-full pl-3 pr-10 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="AIzaSy••••••••">
+                                <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white" onclick="togglePasswordVisibility('google_key')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1.5">Get a free API key from <a href="https://aistudio.google.com/" target="_blank" class="text-blue-400 hover:underline">Google AI Studio</a>.</p>
+                        </div>
+
+                        <div>
+                            <label for="google_model" class="block text-xs font-semibold text-slate-400 uppercase">Model *</label>
+                            <select id="google_model" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" onchange="handleModelChange('google_ai_studio')">
+                                <option value="gemini-2.0-flash">gemini-2.0-flash (Gemini 2.0 Flash) - Recommended</option>
+                                <option value="gemini-1.5-flash">gemini-1.5-flash (Gemini 1.5 Flash)</option>
+                                <option value="gemini-1.5-pro">gemini-1.5-pro (Gemini 1.5 Pro)</option>
+                                <option value="custom">Custom Model...</option>
+                            </select>
+                        </div>
+
+                        <div id="google_custom_model_container" class="hidden">
+                            <label for="google_custom_model" class="block text-xs font-semibold text-slate-400 uppercase mt-2">Custom Google Gemini Model Identifier</label>
+                            <input id="google_custom_model" type="text" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="e.g. gemini-2.0-pro-exp">
+                        </div>
                     </div>
 
                     <div class="pt-2">
-                        <button type="submit" class="w-full py-3 px-4 rounded-md border border-transparent font-semibold text-sm text-slate-950 bg-teal-400 hover:bg-teal-300 focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150">
-                            Save API Key
+                        <button type="submit" class="w-full py-3 px-4 rounded-md border border-transparent font-semibold text-sm text-slate-950 bg-teal-400 hover:bg-teal-300 focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150 shadow-lg shadow-teal-500/20">
+                            Save AI Settings
                         </button>
                     </div>
                 </form>
@@ -70,12 +225,12 @@
             <!-- Testing Sandbox -->
             <div id="testing-section" class="glass-panel p-8 bg-slate-900/60 border border-slate-800 rounded-2xl shadow-2xl space-y-5">
                 <h3 class="text-sm font-bold text-teal-400 uppercase tracking-wider">Test Your AI Integration</h3>
-                <p class="text-xs text-slate-400">Paste any LinkedIn post text here to test your OpenRouter key and generate an outreach draft.</p>
+                <p class="text-xs text-slate-400">Paste any LinkedIn post text here to test your active AI settings and generate an outreach draft.</p>
                 
                 <div class="space-y-4">
                     <div>
                         <label for="test-post-content" class="block text-xs font-semibold text-slate-400 uppercase">LinkedIn Post Content</label>
-                        <textarea id="test-post-content" rows="4" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="Paste LinkedIn post text here..."></textarea>
+                        <textarea id="test-post-content" rows="4" class="mt-1 block w-full px-3 py-2 bg-slate-880 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="Paste LinkedIn post text here..."></textarea>
                     </div>
                     
                     <button type="button" id="test-generate-btn" class="w-full py-3 px-4 rounded-md border border-teal-500/30 hover:border-teal-500 font-semibold text-sm text-teal-400 hover:text-white hover:bg-teal-500/10 focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150">
@@ -105,42 +260,196 @@
     <!-- Central JS Handler -->
     <script src="assets/js/app.js"></script>
     <script>
-        let hasSavedKey = false;
+        let activeProvider = 'openrouter';
+        let userKeysStatus = {
+            has_openrouter: false,
+            has_github: false,
+            has_google: false
+        };
 
-        // Load existing OpenRouter status
-        async function loadOpenRouterStatus() {
-            try {
-                const data = await apiCall('profile/get.php');
-                if (data.user && data.user.has_openrouter_key) {
-                    document.getElementById('openrouter_key').value = '••••••••';
-                    hasSavedKey = true;
-                } else {
-                    document.getElementById('openrouter_key').value = '';
-                    hasSavedKey = false;
-                }
-            } catch (err) {
-                console.error("Error loading OpenRouter settings:", err);
+        // Toggle password fields visibility
+        function togglePasswordVisibility(inputId) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+            } else {
+                input.type = 'password';
             }
         }
 
-        // Submit form
-        document.getElementById('openrouter-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            setFormLoading('openrouter-form', true);
+        // Show/hide custom model input based on dropdown selection
+        function handleModelChange(provider) {
+            let selectId = '';
+            let containerId = '';
             
-            const openrouterKey = document.getElementById('openrouter_key').value;
+            if (provider === 'openrouter') {
+                selectId = 'openrouter_model';
+                containerId = 'openrouter_custom_model_container';
+            } else if (provider === 'github_models') {
+                selectId = 'github_model';
+                containerId = 'github_custom_model_container';
+            } else if (provider === 'google_ai_studio') {
+                selectId = 'google_model';
+                containerId = 'google_custom_model_container';
+            }
+            
+            const selectEl = document.getElementById(selectId);
+            const containerEl = document.getElementById(containerId);
+            
+            if (selectEl.value === 'custom') {
+                containerEl.classList.remove('hidden');
+                containerEl.querySelector('input').setAttribute('required', 'required');
+            } else {
+                containerEl.classList.add('hidden');
+                containerEl.querySelector('input').removeAttribute('required');
+            }
+        }
+
+        // Handle provider selection
+        function selectProvider(provider) {
+            activeProvider = provider;
+            document.getElementById('active_ai_provider').value = provider;
+
+            // Update cards styling
+            document.querySelectorAll('.provider-card').forEach(card => {
+                card.classList.remove('border-teal-500', 'bg-slate-900/90', 'ring-2', 'ring-teal-500/20');
+                card.classList.add('border-slate-800', 'bg-slate-900/60');
+            });
+
+            const activeCard = document.getElementById(`provider-card-${provider}`);
+            if (activeCard) {
+                activeCard.classList.remove('border-slate-800', 'bg-slate-900/60');
+                activeCard.classList.add('border-teal-500', 'bg-slate-900/90', 'ring-2', 'ring-teal-500/20');
+            }
+
+            // Update fields display
+            document.querySelectorAll('.provider-fields').forEach(fieldBlock => {
+                fieldBlock.classList.add('hidden');
+            });
+            
+            const activeFields = document.getElementById(`fields-${provider}`);
+            if (activeFields) {
+                activeFields.classList.remove('hidden');
+            }
+
+            // Make sure the proper key input is marked as required, and others are not
+            const orKey = document.getElementById('openrouter_key');
+            const ghKey = document.getElementById('github_key');
+            const goKey = document.getElementById('google_key');
+
+            orKey.removeAttribute('required');
+            ghKey.removeAttribute('required');
+            goKey.removeAttribute('required');
+
+            if (provider === 'openrouter' && !userKeysStatus.has_openrouter) {
+                orKey.setAttribute('required', 'required');
+            } else if (provider === 'github_models' && !userKeysStatus.has_github) {
+                ghKey.setAttribute('required', 'required');
+            } else if (provider === 'google_ai_studio' && !userKeysStatus.has_google) {
+                goKey.setAttribute('required', 'required');
+            }
+        }
+
+        // Load settings status
+        async function loadAISettings() {
+            try {
+                const data = await apiCall('profile/get.php');
+                if (data.user) {
+                    userKeysStatus.has_openrouter = !!data.user.has_openrouter_key;
+                    userKeysStatus.has_github = !!data.user.has_github_key;
+                    userKeysStatus.has_google = !!data.user.has_google_key;
+
+                    // Fill placeholder keys if saved in DB
+                    document.getElementById('openrouter_key').value = userKeysStatus.has_openrouter ? '••••••••' : '';
+                    document.getElementById('github_key').value = userKeysStatus.has_github ? '••••••••' : '';
+                    document.getElementById('google_key').value = userKeysStatus.has_google ? '••••••••' : '';
+
+                    // Select active provider
+                    activeProvider = data.user.active_ai_provider || 'openrouter';
+                    selectProvider(activeProvider);
+
+                    // Load active model
+                    const savedModel = data.user.active_ai_model;
+                    if (savedModel) {
+                        if (activeProvider === 'openrouter') {
+                            const dropdown = document.getElementById('openrouter_model');
+                            const hasVal = Array.from(dropdown.options).some(opt => opt.value === savedModel);
+                            if (hasVal) {
+                                dropdown.value = savedModel;
+                            } else {
+                                dropdown.value = 'custom';
+                                document.getElementById('openrouter_custom_model').value = savedModel;
+                            }
+                            handleModelChange('openrouter');
+                        } else if (activeProvider === 'github_models') {
+                            const dropdown = document.getElementById('github_model');
+                            const hasVal = Array.from(dropdown.options).some(opt => opt.value === savedModel);
+                            if (hasVal) {
+                                dropdown.value = savedModel;
+                            } else {
+                                dropdown.value = 'custom';
+                                document.getElementById('github_custom_model').value = savedModel;
+                            }
+                            handleModelChange('github_models');
+                        } else if (activeProvider === 'google_ai_studio') {
+                            const dropdown = document.getElementById('google_model');
+                            const hasVal = Array.from(dropdown.options).some(opt => opt.value === savedModel);
+                            if (hasVal) {
+                                dropdown.value = savedModel;
+                            } else {
+                                dropdown.value = 'custom';
+                                document.getElementById('google_custom_model').value = savedModel;
+                            }
+                            handleModelChange('google_ai_studio');
+                        }
+                    }
+                }
+            } catch (err) {
+                showNotification('error', 'Error loading AI settings from profile.');
+                console.error(err);
+            }
+        }
+
+        // Form Submit
+        document.getElementById('ai-settings-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            setFormLoading('ai-settings-form', true);
+
+            const payload = {
+                active_ai_provider: activeProvider
+            };
+
+            // Get Key inputs
+            const orKey = document.getElementById('openrouter_key').value.trim();
+            const ghKey = document.getElementById('github_key').value.trim();
+            const goKey = document.getElementById('google_key').value.trim();
+
+            payload.openrouter_key = orKey;
+            payload.github_key = ghKey;
+            payload.google_key = goKey;
+
+            // Get Model inputs
+            if (activeProvider === 'openrouter') {
+                const selectVal = document.getElementById('openrouter_model').value;
+                payload.active_ai_model = (selectVal === 'custom') ? document.getElementById('openrouter_custom_model').value.trim() : selectVal;
+            } else if (activeProvider === 'github_models') {
+                const selectVal = document.getElementById('github_model').value;
+                payload.active_ai_model = (selectVal === 'custom') ? document.getElementById('github_custom_model').value.trim() : selectVal;
+            } else if (activeProvider === 'google_ai_studio') {
+                const selectVal = document.getElementById('google_model').value;
+                payload.active_ai_model = (selectVal === 'custom') ? document.getElementById('google_custom_model').value.trim() : selectVal;
+            }
 
             try {
-                await apiCall('profile/save_openrouter.php', 'POST', { openrouter_key: openrouterKey });
-                showNotification('success', 'OpenRouter API Key saved successfully!');
-                hasSavedKey = true;
+                await apiCall('profile/save_openrouter.php', 'POST', payload);
+                showNotification('success', 'AI settings saved successfully!');
                 setTimeout(() => {
-                    loadOpenRouterStatus();
+                    loadAISettings();
                 }, 1000);
             } catch (err) {
-                showNotification('error', err.message || 'Failed to save OpenRouter API Key.');
+                showNotification('error', err.message || 'Failed to save AI settings.');
             } finally {
-                setFormLoading('openrouter-form', false);
+                setFormLoading('ai-settings-form', false);
             }
         });
 
@@ -174,7 +483,7 @@
                 
                 document.getElementById('test-output-box').classList.remove('hidden');
             } catch (err) {
-                showNotification('error', err.message || 'Outreach generation failed. Verify your OpenRouter key.');
+                showNotification('error', err.message || 'Outreach generation failed. Verify your key/token configuration.');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
@@ -182,7 +491,7 @@
         });
 
         // Initialize page
-        loadOpenRouterStatus();
+        loadAISettings();
     </script>
 </body>
 </html>

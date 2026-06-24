@@ -40,6 +40,12 @@ define('ENCRYPTION_METHOD', 'aes-256-cbc');
 define('OPENROUTER_API_KEY', 'your_openrouter_api_key_here');
 define('OPENROUTER_MODEL', 'google/gemini-2.0-flash-lite:free');
 
+// GitHub Models API Configuration
+define('GITHUB_MODELS_MODEL', 'gpt-4o-mini');
+
+// Google AI Studio API Configuration
+define('GOOGLE_AI_STUDIO_MODEL', 'gemini-2.0-flash');
+
 // Helper function to encrypt sensitive data (SMTP passwords)
 function encryptData($data) {
     $key = hash('sha256', ENCRYPTION_KEY);
@@ -79,11 +85,31 @@ class Database {
                 ];
                 self::$instance = new PDO($dsn, DB_USER, DB_PASS, $options);
                 
-                // Self-healing database migration for OpenRouter Key
+                // Self-healing database migration for OpenRouter, GitHub, Google Keys and active settings
                 try {
                     $stmt = self::$instance->query("SHOW COLUMNS FROM `users` LIKE 'openrouter_key'");
                     if (!$stmt->fetch()) {
                         self::$instance->exec("ALTER TABLE `users` ADD COLUMN `openrouter_key` TEXT DEFAULT NULL");
+                    }
+                    
+                    $stmt = self::$instance->query("SHOW COLUMNS FROM `users` LIKE 'github_key'");
+                    if (!$stmt->fetch()) {
+                        self::$instance->exec("ALTER TABLE `users` ADD COLUMN `github_key` TEXT DEFAULT NULL");
+                    }
+                    
+                    $stmt = self::$instance->query("SHOW COLUMNS FROM `users` LIKE 'google_key'");
+                    if (!$stmt->fetch()) {
+                        self::$instance->exec("ALTER TABLE `users` ADD COLUMN `google_key` TEXT DEFAULT NULL");
+                    }
+                    
+                    $stmt = self::$instance->query("SHOW COLUMNS FROM `users` LIKE 'active_ai_provider'");
+                    if (!$stmt->fetch()) {
+                        self::$instance->exec("ALTER TABLE `users` ADD COLUMN `active_ai_provider` VARCHAR(50) DEFAULT 'openrouter'");
+                    }
+                    
+                    $stmt = self::$instance->query("SHOW COLUMNS FROM `users` LIKE 'active_ai_model'");
+                    if (!$stmt->fetch()) {
+                        self::$instance->exec("ALTER TABLE `users` ADD COLUMN `active_ai_model` VARCHAR(100) DEFAULT NULL");
                     }
                 } catch (Exception $migrationError) {
                     // Ignore migration issues
@@ -155,106 +181,239 @@ function updateStatistic($userId, $column, $increment = 1) {
     } catch (Exception $e) {}
 }
 
-// Call OpenRouter API
-function callOpenRouter($systemPrompt, $userPrompt, $userId = null) {
+// Call Generic AI routing function
+function callAI($systemPrompt, $userPrompt, $userId = null) {
+    $provider = 'openrouter';
+    $model = OPENROUTER_MODEL;
     $apiKey = OPENROUTER_API_KEY;
-    
+
     if ($userId !== null) {
         try {
             $db = Database::getConnection();
-            $stmt = $db->prepare("SELECT openrouter_key FROM users WHERE id = ?");
+            $stmt = $db->prepare("SELECT openrouter_key, github_key, google_key, active_ai_provider, active_ai_model FROM users WHERE id = ?");
             $stmt->execute([$userId]);
             $res = $stmt->fetch();
-            if ($res && !empty($res['openrouter_key'])) {
-                $decrypted = decryptData($res['openrouter_key']);
-                if ($decrypted !== false) {
-                    $apiKey = $decrypted;
+            if ($res) {
+                if (!empty($res['active_ai_provider'])) {
+                    $provider = $res['active_ai_provider'];
+                }
+
+                if ($provider === 'github_models') {
+                    if (!empty($res['github_key'])) {
+                        $decrypted = decryptData($res['github_key']);
+                        $apiKey = ($decrypted !== false) ? $decrypted : $res['github_key'];
+                    } else {
+                        $apiKey = getenv('GITHUB_TOKEN') ?: '';
+                    }
+                    $model = !empty($res['active_ai_model']) ? $res['active_ai_model'] : GITHUB_MODELS_MODEL;
+                } elseif ($provider === 'google_ai_studio') {
+                    if (!empty($res['google_key'])) {
+                        $decrypted = decryptData($res['google_key']);
+                        $apiKey = ($decrypted !== false) ? $decrypted : $res['google_key'];
+                    } else {
+                        $apiKey = getenv('GEMINI_API_KEY') ?: '';
+                    }
+                    $model = !empty($res['active_ai_model']) ? $res['active_ai_model'] : GOOGLE_AI_STUDIO_MODEL;
                 } else {
-                    $apiKey = $res['openrouter_key'];
+                    // Default to OpenRouter
+                    if (!empty($res['openrouter_key'])) {
+                        $decrypted = decryptData($res['openrouter_key']);
+                        $apiKey = ($decrypted !== false) ? $decrypted : $res['openrouter_key'];
+                    } else {
+                        $apiKey = OPENROUTER_API_KEY;
+                    }
+                    $model = !empty($res['active_ai_model']) ? $res['active_ai_model'] : OPENROUTER_MODEL;
                 }
             }
         } catch (Exception $e) {
-            // Ignore DB error, fallback to default key
+            // Ignore DB error, fallback
         }
     }
-    
-    if (empty($apiKey) || strpos($apiKey, 'placeholder') !== false) {
-        throw new Exception("OpenRouter API Key not configured. Please go to your LinkPilot Dashboard settings (SMTP & AI Configuration) and save your OpenRouter API Key.");
-    }
-    
-    $modelsToTry = [
-        OPENROUTER_MODEL,
-        'google/gemini-2.5-flash:free',
-        'google/gemini-2.5-flash',
-        'meta-llama/llama-3.3-70b-instruct:free',
-        'google/gemini-2.0-flash-lite:free',
-        'meta-llama/llama-3.1-8b-instruct:free',
-        'meta-llama/llama-3-8b-instruct:free',
-        'google/gemini-2.0-flash-exp'
-    ];
-    $modelsToTry = array_unique($modelsToTry);
 
-    $lastError = '';
+    if ($provider === 'github_models') {
+        if (empty($apiKey) || strpos($apiKey, 'placeholder') !== false) {
+            throw new Exception("GitHub Personal Access Token not configured. Please go to AI Settings and save your GitHub Token.");
+        }
 
-    foreach ($modelsToTry as $currentModel) {
-        try {
-            $headers = [
-                "Authorization: Bearer " . $apiKey,
-                "Content-Type: application/json",
-                "HTTP-Referer: http://localhost:8000",
-                "X-Title: LinkPilot AI"
-            ];
-            
-            $postFields = [
-                "model" => $currentModel,
-                "messages" => [
-                    ["role" => "system", "content" => $systemPrompt],
-                    ["role" => "user", "content" => $userPrompt]
-                ]
-            ];
-            
-            $ch = curl_init("https://openrouter.ai/api/v1/chat/completions");
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $error = curl_error($ch);
-            curl_close($ch);
-            
-            if ($error) {
-                throw new Exception("OpenRouter connection error: " . $error);
+        $headers = [
+            "Authorization: Bearer " . $apiKey,
+            "Content-Type: application/json",
+            "User-Agent: LinkPilot-AI"
+        ];
+
+        $postFields = [
+            "model" => $model,
+            "messages" => [
+                ["role" => "system", "content" => $systemPrompt],
+                ["role" => "user", "content" => $userPrompt]
+            ]
+        ];
+
+        $ch = curl_init("https://models.inference.ai.azure.com/chat/completions");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+
+        if ($error) {
+            throw new Exception("GitHub Models connection error: " . $error);
+        }
+
+        $data = json_decode($response, true);
+        if ($httpCode !== 200) {
+            if ($httpCode === 401) {
+                throw new Exception("Unauthorized: Invalid GitHub Personal Access Token.");
             }
-            
-            $data = json_decode($response, true);
-            if ($httpCode !== 200) {
-                // If it's an authorization/invalid key issue, stop trying other models and throw immediately
-                if (isset($data['error']['code']) && $data['error']['code'] === 401) {
-                    throw new Exception("Unauthorized: Invalid OpenRouter API Key.");
+            $msg = $data['message'] ?? ($data['error']['message'] ?? "Unknown GitHub Models Error");
+            throw new Exception("GitHub Models API Error (HTTP {$httpCode}) with model {$model}: " . $msg);
+        }
+
+        $generatedText = $data['choices'][0]['message']['content'] ?? '';
+        $tokensUsed = $data['usage']['total_tokens'] ?? 0;
+
+        return [
+            "text" => trim($generatedText),
+            "tokens" => $tokensUsed
+        ];
+
+    } elseif ($provider === 'google_ai_studio') {
+        if (empty($apiKey) || strpos($apiKey, 'placeholder') !== false) {
+            throw new Exception("Google AI Studio API Key not configured. Please go to AI Settings and save your Gemini API Key.");
+        }
+
+        $headers = [
+            "Authorization: Bearer " . $apiKey,
+            "Content-Type: application/json"
+        ];
+
+        $postFields = [
+            "model" => $model,
+            "messages" => [
+                ["role" => "system", "content" => $systemPrompt],
+                ["role" => "user", "content" => $userPrompt]
+            ]
+        ];
+
+        $ch = curl_init("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+
+        if ($error) {
+            throw new Exception("Google AI Studio connection error: " . $error);
+        }
+
+        $data = json_decode($response, true);
+        if ($httpCode !== 200) {
+            if ($httpCode === 401) {
+                throw new Exception("Unauthorized: Invalid Google Gemini API Key.");
+            }
+            $msg = $data['message'] ?? ($data['error']['message'] ?? "Unknown Google AI Studio Error");
+            throw new Exception("Google AI Studio API Error (HTTP {$httpCode}) with model {$model}: " . $msg);
+        }
+
+        $generatedText = $data['choices'][0]['message']['content'] ?? '';
+        $tokensUsed = $data['usage']['total_tokens'] ?? 0;
+
+        return [
+            "text" => trim($generatedText),
+            "tokens" => $tokensUsed
+        ];
+
+    } else {
+        // OpenRouter API with fallbacks
+        if (empty($apiKey) || strpos($apiKey, 'placeholder') !== false) {
+            throw new Exception("OpenRouter API Key not configured. Please go to AI Settings and save your OpenRouter API Key.");
+        }
+
+        $modelsToTry = [
+            $model,
+            'google/gemini-2.5-flash:free',
+            'google/gemini-2.5-flash',
+            'meta-llama/llama-3.3-70b-instruct:free',
+            'google/gemini-2.0-flash-lite:free',
+            'meta-llama/llama-3.1-8b-instruct:free',
+            'meta-llama/llama-3-8b-instruct:free',
+            'google/gemini-2.0-flash-exp'
+        ];
+        $modelsToTry = array_unique($modelsToTry);
+        $lastError = '';
+
+        foreach ($modelsToTry as $currentModel) {
+            try {
+                $headers = [
+                    "Authorization: Bearer " . $apiKey,
+                    "Content-Type: application/json",
+                    "HTTP-Referer: http://localhost:8000",
+                    "X-Title: LinkPilot AI"
+                ];
+
+                $postFields = [
+                    "model" => $currentModel,
+                    "messages" => [
+                        ["role" => "system", "content" => $systemPrompt],
+                        ["role" => "user", "content" => $userPrompt]
+                    ]
+                ];
+
+                $ch = curl_init("https://openrouter.ai/api/v1/chat/completions");
+                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+                $response = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $error = curl_error($ch);
+                curl_close($ch);
+
+                if ($error) {
+                    throw new Exception("OpenRouter connection error: " . $error);
                 }
-                $msg = $data['error']['message'] ?? "Unknown OpenRouter Error";
-                throw new Exception("OpenRouter API Error (HTTP {$httpCode}) with model {$currentModel}: " . $msg);
-            }
-            
-            $generatedText = $data['choices'][0]['message']['content'] ?? '';
-            $tokensUsed = $data['usage']['total_tokens'] ?? 0;
-            
-            return [
-                "text" => trim($generatedText),
-                "tokens" => $tokensUsed
-            ];
-        } catch (Exception $ex) {
-            $lastError = $ex->getMessage();
-            // If it's an API Key or Authorization error, throw immediately
-            if (strpos($lastError, 'Unauthorized') !== false || strpos($lastError, 'API Key') !== false) {
-                throw $ex;
-            }
-            // Otherwise proceed to next model in list
-        }
-    }
 
-    throw new Exception("Failed to generate outreach content using OpenRouter. Last error: " . $lastError);
+                $data = json_decode($response, true);
+                if ($httpCode !== 200) {
+                    if (isset($data['error']['code']) && $data['error']['code'] === 401) {
+                        throw new Exception("Unauthorized: Invalid OpenRouter API Key.");
+                    }
+                    $msg = $data['error']['message'] ?? "Unknown OpenRouter Error";
+                    throw new Exception("OpenRouter API Error (HTTP {$httpCode}) with model {$currentModel}: " . $msg);
+                }
+
+                $generatedText = $data['choices'][0]['message']['content'] ?? '';
+                $tokensUsed = $data['usage']['total_tokens'] ?? 0;
+
+                return [
+                    "text" => trim($generatedText),
+                    "tokens" => $tokensUsed
+                ];
+            } catch (Exception $ex) {
+                $lastError = $ex->getMessage();
+                if (strpos($lastError, 'Unauthorized') !== false || strpos($lastError, 'API Key') !== false) {
+                    throw $ex;
+                }
+            }
+        }
+
+        throw new Exception("Failed to generate outreach content using OpenRouter. Last error: " . $lastError);
+    }
+}
+
+// Wrapper for legacy callOpenRouter to keep endpoints compatible
+function callOpenRouter($systemPrompt, $userPrompt, $userId = null) {
+    return callAI($systemPrompt, $userPrompt, $userId);
 }

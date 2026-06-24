@@ -16,7 +16,7 @@ $db = Database::getConnection();
 
 try {
     // 1. Fetch User details
-    $stmtUser = $db->prepare("SELECT id, name, email, role, openrouter_key, created_at FROM users WHERE id = ?");
+    $stmtUser = $db->prepare("SELECT id, name, email, role, openrouter_key, github_key, google_key, active_ai_provider, active_ai_model, created_at FROM users WHERE id = ?");
     $stmtUser->execute([$userId]);
     $userData = $stmtUser->fetch();
     
@@ -25,7 +25,13 @@ try {
     }
     
     $userData['has_openrouter_key'] = !empty($userData['openrouter_key']);
+    $userData['has_github_key'] = !empty($userData['github_key']);
+    $userData['has_google_key'] = !empty($userData['google_key']);
+    $userData['active_ai_provider'] = $userData['active_ai_provider'] ?? 'openrouter';
+    $userData['active_ai_model'] = $userData['active_ai_model'];
     unset($userData['openrouter_key']);
+    unset($userData['github_key']);
+    unset($userData['google_key']);
     
     // 2. Fetch Profile details
     $stmtProfile = $db->prepare("SELECT * FROM user_profiles WHERE user_id = ?");

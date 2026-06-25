@@ -364,11 +364,11 @@
             });
         }
 
-        // Google Sheets Modal & Sync Management
-        const sheetsModal = document.getElementById('sheets-modal');
-        const sheetsStateUnconnected = document.getElementById('sheets-state-unconnected');
-        const sheetsStateConnectedNoSheet = document.getElementById('sheets-state-connected-no-sheet');
-        const sheetsStateConnectedConfigured = document.getElementById('sheets-state-connected-configured');
+        // Google Sheets Modal & Sync Management (initialized on DOMContentLoaded)
+        let sheetsModal = null;
+        let sheetsStateUnconnected = null;
+        let sheetsStateConnectedNoSheet = null;
+        let sheetsStateConnectedConfigured = null;
 
         async function openGoogleSheetsModal() {
             if (sheetsModal) {
@@ -596,6 +596,12 @@
         // Run on load
         document.addEventListener('DOMContentLoaded', () => {
             loadDashboardData();
+
+            // Initialize Google Sheets Modal element references now that the DOM is fully parsed
+            sheetsModal = document.getElementById('sheets-modal');
+            sheetsStateUnconnected = document.getElementById('sheets-state-unconnected');
+            sheetsStateConnectedNoSheet = document.getElementById('sheets-state-connected-no-sheet');
+            sheetsStateConnectedConfigured = document.getElementById('sheets-state-connected-configured');
 
             // Bind Google Sheets Modal triggers
             const sheetsModalBtn = document.getElementById('google-sheets-modal-btn');

@@ -558,23 +558,28 @@
                 `;
             }
 
+            let modelHtml = '';
+            if (isConfigured && modelName) {
+                modelHtml = `<p class="text-[10px] text-slate-500 mt-1 font-mono">Model: ${modelName}</p>`;
+            }
+
             return `
                 <div class="glass-panel p-5 bg-slate-900/60 border border-slate-800 rounded-xl hover:border-slate-700/80 transition duration-150 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div class="flex items-center space-x-4">
-                        \${logoHtml}
+                        ${logoHtml}
                         <div>
                             <div class="flex items-center space-x-2.5">
-                                <h4 class="text-sm font-bold text-white">\${name}</h4>
+                                <h4 class="text-sm font-bold text-white">${name}</h4>
                                 <div class="flex space-x-1.5">
-                                    \${badgesHtml}
+                                    ${badgesHtml}
                                 </div>
                             </div>
-                            <p class="text-xs text-slate-400 mt-1">\${desc}</p>
-                            \${isConfigured && modelName ? `<p class="text-[10px] text-slate-500 mt-1 font-mono">Model: \${modelName}</p>` : ''}
+                            <p class="text-xs text-slate-400 mt-1">${desc}</p>
+                            ${modelHtml}
                         </div>
                     </div>
                     <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
-                        \${actionsHtml}
+                        ${actionsHtml}
                     </div>
                 </div>
             `;

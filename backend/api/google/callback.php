@@ -20,15 +20,17 @@ if ($code === '' || $stateEncoded === '') {
 }
 
 try {
-    // 1. Decode state to verify user context
-    $stateJson = base64_decode(urldecode($stateEncoded));
-    $state = json_decode($stateJson, true);
-    
-    if (!$state || !isset($state['user_id'])) {
-        throw new Exception("Invalid state payload.");
+    // 1. Decode state to verify user context securely
+    $parts = explode('-', $stateEncoded);
+    if (count($parts) !== 2) {
+        throw new Exception("Invalid state format.");
     }
+    $userId = (int)$parts[0];
+    $hash = $parts[1];
     
-    $userId = (int)$state['user_id'];
+    if ($hash !== md5($userId . ENCRYPTION_KEY)) {
+        throw new Exception("State verification failed.");
+    }
     
     // 2. Exchange authorization code for tokens
     $ch = curl_init('https://oauth2.googleapis.com/token');

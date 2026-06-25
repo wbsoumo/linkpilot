@@ -23,9 +23,9 @@ $scopes = [
     'https://www.googleapis.com/auth/spreadsheets'
 ];
 
-// Pack state to match user context
-$state = json_encode(['user_id' => $userId]);
-$stateEncoded = urlencode(base64_encode($state));
+// Pack state to match user context securely without triggering WAF (ModSecurity/LiteSpeed) filters
+$hash = md5($userId . ENCRYPTION_KEY);
+$stateEncoded = $userId . '-' . $hash;
 
 $authUrl = "https://accounts.google.com/o/oauth2/v2/auth?" . http_build_query([
     'client_id' => GOOGLE_CLIENT_ID,

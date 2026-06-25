@@ -3,13 +3,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-    --primary: #0F172A;
-    --secondary: #1E293B;
+    --primary: #F8FAFC;
+    --secondary: #0F172A;
     --accent: #14B8A6;
     --success: #22C55E;
     --warning: #F59E0B;
     --danger: #EF4444;
-    --background: #F8FAFC;
+    --background: #020617;
     
     --accent-light: rgba(20, 184, 166, 0.1);
     --accent-hover: #0D9488;
@@ -25,23 +25,27 @@ body {
     overflow-x: hidden;
 }
 
-/* Glassmorphic elements */
+/* Glassmorphic elements - using :where() to let Tailwind utilities override background and border */
+:where(.glass-panel) {
+    background: rgba(15, 23, 42, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
 .glass-panel {
-    background: rgba(255, 255, 255, 0.75);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: var(--radius-card);
-    box-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.04);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
 }
 
-.glass-panel-dark {
+:where(.glass-panel-dark) {
     background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.glass-panel-dark {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--radius-card);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
 }
 
 /* Card Hover effect */
@@ -51,11 +55,17 @@ body {
 
 .card-hover:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 40px 0 rgba(15, 23, 42, 0.08);
+    box-shadow: 0 12px 40px -10px rgba(20, 184, 166, 0.15);
     border-color: rgba(20, 184, 166, 0.3);
 }
 
-/* Custom scrollbars */
+/* Active Glow for Selected Items */
+.card-active-glow {
+    border-color: rgba(20, 184, 166, 0.5) !important;
+    box-shadow: 0 0 15px rgba(20, 184, 166, 0.1), inset 0 0 10px rgba(20, 184, 166, 0.05);
+}
+
+/* Custom scrollbars for dark theme */
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -64,11 +74,16 @@ body {
     background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: rgba(15, 23, 42, 0.15);
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(20, 184, 166, 0.5);
+    background: rgba(20, 184, 166, 0.4);
+}
+
+/* Dynamic Preview Container Transition */
+.preview-container-transition {
+    transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Lucide Icon styling integration */
@@ -79,13 +94,13 @@ body {
     border-radius: 50%;
 }
 
-/* Table styling */
+/* Table styling in dark theme */
 .custom-table th {
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.75rem;
     letter-spacing: 0.05em;
-    color: #64748B;
+    color: #94A3B8;
 }
 
 .custom-table tr {
@@ -93,7 +108,7 @@ body {
 }
 
 .custom-table tbody tr:hover {
-    background-color: rgba(241, 245, 249, 0.5);
+    background-color: rgba(255, 255, 255, 0.02);
 }
 
 /* Animations */
@@ -118,11 +133,11 @@ body {
 /* Navigation items active state */
 .nav-link-active {
     background-color: var(--accent);
-    color: white !important;
+    color: var(--secondary) !important;
 }
 
 .nav-link-active svg {
-    stroke: white !important;
+    stroke: var(--secondary) !important;
 }
 
 /* Page loader spinner */
@@ -139,3 +154,4 @@ body {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+

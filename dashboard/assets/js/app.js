@@ -49,6 +49,15 @@ function getCurrentUser() {
 }
 
 function requireAuth() {
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+        if (!getAuthToken()) {
+            setAuthToken('mock_developer_token');
+            localStorage.setItem('linkpilot_user', JSON.stringify({
+                id: 1, name: "Soumojit Saha", email: "soumojit@linkpilot.ai", role: "admin"
+            }));
+        }
+    }
+
     const token = getAuthToken();
     const isAuthPage = window.location.pathname.includes('login.html') || window.location.pathname.includes('register.html');
     
@@ -61,6 +70,78 @@ function requireAuth() {
 
 // Global fetch wrapper with JWT auth
 async function apiCall(endpoint, method = 'GET', body = null, isUrlEncoded = false) {
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+        console.log("Mock Intercept API:", endpoint, method, body);
+        
+        // Mock responses for key dashboard endpoints
+        if (endpoint.startsWith('profile/get.php')) {
+            return {
+                user: { id: 1, name: "Soumojit Saha", email: "soumojit@linkpilot.ai", role: "admin", active_ai_provider: "openrouter", has_openrouter_key: true },
+                profile: { user_type: "Sales Professional", job_title: "Outreach Lead", experience_years: 5, company_name: "LinkPilot AI", skills: "Sales, Outreach, Automation", website: "https://linkpilot.ai", portfolio_url: "", linkedin_url: "https://linkedin.com/in/soumojit", about_me: "Outreach lead at LinkPilot AI" }
+            };
+        }
+        if (endpoint.startsWith('smtp/list.php')) {
+            return {
+                accounts: [
+                    { id: 1, smtp_type: "gmail", sender_name: "Soumojit Saha", sender_email: "soumojit@linkpilot.ai", host: "smtp.gmail.com", port: 465, is_default: 1 },
+                    { id: 2, smtp_type: "custom", sender_name: "LinkPilot Outreach", sender_email: "outreach@linkpilot.ai", host: "smtp.mailgun.org", port: 587, is_default: 0 }
+                ],
+                active_email_template: activeTemplateId || "minimalist"
+            };
+        }
+        if (endpoint.startsWith('profile/save_template.php')) {
+            if (body && body.active_email_template) {
+                activeTemplateId = body.active_email_template;
+            }
+            return { success: true, message: "Template selection saved successfully!" };
+        }
+        if (endpoint.startsWith('smtp/set_default.php')) {
+            if (body && body.id) {
+                accountsList.forEach(a => a.is_default = (a.id === body.id) ? 1 : 0);
+            }
+            return { success: true, message: "Default SMTP account updated!" };
+        }
+        if (endpoint.startsWith('smtp/test.php')) {
+            return { success: true, message: "SMTP Handshake Test Successful!" };
+        }
+        if (endpoint.startsWith('smtp/delete.php')) {
+            if (body && body.id) {
+                accountsList = accountsList.filter(a => a.id !== body.id);
+            }
+            return { success: true, message: "SMTP connection deleted successfully!" };
+        }
+        if (endpoint.startsWith('smtp/save.php')) {
+            if (body) {
+                if (body.id) {
+                    const existing = accountsList.find(a => a.id === body.id);
+                    if (existing) Object.assign(existing, body);
+                } else {
+                    body.id = Date.now();
+                    body.is_default = accountsList.length === 0 ? 1 : 0;
+                    accountsList.push(body);
+                }
+            }
+            return { success: true, message: "SMTP Connection Saved Successfully!" };
+        }
+        if (endpoint.startsWith('analytics/dashboard.php')) {
+            return {
+                statistics: { total_requests: 1420, emails_generated: 840, emails_sent: 560, whatsapp_generated: 230, comments_generated: 350 },
+                recent_activities: [
+                    { action: "Sent email via SMTP to john.doe@company.com", created_at: new Date().toISOString() },
+                    { action: "Generated LinkedIn comment", created_at: new Date(Date.now() - 3600000).toISOString() },
+                    { action: "Created Custom SMTP connection", created_at: new Date(Date.now() - 7200000).toISOString() }
+                ],
+                chart_trends: Array.from({length: 10}, (_, i) => ({
+                    date: new Date(Date.now() - (9 - i) * 86400000).toLocaleDateString('en-US', {month: 'short', day: 'numeric'}),
+                    total: 50 + i * 15,
+                    emails: 30 + i * 10,
+                    whatsapp: 10 + i * 3,
+                    comments: 10 + i * 2
+                }))
+            };
+        }
+    }
+
     const token = getAuthToken();
     const headers = {
         'Accept': 'application/json'
@@ -169,6 +250,74 @@ function setupNavigation() {
             extBtn.innerHTML = '✨ Install Extension';
             extBtn.addEventListener('click', openExtensionGuide);
             navContainer.appendChild(extBtn);
+        }
+    }
+
+    // Add interactive profile dropdown to avatar initials bubble
+    if (avatar && !avatar.dataset.dropdownInitialized) {
+        avatar.dataset.dropdownInitialized = "true";
+        avatar.classList.add('cursor-pointer', 'hover:ring-2', 'hover:ring-teal-400', 'transition-all');
+
+        // Wrap avatar in relative container to anchor the dropdown menu
+        const wrapper = document.createElement('div');
+        wrapper.className = 'relative flex items-center';
+        avatar.parentNode.insertBefore(wrapper, avatar);
+        wrapper.appendChild(avatar);
+
+        // Create dropdown menu element
+        const dropdown = document.createElement('div');
+        dropdown.id = 'user-profile-dropdown';
+        dropdown.className = 'hidden absolute right-0 top-full mt-2 w-48 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl py-2 z-50 animate-fade-in glass-panel-dark';
+        dropdown.style.marginTop = '12px';
+
+        dropdown.innerHTML = `
+            <a href="profile.html" class="flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150 rounded-t-lg">
+                <i data-lucide="user" class="h-4 w-4 text-teal-400"></i>
+                <span>View Profile</span>
+            </a>
+            <a href="profile.html?edit=true" class="flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150">
+                <i data-lucide="edit-3" class="h-4 w-4 text-teal-400"></i>
+                <span>Edit Profile</span>
+            </a>
+            <a href="../pricing.html" class="flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150">
+                <i data-lucide="zap" class="h-4 w-4 text-amber-400"></i>
+                <span>Upgrade Plans</span>
+            </a>
+            <button id="nav-view-guidance-btn" class="w-full flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150 text-left border-t border-slate-800 mt-1">
+                <i data-lucide="help-circle" class="h-4 w-4 text-teal-400"></i>
+                <span>View Guidance</span>
+            </button>
+        `;
+        wrapper.appendChild(dropdown);
+
+        // Toggle dropdown on click
+        avatar.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', () => {
+            dropdown.classList.add('hidden');
+        });
+
+        dropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        // Hook up View Guidance button click
+        const guidanceBtn = dropdown.querySelector('#nav-view-guidance-btn');
+        if (guidanceBtn) {
+            guidanceBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                dropdown.classList.add('hidden');
+                openExtensionGuide();
+            });
+        }
+
+        // Refresh icons inside dropdown
+        if (window.lucide) {
+            window.lucide.createIcons();
         }
     }
 }

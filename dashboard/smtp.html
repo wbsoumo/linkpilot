@@ -172,23 +172,22 @@
     <script src="assets/js/app.js"></script>
     <script>
         let activeSmtpType = 'custom';
+        let savedSmtpData = null;
+        let currentUserData = null;
 
         // Load existing SMTP settings on load
         async function loadSMTPSettings() {
             try {
                 const data = await apiCall('profile/get.php');
+                if (data.user) {
+                    currentUserData = data.user;
+                }
                 if (data.smtp) {
+                    savedSmtpData = data.smtp;
                     activeSmtpType = data.smtp.smtp_type || 'custom';
-                    
-                    document.getElementById('host').value = data.smtp.host || '';
-                    document.getElementById('port').value = data.smtp.port || '';
-                    document.getElementById('username').value = data.smtp.username || '';
-                    document.getElementById('sender_name').value = data.smtp.sender_name || '';
-                    document.getElementById('sender_email').value = data.smtp.sender_email || '';
-                    document.getElementById('password').value = '••••••••';
-                    
                     selectSmtpType(activeSmtpType);
                 } else {
+                    savedSmtpData = null;
                     selectSmtpType('custom');
                 }
             } catch (err) {
@@ -225,6 +224,10 @@
             const usernameInput = document.getElementById('username');
             const passwordInput = document.getElementById('password');
             const senderEmailInput = document.getElementById('sender_email');
+            const senderNameInput = document.getElementById('sender_name');
+
+            // Determine if the selected type matches the saved type
+            const isSavedType = savedSmtpData && (savedSmtpData.smtp_type || 'custom') === type;
 
             if (type === 'gmail') {
                 gmailGuide.classList.remove('hidden');
@@ -241,15 +244,26 @@
                 passwordInput.setAttribute('placeholder', 'e.g. abcd efgh ijkl mnop');
                 senderEmailInput.setAttribute('placeholder', 'yourname@gmail.com');
                 
+                if (isSavedType) {
+                    usernameInput.value = savedSmtpData.username || '';
+                    senderNameInput.value = savedSmtpData.sender_name || '';
+                    senderEmailInput.value = savedSmtpData.sender_email || '';
+                    passwordInput.value = '••••••••';
+                } else {
+                    usernameInput.value = '';
+                    passwordInput.value = '';
+                    senderEmailInput.value = '';
+                    if (currentUserData) {
+                        senderNameInput.value = currentUserData.name || '';
+                    }
+                }
+                
                 // Add event listener to sync username with sender_email
                 usernameInput.addEventListener('input', syncGmailSenderEmail);
                 syncGmailSenderEmail();
             } else {
                 gmailGuide.classList.add('hidden');
                 hostPortRow.classList.remove('hidden');
-                
-                if (hostInput.value === 'smtp.gmail.com') hostInput.value = '';
-                if (portInput.value === '465') portInput.value = '587';
                 
                 usernameLabel.textContent = 'SMTP Username *';
                 passwordLabel.textContent = 'SMTP Password *';
@@ -260,6 +274,24 @@
                 senderEmailInput.setAttribute('placeholder', 'john@yourdomain.com');
                 
                 usernameInput.removeEventListener('input', syncGmailSenderEmail);
+
+                if (isSavedType) {
+                    hostInput.value = savedSmtpData.host || '';
+                    portInput.value = savedSmtpData.port || '';
+                    usernameInput.value = savedSmtpData.username || '';
+                    senderNameInput.value = savedSmtpData.sender_name || '';
+                    senderEmailInput.value = savedSmtpData.sender_email || '';
+                    passwordInput.value = '••••••••';
+                } else {
+                    hostInput.value = '';
+                    portInput.value = '587';
+                    usernameInput.value = '';
+                    passwordInput.value = '';
+                    senderEmailInput.value = '';
+                    if (currentUserData) {
+                        senderNameInput.value = currentUserData.name || '';
+                    }
+                }
             }
         }
 

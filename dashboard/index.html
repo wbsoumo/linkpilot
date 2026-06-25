@@ -64,6 +64,24 @@
                 </a>
             </div>
         </div>
+        
+        <!-- Setup Alert Banner -->
+        <div id="setup-warning-banner" class="hidden p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in">
+            <div class="flex items-start space-x-3 text-left">
+                <div class="p-2 bg-amber-500/10 text-amber-400 rounded-lg mt-0.5">
+                    <i data-lucide="alert-triangle" class="h-5 w-5"></i>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-white">Setup AI Settings <span class="text-xs text-amber-400/90 font-medium ml-2">(SMTP is not required)</span></h4>
+                    <p class="text-xs text-slate-400 mt-0.5" id="setup-warning-message">
+                        You have not configured your AI settings yet. Please set up your credentials to enable generation.
+                    </p>
+                </div>
+            </div>
+            <a href="openrouter.html" class="flex-shrink-0 px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-lg text-xs transition">
+                Configure AI Settings
+            </a>
+        </div>
 
         <!-- Metric Counter Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
@@ -158,7 +176,7 @@
     <script src="assets/js/app.js"></script>
     <script>
         let trendsChartInstance = null;
-
+        
         async function loadDashboardData() {
             try {
                 const data = await apiCall('analytics/dashboard.php');
@@ -187,11 +205,49 @@
                             </div>
                         `;
                     }).join('');
-                    lucide.createIcons();
                 }
 
                 // 3. Render Chart
                 renderChart(data.chart_trends);
+                
+                // 4. Check setup completion
+                try {
+                    const profileData = await apiCall('profile/get.php');
+                    const user = profileData.user;
+                    let showWarning = false;
+                    let warningMsg = "";
+
+                    const hasAnyKey = user.has_openrouter_key || user.has_github_key || user.has_google_key;
+                    
+                    if (!hasAnyKey) {
+                        showWarning = true;
+                        warningMsg = "You have not configured any AI settings yet. Please configure your API key for OpenRouter, GitHub Models, or Google AI Studio to begin. (SMTP setup is not required).";
+                    } else {
+                        const activeProvider = user.active_ai_provider || 'openrouter';
+                        if (activeProvider === 'openrouter' && !user.has_openrouter_key) {
+                            showWarning = true;
+                            warningMsg = "Your active provider is set to <strong>OpenRouter</strong>, but your OpenRouter API Key is missing. Please save your API Key in AI settings. (SMTP setup is not required).";
+                        } else if (activeProvider === 'github_models' && !user.has_github_key) {
+                            showWarning = true;
+                            warningMsg = "Your active provider is set to <strong>GitHub Models</strong>, but your GitHub Personal Access Token is missing. Please save your token in AI settings. (SMTP setup is not required).";
+                        } else if (activeProvider === 'google_ai_studio' && !user.has_google_key) {
+                            showWarning = true;
+                            warningMsg = "Your active provider is set to <strong>Google AI Studio</strong>, but your Gemini API Key is missing. Please save your API Key in AI settings. (SMTP setup is not required).";
+                        }
+                    }
+
+                    if (showWarning) {
+                        const banner = document.getElementById('setup-warning-banner');
+                        document.getElementById('setup-warning-message').innerHTML = warningMsg;
+                        banner.classList.remove('hidden');
+                        banner.classList.add('flex');
+                    }
+                } catch (profileErr) {
+                    console.error("Failed to check profile settings status:", profileErr);
+                }
+
+                // Refresh lucide icons
+                lucide.createIcons();
                 
             } catch (err) {
                 showNotification('error', err.message || 'Failed to load dashboard statistics.');

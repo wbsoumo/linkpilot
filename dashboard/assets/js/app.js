@@ -49,15 +49,6 @@ function getCurrentUser() {
 }
 
 function requireAuth() {
-    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-        if (!getAuthToken()) {
-            setAuthToken('mock_developer_token');
-            localStorage.setItem('linkpilot_user', JSON.stringify({
-                id: 1, name: "Soumojit Saha", email: "soumojit@linkpilot.ai", role: "admin"
-            }));
-        }
-    }
-
     const token = getAuthToken();
     const isAuthPage = window.location.pathname.includes('login.html') || window.location.pathname.includes('register.html');
     
@@ -70,77 +61,6 @@ function requireAuth() {
 
 // Global fetch wrapper with JWT auth
 async function apiCall(endpoint, method = 'GET', body = null, isUrlEncoded = false) {
-    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-        console.log("Mock Intercept API:", endpoint, method, body);
-        
-        // Mock responses for key dashboard endpoints
-        if (endpoint.startsWith('profile/get.php')) {
-            return {
-                user: { id: 1, name: "Soumojit Saha", email: "soumojit@linkpilot.ai", role: "admin", active_ai_provider: "openrouter", has_openrouter_key: true },
-                profile: { user_type: "Sales Professional", job_title: "Outreach Lead", experience_years: 5, company_name: "LinkPilot AI", skills: "Sales, Outreach, Automation", website: "https://linkpilot.ai", portfolio_url: "", linkedin_url: "https://linkedin.com/in/soumojit", about_me: "Outreach lead at LinkPilot AI" }
-            };
-        }
-        if (endpoint.startsWith('smtp/list.php')) {
-            return {
-                accounts: [
-                    { id: 1, smtp_type: "gmail", sender_name: "Soumojit Saha", sender_email: "soumojit@linkpilot.ai", host: "smtp.gmail.com", port: 465, is_default: 1 },
-                    { id: 2, smtp_type: "custom", sender_name: "LinkPilot Outreach", sender_email: "outreach@linkpilot.ai", host: "smtp.mailgun.org", port: 587, is_default: 0 }
-                ],
-                active_email_template: activeTemplateId || "minimalist"
-            };
-        }
-        if (endpoint.startsWith('profile/save_template.php')) {
-            if (body && body.active_email_template) {
-                activeTemplateId = body.active_email_template;
-            }
-            return { success: true, message: "Template selection saved successfully!" };
-        }
-        if (endpoint.startsWith('smtp/set_default.php')) {
-            if (body && body.id) {
-                accountsList.forEach(a => a.is_default = (a.id === body.id) ? 1 : 0);
-            }
-            return { success: true, message: "Default SMTP account updated!" };
-        }
-        if (endpoint.startsWith('smtp/test.php')) {
-            return { success: true, message: "SMTP Handshake Test Successful!" };
-        }
-        if (endpoint.startsWith('smtp/delete.php')) {
-            if (body && body.id) {
-                accountsList = accountsList.filter(a => a.id !== body.id);
-            }
-            return { success: true, message: "SMTP connection deleted successfully!" };
-        }
-        if (endpoint.startsWith('smtp/save.php')) {
-            if (body) {
-                if (body.id) {
-                    const existing = accountsList.find(a => a.id === body.id);
-                    if (existing) Object.assign(existing, body);
-                } else {
-                    body.id = Date.now();
-                    body.is_default = accountsList.length === 0 ? 1 : 0;
-                    accountsList.push(body);
-                }
-            }
-            return { success: true, message: "SMTP Connection Saved Successfully!" };
-        }
-        if (endpoint.startsWith('analytics/dashboard.php')) {
-            return {
-                statistics: { total_requests: 1420, emails_generated: 840, emails_sent: 560, whatsapp_generated: 230, comments_generated: 350 },
-                recent_activities: [
-                    { action: "Sent email via SMTP to john.doe@company.com", created_at: new Date().toISOString() },
-                    { action: "Generated LinkedIn comment", created_at: new Date(Date.now() - 3600000).toISOString() },
-                    { action: "Created Custom SMTP connection", created_at: new Date(Date.now() - 7200000).toISOString() }
-                ],
-                chart_trends: Array.from({length: 10}, (_, i) => ({
-                    date: new Date(Date.now() - (9 - i) * 86400000).toLocaleDateString('en-US', {month: 'short', day: 'numeric'}),
-                    total: 50 + i * 15,
-                    emails: 30 + i * 10,
-                    whatsapp: 10 + i * 3,
-                    comments: 10 + i * 2
-                }))
-            };
-        }
-    }
 
     const token = getAuthToken();
     const headers = {

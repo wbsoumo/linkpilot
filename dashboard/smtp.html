@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full bg-slate-950">
 <head>
+    <script>
+        (function() {
+            const token = localStorage.getItem('linkpilot_token');
+            if (!token) {
+                window.location.replace('login.html');
+            }
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="assets/img/logo.png">
@@ -139,6 +147,16 @@
                         <div class="flex items-start space-x-2">
                             <span class="flex-shrink-0 w-4 h-4 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-[10px] flex items-center justify-center mt-0.5">6</span>
                             <span>Paste this code as your **Google App Password** below.</span>
+                        </div>
+                    </div>
+                    <!-- Embedded Video Guide -->
+                    <div class="mt-5 space-y-2 border-t border-slate-800/80 pt-4">
+                        <div class="text-xs font-semibold text-slate-300 flex items-center space-x-1.5">
+                            <i data-lucide="video" class="h-4 w-4 text-teal-400"></i>
+                            <span>Watch Setup Tutorial Video:</span>
+                        </div>
+                        <div class="w-full aspect-video border border-slate-800 rounded-xl overflow-hidden shadow-lg bg-slate-950/40 relative">
+                            <iframe class="absolute top-0 left-0 w-full h-full" src="https://www.youtube.com/embed/HmV1clSds0M" title="Gmail SMTP Setup Tutorial" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
                         </div>
                     </div>
                 </div>

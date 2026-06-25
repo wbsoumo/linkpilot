@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full bg-slate-950">
 <head>
+    <script>
+        (function() {
+            const token = localStorage.getItem('linkpilot_token');
+            if (!token) {
+                window.location.replace('login.html');
+            }
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="assets/img/logo.png">

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="dashboard/assets/img/logo.png">
+    
+    <title>Pricing Plans - LinkPilot AI</title>
+    <meta name="description" content="Explore simple, transparent pricing for LinkPilot AI. Start using our Chrome Extension for free during the open beta.">
+    
+    <!-- Tailwind CSS & Lucide -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="assets/css/marketing.css">
+</head>
+<body class="h-full bg-slate-950 text-slate-100 flex flex-col antialiased">
+
+    <!-- Sticky Navigation -->
+    <nav class="glass-nav sticky top-0 z-50 w-full px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-10">
+            <a href="index.html" class="flex items-center space-x-2 text-xl font-bold tracking-wider">
+                <span class="text-teal-400">✨ LinkPilot</span>
+                <span class="text-xs px-2 py-0.5 bg-slate-800 text-teal-400 border border-slate-700 rounded-full font-semibold">AI</span>
+            </a>
+            <div class="hidden lg:flex items-center space-x-6 text-sm font-medium text-slate-300">
+                <a href="index.html#features" class="nav-link hover:text-white transition">Features</a>
+                <a href="index.html#solutions" class="nav-link hover:text-white transition">Solutions</a>
+                <a href="pricing.html" class="nav-link-active text-teal-400 transition font-semibold">Pricing</a>
+                <a href="docs.html" class="nav-link hover:text-white transition">Docs</a>
+                <a href="about.html" class="nav-link hover:text-white transition">About</a>
+            </div>
+        </div>
+        <div class="hidden sm:flex items-center space-x-4">
+            <a href="dashboard/login.html" class="text-sm font-semibold text-slate-300 hover:text-white transition">Log In</a>
+            <a href="dashboard/register.html" class="px-4 py-2 text-sm font-semibold text-slate-950 btn-primary rounded-lg shadow transition">Get Started</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow py-16 md:py-24">
+        <div class="max-w-6xl mx-auto px-6 space-y-16">
+            
+            <!-- Heading -->
+            <div class="text-center max-w-2xl mx-auto space-y-4">
+                <h1 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">Pricing Plans</h1>
+                <p class="text-slate-400 text-sm">Join the LinkPilot AI beta phase today for free, or review our upcoming subscription tiers built for professional outreachers.</p>
+            </div>
+            
+            <!-- Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+                
+                <!-- Free Beta -->
+                <div class="glass-panel p-8 rounded-2xl border-teal-500/30 ring-2 ring-teal-500/10 space-y-6">
+                    <div>
+                        <h4 class="text-lg font-bold text-white">Free Beta</h4>
+                        <p class="text-xs text-slate-500 mt-1">Perfect for early adopters testing workflows.</p>
+                    </div>
+                    <div class="flex items-baseline">
+                        <span class="text-4xl font-extrabold text-white">$0</span>
+                        <span class="text-xs text-slate-500 ml-2">/ forever during beta</span>
+                    </div>
+                    <ul class="text-xs text-slate-300 space-y-3 border-t border-slate-800/80 pt-6">
+                        <li class="flex items-center space-x-2">
+                            <i data-lucide="check" class="h-4 w-4 text-teal-400"></i>
+                            <span>Unlimited AI Outreach Generations</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i data-lucide="check" class="h-4 w-4 text-teal-400"></i>
+                            <span>Email, WhatsApp, LinkedIn Comments</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i data-lucide="check" class="h-4 w-4 text-teal-400"></i>
+                            <span>Secure SMTP Connection</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i data-lucide="check" class="h-4 w-4 text-teal-400"></i>
+                            <span>Lead Vault Storage</span>
+                        </li>
+                    </ul>
+                    <a href="dashboard/register.html" class="block w-full py-3 text-center text-slate-950 font-bold btn-primary rounded-xl transition">
+                        Start for Free
+                    </a>
+                </div>
+
+                <!-- Starter (Coming Soon) -->
+                <div class="glass-panel p-8 rounded-2xl border-slate-800 space-y-6 opacity-85">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h4 class="text-lg font-bold text-white">Starter</h4>
+                            <p class="text-xs text-slate-500 mt-1">For freelancers and active job seekers.</p>
+                        </div>
+                        <span class="text-[9px] px-2 py-0.5 bg-slate-800 text-slate-400 border border-slate-700 rounded-full font-bold uppercase">Coming Soon</span>
+                    </div>
+                    <div class="flex items-baseline">
+                        <span class="text-4xl font-extrabold text-white">$19</span>
+                        <span class="text-xs text-slate-500 ml-2">/ month</span>
+                    </div>
+                    <ul class="text-xs text-slate-300 space-y-3 border-t border-slate-800/80 pt-6">
+                        <li class="flex items-center space-x-2">
+                            <i data-lucide="check" class="h-4 w-4 text-teal-450"></i>
+                            <span>150 AI Generations / month</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i data-lucide="check" class="h-4 w-4 text-teal-455"></i>
+                            <span>1 Stored SMTP Account</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i data-lucide="check" class="h-4 w-4 text-teal-455"></i>
+                            <span>Lead Vault (up to 50 leads / month)</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Professional (Coming Soon) -->
+                <div class="glass-panel p-8 rounded-2xl border-slate-800 space-y-6 opacity-85">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h4 class="text-lg font-bold text-white">Professional</h4>
+                            <p class="text-xs text-slate-500 mt-1">For sales professionals and recruiters.</p>
+                        </div>
+                        <span class="text-[9px] px-2 py-0.5 bg-slate-800 text-slate-400 border border-slate-700 rounded-full font-bold uppercase">Coming Soon</span>
+                    </div>
+                    <div class="flex items-baseline">
+                        <span class="text-4xl font-extrabold text-white">$49</span>
+                        <span class="text-xs text-slate-500 ml-2">/ month</span>
+                    </div>
+                    <ul class="text-xs text-slate-300 space-y-3 border-t border-slate-800/80 pt-6">
+                        <li class="flex items-center space-x-2">
+                            <i data-lucide="check" class="h-4 w-4 text-teal-455"></i>
+                            <span>Unlimited AI Generations</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i data-lucide="check" class="h-4 w-4 text-teal-455"></i>
+                            <span>Multiple SMTP accounts routing</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i data-lucide="check" class="h-4 w-4 text-teal-455"></i>
+                            <span>Unlimited Lead Vault + CSV export</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i data-lucide="check" class="h-4 w-4 text-teal-455"></i>
+                            <span>API Access</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Features Comparison Table -->
+            <div class="space-y-6">
+                <h3 class="text-xl font-bold text-white text-center">Feature Matrix</h3>
+                <div class="glass-panel rounded-2xl overflow-hidden border-slate-800">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-900/40 border-b border-slate-800 text-slate-400 uppercase font-bold">
+                                <th class="py-4 px-6">Core Feature</th>
+                                <th class="py-4 px-6">Free Beta</th>
+                                <th class="py-4 px-6">Starter</th>
+                                <th class="py-4 px-6">Professional</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/40 text-slate-300">
+                            <tr>
+                                <td class="py-4 px-6 font-semibold">AI Models Support</td>
+                                <td class="py-4 px-6 text-teal-400">OpenRouter (Gemini Lite, Llama 3)</td>
+                                <td class="py-4 px-6">Standard Models</td>
+                                <td class="py-4 px-6">Premium Models (GPT-4o, Claude)</td>
+                            </tr>
+                            <tr>
+                                <td class="py-4 px-6 font-semibold">Generations Limit</td>
+                                <td class="py-4 px-6 text-teal-400">Unlimited</td>
+                                <td class="py-4 px-6">150 / month</td>
+                                <td class="py-4 px-6">Unlimited</td>
+                            </tr>
+                            <tr>
+                                <td class="py-4 px-6 font-semibold">SMTP Integrations</td>
+                                <td class="py-4 px-6 text-teal-400">1 Account</td>
+                                <td class="py-4 px-6">1 Account</td>
+                                <td class="py-4 px-6">Unlimited Accounts</td>
+                            </tr>
+                            <tr>
+                                <td class="py-4 px-6 font-semibold">Lead Vault Harvest</td>
+                                <td class="py-4 px-6 text-teal-400">Yes (CSV Exports)</td>
+                                <td class="py-4 px-6">Yes (Up to 50/mo)</td>
+                                <td class="py-4 px-6">Yes (Unlimited + Sync)</td>
+                            </tr>
+                            <tr>
+                                <td class="py-4 px-6 font-semibold">Chrome Extension Overlay</td>
+                                <td class="py-4 px-6 text-teal-400">Included</td>
+                                <td class="py-4 px-6">Included</td>
+                                <td class="py-4 px-6">Included</td>
+                            </tr>
+                            <tr>
+                                <td class="py-4 px-6 font-semibold">Support Coordinates</td>
+                                <td class="py-4 px-6 text-teal-400">Standard Email</td>
+                                <td class="py-4 px-6">Email</td>
+                                <td class="py-4 px-6">Priority Support</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pricing FAQ -->
+            <div class="space-y-6 max-w-4xl mx-auto">
+                <h3 class="text-xl font-bold text-white text-center">Pricing FAQ</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="glass-panel p-5 rounded-xl border-slate-800 space-y-2">
+                        <h4 class="text-sm font-bold text-white">How long will the Free Beta last?</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">Our beta phase will remain active and completely free while we gather user feedback and expand Chrome extension features.</p>
+                    </div>
+                    <div class="glass-panel p-5 rounded-xl border-slate-800 space-y-2">
+                        <h4 class="text-sm font-bold text-white">Will I need a credit card to join?</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">No. Creating an account during the Free Beta phase requires only a name and email. No credit card parameters are stored or requested.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 bg-slate-950 py-12 text-slate-500 text-xs">
+        <div class="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-5 gap-8">
+            <div class="col-span-2 space-y-4">
+                <div class="text-white font-bold tracking-wider text-sm">✨ LinkPilot AI</div>
+                <p class="max-w-xs text-slate-600 leading-relaxed">AI outreach drafts generation directly inside LinkedIn. Completely free during our open beta phase.</p>
+                <div class="text-slate-700">© 2026 LinkPilot AI. All rights reserved.</div>
+            </div>
+            <div class="space-y-3">
+                <h5 class="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Product</h5>
+                <ul class="space-y-2">
+                    <li><a href="index.html#features" class="hover:text-white transition">Features</a></li>
+                    <li><a href="pricing.html" class="hover:text-white transition">Pricing</a></li>
+                    <li><a href="docs.html" class="hover:text-white transition">Documentation</a></li>
+                </ul>
+            </div>
+            <div class="space-y-3">
+                <h5 class="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Company</h5>
+                <ul class="space-y-2">
+                    <li><a href="about.html" class="hover:text-white transition">About Us</a></li>
+                    <li><a href="blog.html" class="hover:text-white transition">Blog & Updates</a></li>
+                    <li><a href="contact.html" class="hover:text-white transition">Support Contact</a></li>
+                </ul>
+            </div>
+            <div class="space-y-3">
+                <h5 class="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Legal</h5>
+                <ul class="space-y-2">
+                    <li><a href="privacy.html" class="hover:text-white transition">Privacy Policy</a></li>
+                    <li><a href="terms.html" class="hover:text-white transition">Terms of Service</a></li>
+                    <li><a href="cookies.html" class="hover:text-white transition">Cookie Policy</a></li>
+                    <li><a href="disclaimer.html" class="hover:text-white transition">Disclaimer</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

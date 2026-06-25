@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="dashboard/assets/img/logo.png">
+    
+    <title>Documentation & Roadmap - LinkPilot AI</title>
+    <meta name="description" content="Access instructions, SMTP configurations tutorials, OpenRouter AI integration API endpoints, and our development roadmap timeline.">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="assets/css/marketing.css">
+</head>
+<body class="h-full bg-slate-950 text-slate-100 flex flex-col antialiased">
+
+    <!-- Navigation -->
+    <nav class="glass-nav sticky top-0 z-50 w-full px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-10">
+            <a href="index.html" class="flex items-center space-x-2 text-xl font-bold tracking-wider">
+                <span class="text-teal-400">✨ LinkPilot</span>
+                <span class="text-xs px-2 py-0.5 bg-slate-800 text-teal-400 border border-slate-700 rounded-full font-semibold">AI</span>
+            </a>
+            <div class="hidden lg:flex items-center space-x-6 text-sm font-medium text-slate-300">
+                <a href="index.html#features" class="nav-link hover:text-white transition">Features</a>
+                <a href="index.html#solutions" class="nav-link hover:text-white transition">Solutions</a>
+                <a href="pricing.html" class="nav-link hover:text-white transition">Pricing</a>
+                <a href="docs.html" class="nav-link-active text-teal-400 transition font-semibold">Docs</a>
+                <a href="about.html" class="nav-link hover:text-white transition">About</a>
+            </div>
+        </div>
+        <div class="hidden sm:flex items-center space-x-4">
+            <a href="dashboard/login.html" class="text-sm font-semibold text-slate-300 hover:text-white transition">Log In</a>
+            <a href="dashboard/register.html" class="px-4 py-2 text-sm font-semibold text-slate-950 btn-primary rounded-lg shadow transition">Get Started</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow py-16 md:py-24">
+        <div class="max-w-5xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-4 gap-8">
+            
+            <!-- Left Sidebar Navigation -->
+            <div class="space-y-4 lg:col-span-1 text-xs font-semibold text-slate-400">
+                <div class="text-slate-200 font-bold uppercase tracking-wider text-[10px]">Setup Guides</div>
+                <ul class="space-y-2.5 border-l border-slate-850 pl-3">
+                    <li><button onclick="switchDoc('ext')" id="doc-btn-ext" class="doc-menu-btn text-teal-400 font-bold text-left">Extension Setup</button></li>
+                    <li><button onclick="switchDoc('smtp')" id="doc-btn-smtp" class="doc-menu-btn text-left hover:text-white transition">SMTP Configurations</button></li>
+                    <li><button onclick="switchDoc('ai')" id="doc-btn-ai" class="doc-menu-btn text-left hover:text-white transition">AI Provider Keys</button></li>
+                </ul>
+                
+                <div class="text-slate-200 font-bold uppercase tracking-wider text-[10px] pt-4">API & Development</div>
+                <ul class="space-y-2.5 border-l border-slate-850 pl-3">
+                    <li><button onclick="switchDoc('api')" id="doc-btn-api" class="doc-menu-btn text-left hover:text-white transition">API Documentation</button></li>
+                    <li><button onclick="switchDoc('roadmap')" id="doc-btn-roadmap" class="doc-menu-btn text-left hover:text-white transition">Roadmap & Timeline</button></li>
+                </ul>
+            </div>
+
+            <!-- Content Area -->
+            <div class="lg:col-span-3 glass-panel p-8 rounded-2xl border-slate-850 space-y-6 text-slate-300 leading-relaxed text-xs">
+                
+                <!-- DOC: Extension Setup -->
+                <div id="doc-section-ext" class="doc-viewport space-y-4">
+                    <h2 class="text-lg font-bold text-white">Extension Installation Setup</h2>
+                    <p>LinkPilot AI operates as a Chrome extension injected directly into your LinkedIn feed. To get started:</p>
+                    <ol class="space-y-2 list-decimal pl-4 text-slate-400">
+                        <li>Clone/download the repository folder <code>/extension</code> to your local workspace.</li>
+                        <li>Launch Chrome and navigate to <code>chrome://extensions/</code> in the URL bar.</li>
+                        <li>Enable <strong>Developer mode</strong> toggler located in the top-right corner.</li>
+                        <li>Click <strong>Load unpacked</strong> button and select the <code>/extension</code> folder.</li>
+                        <li>Refresh your LinkedIn feed. The LinkPilot AI Action button will now render contextual panels directly under post text blocks.</li>
+                    </ol>
+                </div>
+
+                <!-- DOC: SMTP Setup -->
+                <div id="doc-section-smtp" class="doc-viewport hidden space-y-4">
+                    <h2 class="text-lg font-bold text-white">SMTP Connections Setup</h2>
+                    <p>To relay generated outreach cold drafts directly from the dashboard, you must establish an outbound SMTP mail channel:</p>
+                    
+                    <h4 class="text-xs font-bold text-teal-400 uppercase tracking-wider">Custom SMTP servers</h4>
+                    <p class="text-slate-400">Enter your host server address (e.g. <code>smtp.mailgun.org</code>), port parameters (typically <code>587</code> for TLS or <code>465</code> for SSL ciphers), username, and password coordinates in SMTP settings.</p>
+
+                    <h4 class="text-xs font-bold text-teal-400 uppercase tracking-wider">Gmail SMTP (Recommended)</h4>
+                    <p class="text-slate-400">Google locks out standard sign-ins. You must create an App Password:</p>
+                    <ol class="space-y-1 list-decimal pl-4 text-slate-400">
+                        <li>Navigate to your Google Account console -> <strong>Security</strong>.</li>
+                        <li>Activate <strong>2-Step Verification</strong>.</li>
+                        <li>Under 2-Step Verification, scroll down to <strong>App Passwords</strong>.</li>
+                        <li>Create a custom key named "LinkPilot AI". Copy the generated 16-character passcode.</li>
+                        <li>Toggle Gmail SMTP in settings and input this code in the password input. Host and Port will auto-fill.</li>
+                    </ol>
+                </div>
+
+                <!-- DOC: AI Setup -->
+                <div id="doc-section-ai" class="doc-viewport hidden space-y-4">
+                    <h2 class="text-lg font-bold text-white">AI Provider Integrations</h2>
+                    <p>LinkPilot AI allows you to choose your own generation backend. Configure private API tokens under AI Settings:</p>
+                    <ul class="space-y-3 pl-4 list-disc text-slate-400">
+                        <li><strong>OpenRouter:</strong> Uses <code>https://openrouter.ai/api/v1</code>. Input your OpenRouter API Key. The default model is <code>google/gemini-2.0-flash-lite:free</code>, but custom parameters can be defined.</li>
+                        <li><strong>Google AI Studio:</strong> Direct connection via Gemini 1.5/2.0 Flash models. Safe, cost-efficient, and supports high rate limits on free-tier keys.</li>
+                        <li><strong>GitHub Models:</strong> Authenticates via GitHub Personal Access Tokens (PAT) generated with <code>models:read</code> permissions. Free rate-limited access.</li>
+                    </ul>
+                </div>
+
+                <!-- DOC: API Documentation -->
+                <div id="doc-section-api" class="doc-viewport hidden space-y-4">
+                    <h2 class="text-lg font-bold text-white">API Documentation</h2>
+                    <p>We expose structured endpoints for CRM webhooks or service syncs. All requests must attach JWT tokens: <code>Authorization: Bearer &lt;Token&gt;</code>.</p>
+                    
+                    <h4 class="text-xs font-bold text-teal-400 font-mono">POST /backend/api/generate/email.php</h4>
+                    <p class="text-slate-400">Trigger contextual outreach generation.</p>
+                    <pre class="bg-slate-950 p-3 rounded-lg border border-slate-900 font-mono text-[10px] text-slate-350">
+Request body:
+{
+  "post_content": "We are expanding our software engineering division...",
+  "post_url": "https://linkedin.com/feed/...",
+  "author_name": "Harriet Reed",
+  "company_name": "Helnovexaa"
+}</pre>
+                </div>
+
+                <!-- DOC: Roadmap -->
+                <div id="doc-section-roadmap" class="doc-viewport hidden space-y-4">
+                    <h2 class="text-lg font-bold text-white">Development Roadmap</h2>
+                    <p>Our upcoming timeline for release updates:</p>
+                    <div class="space-y-4 pt-2">
+                        <div class="flex items-start space-x-3">
+                            <span class="px-2 py-0.5 bg-teal-500/10 text-teal-400 border border-teal-500/20 rounded font-bold text-[9px] uppercase">Q3 2026</span>
+                            <div>
+                                <h4 class="text-xs font-bold text-white">Outlook & Office365 SMTP Autodetect</h4>
+                                <p class="text-[10px] text-slate-500 mt-0.5">Preconfigure Microsoft SMTP servers ciphers dynamically.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <span class="px-2 py-0.5 bg-slate-900 text-slate-500 border border-slate-800 rounded font-bold text-[9px] uppercase">Q4 2026</span>
+                            <div>
+                                <h4 class="text-xs font-bold text-white">CRM Integrations (HubSpot & Salesforce)</h4>
+                                <p class="text-[10px] text-slate-500 mt-0.5">Push harvested Lead Vault contacts directly to active CRM accounts via webhook relays.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 bg-slate-950 py-12 text-slate-500 text-xs">
+        <div class="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-5 gap-8">
+            <div class="col-span-2 space-y-4">
+                <div class="text-white font-bold tracking-wider text-sm">✨ LinkPilot AI</div>
+                <p class="max-w-xs text-slate-600 leading-relaxed">Contextual LinkedIn outreach Chrome extension and dashboard management portal.</p>
+                <div class="text-slate-700">© 2026 LinkPilot AI. All rights reserved.</div>
+            </div>
+            <div class="space-y-3">
+                <h5 class="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Product</h5>
+                <ul class="space-y-2">
+                    <li><a href="index.html#features" class="hover:text-white transition">Features</a></li>
+                    <li><a href="pricing.html" class="hover:text-white transition">Pricing</a></li>
+                    <li><a href="docs.html" class="hover:text-white transition">Documentation</a></li>
+                </ul>
+            </div>
+            <div class="space-y-3">
+                <h5 class="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Company</h5>
+                <ul class="space-y-2">
+                    <li><a href="about.html" class="hover:text-white transition">About Us</a></li>
+                    <li><a href="blog.html" class="hover:text-white transition">Blog & Updates</a></li>
+                    <li><a href="contact.html" class="hover:text-white transition">Support Contact</a></li>
+                </ul>
+            </div>
+            <div class="space-y-3">
+                <h5 class="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Legal</h5>
+                <ul class="space-y-2">
+                    <li><a href="privacy.html" class="hover:text-white transition">Privacy Policy</a></li>
+                    <li><a href="terms.html" class="hover:text-white transition">Terms of Service</a></li>
+                    <li><a href="cookies.html" class="hover:text-white transition">Cookie Policy</a></li>
+                    <li><a href="disclaimer.html" class="hover:text-white transition">Disclaimer</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        function switchDoc(section) {
+            // Toggle active sidebar styles
+            document.querySelectorAll('.doc-menu-btn').forEach(btn => {
+                btn.className = "doc-menu-btn text-left hover:text-white transition";
+            });
+            const activeBtn = document.getElementById(`doc-btn-${section}`);
+            activeBtn.className = "doc-menu-btn text-teal-400 font-bold text-left";
+
+            // Hide/Show section divs
+            document.querySelectorAll('.doc-viewport').forEach(div => {
+                div.classList.add('hidden');
+            });
+            document.getElementById(`doc-section-${section}`).classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

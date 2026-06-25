@@ -1,0 +1,190 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* Core Styling & Custom Properties */
+:root {
+    font-family: 'Inter', sans-serif;
+    scroll-behavior: smooth;
+}
+
+body {
+    background-color: #020617; /* Dark Slate 950 background first */
+    color: #F8FAFC; /* Slate 50 text */
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #020617;
+}
+::-webkit-scrollbar-thumb {
+    background: #1e293b;
+    border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #14b8a6;
+}
+
+/* Glow Effects */
+.glow-accent {
+    position: relative;
+}
+.glow-accent::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 140%;
+    height: 140%;
+    background: radial-gradient(circle, rgba(20,184,166,0.15) 0%, transparent 60%);
+    z-index: -1;
+    pointer-events: none;
+}
+
+.glow-purple {
+    position: relative;
+}
+.glow-purple::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 140%;
+    height: 140%;
+    background: radial-gradient(circle, rgba(124,58,237,0.15) 0%, transparent 60%);
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Glassmorphism Cards */
+.glass-panel {
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-nav {
+    background: rgba(2, 6, 23, 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Micro Animations */
+.card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-hover:hover {
+    transform: translateY(-4px);
+    border-color: rgba(20, 184, 166, 0.3);
+    box-shadow: 0 10px 30px -10px rgba(20, 184, 166, 0.15);
+}
+
+.card-hover-purple {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-hover-purple:hover {
+    transform: translateY(-4px);
+    border-color: rgba(124, 58, 237, 0.3);
+    box-shadow: 0 10px 30px -10px rgba(124, 58, 237, 0.15);
+}
+
+/* Floaters */
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+.animate-pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* Active Nav Links styling */
+.nav-link {
+    position: relative;
+    transition: color 0.2s ease;
+}
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: #14b8a6;
+    transition: width 0.2s ease;
+}
+.nav-link:hover::after {
+    width: 100%;
+}
+.nav-link-active::after {
+    width: 100%;
+}
+
+/* Gradient text */
+.text-gradient {
+    background: linear-gradient(135deg, #14B8A6 0%, #7C3AED 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.text-gradient-teal {
+    background: linear-gradient(135deg, #2dd4bf 0%, #0d9488 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Fade-in transitions */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+    animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Custom illustration UI components */
+.linkedin-container {
+    background-color: #0c111d;
+    border: 1px solid #1f2937;
+    border-radius: 12px;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+}
+.linkedin-header {
+    background-color: #111827;
+    border-bottom: 1px solid #1f2937;
+}
+.linkedin-avatar {
+    background-color: #374151;
+}
+
+/* Interactive elements */
+.btn-primary {
+    background: linear-gradient(135deg, #14B8A6 0%, #0d9488 100%);
+    transition: all 0.2s ease;
+}
+.btn-primary:hover {
+    opacity: 0.95;
+    box-shadow: 0 4px 20px rgba(20, 184, 166, 0.3);
+}
+
+.btn-secondary {
+    background-color: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.2s ease;
+}
+.btn-secondary:hover {
+    background-color: rgba(30, 41, 59, 1);
+    border-color: rgba(255, 255, 255, 0.15);
+}

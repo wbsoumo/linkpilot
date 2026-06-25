@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="dashboard/assets/img/logo.png">
+    
+    <title>Blog & Changelog - LinkPilot AI</title>
+    <meta name="description" content="Explore news, updates, guides, and changelog releases for LinkPilot AI. See how we are continuously upgrading LinkedIn outreach features.">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="assets/css/marketing.css">
+</head>
+<body class="h-full bg-slate-950 text-slate-100 flex flex-col antialiased">
+
+    <!-- Navigation -->
+    <nav class="glass-nav sticky top-0 z-50 w-full px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-10">
+            <a href="index.html" class="flex items-center space-x-2 text-xl font-bold tracking-wider">
+                <span class="text-teal-400">✨ LinkPilot</span>
+                <span class="text-xs px-2 py-0.5 bg-slate-800 text-teal-400 border border-slate-700 rounded-full font-semibold">AI</span>
+            </a>
+            <div class="hidden lg:flex items-center space-x-6 text-sm font-medium text-slate-300">
+                <a href="index.html#features" class="nav-link hover:text-white transition">Features</a>
+                <a href="index.html#solutions" class="nav-link hover:text-white transition">Solutions</a>
+                <a href="pricing.html" class="nav-link hover:text-white transition">Pricing</a>
+                <a href="docs.html" class="nav-link hover:text-white transition">Docs</a>
+                <a href="about.html" class="nav-link hover:text-white transition">About</a>
+            </div>
+        </div>
+        <div class="hidden sm:flex items-center space-x-4">
+            <a href="dashboard/login.html" class="text-sm font-semibold text-slate-300 hover:text-white transition">Log In</a>
+            <a href="dashboard/register.html" class="px-4 py-2 text-sm font-semibold text-slate-950 btn-primary rounded-lg shadow transition">Get Started</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow py-16 md:py-24">
+        <div class="max-w-4xl mx-auto px-6 space-y-16">
+            
+            <!-- Tabs -->
+            <div class="border-b border-slate-900 flex space-x-8">
+                <button onclick="switchBlogTab('blog')" id="tab-btn-blog" class="blog-view-tab border-b-2 border-teal-400 pb-3 text-teal-400 font-bold text-sm">Blog & Guides</button>
+                <button onclick="switchBlogTab('changelog')" id="tab-btn-changelog" class="blog-view-tab border-b-2 border-transparent pb-3 text-slate-400 hover:text-white font-semibold text-sm">Changelog & Releases</button>
+            </div>
+
+            <!-- Blog View -->
+            <div id="blog-tab-content" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Article 1 -->
+                <div class="glass-panel rounded-2xl border-slate-800 overflow-hidden card-hover flex flex-col justify-between">
+                    <div class="p-6 space-y-3">
+                        <span class="text-[9px] px-2 py-0.5 bg-teal-500/10 text-teal-400 border border-teal-500/20 rounded-full font-bold uppercase">OUTREACH GUIDE</span>
+                        <h3 class="text-sm font-bold text-white leading-snug">How to Write Personalized LinkedIn Outreach That Converts</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">Learn the key rules to draft responses, connect to job hiring managers, and structure messages contextually based on the prospect's feed activity.</p>
+                    </div>
+                    <div class="px-6 py-4 border-t border-slate-900 text-[10px] text-slate-500 flex justify-between">
+                        <span>June 24, 2026</span>
+                        <span class="text-teal-400 font-semibold cursor-pointer">Read article →</span>
+                    </div>
+                </div>
+
+                <!-- Article 2 -->
+                <div class="glass-panel rounded-2xl border-slate-800 overflow-hidden card-hover flex flex-col justify-between">
+                    <div class="p-6 space-y-3">
+                        <span class="text-[9px] px-2 py-0.5 bg-purple-500/10 text-purple-400 border border-purple-400/20 rounded-full font-bold uppercase">SECURITY</span>
+                        <h3 class="text-sm font-bold text-white leading-snug">Protecting Your Outbox: Cryptographic Encryption Practices</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">Explore how we leverage AES-256-CBC cryptographic ciphers to safeguard and decrypt connected SMTP credentials on LinkPilot AI.</p>
+                    </div>
+                    <div class="px-6 py-4 border-t border-slate-900 text-[10px] text-slate-500 flex justify-between">
+                        <span>June 18, 2026</span>
+                        <span class="text-teal-400 font-semibold cursor-pointer">Read article →</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Changelog View (Hidden by default) -->
+            <div id="changelog-tab-content" class="hidden space-y-12">
+                <!-- Log 1 -->
+                <div class="relative pl-8 border-l border-slate-800 space-y-3">
+                    <div class="absolute -left-1.5 top-1 w-3 h-3 rounded-full bg-teal-400 border border-slate-950"></div>
+                    <span class="text-[10px] text-teal-400 font-mono uppercase tracking-wider">v1.2.0 - June 2026</span>
+                    <h3 class="text-sm font-bold text-white">Gmail SMTP Preferences & Tab Styling Updates</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">Added secure Gmail SMTP configurations with App Passwords setups wizard. Integrated Google Gemini and OpenRouter branding cards dynamically inside settings. Solved vertical centering scroll clipping bugs on profile forms.</p>
+                </div>
+                <!-- Log 2 -->
+                <div class="relative pl-8 border-l border-slate-800 space-y-3">
+                    <div class="absolute -left-1.5 top-1 w-3 h-3 rounded-full bg-slate-800 border border-slate-950"></div>
+                    <span class="text-[10px] text-slate-500 font-mono uppercase tracking-wider">v1.1.0 - June 2026</span>
+                    <h3 class="text-sm font-bold text-white">Multiple AI Providers Routing</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">Support for OpenAI-compatible Google AI Studio and GitHub Models endpoints, allowing power users to configure Gemini 1.5/2.0 Flash or GPT-4o-mini using private tokens.</p>
+                </div>
+                <!-- Log 3 -->
+                <div class="relative pl-8 border-l border-slate-800 space-y-3">
+                    <div class="absolute -left-1.5 top-1 w-3 h-3 rounded-full bg-slate-800 border border-slate-950"></div>
+                    <span class="text-[10px] text-slate-500 font-mono uppercase tracking-wider">v1.0.0 - May 2026</span>
+                    <h3 class="text-sm font-bold text-white">Initial Beta Release</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">Launched LinkPilot Chrome Extension, supporting context-aware outreach email, comments, and WhatsApp generation from LinkedIn posts.</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 bg-slate-950 py-12 text-slate-500 text-xs">
+        <div class="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-5 gap-8">
+            <div class="col-span-2 space-y-4">
+                <div class="text-white font-bold tracking-wider text-sm">✨ LinkPilot AI</div>
+                <p class="max-w-xs text-slate-600 leading-relaxed">Personalized LinkedIn outreach assistant for high-performing business development workflows.</p>
+                <div class="text-slate-700">© 2026 LinkPilot AI. All rights reserved.</div>
+            </div>
+            <div class="space-y-3">
+                <h5 class="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Product</h5>
+                <ul class="space-y-2">
+                    <li><a href="index.html#features" class="hover:text-white transition">Features</a></li>
+                    <li><a href="pricing.html" class="hover:text-white transition">Pricing</a></li>
+                    <li><a href="docs.html" class="hover:text-white transition">Documentation</a></li>
+                </ul>
+            </div>
+            <div class="space-y-3">
+                <h5 class="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Company</h5>
+                <ul class="space-y-2">
+                    <li><a href="about.html" class="hover:text-white transition">About Us</a></li>
+                    <li><a href="blog.html" class="hover:text-white transition">Blog & Updates</a></li>
+                    <li><a href="contact.html" class="hover:text-white transition">Support Contact</a></li>
+                </ul>
+            </div>
+            <div class="space-y-3">
+                <h5 class="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Legal</h5>
+                <ul class="space-y-2">
+                    <li><a href="privacy.html" class="hover:text-white transition">Privacy Policy</a></li>
+                    <li><a href="terms.html" class="hover:text-white transition">Terms of Service</a></li>
+                    <li><a href="cookies.html" class="hover:text-white transition">Cookie Policy</a></li>
+                    <li><a href="disclaimer.html" class="hover:text-white transition">Disclaimer</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        function switchBlogTab(tab) {
+            // Toggle active styling
+            document.querySelectorAll('.blog-view-tab').forEach(btn => {
+                btn.className = "blog-view-tab border-b-2 border-transparent pb-3 text-slate-400 hover:text-white font-semibold text-sm";
+            });
+            const activeBtn = document.getElementById(`tab-btn-${tab}`);
+            activeBtn.className = "blog-view-tab border-b-2 border-teal-400 pb-3 text-teal-400 font-bold text-sm";
+
+            // Toggle view panels
+            if (tab === 'blog') {
+                document.getElementById('blog-tab-content').classList.remove('hidden');
+                document.getElementById('changelog-tab-content').classList.add('hidden');
+            } else {
+                document.getElementById('blog-tab-content').classList.add('hidden');
+                document.getElementById('changelog-tab-content').classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -42,7 +42,7 @@
     </nav>
 
     <!-- Main Content Container -->
-    <main class="flex-grow flex items-center justify-center p-6 bg-gradient-to-tr from-slate-950 via-slate-900 to-slate-950 overflow-y-auto">
+    <main class="flex-grow p-6 md:p-8 flex justify-center bg-gradient-to-tr from-slate-950 via-slate-900 to-slate-950 overflow-y-auto">
         <div class="max-w-xl w-full animate-fade-in py-8">
             <div class="text-center mb-6">
                 <h1 class="text-2xl font-extrabold text-white tracking-tight">Connect Your SMTP Account</h1>
@@ -223,6 +223,7 @@
             const hostInput = document.getElementById('host');
             const portInput = document.getElementById('port');
             const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
             const senderEmailInput = document.getElementById('sender_email');
 
             if (type === 'gmail') {
@@ -237,6 +238,8 @@
                 senderEmailLabel.textContent = 'Sender Email (Must match Gmail Address) *';
                 
                 usernameInput.setAttribute('placeholder', 'yourname@gmail.com');
+                passwordInput.setAttribute('placeholder', 'e.g. abcd efgh ijkl mnop');
+                senderEmailInput.setAttribute('placeholder', 'yourname@gmail.com');
                 
                 // Add event listener to sync username with sender_email
                 usernameInput.addEventListener('input', syncGmailSenderEmail);
@@ -253,6 +256,8 @@
                 senderEmailLabel.textContent = 'Sender Email *';
                 
                 usernameInput.setAttribute('placeholder', 'postmaster@yourdomain.com');
+                passwordInput.setAttribute('placeholder', '••••••••');
+                senderEmailInput.setAttribute('placeholder', 'john@yourdomain.com');
                 
                 usernameInput.removeEventListener('input', syncGmailSenderEmail);
             }

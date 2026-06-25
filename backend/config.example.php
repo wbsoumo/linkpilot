@@ -90,44 +90,57 @@ class Database {
                 ];
                 self::$instance = new PDO($dsn, DB_USER, DB_PASS, $options);
                 
-                // Self-healing database migration for OpenRouter, GitHub, Google Keys and active settings
+                // Self-healing database migrations - each run in isolation
                 try {
                     $stmt = self::$instance->query("SHOW COLUMNS FROM `users` LIKE 'openrouter_key'");
                     if (!$stmt->fetch()) {
                         self::$instance->exec("ALTER TABLE `users` ADD COLUMN `openrouter_key` TEXT DEFAULT NULL");
                     }
-                    
+                } catch (Exception $e) {}
+
+                try {
                     $stmt = self::$instance->query("SHOW COLUMNS FROM `users` LIKE 'github_key'");
                     if (!$stmt->fetch()) {
                         self::$instance->exec("ALTER TABLE `users` ADD COLUMN `github_key` TEXT DEFAULT NULL");
                     }
-                    
+                } catch (Exception $e) {}
+
+                try {
                     $stmt = self::$instance->query("SHOW COLUMNS FROM `users` LIKE 'google_key'");
                     if (!$stmt->fetch()) {
                         self::$instance->exec("ALTER TABLE `users` ADD COLUMN `google_key` TEXT DEFAULT NULL");
                     }
-                    
+                } catch (Exception $e) {}
+
+                try {
                     $stmt = self::$instance->query("SHOW COLUMNS FROM `users` LIKE 'active_ai_provider'");
                     if (!$stmt->fetch()) {
                         self::$instance->exec("ALTER TABLE `users` ADD COLUMN `active_ai_provider` VARCHAR(50) DEFAULT 'openrouter'");
                     }
-                    
+                } catch (Exception $e) {}
+
+                try {
                     $stmt = self::$instance->query("SHOW COLUMNS FROM `users` LIKE 'active_ai_model'");
                     if (!$stmt->fetch()) {
                         self::$instance->exec("ALTER TABLE `users` ADD COLUMN `active_ai_model` VARCHAR(100) DEFAULT NULL");
                     }
-                    
+                } catch (Exception $e) {}
+
+                try {
                     $stmt = self::$instance->query("SHOW COLUMNS FROM `smtp_accounts` LIKE 'smtp_type'");
                     if (!$stmt->fetch()) {
                         self::$instance->exec("ALTER TABLE `smtp_accounts` ADD COLUMN `smtp_type` VARCHAR(20) DEFAULT 'custom'");
                     }
+                } catch (Exception $e) {}
 
-                    // Self-healing migration for registration OTP verification
+                try {
                     $stmt = self::$instance->query("SHOW COLUMNS FROM `users` LIKE 'phone_number'");
                     if (!$stmt->fetch()) {
                         self::$instance->exec("ALTER TABLE `users` ADD COLUMN `phone_number` VARCHAR(50) UNIQUE DEFAULT NULL");
                     }
+                } catch (Exception $e) {}
 
+                try {
                     self::$instance->exec("CREATE TABLE IF NOT EXISTS `otp_verifications` (
                         `id` INT AUTO_INCREMENT PRIMARY KEY,
                         `phone_number` VARCHAR(50) NOT NULL,
@@ -140,30 +153,31 @@ class Database {
                         INDEX `idx_otp_ip` (`ip_address`),
                         INDEX `idx_otp_created` (`created_at`)
                     ) ENGINE=InnoDB;");
+                } catch (Exception $e) {}
 
-                    // Self-healing migrations for multiple SMTP accounts
-                    try {
-                        $stmt = self::$instance->query("SHOW INDEX FROM `smtp_accounts` WHERE Key_name = 'user_id' AND Non_unique = 0");
-                        if ($stmt->fetch()) {
-                            try {
-                                self::$instance->exec("ALTER TABLE `smtp_accounts` ADD INDEX `idx_smtp_user_nonunique` (`user_id`)");
-                            } catch (Exception $idxEx) {}
-                            self::$instance->exec("ALTER TABLE `smtp_accounts` DROP INDEX `user_id`");
-                        }
-                    } catch (Exception $e) {}
+                try {
+                    $stmt = self::$instance->query("SHOW INDEX FROM `smtp_accounts` WHERE Key_name = 'user_id' AND Non_unique = 0");
+                    if ($stmt->fetch()) {
+                        try {
+                            self::$instance->exec("ALTER TABLE `smtp_accounts` ADD INDEX `idx_smtp_user_nonunique` (`user_id`)");
+                        } catch (Exception $idxEx) {}
+                        self::$instance->exec("ALTER TABLE `smtp_accounts` DROP INDEX `user_id`");
+                    }
+                } catch (Exception $e) {}
 
+                try {
                     $stmt = self::$instance->query("SHOW COLUMNS FROM `smtp_accounts` LIKE 'is_default'");
                     if (!$stmt->fetch()) {
                         self::$instance->exec("ALTER TABLE `smtp_accounts` ADD COLUMN `is_default` TINYINT(1) DEFAULT 0");
                     }
+                } catch (Exception $e) {}
 
+                try {
                     $stmt = self::$instance->query("SHOW COLUMNS FROM `users` LIKE 'active_email_template'");
                     if (!$stmt->fetch()) {
                         self::$instance->exec("ALTER TABLE `users` ADD COLUMN `active_email_template` VARCHAR(50) DEFAULT 'minimalist'");
                     }
-                } catch (Exception $migrationError) {
-                    // Ignore migration issues
-                }
+                } catch (Exception $e) {}
             } catch (PDOException $e) {
                 http_response_code(500);
                 echo json_encode([

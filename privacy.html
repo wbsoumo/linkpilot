@@ -41,6 +41,7 @@
             <ul class="list-disc pl-4 space-y-2 text-slate-400">
                 <li><strong>Account Registration Details:</strong> When creating a Free Beta account, we store your full name, email address, password hash ciphers, and professional profile bio parameters (skills, current job description, portfolio links, etc.).</li>
                 <li><strong>SMTP Relays Credentials:</strong> To send emails from the dashboard, you can connect an SMTP configuration. These passwords/keys are encrypted before storage. We never store raw plain-text credentials.</li>
+                <li><strong>Google Sheets Integration Data:</strong> If you authorize our Google Sheets integration, we securely request and store encrypted Google OAuth tokens. We only read and write data to spreadsheets you explicitly connect or create through our dashboard. We do not access, view, or modify any other files in your Google Drive.</li>
                 <li><strong>Analytics Logs:</strong> We track total AI requests count, emails sent, comments drafted, and WhatsApp messages generated to populate dashboard charts.</li>
                 <li><strong>Extension Permissions:</strong> The Chrome Extension requests host permissions for <code>https://*.linkedin.com/*</code> to read post content and inject assistant buttons. It does not scrape password databases or private DM folders.</li>
             </ul>

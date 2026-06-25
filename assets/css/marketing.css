@@ -30,6 +30,7 @@ body {
 /* Glow Effects */
 .glow-accent {
     position: relative;
+    overflow: hidden;
 }
 .glow-accent::before {
     content: '';
@@ -46,6 +47,7 @@ body {
 
 .glow-purple {
     position: relative;
+    overflow: hidden;
 }
 .glow-purple::before {
     content: '';

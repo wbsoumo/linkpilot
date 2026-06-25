@@ -95,7 +95,10 @@ async function apiCall(endpoint, method = 'GET', body = null, isUrlEncoded = fal
         if (!response.ok) {
             if (response.status === 401) {
                 removeAuthToken();
-                window.location.href = 'login.html';
+                const isAuthPage = window.location.pathname.includes('login.html') || window.location.pathname.includes('register.html');
+                if (!isAuthPage) {
+                    window.location.href = 'login.html';
+                }
             }
             throw new Error(data.message || 'API request failed.');
         }
@@ -278,30 +281,33 @@ document.addEventListener('DOMContentLoaded', () => {
     requireAuth();
     setupNavigation();
     
-    // Refresh user profile details asynchronously to sync roles securely
-    apiCall('profile/get.php').then(data => {
-        if (data.user) {
-            const localUser = getCurrentUser();
-            if (localUser) {
-                localUser.role = data.user.role;
-                localUser.name = data.user.name;
-                localUser.email = data.user.email;
-                localStorage.setItem('linkpilot_user', JSON.stringify(localUser));
-                
-                // Re-setup navigation to reflect correct role
-                const adminLink = document.getElementById('admin-nav-link');
-                if (adminLink) {
-                    if (data.user.role === 'admin') {
-                        adminLink.classList.remove('hidden');
-                    } else {
-                        adminLink.classList.add('hidden');
+    // Refresh user profile details asynchronously to sync roles securely if token is present
+    const token = getAuthToken();
+    if (token) {
+        apiCall('profile/get.php').then(data => {
+            if (data.user) {
+                const localUser = getCurrentUser();
+                if (localUser) {
+                    localUser.role = data.user.role;
+                    localUser.name = data.user.name;
+                    localUser.email = data.user.email;
+                    localStorage.setItem('linkpilot_user', JSON.stringify(localUser));
+                    
+                    // Re-setup navigation to reflect correct role
+                    const adminLink = document.getElementById('admin-nav-link');
+                    if (adminLink) {
+                        if (data.user.role === 'admin') {
+                            adminLink.classList.remove('hidden');
+                        } else {
+                            adminLink.classList.add('hidden');
+                        }
                     }
                 }
             }
-        }
-    }).catch(err => {
-        console.error("Failed to sync user role from server:", err);
-    });
+        }).catch(err => {
+            console.error("Failed to sync user role from server:", err);
+        });
+    }
     
     // Register Logout button handler
     const logoutBtn = document.getElementById('logout-action-btn');

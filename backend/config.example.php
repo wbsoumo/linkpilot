@@ -49,7 +49,8 @@ define('GOOGLE_AI_STUDIO_MODEL', 'gemini-2.0-flash');
 // Google OAuth 2.0 Configuration (for Google Sheets integration)
 define('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE_CLIENT_ID');
 define('GOOGLE_CLIENT_SECRET', 'YOUR_GOOGLE_CLIENT_SECRET');
-define('GOOGLE_REDIRECT_URI', 'http://localhost:8000/backend/api/google/callback.php');
+define('GOOGLE_REDIRECT_URI', 'https://linkpilot.work/backend/api/google/callback.php');
+
 
 
 // Fast2SMS WhatsApp API Configuration for Registration OTP

@@ -61,10 +61,13 @@
                 <p class="text-slate-400 text-sm mt-1">Here is a summary of your automated LinkedIn outreach activity.</p>
             </div>
             <div class="flex space-x-3">
-                <button id="google-sheets-modal-btn" class="flex items-center space-x-2 px-4 py-2 border border-slate-700 rounded-lg text-sm hover:border-teal-400 hover:text-teal-400 transition text-slate-100">
-                    <i data-lucide="file-spreadsheet" class="h-4 w-4 text-teal-400"></i>
-                    <span>📊 Google Sheets</span>
-                </button>
+                <!-- Dynamic Google Sheets Action Button Container -->
+                <div id="google-sheets-btn-container" class="flex items-center">
+                    <button class="flex items-center space-x-2 px-4 py-2 border border-slate-700 rounded-lg text-sm text-slate-400 bg-slate-900/20 cursor-wait animate-pulse" disabled>
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Google_Sheets_logo_%282014-2020%29.svg/1920px-Google_Sheets_logo_%282014-2020%29.svg.png" class="h-4 w-4 object-contain opacity-50" alt="Google Sheets">
+                        <span>Google Sheets...</span>
+                    </button>
+                </div>
                 <a href="leads.html" class="flex items-center space-x-2 px-4 py-2 border border-slate-700 rounded-lg text-sm hover:border-teal-400 hover:text-teal-400 transition">
                     <i data-lucide="users" class="h-4 w-4"></i>
                     <span>Lead Vault</span>
@@ -396,7 +399,75 @@
             }
         }
 
+        async function syncLeadsDirectly() {
+            const btn = document.getElementById('sheets-direct-sync-btn');
+            const logo = document.getElementById('sheets-btn-logo');
+            const text = document.getElementById('sheets-btn-text');
+            if (!btn) return;
+            
+            btn.disabled = true;
+            
+            // Create and insert spinner before text
+            const spinner = document.createElement('div');
+            spinner.id = 'sheets-btn-spinner';
+            spinner.className = 'loader-spinner !w-3.5 !h-3.5 !border-2 mr-2';
+            
+            if (logo) logo.classList.add('hidden');
+            btn.insertBefore(spinner, text);
+            if (text) text.textContent = 'Syncing...';
+
+            try {
+                const data = await apiCall('google/sync.php', 'POST');
+                if (data.status === 'success') {
+                    showNotification('success', `Sync completed! Synced ${data.rows_synced} leads.`);
+                    if (text) text.textContent = 'Sync Done!';
+                    await refreshGoogleSheetsStatus();
+                } else {
+                    showNotification('error', data.message || 'Sync failed.');
+                    if (text) text.textContent = 'Sync Failed';
+                }
+            } catch (err) {
+                showNotification('error', err.message || 'Sync operation failed.');
+                if (text) text.textContent = 'Sync Error';
+            } finally {
+                setTimeout(() => {
+                    btn.disabled = false;
+                    const activeSpinner = document.getElementById('sheets-btn-spinner');
+                    if (activeSpinner) activeSpinner.remove();
+                    if (logo) logo.classList.remove('hidden');
+                    if (text) text.textContent = 'Sync Now';
+                }, 2000);
+            }
+        }
+
         function renderGoogleSheetsState(state) {
+            // Render the dynamic button in container
+            const btnContainer = document.getElementById('google-sheets-btn-container');
+            const logoUrl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Google_Sheets_logo_%282014-2020%29.svg/1920px-Google_Sheets_logo_%282014-2020%29.svg.png';
+            
+            if (btnContainer) {
+                if (!state || !state.connected || !state.spreadsheet_id) {
+                    btnContainer.innerHTML = `
+                        <button onclick="openGoogleSheetsModal()" class="flex items-center space-x-2 px-4 py-2 border border-slate-700 rounded-lg text-sm hover:border-teal-400 hover:text-teal-400 transition text-slate-100 bg-slate-900/40">
+                            <img src="${logoUrl}" class="h-4 w-4 object-contain" alt="Google Sheets">
+                            <span>Google Sheets</span>
+                        </button>
+                    `;
+                } else {
+                    btnContainer.innerHTML = `
+                        <div class="flex items-center -space-x-px">
+                            <button id="sheets-direct-sync-btn" onclick="syncLeadsDirectly()" class="flex items-center px-4 py-2 border border-slate-700 rounded-l-lg text-sm hover:border-teal-400 hover:text-teal-400 transition text-slate-100 bg-slate-900/40 font-semibold">
+                                <img src="${logoUrl}" class="h-4 w-4 object-contain mr-2" id="sheets-btn-logo" alt="Google Sheets">
+                                <span id="sheets-btn-text">Sync Now</span>
+                            </button>
+                            <button onclick="openGoogleSheetsModal()" class="flex items-center justify-center px-2.5 py-2 border border-slate-700 rounded-r-lg text-sm hover:border-teal-400 hover:text-teal-400 transition text-slate-100 bg-slate-900/40" title="Google Sheets Settings">
+                                <i data-lucide="chevron-down" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+
             if (!sheetsStateUnconnected || !sheetsStateConnectedNoSheet || !sheetsStateConnectedConfigured) return;
 
             // Hide all state panels first
@@ -603,11 +674,8 @@
             sheetsStateConnectedNoSheet = document.getElementById('sheets-state-connected-no-sheet');
             sheetsStateConnectedConfigured = document.getElementById('sheets-state-connected-configured');
 
-            // Bind Google Sheets Modal triggers
-            const sheetsModalBtn = document.getElementById('google-sheets-modal-btn');
-            if (sheetsModalBtn) {
-                sheetsModalBtn.addEventListener('click', openGoogleSheetsModal);
-            }
+            // Load Google Sheets Connection Status and render buttons on load
+            refreshGoogleSheetsStatus();
 
             const closeSheetsModalBtn = document.getElementById('close-sheets-modal-btn');
             if (closeSheetsModalBtn) {
@@ -683,7 +751,7 @@
             <button id="close-sheets-modal-btn" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold">&times;</button>
             
             <h2 class="text-xl font-extrabold text-teal-400 mb-2 flex items-center space-x-2">
-                <i data-lucide="file-spreadsheet" class="h-5 w-5"></i>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Google_Sheets_logo_%282014-2020%29.svg/1920px-Google_Sheets_logo_%282014-2020%29.svg.png" class="h-5 w-5 object-contain" alt="Google Sheets">
                 <span>Google Sheets Integration</span>
             </h2>
             <p class="text-xs text-slate-400 mb-6">Sync your CRM leads directly to Google Sheets and keep your data updated automatically.</p>

@@ -46,6 +46,11 @@ define('GITHUB_MODELS_MODEL', 'gpt-4o-mini');
 // Google AI Studio API Configuration
 define('GOOGLE_AI_STUDIO_MODEL', 'gemini-2.0-flash');
 
+// Fast2SMS WhatsApp API Configuration for Registration OTP
+define('FAST2SMS_API_KEY', 'your_fast2sms_api_key_here');
+define('FAST2SMS_MESSAGE_ID', '22325');
+define('FAST2SMS_PHONE_NUMBER_ID', '1146366028557419');
+
 // Helper function to encrypt sensitive data (SMTP passwords)
 function encryptData($data) {
     $key = hash('sha256', ENCRYPTION_KEY);
@@ -116,6 +121,25 @@ class Database {
                     if (!$stmt->fetch()) {
                         self::$instance->exec("ALTER TABLE `smtp_accounts` ADD COLUMN `smtp_type` VARCHAR(20) DEFAULT 'custom'");
                     }
+
+                    // Self-healing migration for registration OTP verification
+                    $stmt = self::$instance->query("SHOW COLUMNS FROM `users` LIKE 'phone_number'");
+                    if (!$stmt->fetch()) {
+                        self::$instance->exec("ALTER TABLE `users` ADD COLUMN `phone_number` VARCHAR(50) UNIQUE DEFAULT NULL");
+                    }
+
+                    self::$instance->exec("CREATE TABLE IF NOT EXISTS `otp_verifications` (
+                        `id` INT AUTO_INCREMENT PRIMARY KEY,
+                        `phone_number` VARCHAR(50) NOT NULL,
+                        `otp_hash` VARCHAR(255) NOT NULL,
+                        `attempts` INT DEFAULT 0,
+                        `ip_address` VARCHAR(45) NOT NULL,
+                        `expires_at` TIMESTAMP NOT NULL,
+                        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        INDEX `idx_otp_phone` (`phone_number`),
+                        INDEX `idx_otp_ip` (`ip_address`),
+                        INDEX `idx_otp_created` (`created_at`)
+                    ) ENGINE=InnoDB;");
                 } catch (Exception $migrationError) {
                     // Ignore migration issues
                 }

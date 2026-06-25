@@ -36,6 +36,10 @@
                             <label for="email" class="block text-xs font-semibold text-slate-400 uppercase">Email Address *</label>
                             <input id="email" name="email" type="email" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="john@example.com">
                         </div>
+                        <div class="md:col-span-2">
+                            <label for="phone_number" class="block text-xs font-semibold text-slate-400 uppercase">WhatsApp Number * (10-digit, without country code)</label>
+                            <input id="phone_number" name="phone_number" type="tel" pattern="[6-9][0-9]{9}" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="9876543210">
+                        </div>
                         <div>
                             <label for="password" class="block text-xs font-semibold text-slate-400 uppercase">Password *</label>
                             <input id="password" name="password" type="password" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="••••••••">
@@ -120,48 +124,273 @@
             
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirm_password').value;
+            const phoneNumber = document.getElementById('phone_number').value.trim();
+            const email = document.getElementById('email').value.trim();
             
             if (password !== confirmPassword) {
                 showNotification('error', 'Passwords do not match.');
                 return;
             }
             
+            if (!/^[6-9]\d{9}$/.test(phoneNumber)) {
+                showNotification('error', 'Please enter a valid 10-digit WhatsApp phone number.');
+                return;
+            }
+            
             setFormLoading('register-form', true);
             
-            const payload = {
-                name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
-                password: password,
-                confirm_password: confirmPassword,
-                user_type: document.getElementById('user_type').value,
-                job_title: document.getElementById('job_title').value,
-                experience_years: document.getElementById('experience_years').value,
-                skills: document.getElementById('skills').value,
-                company_name: document.getElementById('company_name').value,
-                website: document.getElementById('website').value,
-                portfolio_url: document.getElementById('portfolio_url').value,
-                linkedin_url: document.getElementById('linkedin_url').value,
-                about_me: document.getElementById('about_me').value
-            };
-            
             try {
-                const data = await apiCall('auth/register.php', 'POST', payload);
-                showNotification('success', 'Registration successful!');
+                // Step 1: Send OTP
+                const otpRes = await apiCall('auth/send_otp.php', 'POST', {
+                    phone_number: phoneNumber,
+                    email: email
+                });
                 
-                // Store token & user info
-                setAuthToken(data.token);
-                localStorage.setItem('linkpilot_user', JSON.stringify(data.user));
+                showNotification('success', otpRes.message || 'OTP sent successfully!');
                 
-                // Redirect to SMTP Configuration Setup
-                setTimeout(() => {
-                    window.location.href = 'smtp.html';
-                }, 1500);
+                // If Fast2SMS is not configured, send_otp.php returns mock OTP for local dev
+                if (otpRes.dev_mode && otpRes.mock_otp) {
+                    console.log("Mock OTP for development:", otpRes.mock_otp);
+                    showNotification('warning', `[DEV MODE] Mock OTP: ${otpRes.mock_otp}`);
+                }
+                
+                // Step 2: Show OTP verification modal
+                showOtpModal(phoneNumber);
+                
             } catch (err) {
-                showNotification('error', err.message || 'Registration failed. Please try again.');
+                showNotification('error', err.message || 'Failed to send OTP. Please try again.');
             } finally {
                 setFormLoading('register-form', false);
             }
         });
+
+        function showOtpModal(phoneNumber) {
+            // Remove existing modal if any
+            const existing = document.getElementById('otp-verification-modal');
+            if (existing) existing.remove();
+
+            // Create glassmorphic modal
+            const modal = document.createElement('div');
+            modal.id = 'otp-verification-modal';
+            modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm animate-fade-in p-4';
+            
+            modal.innerHTML = `
+                <div class="glass-panel p-8 max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl relative text-center">
+                    <button id="close-otp-btn" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold transition">&times;</button>
+                    
+                    <div class="mb-4 text-teal-400 flex justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+
+                    <h3 class="text-xl font-bold text-white mb-2">WhatsApp OTP Verification</h3>
+                    <p class="text-xs text-slate-400 mb-6">
+                        We have sent a 6-digit OTP code to WhatsApp number <span class="text-teal-400 font-semibold">${phoneNumber}</span>.
+                    </p>
+                    
+                    <!-- 6-digit input boxes -->
+                    <div class="flex justify-center space-x-2.5 my-6" id="otp-inputs-container">
+                        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-slate-850 border border-slate-750 text-teal-400 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:outline-none transition" style="background-color: #1e293b; border-color: #334155;" />
+                        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-slate-850 border border-slate-750 text-teal-400 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:outline-none transition" style="background-color: #1e293b; border-color: #334155;" />
+                        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-slate-850 border border-slate-750 text-teal-400 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:outline-none transition" style="background-color: #1e293b; border-color: #334155;" />
+                        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-slate-850 border border-slate-750 text-teal-400 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:outline-none transition" style="background-color: #1e293b; border-color: #334155;" />
+                        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-slate-850 border border-slate-750 text-teal-400 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:outline-none transition" style="background-color: #1e293b; border-color: #334155;" />
+                        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-slate-850 border border-slate-750 text-teal-400 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:outline-none transition" style="background-color: #1e293b; border-color: #334155;" />
+                    </div>
+
+                    <div id="otp-error" class="text-xs text-red-400 mb-4 hidden"></div>
+
+                    <div class="mb-6">
+                        <button id="verify-otp-btn" class="w-full py-3 px-4 text-sm font-semibold rounded-md text-slate-950 bg-teal-400 hover:bg-teal-300 focus:outline-none transition duration-150 flex items-center justify-center">
+                            Verify & Register
+                        </button>
+                    </div>
+
+                    <div class="text-xs text-slate-400">
+                        Didn't receive the code? 
+                        <button id="resend-otp-btn" disabled class="font-semibold text-teal-500 hover:underline disabled:text-slate-500 disabled:no-underline ml-1">
+                            Resend in <span id="cooldown-timer">60</span>s
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+
+            const boxes = modal.querySelectorAll('.otp-box');
+            const verifyBtn = modal.querySelector('#verify-otp-btn');
+            const resendBtn = modal.querySelector('#resend-otp-btn');
+            let cooldownSpan = modal.querySelector('#cooldown-timer');
+            const errorDiv = modal.querySelector('#otp-error');
+            const closeBtn = modal.querySelector('#close-otp-btn');
+
+            // Autofocus first box
+            setTimeout(() => boxes[0].focus(), 100);
+
+            // Handle backspace, next box focus, and typing validation
+            boxes.forEach((box, index) => {
+                box.addEventListener('input', (e) => {
+                    // Force numeric only
+                    box.value = box.value.replace(/[^0-9]/g, '');
+                    
+                    if (box.value.length === 1 && index < 5) {
+                        boxes[index + 1].focus();
+                    }
+                });
+
+                box.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace') {
+                        if (box.value === '' && index > 0) {
+                            boxes[index - 1].focus();
+                            boxes[index - 1].value = '';
+                        } else {
+                            box.value = '';
+                        }
+                    }
+                });
+
+                // Paste handler
+                box.addEventListener('paste', (e) => {
+                    e.preventDefault();
+                    const pastedData = (e.clipboardData || window.clipboardData).getData('text').trim();
+                    if (/^\d{6}$/.test(pastedData)) {
+                        const digits = pastedData.split('');
+                        boxes.forEach((b, i) => {
+                            b.value = digits[i];
+                        });
+                        boxes[5].focus();
+                    }
+                });
+            });
+
+            // Resend Cooldown Timer
+            let cooldown = 60;
+            let timer = setInterval(() => {
+                cooldown--;
+                if (cooldownSpan) cooldownSpan.textContent = cooldown;
+                
+                if (cooldown <= 0) {
+                    clearInterval(timer);
+                    resendBtn.disabled = false;
+                    resendBtn.innerHTML = 'Resend OTP';
+                }
+            }, 1000);
+
+            // Resend OTP Action
+            resendBtn.addEventListener('click', async () => {
+                resendBtn.disabled = true;
+                errorDiv.classList.add('hidden');
+                
+                try {
+                    const email = document.getElementById('email').value.trim();
+                    const otpRes = await apiCall('auth/send_otp.php', 'POST', {
+                        phone_number: phoneNumber,
+                        email: email
+                    });
+                    
+                    showNotification('success', otpRes.message || 'OTP resent successfully!');
+                    if (otpRes.dev_mode && otpRes.mock_otp) {
+                        showNotification('warning', `[DEV MODE] Mock OTP: ${otpRes.mock_otp}`);
+                    }
+                    
+                    // Restart timer
+                    cooldown = 60;
+                    resendBtn.innerHTML = 'Resend in <span id="cooldown-timer">60</span>s';
+                    cooldownSpan = modal.querySelector('#cooldown-timer');
+                    timer = setInterval(() => {
+                        cooldown--;
+                        if (cooldownSpan) cooldownSpan.textContent = cooldown;
+                        if (cooldown <= 0) {
+                            clearInterval(timer);
+                            resendBtn.disabled = false;
+                            resendBtn.innerHTML = 'Resend OTP';
+                        }
+                    }, 1000);
+
+                    // Reset and focus first box
+                    boxes.forEach(b => b.value = '');
+                    boxes[0].focus();
+                } catch (err) {
+                    resendBtn.disabled = false;
+                    errorDiv.textContent = err.message || 'Failed to resend OTP.';
+                    errorDiv.classList.remove('hidden');
+                }
+            });
+
+            // Verify OTP and complete Registration
+            verifyBtn.addEventListener('click', async () => {
+                // Construct OTP
+                let otpCode = '';
+                boxes.forEach(b => otpCode += b.value);
+
+                if (otpCode.length !== 6) {
+                    errorDiv.textContent = 'Please enter all 6 digits of the OTP code.';
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
+
+                verifyBtn.disabled = true;
+                verifyBtn.innerHTML = `
+                    <div class="flex items-center justify-center space-x-2">
+                        <div class="loader-spinner border-2 border-slate-950 border-t-transparent w-4 h-4 rounded-full animate-spin"></div>
+                        <span>Verifying...</span>
+                    </div>
+                `;
+                errorDiv.classList.add('hidden');
+
+                const payload = {
+                    name: document.getElementById('name').value.trim(),
+                    email: document.getElementById('email').value.trim(),
+                    phone_number: phoneNumber,
+                    otp: otpCode,
+                    password: document.getElementById('password').value,
+                    confirm_password: document.getElementById('confirm_password').value,
+                    user_type: document.getElementById('user_type').value,
+                    job_title: document.getElementById('job_title').value.trim(),
+                    experience_years: document.getElementById('experience_years').value,
+                    skills: document.getElementById('skills').value.trim(),
+                    company_name: document.getElementById('company_name').value.trim(),
+                    website: document.getElementById('website').value.trim(),
+                    portfolio_url: document.getElementById('portfolio_url').value.trim(),
+                    linkedin_url: document.getElementById('linkedin_url').value.trim(),
+                    about_me: document.getElementById('about_me').value.trim()
+                };
+
+                try {
+                    const data = await apiCall('auth/register.php', 'POST', payload);
+                    
+                    // Clean up timer and modal
+                    clearInterval(timer);
+                    modal.remove();
+                    
+                    showNotification('success', 'Registration and OTP verification successful!');
+                    
+                    // Store token & user info
+                    setAuthToken(data.token);
+                    localStorage.setItem('linkpilot_user', JSON.stringify(data.user));
+                    
+                    // Redirect to SMTP Configuration Setup
+                    setTimeout(() => {
+                        window.location.href = 'smtp.html';
+                    }, 1500);
+
+                } catch (err) {
+                    verifyBtn.disabled = false;
+                    verifyBtn.innerHTML = 'Verify & Register';
+                    errorDiv.textContent = err.message || 'Verification failed. Please try again.';
+                    errorDiv.classList.remove('hidden');
+                }
+            });
+
+            // Close Modal
+            const closeModal = () => {
+                clearInterval(timer);
+                modal.remove();
+            };
+
+            closeBtn.addEventListener('click', closeModal);
+        }
     </script>
 </body>
 </html>

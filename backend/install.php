@@ -17,6 +17,7 @@ try {
         `id` INT AUTO_INCREMENT PRIMARY KEY,
         `name` VARCHAR(255) NOT NULL,
         `email` VARCHAR(255) UNIQUE NOT NULL,
+        `phone_number` VARCHAR(50) UNIQUE DEFAULT NULL,
         `password` VARCHAR(255) NOT NULL,
         `role` VARCHAR(50) DEFAULT 'user',
         `openrouter_key` TEXT DEFAULT NULL,
@@ -158,6 +159,20 @@ try {
         `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT `fk_logs_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
         INDEX `idx_logs_user` (`user_id`)
+    ) ENGINE=InnoDB;
+
+    -- 12. OTP Verifications Table
+    CREATE TABLE IF NOT EXISTS `otp_verifications` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `phone_number` VARCHAR(50) NOT NULL,
+        `otp_hash` VARCHAR(255) NOT NULL,
+        `attempts` INT DEFAULT 0,
+        `ip_address` VARCHAR(45) NOT NULL,
+        `expires_at` TIMESTAMP NOT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX `idx_otp_phone` (`phone_number`),
+        INDEX `idx_otp_ip` (`ip_address`),
+        INDEX `idx_otp_created` (`created_at`)
     ) ENGINE=InnoDB;
     ";
     

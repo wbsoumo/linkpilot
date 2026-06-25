@@ -15,6 +15,8 @@
     <title>AI Settings - LinkPilot AI</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Custom Style Sheet -->
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
@@ -57,174 +59,214 @@
                 <p class="text-sm text-slate-400 mt-1">Select your preferred AI API provider to power the outreach response generation engine.</p>
             </div>
             
-            <!-- Provider Selection Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="provider-selection-container">
-                <!-- OpenRouter Card -->
-                <div id="provider-card-openrouter" class="provider-card glass-panel p-5 bg-slate-900/60 border border-slate-800 rounded-xl cursor-pointer hover:border-slate-700 hover:bg-slate-900/80 transition duration-200 flex flex-col justify-between" onclick="selectProvider('openrouter')">
-                    <div class="flex items-start justify-between">
-                        <div class="p-2 bg-slate-800 rounded-lg">
-                            <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/openrouter-icon.png" class="h-6 w-6 object-contain" alt="OpenRouter logo">
-                        </div>
-                        <span class="text-[10px] px-2 py-0.5 bg-teal-400/10 text-teal-400 border border-teal-400/20 rounded-full font-bold">Free & Paid</span>
+            <!-- Configured Providers List View -->
+            <div id="configured-providers-view" class="space-y-6 hidden">
+                <!-- Active Provider Summary Panel -->
+                <div class="glass-panel p-6 bg-slate-900/40 border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h3 class="text-base font-bold text-white flex items-center space-x-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span>Active AI Provider: <span class="text-teal-400" id="active-provider-name-display">GitHub Models</span></span>
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-1">This provider and its selected model will power all LinkedIn generation assistants.</p>
                     </div>
-                    <div class="mt-4">
-                        <h4 class="text-sm font-bold text-white">OpenRouter</h4>
-                        <p class="text-xs text-slate-400 mt-1">Aggregated model hub. Includes Gemini Lite & Llama 3.</p>
-                    </div>
-                </div>
-
-                <!-- GitHub Models Card -->
-                <div id="provider-card-github_models" class="provider-card glass-panel p-5 bg-slate-900/60 border border-slate-800 rounded-xl cursor-pointer hover:border-slate-700 hover:bg-slate-900/80 transition duration-200 flex flex-col justify-between" onclick="selectProvider('github_models')">
-                    <div class="flex items-start justify-between">
-                        <div class="p-2 bg-purple-500/10 rounded-lg text-purple-400">
-                            <!-- GitHub Logo SVG -->
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                            </svg>
-                        </div>
-                        <div class="flex flex-col items-end space-y-1">
-                            <span class="text-[9px] px-2 py-0.5 bg-teal-400 text-slate-950 rounded-full font-extrabold uppercase tracking-wider shadow-sm shadow-teal-500/20">Recommended</span>
-                            <span class="text-[10px] px-2 py-0.5 bg-purple-400/10 text-purple-400 border border-purple-400/20 rounded-full font-bold">Free PAT</span>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <h4 class="text-sm font-bold text-white">GitHub Models</h4>
-                        <p class="text-xs text-slate-400 mt-1">Free developer access to GPT-4o-mini, Llama 3 & Phi-4.</p>
+                    <div class="px-3.5 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs font-semibold text-slate-300">
+                        Active Model: <span class="text-teal-400 font-bold" id="active-model-name-display">gpt-4o-mini</span>
                     </div>
                 </div>
 
-                <!-- Google AI Studio Card -->
-                <div id="provider-card-google_ai_studio" class="provider-card glass-panel p-5 bg-slate-900/60 border border-slate-800 rounded-xl cursor-pointer hover:border-slate-700 hover:bg-slate-900/80 transition duration-200 flex flex-col justify-between" onclick="selectProvider('google_ai_studio')">
-                    <div class="flex items-start justify-between">
-                        <div class="p-2 bg-slate-800 rounded-lg">
-                            <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/google-gemini-icon.png" class="h-6 w-6 object-contain" alt="Google Gemini logo">
-                        </div>
-                        <span class="text-[10px] px-2 py-0.5 bg-blue-400/10 text-blue-400 border border-blue-400/20 rounded-full font-bold">Free Tier</span>
-                    </div>
-                    <div class="mt-4">
-                        <h4 class="text-sm font-bold text-white">Google AI Studio</h4>
-                        <p class="text-xs text-slate-400 mt-1">Direct integration using free Gemini 1.5/2.0 Flash models.</p>
-                    </div>
+                <!-- Configured List Grid -->
+                <div class="space-y-4" id="configured-list-container">
+                    <!-- Dynamic items will be generated here -->
+                </div>
+
+                <!-- Add New Model Action -->
+                <div class="flex justify-end">
+                    <button onclick="showConfigForm()" class="flex items-center space-x-1.5 px-4 py-2 bg-teal-400 text-slate-950 font-bold rounded-lg text-sm hover:bg-teal-300 transition shadow-lg shadow-teal-500/10">
+                        <i data-lucide="plus-circle" class="h-4 w-4"></i>
+                        <span>Add New Model</span>
+                    </button>
                 </div>
             </div>
 
-            <!-- Settings Form -->
-            <div class="glass-panel p-8 bg-slate-900/60 border border-slate-800 rounded-2xl shadow-2xl">
-                <form id="ai-settings-form" class="space-y-6">
-                    <!-- Hidden Provider Input -->
-                    <input type="hidden" id="active_ai_provider" name="active_ai_provider" value="github_models">
+            <!-- Provider Configuration Form Container -->
+            <div id="provider-config-form-container" class="space-y-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-teal-400 uppercase tracking-wider">Configure Provider Details</h3>
+                    <button id="back-to-list-btn" onclick="hideConfigForm()" class="hidden flex items-center space-x-1 px-3 py-1.5 border border-slate-800 hover:border-slate-700 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">
+                        <span>&larr; Back to Configured List</span>
+                    </button>
+                </div>
 
-                    <!-- OpenRouter Fields Block -->
-                    <div id="fields-openrouter" class="provider-fields space-y-5 hidden">
-                        <h3 class="text-sm font-bold text-teal-400 uppercase tracking-wider">OpenRouter API Settings</h3>
-                        
-                        <div>
-                            <label for="openrouter_key" class="block text-xs font-semibold text-slate-400 uppercase">OpenRouter API Key *</label>
-                            <div class="relative mt-1">
-                                <input id="openrouter_key" name="openrouter_key" type="password" class="block w-full pl-3 pr-10 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="sk-or-v1-••••••••">
-                                <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white" onclick="togglePasswordVisibility('openrouter_key')">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
-                                </button>
+                <!-- Provider Selection Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="provider-selection-container">
+                    <!-- OpenRouter Card -->
+                    <div id="provider-card-openrouter" class="provider-card glass-panel p-5 bg-slate-900/60 border border-slate-800 rounded-xl cursor-pointer hover:border-slate-700 hover:bg-slate-900/80 transition duration-200 flex flex-col justify-between" onclick="selectProvider('openrouter')">
+                        <div class="flex items-start justify-between">
+                            <div class="p-2 bg-slate-800 rounded-lg">
+                                <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/openrouter-icon.png" class="h-6 w-6 object-contain" alt="OpenRouter logo">
                             </div>
-                            <p class="text-xs text-slate-500 mt-1.5">Get your API key from <a href="https://openrouter.ai/keys" target="_blank" class="text-teal-400 hover:underline">OpenRouter</a>. Standard model used is <code>google/gemini-2.0-flash-lite:free</code>.</p>
+                            <span class="text-[10px] px-2 py-0.5 bg-teal-400/10 text-teal-400 border border-teal-400/20 rounded-full font-bold">Free & Paid</span>
                         </div>
-
-                        <div>
-                            <label for="openrouter_model" class="block text-xs font-semibold text-slate-400 uppercase">Model *</label>
-                            <select id="openrouter_model" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" onchange="handleModelChange('openrouter')">
-                                <option value="google/gemini-2.0-flash-lite:free">Gemini 2.0 Flash Lite (Free) - Recommended</option>
-                                <option value="google/gemini-2.5-flash:free">Gemini 2.5 Flash (Free)</option>
-                                <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B Instruct (Free)</option>
-                                <option value="meta-llama/llama-3.1-8b-instruct:free">Llama 3.1 8B Instruct (Free)</option>
-                                <option value="custom">Custom Model...</option>
-                            </select>
-                        </div>
-                        
-                        <div id="openrouter_custom_model_container" class="hidden">
-                            <label for="openrouter_custom_model" class="block text-xs font-semibold text-slate-400 uppercase mt-2">Custom OpenRouter Model Identifier</label>
-                            <input id="openrouter_custom_model" type="text" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="e.g. anthropic/claude-3-haiku">
+                        <div class="mt-4">
+                            <h4 class="text-sm font-bold text-white">OpenRouter</h4>
+                            <p class="text-xs text-slate-400 mt-1">Aggregated model hub. Includes Gemini Lite & Llama 3.</p>
                         </div>
                     </div>
 
-                    <!-- GitHub Models Fields Block -->
-                    <div id="fields-github_models" class="provider-fields space-y-5 hidden">
-                        <h3 class="text-sm font-bold text-purple-400 uppercase tracking-wider">GitHub Models Settings</h3>
-                        
-                        <div>
-                            <label for="github_key" class="block text-xs font-semibold text-slate-400 uppercase">GitHub Personal Access Token (PAT) *</label>
-                            <div class="relative mt-1">
-                                <input id="github_key" name="github_key" type="password" class="block w-full pl-3 pr-10 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="ghp_•••••••• or github_pat_••••••••">
-                                <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white" onclick="togglePasswordVisibility('github_key')">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
-                                </button>
+                    <!-- GitHub Models Card -->
+                    <div id="provider-card-github_models" class="provider-card glass-panel p-5 bg-slate-900/60 border border-slate-800 rounded-xl cursor-pointer hover:border-slate-700 hover:bg-slate-900/80 transition duration-200 flex flex-col justify-between" onclick="selectProvider('github_models')">
+                        <div class="flex items-start justify-between">
+                            <div class="p-2 bg-purple-500/10 rounded-lg text-purple-400">
+                                <!-- GitHub Logo SVG -->
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                                </svg>
                             </div>
-                            <p class="text-xs text-slate-500 mt-1.5">Generate a PAT with <code>models:read</code> scope from your <a href="https://github.com/settings/tokens" target="_blank" class="text-purple-400 hover:underline">GitHub Developer Settings</a>.</p>
-                        </div>
-
-                        <div>
-                            <label for="github_model" class="block text-xs font-semibold text-slate-400 uppercase">Model *</label>
-                            <select id="github_model" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" onchange="handleModelChange('github_models')">
-                                <option value="gpt-4o-mini">gpt-4o-mini (GPT-4o Mini) - Recommended</option>
-                                <option value="gpt-4o">gpt-4o (GPT-4o)</option>
-                                <option value="meta-llama-3.3-70b-instruct">meta-llama-3.3-70b-instruct (Llama 3.3 70B)</option>
-                                <option value="cohere-command-r-plus">cohere-command-r-plus (Cohere Command R+)</option>
-                                <option value="Phi-4-mini-instruct">Phi-4-mini-instruct (Phi-4 Mini Reasoning)</option>
-                                <option value="custom">Custom Model...</option>
-                            </select>
-                        </div>
-
-                        <div id="github_custom_model_container" class="hidden">
-                            <label for="github_custom_model" class="block text-xs font-semibold text-slate-400 uppercase mt-2">Custom GitHub Model Identifier</label>
-                            <input id="github_custom_model" type="text" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="e.g. meta-llama-3.1-405b-instruct">
-                        </div>
-                    </div>
-
-                    <!-- Google AI Studio Fields Block -->
-                    <div id="fields-google_ai_studio" class="provider-fields space-y-5 hidden">
-                        <h3 class="text-sm font-bold text-blue-400 uppercase tracking-wider">Google AI Studio Settings</h3>
-                        
-                        <div>
-                            <label for="google_key" class="block text-xs font-semibold text-slate-400 uppercase">Google Gemini API Key *</label>
-                            <div class="relative mt-1">
-                                <input id="google_key" name="google_key" type="password" class="block w-full pl-3 pr-10 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="AIzaSy••••••••">
-                                <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white" onclick="togglePasswordVisibility('google_key')">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
-                                </button>
+                            <div class="flex flex-col items-end space-y-1">
+                                <span class="text-[9px] px-2 py-0.5 bg-teal-400 text-slate-950 rounded-full font-extrabold uppercase tracking-wider shadow-sm shadow-teal-500/20">Recommended</span>
+                                <span class="text-[10px] px-2 py-0.5 bg-purple-400/10 text-purple-400 border border-purple-400/20 rounded-full font-bold">Free PAT</span>
                             </div>
-                            <p class="text-xs text-slate-500 mt-1.5">Get a free API key from <a href="https://aistudio.google.com/" target="_blank" class="text-blue-400 hover:underline">Google AI Studio</a>.</p>
                         </div>
-
-                        <div>
-                            <label for="google_model" class="block text-xs font-semibold text-slate-400 uppercase">Model *</label>
-                            <select id="google_model" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" onchange="handleModelChange('google_ai_studio')">
-                                <option value="gemini-2.0-flash">gemini-2.0-flash (Gemini 2.0 Flash) - Recommended</option>
-                                <option value="gemini-1.5-flash">gemini-1.5-flash (Gemini 1.5 Flash)</option>
-                                <option value="gemini-1.5-pro">gemini-1.5-pro (Gemini 1.5 Pro)</option>
-                                <option value="custom">Custom Model...</option>
-                            </select>
-                        </div>
-
-                        <div id="google_custom_model_container" class="hidden">
-                            <label for="google_custom_model" class="block text-xs font-semibold text-slate-400 uppercase mt-2">Custom Google Gemini Model Identifier</label>
-                            <input id="google_custom_model" type="text" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="e.g. gemini-2.0-pro-exp">
+                        <div class="mt-4">
+                            <h4 class="text-sm font-bold text-white">GitHub Models</h4>
+                            <p class="text-xs text-slate-400 mt-1">Free developer access to GPT-4o-mini, Llama 3 & Phi-4.</p>
                         </div>
                     </div>
 
-                    <div class="pt-2">
-                        <button type="submit" class="w-full py-3 px-4 rounded-md border border-transparent font-semibold text-sm text-slate-950 bg-teal-400 hover:bg-teal-300 focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150 shadow-lg shadow-teal-500/20">
-                            Save AI Settings
-                        </button>
+                    <!-- Google AI Studio Card -->
+                    <div id="provider-card-google_ai_studio" class="provider-card glass-panel p-5 bg-slate-900/60 border border-slate-800 rounded-xl cursor-pointer hover:border-slate-700 hover:bg-slate-900/80 transition duration-200 flex flex-col justify-between" onclick="selectProvider('google_ai_studio')">
+                        <div class="flex items-start justify-between">
+                            <div class="p-2 bg-slate-800 rounded-lg">
+                                <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/google-gemini-icon.png" class="h-6 w-6 object-contain" alt="Google Gemini logo">
+                            </div>
+                            <span class="text-[10px] px-2 py-0.5 bg-blue-400/10 text-blue-400 border border-blue-400/20 rounded-full font-bold">Free Tier</span>
+                        </div>
+                        <div class="mt-4">
+                            <h4 class="text-sm font-bold text-white">Google AI Studio</h4>
+                            <p class="text-xs text-slate-400 mt-1">Direct integration using free Gemini 1.5/2.0 Flash models.</p>
+                        </div>
                     </div>
-                </form>
+                </div>
+
+                <!-- Settings Form -->
+                <div class="glass-panel p-8 bg-slate-900/60 border border-slate-800 rounded-2xl shadow-2xl">
+                    <form id="ai-settings-form" class="space-y-6">
+                        <!-- Hidden Provider Input -->
+                        <input type="hidden" id="active_ai_provider" name="active_ai_provider" value="github_models">
+
+                        <!-- OpenRouter Fields Block -->
+                        <div id="fields-openrouter" class="provider-fields space-y-5 hidden">
+                            <h3 class="text-sm font-bold text-teal-400 uppercase tracking-wider">OpenRouter API Settings</h3>
+                            
+                            <div>
+                                <label for="openrouter_key" class="block text-xs font-semibold text-slate-400 uppercase">OpenRouter API Key *</label>
+                                <div class="relative mt-1">
+                                    <input id="openrouter_key" name="openrouter_key" type="password" class="block w-full pl-3 pr-10 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="sk-or-v1-••••••••">
+                                    <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white" onclick="togglePasswordVisibility('openrouter_key')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                          <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-1.5">Get your API key from <a href="https://openrouter.ai/keys" target="_blank" class="text-teal-400 hover:underline">OpenRouter</a>. Standard model used is <code>google/gemini-2.0-flash-lite:free</code>.</p>
+                            </div>
+
+                            <div>
+                                <label for="openrouter_model" class="block text-xs font-semibold text-slate-400 uppercase">Model *</label>
+                                <select id="openrouter_model" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" onchange="handleModelChange('openrouter')">
+                                    <option value="google/gemini-2.0-flash-lite:free">Gemini 2.0 Flash Lite (Free) - Recommended</option>
+                                    <option value="google/gemini-2.5-flash:free">Gemini 2.5 Flash (Free)</option>
+                                    <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B Instruct (Free)</option>
+                                    <option value="meta-llama/llama-3.1-8b-instruct:free">Llama 3.1 8B Instruct (Free)</option>
+                                    <option value="custom">Custom Model...</option>
+                                </select>
+                            </div>
+                            
+                            <div id="openrouter_custom_model_container" class="hidden">
+                                <label for="openrouter_custom_model" class="block text-xs font-semibold text-slate-400 uppercase mt-2">Custom OpenRouter Model Identifier</label>
+                                <input id="openrouter_custom_model" type="text" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="e.g. anthropic/claude-3-haiku">
+                            </div>
+                        </div>
+
+                        <!-- GitHub Models Fields Block -->
+                        <div id="fields-github_models" class="provider-fields space-y-5 hidden">
+                            <h3 class="text-sm font-bold text-purple-400 uppercase tracking-wider">GitHub Models Settings</h3>
+                            
+                            <div>
+                                <label for="github_key" class="block text-xs font-semibold text-slate-400 uppercase">GitHub Personal Access Token (PAT) *</label>
+                                <div class="relative mt-1">
+                                    <input id="github_key" name="github_key" type="password" class="block w-full pl-3 pr-10 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="ghp_•••••••• or github_pat_••••••••">
+                                    <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white" onclick="togglePasswordVisibility('github_key')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                          <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-1.5">Generate a PAT with <code>models:read</code> scope from your <a href="https://github.com/settings/tokens" target="_blank" class="text-purple-400 hover:underline">GitHub Developer Settings</a>.</p>
+                            </div>
+
+                            <div>
+                                <label for="github_model" class="block text-xs font-semibold text-slate-400 uppercase">Model *</label>
+                                <select id="github_model" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" onchange="handleModelChange('github_models')">
+                                    <option value="gpt-4o-mini">gpt-4o-mini (GPT-4o Mini) - Recommended</option>
+                                    <option value="gpt-4o">gpt-4o (GPT-4o)</option>
+                                    <option value="meta-llama-3.3-70b-instruct">meta-llama-3.3-70b-instruct (Llama 3.3 70B)</option>
+                                    <option value="cohere-command-r-plus">cohere-command-r-plus (Cohere Command R+)</option>
+                                    <option value="Phi-4-mini-instruct">Phi-4-mini-instruct (Phi-4 Mini Reasoning)</option>
+                                    <option value="custom">Custom Model...</option>
+                                </select>
+                            </div>
+
+                            <div id="github_custom_model_container" class="hidden">
+                                <label for="github_custom_model" class="block text-xs font-semibold text-slate-400 uppercase mt-2">Custom GitHub Model Identifier</label>
+                                <input id="github_custom_model" type="text" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="e.g. meta-llama-3.1-405b-instruct">
+                            </div>
+                        </div>
+
+                        <!-- Google AI Studio Fields Block -->
+                        <div id="fields-google_ai_studio" class="provider-fields space-y-5 hidden">
+                            <h3 class="text-sm font-bold text-blue-400 uppercase tracking-wider">Google AI Studio Settings</h3>
+                            
+                            <div>
+                                <label for="google_key" class="block text-xs font-semibold text-slate-400 uppercase">Google Gemini API Key *</label>
+                                <div class="relative mt-1">
+                                    <input id="google_key" name="google_key" type="password" class="block w-full pl-3 pr-10 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="AIzaSy••••••••">
+                                    <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white" onclick="togglePasswordVisibility('google_key')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                          <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-1.5">Get a free API key from <a href="https://aistudio.google.com/" target="_blank" class="text-blue-400 hover:underline">Google AI Studio</a>.</p>
+                            </div>
+
+                            <div>
+                                <label for="google_model" class="block text-xs font-semibold text-slate-400 uppercase">Model *</label>
+                                <select id="google_model" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" onchange="handleModelChange('google_ai_studio')">
+                                    <option value="gemini-2.0-flash">gemini-2.0-flash (Gemini 2.0 Flash) - Recommended</option>
+                                    <option value="gemini-1.5-flash">gemini-1.5-flash (Gemini 1.5 Flash)</option>
+                                    <option value="gemini-1.5-pro">gemini-1.5-pro (Gemini 1.5 Pro)</option>
+                                    <option value="custom">Custom Model...</option>
+                                </select>
+                            </div>
+
+                            <div id="google_custom_model_container" class="hidden">
+                                <label for="google_custom_model" class="block text-xs font-semibold text-slate-400 uppercase mt-2">Custom Google Gemini Model Identifier</label>
+                                <input id="google_custom_model" type="text" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="e.g. gemini-2.0-pro-exp">
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="submit" class="w-full py-3 px-4 rounded-md border border-transparent font-semibold text-sm text-slate-950 bg-teal-400 hover:bg-teal-300 focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150 shadow-lg shadow-teal-500/20">
+                                Save AI Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
 
             <!-- Testing Sandbox -->
@@ -372,6 +414,195 @@
             }
         }
 
+        // Toggle configuration form container
+        function showConfigForm() {
+            document.getElementById('provider-config-form-container').classList.remove('hidden');
+            document.getElementById('configured-providers-view').classList.add('hidden');
+            
+            const hasAnyConfig = userKeysStatus.has_openrouter || userKeysStatus.has_github || userKeysStatus.has_google;
+            const backBtn = document.getElementById('back-to-list-btn');
+            if (hasAnyConfig) {
+                backBtn.classList.remove('hidden');
+            } else {
+                backBtn.classList.add('hidden');
+            }
+        }
+
+        function hideConfigForm() {
+            const hasAnyConfig = userKeysStatus.has_openrouter || userKeysStatus.has_github || userKeysStatus.has_google;
+            if (!hasAnyConfig) return; // Cannot hide if none is configured
+            
+            document.getElementById('provider-config-form-container').classList.add('hidden');
+            document.getElementById('configured-providers-view').classList.remove('hidden');
+        }
+
+        // Format identifier to clean provider name
+        function formatProviderName(provider) {
+            if (provider === 'openrouter') return 'OpenRouter';
+            if (provider === 'github_models') return 'GitHub Models';
+            if (provider === 'google_ai_studio') return 'Google AI Studio';
+            return provider;
+        }
+
+        // Helper to select card and open form
+        function editProvider(provider) {
+            selectProvider(provider);
+            showConfigForm();
+        }
+
+        // Helper to activate a provider instantly
+        async function activateProvider(provider, model) {
+            try {
+                await apiCall('profile/save_openrouter.php', 'POST', {
+                    active_ai_provider: provider,
+                    active_ai_model: model
+                });
+                showNotification('success', `${formatProviderName(provider)} activated successfully!`);
+                await loadAISettings();
+            } catch (err) {
+                showNotification('error', err.message || 'Failed to activate provider.');
+            }
+        }
+
+        // Disconnect/Delete credentials
+        async function deleteProvider(provider) {
+            if (!confirm(`Are you sure you want to disconnect ${formatProviderName(provider)}? This will clear your saved API credentials.`)) {
+                return;
+            }
+            
+            const payload = {};
+            if (provider === 'openrouter') {
+                payload.openrouter_key = '';
+            } else if (provider === 'github_models') {
+                payload.github_key = '';
+            } else if (provider === 'google_ai_studio') {
+                payload.google_key = '';
+            }
+            
+            if (activeProvider === provider) {
+                payload.active_ai_model = '';
+            }
+            
+            try {
+                await apiCall('profile/save_openrouter.php', 'POST', payload);
+                showNotification('success', `${formatProviderName(provider)} disconnected successfully.`);
+                await loadAISettings();
+            } catch (err) {
+                showNotification('error', err.message || 'Failed to disconnect provider.');
+            }
+        }
+
+        // Dynamic HTML generator for configured providers rows
+        function generateProviderRowHtml(provider, user) {
+            let logoHtml = '';
+            let name = formatProviderName(provider);
+            let desc = '';
+            let isConfigured = false;
+            let isActive = user.active_ai_provider === provider;
+            let modelName = '';
+            
+            if (provider === 'openrouter') {
+                logoHtml = `<div class="p-2 bg-slate-800 rounded-lg"><img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/openrouter-icon.png" class="h-6 w-6 object-contain" alt="OpenRouter logo"></div>`;
+                desc = 'Gemini Lite, Llama 3 & more';
+                isConfigured = userKeysStatus.has_openrouter;
+                modelName = isConfigured ? (user.active_ai_model && user.active_ai_provider === 'openrouter' ? user.active_ai_model : 'google/gemini-2.0-flash-lite:free') : '';
+            } else if (provider === 'github_models') {
+                logoHtml = `
+                <div class="p-2 bg-purple-500/10 rounded-lg text-purple-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </div>`;
+                desc = 'Free developer tier for GPT-4o-mini & Llama 3';
+                isConfigured = userKeysStatus.has_github;
+                modelName = isConfigured ? (user.active_ai_model && user.active_ai_provider === 'github_models' ? user.active_ai_model : 'gpt-4o-mini') : '';
+            } else if (provider === 'google_ai_studio') {
+                logoHtml = `<div class="p-2 bg-slate-800 rounded-lg"><img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/google-gemini-icon.png" class="h-6 w-6 object-contain" alt="Google Gemini logo"></div>`;
+                desc = 'Direct integration via Gemini 1.5/2.0 Flash';
+                isConfigured = userKeysStatus.has_google;
+                modelName = isConfigured ? (user.active_ai_model && user.active_ai_provider === 'google_ai_studio' ? user.active_ai_model : 'gemini-2.0-flash') : '';
+            }
+
+            let badgesHtml = '';
+            if (isConfigured) {
+                badgesHtml += `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 select-none">Connected</span>`;
+                if (isActive) {
+                    badgesHtml += `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-teal-400/10 text-teal-400 border border-teal-400/20 select-none">Active</span>`;
+                }
+            } else {
+                badgesHtml += `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-800 text-slate-400 border border-slate-700 select-none">Not Configured</span>`;
+            }
+
+            let actionsHtml = '';
+            if (isConfigured) {
+                if (!isActive) {
+                    actionsHtml += `
+                        <button onclick="activateProvider('${provider}', '${modelName}')" class="px-3 py-1.5 bg-teal-400/10 text-teal-400 border border-teal-400/25 hover:bg-teal-400 hover:text-slate-950 font-bold rounded-lg text-xs transition">
+                            Activate
+                        </button>
+                    `;
+                }
+                actionsHtml += `
+                    <button onclick="editProvider('${provider}')" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition" title="Edit Credentials">
+                        <i data-lucide="edit-3" class="h-4.5 w-4.5"></i>
+                    </button>
+                    <button onclick="deleteProvider('${provider}')" class="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition" title="Disconnect Provider">
+                        <i data-lucide="trash-2" class="h-4.5 w-4.5"></i>
+                    </button>
+                `;
+            } else {
+                actionsHtml += `
+                    <button onclick="editProvider('${provider}')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold rounded-lg text-xs transition">
+                        Configure
+                    </button>
+                `;
+            }
+
+            return `
+                <div class="glass-panel p-5 bg-slate-900/60 border border-slate-800 rounded-xl hover:border-slate-700/80 transition duration-150 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div class="flex items-center space-x-4">
+                        \${logoHtml}
+                        <div>
+                            <div class="flex items-center space-x-2.5">
+                                <h4 class="text-sm font-bold text-white">\${name}</h4>
+                                <div class="flex space-x-1.5">
+                                    \${badgesHtml}
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1">\${desc}</p>
+                            \${isConfigured && modelName ? `<p class="text-[10px] text-slate-500 mt-1 font-mono">Model: \${modelName}</p>` : ''}
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                        \${actionsHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render configured list view
+        function renderConfiguredProvidersList(user) {
+            const activeName = formatProviderName(user.active_ai_provider);
+            const activeModel = user.active_ai_model || 'Not configured';
+            
+            document.getElementById('active-provider-name-display').innerText = activeName;
+            document.getElementById('active-model-name-display').innerText = activeModel;
+            
+            const container = document.getElementById('configured-list-container');
+            const providers = ['github_models', 'google_ai_studio', 'openrouter'];
+            
+            let listHtml = '';
+            providers.forEach(p => {
+                listHtml += generateProviderRowHtml(p, user);
+            });
+            
+            container.innerHTML = listHtml;
+            
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+        }
+
         // Load settings status
         async function loadAISettings() {
             try {
@@ -428,6 +659,15 @@
                             handleModelChange('google_ai_studio');
                         }
                     }
+
+                    // Toggling visibility based on keys existence
+                    const hasAnyConfig = userKeysStatus.has_openrouter || userKeysStatus.has_github || userKeysStatus.has_google;
+                    if (hasAnyConfig) {
+                        renderConfiguredProvidersList(data.user);
+                        hideConfigForm();
+                    } else {
+                        showConfigForm();
+                    }
                 }
             } catch (err) {
                 showNotification('error', 'Error loading AI settings from profile.');
@@ -468,9 +708,7 @@
             try {
                 await apiCall('profile/save_openrouter.php', 'POST', payload);
                 showNotification('success', 'AI settings saved successfully!');
-                setTimeout(() => {
-                    loadAISettings();
-                }, 1000);
+                await loadAISettings();
             } catch (err) {
                 showNotification('error', err.message || 'Failed to save AI settings.');
             } finally {

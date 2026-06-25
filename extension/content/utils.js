@@ -61,15 +61,23 @@
                 chrome.runtime.sendMessage(payload, (response) => {
                     const error = chrome.runtime.lastError;
                     if (error) {
+                        let msg = error.message;
+                        if (msg && msg.toLowerCase().includes('context invalidated')) {
+                            msg = 'Extension context invalidated. Please refresh the page.';
+                        }
                         window.LinkPilotLogger.error('Runtime message error:', error.message);
-                        callback({ status: 'error', message: error.message });
+                        callback({ status: 'error', message: msg });
                         return;
                     }
                     callback(response);
                 });
             } catch (err) {
+                let msg = err.message;
+                if (msg && msg.toLowerCase().includes('context invalidated')) {
+                    msg = 'Extension context invalidated. Please refresh the page.';
+                }
                 window.LinkPilotLogger.error('Sync runtime message throw:', err);
-                callback({ status: 'error', message: err.message });
+                callback({ status: 'error', message: msg });
             }
         },
 

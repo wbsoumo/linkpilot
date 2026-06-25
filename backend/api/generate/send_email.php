@@ -4,6 +4,7 @@
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../jwt_helper.php';
 require_once __DIR__ . '/../../smtp_helper.php';
+require_once __DIR__ . '/../../google_sheets_helper.php';
 
 // Require Auth
 $user = JWTHelper::requireAuth();
@@ -36,6 +37,31 @@ try {
     $result = SMTPHelper::sendEmail($userId, $recipientEmail, $subject, $body);
     
     if ($result['status']) {
+        // Find lead by recipient email
+        $db = Database::getConnection();
+        $stmtFind = $db->prepare("SELECT id FROM lead_vault WHERE user_id = ? AND email = ? ORDER BY id DESC LIMIT 1");
+        $stmtFind->execute([$userId, $recipientEmail]);
+        $lead = $stmtFind->fetch();
+        
+        if ($lead) {
+            $leadId = $lead['id'];
+            $emailFullText = "Subject: $subject\n\n$body";
+            
+            $stmtUpdate = $db->prepare("
+                UPDATE lead_vault 
+                SET current_status = 'Contacted', last_contact_date = CURRENT_TIMESTAMP, generated_email = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            ");
+            $stmtUpdate->execute([$emailFullText, $leadId]);
+            
+            // Trigger Google Sheets Sync
+            try {
+                GoogleSheetsHelper::syncLead($userId, $leadId);
+            } catch (Exception $e) {
+                error_log("Google Sheets Auto Sync failed in send_email.php: " . $e->getMessage());
+            }
+        }
+        
         sendJsonResponse('success', $result['message']);
     } else {
         sendJsonResponse('error', $result['message'], [], 400);

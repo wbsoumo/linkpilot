@@ -61,6 +61,10 @@
                 <p class="text-slate-400 text-sm mt-1">Here is a summary of your automated LinkedIn outreach activity.</p>
             </div>
             <div class="flex space-x-3">
+                <button id="google-sheets-modal-btn" class="flex items-center space-x-2 px-4 py-2 border border-slate-700 rounded-lg text-sm hover:border-teal-400 hover:text-teal-400 transition text-slate-100">
+                    <i data-lucide="file-spreadsheet" class="h-4 w-4 text-teal-400"></i>
+                    <span>📊 Google Sheets</span>
+                </button>
                 <a href="leads.html" class="flex items-center space-x-2 px-4 py-2 border border-slate-700 rounded-lg text-sm hover:border-teal-400 hover:text-teal-400 transition">
                     <i data-lucide="users" class="h-4 w-4"></i>
                     <span>Lead Vault</span>
@@ -360,11 +364,525 @@
             });
         }
 
+        // Google Sheets Modal & Sync Management
+        const sheetsModal = document.getElementById('sheets-modal');
+        const sheetsStateUnconnected = document.getElementById('sheets-state-unconnected');
+        const sheetsStateConnectedNoSheet = document.getElementById('sheets-state-connected-no-sheet');
+        const sheetsStateConnectedConfigured = document.getElementById('sheets-state-connected-configured');
+
+        async function openGoogleSheetsModal() {
+            if (sheetsModal) {
+                sheetsModal.classList.remove('hidden');
+                await refreshGoogleSheetsStatus();
+            }
+        }
+
+        function closeGoogleSheetsModal() {
+            if (sheetsModal) {
+                sheetsModal.classList.add('hidden');
+            }
+        }
+
+        async function refreshGoogleSheetsStatus() {
+            try {
+                const data = await apiCall('google/status.php');
+                if (data.status === 'success') {
+                    renderGoogleSheetsState(data.data);
+                } else {
+                    showNotification('error', data.message || 'Failed to check Google Sheets status.');
+                }
+            } catch (err) {
+                showNotification('error', err.message || 'Connection status query failed.');
+            }
+        }
+
+        function renderGoogleSheetsState(state) {
+            if (!sheetsStateUnconnected || !sheetsStateConnectedNoSheet || !sheetsStateConnectedConfigured) return;
+
+            // Hide all state panels first
+            sheetsStateUnconnected.classList.add('hidden');
+            sheetsStateConnectedNoSheet.classList.add('hidden');
+            sheetsStateConnectedConfigured.classList.add('hidden');
+
+            if (!state || !state.connected) {
+                sheetsStateUnconnected.classList.remove('hidden');
+            } else if (!state.spreadsheet_id) {
+                sheetsStateConnectedNoSheet.classList.remove('hidden');
+                document.querySelectorAll('.user-google-email').forEach(el => el.textContent = state.google_email || 'Connected');
+            } else {
+                sheetsStateConnectedConfigured.classList.remove('hidden');
+                document.querySelectorAll('.user-google-email').forEach(el => el.textContent = state.google_email || 'Connected');
+                
+                // Set sheet link
+                const linkEl = document.getElementById('sheet-link-display');
+                const titleEl = document.getElementById('sheet-title-display');
+                if (linkEl && titleEl) {
+                    linkEl.href = state.spreadsheet_url || '#';
+                    titleEl.textContent = state.sheet_name || 'LinkPilot CRM Leads';
+                }
+
+                // Set statistics
+                const rowsEl = document.getElementById('rows-synced-display');
+                if (rowsEl) rowsEl.textContent = `${state.rows_synced} rows`;
+                
+                const lastSyncEl = document.getElementById('last-sync-display');
+                if (lastSyncEl) {
+                    let lastSyncStr = 'Never';
+                    if (state.last_sync_time) {
+                        const dateObj = new Date(state.last_sync_time);
+                        if (!isNaN(dateObj.getTime())) {
+                            lastSyncStr = dateObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                        }
+                    }
+                    lastSyncEl.textContent = lastSyncStr;
+                }
+
+                // Set checkbox toggles
+                const chkEnabled = document.getElementById('sync-enabled-chk');
+                if (chkEnabled) chkEnabled.checked = !!state.sync_enabled;
+
+                const chkNew = document.getElementById('sync-new-leads-chk');
+                if (chkNew) chkNew.checked = !!state.sync_new_leads;
+
+                const chkUpdate = document.getElementById('sync-update-leads-chk');
+                if (chkUpdate) chkUpdate.checked = !!state.sync_update_leads;
+
+                const chkStatus = document.getElementById('sync-status-chk');
+                if (chkStatus) chkStatus.checked = !!state.sync_status;
+
+                const chkScore = document.getElementById('sync-lead-score-chk');
+                if (chkScore) chkScore.checked = !!state.sync_lead_score;
+
+                const chkNotes = document.getElementById('sync-notes-chk');
+                if (chkNotes) chkNotes.checked = !!state.sync_notes;
+            }
+
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+        }
+
+        // Connect Google Account Auth Action
+        async function connectGoogleAccount() {
+            try {
+                const data = await apiCall('google/auth.php');
+                if (data.status === 'success' && data.data.auth_url) {
+                    window.location.href = data.data.auth_url;
+                } else {
+                    showNotification('error', data.message || 'Failed to generate OAuth redirect link.');
+                }
+            } catch (err) {
+                showNotification('error', err.message || 'Google Auth setup error.');
+            }
+        }
+
+        // Create Spreadsheet Action
+        async function createNewSpreadsheet() {
+            const btn = document.getElementById('create-sheet-btn');
+            if (!btn) return;
+            const originalText = btn.innerHTML;
+            try {
+                btn.disabled = true;
+                btn.innerHTML = `<span class="flex items-center justify-center space-x-1"><div class="loader-spinner !w-4 !h-4 !border-2"></div><span>Creating...</span></span>`;
+                const data = await apiCall('google/create_sheet.php', 'POST');
+                if (data.status === 'success') {
+                    showNotification('success', 'Successfully created and linked spreadsheet!');
+                    await refreshGoogleSheetsStatus();
+                } else {
+                    showNotification('error', data.message || 'Creation failed.');
+                }
+            } catch (err) {
+                showNotification('error', err.message || 'Spreadsheet creation error.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        // Connect Existing Spreadsheet Action
+        async function connectExistingSpreadsheet() {
+            const urlInput = document.getElementById('existing-sheet-url');
+            if (!urlInput) return;
+            const url = urlInput.value.trim();
+            if (!url) {
+                showNotification('warning', 'Please enter a valid Google Spreadsheet URL or ID.');
+                return;
+            }
+
+            const btn = document.getElementById('connect-existing-sheet-btn');
+            if (!btn) return;
+            const originalText = btn.innerHTML;
+            try {
+                btn.disabled = true;
+                btn.innerHTML = `<span class="flex items-center justify-center space-x-1"><div class="loader-spinner !w-4 !h-4 !border-2"></div><span>Connecting...</span></span>`;
+                const data = await apiCall('google/connect_sheet.php', 'POST', { spreadsheet_url: url });
+                if (data.status === 'success') {
+                    showNotification('success', 'Spreadsheet connected successfully!');
+                    urlInput.value = '';
+                    await refreshGoogleSheetsStatus();
+                } else {
+                    showNotification('error', data.message || 'Connection failed.');
+                }
+            } catch (err) {
+                showNotification('error', err.message || 'Connection error.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        // Disconnect Account Action
+        async function disconnectGoogleSheets() {
+            if (!confirm('Are you sure you want to disconnect your Google account and stop all spreadsheet synchronization?')) {
+                return;
+            }
+            try {
+                const data = await apiCall('google/disconnect.php', 'POST');
+                if (data.status === 'success') {
+                    showNotification('success', 'Disconnected successfully.');
+                    await refreshGoogleSheetsStatus();
+                } else {
+                    showNotification('error', data.message || 'Disconnection failed.');
+                }
+            } catch (err) {
+                showNotification('error', err.message || 'Disconnection error.');
+            }
+        }
+
+        // Sync Now manual sync action
+        async function syncLeadsNow() {
+            const btn = document.getElementById('sync-now-btn');
+            if (!btn) return;
+            const originalText = btn.innerHTML;
+            try {
+                btn.disabled = true;
+                btn.innerHTML = `<span class="flex items-center justify-center space-x-1"><div class="loader-spinner !w-4 !h-4 !border-2 !border-t-slate-950"></div><span>Syncing...</span></span>`;
+                const data = await apiCall('google/sync.php', 'POST');
+                if (data.status === 'success') {
+                    showNotification('success', `Sync completed! Synced ${data.data.rows_synced} leads.`);
+                    await refreshGoogleSheetsStatus();
+                } else {
+                    showNotification('error', data.message || 'Sync failed.');
+                }
+            } catch (err) {
+                showNotification('error', err.message || 'Sync operation failed.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        // Save Settings Action
+        async function saveGoogleSheetsSettings() {
+            const settings = {
+                sync_enabled: document.getElementById('sync-enabled-chk').checked,
+                sync_new_leads: document.getElementById('sync-new-leads-chk').checked,
+                sync_update_leads: document.getElementById('sync-update-leads-chk').checked,
+                sync_status: document.getElementById('sync-status-chk').checked,
+                sync_lead_score: document.getElementById('sync-lead-score-chk').checked,
+                sync_notes: document.getElementById('sync-notes-chk').checked
+            };
+
+            try {
+                const data = await apiCall('google/settings.php', 'POST', settings);
+                if (data.status !== 'success') {
+                    showNotification('error', data.message || 'Failed to update preferences.');
+                }
+            } catch (err) {
+                showNotification('error', err.message || 'Preferences update error.');
+            }
+        }
+
         // Run on load
         document.addEventListener('DOMContentLoaded', () => {
             loadDashboardData();
+
+            // Bind Google Sheets Modal triggers
+            const sheetsModalBtn = document.getElementById('google-sheets-modal-btn');
+            if (sheetsModalBtn) {
+                sheetsModalBtn.addEventListener('click', openGoogleSheetsModal);
+            }
+
+            const closeSheetsModalBtn = document.getElementById('close-sheets-modal-btn');
+            if (closeSheetsModalBtn) {
+                closeSheetsModalBtn.addEventListener('click', closeGoogleSheetsModal);
+            }
+
+            const connectGoogleBtn = document.getElementById('connect-google-btn');
+            if (connectGoogleBtn) {
+                connectGoogleBtn.addEventListener('click', connectGoogleAccount);
+            }
+
+            const createSheetBtn = document.getElementById('create-sheet-btn');
+            if (createSheetBtn) {
+                createSheetBtn.addEventListener('click', createNewSpreadsheet);
+            }
+
+            const connectExistingSheetBtn = document.getElementById('connect-existing-sheet-btn');
+            if (connectExistingSheetBtn) {
+                connectExistingSheetBtn.addEventListener('click', connectExistingSpreadsheet);
+            }
+
+            const syncNowBtn = document.getElementById('sync-now-btn');
+            if (syncNowBtn) {
+                syncNowBtn.addEventListener('click', syncLeadsNow);
+            }
+
+            // Disconnect buttons
+            document.querySelectorAll('.disconnect-btn').forEach(btn => {
+                btn.addEventListener('click', disconnectGoogleSheets);
+            });
+
+            // Toggle checkboxes listeners
+            const settingsCheckboxes = [
+                'sync-enabled-chk',
+                'sync-new-leads-chk',
+                'sync-update-leads-chk',
+                'sync-status-chk',
+                'sync-lead-score-chk',
+                'sync-notes-chk'
+            ];
+            settingsCheckboxes.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('change', saveGoogleSheetsSettings);
+                }
+            });
+
+            // URL query parameters check
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('google_sheets')) {
+                const status = urlParams.get('google_sheets');
+                if (status === 'connected') {
+                    showNotification('success', 'Successfully connected Google Account!');
+                    openGoogleSheetsModal();
+                }
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, newUrl);
+            } else if (urlParams.has('google_sheets_error')) {
+                const errorMsg = urlParams.get('google_sheets_error');
+                showNotification('error', `Google Connection failed: ${errorMsg}`);
+                openGoogleSheetsModal();
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, newUrl);
+            }
+
             lucide.createIcons();
         });
     </script>
+
+    <!-- Google Sheets Integration Modal -->
+    <div id="sheets-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm animate-fade-in p-4">
+        <div class="glass-panel p-6 max-w-xl w-full bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto text-left flex flex-col">
+            <button id="close-sheets-modal-btn" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+            
+            <h2 class="text-xl font-extrabold text-teal-400 mb-2 flex items-center space-x-2">
+                <i data-lucide="file-spreadsheet" class="h-5 w-5"></i>
+                <span>Google Sheets Integration</span>
+            </h2>
+            <p class="text-xs text-slate-400 mb-6">Sync your CRM leads directly to Google Sheets and keep your data updated automatically.</p>
+            
+            <!-- STATE 1: UNCONNECTED -->
+            <div id="sheets-state-unconnected" class="hidden space-y-4 animate-fade-in">
+                <div class="p-4 bg-slate-950/50 border border-slate-800 rounded-xl flex flex-col items-center justify-center text-center py-8">
+                    <div class="p-3 bg-teal-500/10 text-teal-400 rounded-full mb-3">
+                        <i data-lucide="log-in" class="h-8 w-8"></i>
+                    </div>
+                    <h4 class="text-sm font-semibold text-white">Google Account Not Connected</h4>
+                    <p class="text-xs text-slate-500 max-w-xs mt-1">Connect your Google Account to authorize LinkPilot CRM to write lead rows to your spreadsheet.</p>
+                    <button id="connect-google-btn" class="mt-4 flex items-center space-x-2 px-5 py-2.5 bg-teal-400 text-slate-950 font-bold rounded-lg text-sm hover:bg-teal-300 transition shadow-lg shadow-teal-500/10">
+                        <i data-lucide="plus" class="h-4 w-4"></i>
+                        <span>Connect Google Account</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- STATE 2: CONNECTED BUT NO SPREADSHEET -->
+            <div id="sheets-state-connected-no-sheet" class="hidden space-y-6 animate-fade-in">
+                <!-- Connected Email Banner -->
+                <div class="flex items-center justify-between p-3.5 bg-teal-500/10 border border-teal-500/20 rounded-xl">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-teal-500/10 text-teal-400 rounded-lg">
+                            <i data-lucide="user-check" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-400">Connected Google Account</div>
+                            <div class="text-sm font-bold text-white user-google-email">Loading...</div>
+                        </div>
+                    </div>
+                    <button class="disconnect-btn text-xs font-semibold text-red-400 hover:text-red-300 hover:underline">Disconnect</button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Option A: Create Spreadsheet -->
+                    <div class="p-5 bg-slate-950/50 border border-slate-800 rounded-xl hover:border-slate-700 transition flex flex-col justify-between">
+                        <div>
+                            <h4 class="text-sm font-semibold text-white flex items-center space-x-1.5">
+                                <i data-lucide="file-plus" class="h-4 w-4 text-teal-400"></i>
+                                <span>Create New Spreadsheet</span>
+                            </h4>
+                            <p class="text-xs text-slate-500 mt-2">LinkPilot will create a new sheet named "LinkPilot CRM Leads" in your Google Drive and set up all header columns automatically.</p>
+                        </div>
+                        <button id="create-sheet-btn" class="mt-4 w-full py-2 bg-teal-400 text-slate-950 font-bold rounded-lg text-xs hover:bg-teal-300 transition">
+                            Create New Spreadsheet
+                        </button>
+                    </div>
+
+                    <!-- Option B: Connect Existing Spreadsheet -->
+                    <div class="p-5 bg-slate-950/50 border border-slate-800 rounded-xl hover:border-slate-700 transition flex flex-col justify-between">
+                        <div>
+                            <h4 class="text-sm font-semibold text-white flex items-center space-x-1.5">
+                                <i data-lucide="link" class="h-4 w-4 text-purple-400"></i>
+                                <span>Connect Existing Sheet</span>
+                            </h4>
+                            <p class="text-xs text-slate-500 mt-2">Paste the URL or ID of an existing Google Spreadsheet you have permission to edit.</p>
+                            <div class="mt-3">
+                                <input type="text" id="existing-sheet-url" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs" placeholder="https://docs.google.com/spreadsheets/d/...">
+                            </div>
+                        </div>
+                        <button id="connect-existing-sheet-btn" class="mt-4 w-full py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold rounded-lg text-xs transition">
+                            Link Existing Spreadsheet
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STATE 3: FULLY CONNECTED & CONFIGURED -->
+            <div id="sheets-state-connected-configured" class="hidden space-y-6 animate-fade-in">
+                <!-- Header Status Panel -->
+                <div class="p-4 bg-teal-500/10 border border-teal-500/20 rounded-xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2 bg-teal-500/10 text-teal-400 rounded-lg">
+                                <i data-lucide="file-spreadsheet" class="h-5 w-5"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-slate-400">Connected Spreadsheet</div>
+                                <a id="sheet-link-display" href="#" target="_blank" class="text-sm font-bold text-white hover:underline flex items-center space-x-1">
+                                    <span id="sheet-title-display">LinkPilot CRM Leads</span>
+                                    <i data-lucide="external-link" class="h-3.5 w-3.5 text-slate-400"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs text-slate-400">Google User</div>
+                            <div class="text-xs font-semibold text-slate-200 user-google-email">Loading...</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 text-center pt-2 border-t border-teal-500/10">
+                        <div>
+                            <div class="text-[10px] text-slate-400 uppercase tracking-wider">Sync State</div>
+                            <div class="text-xs font-bold text-emerald-400 flex items-center justify-center space-x-1 mt-0.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                <span>Active</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-slate-400 uppercase tracking-wider">Rows Synced</div>
+                            <div class="text-xs font-bold text-slate-200 mt-0.5" id="rows-synced-display">0 rows</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-slate-400 uppercase tracking-wider">Last Synced</div>
+                            <div class="text-xs font-bold text-slate-200 mt-0.5" id="last-sync-display">Never</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sync Toggles & Settings -->
+                <div class="space-y-4">
+                    <h3 class="text-xs font-bold text-teal-400 uppercase tracking-wider">Sync Preferences</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <!-- Toggle 1: Enable/Disable Entire Sync -->
+                        <div class="p-3 bg-slate-950/40 border border-slate-800 rounded-xl flex items-center justify-between">
+                            <div>
+                                <h5 class="text-xs font-bold text-white">Enable Google Sheets Sync</h5>
+                                <p class="text-[10px] text-slate-500 mt-0.5">If disabled, no leads will sync to the sheet.</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="sync-enabled-chk" class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-850 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-400 peer-checked:after:bg-slate-950 peer-checked:after:border-teal-400"></div>
+                            </label>
+                        </div>
+
+                        <!-- Toggle 2: Sync New Leads -->
+                        <div class="p-3 bg-slate-950/40 border border-slate-800 rounded-xl flex items-center justify-between">
+                            <div>
+                                <h5 class="text-xs font-bold text-white">Sync New Leads</h5>
+                                <p class="text-[10px] text-slate-500 mt-0.5">Sync immediately when new leads are created.</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="sync-new-leads-chk" class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-850 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-400 peer-checked:after:bg-slate-950 peer-checked:after:border-teal-400"></div>
+                            </label>
+                        </div>
+
+                        <!-- Toggle 3: Sync Update Leads -->
+                        <div class="p-3 bg-slate-950/40 border border-slate-800 rounded-xl flex items-center justify-between">
+                            <div>
+                                <h5 class="text-xs font-bold text-white">Sync Updated Leads</h5>
+                                <p class="text-[10px] text-slate-500 mt-0.5">Sync updates when leads are modified.</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="sync-update-leads-chk" class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-850 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-400 peer-checked:after:bg-slate-950 peer-checked:after:border-teal-400"></div>
+                            </label>
+                        </div>
+
+                        <!-- Toggle 4: Sync Lead Status -->
+                        <div class="p-3 bg-slate-950/40 border border-slate-800 rounded-xl flex items-center justify-between">
+                            <div>
+                                <h5 class="text-xs font-bold text-white">Sync Lead Status</h5>
+                                <p class="text-[10px] text-slate-500 mt-0.5">Include current contact / outreach status.</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="sync-status-chk" class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-850 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-400 peer-checked:after:bg-slate-950 peer-checked:after:border-teal-400"></div>
+                            </label>
+                        </div>
+
+                        <!-- Toggle 5: Sync Lead Score -->
+                        <div class="p-3 bg-slate-950/40 border border-slate-800 rounded-xl flex items-center justify-between">
+                            <div>
+                                <h5 class="text-xs font-bold text-white">Sync Lead Score</h5>
+                                <p class="text-[10px] text-slate-500 mt-0.5">Include the estimated Lead Score in sheet columns.</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="sync-lead-score-chk" class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-850 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-400 peer-checked:after:bg-slate-950 peer-checked:after:border-teal-400"></div>
+                            </label>
+                        </div>
+
+                        <!-- Toggle 6: Sync Notes & Remarks -->
+                        <div class="p-3 bg-slate-950/40 border border-slate-800 rounded-xl flex items-center justify-between">
+                            <div>
+                                <h5 class="text-xs font-bold text-white">Sync Notes & Remarks</h5>
+                                <p class="text-[10px] text-slate-500 mt-0.5">Include manual remarks/comments from Leads view.</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="sync-notes-chk" class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-850 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-400 peer-checked:after:bg-slate-950 peer-checked:after:border-teal-400"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Sync Actions -->
+                <div class="mt-6 pt-4 border-t border-slate-800 flex justify-between items-center">
+                    <button class="disconnect-btn px-4 py-2 border border-red-500/30 hover:border-red-500 hover:bg-red-500/10 rounded-lg text-xs font-semibold text-red-400 transition">
+                        Disconnect Account
+                    </button>
+                    <div class="flex space-x-2">
+                        <button id="sync-now-btn" class="flex items-center space-x-1.5 px-4 py-2 bg-teal-400 text-slate-950 font-bold rounded-lg text-xs hover:bg-teal-300 transition">
+                            <i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i>
+                            <span>Sync Now</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
 </body>
 </html>

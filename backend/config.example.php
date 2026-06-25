@@ -46,6 +46,12 @@ define('GITHUB_MODELS_MODEL', 'gpt-4o-mini');
 // Google AI Studio API Configuration
 define('GOOGLE_AI_STUDIO_MODEL', 'gemini-2.0-flash');
 
+// Google OAuth 2.0 Configuration (for Google Sheets integration)
+define('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE_CLIENT_ID');
+define('GOOGLE_CLIENT_SECRET', 'YOUR_GOOGLE_CLIENT_SECRET');
+define('GOOGLE_REDIRECT_URI', 'http://localhost:8000/backend/api/google/callback.php');
+
+
 // Fast2SMS WhatsApp API Configuration for Registration OTP
 define('FAST2SMS_API_KEY', 'your_fast2sms_api_key_here');
 define('FAST2SMS_MESSAGE_ID', '22325');

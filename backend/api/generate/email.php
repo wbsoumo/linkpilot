@@ -3,6 +3,7 @@
 
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../jwt_helper.php';
+require_once __DIR__ . '/../../google_sheets_helper.php';
 
 // Require Auth
 $user = JWTHelper::requireAuth();
@@ -120,20 +121,60 @@ Generate a personalized outreach email to {$authorName} referencing their post. 
     
     // 4. Save to Lead Vault if author details exist
     if (!empty($authorName)) {
-        $stmtLead = $db->prepare("
-            INSERT INTO lead_vault (user_id, name, company_name, linkedin_url, email, phone_number, post_url, post_content, source) 
-            VALUES (:user_id, :name, :company, :linkedin, :email, :phone, :post_url, :post_content, 'LinkedIn Extension')
-        ");
-        $stmtLead->execute([
-            'user_id' => $userId,
-            'name' => $authorName,
-            'company' => $companyName ?: null,
-            'linkedin' => $authorProfileUrl ?: null,
-            'email' => $recipientEmail ?: null,
-            'phone' => $recipientPhone ?: null,
-            'post_url' => $postUrl ?: null,
-            'post_content' => $postContent
-        ]);
+        $leadId = null;
+        if (!empty($authorProfileUrl)) {
+            $stmtCheck = $db->prepare("SELECT id FROM lead_vault WHERE user_id = ? AND linkedin_url = ?");
+            $stmtCheck->execute([$userId, $authorProfileUrl]);
+            $existingLead = $stmtCheck->fetch();
+            if ($existingLead) {
+                $leadId = $existingLead['id'];
+            }
+        }
+        
+        $emailFullText = "Subject: $subject\n\n$body";
+        
+        if ($leadId) {
+            $stmtUpdate = $db->prepare("
+                UPDATE lead_vault 
+                SET name = ?, company_name = ?, email = ?, phone_number = ?, post_url = ?, post_content = ?, generated_email = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ? AND user_id = ?
+            ");
+            $stmtUpdate->execute([
+                $authorName,
+                $companyName ?: null,
+                $recipientEmail ?: null,
+                $recipientPhone ?: null,
+                $postUrl ?: null,
+                $postContent,
+                $emailFullText,
+                $leadId,
+                $userId
+            ]);
+        } else {
+            $stmtLead = $db->prepare("
+                INSERT INTO lead_vault (user_id, name, company_name, linkedin_url, email, phone_number, post_url, post_content, source, generated_email, current_status) 
+                VALUES (:user_id, :name, :company, :linkedin, :email, :phone, :post_url, :post_content, 'LinkedIn Extension', :generated_email, 'New')
+            ");
+            $stmtLead->execute([
+                'user_id' => $userId,
+                'name' => $authorName,
+                'company' => $companyName ?: null,
+                'linkedin' => $authorProfileUrl ?: null,
+                'email' => $recipientEmail ?: null,
+                'phone' => $recipientPhone ?: null,
+                'post_url' => $postUrl ?: null,
+                'post_content' => $postContent,
+                'generated_email' => $emailFullText
+            ]);
+            $leadId = $db->lastInsertId();
+        }
+
+        // Trigger Google Sheets Sync
+        try {
+            GoogleSheetsHelper::syncLead($userId, $leadId);
+        } catch (Exception $e) {
+            error_log("Google Sheets Auto Sync failed in email.php: " . $e->getMessage());
+        }
     }
     
     // 5. Store AI Generation record

@@ -174,10 +174,55 @@ try {
         INDEX `idx_otp_ip` (`ip_address`),
         INDEX `idx_otp_created` (`created_at`)
     ) ENGINE=InnoDB;
+
+    -- 13. Google Sheet Connections Table
+    CREATE TABLE IF NOT EXISTS `google_sheet_connections` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT UNIQUE NOT NULL,
+        `google_email` VARCHAR(255) DEFAULT NULL,
+        `google_name` VARCHAR(255) DEFAULT NULL,
+        `access_token` TEXT DEFAULT NULL,
+        `refresh_token` TEXT DEFAULT NULL,
+        `expires_at` TIMESTAMP NULL DEFAULT NULL,
+        `spreadsheet_id` VARCHAR(255) DEFAULT NULL,
+        `spreadsheet_url` VARCHAR(500) DEFAULT NULL,
+        `sync_enabled` TINYINT DEFAULT 1,
+        `sync_new_leads` TINYINT DEFAULT 1,
+        `sync_update_leads` TINYINT DEFAULT 1,
+        `sync_status` TINYINT DEFAULT 1,
+        `sync_notes` TINYINT DEFAULT 1,
+        `sync_followups` TINYINT DEFAULT 1,
+        `sync_lead_score` TINYINT DEFAULT 1,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        CONSTRAINT `fk_google_sheet_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB;
     ";
     
     // Execute SQL
     $db->exec($sql);
+
+    // Alter lead_vault table to append missing fields
+    $alterQueries = [
+        "ALTER TABLE `lead_vault` ADD COLUMN `current_status` VARCHAR(100) DEFAULT 'New'",
+        "ALTER TABLE `lead_vault` ADD COLUMN `current_stage` VARCHAR(100) DEFAULT 'Lead'",
+        "ALTER TABLE `lead_vault` ADD COLUMN `remarks` TEXT DEFAULT NULL",
+        "ALTER TABLE `lead_vault` ADD COLUMN `lead_score` INT DEFAULT NULL",
+        "ALTER TABLE `lead_vault` ADD COLUMN `last_contact_date` TIMESTAMP NULL DEFAULT NULL",
+        "ALTER TABLE `lead_vault` ADD COLUMN `next_followup_date` TIMESTAMP NULL DEFAULT NULL",
+        "ALTER TABLE `lead_vault` ADD COLUMN `generated_email` TEXT DEFAULT NULL",
+        "ALTER TABLE `lead_vault` ADD COLUMN `generated_whatsapp` TEXT DEFAULT NULL",
+        "ALTER TABLE `lead_vault` ADD COLUMN `generated_comment` TEXT DEFAULT NULL",
+        "ALTER TABLE `lead_vault` ADD COLUMN `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+    ];
+
+    foreach ($alterQueries as $q) {
+        try {
+            $db->exec($q);
+        } catch (Exception $e) {
+            // Ignore if column already exists
+        }
+    }
     
     echo "<p style='color:green; font-weight:bold;'>[SUCCESS] Database tables imported successfully!</p>";
     echo "<p style='color:red;'><strong>SECURITY WARNING:</strong> Please delete this file (<code>install.php</code>) from your hosting server immediately to prevent unauthorized access.</p>";

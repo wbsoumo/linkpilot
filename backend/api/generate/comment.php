@@ -3,6 +3,7 @@
 
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../jwt_helper.php';
+require_once __DIR__ . '/../../google_sheets_helper.php';
 
 // Require Auth
 $user = JWTHelper::requireAuth();
@@ -73,6 +74,50 @@ Generate the LinkedIn comment. Return ONLY the comment content.";
     // 5. Store AI Generation record
     $stmtGen = $db->prepare("INSERT INTO ai_generations (user_id, type, post_content, generated_content, tokens_used) VALUES (?, 'comment', ?, ?, ?)");
     $stmtGen->execute([$userId, $postContent, $comment, $tokensUsed]);
+
+    // Save/Update in Lead Vault if author details exist
+    if (!empty($authorName)) {
+        $leadId = null;
+        $stmtCheck = $db->prepare("SELECT id FROM lead_vault WHERE user_id = ? AND name = ? ORDER BY id DESC LIMIT 1");
+        $stmtCheck->execute([$userId, $authorName]);
+        $existingLead = $stmtCheck->fetch();
+        if ($existingLead) {
+            $leadId = $existingLead['id'];
+        }
+
+        if ($leadId) {
+            $stmtUpdate = $db->prepare("
+                UPDATE lead_vault 
+                SET post_content = ?, generated_comment = ?, current_status = 'Commented', updated_at = CURRENT_TIMESTAMP
+                WHERE id = ? AND user_id = ?
+            ");
+            $stmtUpdate->execute([
+                $postContent,
+                $comment,
+                $leadId,
+                $userId
+            ]);
+        } else {
+            $stmtLead = $db->prepare("
+                INSERT INTO lead_vault (user_id, name, post_content, source, generated_comment, current_status) 
+                VALUES (?, ?, ?, 'LinkedIn Extension', ?, 'Commented')
+            ");
+            $stmtLead->execute([
+                $userId,
+                $authorName,
+                $postContent,
+                $comment
+            ]);
+            $leadId = $db->lastInsertId();
+        }
+
+        // Trigger Google Sheets Sync
+        try {
+            GoogleSheetsHelper::syncLead($userId, $leadId);
+        } catch (Exception $e) {
+            error_log("Google Sheets Auto Sync failed in comment.php: " . $e->getMessage());
+        }
+    }
     
     // 6. Update Stats and log activity
     updateStatistic($userId, 'total_requests');

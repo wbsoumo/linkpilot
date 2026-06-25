@@ -3,6 +3,7 @@
 
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../jwt_helper.php';
+require_once __DIR__ . '/../../google_sheets_helper.php';
 
 // Require Auth
 $user = JWTHelper::requireAuth();
@@ -78,6 +79,55 @@ Generate the WhatsApp outreach message. Return ONLY the message content.";
     // 5. Store AI Generation record
     $stmtGen = $db->prepare("INSERT INTO ai_generations (user_id, type, post_content, generated_content, tokens_used) VALUES (?, 'whatsapp', ?, ?, ?)");
     $stmtGen->execute([$userId, $postContent, $message, $tokensUsed]);
+
+    // Save/Update in Lead Vault if author details exist
+    if (!empty($authorName)) {
+        $leadId = null;
+        $stmtCheck = $db->prepare("SELECT id FROM lead_vault WHERE user_id = ? AND name = ? AND (company_name = ? OR company_name IS NULL)");
+        $stmtCheck->execute([$userId, $authorName, $companyName ?: '']);
+        $existingLead = $stmtCheck->fetch();
+        if ($existingLead) {
+            $leadId = $existingLead['id'];
+        }
+
+        if ($leadId) {
+            $stmtUpdate = $db->prepare("
+                UPDATE lead_vault 
+                SET phone_number = ?, post_url = ?, post_content = ?, generated_whatsapp = ?, current_status = 'WhatsApp Generated', updated_at = CURRENT_TIMESTAMP
+                WHERE id = ? AND user_id = ?
+            ");
+            $stmtUpdate->execute([
+                $phone ?: null,
+                $postUrl ?: null,
+                $postContent,
+                $message,
+                $leadId,
+                $userId
+            ]);
+        } else {
+            $stmtLead = $db->prepare("
+                INSERT INTO lead_vault (user_id, name, company_name, phone_number, post_url, post_content, source, generated_whatsapp, current_status) 
+                VALUES (?, ?, ?, ?, ?, ?, 'LinkedIn Extension', ?, 'WhatsApp Generated')
+            ");
+            $stmtLead->execute([
+                $userId,
+                $authorName,
+                $companyName ?: null,
+                $phone ?: null,
+                $postUrl ?: null,
+                $postContent,
+                $message
+            ]);
+            $leadId = $db->lastInsertId();
+        }
+
+        // Trigger Google Sheets Sync
+        try {
+            GoogleSheetsHelper::syncLead($userId, $leadId);
+        } catch (Exception $e) {
+            error_log("Google Sheets Auto Sync failed in whatsapp.php: " . $e->getMessage());
+        }
+    }
     
     // 6. Update Stats and log activity
     updateStatistic($userId, 'total_requests');

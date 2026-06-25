@@ -1,0 +1,21 @@
+# robots.txt for LinkPilot AI
+User-agent: *
+Allow: /
+Allow: /assets/
+Allow: /blog.html
+Allow: /about.html
+Allow: /pricing.html
+Allow: /docs.html
+Allow: /contact.html
+Allow: /privacy.html
+Allow: /terms.html
+Allow: /cookies.html
+Allow: /disclaimer.html
+
+# Disallow Private/Sensitive/Dynamic Paths
+Disallow: /dashboard/
+Disallow: /backend/
+Disallow: /extension/
+
+# Sitemap location
+Sitemap: https://linkpilot.work/sitemap.xml

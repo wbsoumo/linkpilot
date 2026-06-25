@@ -387,7 +387,7 @@
             try {
                 const data = await apiCall('google/status.php');
                 if (data.status === 'success') {
-                    renderGoogleSheetsState(data.data);
+                    renderGoogleSheetsState(data);
                 } else {
                     showNotification('error', data.message || 'Failed to check Google Sheets status.');
                 }
@@ -466,8 +466,8 @@
         async function connectGoogleAccount() {
             try {
                 const data = await apiCall('google/auth.php');
-                if (data.status === 'success' && data.data.auth_url) {
-                    window.location.href = data.data.auth_url;
+                if (data.status === 'success' && data.auth_url) {
+                    window.location.href = data.auth_url;
                 } else {
                     showNotification('error', data.message || 'Failed to generate OAuth redirect link.');
                 }
@@ -559,7 +559,7 @@
                 btn.innerHTML = `<span class="flex items-center justify-center space-x-1"><div class="loader-spinner !w-4 !h-4 !border-2 !border-t-slate-950"></div><span>Syncing...</span></span>`;
                 const data = await apiCall('google/sync.php', 'POST');
                 if (data.status === 'success') {
-                    showNotification('success', `Sync completed! Synced ${data.data.rows_synced} leads.`);
+                    showNotification('success', `Sync completed! Synced ${data.rows_synced} leads.`);
                     await refreshGoogleSheetsStatus();
                 } else {
                     showNotification('error', data.message || 'Sync failed.');

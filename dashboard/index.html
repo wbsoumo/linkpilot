@@ -230,7 +230,7 @@
                         showWarning = true;
                         warningMsg = "You have not configured any AI settings yet. Please configure your API key for OpenRouter, GitHub Models, or Google AI Studio to begin. (SMTP setup is not required).";
                     } else {
-                        const activeProvider = user.active_ai_provider || 'openrouter';
+                        const activeProvider = user.active_ai_provider || 'github_models';
                         if (activeProvider === 'openrouter' && !user.has_openrouter_key) {
                             showWarning = true;
                             warningMsg = "Your active provider is set to <strong>OpenRouter</strong>, but your OpenRouter API Key is missing. Please save your API Key in AI settings. (SMTP setup is not required).";

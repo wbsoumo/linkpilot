@@ -115,7 +115,7 @@ class Database {
                 try {
                     $stmt = self::$instance->query("SHOW COLUMNS FROM `users` LIKE 'active_ai_provider'");
                     if (!$stmt->fetch()) {
-                        self::$instance->exec("ALTER TABLE `users` ADD COLUMN `active_ai_provider` VARCHAR(50) DEFAULT 'openrouter'");
+                        self::$instance->exec("ALTER TABLE `users` ADD COLUMN `active_ai_provider` VARCHAR(50) DEFAULT 'github_models'");
                     }
                 } catch (Exception $e) {}
 
@@ -247,9 +247,9 @@ function updateStatistic($userId, $column, $increment = 1) {
 
 // Call Generic AI routing function
 function callAI($systemPrompt, $userPrompt, $userId = null) {
-    $provider = 'openrouter';
-    $model = OPENROUTER_MODEL;
-    $apiKey = OPENROUTER_API_KEY;
+    $provider = 'github_models';
+    $model = GITHUB_MODELS_MODEL;
+    $apiKey = getenv('GITHUB_TOKEN') ?: '';
 
     if ($userId !== null) {
         try {

@@ -27,7 +27,7 @@ try {
     $userData['has_openrouter_key'] = !empty($userData['openrouter_key']);
     $userData['has_github_key'] = !empty($userData['github_key']);
     $userData['has_google_key'] = !empty($userData['google_key']);
-    $userData['active_ai_provider'] = $userData['active_ai_provider'] ?? 'openrouter';
+    $userData['active_ai_provider'] = $userData['active_ai_provider'] ?? 'github_models';
     $userData['active_ai_model'] = $userData['active_ai_model'];
     unset($userData['openrouter_key']);
     unset($userData['github_key']);

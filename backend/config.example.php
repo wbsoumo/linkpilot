@@ -140,6 +140,27 @@ class Database {
                         INDEX `idx_otp_ip` (`ip_address`),
                         INDEX `idx_otp_created` (`created_at`)
                     ) ENGINE=InnoDB;");
+
+                    // Self-healing migrations for multiple SMTP accounts
+                    try {
+                        $stmt = self::$instance->query("SHOW INDEX FROM `smtp_accounts` WHERE Key_name = 'user_id' AND Non_unique = 0");
+                        if ($stmt->fetch()) {
+                            try {
+                                self::$instance->exec("ALTER TABLE `smtp_accounts` ADD INDEX `idx_smtp_user_nonunique` (`user_id`)");
+                            } catch (Exception $idxEx) {}
+                            self::$instance->exec("ALTER TABLE `smtp_accounts` DROP INDEX `user_id`");
+                        }
+                    } catch (Exception $e) {}
+
+                    $stmt = self::$instance->query("SHOW COLUMNS FROM `smtp_accounts` LIKE 'is_default'");
+                    if (!$stmt->fetch()) {
+                        self::$instance->exec("ALTER TABLE `smtp_accounts` ADD COLUMN `is_default` TINYINT(1) DEFAULT 0");
+                    }
+
+                    $stmt = self::$instance->query("SHOW COLUMNS FROM `users` LIKE 'active_email_template'");
+                    if (!$stmt->fetch()) {
+                        self::$instance->exec("ALTER TABLE `users` ADD COLUMN `active_email_template` VARCHAR(50) DEFAULT 'minimalist'");
+                    }
                 } catch (Exception $migrationError) {
                     // Ignore migration issues
                 }

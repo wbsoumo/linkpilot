@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="assets/img/logo.png">
+    <title>SMTP Settings - LinkPilot AI</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Custom Style Sheet -->
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
@@ -34,93 +37,115 @@
                 LP
             </div>
             <button id="logout-action-btn" class="p-2 text-slate-400 hover:text-red-400 rounded-lg hover:bg-slate-800/50 transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
+                <i data-lucide="log-out" class="h-5 w-5"></i>
             </button>
         </div>
     </nav>
 
     <!-- Main Content Container -->
     <main class="flex-grow p-6 md:p-8 flex justify-center bg-gradient-to-tr from-slate-950 via-slate-900 to-slate-950 overflow-y-auto">
-        <div class="max-w-xl w-full animate-fade-in py-8">
-            <div class="text-center mb-6">
-                <h1 class="text-2xl font-extrabold text-white tracking-tight">Connect Your SMTP Account</h1>
-                <p class="text-sm text-slate-400 mt-1">Configure SMTP details to send generated outreach emails directly.</p>
-            </div>
+        <div class="max-w-4xl w-full animate-fade-in py-8 space-y-12">
             
-            <!-- SMTP Type Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <!-- Custom SMTP Card -->
-                <div id="smtp-card-custom" class="smtp-type-card glass-panel p-5 bg-slate-900/60 border border-slate-800 rounded-xl cursor-pointer hover:border-slate-700 hover:bg-slate-900/80 transition duration-200 flex items-center justify-between" onclick="selectSmtpType('custom')">
-                    <div class="flex items-center space-x-4">
-                        <div class="p-2.5 bg-teal-500/10 rounded-lg text-teal-400">
-                            <!-- Server SVG Icon -->
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h4 class="text-sm font-bold text-white">Custom SMTP</h4>
-                            <p class="text-xs text-slate-400 mt-0.5">Use your own SMTP server details.</p>
-                        </div>
+            <!-- SMTP Connection Panel -->
+            <div class="space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h1 class="text-2xl font-extrabold text-white tracking-tight">SMTP Connections</h1>
+                        <p class="text-sm text-slate-400 mt-1">Manage sender credentials to automatically dispatch outreach pitches.</p>
                     </div>
+                    <button id="create-new-btn" onclick="showCreateForm()" class="px-4 py-2 bg-teal-400 text-slate-950 rounded-lg text-xs font-bold hover:bg-teal-300 transition flex items-center space-x-1.5 shadow-md shadow-teal-500/10">
+                        <i data-lucide="plus" class="h-4 w-4"></i>
+                        <span>Create New Connection</span>
+                    </button>
                 </div>
 
-                <!-- Gmail SMTP Card -->
-                <div id="smtp-card-gmail" class="smtp-type-card glass-panel p-5 bg-slate-900/60 border border-slate-800 rounded-xl cursor-pointer hover:border-slate-700 hover:bg-slate-900/80 transition duration-200 flex items-center justify-between" onclick="selectSmtpType('gmail')">
-                    <div class="flex items-center space-x-4">
-                        <div class="p-2.5 bg-slate-800 rounded-lg">
-                            <img src="https://images.icon-icons.com/2631/PNG/512/gmail_new_logo_icon_159149.png" class="h-6 w-6 object-contain" alt="Gmail logo">
-                        </div>
-                        <div>
-                            <h4 class="text-sm font-bold text-white">Gmail SMTP</h4>
-                            <p class="text-xs text-slate-400 mt-0.5">Connect easily using Google App Passwords.</p>
-                        </div>
+                <!-- SMTP List Grid -->
+                <div id="smtp-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Dynamic Accounts Loaded Here -->
+                    <div class="col-span-full text-center py-12 glass-panel bg-slate-900/40 border-slate-800">
+                        <div class="loader-spinner mx-auto mb-4"></div>
+                        <p class="text-sm text-slate-500">Loading your configurations...</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Gmail App Password Guide Box -->
-            <div id="gmail-guide-box" class="glass-panel p-6 bg-slate-900/40 border border-slate-800 rounded-xl space-y-3 hidden mb-6">
-                <div class="flex items-center space-x-2.5 text-teal-400">
-                    <img src="https://images.icon-icons.com/2631/PNG/512/gmail_new_logo_icon_159149.png" class="h-5 w-5 object-contain" alt="Gmail logo">
-                    <h4 class="text-xs font-bold uppercase tracking-wider">Gmail SMTP Setup Instructions</h4>
+            <!-- SMTP Config Form (Hidden by default unless edit/create active) -->
+            <div id="smtp-form-panel" class="hidden glass-panel p-8 bg-slate-900/60 border border-slate-800 rounded-2xl shadow-2xl space-y-6">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+                    <h3 id="form-title" class="text-lg font-bold text-white">Add New SMTP Connection</h3>
+                    <button onclick="hideFormPanel()" class="text-slate-400 hover:text-white transition">
+                        <i data-lucide="x" class="h-5 w-5"></i>
+                    </button>
                 </div>
-                <p class="text-xs text-slate-400 leading-relaxed">
-                    To send emails using your Gmail account, Google requires you to configure an **App Password** for security. Standard passwords will be blocked.
-                </p>
-                <div class="space-y-2 text-xs text-slate-300">
-                    <div class="flex items-start space-x-2">
-                        <span class="flex-shrink-0 w-4 h-4 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-[10px] flex items-center justify-center mt-0.5">1</span>
-                        <span>Go to your <a href="https://myaccount.google.com/" target="_blank" class="text-teal-400 hover:underline font-semibold">Google Account Dashboard</a>.</span>
-                    </div>
-                    <div class="flex items-start space-x-2">
-                        <span class="flex-shrink-0 w-4 h-4 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-[10px] flex items-center justify-center mt-0.5">2</span>
-                        <span>Navigate to the **Security** tab in the left-hand menu.</span>
-                    </div>
-                    <div class="flex items-start space-x-2">
-                        <span class="flex-shrink-0 w-4 h-4 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-[10px] flex items-center justify-center mt-0.5">3</span>
-                        <span>Enable **2-Step Verification** under *How you sign in to Google* if it's not active.</span>
-                    </div>
-                    <div class="flex items-start space-x-2">
-                        <span class="flex-shrink-0 w-4 h-4 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-[10px] flex items-center justify-center mt-0.5">4</span>
-                        <span>Click **2-Step Verification**, scroll to the bottom, and select **App passwords**.</span>
-                    </div>
-                    <div class="flex items-start space-x-2">
-                        <span class="flex-shrink-0 w-4 h-4 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-[10px] flex items-center justify-center mt-0.5">5</span>
-                        <span>Enter `LinkPilot AI` in the app name, click **Create**, and copy the **16-character code**.</span>
-                    </div>
-                    <div class="flex items-start space-x-2">
-                        <span class="flex-shrink-0 w-4 h-4 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-[10px] flex items-center justify-center mt-0.5">6</span>
-                        <span>Use this code as your **Google App Password** in the credentials form below.</span>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Form Card -->
-            <div class="glass-panel p-8 bg-slate-900/60 border border-slate-800 rounded-2xl shadow-2xl">
+                <!-- SMTP Type Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Custom SMTP Card -->
+                    <div id="smtp-card-custom" class="smtp-type-card glass-panel p-5 bg-slate-900/60 border border-slate-800 rounded-xl cursor-pointer hover:border-slate-700 hover:bg-slate-900/80 transition duration-200 flex items-center justify-between" onclick="selectSmtpType('custom')">
+                        <div class="flex items-center space-x-4">
+                            <div class="p-2.5 bg-teal-500/10 rounded-lg text-teal-400">
+                                <i data-lucide="server" class="h-6 w-6"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-white">Custom SMTP</h4>
+                                <p class="text-xs text-slate-400 mt-0.5">Use your own SMTP server details.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gmail SMTP Card -->
+                    <div id="smtp-card-gmail" class="smtp-type-card glass-panel p-5 bg-slate-900/60 border border-slate-800 rounded-xl cursor-pointer hover:border-slate-700 hover:bg-slate-900/80 transition duration-200 flex items-center justify-between" onclick="selectSmtpType('gmail')">
+                        <div class="flex items-center space-x-4">
+                            <div class="p-2.5 bg-slate-800 rounded-lg">
+                                <img src="https://images.icon-icons.com/2631/PNG/512/gmail_new_logo_icon_159149.png" class="h-6 w-6 object-contain" alt="Gmail logo">
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-white">Gmail SMTP</h4>
+                                <p class="text-xs text-slate-400 mt-0.5">Connect easily using Google App Passwords.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gmail App Password Guide Box -->
+                <div id="gmail-guide-box" class="glass-panel p-6 bg-slate-900/40 border border-slate-800 rounded-xl space-y-3 hidden">
+                    <div class="flex items-center space-x-2.5 text-teal-400">
+                        <img src="https://images.icon-icons.com/2631/PNG/512/gmail_new_logo_icon_159149.png" class="h-5 w-5 object-contain" alt="Gmail logo">
+                        <h4 class="text-xs font-bold uppercase tracking-wider">Gmail SMTP Setup Instructions</h4>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        To send emails using your Gmail account, Google requires you to configure an **App Password** for security. Standard passwords will be blocked.
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-300">
+                        <div class="flex items-start space-x-2">
+                            <span class="flex-shrink-0 w-4 h-4 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-[10px] flex items-center justify-center mt-0.5">1</span>
+                            <span>Open your <a href="https://myaccount.google.com/" target="_blank" class="text-teal-400 hover:underline font-semibold">Google Account Dashboard</a>.</span>
+                        </div>
+                        <div class="flex items-start space-x-2">
+                            <span class="flex-shrink-0 w-4 h-4 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-[10px] flex items-center justify-center mt-0.5">2</span>
+                            <span>Navigate to the **Security** tab in the left-hand menu.</span>
+                        </div>
+                        <div class="flex items-start space-x-2">
+                            <span class="flex-shrink-0 w-4 h-4 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-[10px] flex items-center justify-center mt-0.5">3</span>
+                            <span>Enable **2-Step Verification** under *Signing in to Google*.</span>
+                        </div>
+                        <div class="flex items-start space-x-2">
+                            <span class="flex-shrink-0 w-4 h-4 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-[10px] flex items-center justify-center mt-0.5">4</span>
+                            <span>Click **2-Step Verification**, scroll down and click **App passwords**.</span>
+                        </div>
+                        <div class="flex items-start space-x-2">
+                            <span class="flex-shrink-0 w-4 h-4 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-[10px] flex items-center justify-center mt-0.5">5</span>
+                            <span>Type `LinkPilot AI`, click **Create**, and copy the **16-digit app password**.</span>
+                        </div>
+                        <div class="flex items-start space-x-2">
+                            <span class="flex-shrink-0 w-4 h-4 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-[10px] flex items-center justify-center mt-0.5">6</span>
+                            <span>Paste this code as your **Google App Password** below.</span>
+                        </div>
+                    </div>
+                </div>
+
                 <form id="smtp-form" class="space-y-5">
+                    <input type="hidden" id="account_id" name="id" value="">
                     <input type="hidden" id="smtp_type" name="smtp_type" value="custom">
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="host-port-row">
@@ -160,11 +185,52 @@
                             Test Connection
                         </button>
                         <button type="submit" class="flex-1 py-3 px-4 rounded-md border border-transparent font-semibold text-sm text-slate-950 bg-teal-400 hover:bg-teal-300 focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150">
-                            Save Configuration
+                            Save Connection
                         </button>
                     </div>
                 </form>
             </div>
+
+            <!-- Email HTML Templates Section -->
+            <div class="space-y-6 pt-6 border-t border-slate-800">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-white tracking-tight">Outreach HTML Templates</h2>
+                    <p class="text-sm text-slate-400 mt-1">Select an active email layout template. This wrapper style wraps the generated pitches automatically.</p>
+                </div>
+
+                <!-- Template Selector Layout Grid (Left: Selection list, Right: Live Preview Panel) -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <!-- Template List Selector -->
+                    <div class="lg:col-span-5 space-y-3" id="templates-cards-list">
+                        <!-- Dynamic list of templates will render here -->
+                    </div>
+
+                    <!-- Live Interactive Preview Panel -->
+                    <div class="lg:col-span-7 flex flex-col space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-teal-400 uppercase tracking-widest flex items-center space-x-1">
+                                <i data-lucide="eye" class="h-4 w-4"></i>
+                                <span>Live Responsive Preview</span>
+                            </span>
+                            <button id="save-active-template-btn" onclick="saveActiveTemplateSelection()" class="px-3 py-1.5 bg-teal-400 hover:bg-teal-300 text-slate-950 text-xs font-bold rounded-lg transition shadow-md shadow-teal-500/10">
+                                Save Template Choice
+                            </button>
+                        </div>
+                        
+                        <!-- Interactive Preview Sandbox Container -->
+                        <div class="w-full flex-grow h-[420px] bg-slate-900/60 border border-slate-800 rounded-xl overflow-hidden shadow-inner flex flex-col">
+                            <div class="bg-slate-900 border-b border-slate-800 px-4 py-2 flex items-center space-x-2 text-xs text-slate-500">
+                                <span class="w-2.5 h-2.5 rounded-full bg-red-500/70"></span>
+                                <span class="w-2.5 h-2.5 rounded-full bg-yellow-500/70"></span>
+                                <span class="w-2.5 h-2.5 rounded-full bg-green-500/70"></span>
+                                <span class="ml-4 font-mono select-none" id="preview-subject-bar">Subject: Outreach regarding your post</span>
+                            </div>
+                            <iframe id="template-preview-iframe" class="w-full flex-grow bg-slate-50 border-none"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </main>
 
@@ -172,27 +238,369 @@
     <script src="assets/js/app.js"></script>
     <script>
         let activeSmtpType = 'custom';
-        let savedSmtpData = null;
+        let accountsList = [];
+        let activeTemplateId = 'minimalist';
+        let currentlySelectedPreviewId = 'minimalist';
         let currentUserData = null;
 
-        // Load existing SMTP settings on load
-        async function loadSMTPSettings() {
-            try {
-                const data = await apiCall('profile/get.php');
-                if (data.user) {
-                    currentUserData = data.user;
-                }
-                if (data.smtp) {
-                    savedSmtpData = data.smtp;
-                    activeSmtpType = data.smtp.smtp_type || 'custom';
-                    selectSmtpType(activeSmtpType);
-                } else {
-                    savedSmtpData = null;
-                    selectSmtpType('custom');
-                }
-            } catch (err) {
-                console.error("Error loading SMTP configuration:", err);
+        // JS Definitions of the HTML templates for instant client-side rendering
+        const templatesDef = {
+            minimalist: {
+                name: 'Minimalist Clean',
+                accent: '#64748B',
+                wrap: (body, sig) => `
+                    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:520px;margin:20px auto;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:30px;box-sizing:border-box;">
+                        <div style="font-size:14px;line-height:1.6;color:#334155;">${body}</div>
+                        <div style="margin:25px 0;border-top:1px solid #e2e8f0;"></div>
+                        <div>${sig}</div>
+                    </div>
+                `
+            },
+            modern_teal: {
+                name: 'Modern Teal Accent',
+                accent: '#14B8A6',
+                wrap: (body, sig) => `
+                    <div style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;max-width:540px;margin:20px auto;background:#fff;border-top:4px solid #14B8A6;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.05);overflow:hidden;box-sizing:border-box;">
+                        <div style="padding:32px 36px;">
+                            <div style="font-size:14px;line-height:1.65;color:#1E293B;">${body}</div>
+                            <div style="height:1px;background:linear-gradient(to right,#e2e8f0,#f1f5f9);margin:30px 0;"></div>
+                            <div>${sig}</div>
+                        </div>
+                        <div style="background:#fafafa;padding:15px 36px;border-top:1px solid #f3f4f6;font-size:11px;color:#94a3b8;text-align:center;">Sent securely via LinkPilot AI Outreach Engine</div>
+                    </div>
+                `
+            },
+            clean_tech: {
+                name: 'Clean Tech Slate',
+                accent: '#3B82F6',
+                wrap: (body, sig) => `
+                    <div style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;max-width:520px;margin:20px auto;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:35px;box-sizing:border-box;">
+                        <div style="width:32px;height:3px;background-color:#3B82F6;margin-bottom:25px;"></div>
+                        <div style="font-size:14px;line-height:1.6;color:#334155;border-left:2px solid #f1f5f9;padding-left:15px;">${body}</div>
+                        <div style="margin-top:35px;padding-top:20px;border-top:1px solid #f1f5f9;">${sig}</div>
+                    </div>
+                `
+            },
+            warm_personal: {
+                name: 'Warm & Personal',
+                accent: '#F59E0B',
+                wrap: (body, sig) => `
+                    <div style="font-family:'Georgia',serif;max-width:500px;margin:20px auto;background:#fff;border:1px solid #e6e6df;border-radius:4px;padding:35px;box-shadow:0 2px 8px rgba(0,0,0,0.02);box-sizing:border-box;">
+                        <div style="font-size:15px;line-height:1.7;color:#2d3748;">${body}</div>
+                        <div style="margin:30px 0;border-top:1px dashed #e6e6df;"></div>
+                        <div style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;">${sig}</div>
+                    </div>
+                `
+            },
+            indigo_executive: {
+                name: 'Indigo Executive',
+                accent: '#6366F1',
+                wrap: (body, sig) => `
+                    <div style="font-family:sans-serif;max-width:540px;margin:20px auto;background:#fff;border:1px solid #e0e7ff;border-radius:6px;box-shadow:0 4px 12px rgba(99,102,241,0.03);overflow:hidden;box-sizing:border-box;">
+                        <div style="background-color:#6366F1;height:6px;"></div>
+                        <div style="padding:32px 36px;">
+                            <div style="font-size:14px;line-height:1.6;color:#1e293b;">${body}</div>
+                            <div style="height:1px;background-color:#e2e8f0;margin:30px 0;"></div>
+                            <div>${sig}</div>
+                        </div>
+                    </div>
+                `
+            },
+            plain_text: {
+                name: 'Simple Plain Layout',
+                accent: '#0F172A',
+                wrap: (body, sig) => `
+                    <div style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;line-height:1.6;color:#334155;max-width:540px;margin:20px auto;box-sizing:border-box;">
+                        <div>${body}</div>
+                        <br><br>
+                        <div>${sig}</div>
+                    </div>
+                `
             }
+        };
+
+        // Load existing SMTP settings and Templates
+        async function loadPageDetails() {
+            try {
+                // Fetch Profile Data
+                const profData = await apiCall('profile/get.php');
+                if (profData.user) {
+                    currentUserData = profData.user;
+                }
+
+                // Fetch Accounts list
+                const data = await apiCall('smtp/list.php');
+                accountsList = data.accounts || [];
+                activeTemplateId = data.active_email_template || 'minimalist';
+                currentlySelectedPreviewId = activeTemplateId;
+
+                renderAccountsList();
+                renderTemplatesGrid();
+                updateIframePreview(currentlySelectedPreviewId);
+            } catch (err) {
+                showNotification('error', 'Error loading connection settings: ' + err.message);
+                console.error(err);
+            }
+        }
+
+        // Render List of accounts
+        function renderAccountsList() {
+            const container = document.getElementById('smtp-list-container');
+            if (accountsList.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-10 glass-panel bg-slate-900/40 border-slate-800 rounded-xl space-y-4">
+                        <div class="p-3 bg-teal-500/10 text-teal-400 rounded-full inline-block">
+                            <i data-lucide="mail-warning" class="h-6 w-6"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-white">No SMTP Connections Connected Yet</h4>
+                            <p class="text-xs text-slate-400 mt-1">Please set up your first connection to send outreach messages.</p>
+                        </div>
+                        <button onclick="showCreateForm()" class="px-4 py-2 bg-teal-400 text-slate-950 rounded-lg text-xs font-bold hover:bg-teal-300 transition">Connect SMTP</button>
+                    </div>
+                `;
+                showCreateForm(); // Open form directly if empty
+                document.getElementById('create-new-btn').classList.add('hidden');
+            } else {
+                document.getElementById('create-new-btn').classList.remove('hidden');
+                container.innerHTML = accountsList.map(acc => {
+                    const badge = acc.is_default ? 
+                        `<span class="text-[9px] px-2 py-0.5 bg-teal-400 text-slate-950 rounded-full font-bold uppercase tracking-wider flex items-center space-x-1"><i data-lucide="check" class="h-2.5 w-2.5"></i><span>Active Default</span></span>` : 
+                        `<button onclick="setDefaultAccount(${acc.id})" class="text-[9px] px-2 py-0.5 bg-slate-800 text-slate-400 hover:text-teal-400 border border-slate-700 rounded-full font-bold hover:border-teal-400 transition">Set Default</button>`;
+
+                    const typeBadge = acc.smtp_type === 'gmail' ?
+                        `<span class="text-[9px] px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-full font-bold flex items-center space-x-1"><span>Gmail</span></span>` :
+                        `<span class="text-[9px] px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full font-bold flex items-center space-x-1"><span>Custom</span></span>`;
+
+                    return `
+                        <div class="glass-panel p-5 bg-slate-900/60 border border-slate-800 rounded-xl flex flex-col justify-between space-y-4 hover:border-slate-700 transition">
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2 bg-slate-800 text-slate-300 rounded-lg">
+                                        <i data-lucide="${acc.smtp_type === 'gmail' ? 'mail' : 'server'}" class="h-5 w-5"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-white truncate max-w-[150px]" title="${acc.sender_name}">${acc.sender_name}</h4>
+                                        <p class="text-xs text-slate-400 truncate max-w-[150px]" title="${acc.sender_email}">${acc.sender_email}</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end space-y-1.5">
+                                    ${badge}
+                                    ${typeBadge}
+                                </div>
+                            </div>
+                            
+                            <div class="border-t border-slate-800/80 pt-3 flex items-center justify-between text-xs">
+                                <span class="text-[10px] text-slate-500 font-mono">Port: ${acc.port}</span>
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="testSelectedConnection(${acc.id})" class="p-1.5 text-slate-400 hover:text-teal-400 rounded hover:bg-slate-800 transition" title="Test Connection">
+                                        <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                                    </button>
+                                    <button onclick="editAccount(${acc.id})" class="p-1.5 text-slate-400 hover:text-white rounded hover:bg-slate-800 transition" title="Edit credentials">
+                                        <i data-lucide="edit-3" class="h-4 w-4"></i>
+                                    </button>
+                                    <button onclick="deleteAccount(${acc.id})" class="p-1.5 text-slate-400 hover:text-red-400 rounded hover:bg-slate-800 transition" title="Delete connection">
+                                        <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            lucide.createIcons();
+        }
+
+        // Render templates selector list
+        function renderTemplatesGrid() {
+            const container = document.getElementById('templates-cards-list');
+            const templates = [
+                { id: 'minimalist', name: 'Minimalist Clean', desc: 'No wrapper card; plain design with clean typography and simple divider.' },
+                { id: 'modern_teal', name: 'Modern Teal Accent', desc: 'Tech-forward card with rounded corners, teal header accent, and brand footnotes.' },
+                { id: 'clean_tech', name: 'Clean Tech Slate', desc: 'Minimal slate borders with dynamic blue accent anchor bars. Great for SaaS.' },
+                { id: 'warm_personal', name: 'Warm & Personal', desc: 'Georgia serif margins with beige elements. Looks like an informal personal note.' },
+                { id: 'indigo_executive', name: 'Indigo Executive', desc: 'Strict borders with royal indigo bars. Optimized for agency & enterprise pitching.' },
+                { id: 'plain_text', name: 'Simple Plain Layout', desc: 'Standard un-styled output. Sends the generated HTML blocks directly.' }
+            ];
+
+            container.innerHTML = templates.map(t => {
+                const isActive = t.id === activeTemplateId;
+                const isSelected = t.id === currentlySelectedPreviewId;
+                
+                const activeState = isActive ? 
+                    `<span class="text-[9px] px-2 py-0.5 bg-teal-400 text-slate-950 rounded-full font-bold uppercase">Active Layout</span>` : '';
+
+                const borderCls = isSelected ? 'border-teal-500 bg-slate-900/90 ring-1 ring-teal-500/20' : 'border-slate-800 bg-slate-900/50';
+
+                return `
+                    <div class="glass-panel p-4 border rounded-xl cursor-pointer hover:border-slate-700 hover:bg-slate-900/70 transition duration-150 flex items-center justify-between ${borderCls}" onclick="previewTemplate('${t.id}')">
+                        <div class="flex items-center space-x-3 max-w-[80%]">
+                            <span class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: ${templatesDef[t.id].accent}"></span>
+                            <div class="text-left">
+                                <h4 class="text-xs font-bold text-white">${t.name}</h4>
+                                <p class="text-[10px] text-slate-400 truncate mt-0.5" title="${t.desc}">${t.desc}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            ${activeState}
+                            <i data-lucide="chevron-right" class="h-4 w-4 text-slate-500"></i>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        // Preview a template
+        function previewTemplate(id) {
+            currentlySelectedPreviewId = id;
+            renderTemplatesGrid();
+            updateIframePreview(id);
+        }
+
+        // Live preview inside iframe
+        function updateIframePreview(templateId) {
+            const iframe = document.getElementById('template-preview-iframe');
+            if (!iframe) return;
+
+            const name = currentUserData ? currentUserData.name : 'Alex Carter';
+            document.getElementById('preview-subject-bar').textContent = `Subject: Outreach regarding your post`;
+
+            const bodyText = `
+                <p>Hey John,</p>
+                <p>I saw your recent LinkedIn post sharing insights on developer productivity tools. Your point about reducing screen switching really resonated with me.</p>
+                <p>As a software professional, I've spent years building automation systems that streamline workflows. I would love to connect and share some of the techniques we use.</p>
+                <p>Are you open to a brief 5-minute virtual coffee next week?</p>
+            `;
+
+            let sigText = `<p style="margin: 0; font-size: 13px; font-weight: bold; color: #1E293B;">${name}</p>`;
+            sigText += `<p style="margin: 2px 0 0 0; font-size: 11px; color: #64748B;">Outreach Specialist at LinkPilot AI</p>`;
+            sigText += `<p style="margin: 6px 0 0 0; font-size: 11px;"><a href="#" style="color: #14B8A6; text-decoration: none; font-weight: 500;">Connect on LinkedIn</a></p>`;
+
+            const template = templatesDef[templateId] || templatesDef.minimalist;
+            const finalHtml = template.wrap(bodyText, sigText);
+
+            const doc = iframe.contentDocument || iframe.contentWindow.document;
+            doc.open();
+            doc.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body {
+                            margin: 0;
+                            padding: 10px;
+                            background-color: #F8FAFC;
+                            box-sizing: border-box;
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${finalHtml}
+                </body>
+                </html>
+            `);
+            doc.close();
+        }
+
+        // Save active template choice to DB
+        async function saveActiveTemplateSelection() {
+            const btn = document.getElementById('save-active-template-btn');
+            const oldTxt = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+            try {
+                await apiCall('profile/save_template.php', 'POST', {
+                    active_email_template: currentlySelectedPreviewId
+                });
+                showNotification('success', 'Email layout template saved successfully!');
+                activeTemplateId = currentlySelectedPreviewId;
+                renderTemplatesGrid();
+            } catch (err) {
+                showNotification('error', err.message || 'Failed to save template selection.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = oldTxt;
+            }
+        }
+
+        // Set an SMTP account as Default
+        async function setDefaultAccount(id) {
+            try {
+                await apiCall('smtp/set_default.php', 'POST', { id });
+                showNotification('success', 'Default SMTP account updated!');
+                loadPageDetails();
+            } catch (err) {
+                showNotification('error', err.message || 'Failed to set default account.');
+            }
+        }
+
+        // Edit Account (pre-fill form)
+        function editAccount(id) {
+            const acc = accountsList.find(a => a.id === id);
+            if (!acc) return;
+
+            showCreateForm();
+            document.getElementById('form-title').textContent = 'Edit SMTP Connection';
+            document.getElementById('account_id').value = acc.id;
+            
+            document.getElementById('host').value = acc.host || '';
+            document.getElementById('port').value = acc.port || '587';
+            document.getElementById('username').value = acc.username || '';
+            document.getElementById('password').value = '••••••••';
+            document.getElementById('sender_name').value = acc.sender_name || '';
+            document.getElementById('sender_email').value = acc.sender_email || '';
+            
+            selectSmtpType(acc.smtp_type || 'custom');
+        }
+
+        // Delete SMTP account
+        async function deleteAccount(id) {
+            if (!confirm('Are you sure you want to delete this SMTP connection?')) return;
+            try {
+                await apiCall('smtp/delete.php', 'POST', { id });
+                showNotification('success', 'SMTP connection deleted successfully!');
+                loadPageDetails();
+            } catch (err) {
+                showNotification('error', err.message || 'Failed to delete SMTP account.');
+            }
+        }
+
+        // Test Selected Account Connection
+        async function testSelectedConnection(id) {
+            const acc = accountsList.find(a => a.id === id);
+            if (!acc) return;
+
+            showNotification('warning', 'Starting SMTP handshake test...');
+            
+            try {
+                const res = await apiCall('smtp/test.php', 'POST', { use_saved: true, id: id });
+                showNotification('success', res.message || 'SMTP Connection Test Successful!');
+            } catch (err) {
+                showNotification('error', err.message || 'SMTP Handshake Failed.');
+            }
+        }
+
+        // Show configuration panel form
+        function showCreateForm() {
+            document.getElementById('smtp-form-panel').classList.remove('hidden');
+            document.getElementById('form-title').textContent = 'Add New SMTP Connection';
+            document.getElementById('account_id').value = '';
+            
+            document.getElementById('host').value = '';
+            document.getElementById('port').value = '587';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('sender_name').value = currentUserData ? currentUserData.name : '';
+            document.getElementById('sender_email').value = '';
+            
+            selectSmtpType('custom');
+            document.getElementById('smtp-form-panel').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hideFormPanel() {
+            document.getElementById('smtp-form-panel').classList.add('hidden');
         }
 
         // Toggle SMTP configuration display
@@ -200,7 +608,6 @@
             activeSmtpType = type;
             document.getElementById('smtp_type').value = type;
 
-            // Highlight card
             document.querySelectorAll('.smtp-type-card').forEach(card => {
                 card.classList.remove('border-teal-500', 'bg-slate-900/90', 'ring-2', 'ring-teal-500/20');
                 card.classList.add('border-slate-800', 'bg-slate-900/60');
@@ -224,14 +631,10 @@
             const usernameInput = document.getElementById('username');
             const passwordInput = document.getElementById('password');
             const senderEmailInput = document.getElementById('sender_email');
-            const senderNameInput = document.getElementById('sender_name');
-
-            // Determine if the selected type matches the saved type
-            const isSavedType = savedSmtpData && (savedSmtpData.smtp_type || 'custom') === type;
 
             if (type === 'gmail') {
                 gmailGuide.classList.remove('hidden');
-                hostPortRow.classList.add('hidden'); // Hide host/port inputs since they are fixed for Gmail
+                hostPortRow.classList.add('hidden');
                 
                 hostInput.value = 'smtp.gmail.com';
                 portInput.value = '465';
@@ -244,21 +647,6 @@
                 passwordInput.setAttribute('placeholder', 'e.g. abcd efgh ijkl mnop');
                 senderEmailInput.setAttribute('placeholder', 'yourname@gmail.com');
                 
-                if (isSavedType) {
-                    usernameInput.value = savedSmtpData.username || '';
-                    senderNameInput.value = savedSmtpData.sender_name || '';
-                    senderEmailInput.value = savedSmtpData.sender_email || '';
-                    passwordInput.value = '••••••••';
-                } else {
-                    usernameInput.value = '';
-                    passwordInput.value = '';
-                    senderEmailInput.value = '';
-                    if (currentUserData) {
-                        senderNameInput.value = currentUserData.name || '';
-                    }
-                }
-                
-                // Add event listener to sync username with sender_email
                 usernameInput.addEventListener('input', syncGmailSenderEmail);
                 syncGmailSenderEmail();
             } else {
@@ -274,24 +662,6 @@
                 senderEmailInput.setAttribute('placeholder', 'john@yourdomain.com');
                 
                 usernameInput.removeEventListener('input', syncGmailSenderEmail);
-
-                if (isSavedType) {
-                    hostInput.value = savedSmtpData.host || '';
-                    portInput.value = savedSmtpData.port || '';
-                    usernameInput.value = savedSmtpData.username || '';
-                    senderNameInput.value = savedSmtpData.sender_name || '';
-                    senderEmailInput.value = savedSmtpData.sender_email || '';
-                    passwordInput.value = '••••••••';
-                } else {
-                    hostInput.value = '';
-                    portInput.value = '587';
-                    usernameInput.value = '';
-                    passwordInput.value = '';
-                    senderEmailInput.value = '';
-                    if (currentUserData) {
-                        senderNameInput.value = currentUserData.name || '';
-                    }
-                }
             }
         }
 
@@ -321,7 +691,6 @@
             btn.innerHTML = `<span class="flex justify-center items-center"><span class="loader-spinner mr-2"></span>Testing...</span>`;
 
             try {
-                // If password is still placeholder, use saved credentials test
                 const payload = password === '••••••••' ? { use_saved: true } : {
                     host, port, username, password, sender_name: senderName, sender_email: senderEmail, use_saved: false
                 };
@@ -341,6 +710,7 @@
             e.preventDefault();
             setFormLoading('smtp-form', true);
             
+            const id = document.getElementById('account_id').value;
             const host = document.getElementById('host').value;
             const port = document.getElementById('port').value;
             const username = document.getElementById('username').value;
@@ -358,23 +728,27 @@
                 smtp_type: activeSmtpType
             };
 
+            if (id) {
+                payload.id = parseInt(id);
+            }
+
             try {
                 await apiCall('smtp/save.php', 'POST', payload);
-                showNotification('success', 'SMTP settings saved successfully!');
-                
-                // Redirect to dashboard
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1500);
+                showNotification('success', id ? 'Connection updated successfully!' : 'Connection added successfully!');
+                hideFormPanel();
+                loadPageDetails();
             } catch (err) {
-                showNotification('error', err.message || 'Failed to save SMTP configuration.');
+                showNotification('error', err.message || 'Failed to save configuration.');
             } finally {
                 setFormLoading('smtp-form', false);
             }
         });
 
         // Initialize SMTP page
-        loadSMTPSettings();
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPageDetails();
+            lucide.createIcons();
+        });
     </script>
 </body>
 </html>

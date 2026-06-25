@@ -28,8 +28,14 @@ $useSaved = (bool)($input['use_saved'] ?? false);
 try {
     if ($useSaved) {
         // Fetch saved credentials
-        $stmt = $db->prepare("SELECT * FROM smtp_accounts WHERE user_id = ?");
-        $stmt->execute([$userId]);
+        $id = isset($input['id']) ? (int)$input['id'] : null;
+        if ($id) {
+            $stmt = $db->prepare("SELECT * FROM smtp_accounts WHERE id = ? AND user_id = ?");
+            $stmt->execute([$id, $userId]);
+        } else {
+            $stmt = $db->prepare("SELECT * FROM smtp_accounts WHERE user_id = ? ORDER BY is_default DESC, id ASC LIMIT 1");
+            $stmt->execute([$userId]);
+        }
         $smtp = $stmt->fetch();
         
         if (!$smtp) {

@@ -19,6 +19,7 @@ if (!$input) {
     sendJsonResponse('error', 'Invalid JSON input', [], 400);
 }
 
+$id = isset($input['id']) ? (int)$input['id'] : null;
 $host = trim($input['host'] ?? '');
 $port = (int)($input['port'] ?? 0);
 $username = trim($input['username'] ?? '');
@@ -38,21 +39,67 @@ if (!filter_var($senderEmail, FILTER_VALIDATE_EMAIL)) {
 $db = Database::getConnection();
 
 try {
-    if ($password !== '••••••••') {
+    if ($id) {
+        // Edit Mode: Verify ownership
+        $stmtCheck = $db->prepare("SELECT id, password FROM smtp_accounts WHERE id = ? AND user_id = ?");
+        $stmtCheck->execute([$id, $userId]);
+        $existing = $stmtCheck->fetch();
+        
+        if (!$existing) {
+            sendJsonResponse('error', 'SMTP account not found or unauthorized.', [], 404);
+        }
+        
+        if ($password !== '••••••••') {
+            $encryptedPassword = encryptData($password);
+            $stmtUpdate = $db->prepare("
+                UPDATE smtp_accounts 
+                SET host = :host, port = :port, username = :username, password = :password, sender_name = :sender_name, sender_email = :sender_email, smtp_type = :smtp_type
+                WHERE id = :id AND user_id = :user_id
+            ");
+            $stmtUpdate->execute([
+                'host' => $host,
+                'port' => $port,
+                'username' => $username,
+                'password' => $encryptedPassword,
+                'sender_name' => $senderName,
+                'sender_email' => $senderEmail,
+                'smtp_type' => $smtpType,
+                'id' => $id,
+                'user_id' => $userId
+            ]);
+        } else {
+            // Keep existing password
+            $stmtUpdate = $db->prepare("
+                UPDATE smtp_accounts 
+                SET host = :host, port = :port, username = :username, sender_name = :sender_name, sender_email = :sender_email, smtp_type = :smtp_type
+                WHERE id = :id AND user_id = :user_id
+            ");
+            $stmtUpdate->execute([
+                'host' => $host,
+                'port' => $port,
+                'username' => $username,
+                'sender_name' => $senderName,
+                'sender_email' => $senderEmail,
+                'smtp_type' => $smtpType,
+                'id' => $id,
+                'user_id' => $userId
+            ]);
+        }
+        logActivity($userId, "Updated SMTP configuration ID: " . $id);
+        sendJsonResponse('success', 'SMTP account updated successfully.');
+    } else {
+        // Create Mode: Check if there are other SMTP accounts
+        $stmtCount = $db->prepare("SELECT COUNT(*) as cnt FROM smtp_accounts WHERE user_id = ?");
+        $stmtCount->execute([$userId]);
+        $hasAccounts = ($stmtCount->fetch()['cnt'] > 0);
+        $isDefault = $hasAccounts ? 0 : 1; // First account is default
+        
         $encryptedPassword = encryptData($password);
-        $stmt = $db->prepare("
-            INSERT INTO smtp_accounts (user_id, host, port, username, password, sender_name, sender_email, smtp_type) 
-            VALUES (:user_id, :host, :port, :username, :password, :sender_name, :sender_email, :smtp_type)
-            ON DUPLICATE KEY UPDATE 
-                host = VALUES(host),
-                port = VALUES(port),
-                username = VALUES(username),
-                password = VALUES(password),
-                sender_name = VALUES(sender_name),
-                sender_email = VALUES(sender_email),
-                smtp_type = VALUES(smtp_type)
+        $stmtInsert = $db->prepare("
+            INSERT INTO smtp_accounts (user_id, host, port, username, password, sender_name, sender_email, smtp_type, is_default)
+            VALUES (:user_id, :host, :port, :username, :password, :sender_name, :sender_email, :smtp_type, :is_default)
         ");
-        $stmt->execute([
+        $stmtInsert->execute([
             'user_id' => $userId,
             'host' => $host,
             'port' => $port,
@@ -60,21 +107,13 @@ try {
             'password' => $encryptedPassword,
             'sender_name' => $senderName,
             'sender_email' => $senderEmail,
-            'smtp_type' => $smtpType
+            'smtp_type' => $smtpType,
+            'is_default' => $isDefault
         ]);
-    } else {
-        $stmt = $db->prepare("
-            UPDATE smtp_accounts 
-            SET host = ?, port = ?, username = ?, sender_name = ?, sender_email = ?, smtp_type = ? 
-            WHERE user_id = ?
-        ");
-        $stmt->execute([$host, $port, $username, $senderName, $senderEmail, $smtpType, $userId]);
+        $newId = $db->lastInsertId();
+        logActivity($userId, "Created new SMTP configuration. ID: " . $newId);
+        sendJsonResponse('success', 'SMTP account saved successfully.', ['id' => $newId]);
     }
-
-    logActivity($userId, "Updated SMTP Configuration settings.");
-    
-    sendJsonResponse('success', 'SMTP Configuration saved successfully.');
-    
 } catch (Exception $e) {
     sendJsonResponse('error', 'Server error saving SMTP settings: ' . $e->getMessage(), [], 500);
 }

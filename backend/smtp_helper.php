@@ -17,8 +17,8 @@ class SMTPHelper {
     public static function sendEmail($userId, $recipientEmail, $subject, $body) {
         $db = Database::getConnection();
         
-        // 1. Fetch SMTP Account
-        $stmt = $db->prepare("SELECT * FROM smtp_accounts WHERE user_id = ?");
+        // 1. Fetch default SMTP Account, fallback to first configured
+        $stmt = $db->prepare("SELECT * FROM smtp_accounts WHERE user_id = ? ORDER BY is_default DESC, id ASC LIMIT 1");
         $stmt->execute([$userId]);
         $smtp = $stmt->fetch();
         
@@ -39,8 +39,41 @@ class SMTPHelper {
                 "message" => "SMTP decryption failed. Please update your SMTP password in settings."
             ];
         }
+
+        // 3. Fetch template preference and profile details for wrapper
+        $templateId = 'minimalist';
+        try {
+            $stmtUser = $db->prepare("SELECT active_email_template FROM users WHERE id = ?");
+            $stmtUser->execute([$userId]);
+            $userRes = $stmtUser->fetch();
+            if ($userRes && !empty($userRes['active_email_template'])) {
+                $templateId = $userRes['active_email_template'];
+            }
+        } catch (Exception $e) {}
+
+        $senderDetails = [
+            'name' => $smtp['sender_name'],
+            'email' => $smtp['sender_email'],
+            'title' => '',
+            'company' => '',
+            'linkedin' => ''
+        ];
+
+        try {
+            $stmtProfile = $db->prepare("SELECT job_title, company_name, linkedin_url FROM user_profiles WHERE user_id = ?");
+            $stmtProfile->execute([$userId]);
+            $profRes = $stmtProfile->fetch();
+            if ($profRes) {
+                $senderDetails['title'] = $profRes['job_title'] ?? '';
+                $senderDetails['company'] = $profRes['company_name'] ?? '';
+                $senderDetails['linkedin'] = $profRes['linkedin_url'] ?? '';
+            }
+        } catch (Exception $e) {}
+
+        require_once __DIR__ . '/email_template_helper.php';
+        $wrappedBody = EmailTemplateHelper::wrap($body, $templateId, $senderDetails);
         
-        // 3. Setup PHPMailer
+        // 4. Setup PHPMailer
         $mail = new PHPMailer(true);
         
         try {
@@ -80,7 +113,7 @@ class SMTPHelper {
             // Content
             $mail->isHTML(true);
             $mail->Subject = $subject;
-            $mail->Body    = $body;
+            $mail->Body    = $wrappedBody;
             // Plain text version
             $mail->AltBody = strip_tags(str_replace(['<br>', '<br/>', '<p>'], ["\n", "\n", "\n"], $body));
             

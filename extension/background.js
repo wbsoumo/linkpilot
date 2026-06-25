@@ -7,13 +7,14 @@ async function apiFetch(endpoint, method = 'GET', body = null) {
     const storage = await chrome.storage.local.get(['linkpilot_token']);
     const token = storage.linkpilot_token;
     
-    const headers = {
-        'Accept': 'application/json'
-    };
-    
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+    if (!token) {
+        return { status: 'error', message: 'No authentication token found. Please log in.' };
     }
+    
+    const headers = {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
     
     const config = {
         method,
@@ -30,11 +31,15 @@ async function apiFetch(endpoint, method = 'GET', body = null) {
         const data = await response.json();
         
         if (!response.ok) {
+            if (response.status === 401) {
+                // Token is invalid or expired - clear session state from storage
+                chrome.storage.local.remove(['linkpilot_token', 'linkpilot_user']);
+            }
             throw new Error(data.message || `API request failed with status ${response.status}`);
         }
         return data;
     } catch (err) {
-        console.error(`Background API error (${endpoint}):`, err);
+        console.warn(`Background API call failed (${endpoint}):`, err.message);
         return { status: 'error', message: err.message };
     }
 }

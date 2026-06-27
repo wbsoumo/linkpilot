@@ -113,8 +113,11 @@ try {
     $firstName = $nameParts[0];
     $lastName = isset($nameParts[1]) ? implode(' ', array_slice($nameParts, 1)) : '';
 
-    // Resolve company domain
-    $domain = resolveCompanyDomain($company);
+    // Resolve company domain (use payload domain if provided by the extension scraper)
+    $domain = isset($input['domain']) ? trim($input['domain']) : '';
+    if (empty($domain)) {
+        $domain = resolveCompanyDomain($company);
+    }
 
     // Optimistically begin credit deduction transaction
     $db->beginTransaction();

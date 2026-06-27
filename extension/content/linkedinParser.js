@@ -437,28 +437,50 @@
             }
 
             let company = '';
-            const companyEl = document.querySelector('button[aria-label*="Current company"], ul.pv-text-details__right-panel li button span, [data-field="experience_company_title"]');
-            if (companyEl) {
-                company = companyEl.innerText.trim();
-            } else {
+            let companyUrn = '';
+            
+            // 1. Check top-card right panel link (Current Company)
+            const topCardLink = document.querySelector('ul.pv-text-details__right-panel a[href*="/company/"], [data-field="experience_company_logo"] a[href*="/company/"]');
+            if (topCardLink) {
+                const href = topCardLink.getAttribute('href');
+                const match = href.match(/\/company\/([a-zA-Z0-9\-]+)/);
+                if (match && match[1]) {
+                    companyUrn = match[1];
+                    company = topCardLink.innerText.trim();
+                }
+            }
+            
+            // 2. Fallback to Experience section (First experience item logo link)
+            if (!companyUrn) {
+                const expLink = document.querySelector('div#experience ~ div.pvs-list__outer-container > ul > li a[href*="/company/"], #experience-section a[href*="/company/"]');
+                if (expLink) {
+                    const href = expLink.getAttribute('href');
+                    const match = href.match(/\/company\/([a-zA-Z0-9\-]+)/);
+                    if (match && match[1]) {
+                        companyUrn = match[1];
+                        const li = expLink.closest('li');
+                        if (li) {
+                            const nameTextEl = li.querySelector('span[aria-hidden="true"], [class*="title"]');
+                            if (nameTextEl) {
+                                company = nameTextEl.innerText.trim();
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // 3. Fallback to parsing company name from headline
+            if (!company) {
                 if (jobTitle.includes(' at ')) {
                     company = jobTitle.split(' at ')[1].trim().split('·')[0].trim();
                 } else if (jobTitle.includes(' @ ')) {
                     company = jobTitle.split(' @ ')[1].trim().split('·')[0].trim();
+                } else {
+                    company = 'LinkedIn Member';
                 }
             }
 
             const linkedinUrl = window.location.href.split('?')[0];
-
-            let companyUrn = '';
-            const companyLink = document.querySelector('a[href*="/company/"]');
-            if (companyLink) {
-                const href = companyLink.getAttribute('href');
-                const match = href.match(/\/company\/([a-zA-Z0-9\-]+)/);
-                if (match && match[1]) {
-                    companyUrn = match[1];
-                }
-            }
 
             return {
                 name,

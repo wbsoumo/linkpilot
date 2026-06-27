@@ -1192,11 +1192,39 @@
             const profileRes = await fetch(profileUrl);
             const profileHtml = await profileRes.text();
             
-            // 2. Extract company URN
-            const match = profileHtml.match(/\/company\/([a-zA-Z0-9\-]+)/);
-            const fsdMatch = profileHtml.match(/urn:li:fsd_company:(\d+)/);
-            const compMatch = profileHtml.match(/urn:li:company:(\d+)/);
-            const companyUrn = (match && match[1]) || (fsdMatch && fsdMatch[1]) || (compMatch && compMatch[1]) || '';
+            // 2. Extract company URN (skip generic linkedin footer/helper links)
+            let companyUrn = '';
+            
+            const matches = [...profileHtml.matchAll(/\/company\/([a-zA-Z0-9\-]+)/g)];
+            for (const m of matches) {
+                if (m[1]) {
+                    const u = m[1].toLowerCase();
+                    if (u !== 'linkedin' && u !== '96420083' && u !== 'invalid') {
+                        companyUrn = m[1];
+                        break;
+                    }
+                }
+            }
+            
+            if (!companyUrn) {
+                const fsdMatches = [...profileHtml.matchAll(/urn:li:fsd_company:(\d+)/g)];
+                for (const m of fsdMatches) {
+                    if (m[1] && m[1] !== '96420083') {
+                        companyUrn = m[1];
+                        break;
+                    }
+                }
+            }
+
+            if (!companyUrn) {
+                const compMatches = [...profileHtml.matchAll(/urn:li:company:(\d+)/g)];
+                for (const m of compMatches) {
+                    if (m[1] && m[1] !== '96420083') {
+                        companyUrn = m[1];
+                        break;
+                    }
+                }
+            }
             
             if (!companyUrn) return '';
             

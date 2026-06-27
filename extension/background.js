@@ -165,9 +165,36 @@ async function fetchCompanyUrnFromProfile(profileUrl) {
         const res = await fetch(profileUrl);
         const html = await res.text();
         
-        const match = html.match(/\/company\/([a-zA-Z0-9\-]+)/);
-        const fsdMatch = html.match(/urn:li:fsd_company:(\d+)/);
-        const compMatch = html.match(/urn:li:company:(\d+)/);
+        let companyUrn = '';
+        
+        const matches = [...html.matchAll(/\/company\/([a-zA-Z0-9\-]+)/g)];
+        for (const m of matches) {
+            if (m[1]) {
+                const u = m[1].toLowerCase();
+                if (u !== 'linkedin' && u !== '96420083' && u !== 'invalid') {
+                    companyUrn = m[1];
+                    break;
+                }
+            }
+        }
+        
+        let fsdId = '';
+        const fsdMatches = [...html.matchAll(/urn:li:fsd_company:(\d+)/g)];
+        for (const m of fsdMatches) {
+            if (m[1] && m[1] !== '96420083') {
+                fsdId = m[1];
+                break;
+            }
+        }
+
+        let compId = '';
+        const compMatches = [...html.matchAll(/urn:li:company:(\d+)/g)];
+        for (const m of compMatches) {
+            if (m[1] && m[1] !== '96420083') {
+                compId = m[1];
+                break;
+            }
+        }
 
         await fetch('https://linkpilot.work/backend/api/debug_log.php', {
             method: 'POST',
@@ -175,21 +202,14 @@ async function fetchCompanyUrnFromProfile(profileUrl) {
             body: JSON.stringify({
                 action: 'fetchCompanyUrnFromProfile',
                 profileUrl: profileUrl,
-                match: match,
-                fsdMatch: fsdMatch,
-                compMatch: compMatch
+                resolvedUrn: companyUrn || fsdId || compId || '',
+                allMatches: matches.map(m => m[1])
             })
         }).catch(() => {});
 
-        if (match && match[1]) {
-            return match[1];
-        }
-        if (fsdMatch && fsdMatch[1]) {
-            return fsdMatch[1];
-        }
-        if (compMatch && compMatch[1]) {
-            return compMatch[1];
-        }
+        if (companyUrn) return companyUrn;
+        if (fsdId) return fsdId;
+        if (compId) return compId;
     } catch (err) {
         console.warn('Failed to parse company URN from profile HTML:', err.message);
     }

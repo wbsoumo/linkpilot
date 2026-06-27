@@ -295,7 +295,7 @@
         const updateCreditsBadge = () => {
             window.LinkPilotUtils.safeSendMessage({ action: 'getCredits' }, (res) => {
                 if (res && res.status === 'success') {
-                    const rem = res.credits.remaining_credits;
+                    const rem = (res.wallet && res.wallet.remaining !== undefined) ? res.wallet.remaining : 0;
                     if (creditsBadge) {
                         creditsBadge.textContent = `Credits: ${rem}`;
                         creditsBadge.style.display = 'inline-block';

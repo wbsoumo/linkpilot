@@ -161,7 +161,7 @@ async def scrape_profile(req: ScrapeRequest) -> Dict[str, Any]:
                     for i in range(contact_idx + 1, len(texts)):
                         t = texts[i]
                         t_lower = t.lower()
-                        if "follower" in t_lower or "connection" in t_lower or t.isdigit():
+                        if "follower" in t_lower or "connection" in t_lower or t.isdigit() or re.match(r'^[\d,]+\+?$', t):
                             continue
                         if t_lower in generic_footers or any(gf in t_lower for gf in ("help center", "settings", "terms", "corporation")):
                             continue

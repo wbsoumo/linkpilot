@@ -94,67 +94,96 @@ async def scrape_profile(req: ScrapeRequest) -> Dict[str, Any]:
             logger.error("Security verification check wall triggered on LinkedIn.")
             return {"success": False, "message": "LinkedIn verification block triggered."}
 
-        # 2. Extract fields using regex & BeautifulSoup
-        resolved_company = ''
-        company_urn = ''
-        
-        company_name_match = re.search(r'"companyName"\s*:\s*"([^"]+)"', html)
-        if company_name_match:
-            resolved_company = company_name_match.group(1).replace('\\"', '"').strip()
-            
-        company_urn_match = re.search(r'urn:li:fsd_company:(\d+)', html)
-        if company_urn_match and company_urn_match.group(1) != '96420083':
-            company_urn = company_urn_match.group(1)
-            
-        if not company_urn:
-            matches = re.findall(r'\\?/company\\?/([a-zA-Z0-9\-_]+)', html)
-            for u in matches:
-                u_lower = u.lower()
-                if u_lower not in ('linkedin', '96420083', 'invalid', 'setup'):
-                    company_urn = u
-                    break
-
-        name = 'LinkedIn Member'
+        # 2. Extract fields using BeautifulSoup with class suffix styling matching
         soup = BeautifulSoup(html, 'html.parser')
         
-        # Try title header parsing first
+        # Name from Title
+        name = 'LinkedIn Member'
         title_text = soup.title.string if soup.title else ""
         if title_text and "|" in title_text:
             name_candidate = title_text.split("|")[0].strip()
             if name_candidate and name_candidate.lower() != "linkedin":
                 name = name_candidate
                 
-        if name == 'LinkedIn Member':
-            name_match = re.search(r'"firstName":"([^"]+)".*?"lastName":"([^"]+)"', html)
-            if name_match:
-                name = f"{name_match.group(1)} {name_match.group(2)}".strip()
+        # Extract elements with class containing 'ab09991a' (LinkedIn's layout stylesheet suffix class)
+        elements = soup.find_all(class_=lambda x: x and 'ab09991a' in x)
+        texts = []
+        for el in elements:
+            t = re.sub(r'\s+', ' ', el.get_text().strip())
+            if t and t not in ('·', ''):
+                texts.append(t)
                 
         headline = ""
-        headline_match = re.search(r'"headline":"([^"]+)"', html)
-        if headline_match:
-            headline = headline_match.group(1).replace('\\"', '"').strip()
-            
         location = ""
-        location_match = re.search(r'"locationName":"([^"]+)"', html)
-        if location_match:
-            location = location_match.group(1).strip()
-
-        # Fallback for company name
-        if not resolved_company:
+        company = "LinkedIn Member"
+        
+        try:
+            contact_idx = -1
+            for idx, t in enumerate(texts):
+                if "contact info" in t.lower():
+                    contact_idx = idx
+                    break
+                    
+            if contact_idx != -1:
+                # Location is the element immediately before "Contact info"
+                if contact_idx > 0:
+                    location = texts[contact_idx - 1]
+                    
+                # Headline is the first long text preceding location (excluding name/pronouns/summaries)
+                for i in range(contact_idx - 1):
+                    t = texts[i]
+                    if t != name and "·" not in t and name not in t and t not in ("He/Him", "She/Her", "They/Them", "Me", "Follow", "Message"):
+                        if len(t) > len(headline):
+                            headline = t
+                            
+                # Company summary search preceding contact info
+                company_summary = ""
+                for i in range(contact_idx):
+                    t = texts[i]
+                    if "·" in t and t != name and t != location:
+                        company_summary = t
+                        break
+                        
+                if company_summary:
+                    parts = company_summary.split("·")
+                    company = parts[0].strip()
+                else:
+                    # Filter through cards after contact info
+                    generic_footers = {
+                        "about", "accessibility", "talent solutions", "community guidelines", 
+                        "careers", "marketing solutions", "privacy & terms", "ad choices", 
+                        "advertising", "sales solutions", "mobile", "small business", 
+                        "safety center", "linkedin corporation", "questions?", "visit our help center.", 
+                        "manage your account and privacy", "go to your settings.", 
+                        "recommendation transparency", "learn more about recommended content.", 
+                        "select language"
+                    }
+                    for i in range(contact_idx + 1, len(texts)):
+                        t = texts[i]
+                        t_lower = t.lower()
+                        if "follower" in t_lower or "connection" in t_lower or t.isdigit():
+                            continue
+                        if t_lower in generic_footers or any(gf in t_lower for gf in ("help center", "settings", "terms", "corporation")):
+                            continue
+                        company = t
+                        break
+        except Exception as e:
+            logger.error(f"Error parsing profile layout structure: {e}")
+            
+        # Fallback to headline parsing if company is still default
+        if not company or company == "LinkedIn Member":
             if headline and " at " in headline:
-                resolved_company = headline.split(" at ")[1].split("·")[0].strip()
+                company = headline.split(" at ")[1].split("·")[0].strip()
             elif headline and " @ " in headline:
-                resolved_company = headline.split(" @ ")[1].split("·")[0].strip()
-            else:
-                resolved_company = "LinkedIn Member"
+                company = headline.split(" @ ")[1].split("·")[0].strip()
                 
-        logger.info(f"Successfully scraped profile: {name}. Company: {resolved_company}")
+        logger.info(f"Successfully scraped profile: {name}. Company: {company}")
         
         return {
             "success": True,
             "name": name,
             "headline": headline,
-            "company": resolved_company,
+            "company": company,
             "designation": headline if headline else "Professional",
             "location": location,
             "linkedin": url
@@ -169,4 +198,4 @@ async def scrape_profile(req: ScrapeRequest) -> Dict[str, Any]:
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=False)
+    uvicorn.run("main:app", host="127.0.0.1", port=8001, reload=False)

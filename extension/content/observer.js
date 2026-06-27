@@ -42,6 +42,13 @@
 
     // Debounced runner to bundle multiple rapid mutation batches
     const debouncedProcess = window.LinkPilotUtils.debounce(() => {
+        if (!chrome.runtime || !chrome.runtime.id) {
+            if (mutationObserver) {
+                mutationObserver.disconnect();
+                mutationObserver = null;
+            }
+            return;
+        }
         window.LinkPilotLogger.debug('Running debounced DOM processing sweep...');
         processNodes(document.body);
     }, 150);

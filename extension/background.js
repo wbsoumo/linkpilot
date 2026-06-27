@@ -100,6 +100,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true;
     }
 
+    if (message.action === 'getCredits') {
+        apiFetch('profile/get_credits.php', 'GET')
+            .then(data => sendResponse(data));
+        return true;
+    }
+
     if (message.action === 'generateEmail') {
         apiFetch('generate/email.php', 'POST', message.payload)
             .then(data => sendResponse(data));

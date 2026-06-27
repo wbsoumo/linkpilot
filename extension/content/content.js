@@ -289,9 +289,105 @@
         const bodyInput = shadow.getElementById('email-body');
         const toast = shadow.getElementById('email-toast');
 
+        const creditsBadge = shadow.getElementById('finder-modal-credits');
+        const headerCreditsBadge = shadow.getElementById('header-credits-badge');
+        
+        const updateCreditsBadge = () => {
+            window.LinkPilotUtils.safeSendMessage({ action: 'getCredits' }, (res) => {
+                if (res && res.status === 'success') {
+                    const rem = res.credits.remaining_credits;
+                    if (creditsBadge) {
+                        creditsBadge.textContent = `Credits: ${rem}`;
+                        creditsBadge.style.display = 'inline-block';
+                    }
+                    if (headerCreditsBadge) {
+                        headerCreditsBadge.textContent = `Credits: ${rem}`;
+                    }
+                }
+            });
+        };
+        
+        updateCreditsBadge();
+
         // Prepopulate email parsed from description if available
         if (postDetails.email) {
             recipientInput.value = postDetails.email;
+        }
+
+        const findEmailBtn = shadow.getElementById('modal-find-email-btn');
+        const emailStatusBox = shadow.getElementById('modal-find-email-status');
+
+        if (findEmailBtn) {
+            findEmailBtn.addEventListener('click', () => {
+                const creditsText = (creditsBadge && creditsBadge.textContent) || '';
+                const creditsMatch = creditsText.match(/\d+/);
+                const currentCredits = creditsMatch ? parseInt(creditsMatch[0]) : 0;
+
+                if (creditsText && currentCredits <= 0) {
+                    toast.className = 'status-toast error';
+                    toast.textContent = 'Insufficient credits. Please recharge your wallet.';
+                    toast.style.display = 'block';
+                    return;
+                }
+
+                findEmailBtn.disabled = true;
+                emailStatusBox.innerHTML = '';
+                emailStatusBox.style.display = 'flex';
+
+                const addStatusRow = (msg, isDone = false, isError = false) => {
+                    const dot = isDone ? '✓' : (isError ? '✗' : '⏳');
+                    const color = isError ? '#EF4444' : (isDone ? '#22C55E' : '#14B8A6');
+                    const row = window.LinkPilotUtils.safeCreate('div', {
+                        style: `display: flex; gap: 6px; align-items: center; color: ${color}; font-weight: 500;`
+                    }, [
+                        window.LinkPilotUtils.safeCreate('span', {}, [dot]),
+                        window.LinkPilotUtils.safeCreate('span', {}, [msg])
+                    ]);
+                    emailStatusBox.appendChild(row);
+                };
+
+                addStatusRow('Connecting secure database tunnel...');
+                
+                setTimeout(() => {
+                    addStatusRow('Parsing profile credentials...');
+                    
+                    setTimeout(() => {
+                        addStatusRow('Scanning local cached hits...');
+                        
+                        const payload = {
+                            linkedin_url: postDetails.profileUrl,
+                            name: postDetails.author,
+                            company: postDetails.company,
+                            job_title: postDetails.headline
+                        };
+
+                        window.LinkPilotUtils.safeSendMessage({ action: 'findEmail', payload }, (res) => {
+                            if (res && res.status === 'success' && res.email) {
+                                addStatusRow('Resolving Clearbit domain autocomplete...', true);
+                                setTimeout(() => {
+                                    addStatusRow(`Contact resolved using provider: ${res.provider.toUpperCase()}!`, true);
+                                    recipientInput.value = res.email;
+                                    updateCreditsBadge();
+                                    findEmailBtn.disabled = false;
+                                    setTimeout(() => {
+                                        emailStatusBox.style.display = 'none';
+                                    }, 3000);
+                                }, 600);
+                            } else {
+                                addStatusRow('Querying remote providers Hunter, Prospeo, Apollo...', false, true);
+                                setTimeout(() => {
+                                    addStatusRow('No verified email address could be resolved.', false, true);
+                                    findEmailBtn.disabled = false;
+                                    updateCreditsBadge();
+                                    setTimeout(() => {
+                                        emailStatusBox.style.display = 'none';
+                                    }, 3000);
+                                }, 800);
+                            }
+                        });
+                    }, 500);
+                }, 500);
+            });
         }
 
         genBtn.addEventListener('click', () => {
@@ -551,7 +647,30 @@
                 summaryDiv
             ]);
 
-            const header = window.LinkPilotUtils.safeCreate('div', { class: 'header' }, [authorInfo, closeBtn]);
+            const headerCredits = window.LinkPilotUtils.safeCreate('div', {
+                id: 'header-credits-wrapper',
+                style: 'display: flex; align-items: center; gap: 8px;'
+            }, [
+                window.LinkPilotUtils.safeCreate('span', {
+                    id: 'header-credits-badge',
+                    style: 'font-size: 11px; color: #14B8A6; font-weight: bold; background: rgba(20, 184, 166, 0.1); padding: 3px 10px; border-radius: 12px; border: 1px solid rgba(20, 184, 166, 0.2);'
+                }, ['Credits: --']),
+                window.LinkPilotUtils.safeCreate('a', {
+                    href: 'https://linkpilot.work/dashboard/recharge.html',
+                    target: '_blank',
+                    style: 'font-size: 10px; color: #F59E0B; text-decoration: none; font-weight: bold; background: rgba(245, 158, 11, 0.1); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.2); transition: background-color 0.2s;'
+                }, ['Recharge +'])
+            ]);
+            
+            if (!isAuth) {
+                headerCredits.style.display = 'none';
+            }
+
+            const headerActions = window.LinkPilotUtils.safeCreate('div', {
+                style: 'display: flex; align-items: center; gap: 12px;'
+            }, [headerCredits, closeBtn]);
+
+            const header = window.LinkPilotUtils.safeCreate('div', { class: 'header' }, [authorInfo, headerActions]);
             const modal = window.LinkPilotUtils.safeCreate('div', { class: 'modal' }, [header]);
             const overlay = window.LinkPilotUtils.safeCreate('div', {
                 class: 'overlay',
@@ -671,8 +790,39 @@
             const emailPanel = window.LinkPilotUtils.safeCreate('div', { class: 'tab-content active', id: 'tab-content-email' }, [
                 window.LinkPilotUtils.safeCreate('div', { class: 'status-toast', id: 'email-toast' }),
                 window.LinkPilotUtils.safeCreate('div', { class: 'form-group' }, [
-                    window.LinkPilotUtils.safeCreate('label', {}, ['Recipient Email Address']),
-                    window.LinkPilotUtils.safeCreate('input', { type: 'email', id: 'email-recipient', placeholder: 'john@example.com' })
+                    window.LinkPilotUtils.safeCreate('div', { style: 'display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px;' }, [
+                        window.LinkPilotUtils.safeCreate('label', { style: 'margin: 0;' }, ['Recipient Email Address']),
+                        window.LinkPilotUtils.safeCreate('div', { style: 'display: flex; align-items: center; gap: 6px;' }, [
+                            window.LinkPilotUtils.safeCreate('span', {
+                                id: 'finder-modal-credits',
+                                style: 'font-size: 11px; color: #14B8A6; font-weight: bold; background: rgba(20, 184, 166, 0.1); padding: 2px 8px; border-radius: 12px; display: inline-block;'
+                            }, ['Credits: --']),
+                            window.LinkPilotUtils.safeCreate('a', {
+                                href: 'https://linkpilot.work/dashboard/recharge.html',
+                                target: '_blank',
+                                style: 'font-size: 10px; color: #F59E0B; text-decoration: none; font-weight: bold; background: rgba(245, 158, 11, 0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.2);'
+                            }, ['Add +'])
+                        ])
+                    ]),
+                    window.LinkPilotUtils.safeCreate('div', { style: 'display: flex; gap: 8px;' }, [
+                        window.LinkPilotUtils.safeCreate('input', { type: 'email', id: 'email-recipient', placeholder: 'john@example.com', style: 'flex-grow: 1;' }),
+                        window.LinkPilotUtils.safeCreate('button', {
+                            type: 'button',
+                            class: 'btn btn-secondary',
+                            id: 'modal-find-email-btn',
+                            style: 'height: 38px; white-space: nowrap; font-size: 12px; font-weight: bold; color: #14B8A6; border-color: rgba(20, 184, 166, 0.3);'
+                        }, ['Find Email 🔍']),
+                        window.LinkPilotUtils.safeCreate('button', {
+                            type: 'button',
+                            id: 'modal-find-email-info',
+                            style: 'background: none; border: none; color: #64748B; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0 4px; font-family: monospace; font-size: 14px; font-weight: bold;',
+                            title: 'Extracting verified email address costs 1 credit. Free if cached or not found.'
+                        }, ['ⓘ'])
+                    ]),
+                    window.LinkPilotUtils.safeCreate('div', {
+                        id: 'modal-find-email-status',
+                        style: 'display: none; flex-direction: column; gap: 4px; font-size: 11px; padding: 10px; border-radius: 6px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); text-align: left; margin-top: 4px; line-height: 1.4;'
+                    })
                 ]),
                 window.LinkPilotUtils.safeCreate('div', { class: 'form-group' }, [
                     window.LinkPilotUtils.safeCreate('label', {}, ['Email Subject']),

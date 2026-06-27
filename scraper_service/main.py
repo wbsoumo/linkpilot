@@ -2,12 +2,12 @@ import os
 import json
 import logging
 import re
-import asyncio
-from typing import Dict, Any, Optional
-from fastapi import FastAPI, HTTPException, Request, Header
+import requests
+from typing import Dict, Any
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, HttpUrl
-from playwright.async_api import async_playwright
+from pydantic import BaseModel
+from bs4 import BeautifulSoup
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -23,13 +23,11 @@ class ScrapeRequest(BaseModel):
     linkedin_url: str
 
 def validate_linkedin_url(url: str) -> bool:
-    # Match standard linkedin profile URLs
     pattern = r"^https:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9\-_%]+\/?$"
     return bool(re.match(pattern, url.split('?')[0]))
 
 @app.middleware("http")
 async def restrict_access(request: Request, call_next):
-    # Allow local requests or verify X-API-Key
     client_host = request.client.host if request.client else ""
     api_key_header = request.headers.get("X-API-Key")
     
@@ -42,7 +40,6 @@ async def restrict_access(request: Request, call_next):
 @app.post("/scrape")
 async def scrape_profile(req: ScrapeRequest) -> Dict[str, Any]:
     url = req.linkedin_url.strip()
-    # Normalize URL
     url = url.split('?')[0]
     if not url.endswith('/'):
         url += '/'
@@ -55,160 +52,120 @@ async def scrape_profile(req: ScrapeRequest) -> Dict[str, Any]:
         logger.error("session.json file not found.")
         return {"success": False, "message": "LinkedIn session credentials not found on server."}
 
-    logger.info(f"Received scraping request for profile: {url}")
+    logger.info(f"Received HTTP-based scraping request for profile: {url}")
     
-    async with async_playwright() as p:
-        browser = None
-        try:
-            # Launch chromium browser in headless mode
-            browser = await p.chromium.launch(
-                headless=True,
-                args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
-            )
+    try:
+        # Load session cookies
+        with open(SESSION_FILE, "r") as f:
+            cookies = json.load(f)
             
-            # Setup context with saved cookies
-            context = await browser.new_context(
-                viewport={"width": 1280, "height": 800},
-                user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-            )
+        if not cookies:
+            return {"success": False, "message": "LinkedIn session.json is empty."}
             
-            # Load cookies
-            with open(SESSION_FILE, "r") as f:
-                cookies = json.load(f)
-                if cookies:
-                    await context.add_cookies(cookies)
-                else:
-                    return {"success": False, "message": "LinkedIn session.json is empty."}
-                    
-            page = await context.new_page()
+        # Map cookies list to dict format for requests
+        cookie_dict = {c['name']: c['value'] for c in cookies}
+        
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Connection": "keep-alive"
+        }
+        
+        # 1. Fetch profile HTML
+        res = requests.get(url, headers=headers, cookies=cookie_dict, timeout=15)
+        
+        if "login" in res.url or "checkpoint" in res.url:
+            logger.error(f"Session expired. Redirected to: {res.url}")
+            return {"success": False, "message": "LinkedIn session expired."}
             
-            # Set default timeout to 15 seconds
-            page.set_default_timeout(15000)
+        if res.status_code == 429:
+            logger.error("Rate limit hit (429)")
+            return {"success": False, "message": "LinkedIn rate limit exceeded."}
             
-            # Navigate to profile URL
-            logger.info("Navigating to LinkedIn profile...")
-            response = await page.goto(url, wait_until="domcontentloaded")
+        if res.status_code == 404:
+            logger.error("Profile not found (404)")
+            return {"success": False, "message": "LinkedIn profile not found."}
             
-            # Check for rate limit or redirection to login page
-            current_url = page.url
-            if "login" in current_url or "checkpoint" in current_url:
-                logger.error(f"Session expired, redirected to: {current_url}")
-                return {"success": False, "message": "LinkedIn session expired."}
-                
-            if response and response.status == 429:
-                logger.error("Rate limit hit (429 Too Many Requests)")
-                return {"success": False, "message": "LinkedIn rate limit exceeded."}
-                
-            if response and response.status == 404:
-                logger.error("Profile not found (404)")
-                return {"success": False, "message": "LinkedIn profile not found."}
-                
-            # Wait for name or main scaffold element
-            try:
-                await page.wait_for_selector("h1.text-heading-xlarge, main", timeout=8000)
-            except Exception:
-                logger.warning("Scaffold element wait timed out, attempting to scrape available DOM...")
-                
-            # Check if profile is unavailable or security wall is active
-            title = await page.title()
-            if "Security Header" in title or "Page Not Found" in title or "Quick security check" in page.content().__str__():
-                logger.error(f"LinkedIn verification block triggered: {title}")
-                return {"success": False, "message": "LinkedIn verification block triggered."}
+        html = res.text
+        
+        # Check if security challenge is served
+        if "Quick security check" in html or "Security Header" in html:
+            logger.error("Security verification check wall triggered on LinkedIn.")
+            return {"success": False, "message": "LinkedIn verification block triggered."}
 
-            # Parse profile details
-            name = ""
-            name_el = await page.query_selector("h1.text-heading-xlarge, main section h1, h1")
-            if name_el:
-                name = (await name_el.inner_text()).strip()
-                
-            headline = ""
-            headline_el = await page.query_selector("div.text-body-medium, [class*='text-body-medium']")
-            if headline_el:
-                headline = (await headline_el.inner_text()).strip()
-                
-            location = ""
-            location_el = await page.query_selector("span.text-body-small.inline.t-16.t-black--light, [class*='text-body-smallinline']")
-            if location_el:
-                location = (await location_el.inner_text()).strip()
-                
-            about = ""
-            about_el = await page.query_selector("#about ~ div.display-flex span[aria-hidden='true']")
-            if about_el:
-                about = (await about_el.inner_text()).strip()
-                
-            # Scrape experience list
-            company = ""
-            designation = ""
+        # 2. Extract fields using regex & BeautifulSoup
+        resolved_company = ''
+        company_urn = ''
+        
+        company_name_match = re.search(r'"companyName"\s*:\s*"([^"]+)"', html)
+        if company_name_match:
+            resolved_company = company_name_match.group(1).replace('\\"', '"').strip()
             
-            experience_items = await page.query_query_all("[componentkey^='entity-collection-item']") if hasattr(page, 'query_query_all') else await page.query_selector_all("[componentkey^='entity-collection-item']")
-            if not experience_items:
-                # Fallback Experience Card list selection
-                experience_items = await page.query_selector_all("div#experience ~ div.pvs-list__outer-container > ul > li, #experience-section li")
-                
-            if experience_items:
-                first_exp = experience_items[0]
-                
-                # Check for nested multi-position structure (multiple roles at same company)
-                nested_roles = await first_exp.query_selector_all("li")
-                if len(nested_roles) > 0:
-                    # In nested, the main item header contains the company name
-                    comp_name_el = await first_exp.query_selector("span[aria-hidden='true']")
-                    if comp_name_el:
-                        company = (await comp_name_el.inner_text()).split("·")[0].strip()
-                    
-                    # The first nested item has the designation
-                    role_title_el = await nested_roles[0].query_selector("span[aria-hidden='true']")
-                    if role_title_el:
-                        designation = (await role_title_el.inner_text()).strip()
-                else:
-                    # Single position structure
-                    # Title
-                    title_el = await first_exp.query_selector("span[aria-hidden='true'], [class*='title']")
-                    if title_el:
-                        designation = (await title_el.inner_text()).strip()
-                    
-                    # Company Line
-                    comp_el = await first_exp.query_selector("span.t-14.t-normal, span.text-body-small, p")
-                    if comp_el:
-                        comp_text = (await comp_el.inner_text()).strip()
-                        if " · " in comp_text or "·" in comp_text:
-                            company = comp_text.split("·")[0].split(" \u00B7 ")[0].strip()
-                        else:
-                            company = comp_text
+        company_urn_match = re.search(r'urn:li:fsd_company:(\d+)', html)
+        if company_urn_match and company_urn_match.group(1) != '96420083':
+            company_urn = company_urn_match.group(1)
+            
+        if not company_urn:
+            matches = re.findall(r'\\?/company\\?/([a-zA-Z0-9\-_]+)', html)
+            for u in matches:
+                u_lower = u.lower()
+                if u_lower not in ('linkedin', '96420083', 'invalid', 'setup'):
+                    company_urn = u
+                    break
 
-            # If company extraction was unsuccessful, try parsing headline
-            if not company:
-                if " at " in headline:
-                    company = headline.split(" at ")[1].split("·")[0].strip()
-                elif " @ " in headline:
-                    company = headline.split(" @ ")[1].split("·")[0].strip()
-                else:
-                    company = "LinkedIn Member"
-                    
-            if not designation:
-                designation = headline if headline else "Professional"
+        name = 'LinkedIn Member'
+        soup = BeautifulSoup(html, 'html.parser')
+        
+        # Try title header parsing first
+        title_text = soup.title.string if soup.title else ""
+        if title_text and "|" in title_text:
+            name_candidate = title_text.split("|")[0].strip()
+            if name_candidate and name_candidate.lower() != "linkedin":
+                name = name_candidate
                 
-            logger.info(f"Successfully scraped {name}. Company: {company}, Designation: {designation}")
+        if name == 'LinkedIn Member':
+            name_match = re.search(r'"firstName":"([^"]+)".*?"lastName":"([^"]+)"', html)
+            if name_match:
+                name = f"{name_match.group(1)} {name_match.group(2)}".strip()
+                
+        headline = ""
+        headline_match = re.search(r'"headline":"([^"]+)"', html)
+        if headline_match:
+            headline = headline_match.group(1).replace('\\"', '"').strip()
             
-            return {
-                "success": True,
-                "name": name if name else "LinkedIn Member",
-                "headline": headline,
-                "company": company,
-                "designation": designation,
-                "location": location,
-                "linkedin": url
-            }
-            
-        except asyncio.TimeoutError:
-            logger.error("Request timed out during profile loading.")
-            return {"success": False, "message": "Scraping request timed out."}
-        except Exception as e:
-            logger.exception("Unexpected exception in scraper microservice")
-            return {"success": False, "message": f"Unexpected scraper exception: {str(e)}"}
-        finally:
-            if browser:
-                await browser.close()
+        location = ""
+        location_match = re.search(r'"locationName":"([^"]+)"', html)
+        if location_match:
+            location = location_match.group(1).strip()
+
+        # Fallback for company name
+        if not resolved_company:
+            if headline and " at " in headline:
+                resolved_company = headline.split(" at ")[1].split("·")[0].strip()
+            elif headline and " @ " in headline:
+                resolved_company = headline.split(" @ ")[1].split("·")[0].strip()
+            else:
+                resolved_company = "LinkedIn Member"
+                
+        logger.info(f"Successfully scraped profile: {name}. Company: {resolved_company}")
+        
+        return {
+            "success": True,
+            "name": name,
+            "headline": headline,
+            "company": resolved_company,
+            "designation": headline if headline else "Professional",
+            "location": location,
+            "linkedin": url
+        }
+        
+    except requests.Timeout:
+        logger.error("Profile scrape request timed out.")
+        return {"success": False, "message": "Scraping request timed out."}
+    except Exception as e:
+        logger.exception("Unexpected error inside HTTP profile scraper")
+        return {"success": False, "message": f"Unexpected scraper exception: {str(e)}"}
 
 if __name__ == "__main__":
     import uvicorn

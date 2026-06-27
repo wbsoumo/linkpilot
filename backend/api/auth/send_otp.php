@@ -35,14 +35,14 @@ if (!preg_match('/^[6-9]\d{9}$/', $phoneNumber)) {
 $db = Database::getConnection();
 
 try {
-    // 1. Check if email or phone number is already registered
-    $stmt = $db->prepare("SELECT id FROM users WHERE email = ?");
+    // 1. Check if email or phone number is already registered by a verified user
+    $stmt = $db->prepare("SELECT id FROM users WHERE email = ? AND is_verified = 1");
     $stmt->execute([$email]);
     if ($stmt->fetch()) {
         sendJsonResponse('error', 'An account with this email address already exists.', [], 409);
     }
 
-    $stmt = $db->prepare("SELECT id FROM users WHERE phone_number = ?");
+    $stmt = $db->prepare("SELECT id FROM users WHERE phone_number = ? AND is_verified = 1");
     $stmt->execute([$phoneNumber]);
     if ($stmt->fetch()) {
         sendJsonResponse('error', 'An account with this phone number already exists.', [], 409);

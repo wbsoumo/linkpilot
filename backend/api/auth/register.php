@@ -55,15 +55,15 @@ if (strlen($password) < 6) {
 $db = Database::getConnection();
 
 try {
-    // Check if email already exists
-    $stmt = $db->prepare("SELECT id FROM users WHERE email = ?");
+    // Check if email already exists and is verified
+    $stmt = $db->prepare("SELECT id FROM users WHERE email = ? AND is_verified = 1");
     $stmt->execute([$email]);
     if ($stmt->fetch()) {
         sendJsonResponse('error', 'An account with this email address already exists.', [], 409);
     }
     
-    // Check if phone number already exists
-    $stmt = $db->prepare("SELECT id FROM users WHERE phone_number = ?");
+    // Check if phone number already exists and is verified
+    $stmt = $db->prepare("SELECT id FROM users WHERE phone_number = ? AND is_verified = 1");
     $stmt->execute([$phoneNumber]);
     if ($stmt->fetch()) {
         sendJsonResponse('error', 'An account with this phone number already exists.', [], 409);
@@ -108,43 +108,80 @@ try {
     $stmtDelete = $db->prepare("DELETE FROM otp_verifications WHERE phone_number = ?");
     $stmtDelete->execute([$phoneNumber]);
     
-    // Hash password
+    // Lookup existing unverified user from previous steps
+    $stmtUserLookup = $db->prepare("SELECT id FROM users WHERE phone_number = ? AND is_verified = 0 LIMIT 1");
+    $stmtUserLookup->execute([$phoneNumber]);
+    $existingUser = $stmtUserLookup->fetch();
+    if (!$existingUser) {
+        $stmtUserLookupEmail = $db->prepare("SELECT id FROM users WHERE email = ? AND is_verified = 0 LIMIT 1");
+        $stmtUserLookupEmail->execute([$email]);
+        $existingUser = $stmtUserLookupEmail->fetch();
+    }
+    
     $passwordHash = password_hash($password, PASSWORD_DEFAULT);
     
-    // Determine user role (first registered user is admin, else user)
-    $stmtCount = $db->query("SELECT COUNT(*) as total FROM users");
+    // Determine user role (first verified user is admin, else user)
+    $stmtCount = $db->query("SELECT COUNT(*) as total FROM users WHERE is_verified = 1");
     $rowCount = $stmtCount->fetch();
     $role = ($rowCount['total'] == 0) ? 'admin' : 'user';
     
-    // Insert User
-    $stmtUser = $db->prepare("INSERT INTO users (name, email, phone_number, password, role) VALUES (?, ?, ?, ?, ?)");
-    $stmtUser->execute([$name, $email, $phoneNumber, $passwordHash, $role]);
-    $userId = $db->lastInsertId();
+    if ($existingUser) {
+        $userId = $existingUser['id'];
+        $stmtUpdateUser = $db->prepare("UPDATE users SET name = ?, email = ?, password = ?, role = ?, is_verified = 1 WHERE id = ?");
+        $stmtUpdateUser->execute([$name, $email, $passwordHash, $role, $userId]);
+    } else {
+        // Fallback if save_step failed or was bypassed
+        $stmtInsertUser = $db->prepare("INSERT INTO users (name, email, phone_number, password, role, is_verified) VALUES (?, ?, ?, ?, ?, 1)");
+        $stmtInsertUser->execute([$name, $email, $phoneNumber, $passwordHash, $role]);
+        $userId = $db->lastInsertId();
+    }
     
-    // Insert User Profile
-    $stmtProfile = $db->prepare("INSERT INTO user_profiles (user_id, user_type, job_title, experience_years, skills, company_name, website, portfolio_url, linkedin_url, about_me) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmtProfile->execute([
-        $userId,
-        $userType,
-        $jobTitle,
-        $experienceYears,
-        $skills,
-        $companyName,
-        $website,
-        $portfolioUrl,
-        $linkedinUrl,
-        $aboutMe
-    ]);
+    // Insert/Update User Profile
+    $stmtProfileCheck = $db->prepare("SELECT id FROM user_profiles WHERE user_id = ?");
+    $stmtProfileCheck->execute([$userId]);
+    if ($stmtProfileCheck->fetch()) {
+        $stmtProfile = $db->prepare("UPDATE user_profiles SET user_type = ?, job_title = ?, experience_years = ?, skills = ?, company_name = ?, website = ?, portfolio_url = ?, linkedin_url = ?, about_me = ? WHERE user_id = ?");
+        $stmtProfile->execute([
+            $userType,
+            $jobTitle,
+            $experienceYears,
+            $skills,
+            $companyName,
+            $website,
+            $portfolioUrl,
+            $linkedinUrl,
+            $aboutMe,
+            $userId
+        ]);
+    } else {
+        $stmtProfile = $db->prepare("INSERT INTO user_profiles (user_id, user_type, job_title, experience_years, skills, company_name, website, portfolio_url, linkedin_url, about_me) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmtProfile->execute([
+            $userId,
+            $userType,
+            $jobTitle,
+            $experienceYears,
+            $skills,
+            $companyName,
+            $website,
+            $portfolioUrl,
+            $linkedinUrl,
+            $aboutMe
+        ]);
+    }
     
     // Insert Default Stats
-    $stmtStats = $db->prepare("INSERT INTO user_statistics (user_id) VALUES (?)");
-    $stmtStats->execute([$userId]);
+    $stmtStatsCheck = $db->prepare("SELECT id FROM user_statistics WHERE user_id = ?");
+    $stmtStatsCheck->execute([$userId]);
+    if (!$stmtStatsCheck->fetch()) {
+        $stmtStats = $db->prepare("INSERT INTO user_statistics (user_id) VALUES (?)");
+        $stmtStats->execute([$userId]);
+    }
     
     // Commit transaction
     $db->commit();
     
     // Log Activity
-    logActivity($userId, "User registered successfully.");
+    logActivity($userId, "User registered and verified successfully.");
     
     // Generate JWT Token
     $token = JWTHelper::generateToken([

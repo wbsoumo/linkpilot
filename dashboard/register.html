@@ -279,8 +279,10 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        let registeredUserId = null;
+
         // Navigate forward
-        function nextStep(step) {
+        async function nextStep(step) {
             if (step === 2) {
                 // Validate Step 1 details
                 const name = document.getElementById('name').value.trim();
@@ -313,12 +315,51 @@
                     showNotification('error', 'Passwords do not match.');
                     return;
                 }
+
+                // Save Step 1 to Database
+                try {
+                    const data = await apiCall('auth/save_step.php', 'POST', {
+                        step: 1,
+                        name: name,
+                        email: email,
+                        phone_number: phone,
+                        password: password
+                    });
+                    registeredUserId = data.user_id;
+                } catch (err) {
+                    showNotification('error', err.message || 'Failed to save account details.');
+                    return;
+                }
+
             } else if (step === 3) {
                 // Validate Step 2 details
                 const userType = document.getElementById('user_type').value;
+                const jobTitle = document.getElementById('job_title').value.trim();
+                const experienceYears = document.getElementById('experience_years').value;
+                const skills = document.getElementById('skills').value.trim();
+                const companyName = document.getElementById('company_name').value.trim();
+
                 if (!userType) {
                     showNotification('error', 'Please select your User Type.');
                     return;
+                }
+
+                // Save Step 2 to Database
+                if (registeredUserId) {
+                    try {
+                        await apiCall('auth/save_step.php', 'POST', {
+                            step: 2,
+                            user_id: registeredUserId,
+                            user_type: userType,
+                            job_title: jobTitle,
+                            experience_years: experienceYears,
+                            skills: skills,
+                            company_name: companyName
+                        });
+                    } catch (err) {
+                        showNotification('error', err.message || 'Failed to save professional profile.');
+                        return;
+                    }
                 }
             }
             
@@ -395,7 +436,44 @@
             const phone = document.getElementById('phone_number').value.trim();
             const email = document.getElementById('email').value.trim();
 
+            const website = document.getElementById('website').value.trim();
+            const portfolioUrl = document.getElementById('portfolio_url').value.trim();
+            const linkedinUrl = document.getElementById('linkedin_url').value.trim();
+            const aboutMe = document.getElementById('about_me').value.trim();
+
             sendBtn.disabled = true;
+            sendBtn.innerHTML = `
+                <div class="flex items-center justify-center space-x-1.5">
+                    <div class="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>
+                    <span>Saving details...</span>
+                </div>
+            `;
+
+            // Save Step 3 details if we have a registered user ID
+            if (registeredUserId) {
+                try {
+                    await apiCall('auth/save_step.php', 'POST', {
+                        step: 3,
+                        user_id: registeredUserId,
+                        website: website,
+                        portfolio_url: portfolioUrl,
+                        linkedin_url: linkedinUrl,
+                        about_me: aboutMe
+                    });
+                } catch (err) {
+                    showNotification('error', err.message || 'Failed to save bio details.');
+                    sendBtn.disabled = false;
+                    sendBtn.innerHTML = `
+                        <span>Send Verification OTP</span>
+                        <i data-lucide="send" class="h-4 w-4"></i>
+                    `;
+                    if (window.lucide) {
+                        lucide.createIcons();
+                    }
+                    return;
+                }
+            }
+
             sendBtn.innerHTML = `
                 <div class="flex items-center justify-center space-x-1.5">
                     <div class="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>

@@ -15,7 +15,7 @@ try {
     if ($method === 'GET') {
         // List users
         $stmt = $db->query("
-            SELECT u.id, u.name, u.email, u.role, u.created_at, 
+            SELECT u.id, u.name, u.email, u.phone_number, u.role, u.is_verified, u.created_at, 
                    p.user_type, p.job_title, p.company_name,
                    s.total_requests, s.emails_generated, s.emails_sent, s.whatsapp_generated, s.comments_generated
             FROM users u
@@ -66,6 +66,22 @@ try {
             
             logActivity($adminId, "Demoted admin user ID {$targetUserId} to regular user.");
             sendJsonResponse('success', "User role updated successfully to regular user.");
+            
+        } elseif ($action === 'verify') {
+            // Mark user as verified manually
+            $stmtVerify = $db->prepare("UPDATE users SET is_verified = 1 WHERE id = ?");
+            $stmtVerify->execute([$targetUserId]);
+            
+            // Check if user has statistics row (if not, insert it)
+            $stmtStatsCheck = $db->prepare("SELECT id FROM user_statistics WHERE user_id = ?");
+            $stmtStatsCheck->execute([$targetUserId]);
+            if (!$stmtStatsCheck->fetch()) {
+                $stmtStats = $db->prepare("INSERT INTO user_statistics (user_id) VALUES (?)");
+                $stmtStats->execute([$targetUserId]);
+            }
+            
+            logActivity($adminId, "Manually verified user ID {$targetUserId}");
+            sendJsonResponse('success', 'User marked as verified successfully.');
             
         } elseif ($action === 'delete') {
             // Delete user (cascade will clean up user_profiles, stats, logs, etc.)

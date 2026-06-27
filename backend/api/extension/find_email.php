@@ -64,68 +64,168 @@ function resolveCompanyDomain($companyName) {
     return '';
 }
 
+function refundScrapeCredit($db, $userId) {
+    try {
+        $db->beginTransaction();
+        $stmt = $db->prepare("UPDATE user_email_credits SET remaining_credits = remaining_credits + 1, used_credits = used_credits - 1 WHERE user_id = ?");
+        $stmt->execute([$userId]);
+        $stmtTx = $db->prepare("INSERT INTO email_credit_transactions (user_id, type, credits, provider_used, status) VALUES (?, 'refund', 1, 'linkedin_scraper', 'success')");
+        $stmtTx->execute([$userId]);
+        $db->commit();
+    } catch (Exception $e) {
+        if ($db->inTransaction()) $db->rollBack();
+    }
+}
+
+function logScraperRequest($db, $userId, $url, $duration, $company, $hunterStatus, $credits, $errors) {
+    try {
+        $stmt = $db->prepare("INSERT INTO scraper_requests_log (user_id, linkedin_url, scraping_duration, company_found, hunter_lookup_status, credits_consumed, errors) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$userId, $url, $duration, $company, $hunterStatus, $credits, $errors]);
+    } catch (Exception $e) {
+        // Silently catch log database failures
+    }
+}
+
 try {
-    // 1. Check local cache
+    // 1. Check Scraper configuration
+    $stmtScrap = $db->prepare("SELECT is_enabled, api_key, api_secret, priority FROM email_provider_settings WHERE provider_name = ? LIMIT 1");
+    $stmtScrap->execute(['linkedin_scraper']);
+    $scrapConf = $stmtScrap->fetch();
+    
+    $scraperEnabled = $scrapConf ? (int)$scrapConf['is_enabled'] : 0;
+    $scraperUrl = $scrapConf ? $scrapConf['api_key'] : 'http://localhost:8000';
+    $scraperTimeout = $scrapConf ? (int)$scrapConf['api_secret'] : 15;
+    $scraperDebug = $scrapConf ? (int)$scrapConf['priority'] : 0;
+
+    // 2. Check local cache (Valid for 24 hours)
     $stmtCacheCheck = $db->prepare("SELECT * FROM email_cache WHERE linkedin_url = ? LIMIT 1");
     $stmtCacheCheck->execute([$linkedinUrl]);
     $cachedRow = $stmtCacheCheck->fetch();
 
     if ($cachedRow) {
-        if ($cachedRow['status'] === 'found') {
-            // Write search history entry with 0 credits
-            $stmtHist = $db->prepare("INSERT INTO email_search_history (user_id, name, company, email, linkedin_url, provider, credits_used) VALUES (?, ?, ?, ?, ?, ?, 0)");
-            $stmtHist->execute([$userId, $name, $company, $cachedRow['email'], $linkedinUrl, $cachedRow['provider']]);
-            
-            sendJsonResponse('success', 'Email found (from cache).', [
-                'email' => $cachedRow['email'],
-                'provider' => $cachedRow['provider'] . ' (cached)',
-                'confidence_score' => $cachedRow['confidence_score']
-            ]);
-        } elseif ($cachedRow['status'] === 'not_found') {
-            // Write search history entry with 0 credits
-            $stmtHist = $db->prepare("INSERT INTO email_search_history (user_id, name, company, email, linkedin_url, provider, credits_used) VALUES (?, ?, ?, NULL, ?, 'none', 0)");
-            $stmtHist->execute([$userId, $name, $company, $linkedinUrl]);
-            
-            sendJsonResponse('error', 'Email address not found (from cache).', [], 404);
+        $cacheAge = time() - strtotime($cachedRow['updated_at']);
+        if ($cacheAge < 86400) {
+            if ($cachedRow['status'] === 'found') {
+                $stmtHist = $db->prepare("INSERT INTO email_search_history (user_id, name, company, email, linkedin_url, provider, credits_used) VALUES (?, ?, ?, ?, ?, ?, 0)");
+                $stmtHist->execute([$userId, $name, $company, $cachedRow['email'], $linkedinUrl, $cachedRow['provider']]);
+                
+                sendJsonResponse('success', 'Email found (from cache).', [
+                    'email' => $cachedRow['email'],
+                    'provider' => $cachedRow['provider'] . ' (cached)',
+                    'confidence_score' => $cachedRow['confidence_score']
+                ]);
+            } elseif ($cachedRow['status'] === 'not_found') {
+                $stmtHist = $db->prepare("INSERT INTO email_search_history (user_id, name, company, email, linkedin_url, provider, credits_used) VALUES (?, ?, ?, NULL, ?, 'none', 0)");
+                $stmtHist->execute([$userId, $name, $company, $linkedinUrl]);
+                
+                sendJsonResponse('error', 'Email address not found (from cache).', [], 404);
+            }
         }
     }
 
-    // 2. Not in cache: Perform lookup. First, verify credit balance.
+    // 3. Check credit balance
     $stmtCredits = $db->prepare("SELECT remaining_credits FROM user_email_credits WHERE user_id = ?");
     $stmtCredits->execute([$userId]);
     $wallet = $stmtCredits->fetch();
     $creditsAvailable = $wallet ? (int)$wallet['remaining_credits'] : 0;
 
-    if ($creditsAvailable < 1) {
-        sendJsonResponse('error', 'Insufficient Email Finder credits. Please recharge your wallet.', [], 402);
+    $minCredits = ($scraperEnabled && !$cachedRow) ? 2 : 1;
+    if ($creditsAvailable < $minCredits) {
+        sendJsonResponse('error', "Insufficient Email Finder credits. You need at least {$minCredits} credits for this action.", [], 402);
+    }
+
+    $scrapDuration = 0;
+    $scrapCreditsUsed = 0;
+    $companyFound = $company;
+
+    if ($scraperEnabled && !$cachedRow) {
+        // Optimistically deduct 1 credit for scraping
+        $db->beginTransaction();
+        $stmtDeduct = $db->prepare("UPDATE user_email_credits SET remaining_credits = remaining_credits - 1, used_credits = used_credits + 1 WHERE user_id = ? AND remaining_credits >= 1");
+        $stmtDeduct->execute([$userId]);
+        if ($stmtDeduct->rowCount() === 0) {
+            $db->rollBack();
+            sendJsonResponse('error', 'Insufficient credits for LinkedIn scraping.', [], 402);
+        }
+        $stmtTx = $db->prepare("INSERT INTO email_credit_transactions (user_id, type, credits, provider_used, status) VALUES (?, 'usage', 1, 'linkedin_scraper', 'success')");
+        $stmtTx->execute([$userId]);
+        $db->commit();
+        $scrapCreditsUsed = 1;
+
+        // Perform HTTP Scrape POST Request to python service
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, rtrim($scraperUrl, '/') . '/scrape');
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'X-API-Key: linkpilot_local_scraper_secret_2026'
+        ]);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['linkedin_url' => $linkedinUrl]));
+        curl_setopt($ch, CURLOPT_TIMEOUT, $scraperTimeout);
+
+        $scrapStart = microtime(true);
+        $res = curl_exec($ch);
+        $scrapDuration = microtime(true) - $scrapStart;
+
+        if (curl_errno($ch)) {
+            $err = curl_error($ch);
+            curl_close($ch);
+            refundScrapeCredit($db, $userId);
+            logScraperRequest($db, $userId, $linkedinUrl, $scrapDuration, '', 'Scraping timeout/failed', 0, $err);
+            sendJsonResponse('error', 'Scraping service unreachable: ' . $err, [], 504);
+        }
+        curl_close($ch);
+
+        $scrapData = json_decode($res, true);
+        if (!$scrapData || empty($scrapData['success'])) {
+            refundScrapeCredit($db, $userId);
+            $errMessage = $scrapData ? ($scrapData['message'] ?? 'Scraper error.') : 'Invalid response from scraper service.';
+            logScraperRequest($db, $userId, $linkedinUrl, $scrapDuration, '', 'Scraping failed', 0, $errMessage);
+            sendJsonResponse('error', 'LinkedIn Scraper failed: ' . $errMessage, [], 422);
+        }
+
+        // Successfully scraped! Update variables
+        $name = $scrapData['name'];
+        $company = $scrapData['company'];
+        $jobTitle = $scrapData['designation'];
+        $companyFound = $company;
+    }
+
+    // Now proceed to Domain Resolution
+    $domain = isset($input['domain']) ? trim($input['domain']) : '';
+    if (empty($domain)) {
+        $domain = resolveCompanyDomain($company);
+    }
+
+    // Resolve Name parts
+    $nameParts = explode(' ', trim($name));
+    $firstName = $nameParts[0];
+    $lastName = isset($nameParts[1]) ? implode(' ', array_slice($nameParts, 1)) : '';
+
+    // Verify credits for Email Provider Lookup
+    $stmtCreditsCheck2 = $db->prepare("SELECT remaining_credits FROM user_email_credits WHERE user_id = ?");
+    $stmtCreditsCheck2->execute([$userId]);
+    $wallet2 = $stmtCreditsCheck2->fetch();
+    $creditsAvailable2 = $wallet2 ? (int)$wallet2['remaining_credits'] : 0;
+
+    if ($creditsAvailable2 < 1) {
+        sendJsonResponse('error', 'Insufficient credits for Email Finder lookup.', [], 402);
     }
 
     // Fetch active email providers ordered by priority
-    $stmtProviders = $db->query("SELECT * FROM email_provider_settings WHERE is_enabled = 1 ORDER BY priority ASC");
+    $stmtProviders = $db->query("SELECT * FROM email_provider_settings WHERE is_enabled = 1 AND provider_name != 'linkedin_scraper' ORDER BY priority ASC");
     $providers = $stmtProviders->fetchAll();
 
     if (empty($providers)) {
         sendJsonResponse('error', 'No email finder providers are currently enabled. Please contact support.', [], 503);
     }
 
-    // Parse names
-    $nameParts = explode(' ', trim($name));
-    $firstName = $nameParts[0];
-    $lastName = isset($nameParts[1]) ? implode(' ', array_slice($nameParts, 1)) : '';
-
-    // Resolve company domain (use payload domain if provided by the extension scraper)
-    $domain = isset($input['domain']) ? trim($input['domain']) : '';
-    if (empty($domain)) {
-        $domain = resolveCompanyDomain($company);
-    }
-
-    // Optimistically begin credit deduction transaction
+    // Deduct 1 credit for email finding lookup
     $db->beginTransaction();
-
-    $stmtDeduct = $db->prepare("UPDATE user_email_credits SET remaining_credits = remaining_credits - 1, used_credits = used_credits + 1 WHERE user_id = ? AND remaining_credits >= 1");
-    $stmtDeduct->execute([$userId]);
-
-    if ($stmtDeduct->rowCount() === 0) {
+    $stmtDeduct2 = $db->prepare("UPDATE user_email_credits SET remaining_credits = remaining_credits - 1, used_credits = used_credits + 1 WHERE user_id = ? AND remaining_credits >= 1");
+    $stmtDeduct2->execute([$userId]);
+    if ($stmtDeduct2->rowCount() === 0) {
         $db->rollBack();
         sendJsonResponse('error', 'Insufficient credits.', [], 402);
     }
@@ -157,8 +257,8 @@ try {
                 if ($res && !empty($res['email'])) {
                     $emailFound = $res['email'];
                     $successProvider = $provName;
-                    $confidenceScore = $res['score'];
-                    $verificationStatus = $res['status'];
+                    $confidenceScore = isset($res['score']) ? $res['score'] : 0;
+                    $verificationStatus = isset($res['status']) ? $res['status'] : 'unknown';
                     break;
                 }
             } catch (Exception $ex) {
@@ -168,17 +268,19 @@ try {
     }
 
     if ($emailFound) {
-        // Successful lookup: commit deduction, cache the result, write logs
-        $stmtCache = $db->prepare("INSERT INTO email_cache (name, company_name, domain, linkedin_url, email, confidence_score, provider, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'found') ON DUPLICATE KEY UPDATE email = VALUES(email), confidence_score = VALUES(confidence_score), provider = VALUES(provider), status = 'found'");
+        // Successful lookup: commit deduction
+        $stmtCache = $db->prepare("INSERT INTO email_cache (name, company_name, domain, linkedin_url, email, confidence_score, provider, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'found') ON DUPLICATE KEY UPDATE name = VALUES(name), company_name = VALUES(company_name), domain = VALUES(domain), email = VALUES(email), confidence_score = VALUES(confidence_score), provider = VALUES(provider), status = 'found'");
         $stmtCache->execute([$name, $company, $domain, $linkedinUrl, $emailFound, $confidenceScore, $successProvider]);
 
-        $stmtHist = $db->prepare("INSERT INTO email_search_history (user_id, name, company, email, linkedin_url, provider, credits_used) VALUES (?, ?, ?, ?, ?, ?, 1)");
-        $stmtHist->execute([$userId, $name, $company, $emailFound, $linkedinUrl, $successProvider]);
+        $stmtHist = $db->prepare("INSERT INTO email_search_history (user_id, name, company, email, linkedin_url, provider, credits_used) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmtHist->execute([$userId, $name, $company, $emailFound, $linkedinUrl, $successProvider, $scrapCreditsUsed + 1]);
 
         $stmtTx = $db->prepare("INSERT INTO email_credit_transactions (user_id, type, credits, provider_used, status) VALUES (?, 'usage', 1, ?, 'success')");
         $stmtTx->execute([$userId, $successProvider]);
 
         $db->commit();
+
+        logScraperRequest($db, $userId, $linkedinUrl, $scrapDuration, $companyFound, 'success', $scrapCreditsUsed + 1, '');
 
         sendJsonResponse('success', 'Email found successfully.', [
             'email' => $emailFound,
@@ -186,14 +288,16 @@ try {
             'confidence_score' => $confidenceScore
         ], 200);
     } else {
-        // Unsuccessful lookup: roll back credit deduction, cache not_found status to prevent re-querying, write log
+        // Unsuccessful lookup: roll back credit deduction (Hunter credits refunded, scraper credits retained)
         $db->rollBack();
 
-        $stmtCache = $db->prepare("INSERT INTO email_cache (name, company_name, domain, linkedin_url, email, status) VALUES (?, ?, ?, ?, NULL, 'not_found') ON DUPLICATE KEY UPDATE status = 'not_found'");
+        $stmtCache = $db->prepare("INSERT INTO email_cache (name, company_name, domain, linkedin_url, email, status) VALUES (?, ?, ?, ?, NULL, 'not_found') ON DUPLICATE KEY UPDATE name = VALUES(name), company_name = VALUES(company_name), domain = VALUES(domain), status = 'not_found'");
         $stmtCache->execute([$name, $company, $domain, $linkedinUrl]);
 
-        $stmtHist = $db->prepare("INSERT INTO email_search_history (user_id, name, company, email, linkedin_url, provider, credits_used) VALUES (?, ?, ?, NULL, ?, 'none', 0)");
-        $stmtHist->execute([$userId, $name, $company, $linkedinUrl]);
+        $stmtHist = $db->prepare("INSERT INTO email_search_history (user_id, name, company, email, linkedin_url, provider, credits_used) VALUES (?, ?, ?, NULL, ?, 'none', ?)");
+        $stmtHist->execute([$userId, $name, $company, $linkedinUrl, $scrapCreditsUsed]);
+
+        logScraperRequest($db, $userId, $linkedinUrl, $scrapDuration, $companyFound, 'not_found', $scrapCreditsUsed, '');
 
         sendJsonResponse('error', 'Email address not found.', [], 404);
     }
@@ -202,5 +306,6 @@ try {
     if ($db->inTransaction()) {
         $db->rollBack();
     }
+    logScraperRequest($db, $userId, $linkedinUrl, 0, '', 'error', 0, $e->getMessage());
     sendJsonResponse('error', 'Email Finder lookup failed: ' . $e->getMessage(), [], 500);
 }

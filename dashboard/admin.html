@@ -234,6 +234,52 @@
             </form>
         </div>
 
+        <!-- Section: LinkedIn Scraper Settings -->
+        <div class="glass-panel bg-slate-900/40 border-slate-800 p-6 space-y-4">
+            <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                <i data-lucide="shield-check" class="h-5 w-5 text-teal-400"></i>
+                <span>LinkedIn Scraper Settings</span>
+            </h3>
+            <p class="text-xs text-slate-400">Configure parameters for the background LinkedIn profile scraping service.</p>
+
+            <form id="admin-scraper-form" onsubmit="saveScraperSettings(event)" class="space-y-4 pt-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="flex items-center space-x-3 p-3 bg-slate-950/20 border border-slate-850 rounded-lg">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="scraper-enabled" class="sr-only peer">
+                            <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-500"></div>
+                        </label>
+                        <span class="text-xs font-bold text-slate-300">Enable LinkedIn Profile Scraper</span>
+                    </div>
+
+                    <div class="flex items-center space-x-3 p-3 bg-slate-950/20 border border-slate-850 rounded-lg">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="scraper-debug" class="sr-only peer">
+                            <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-500"></div>
+                        </label>
+                        <span class="text-xs font-bold text-slate-300">Enable Debug logging</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    <div>
+                        <label class="block text-slate-400 font-semibold mb-1 uppercase text-[10px]">FastAPI Scraper API URL</label>
+                        <input type="text" id="scraper-api-url" placeholder="http://localhost:8000" class="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-teal-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-semibold mb-1 uppercase text-[10px]">Request Timeout (Seconds)</label>
+                        <input type="number" id="scraper-timeout" placeholder="15" min="5" max="120" class="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-teal-500">
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="px-5 py-2.5 bg-teal-400 hover:bg-teal-300 text-slate-950 font-bold text-xs rounded-lg transition duration-150">
+                        Save Scraper Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+
         <!-- Section: Razorpay Settings -->
         <div class="glass-panel bg-slate-900/40 border-slate-800 p-6 space-y-4">
             <h3 class="text-lg font-bold text-white flex items-center space-x-2">
@@ -607,6 +653,7 @@
                         }
                     }
                 }
+                await loadAdminScraperSettings();
             } catch (err) {
                 console.error(err);
                 showNotification('error', 'Error loading finder settings: ' + err.message);
@@ -658,6 +705,43 @@
                 }
             } catch (err) {
                 showNotification('error', 'Failed to save payment settings: ' + err.message);
+            }
+        }
+
+        async function loadAdminScraperSettings() {
+            try {
+                const res = await apiCall('admin/get_scraper_settings.php');
+                if (res && res.status === 'success') {
+                    document.getElementById('scraper-enabled').checked = res.is_enabled === 1;
+                    document.getElementById('scraper-debug').checked = res.debug_logging === 1;
+                    document.getElementById('scraper-api-url').value = res.api_url;
+                    document.getElementById('scraper-timeout').value = res.timeout;
+                }
+            } catch (err) {
+                console.error(err);
+                showNotification('error', 'Error loading scraper settings: ' + err.message);
+            }
+        }
+
+        async function saveScraperSettings(e) {
+            e.preventDefault();
+            const payload = {
+                is_enabled: document.getElementById('scraper-enabled').checked ? 1 : 0,
+                debug_logging: document.getElementById('scraper-debug').checked ? 1 : 0,
+                api_url: document.getElementById('scraper-api-url').value,
+                timeout: parseInt(document.getElementById('scraper-timeout').value) || 15
+            };
+
+            try {
+                const res = await apiCall('admin/save_scraper_settings.php', 'POST', payload);
+                if (res && res.status === 'success') {
+                    showNotification('success', 'LinkedIn Scraper settings saved.');
+                    await loadAdminScraperSettings();
+                } else {
+                    throw new Error(res.message);
+                }
+            } catch (err) {
+                showNotification('error', 'Failed to save scraper settings: ' + err.message);
             }
         }
 

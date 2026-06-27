@@ -1210,38 +1210,23 @@
             const profileRes = await fetch(profileUrl);
             const profileHtml = await profileRes.text();
             
-            // 2. Parse Profile HTML using DOMParser
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(profileHtml, 'text/html');
-            
+            // 2. Extract company URN and company name
             let companyUrn = '';
 
-            // Query experience cards
-            const items = doc.querySelectorAll('[componentkey^="entity-collection-item"]');
-            if (items && items.length > 0) {
-                // Find first item
-                const firstItem = items[0];
-                const companyLink = firstItem.querySelector('a[href*="/company/"]');
-                if (companyLink) {
-                    const href = companyLink.getAttribute('href');
-                    const match = href.match(/\/company\/([a-zA-Z0-9\-]+)/);
-                    if (match && match[1]) {
-                        companyUrn = match[1];
-                    }
-                }
-                const paragraphs = firstItem.querySelectorAll('p');
-                for (const p of paragraphs) {
-                    const text = p.textContent || '';
-                    if (text.includes('·') || text.includes(' \u00B7 ')) {
-                        resolvedCompany = text.split(/[·\u00B7]/)[0].trim();
-                        break;
-                    }
-                }
+            // Try to match URN and name directly from JSON strings in the HTML first!
+            const companyNameMatch = profileHtml.match(/"companyName"\s*:\s*"([^"]+)"/);
+            if (companyNameMatch && companyNameMatch[1]) {
+                resolvedCompany = companyNameMatch[1].replace(/\\"/g, '"').trim();
             }
 
-            // Fallback for company URN (skip generic linkedin footer/helper links)
+            const companyUrnMatch = profileHtml.match(/urn:li:fsd_company:(\d+)/);
+            if (companyUrnMatch && companyUrnMatch[1] && companyUrnMatch[1] !== '96420083') {
+                companyUrn = companyUrnMatch[1];
+            }
+
+            // Search for URN handles (supporting both escaped and unescaped company URLs)
             if (!companyUrn) {
-                const matches = [...profileHtml.matchAll(/\/company\/([a-zA-Z0-9\-]+)/g)];
+                const matches = [...profileHtml.matchAll(/\\?\/company\\?\/([a-zA-Z0-9\-_]+)/g)];
                 for (const m of matches) {
                     if (m[1]) {
                         const u = m[1].toLowerCase();
@@ -1269,6 +1254,37 @@
                     if (m[1] && m[1] !== '96420083') {
                         companyUrn = m[1];
                         break;
+                    }
+                }
+            }
+
+            // Fallback: Parse Profile HTML using DOMParser
+            if (!companyUrn || !resolvedCompany) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(profileHtml, 'text/html');
+                
+                const items = doc.querySelectorAll('[componentkey^="entity-collection-item"]');
+                if (items && items.length > 0) {
+                    const firstItem = items[0];
+                    if (!companyUrn) {
+                        const companyLink = firstItem.querySelector('a[href*="/company/"]');
+                        if (companyLink) {
+                            const href = companyLink.getAttribute('href');
+                            const match = href.match(/\/company\/([a-zA-Z0-9\-]+)/);
+                            if (match && match[1]) {
+                                companyUrn = match[1];
+                            }
+                        }
+                    }
+                    if (!resolvedCompany) {
+                        const paragraphs = firstItem.querySelectorAll('p');
+                        for (const p of paragraphs) {
+                            const text = p.textContent || '';
+                            if (text.includes('·') || text.includes(' \u00B7 ')) {
+                                resolvedCompany = text.split(/[·\u00B7]/)[0].trim();
+                                break;
+                            }
+                        }
                     }
                 }
             }

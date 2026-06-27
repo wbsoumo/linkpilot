@@ -93,14 +93,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             let companyUrn = payload.company_urn || '';
             const profileUrl = payload.linkedin_url || '';
             
-            if (!companyUrn && profileUrl) {
-                companyUrn = await fetchCompanyUrnFromProfile(profileUrl);
-            }
-            
-            if (companyUrn) {
-                const domain = await fetchCompanyDomain(companyUrn);
-                if (domain) {
-                    payload.domain = domain;
+            if (!payload.domain) {
+                if (!companyUrn && profileUrl) {
+                    companyUrn = await fetchCompanyUrnFromProfile(profileUrl);
+                }
+                
+                if (companyUrn) {
+                    const domain = await fetchCompanyDomain(companyUrn);
+                    if (domain) {
+                        payload.domain = domain;
+                    }
                 }
             }
             

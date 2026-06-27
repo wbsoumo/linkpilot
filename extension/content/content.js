@@ -348,8 +348,10 @@
 
                 addStatusRow('Connecting secure database tunnel...');
                 
-                setTimeout(() => {
+                setTimeout(async () => {
                     addStatusRow('Parsing profile credentials...');
+                    
+                    const scrapedDomain = await scrapeDomainFromProfile(postDetails.profileUrl);
                     
                     setTimeout(() => {
                         addStatusRow('Scanning local cached hits...');
@@ -358,7 +360,8 @@
                             linkedin_url: postDetails.profileUrl,
                             name: postDetails.author,
                             company: postDetails.company,
-                            job_title: postDetails.headline
+                            job_title: postDetails.headline,
+                            domain: scrapedDomain
                         };
 
                         window.LinkPilotUtils.safeSendMessage({ action: 'findEmail', payload }, (res) => {
@@ -1045,17 +1048,21 @@
 
             document.body.appendChild(container);
 
-            // Execute finder request
-            window.LinkPilotUtils.safeSendMessage({
-                action: 'findEmail',
-                payload: {
-                    linkedin_url: details.linkedin_url,
-                    name: details.name,
-                    company: details.company,
-                    job_title: details.job_title,
-                    company_urn: details.company_urn
-                }
-            }, (res) => {
+            (async () => {
+                const scrapedDomain = await scrapeDomainFromProfile(details.linkedin_url);
+
+                // Execute finder request
+                window.LinkPilotUtils.safeSendMessage({
+                    action: 'findEmail',
+                    payload: {
+                        linkedin_url: details.linkedin_url,
+                        name: details.name,
+                        company: details.company,
+                        job_title: details.job_title,
+                        company_urn: details.company_urn,
+                        domain: scrapedDomain
+                    }
+                }, (res) => {
                 // Clear loader
                 finderBody.innerHTML = '';
 
@@ -1158,6 +1165,7 @@
                     finderBody.appendChild(failBlock);
                 }
             });
+          })();
         });
     };
 
@@ -1170,6 +1178,72 @@
         action: 'trackAction',
         payload: { event_type: 'extension_opened', details: 'Extension modular content script loaded on LinkedIn' }
     }, () => {});
+
+    /**
+     * Scrapes the company website domain by fetching the profile and company page.
+     * @param {string} profileUrl
+     * @returns {Promise<string>}
+     */
+    async function scrapeDomainFromProfile(profileUrl) {
+        try {
+            if (!profileUrl) return '';
+            
+            // 1. Fetch profile HTML
+            const profileRes = await fetch(profileUrl);
+            const profileHtml = await profileRes.text();
+            
+            // 2. Extract company URN
+            const match = profileHtml.match(/\/company\/([a-zA-Z0-9\-]+)/);
+            const fsdMatch = profileHtml.match(/urn:li:fsd_company:(\d+)/);
+            const compMatch = profileHtml.match(/urn:li:company:(\d+)/);
+            const companyUrn = (match && match[1]) || (fsdMatch && fsdMatch[1]) || (compMatch && compMatch[1]) || '';
+            
+            if (!companyUrn) return '';
+            
+            // 3. Fetch company page
+            const companyRes = await fetch(`https://www.linkedin.com/company/${companyUrn}/about/`);
+            const companyHtml = await companyRes.text();
+            
+            // 4. Parse company HTML using DOMParser
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(companyHtml, 'text/html');
+            
+            // Find external links
+            const anchors = doc.querySelectorAll('a');
+            for (const a of anchors) {
+                let href = a.getAttribute('href') || '';
+                
+                // Handle LinkedIn link redirects (e.g. /redir/redirect?url=...)
+                if (href.includes('redir/redirect')) {
+                    const urlParam = new URL(href, window.location.origin).searchParams.get('url');
+                    if (urlParam) href = urlParam;
+                }
+                
+                if (href.startsWith('http') && !href.includes('linkedin.com')) {
+                    try {
+                        const host = new URL(href).hostname.replace('www.', '');
+                        if (host) return host;
+                    } catch (e) {}
+                }
+            }
+            
+            // Fallback: check JSON strings inside HTML
+            let jsonMatch = companyHtml.match(/"website":"(http[s]?:\/\/[^"]+)"/);
+            let jsonMatchUrl = companyHtml.match(/"websiteUrl":"(http[s]?:\/\/[^"]+)"/);
+            
+            if (jsonMatch && jsonMatch[1]) {
+                let cleanUrl = jsonMatch[1].replace(/\\/g, '');
+                return new URL(cleanUrl).hostname.replace('www.', '');
+            }
+            if (jsonMatchUrl && jsonMatchUrl[1]) {
+                let cleanUrl = jsonMatchUrl[1].replace(/\\/g, '');
+                return new URL(cleanUrl).hostname.replace('www.', '');
+            }
+        } catch (err) {
+            console.warn('Scraping domain from profile failed:', err.message);
+        }
+        return '';
+    }
 
     window.LinkPilotLogger.info('LinkPilot AI modules initialized successfully.');
 })();

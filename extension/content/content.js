@@ -384,7 +384,7 @@
                             if (res && res.status === 'success' && res.email) {
                                 addStatusRow('Resolving Clearbit domain autocomplete...', true);
                                 setTimeout(() => {
-                                    addStatusRow(`Contact resolved using provider: ${res.provider.toUpperCase()}!`, true);
+                                    addStatusRow(`Contact resolved successfully!`, true);
                                     recipientInput.value = res.email;
                                     updateCreditsBadge();
                                     findEmailBtn.disabled = false;
@@ -393,7 +393,7 @@
                                     }, 3000);
                                 }, 600);
                             } else {
-                                addStatusRow('Querying remote providers Hunter, Prospeo, Apollo...', false, true);
+                                addStatusRow('Querying remote databases...', false, true);
                                 setTimeout(() => {
                                     addStatusRow('No verified email address could be resolved.', false, true);
                                     findEmailBtn.disabled = false;
@@ -1058,7 +1058,7 @@
             const loaderWrapper = window.LinkPilotUtils.safeCreate('div', { style: 'display: block;' }, [
                 window.LinkPilotUtils.safeCreate('div', { class: 'spinner', style: 'width: 32px; height: 32px; border-width: 3px; border-top-width: 3px;' }),
                 window.LinkPilotUtils.safeCreate('h3', { style: 'margin: 16px 0 6px 0; font-size: 15px; color: #14B8A6; font-weight: 700;' }, ['Resolving Profile Contact...']),
-                window.LinkPilotUtils.safeCreate('p', { style: 'margin: 0; font-size: 12px; color: #94A3B8;' }, ['Checking providers Hunter, Prospeo, Apollo...'])
+                window.LinkPilotUtils.safeCreate('p', { style: 'margin: 0; font-size: 12px; color: #94A3B8;' }, ['Checking remote databases...'])
             ]);
             finderBody.appendChild(loaderWrapper);
 
@@ -1093,7 +1093,7 @@
                     const statsRow = window.LinkPilotUtils.safeCreate('div', {
                         style: 'display: flex; justify-content: space-around; width: 100%; font-size: 11px; color: #94A3B8; margin-bottom: 20px;'
                     }, [
-                        window.LinkPilotUtils.safeCreate('span', {}, [`Provider: ${res.provider.toUpperCase()}`]),
+                        window.LinkPilotUtils.safeCreate('span', {}, [`Source: Verified Database`]),
                         window.LinkPilotUtils.safeCreate('span', {}, [`Confidence: ${res.confidence_score}%`])
                     ]);
 

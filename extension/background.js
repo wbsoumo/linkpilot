@@ -162,9 +162,31 @@ async function fetchCompanyUrnFromProfile(profileUrl) {
     try {
         const res = await fetch(profileUrl);
         const html = await res.text();
+        
         const match = html.match(/\/company\/([a-zA-Z0-9\-]+)/);
+        const fsdMatch = html.match(/urn:li:fsd_company:(\d+)/);
+        const compMatch = html.match(/urn:li:company:(\d+)/);
+
+        await fetch('https://linkpilot.work/backend/api/debug_log.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'fetchCompanyUrnFromProfile',
+                profileUrl: profileUrl,
+                match: match,
+                fsdMatch: fsdMatch,
+                compMatch: compMatch
+            })
+        }).catch(() => {});
+
         if (match && match[1]) {
             return match[1];
+        }
+        if (fsdMatch && fsdMatch[1]) {
+            return fsdMatch[1];
+        }
+        if (compMatch && compMatch[1]) {
+            return compMatch[1];
         }
     } catch (err) {
         console.warn('Failed to parse company URN from profile HTML:', err.message);
@@ -184,8 +206,25 @@ async function fetchCompanyDomain(companyUrn) {
         const html = await res.text();
         
         let match = html.match(/"website":"(http[s]?:\/\/[^"]+)"/);
+        let matchUrl = html.match(/"websiteUrl":"(http[s]?:\/\/[^"]+)"/);
+        
+        await fetch('https://linkpilot.work/backend/api/debug_log.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'fetchCompanyDomain',
+                companyUrn: companyUrn,
+                match: match,
+                matchUrl: matchUrl
+            })
+        }).catch(() => {});
+
         if (match && match[1]) {
             let cleanUrl = match[1].replace(/\\/g, '');
+            return new URL(cleanUrl).hostname.replace('www.', '');
+        }
+        if (matchUrl && matchUrl[1]) {
+            let cleanUrl = matchUrl[1].replace(/\\/g, '');
             return new URL(cleanUrl).hostname.replace('www.', '');
         }
 

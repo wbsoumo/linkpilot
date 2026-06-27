@@ -351,7 +351,23 @@
                 setTimeout(async () => {
                     addStatusRow('Parsing profile credentials...');
                     
-                    const scrapedDomain = await scrapeDomainFromProfile(postDetails.profileUrl);
+                    const result = await scrapeDomainFromProfile(postDetails.profileUrl);
+                    
+                    if (result.company) {
+                        addStatusRow(`Scraped current company: ${result.company}`, true);
+                        const subtitle = shadow.getElementById('modal-header-company');
+                        if (subtitle) {
+                            subtitle.textContent = result.company;
+                        }
+                    } else {
+                        addStatusRow('Scraped company: No official company page found (skipping URN)', false, false);
+                    }
+                    
+                    if (result.domain) {
+                        addStatusRow(`Scraped company domain: ${result.domain}`, true);
+                    } else {
+                        addStatusRow('Scraped domain: No website domain located on page', false, false);
+                    }
                     
                     setTimeout(() => {
                         addStatusRow('Scanning local cached hits...');
@@ -359,9 +375,9 @@
                         const payload = {
                             linkedin_url: postDetails.profileUrl,
                             name: postDetails.author,
-                            company: postDetails.company,
+                            company: result.company || postDetails.company,
                             job_title: postDetails.headline,
-                            domain: scrapedDomain
+                            domain: result.domain
                         };
 
                         window.LinkPilotUtils.safeSendMessage({ action: 'findEmail', payload }, (res) => {
@@ -646,7 +662,7 @@
 
             const authorInfo = window.LinkPilotUtils.safeCreate('div', { class: 'author-info' }, [
                 window.LinkPilotUtils.safeCreate('h3', {}, [details.author]),
-                window.LinkPilotUtils.safeCreate('p', {}, [details.company]),
+                window.LinkPilotUtils.safeCreate('p', { id: 'modal-header-company' }, [details.company]),
                 summaryDiv
             ]);
 
@@ -934,7 +950,7 @@
 
             const authorInfo = window.LinkPilotUtils.safeCreate('div', { class: 'author-info' }, [
                 window.LinkPilotUtils.safeCreate('h3', {}, [details.name]),
-                window.LinkPilotUtils.safeCreate('p', {}, [details.company || 'LinkedIn Member']),
+                window.LinkPilotUtils.safeCreate('p', { id: 'modal-header-company' }, [details.company || 'LinkedIn Member']),
                 window.LinkPilotUtils.safeCreate('p', { style: 'font-size: 11px; color: #64748B;' }, [details.job_title || ''])
             ]);
 

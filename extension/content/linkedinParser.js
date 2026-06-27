@@ -60,17 +60,8 @@
             return true;
         }
 
-        // 2. Exclude if inside suggesting header (appearing before first HR separator)
-        const firstHr = postRoot.querySelector('hr');
-        if (firstHr) {
-            // compareDocumentPosition returns 4 (Node.DOCUMENT_POSITION_FOLLOWING) if firstHr is after el
-            if (el.compareDocumentPosition(firstHr) & 4) {
-                return true;
-            }
-        }
-
-        // 3. Exclude if parent header has suggesting classes / text
-        const suggesters = el.closest('[class*="suggest"], [class*="header--suggestion"]');
+        // 2. Exclude if parent header has suggesting classes / text
+        const suggesters = el.closest('[class*="suggest"], [class*="header--suggestion"], .update-components-header, .feed-shared-update-v2__header');
         if (suggesters) return true;
 
         return false;
@@ -176,7 +167,13 @@
                 if (ariaLabelEl) {
                     const label = ariaLabelEl.getAttribute('aria-label');
                     if (label) {
-                        const cleanLabel = label.replace(/\s*(1st|2nd|3rd|following|follow|\+|•).*$/i, '').trim();
+                        let cleanLabel = label.replace(/\s*(1st|2nd|3rd|following|follow|\+|•).*$/i, '').trim();
+                        cleanLabel = cleanLabel
+                            .replace(/^view\s+/i, '')
+                            .replace(/’s\s+profile/i, '')
+                            .replace(/'s\s+profile/i, '')
+                            .replace(/photo\s+of\s+/i, '')
+                            .trim();
                         if (cleanLabel) return cleanLabel;
                     }
                 }

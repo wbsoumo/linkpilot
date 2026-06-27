@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "LinkPilot AI",
   "short_name": "LinkPilot",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "Generate personalized outreach emails, comments, and WhatsApp messages directly from LinkedIn posts.",
   "homepage_url": "https://linkpilot.work",
   "author": "LinkPilot AI",

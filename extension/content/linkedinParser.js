@@ -61,8 +61,16 @@
         }
 
         // 2. Exclude if parent header has suggesting classes / text
-        const suggesters = el.closest('[class*="suggest"], [class*="header--suggestion"], .update-components-header, .feed-shared-update-v2__header');
+        const suggesters = el.closest('[class*="suggest"], [class*="header--suggestion"]');
         if (suggesters) return true;
+
+        // 3. Exclude top suggestion headers but preserve elements nested inside the actor/author card
+        if (el.closest('.update-components-header') && !el.closest('.update-components-actor')) {
+            return true;
+        }
+        if (el.closest('.feed-shared-update-v2__header') && !el.closest('.feed-shared-actor')) {
+            return true;
+        }
 
         return false;
     };

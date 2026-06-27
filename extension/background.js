@@ -217,7 +217,9 @@ async function fetchCompanyDomain(companyUrn) {
                 action: 'fetchCompanyDomain',
                 companyUrn: companyUrn,
                 match: match,
-                matchUrl: matchUrl
+                matchUrl: matchUrl,
+                htmlLength: html.length,
+                preview: html.substring(0, 1500)
             })
         }).catch(() => {});
 

@@ -1196,28 +1196,59 @@
     }, () => {});
 
     /**
-     * Scrapes the company website domain by fetching the profile and company page.
+     * Scrapes the company name and website domain by fetching the profile and company page.
      * @param {string} profileUrl
-     * @returns {Promise<string>}
+     * @returns {Promise<{domain: string, company: string}>}
      */
     async function scrapeDomainFromProfile(profileUrl) {
+        let resolvedCompany = '';
+        let resolvedDomain = '';
         try {
-            if (!profileUrl) return '';
+            if (!profileUrl) return { domain: '', company: '' };
             
             // 1. Fetch profile HTML
             const profileRes = await fetch(profileUrl);
             const profileHtml = await profileRes.text();
             
-            // 2. Extract company URN (skip generic linkedin footer/helper links)
-            let companyUrn = '';
+            // 2. Parse Profile HTML using DOMParser
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(profileHtml, 'text/html');
             
-            const matches = [...profileHtml.matchAll(/\/company\/([a-zA-Z0-9\-]+)/g)];
-            for (const m of matches) {
-                if (m[1]) {
-                    const u = m[1].toLowerCase();
-                    if (u !== 'linkedin' && u !== '96420083' && u !== 'invalid') {
-                        companyUrn = m[1];
+            let companyUrn = '';
+
+            // Query experience cards
+            const items = doc.querySelectorAll('[componentkey^="entity-collection-item"]');
+            if (items && items.length > 0) {
+                // Find first item
+                const firstItem = items[0];
+                const companyLink = firstItem.querySelector('a[href*="/company/"]');
+                if (companyLink) {
+                    const href = companyLink.getAttribute('href');
+                    const match = href.match(/\/company\/([a-zA-Z0-9\-]+)/);
+                    if (match && match[1]) {
+                        companyUrn = match[1];
+                    }
+                }
+                const paragraphs = firstItem.querySelectorAll('p');
+                for (const p of paragraphs) {
+                    const text = p.textContent || '';
+                    if (text.includes('·') || text.includes(' \u00B7 ')) {
+                        resolvedCompany = text.split(/[·\u00B7]/)[0].trim();
                         break;
+                    }
+                }
+            }
+
+            // Fallback for company URN (skip generic linkedin footer/helper links)
+            if (!companyUrn) {
+                const matches = [...profileHtml.matchAll(/\/company\/([a-zA-Z0-9\-]+)/g)];
+                for (const m of matches) {
+                    if (m[1]) {
+                        const u = m[1].toLowerCase();
+                        if (u !== 'linkedin' && u !== '96420083' && u !== 'invalid' && u !== 'setup') {
+                            companyUrn = m[1];
+                            break;
+                        }
                     }
                 }
             }
@@ -1241,52 +1272,93 @@
                     }
                 }
             }
-            
-            if (!companyUrn) return '';
-            
-            // 3. Fetch company page
-            const companyRes = await fetch(`https://www.linkedin.com/company/${companyUrn}/about/`);
-            const companyHtml = await companyRes.text();
-            
-            // 4. Parse company HTML using DOMParser
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(companyHtml, 'text/html');
-            
-            // Find external links
-            const anchors = doc.querySelectorAll('a');
-            for (const a of anchors) {
-                let href = a.getAttribute('href') || '';
-                
-                // Handle LinkedIn link redirects (e.g. /redir/redirect?url=...)
-                if (href.includes('redir/redirect')) {
-                    const urlParam = new URL(href, window.location.origin).searchParams.get('url');
-                    if (urlParam) href = urlParam;
-                }
-                
-                if (href.startsWith('http') && !href.includes('linkedin.com')) {
-                    try {
-                        const host = new URL(href).hostname.replace('www.', '');
-                        if (host) return host;
-                    } catch (e) {}
+
+            // Fallback for company name
+            if (!resolvedCompany) {
+                const paragraphs = doc.querySelectorAll('p, span');
+                for (const p of paragraphs) {
+                    const text = p.textContent || '';
+                    if (text.includes('·') || text.includes(' \u00B7 ')) {
+                        const parts = text.split(/[·\u00B7]/);
+                        const nameCandidate = parts[0].trim();
+                        if (nameCandidate && nameCandidate.length > 1 && nameCandidate.length < 100 && !nameCandidate.includes('years') && !nameCandidate.includes('mos') && !nameCandidate.includes('ago')) {
+                            resolvedCompany = nameCandidate;
+                            break;
+                        }
+                    }
                 }
             }
             
-            // Fallback: check JSON strings inside HTML
-            let jsonMatch = companyHtml.match(/"website":"(http[s]?:\/\/[^"]+)"/);
-            let jsonMatchUrl = companyHtml.match(/"websiteUrl":"(http[s]?:\/\/[^"]+)"/);
-            
-            if (jsonMatch && jsonMatch[1]) {
-                let cleanUrl = jsonMatch[1].replace(/\\/g, '');
-                return new URL(cleanUrl).hostname.replace('www.', '');
+            // 3. Fetch company page to get the domain
+            if (companyUrn) {
+                const companyRes = await fetch(`https://www.linkedin.com/company/${companyUrn}/`);
+                const companyHtml = await companyRes.text();
+                const companyDoc = parser.parseFromString(companyHtml, 'text/html');
+
+                // Try to find Visit Website link on main company card
+                const visitLink = companyDoc.querySelector('a.org-top-card-primary-actions__action, .org-top-card-primary-actions__inner a');
+                if (visitLink) {
+                    let href = visitLink.getAttribute('href') || '';
+                    if (href.includes('redir/redirect')) {
+                        const urlParam = new URL(href, window.location.origin).searchParams.get('url');
+                        if (urlParam) href = urlParam;
+                    }
+                    if (href.startsWith('http') && !href.includes('linkedin.com')) {
+                        try {
+                            resolvedDomain = new URL(href).hostname.replace('www.', '');
+                        } catch (e) {}
+                    }
+                }
+
+                // Check all anchors for "Visit website" text
+                if (!resolvedDomain) {
+                    const anchors = companyDoc.querySelectorAll('a');
+                    for (const a of anchors) {
+                        const text = a.textContent || '';
+                        let href = a.getAttribute('href') || '';
+                        if (text.toLowerCase().includes('visit website') || href.includes('org-top-card-primary-actions')) {
+                            if (href.includes('redir/redirect')) {
+                                const urlParam = new URL(href, window.location.origin).searchParams.get('url');
+                                if (urlParam) href = urlParam;
+                            }
+                            if (href.startsWith('http') && !href.includes('linkedin.com')) {
+                                try {
+                                    resolvedDomain = new URL(href).hostname.replace('www.', '');
+                                    break;
+                                } catch (e) {}
+                            }
+                        }
+                    }
+                }
+
+                // Check JSON website metadata
+                if (!resolvedDomain) {
+                    let jsonMatch = companyHtml.match(/"website":"(http[s]?:\/\/[^"]+)"/);
+                    let jsonMatchUrl = companyHtml.match(/"websiteUrl":"(http[s]?:\/\/[^"]+)"/);
+                    if (jsonMatch && jsonMatch[1]) {
+                        let cleanUrl = jsonMatch[1].replace(/\\/g, '');
+                        resolvedDomain = new URL(cleanUrl).hostname.replace('www.', '');
+                    } else if (jsonMatchUrl && jsonMatchUrl[1]) {
+                        let cleanUrl = jsonMatchUrl[1].replace(/\\/g, '');
+                        resolvedDomain = new URL(cleanUrl).hostname.replace('www.', '');
+                    }
+                }
             }
-            if (jsonMatchUrl && jsonMatchUrl[1]) {
-                let cleanUrl = jsonMatchUrl[1].replace(/\\/g, '');
-                return new URL(cleanUrl).hostname.replace('www.', '');
+
+            // 4. Fallback to Clearbit if we got the company name but no website domain
+            if (!resolvedDomain && resolvedCompany) {
+                try {
+                    const clearbitRes = await fetch(`https://autocomplete.clearbit.com/v1/companies/suggest?query=${encodeURIComponent(resolvedCompany)}`);
+                    const data = await clearbitRes.json();
+                    if (data && data[0] && data[0].domain) {
+                        resolvedDomain = data[0].domain;
+                    }
+                } catch (e) {}
             }
         } catch (err) {
             console.warn('Scraping domain from profile failed:', err.message);
         }
-        return '';
+        return { domain: resolvedDomain, company: resolvedCompany };
     }
 
     window.LinkPilotLogger.info('LinkPilot AI modules initialized successfully.');

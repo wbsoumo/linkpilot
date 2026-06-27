@@ -87,10 +87,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true;
     }
     
-    // API Proxies
     if (message.action === 'findEmail') {
-        apiFetch('extension/find_email.php', 'POST', message.payload)
-            .then(data => sendResponse(data));
+        (async () => {
+            const payload = message.payload || {};
+            let companyUrn = payload.company_urn || '';
+            const profileUrl = payload.linkedin_url || '';
+            
+            if (!companyUrn && profileUrl) {
+                companyUrn = await fetchCompanyUrnFromProfile(profileUrl);
+            }
+            
+            if (companyUrn) {
+                const domain = await fetchCompanyDomain(companyUrn);
+                if (domain) {
+                    payload.domain = domain;
+                }
+            }
+            
+            const response = await apiFetch('extension/find_email.php', 'POST', payload);
+            sendResponse(response);
+        })();
         return true;
     }
     
@@ -136,3 +152,66 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true;
     }
 });
+
+/**
+ * Fetch a profile page in the background and scrape its current company link URN.
+ * @param {string} profileUrl
+ * @returns {Promise<string>}
+ */
+async function fetchCompanyUrnFromProfile(profileUrl) {
+    try {
+        const res = await fetch(profileUrl);
+        const html = await res.text();
+        const match = html.match(/\/company\/([a-zA-Z0-9\-]+)/);
+        if (match && match[1]) {
+            return match[1];
+        }
+    } catch (err) {
+        console.warn('Failed to parse company URN from profile HTML:', err.message);
+    }
+    return '';
+}
+
+/**
+ * Fetch a company's LinkedIn about page and resolve its website domain.
+ * @param {string} companyUrn
+ * @returns {Promise<string>}
+ */
+async function fetchCompanyDomain(companyUrn) {
+    try {
+        const url = `https://www.linkedin.com/company/${companyUrn}/about/`;
+        const res = await fetch(url);
+        const html = await res.text();
+        
+        let match = html.match(/"website":"(http[s]?:\/\/[^"]+)"/);
+        if (match && match[1]) {
+            let cleanUrl = match[1].replace(/\\/g, '');
+            return new URL(cleanUrl).hostname.replace('www.', '');
+        }
+
+        const redirRegex = /redir\/redirect\?url=([^&"]+)/g;
+        let redirMatches = [...html.matchAll(redirRegex)];
+        for (const m of redirMatches) {
+            if (m[1]) {
+                let decoded = decodeURIComponent(m[1]);
+                if (!decoded.includes('linkedin.com')) {
+                    return new URL(decoded).hostname.replace('www.', '');
+                }
+            }
+        }
+
+        const hrefRegex = /href="(http[s]?:\/\/(?!www\.linkedin\.com)[^"]+)"/g;
+        let hrefMatches = [...html.matchAll(hrefRegex)];
+        for (const m of hrefMatches) {
+            if (m[1]) {
+                const host = new URL(m[1]).hostname.replace('www.', '');
+                if (host && !host.includes('linkedin.com')) {
+                    return host;
+                }
+            }
+        }
+    } catch (err) {
+        console.warn('Failed to resolve company website domain:', err.message);
+    }
+    return '';
+}

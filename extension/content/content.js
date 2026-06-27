@@ -1052,7 +1052,8 @@
                     linkedin_url: details.linkedin_url,
                     name: details.name,
                     company: details.company,
-                    job_title: details.job_title
+                    job_title: details.job_title,
+                    company_urn: details.company_urn
                 }
             }, (res) => {
                 // Clear loader

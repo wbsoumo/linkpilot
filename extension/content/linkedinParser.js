@@ -445,11 +445,22 @@
 
             const linkedinUrl = window.location.href.split('?')[0];
 
+            let companyUrn = '';
+            const companyLink = document.querySelector('a[href*="/company/"]');
+            if (companyLink) {
+                const href = companyLink.getAttribute('href');
+                const match = href.match(/\/company\/([a-zA-Z0-9\-]+)/);
+                if (match && match[1]) {
+                    companyUrn = match[1];
+                }
+            }
+
             return {
                 name,
                 company,
                 job_title: jobTitle,
-                linkedin_url: linkedinUrl
+                linkedin_url: linkedinUrl,
+                company_urn: companyUrn
             };
         }
     };

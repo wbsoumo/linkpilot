@@ -48,6 +48,35 @@
     };
 
     /**
+     * Determines if a DOM element should be excluded from main post parsing
+     * (e.g. if it belongs to suggesting header, comment list, or actions block).
+     * @param {HTMLElement} el
+     * @param {HTMLElement} postRoot
+     * @returns {boolean}
+     */
+    const isExcludedNode = (el, postRoot) => {
+        // 1. Exclude if inside comment sections
+        if (el.closest('[class*="commentList"], [class*="comment-item"], [class*="comments-Section"], [class*="commentsSection"], .comments-post-meta')) {
+            return true;
+        }
+
+        // 2. Exclude if inside suggesting header (appearing before first HR separator)
+        const firstHr = postRoot.querySelector('hr');
+        if (firstHr) {
+            // compareDocumentPosition returns 4 (Node.DOCUMENT_POSITION_FOLLOWING) if firstHr is after el
+            if (el.compareDocumentPosition(firstHr) & 4) {
+                return true;
+            }
+        }
+
+        // 3. Exclude if parent header has suggesting classes / text
+        const suggesters = el.closest('[class*="suggest"], [class*="header--suggestion"]');
+        if (suggesters) return true;
+
+        return false;
+    };
+
+    /**
      * Helper to find the main social action bar by walking up from a button/link.
      * @param {HTMLElement} btn
      * @returns {HTMLElement|null}
@@ -131,15 +160,18 @@
          */
         extractAuthor: (postElement) => {
             for (const sel of window.LinkPilotSelectors.author) {
-                const el = postElement.querySelector(sel);
-                if (el) {
+                const elements = postElement.querySelectorAll(sel);
+                for (const el of elements) {
+                    if (isExcludedNode(el, postElement)) continue;
                     const text = el.innerText.split('\n')[0].trim();
-                    if (text) return text;
+                    if (text && !isMetadataLine(text)) return text;
                 }
             }
 
             const profileLinks = postElement.querySelectorAll(window.LinkPilotSelectors.links.profile);
             for (const profileLink of profileLinks) {
+                if (isExcludedNode(profileLink, postElement)) continue;
+
                 const ariaLabelEl = profileLink.querySelector('[aria-label]');
                 if (ariaLabelEl) {
                     const label = ariaLabelEl.getAttribute('aria-label');
@@ -157,9 +189,12 @@
                 }
             }
 
-            const firstImg = postElement.querySelector('a[href*="/in/"] img');
-            if (firstImg) {
-                const alt = (firstImg.getAttribute('alt') || '').trim();
+            const images = postElement.querySelectorAll('a[href*="/in/"] img');
+            for (const img of images) {
+                const link = img.closest('a');
+                if (link && isExcludedNode(link, postElement)) continue;
+
+                const alt = (img.getAttribute('alt') || '').trim();
                 if (alt && (alt.toLowerCase().includes('profile') || alt.toLowerCase().includes('photo'))) {
                     const cleanAlt = alt
                         .replace(/view\s+/i, '')
@@ -181,16 +216,18 @@
          */
         extractHeadline: (postElement) => {
             for (const sel of window.LinkPilotSelectors.headline) {
-                const el = postElement.querySelector(sel);
-                if (el) {
+                const elements = postElement.querySelectorAll(sel);
+                for (const el of elements) {
+                    if (isExcludedNode(el, postElement)) continue;
                     const text = el.innerText.trim();
-                    if (text) return text;
+                    if (text && !isMetadataLine(text)) return text;
                 }
             }
 
             const profileLinks = postElement.querySelectorAll(window.LinkPilotSelectors.links.profile);
             let nameLink = null;
             for (const link of profileLinks) {
+                if (isExcludedNode(link, postElement)) continue;
                 const text = link.innerText.trim();
                 if (text && !isMetadataLine(text)) {
                     nameLink = link;
@@ -217,8 +254,9 @@
                 }
             }
 
-            const actorContainer = postElement.querySelector('.update-components-actor, .feed-shared-actor, [class*="actor"]');
-            if (actorContainer) {
+            const actorContainers = postElement.querySelectorAll('.update-components-actor, .feed-shared-actor, [class*="actor"]');
+            for (const actorContainer of actorContainers) {
+                if (isExcludedNode(actorContainer, postElement)) continue;
                 const textLines = actorContainer.innerText.split('\n').map(l => l.trim()).filter(Boolean);
                 const cleanLines = textLines.filter(line => !isMetadataLine(line));
                 if (cleanLines.length > 1) {
@@ -251,8 +289,9 @@
          */
         extractText: (postElement) => {
             for (const sel of window.LinkPilotSelectors.text) {
-                const el = postElement.querySelector(sel);
-                if (el) {
+                const elements = postElement.querySelectorAll(sel);
+                for (const el of elements) {
+                    if (isExcludedNode(el, postElement)) continue;
                     const cloned = el.cloneNode(true);
                     const seeMore = cloned.querySelector('button, .see-more, [class*="see-more"]');
                     if (seeMore) seeMore.remove();

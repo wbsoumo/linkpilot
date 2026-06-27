@@ -373,6 +373,45 @@
                 time: parser.extractTimestamp(postElement),
                 domReference: postElement
             };
+        },
+
+        /**
+         * Scrapes the active LinkedIn profile page header info.
+         * @returns {Object}
+         */
+        parseProfile: () => {
+            let name = 'LinkedIn Member';
+            const nameEl = document.querySelector('h1.text-heading-xlarge, main.scaffold-layout__main section h1, h1');
+            if (nameEl) {
+                name = nameEl.innerText.trim();
+            }
+
+            let jobTitle = '';
+            const titleEl = document.querySelector('div.text-body-medium, [class*="text-body-medium"]');
+            if (titleEl) {
+                jobTitle = titleEl.innerText.trim();
+            }
+
+            let company = '';
+            const companyEl = document.querySelector('button[aria-label*="Current company"], ul.pv-text-details__right-panel li button span, [data-field="experience_company_title"]');
+            if (companyEl) {
+                company = companyEl.innerText.trim();
+            } else {
+                if (jobTitle.includes(' at ')) {
+                    company = jobTitle.split(' at ')[1].trim().split('·')[0].trim();
+                } else if (jobTitle.includes(' @ ')) {
+                    company = jobTitle.split(' @ ')[1].trim().split('·')[0].trim();
+                }
+            }
+
+            const linkedinUrl = window.location.href.split('?')[0];
+
+            return {
+                name,
+                company,
+                job_title: jobTitle,
+                linkedin_url: linkedinUrl
+            };
         }
     };
 })();

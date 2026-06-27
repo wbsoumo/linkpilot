@@ -152,6 +152,219 @@
             </div>
         </div>
 
+        <!-- Section: Email Finder Settings -->
+        <div class="glass-panel bg-slate-900/40 border-slate-800 p-6 space-y-4">
+            <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                <i data-lucide="mail" class="h-5 w-5 text-teal-400"></i>
+                <span>Email Finder API Settings</span>
+            </h3>
+            <p class="text-xs text-slate-400">Toggle providers, define priority order, and manage connection keys securely.</p>
+            
+            <form id="admin-finder-form" onsubmit="saveFinderSettings(event)" class="space-y-6 pt-2">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Hunter.io Card -->
+                    <div class="p-5 bg-slate-950/40 border border-slate-850 rounded-xl space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-extrabold uppercase tracking-wider text-teal-400">Hunter.io</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="hunter-enabled" class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-500"></div>
+                            </label>
+                        </div>
+                        <div class="space-y-3 text-xs">
+                            <div>
+                                <label class="block text-slate-500 font-semibold mb-1 uppercase text-[10px]">Priority Order</label>
+                                <input type="number" id="hunter-priority" min="1" max="3" class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-750 text-white rounded focus:outline-none focus:ring-1 focus:ring-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-slate-500 font-semibold mb-1 uppercase text-[10px]">API Key</label>
+                                <input type="password" id="hunter-key" placeholder="••••••••" class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-750 text-white rounded focus:outline-none focus:ring-1 focus:ring-teal-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Prospeo.io Card -->
+                    <div class="p-5 bg-slate-950/40 border border-slate-850 rounded-xl space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-extrabold uppercase tracking-wider text-teal-400">Prospeo.io</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="prospeo-enabled" class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-500"></div>
+                            </label>
+                        </div>
+                        <div class="space-y-3 text-xs">
+                            <div>
+                                <label class="block text-slate-500 font-semibold mb-1 uppercase text-[10px]">Priority Order</label>
+                                <input type="number" id="prospeo-priority" min="1" max="3" class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-750 text-white rounded focus:outline-none focus:ring-1 focus:ring-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-slate-500 font-semibold mb-1 uppercase text-[10px]">API Key</label>
+                                <input type="password" id="prospeo-key" placeholder="••••••••" class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-750 text-white rounded focus:outline-none focus:ring-1 focus:ring-teal-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Apollo.io Card -->
+                    <div class="p-5 bg-slate-950/40 border border-slate-850 rounded-xl space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-extrabold uppercase tracking-wider text-teal-400">Apollo.io</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="apollo-enabled" class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-500"></div>
+                            </label>
+                        </div>
+                        <div class="space-y-3 text-xs">
+                            <div>
+                                <label class="block text-slate-500 font-semibold mb-1 uppercase text-[10px]">Priority Order</label>
+                                <input type="number" id="apollo-priority" min="1" max="3" class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-750 text-white rounded focus:outline-none focus:ring-1 focus:ring-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-slate-500 font-semibold mb-1 uppercase text-[10px]">API Key</label>
+                                <input type="password" id="apollo-key" placeholder="••••••••" class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-750 text-white rounded focus:outline-none focus:ring-1 focus:ring-teal-500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="submit" class="px-5 py-2.5 bg-teal-400 hover:bg-teal-300 text-slate-950 font-bold text-xs rounded-lg transition duration-150">
+                        Save Finder Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Section: Razorpay Settings -->
+        <div class="glass-panel bg-slate-900/40 border-slate-800 p-6 space-y-4">
+            <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                <i data-lucide="credit-card" class="h-5 w-5 text-teal-400"></i>
+                <span>Razorpay Gateway Settings</span>
+            </h3>
+            <p class="text-xs text-slate-400">Enable credit recharges and manage Razorpay API authorization keys.</p>
+
+            <form id="admin-payment-form" onsubmit="savePaymentSettings(event)" class="space-y-4 pt-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="flex items-center space-x-3 p-3 bg-slate-950/20 border border-slate-850 rounded-lg">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="pay-enabled" class="sr-only peer">
+                            <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-500"></div>
+                        </label>
+                        <span class="text-xs font-bold text-slate-300">Enable Credit Purchasing Gateway</span>
+                    </div>
+
+                    <div class="flex items-center space-x-3 p-3 bg-slate-950/20 border border-slate-850 rounded-lg">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="pay-test-mode" class="sr-only peer">
+                            <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-500"></div>
+                        </label>
+                        <span class="text-xs font-bold text-slate-300">Enable Sandbox (Test Mode)</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                    <div>
+                        <label class="block text-slate-400 font-semibold mb-1 uppercase text-[10px]">Key ID</label>
+                        <input type="password" id="pay-key-id" placeholder="••••••••" class="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-teal-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-semibold mb-1 uppercase text-[10px]">Secret Key</label>
+                        <input type="password" id="pay-secret-key" placeholder="••••••••" class="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-teal-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-semibold mb-1 uppercase text-[10px]">Webhook Secret</label>
+                        <input type="password" id="pay-webhook-secret" placeholder="••••••••" class="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-teal-500">
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="px-5 py-2.5 bg-teal-400 hover:bg-teal-300 text-slate-950 font-bold text-xs rounded-lg transition duration-150">
+                        Save Payment Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Section: Manual Credit Adjustment -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Left: Adjust credits Form -->
+            <div class="lg:col-span-5 glass-panel bg-slate-900/40 border-slate-800 p-6 space-y-4">
+                <h3 class="text-md font-bold text-white flex items-center space-x-2 border-b border-slate-800 pb-3">
+                    <i data-lucide="plus-circle" class="h-4.5 w-4.5 text-teal-400"></i>
+                    <span>Adjust User Credits</span>
+                </h3>
+                
+                <form id="admin-credit-adj-form" onsubmit="adjustCredits(event)" class="space-y-4 text-xs">
+                    <div>
+                        <label for="adj-user-id" class="block text-slate-400 font-semibold mb-1 uppercase text-[10px]">Target User ID *</label>
+                        <input type="number" id="adj-user-id" required placeholder="e.g. 1" class="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-teal-500">
+                    </div>
+
+                    <div>
+                        <label for="adj-type" class="block text-slate-400 font-semibold mb-1 uppercase text-[10px]">Adjustment Action *</label>
+                        <select id="adj-type" required class="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-slate-300 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                            <option value="recharge">Recharge (Add credits)</option>
+                            <option value="refund">Refund (Credit back)</option>
+                            <option value="deduction">Deduction (Debit wallet)</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="adj-credits" class="block text-slate-400 font-semibold mb-1 uppercase text-[10px]">Credits Amount *</label>
+                            <input type="number" id="adj-credits" min="1" required placeholder="e.g. 100" class="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-teal-500">
+                        </div>
+                        <div>
+                            <label for="adj-cost" class="block text-slate-400 font-semibold mb-1 uppercase text-[10px]">Paid Amount (₹)</label>
+                            <input type="number" step="0.01" id="adj-cost" placeholder="e.g. 49" class="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-teal-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="adj-reason" class="block text-slate-400 font-semibold mb-1 uppercase text-[10px]">Reason / Description *</label>
+                        <input type="text" id="adj-reason" required placeholder="e.g. Compensation for timeout" class="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-teal-500">
+                    </div>
+
+                    <button type="submit" class="w-full py-3 bg-teal-400 hover:bg-teal-300 text-slate-950 font-bold rounded-lg transition duration-150">
+                        Apply Credit Modification
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right: Global credits audit logs table -->
+            <div class="lg:col-span-7 glass-panel bg-slate-900/40 border-slate-800 p-6 space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <h3 class="text-md font-bold text-white flex items-center space-x-2">
+                        <i data-lucide="shield-alert" class="h-4.5 w-4.5 text-teal-400"></i>
+                        <span>Global Wallet Transactions</span>
+                    </h3>
+                    <input id="search-credit-logs" type="text" oninput="debounceCreditLogsSearch()" placeholder="Search logs..." class="px-2.5 py-1 bg-slate-800/80 border border-slate-700 text-[10px] text-white rounded focus:outline-none focus:ring-1 focus:ring-teal-500 max-w-[150px]">
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-[11px] custom-table">
+                        <thead>
+                            <tr class="border-b border-slate-850 text-slate-400 uppercase tracking-wider font-semibold">
+                                <th class="pb-2">User</th>
+                                <th class="pb-2">Type</th>
+                                <th class="pb-2">Credits</th>
+                                <th class="pb-2">Amount</th>
+                                <th class="pb-2">Desc/Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="global-credit-tx-tbody" class="divide-y divide-slate-850">
+                            <tr>
+                                <td colspan="5" class="py-6 text-center text-slate-500">Loading credit audits...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex justify-between items-center text-[10px] text-slate-500 pt-2" id="credit-logs-pagination">
+                    <!-- dynamically injected -->
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <!-- Manual Verification Modal -->
@@ -349,10 +562,209 @@
             }
         }
 
+        let creditLogsPage = 1;
+        let creditLogsSearchTimeout = null;
+
+        async function loadAdminFinderSettings() {
+            try {
+                const res = await apiCall('admin/get_finder_settings.php');
+                if (res && res.status === 'success') {
+                    // Populate email providers
+                    res.providers.forEach(p => {
+                        const enabledInput = document.getElementById(`${p.name}-enabled`);
+                        const priorityInput = document.getElementById(`${p.name}-priority`);
+                        const keyInput = document.getElementById(`${p.name}-key`);
+                        
+                        if (enabledInput) enabledInput.checked = p.is_enabled === 1;
+                        if (priorityInput) priorityInput.value = p.priority;
+                        if (keyInput) {
+                            keyInput.placeholder = p.has_key ? '••••••••' : 'Enter key';
+                            keyInput.value = '';
+                        }
+                    });
+
+                    // Populate Razorpay gateway settings
+                    if (res.razorpay) {
+                        const rz = res.razorpay;
+                        document.getElementById('pay-enabled').checked = rz.is_enabled === 1;
+                        document.getElementById('pay-test-mode').checked = rz.test_mode === 1;
+                        
+                        const keyIdInput = document.getElementById('pay-key-id');
+                        const secretInput = document.getElementById('pay-secret-key');
+                        const webhookInput = document.getElementById('pay-webhook-secret');
+                        
+                        if (keyIdInput) {
+                            keyIdInput.placeholder = rz.has_key_id ? '••••••••' : 'Enter Key ID';
+                            keyIdInput.value = '';
+                        }
+                        if (secretInput) {
+                            secretInput.placeholder = rz.has_secret_key ? '••••••••' : 'Enter Secret Key';
+                            secretInput.value = '';
+                        }
+                        if (webhookInput) {
+                            webhookInput.placeholder = rz.has_webhook_secret ? '••••••••' : 'Enter Webhook Secret';
+                            webhookInput.value = '';
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                showNotification('error', 'Error loading finder settings: ' + err.message);
+            }
+        }
+
+        async function saveFinderSettings(e) {
+            e.preventDefault();
+            const providers = ['hunter', 'prospeo', 'apollo'].map(name => {
+                return {
+                    name: name,
+                    is_enabled: document.getElementById(`${name}-enabled`).checked ? 1 : 0,
+                    priority: parseInt(document.getElementById(`${name}-priority`).value) || 1,
+                    api_key: document.getElementById(`${name}-key`).value,
+                    api_secret: ''
+                };
+            });
+
+            try {
+                const res = await apiCall('admin/save_finder_settings.php', 'POST', { providers });
+                if (res && res.status === 'success') {
+                    showNotification('success', 'Email Finder settings updated successfully.');
+                    loadAdminFinderSettings();
+                } else {
+                    throw new Error(res.message);
+                }
+            } catch (err) {
+                showNotification('error', 'Failed to save finder settings: ' + err.message);
+            }
+        }
+
+        async function savePaymentSettings(e) {
+            e.preventDefault();
+            const payload = {
+                is_enabled: document.getElementById('pay-enabled').checked ? 1 : 0,
+                test_mode: document.getElementById('pay-test-mode').checked ? 1 : 0,
+                key_id: document.getElementById('pay-key-id').value,
+                secret_key: document.getElementById('pay-secret-key').value,
+                webhook_secret: document.getElementById('pay-webhook-secret').value
+            };
+
+            try {
+                const res = await apiCall('admin/save_payment_settings.php', 'POST', payload);
+                if (res && res.status === 'success') {
+                    showNotification('success', 'Razorpay gateway settings saved.');
+                    loadAdminFinderSettings();
+                } else {
+                    throw new Error(res.message);
+                }
+            } catch (err) {
+                showNotification('error', 'Failed to save payment settings: ' + err.message);
+            }
+        }
+
+        function debounceCreditLogsSearch() {
+            clearTimeout(creditLogsSearchTimeout);
+            creditLogsSearchTimeout = setTimeout(() => {
+                loadAdminCreditLogs(1);
+            }, 300);
+        }
+
+        async function loadAdminCreditLogs(page = 1) {
+            creditLogsPage = page;
+            const search = document.getElementById('search-credit-logs').value.trim();
+
+            try {
+                const res = await apiCall(`admin/get_credit_logs.php?page=${page}&limit=12&search=${encodeURIComponent(search)}`);
+                if (res && res.status === 'success') {
+                    const tbody = document.getElementById('global-credit-tx-tbody');
+                    if (res.logs.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-500">No transactions log matches query.</td></tr>`;
+                        document.getElementById('credit-logs-pagination').innerHTML = '';
+                    } else {
+                        tbody.innerHTML = res.logs.map(tx => {
+                            const date = new Date(tx.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                            const sign = parseInt(tx.credits) >= 0 ? '+' : '';
+                            const colorCls = parseInt(tx.credits) >= 0 ? 'text-teal-400 font-semibold' : 'text-red-400 font-semibold';
+                            
+                            const desc = tx.type === 'recharge' ? 
+                                `Razorpay (ID: ${tx.payment_id || '--'})` : 
+                                (tx.type === 'usage' ? `Lookup (${tx.provider_used || '--'})` : `Adj: ${tx.payment_id || '--'}`);
+
+                            return `
+                                <tr class="hover:bg-slate-900/30">
+                                    <td class="py-2.5">
+                                        <div class="font-bold text-white">${escapeHtml(tx.user_name)}</div>
+                                        <div class="text-[9px] text-slate-500">ID: ${tx.user_id} · ${escapeHtml(tx.user_email)}</div>
+                                    </td>
+                                    <td class="py-2.5 uppercase font-bold text-[9px] text-slate-400">${tx.type}</td>
+                                    <td class="py-2.5 ${colorCls}">${sign}${tx.credits}</td>
+                                    <td class="py-2.5 font-mono">${tx.amount > 0 ? '₹' + parseFloat(tx.amount).toFixed(2) : '--'}</td>
+                                    <td class="py-2.5 text-slate-500">
+                                        <div class="truncate max-w-[130px] block" title="${escapeHtml(desc)}">${escapeHtml(desc)}</div>
+                                        <div class="text-[9px] font-mono">${date}</div>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('');
+
+                        // Pagination footer
+                        const pag = res.pagination;
+                        let btnHtml = `<span>Page ${pag.page} of ${pag.pages}</span> <div class="flex space-x-1">`;
+                        if (pag.page > 1) {
+                            btnHtml += `<button onclick="loadAdminCreditLogs(${pag.page - 1})" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-750 text-slate-350 rounded">Prev</button>`;
+                        }
+                        if (pag.page < pag.pages) {
+                            btnHtml += `<button onclick="loadAdminCreditLogs(${pag.page + 1})" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-750 text-slate-350 rounded">Next</button>`;
+                        }
+                        btnHtml += `</div>`;
+                        document.getElementById('credit-logs-pagination').innerHTML = btnHtml;
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function adjustCredits(e) {
+            e.preventDefault();
+            const userId = parseInt(document.getElementById('adj-user-id').value);
+            const type = document.getElementById('adj-type').value;
+            const credits = parseInt(document.getElementById('adj-credits').value);
+            const cost = parseFloat(document.getElementById('adj-cost').value) || 0.00;
+            const reason = document.getElementById('adj-reason').value.trim();
+
+            if (!userId || !credits) {
+                showNotification('warning', 'Please fill target User ID and Credits value.');
+                return;
+            }
+
+            try {
+                const res = await apiCall('admin/adjust_user_credits.php', 'POST', {
+                    user_id: userId,
+                    adjustment_type: type,
+                    credits: credits,
+                    amount: cost,
+                    reason: reason
+                });
+
+                if (res && res.status === 'success') {
+                    showNotification('success', 'User credit adjustment successfully completed.');
+                    document.getElementById('admin-credit-adj-form').reset();
+                    loadAdminCreditLogs(1);
+                    loadAdminDashboard();
+                } else {
+                    throw new Error(res.message);
+                }
+            } catch (err) {
+                showNotification('error', 'Adjustment failed: ' + err.message);
+            }
+        }
+
         // Initialize Admin page
         document.addEventListener('DOMContentLoaded', () => {
             verifyAdminAccess();
             loadAdminDashboard();
+            loadAdminFinderSettings();
+            loadAdminCreditLogs(1);
             lucide.createIcons();
         });
     </script>

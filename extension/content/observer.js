@@ -10,6 +10,7 @@
      * @param {HTMLElement|Document} root
      */
     const processNodes = (root) => {
+        // 1. Process feed updates
         const posts = window.LinkPilotParser.findFeedPosts(root);
         posts.forEach(postEl => {
             // Never rescan/re-inject existing cached posts
@@ -28,6 +29,15 @@
                 window.LinkPilotLogger.error('Failed to parse or inject post:', err);
             }
         });
+
+        // 2. Process profile actions
+        if (window.location.pathname.includes('/in/')) {
+            try {
+                window.LinkPilotInjector.injectProfileButton();
+            } catch (err) {
+                window.LinkPilotLogger.error('Failed to inject profile button:', err);
+            }
+        }
     };
 
     // Debounced runner to bundle multiple rapid mutation batches

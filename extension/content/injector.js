@@ -121,6 +121,65 @@
             }
 
             window.LinkPilotLogger.debug('Successfully injected AI action button for post:', postData.postId);
+        },
+
+        /**
+         * Injects the Find Email button next to LinkedIn profile action controls.
+         */
+        injectProfileButton: () => {
+            const selectors = [
+                'div.pvs-profile-actions',
+                '.pv-top-card-v2-ctas',
+                'div.ph5.pb5 div.display-flex.mt4',
+                'main.scaffold-layout__main section.artdeco-card div.display-flex.justify-flex-start',
+                '[class*="profile-actions"]'
+            ];
+
+            let container = null;
+            for (const selector of selectors) {
+                const el = document.querySelector(selector);
+                if (el) {
+                    container = el;
+                    break;
+                }
+            }
+
+            if (!container) return;
+
+            // Prevent duplicate injections
+            if (container.querySelector('.linkpilot-find-email-btn')) {
+                return;
+            }
+
+            const button = window.LinkPilotUtils.safeCreate('button', {
+                class: 'linkpilot-find-email-btn artdeco-button artdeco-button--2 artdeco-button--primary ml2',
+                type: 'button',
+                style: {
+                    backgroundColor: '#14B8A6',
+                    color: '#0F172A',
+                    fontWeight: 'bold',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    borderRadius: '16px',
+                    padding: '6px 16px',
+                    cursor: 'pointer',
+                    border: 'none',
+                    marginLeft: '8px'
+                },
+                onclick: (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const profileData = window.LinkPilotParser.parseProfile();
+                    window.openFinderModal(profileData);
+                }
+            }, ['🔍 Find Email']);
+
+            // Insert into the action panel
+            container.appendChild(button);
+            window.LinkPilotLogger.debug('Successfully injected Find Email button to profile actions.');
         }
     };
 })();

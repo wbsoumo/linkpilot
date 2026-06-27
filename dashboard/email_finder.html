@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950">
+<head>
+    <script>
+        (function() {
+            const token = localStorage.getItem('linkpilot_token');
+            if (!token) {
+                window.location.replace('login.html');
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/img/logo.png">
+    <title>Email Finder - LinkPilot AI</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="h-full bg-slate-950 text-slate-100 flex flex-col">
+    <!-- Top Navigation -->
+    <nav class="glass-panel rounded-none border-t-0 border-x-0 sticky top-0 z-40 bg-slate-900/80 text-white px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-8">
+            <a href="index.html" class="flex items-center space-x-2 text-xl font-bold tracking-wider">
+                <span class="text-teal-400">✨ LinkPilot</span> <span class="text-xs px-2 py-0.5 bg-slate-800 text-teal-400 border border-slate-700 rounded-full font-semibold">AI</span>
+            </a>
+            <div class="hidden md:flex items-center space-x-1">
+                <a href="index.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">Dashboard</a>
+                <a href="history.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">History</a>
+                <a href="smtp.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">SMTP Settings</a>
+                <a href="openrouter.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">AI Settings</a>
+                <a href="admin.html" id="admin-nav-link" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150 hidden">Admin</a>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="text-right hidden sm:block">
+                <div class="text-sm font-semibold user-name-display">Loading...</div>
+                <div class="text-xs text-slate-400 user-email-display">...</div>
+            </div>
+            <div class="h-9 w-9 rounded-full bg-teal-500 text-slate-950 font-bold flex items-center justify-center border border-teal-400" id="user-avatar-initials">
+                LP
+            </div>
+            <button id="logout-action-btn" class="p-2 text-slate-400 hover:text-red-400 rounded-lg hover:bg-slate-800/50 transition" onclick="logout()">
+                <i data-lucide="log-out" class="h-5 w-5"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow p-6 md:p-8 flex justify-center bg-gradient-to-tr from-slate-950 via-slate-900 to-slate-950 overflow-y-auto">
+        <div class="max-w-7xl w-full animate-fade-in py-8 space-y-8">
+            
+            <!-- Header title -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 class="text-3xl font-extrabold text-white tracking-tight">Email Finder Dashboard</h1>
+                    <p class="text-sm text-slate-400 mt-1">Look up verified business email addresses using leading data intelligence networks.</p>
+                </div>
+                <a href="recharge.html" class="px-4 py-2 bg-teal-500/10 text-teal-400 border border-teal-500/20 rounded-lg text-xs font-bold hover:bg-teal-500 hover:text-slate-950 transition duration-150 flex items-center space-x-1">
+                    <i data-lucide="zap" class="h-3.5 w-3.5"></i>
+                    <span>Recharge Wallet</span>
+                </a>
+            </div>
+
+            <!-- Lookup Panel & Interactive Result Display -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Left: Lookup form -->
+                <div class="lg:col-span-6 glass-panel p-6 bg-slate-900/60 border border-slate-800 rounded-2xl shadow-xl space-y-5">
+                    <h3 class="text-md font-bold text-white uppercase tracking-wider border-b border-slate-800 pb-3">New Search</h3>
+                    
+                    <form id="finder-form" onsubmit="performLookup(event)" class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="input-name" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Full Name *</label>
+                                <input id="input-name" type="text" required placeholder="John Doe" class="block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition">
+                            </div>
+                            <div>
+                                <label for="input-company" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Company Name *</label>
+                                <input id="input-company" type="text" required placeholder="Google" class="block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="input-linkedin" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">LinkedIn Profile URL</label>
+                            <input id="input-linkedin" type="url" placeholder="https://www.linkedin.com/in/johndoe" class="block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition">
+                        </div>
+
+                        <div>
+                            <label for="input-title" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Job Title</label>
+                            <input id="input-title" type="text" placeholder="Software Engineer" class="block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition">
+                        </div>
+
+                        <button type="submit" id="search-submit-btn" class="w-full py-3 bg-teal-400 hover:bg-teal-300 text-slate-950 font-extrabold text-sm rounded-lg transition duration-150 flex items-center justify-center space-x-1.5 shadow-md shadow-teal-500/10">
+                            <i data-lucide="search" class="h-4 w-4"></i>
+                            <span>Find Email Address</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Right: Active Status / Result card -->
+                <div id="result-box" class="lg:col-span-6 glass-panel p-6 bg-slate-900/40 border border-slate-800 rounded-2xl flex flex-col justify-center items-center text-center space-y-4 min-h-[300px]">
+                    <div id="result-state-idle" class="space-y-3">
+                        <div class="p-4 bg-slate-800 text-slate-500 rounded-full inline-block">
+                            <i data-lucide="search" class="h-8 w-8"></i>
+                        </div>
+                        <h4 class="text-sm font-bold text-white">Ready for Lookup</h4>
+                        <p class="text-xs text-slate-500 max-w-xs leading-relaxed">Enter a prospect's name and organization details. Cash hits do not consume wallet credits!</p>
+                    </div>
+
+                    <!-- Loader panel -->
+                    <div id="result-state-loading" class="hidden space-y-4">
+                        <div class="loader-spinner !w-12 !h-12 border-slate-800 border-t-teal-400 mx-auto"></div>
+                        <h4 class="text-sm font-bold text-teal-400 tracking-wider">Searching Data Networks...</h4>
+                        <p class="text-xs text-slate-400 animate-pulse">Running domain lookup & matching API endpoints...</p>
+                    </div>
+
+                    <!-- Found Panel -->
+                    <div id="result-state-found" class="hidden space-y-5 w-full text-left">
+                        <div class="flex items-center space-x-3.5 bg-green-500/10 border border-green-500/25 p-4 rounded-xl">
+                            <span class="p-2 bg-green-500/20 text-green-400 rounded-lg"><i data-lucide="mail-check" class="h-6 w-6"></i></span>
+                            <div>
+                                <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Email Found Successfully</h4>
+                                <span id="found-email-value" class="text-lg font-bold text-white block mt-1 font-mono select-all"></span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 text-xs">
+                            <div class="p-3 bg-slate-900/60 border border-slate-800 rounded-lg">
+                                <span class="text-slate-500 block uppercase font-semibold text-[10px]">Data Provider</span>
+                                <span id="found-provider-value" class="text-slate-300 font-bold block mt-1 uppercase"></span>
+                            </div>
+                            <div class="p-3 bg-slate-900/60 border border-slate-800 rounded-lg">
+                                <span class="text-slate-500 block uppercase font-semibold text-[10px]">Confidence Rating</span>
+                                <span id="found-confidence-value" class="text-slate-300 font-bold block mt-1"></span>
+                            </div>
+                        </div>
+
+                        <div class="flex space-x-3">
+                            <button onclick="copyToClipboard()" class="flex-1 py-3 bg-slate-850 hover:bg-slate-800 border border-slate-700 hover:border-slate-600 font-bold text-xs rounded-lg transition flex items-center justify-center space-x-1.5 text-white">
+                                <i data-lucide="copy" class="h-4 w-4"></i>
+                                <span>Copy Email</span>
+                            </button>
+                            <button id="save-lead-btn" onclick="saveLeadToVault()" class="flex-1 py-3 bg-teal-400 hover:bg-teal-300 text-slate-950 font-bold text-xs rounded-lg transition flex items-center justify-center space-x-1.5 shadow shadow-teal-500/10">
+                                <i data-lucide="folder-plus" class="h-4 w-4"></i>
+                                <span>Save to Lead Vault</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Not Found Panel -->
+                    <div id="result-state-failed" class="hidden space-y-4">
+                        <div class="p-4 bg-red-500/10 text-red-400 rounded-full inline-block border border-red-500/20">
+                            <i data-lucide="mail-x" class="h-8 w-8"></i>
+                        </div>
+                        <h4 class="text-sm font-bold text-red-400">Email Address Not Found</h4>
+                        <p class="text-xs text-slate-500 max-w-xs leading-relaxed">No matching email matches were resolved across our providers. Credits have not been deducted.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search History Logs Panel -->
+            <div class="glass-panel p-6 bg-slate-900/40 border-slate-800 space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <h3 class="text-lg font-bold text-white">Finder History & Logs</h3>
+                    
+                    <!-- Filters bar -->
+                    <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                        <input id="search-history-query" type="text" oninput="debounceHistorySearch()" placeholder="Search history..." class="px-3 py-1.5 bg-slate-800/80 border border-slate-700 text-xs text-white rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 max-w-[180px]">
+                        
+                        <select id="filter-history-provider" onchange="loadHistoryLogs(1)" class="px-3 py-1.5 bg-slate-800/80 border border-slate-700 text-xs text-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500">
+                            <option value="">All Providers</option>
+                        </select>
+
+                        <button onclick="exportHistoryCSV()" class="px-3.5 py-1.5 bg-slate-850 border border-slate-750 text-slate-300 hover:text-white rounded-lg text-xs font-semibold flex items-center space-x-1 shadow transition">
+                            <i data-lucide="download" class="h-3.5 w-3.5"></i>
+                            <span>Export CSV</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+                                <th class="pb-3">Name</th>
+                                <th class="pb-3">Company</th>
+                                <th class="pb-3">Email Address</th>
+                                <th class="pb-3">LinkedIn URL</th>
+                                <th class="pb-3">Provider</th>
+                                <th class="pb-3">Credits Used</th>
+                                <th class="pb-3">Search Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-rows-container" class="divide-y divide-slate-800/50 text-slate-300">
+                            <tr>
+                                <td colspan="7" class="py-8 text-center text-slate-500">Loading search logs...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination footer -->
+                <div class="flex justify-between items-center pt-4 border-t border-slate-800/60 text-xs text-slate-500">
+                    <span id="pagination-info-text">Showing 0 of 0 logs</span>
+                    <div class="flex space-x-2" id="pagination-actions">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="assets/js/app.js"></script>
+    <script>
+        let searchTimeout = null;
+        let lastResolvedResult = null;
+        let currentPage = 1;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadHistoryLogs();
+        });
+
+        function switchResultState(state) {
+            document.getElementById('result-state-idle').classList.add('hidden');
+            document.getElementById('result-state-loading').classList.add('hidden');
+            document.getElementById('result-state-found').classList.add('hidden');
+            document.getElementById('result-state-failed').classList.add('hidden');
+
+            if (state === 'idle') document.getElementById('result-state-idle').classList.remove('hidden');
+            if (state === 'loading') document.getElementById('result-state-loading').classList.remove('hidden');
+            if (state === 'found') document.getElementById('result-state-found').classList.remove('hidden');
+            if (state === 'failed') document.getElementById('result-state-failed').classList.remove('hidden');
+        }
+
+        async function performLookup(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('input-name').value.trim();
+            const company = document.getElementById('input-company').value.trim();
+            const linkedin = document.getElementById('input-linkedin').value.trim();
+            const title = document.getElementById('input-title').value.trim();
+
+            const submitBtn = document.getElementById('search-submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<span class="loader-spinner !w-4 !h-4 border-slate-950 border-t-teal-400"></span> <span>Searching Providers...</span>`;
+
+            switchResultState('loading');
+            lastResolvedResult = null;
+
+            try {
+                const res = await apiCall('extension/find_email.php', 'POST', {
+                    linkedin_url: linkedin || `https://linkedin.com/in/temp-${Date.now()}`, // generate fake URL if empty
+                    name,
+                    company,
+                    job_title: title
+                });
+
+                if (res && res.status === 'success') {
+                    // Update results card details
+                    document.getElementById('found-email-value').textContent = res.email;
+                    document.getElementById('found-provider-value').textContent = res.provider;
+                    document.getElementById('found-confidence-value').textContent = `${res.confidence_score}%`;
+                    
+                    lastResolvedResult = {
+                        name,
+                        company_name: company,
+                        linkedin_url: linkedin,
+                        email: res.email,
+                        job_title: title
+                    };
+
+                    const saveBtn = document.getElementById('save-lead-btn');
+                    saveBtn.disabled = false;
+                    saveBtn.className = "flex-1 py-3 bg-teal-400 hover:bg-teal-300 text-slate-950 font-bold text-xs rounded-lg transition flex items-center justify-center space-x-1.5 shadow shadow-teal-500/10";
+                    saveBtn.innerHTML = `<i data-lucide="folder-plus" class="h-4 w-4"></i> <span>Save to Lead Vault</span>`;
+                    lucide.createIcons();
+
+                    switchResultState('found');
+                    showNotification('success', 'Email found!');
+                } else {
+                    switchResultState('failed');
+                }
+            } catch (err) {
+                console.error(err);
+                if (err.message.includes('credits')) {
+                    showNotification('warning', 'Insufficient credits. Please top-up.');
+                } else {
+                    showNotification('error', err.message || 'Lookup failed.');
+                }
+                switchResultState('failed');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i data-lucide="search" class="h-4 w-4"></i> <span>Find Email Address</span>`;
+                lucide.createIcons();
+                loadHistoryLogs(1); // reload history
+
+                // Reload credits badge in navigation bar
+                apiCall('profile/get_credits.php')
+                    .then(res => {
+                        const badgeVal = document.getElementById('nav-credit-balance-value');
+                        if (badgeVal && res.wallet) badgeVal.textContent = res.wallet.remaining;
+                    });
+            }
+        }
+
+        function copyToClipboard() {
+            const emailText = document.getElementById('found-email-value').textContent;
+            navigator.clipboard.writeText(emailText).then(() => {
+                showNotification('success', 'Copied to clipboard!');
+            });
+        }
+
+        async function saveLeadToVault() {
+            if (!lastResolvedResult) return;
+
+            const saveBtn = document.getElementById('save-lead-btn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = `<span class="loader-spinner !w-3.5 !h-3.5 border-slate-950 border-t-teal-400"></span> <span>Saving...</span>`;
+
+            try {
+                const res = await apiCall('leads/index.php', 'POST', {
+                    name: lastResolvedResult.name,
+                    company_name: lastResolvedResult.company_name,
+                    linkedin_url: lastResolvedResult.linkedin_url,
+                    email: lastResolvedResult.email,
+                    source: 'Email Finder'
+                });
+
+                if (res && res.status === 'success') {
+                    showNotification('success', 'Saved successfully to Lead Vault!');
+                    saveBtn.className = "flex-1 py-3 bg-green-500/10 text-green-400 border border-green-500/20 font-bold text-xs rounded-lg cursor-default flex items-center justify-center space-x-1.5";
+                    saveBtn.innerHTML = `<i data-lucide="check" class="h-4 w-4"></i> <span>Saved to Vault</span>`;
+                    lucide.createIcons();
+                } else {
+                    throw new Error(res.message);
+                }
+            } catch (err) {
+                showNotification('error', 'Error saving lead: ' + err.message);
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = `<i data-lucide="folder-plus" class="h-4 w-4"></i> <span>Save to Lead Vault</span>`;
+                lucide.createIcons();
+            }
+        }
+
+        function debounceHistorySearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                loadHistoryLogs(1);
+            }, 300);
+        }
+
+        async function loadHistoryLogs(page = 1) {
+            currentPage = page;
+            const search = document.getElementById('search-history-query').value.trim();
+            const provider = document.getElementById('filter-history-provider').value;
+
+            try {
+                const res = await apiCall(`profile/search_history.php?page=${page}&limit=10&search=${encodeURIComponent(search)}&provider=${encodeURIComponent(provider)}`);
+                if (res && res.status === 'success') {
+                    // Populate filter options if empty
+                    const filterDropdown = document.getElementById('filter-history-provider');
+                    if (filterDropdown.options.length === 1 && res.providers) {
+                        res.providers.forEach(p => {
+                            if (p && p !== 'none') {
+                                const opt = document.createElement('option');
+                                opt.value = p;
+                                opt.textContent = p.toUpperCase();
+                                filterDropdown.appendChild(opt);
+                            }
+                        });
+                    }
+
+                    // Populate table
+                    const container = document.getElementById('history-rows-container');
+                    if (res.history.length === 0) {
+                        container.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-500">No logs match your filters.</td></tr>`;
+                        document.getElementById('pagination-info-text').textContent = 'Showing 0 of 0 logs';
+                        document.getElementById('pagination-actions').innerHTML = '';
+                    } else {
+                        container.innerHTML = res.history.map(row => {
+                            const date = new Date(row.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                            return `
+                                <tr class="hover:bg-slate-900/30 transition">
+                                    <td class="py-3.5 font-semibold text-white">${row.name}</td>
+                                    <td class="py-3.5 text-slate-300">${row.company}</td>
+                                    <td class="py-3.5 font-mono select-all text-teal-400 font-medium">${row.email || '<span class="text-slate-500 font-sans italic">Not Found</span>'}</td>
+                                    <td class="py-3.5"><a href="${row.linkedin_url}" target="_blank" class="text-slate-400 hover:text-white truncate max-w-[120px] block hover:underline font-mono">${row.linkedin_url}</a></td>
+                                    <td class="py-3.5 uppercase font-bold text-[10px] text-slate-400">${row.provider}</td>
+                                    <td class="py-3.5 font-mono text-slate-400">${row.credits_used}</td>
+                                    <td class="py-3.5 text-slate-500 font-mono">${date}</td>
+                                </tr>
+                            `;
+                        }).join('');
+
+                        // Update pagination info
+                        const pag = res.pagination;
+                        const start = (pag.page - 1) * pag.limit + 1;
+                        const end = Math.min(start + pag.limit - 1, pag.total);
+                        document.getElementById('pagination-info-text').textContent = `Showing ${start} - ${end} of ${pag.total} logs`;
+
+                        // Render page controls
+                        let btnHtml = '';
+                        if (pag.page > 1) {
+                            btnHtml += `<button onclick="loadHistoryLogs(${pag.page - 1})" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-750 text-slate-300 rounded font-semibold transition">Prev</button>`;
+                        }
+                        for (let i = 1; i <= pag.pages; i++) {
+                            const activeCls = i === pag.page ? 'bg-teal-500 text-slate-950 font-bold' : 'bg-slate-800 hover:bg-slate-750 text-slate-300';
+                            btnHtml += `<button onclick="loadHistoryLogs(${i})" class="px-2.5 py-1 rounded font-semibold transition ${activeCls}">${i}</button>`;
+                        }
+                        if (pag.page < pag.pages) {
+                            btnHtml += `<button onclick="loadHistoryLogs(${pag.page + 1})" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-750 text-slate-300 rounded font-semibold transition">Next</button>`;
+                        }
+                        document.getElementById('pagination-actions').innerHTML = btnHtml;
+                    }
+                    lucide.createIcons();
+                }
+            } catch (err) {
+                console.error(err);
+                showNotification('error', 'Failed to fetch search history: ' + err.message);
+            }
+        }
+
+        function exportHistoryCSV() {
+            const token = getAuthToken();
+            const search = document.getElementById('search-history-query').value.trim();
+            const provider = document.getElementById('filter-history-provider').value;
+            
+            // Redirect user directly to CSV export download link with JWT authorization query string or download programmatically
+            const exportUrl = `${API_BASE_URL}/profile/search_history.php?export=csv&search=${encodeURIComponent(search)}&provider=${encodeURIComponent(provider)}&token=${token}`;
+            
+            // Trigger iframe or standard download anchor
+            const link = document.createElement('a');
+            link.href = exportUrl;
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>

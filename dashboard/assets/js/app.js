@@ -149,20 +149,47 @@ function setupNavigation() {
     const currentFile = window.location.pathname.split('/').pop() || 'index.html';
     const navLinks = document.querySelectorAll('.sidebar-nav-link');
     
-    navLinks.forEach(link => {
+    // Inject Email Finder and Recharge links programmatically if not present
+    if (navLinks.length > 0) {
+        const navContainer = navLinks[0].parentNode;
+        if (navContainer && !document.getElementById('email-finder-nav-link')) {
+            const finderLink = document.createElement('a');
+            finderLink.id = 'email-finder-nav-link';
+            finderLink.href = 'email_finder.html';
+            finderLink.className = 'sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150';
+            finderLink.textContent = 'Email Finder';
+            
+            const rechargeLink = document.createElement('a');
+            rechargeLink.id = 'recharge-nav-link';
+            rechargeLink.href = 'recharge.html';
+            rechargeLink.className = 'sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150';
+            rechargeLink.textContent = 'Recharge';
+
+            const adminLink = document.getElementById('admin-nav-link');
+            if (adminLink) {
+                navContainer.insertBefore(finderLink, adminLink);
+                navContainer.insertBefore(rechargeLink, adminLink);
+            } else {
+                navContainer.appendChild(finderLink);
+                navContainer.appendChild(rechargeLink);
+            }
+        }
+    }
+
+    // Apply active classes to all nav links (including programmatically added ones)
+    const updatedNavLinks = document.querySelectorAll('.sidebar-nav-link');
+    updatedNavLinks.forEach(link => {
         const href = link.getAttribute('href');
         if (href === currentFile) {
-            link.classList.add('bg-teal-500', 'text-white');
-            link.classList.remove('text-slate-300', 'hover:bg-slate-800');
+            link.className = 'sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150 bg-teal-500 text-white';
         } else {
-            link.classList.remove('bg-teal-500', 'text-white');
-            link.classList.add('text-slate-300', 'hover:bg-slate-800');
+            link.className = 'sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150 text-slate-300 hover:bg-slate-800';
         }
     });
 
     // Programmatically inject "Install Extension" button in navigation links bar
-    if (navLinks.length > 0) {
-        const navContainer = navLinks[0].parentNode;
+    if (updatedNavLinks.length > 0) {
+        const navContainer = updatedNavLinks[0].parentNode;
         if (navContainer && !document.getElementById('download-ext-nav-btn')) {
             const extBtn = document.createElement('button');
             extBtn.id = 'download-ext-nav-btn';
@@ -171,6 +198,30 @@ function setupNavigation() {
             extBtn.addEventListener('click', openExtensionGuide);
             navContainer.appendChild(extBtn);
         }
+    }
+
+    // Programmatically inject Credit wallet balance badge near profile initials
+    const rightNav = avatar ? avatar.closest('.flex.items-center.space-x-4') : null;
+    if (rightNav && !document.getElementById('nav-credit-balance-container')) {
+        const creditBadge = document.createElement('a');
+        creditBadge.href = 'recharge.html';
+        creditBadge.id = 'nav-credit-balance-container';
+        creditBadge.className = 'hidden sm:flex items-center space-x-1.5 px-3 py-1.5 bg-teal-400/10 text-teal-400 border border-teal-400/20 hover:bg-teal-400 hover:text-slate-950 transition duration-150 rounded-lg text-xs font-bold mr-2';
+        creditBadge.innerHTML = `
+            <i data-lucide="zap" class="h-3.5 w-3.5"></i>
+            <span>Credits: <span id="nav-credit-balance-value">...</span></span>
+        `;
+        rightNav.insertBefore(creditBadge, rightNav.firstElementChild);
+        
+        // Load credit count
+        apiCall('profile/get_credits.php')
+            .then(res => {
+                if (res && res.status === 'success' && res.wallet) {
+                    const balanceVal = document.getElementById('nav-credit-balance-value');
+                    if (balanceVal) balanceVal.textContent = res.wallet.remaining;
+                }
+            })
+            .catch(err => console.warn('Failed to load nav credits:', err));
     }
 
     // Add interactive profile dropdown to avatar initials bubble

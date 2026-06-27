@@ -88,6 +88,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     
     // API Proxies
+    if (message.action === 'findEmail') {
+        apiFetch('extension/find_email.php', 'POST', message.payload)
+            .then(data => sendResponse(data));
+        return true;
+    }
+    
+    if (message.action === 'saveLead') {
+        apiFetch('leads/index.php', 'POST', message.payload)
+            .then(data => sendResponse(data));
+        return true;
+    }
+
     if (message.action === 'generateEmail') {
         apiFetch('generate/email.php', 'POST', message.payload)
             .then(data => sendResponse(data));

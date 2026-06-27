@@ -752,6 +752,264 @@
         });
     };
 
+    /**
+     * Build and open the email finder modal dialog using Shadow DOM.
+     * @param {Object} details - Prospect details parsed from profile.
+     */
+    window.openFinderModal = (details) => {
+        const existing = document.getElementById('linkpilot-modal-container');
+        if (existing) existing.remove();
+
+        window.LinkPilotUtils.safeSendMessage({ action: 'getSession' }, (session) => {
+            const isAuth = session && session.loggedIn;
+
+            const container = window.LinkPilotUtils.safeCreate('div', {
+                id: 'linkpilot-modal-container',
+                style: { position: 'relative', zIndex: '999999' }
+            });
+
+            const shadow = container.attachShadow({ mode: 'open' });
+
+            const styleBlock = window.LinkPilotUtils.safeCreate('style');
+            styleBlock.textContent = MODAL_STYLES;
+            shadow.appendChild(styleBlock);
+
+            const closeBtn = window.LinkPilotUtils.safeCreate('button', {
+                class: 'close-btn',
+                onclick: () => container.remove()
+            }, ['\u00D7']);
+
+            const authorInfo = window.LinkPilotUtils.safeCreate('div', { class: 'author-info' }, [
+                window.LinkPilotUtils.safeCreate('h3', {}, [details.name]),
+                window.LinkPilotUtils.safeCreate('p', {}, [details.company || 'LinkedIn Member']),
+                window.LinkPilotUtils.safeCreate('p', { style: 'font-size: 11px; color: #64748B;' }, [details.job_title || ''])
+            ]);
+
+            const header = window.LinkPilotUtils.safeCreate('div', { class: 'header' }, [authorInfo, closeBtn]);
+            const modal = window.LinkPilotUtils.safeCreate('div', { class: 'modal', style: 'width: 480px;' }, [header]);
+            const overlay = window.LinkPilotUtils.safeCreate('div', {
+                class: 'overlay',
+                onclick: (e) => { if (e.target === overlay) container.remove(); }
+            }, [modal]);
+
+            shadow.appendChild(overlay);
+
+            if (!isAuth) {
+                // Render Login Form
+                const emailInput = window.LinkPilotUtils.safeCreate('input', {
+                    type: 'email',
+                    placeholder: 'Enter your email...',
+                    style: 'width: 100%; padding: 10px 12px; background: #1E293B; border: 1px solid #334155; border-radius: 8px; color: white; outline: none; margin-bottom: 12px; box-sizing: border-box;'
+                });
+
+                const passwordInput = window.LinkPilotUtils.safeCreate('input', {
+                    type: 'password',
+                    placeholder: 'Enter your password...',
+                    style: 'width: 100%; padding: 10px 12px; background: #1E293B; border: 1px solid #334155; border-radius: 8px; color: white; outline: none; margin-bottom: 16px; box-sizing: border-box;'
+                });
+
+                const loginErrorDiv = window.LinkPilotUtils.safeCreate('div', {
+                    style: 'color: #EF4444; font-size: 12px; margin-bottom: 12px; display: none; text-align: center; font-weight: 500;'
+                });
+
+                const loginBtn = window.LinkPilotUtils.safeCreate('button', {
+                    class: 'btn btn-primary',
+                    style: 'width: 100%; justify-content: center; height: 38px; font-weight: 600;',
+                    onclick: (e) => {
+                        e.preventDefault();
+                        const email = emailInput.value.trim();
+                        const password = passwordInput.value;
+
+                        if (!email || !password) {
+                            loginErrorDiv.textContent = 'Please enter both email and password.';
+                            loginErrorDiv.style.display = 'block';
+                            return;
+                        }
+
+                        loginErrorDiv.style.display = 'none';
+                        loginBtn.disabled = true;
+                        loginBtn.innerHTML = '<span class="spinner"></span> Logging in...';
+
+                        window.LinkPilotUtils.safeSendMessage({
+                            action: 'login',
+                            email: email,
+                            password: password
+                        }, (res) => {
+                            if (res && res.status === 'success') {
+                                container.remove();
+                                window.openFinderModal(details);
+                            } else {
+                                loginBtn.disabled = false;
+                                loginBtn.textContent = 'Log In';
+                                loginErrorDiv.textContent = (res && res.message) ? res.message : 'Invalid credentials or connection error.';
+                                loginErrorDiv.style.display = 'block';
+                            }
+                        });
+                    }
+                }, ['Log In']);
+
+                const loginForm = window.LinkPilotUtils.safeCreate('form', {
+                    style: 'width: 100%; text-align: left; margin-top: 8px; box-sizing: border-box;'
+                }, [
+                    window.LinkPilotUtils.safeCreate('label', {
+                        style: 'display: block; font-size: 10px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;'
+                    }, ['Email Address']),
+                    emailInput,
+                    window.LinkPilotUtils.safeCreate('label', {
+                        style: 'display: block; font-size: 10px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;'
+                    }, ['Password']),
+                    passwordInput,
+                    loginErrorDiv,
+                    loginBtn
+                ]);
+
+                const unauthBody = window.LinkPilotUtils.safeCreate('div', {
+                    class: 'unauth-container',
+                    style: 'max-width: 380px; margin: 0 auto; padding: 30px 20px;'
+                }, [
+                    window.LinkPilotUtils.safeCreate('div', { style: 'font-size: 36px; margin-bottom: 4px;' }, ['✨']),
+                    window.LinkPilotUtils.safeCreate('h3', { style: 'margin: 0; font-size: 18px; font-weight: 800; color: white;' }, ['LinkPilot Email Finder']),
+                    window.LinkPilotUtils.safeCreate('p', { style: 'margin: 6px 0 16px 0; font-size: 13px; color: #94A3B8; text-align: center; line-height: 1.4;' }, [
+                        'Log in to activate your Email Finder assistant.'
+                    ]),
+                    loginForm
+                ]);
+                modal.appendChild(unauthBody);
+                document.body.appendChild(container);
+                return;
+            }
+
+            // Create loading/result body container
+            const finderBody = window.LinkPilotUtils.safeCreate('div', {
+                class: 'content-body',
+                style: 'display: flex; flex-direction: column; gap: 16px; align-items: center; justify-content: center; padding: 30px; text-align: center;'
+            });
+            modal.appendChild(finderBody);
+
+            const loaderWrapper = window.LinkPilotUtils.safeCreate('div', { style: 'display: block;' }, [
+                window.LinkPilotUtils.safeCreate('div', { class: 'spinner', style: 'width: 32px; height: 32px; border-width: 3px; border-top-width: 3px;' }),
+                window.LinkPilotUtils.safeCreate('h3', { style: 'margin: 16px 0 6px 0; font-size: 15px; color: #14B8A6; font-weight: 700;' }, ['Resolving Profile Contact...']),
+                window.LinkPilotUtils.safeCreate('p', { style: 'margin: 0; font-size: 12px; color: #94A3B8;' }, ['Checking providers Hunter, Prospeo, Apollo...'])
+            ]);
+            finderBody.appendChild(loaderWrapper);
+
+            document.body.appendChild(container);
+
+            // Execute finder request
+            window.LinkPilotUtils.safeSendMessage({
+                action: 'findEmail',
+                payload: {
+                    linkedin_url: details.linkedin_url,
+                    name: details.name,
+                    company: details.company,
+                    job_title: details.job_title
+                }
+            }, (res) => {
+                // Clear loader
+                finderBody.innerHTML = '';
+
+                if (res && res.status === 'success' && res.email) {
+                    const emailInput = window.LinkPilotUtils.safeCreate('input', {
+                        type: 'text',
+                        value: res.email,
+                        readonly: true,
+                        style: 'width: 100%; text-align: center; padding: 12px; background: #1E293B; border: 1px solid #14B8A6; border-radius: 8px; color: #14B8A6; font-family: monospace; font-size: 15px; font-weight: bold; outline: none; margin-bottom: 4px; box-sizing: border-box;'
+                    });
+
+                    const statsRow = window.LinkPilotUtils.safeCreate('div', {
+                        style: 'display: flex; justify-content: space-around; width: 100%; font-size: 11px; color: #94A3B8; margin-bottom: 20px;'
+                    }, [
+                        window.LinkPilotUtils.safeCreate('span', {}, [`Provider: ${res.provider.toUpperCase()}`]),
+                        window.LinkPilotUtils.safeCreate('span', {}, [`Confidence: ${res.confidence_score}%`])
+                    ]);
+
+                    const copyBtn = window.LinkPilotUtils.safeCreate('button', {
+                        class: 'btn btn-secondary',
+                        style: 'flex: 1; height: 38px; justify-content: center;',
+                        onclick: () => {
+                            navigator.clipboard.writeText(res.email).then(() => {
+                                copyBtn.textContent = '✓ Copied!';
+                                setTimeout(() => { copyBtn.textContent = '📋 Copy Email'; }, 2000);
+                            });
+                        }
+                    }, ['📋 Copy Email']);
+
+                    const saveBtn = window.LinkPilotUtils.safeCreate('button', {
+                        class: 'btn btn-primary',
+                        style: 'flex: 1; height: 38px; justify-content: center;',
+                        onclick: () => {
+                            saveBtn.disabled = true;
+                            saveBtn.innerHTML = '<span class="spinner"></span> Saving...';
+                            
+                            window.LinkPilotUtils.safeSendMessage({
+                                action: 'saveLead',
+                                payload: {
+                                    name: details.name,
+                                    company_name: details.company,
+                                    linkedin_url: details.linkedin_url,
+                                    email: res.email,
+                                    source: 'LinkedIn Extension'
+                                }
+                            }, (saveRes) => {
+                                if (saveRes && saveRes.status === 'success') {
+                                    saveBtn.className = 'btn';
+                                    saveBtn.style.cssText = 'flex: 1; height: 38px; justify-content: center; background: rgba(34, 197, 94, 0.1); color: #22C55E; border: 1px solid rgba(34, 197, 94, 0.2); cursor: default;';
+                                    saveBtn.innerHTML = '✓ Saved to Vault';
+                                } else {
+                                    saveBtn.disabled = false;
+                                    saveBtn.textContent = 'Save to Vault';
+                                }
+                            });
+                        }
+                    }, ['📥 Save to Vault']);
+
+                    const btnsRow = window.LinkPilotUtils.safeCreate('div', {
+                        style: 'display: flex; gap: 12px; width: 100%;'
+                    }, [copyBtn, saveBtn]);
+
+                    const successBlock = window.LinkPilotUtils.safeCreate('div', {
+                        style: 'width: 100%; display: flex; flex-direction: column; align-items: center;'
+                    }, [
+                        window.LinkPilotUtils.safeCreate('div', { style: 'font-size: 32px; margin-bottom: 12px;' }, ['🎉']),
+                        window.LinkPilotUtils.safeCreate('h4', { style: 'margin: 0 0 16px 0; font-size: 15px; font-weight: bold; color: white;' }, ['Prospect Contact Located!']),
+                        emailInput,
+                        statsRow,
+                        btnsRow
+                    ]);
+
+                    finderBody.appendChild(successBlock);
+
+                } else if (res && res.status === 'error' && res.message.toLowerCase().includes('credits')) {
+                    // Insufficient credits
+                    const creditBlock = window.LinkPilotUtils.safeCreate('div', {}, [
+                        window.LinkPilotUtils.safeCreate('div', { style: 'font-size: 32px; margin-bottom: 12px;' }, ['⚡']),
+                        window.LinkPilotUtils.safeCreate('h4', { style: 'margin: 0 0 8px 0; font-size: 15px; font-weight: bold; color: #F59E0B;' }, ['Insufficient Wallet Balance']),
+                        window.LinkPilotUtils.safeCreate('p', { style: 'margin: 0 0 20px 0; font-size: 12px; color: #94A3B8; line-height: 1.4;' }, [
+                            'You do not have enough Email Finder credits. Recharge your wallet from the dashboard to continue.'
+                        ]),
+                        window.LinkPilotUtils.safeCreate('a', {
+                            href: 'https://linkpilot.work/dashboard/recharge.html',
+                            target: '_blank',
+                            class: 'btn btn-primary',
+                            style: 'text-decoration: none; display: inline-flex; justify-content: center; width: 100%; box-sizing: border-box; height: 38px; align-items: center;'
+                        }, ['Buy Finder Credits'])
+                    ]);
+                    finderBody.appendChild(creditBlock);
+                } else {
+                    // Contact not found or timeout
+                    const failBlock = window.LinkPilotUtils.safeCreate('div', {}, [
+                        window.LinkPilotUtils.safeCreate('div', { style: 'font-size: 32px; margin-bottom: 12px;' }, ['🔍']),
+                        window.LinkPilotUtils.safeCreate('h4', { style: 'margin: 0 0 8px 0; font-size: 15px; font-weight: bold; color: #EF4444;' }, ['Contact Email Not Found']),
+                        window.LinkPilotUtils.safeCreate('p', { style: 'margin: 0; font-size: 12px; color: #94A3B8; line-height: 1.4;' }, [
+                            'No verified email addresses could be resolved for this profile. No wallet credits were deducted.'
+                        ])
+                    ]);
+                    finderBody.appendChild(failBlock);
+                }
+            });
+        });
+    };
+
     // Initialize extension content observer orchestrator
     window.LinkPilotLogger.info('Starting LinkPilot AI Observer module...');
     window.LinkPilotObserver.start();

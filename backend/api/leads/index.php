@@ -8,6 +8,38 @@ require_once __DIR__ . '/../../jwt_helper.php';
 $user = JWTHelper::requireAuth();
 $userId = $user['id'];
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Parse input
+    $input = json_decode(file_get_contents('php://input'), true);
+    if (!$input) {
+        sendJsonResponse('error', 'Invalid JSON input', [], 400);
+    }
+    
+    $name = trim($input['name'] ?? '');
+    $companyName = trim($input['company_name'] ?? '');
+    $linkedinUrl = trim($input['linkedin_url'] ?? '');
+    $email = trim($input['email'] ?? '');
+    $phoneNumber = trim($input['phone_number'] ?? '');
+    $source = trim($input['source'] ?? 'LinkedIn Extension');
+    $postUrl = trim($input['post_url'] ?? '');
+    $postContent = trim($input['post_content'] ?? '');
+    
+    if (empty($name) && empty($companyName)) {
+        sendJsonResponse('error', 'Name or Company Name is required to save lead.', [], 400);
+    }
+    
+    $db = Database::getConnection();
+    
+    try {
+        $stmt = $db->prepare("INSERT INTO lead_vault (user_id, name, company_name, linkedin_url, email, phone_number, source, post_url, post_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$userId, $name, $companyName, $linkedinUrl, $email, $phoneNumber, $source, $postUrl, $postContent]);
+        
+        sendJsonResponse('success', 'Lead saved successfully to Lead Vault.', ['lead_id' => $db->lastInsertId()]);
+    } catch (Exception $e) {
+        sendJsonResponse('error', 'Failed to save lead: ' . $e->getMessage(), [], 500);
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     sendJsonResponse('error', 'Method not allowed', [], 405);
 }

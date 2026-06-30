@@ -302,64 +302,34 @@ function openExtensionGuide() {
     modal.id = 'ext-guide-modal';
     modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm animate-fade-in p-4';
     
-    const downloadUrl = `${API_BASE_URL}/extension/download.php?token=${getAuthToken()}`;
-    
     modal.innerHTML = `
-        <div class="glass-panel p-6 max-w-lg w-full bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto text-left">
+        <div class="glass-panel p-6 max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto text-left">
             <button onclick="document.getElementById('ext-guide-modal').remove()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold">&times;</button>
             
             <h2 class="text-xl font-extrabold text-teal-400 mb-2 flex items-center">
                 <span>✨ Install Chrome Extension</span>
             </h2>
-            <p class="text-xs text-slate-400 mb-6">Setup the LinkPilot AI extension to inject action buttons and automate your LinkedIn outreach.</p>
+            <p class="text-xs text-slate-400 mb-6">Install the official LinkPilot AI Chrome extension to inject action buttons and automate your LinkedIn outreach.</p>
             
             <div class="space-y-4">
-                <!-- Step 1 -->
-                <div class="flex items-start space-x-3">
-                    <span class="flex-shrink-0 w-6 h-6 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-xs flex items-center justify-center">1</span>
-                    <div>
-                        <h4 class="text-sm font-semibold text-white">Download the Extension Package</h4>
-                        <p class="text-xs text-slate-400 mt-0.5">Click the link below to download the latest extension files directly as a ZIP archive.</p>
-                        <a href="${downloadUrl}" target="_blank" class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-teal-400 text-slate-950 text-xs font-bold rounded-lg mt-2 hover:bg-teal-300 transition">
-                            <span>Download ZIP Package</span>
-                        </a>
-                    </div>
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 flex flex-col items-center text-center">
+                    <img src="assets/img/logo.png" class="h-16 w-16 mb-3 object-contain" alt="LinkPilot Logo" onerror="this.onerror=null; this.src='../dashboard/assets/img/logo.png';">
+                    <h3 class="text-sm font-semibold text-white">LinkPilot AI - LinkedIn Outreach</h3>
+                    <p class="text-[11px] text-slate-400 mt-1 max-w-xs">Available on the official Chrome Web Store. Clean, secure, and receives automated updates.</p>
+                    
+                    <a href="https://chromewebstore.google.com/detail/gnemddfomigfkpidiakgcdpighonkjga?utm_source=item-share-cb" target="_blank" class="w-full inline-flex items-center justify-center space-x-2 px-4 py-2.5 bg-teal-400 text-slate-950 text-xs font-bold rounded-lg mt-4 hover:bg-teal-300 transition duration-150">
+                        <i data-lucide="external-link" class="h-4 w-4"></i>
+                        <span>Add to Chrome</span>
+                    </a>
                 </div>
 
-                <!-- Step 2 -->
-                <div class="flex items-start space-x-3">
-                    <span class="flex-shrink-0 w-6 h-6 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-xs flex items-center justify-center">2</span>
-                    <div>
-                        <h4 class="text-sm font-semibold text-white">Extract the Folder</h4>
-                        <p class="text-xs text-slate-400 mt-0.5">Unzip the downloaded <code>linkpilot-chrome-extension.zip</code> file onto a dedicated folder on your computer.</p>
-                    </div>
-                </div>
-
-                <!-- Step 3 -->
-                <div class="flex items-start space-x-3">
-                    <span class="flex-shrink-0 w-6 h-6 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-xs flex items-center justify-center">3</span>
-                    <div>
-                        <h4 class="text-sm font-semibold text-white">Open Chrome Extensions Manager</h4>
-                        <p class="text-xs text-slate-400 mt-0.5">Open Google Chrome, navigate to <code>chrome://extensions/</code> in your URL bar, and press Enter.</p>
-                    </div>
-                </div>
-
-                <!-- Step 4 -->
-                <div class="flex items-start space-x-3">
-                    <span class="flex-shrink-0 w-6 h-6 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-xs flex items-center justify-center">4</span>
-                    <div>
-                        <h4 class="text-sm font-semibold text-white">Enable Developer Mode</h4>
-                        <p class="text-xs text-slate-400 mt-0.5">Toggle the <strong>Developer mode</strong> switch in the top-right corner of the Extensions tab to active.</p>
-                    </div>
-                </div>
-
-                <!-- Step 5 -->
-                <div class="flex items-start space-x-3">
-                    <span class="flex-shrink-0 w-6 h-6 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 font-bold text-xs flex items-center justify-center">5</span>
-                    <div>
-                        <h4 class="text-sm font-semibold text-white">Load Unpacked Extension</h4>
-                        <p class="text-xs text-slate-400 mt-0.5">Click the <strong>Load unpacked</strong> button in the top-left corner, and select the extracted extension folder.</p>
-                    </div>
+                <div class="text-[11px] text-slate-400 space-y-2">
+                    <p class="font-semibold text-slate-300">Why use the Extension?</p>
+                    <ul class="list-disc pl-4 space-y-1 text-slate-400">
+                        <li>Inject smart email, comment draft, and WhatsApp buttons on LinkedIn.</li>
+                        <li>Context-aware writing powered by your custom AI configuration.</li>
+                        <li>100% secure, standard extensions sandbox compliance.</li>
+                    </ul>
                 </div>
             </div>
             
@@ -369,6 +339,9 @@ function openExtensionGuide() {
         </div>
     `;
     document.body.appendChild(modal);
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
 }
 
 // Toggle loading state on forms

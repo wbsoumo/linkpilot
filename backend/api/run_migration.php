@@ -26,9 +26,9 @@ try {
     $stmtScrapCount->execute(['linkedin_scraper']);
     if ((int)$stmtScrapCount->fetchColumn() === 0) {
         $stmtScrapSeed = $db->prepare("INSERT INTO `email_provider_settings` (provider_name, is_enabled, api_key, api_secret, priority) VALUES (?, ?, ?, ?, ?)");
-        $stmtScrapSeed->execute(['linkedin_scraper', 0, 'http://localhost:8001', '15', 10]);
+        $stmtScrapSeed->execute(['linkedin_scraper', 1, 'http://127.0.0.1:8001', '15', 10]);
     } else {
-        $db->exec("UPDATE `email_provider_settings` SET api_key = 'http://localhost:8001' WHERE provider_name = 'linkedin_scraper'");
+        $db->exec("UPDATE `email_provider_settings` SET is_enabled = 1, api_key = 'http://127.0.0.1:8001' WHERE provider_name = 'linkedin_scraper'");
     }
 
     echo json_encode(["status" => "success", "message" => "Database migrations executed successfully!"]);

@@ -334,14 +334,30 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
     $messages[] = "Table 'admin_settings' checked/created.";
 
-    // Seed Global Settings if empty
-    $stmtCount = $db->query("SELECT COUNT(*) FROM `admin_settings`");
-    if ((int)$stmtCount->fetchColumn() === 0) {
-        $stmtSeed = $db->prepare("INSERT INTO `admin_settings` (setting_key, setting_value) VALUES (?, ?)");
-        $stmtSeed->execute(['global_sync_interval', '60']); // in minutes
-        $stmtSeed->execute(['ai_system_prompt_overrides', '']);
-        $stmtSeed->execute(['feature_flags_json', '{"email_intelligence": true, "deals_kanban": true, "google_sheets_sync": true}']);
-        $messages[] = "Admin default settings seeded.";
+    // 17. Create scraper_requests_log table
+    $db->exec("CREATE TABLE IF NOT EXISTS `scraper_requests_log` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `linkedin_url` VARCHAR(500) NOT NULL,
+        `scraping_duration` DECIMAL(6, 3) DEFAULT NULL,
+        `company_found` VARCHAR(255) DEFAULT NULL,
+        `hunter_lookup_status` VARCHAR(50) DEFAULT NULL,
+        `credits_consumed` INT DEFAULT 0,
+        `errors` TEXT DEFAULT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+    $messages[] = "Table 'scraper_requests_log' checked/created.";
+
+    // 18. Insert or update linkedin_scraper settings
+    $stmtScrapCount = $db->prepare("SELECT COUNT(*) FROM `email_provider_settings` WHERE provider_name = ?");
+    $stmtScrapCount->execute(['linkedin_scraper']);
+    if ((int)$stmtScrapCount->fetchColumn() === 0) {
+        $stmtScrapSeed = $db->prepare("INSERT INTO `email_provider_settings` (provider_name, is_enabled, api_key, api_secret, priority) VALUES (?, ?, ?, ?, ?)");
+        $stmtScrapSeed->execute(['linkedin_scraper', 1, 'http://127.0.0.1:8001', '15', 10]);
+        $messages[] = "Linkedin scraper settings seeded.";
+    } else {
+        $db->exec("UPDATE `email_provider_settings` SET is_enabled = 1, api_key = 'http://127.0.0.1:8001' WHERE provider_name = 'linkedin_scraper'");
+        $messages[] = "Linkedin scraper settings updated.";
     }
 
     sendJsonResponse('success', 'LinkPilot CRM v2.0 Database Migrations executed successfully.', [

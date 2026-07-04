@@ -20,19 +20,22 @@
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css?v=2.2">
 </head>
 <body class="h-full bg-[#f8fafc] text-slate-800 flex overflow-hidden">
 
     <!-- 1. LEFT SIDEBAR PANEL -->
-    <aside class="hidden lg:flex flex-col w-64 bg-[#0a1128] border-r border-slate-800/10 p-5 shrink-0 justify-between">
-        <div class="space-y-6">
-            <!-- Brand Logo -->
+    <aside class="hidden lg:flex flex-col w-64 bg-[#0a1128] border-r border-slate-800/10 shrink-0 h-full justify-between">
+        <!-- Logo (Sticky Top) -->
+        <div class="p-5 border-b border-slate-800/20">
             <a href="index.html" class="flex items-center space-x-2 text-lg font-extrabold tracking-wider text-white">
                 <i data-lucide="send" class="h-5 w-5 text-blue-500 transform rotate-45"></i>
                 <span>LinkPilot <span class="text-blue-500 font-bold">CRM</span></span>
             </a>
+        </div>
 
+        <!-- Scrollable Navigation Area -->
+        <div class="flex-grow overflow-y-auto p-5 space-y-6">
             <!-- Sidebar Navigation Links -->
             <nav class="space-y-1 flex flex-col text-xs" id="sidebar-navigation-container">
                 <a href="#/dashboard" class="sidebar-nav-link active text-slate-300 transition duration-150">
@@ -88,10 +91,7 @@
                     <i data-lucide="shield-alert" class="h-4 w-4 mr-2.5"></i><span>Admin Portal</span>
                 </a>
             </nav>
-        </div>
 
-        <!-- Pro Plan Card and Profile -->
-        <div class="space-y-4 pt-4 border-t border-slate-800/80">
             <!-- Pro Plan Card -->
             <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-3.5 space-y-2.5">
                 <div class="text-white text-xs font-bold">Pro Plan</div>
@@ -101,7 +101,10 @@
                     <span>Upgrade Plan</span>
                 </button>
             </div>
+        </div>
 
+        <!-- Sidebar footer profile details (Sticky Bottom) -->
+        <div class="p-5 border-t border-slate-800/80 space-y-4 bg-[#0a1128]">
             <!-- Profile Details -->
             <div class="flex items-center space-x-3">
                 <div class="h-9 w-9 rounded-lg bg-blue-600 text-white font-bold flex items-center justify-center border border-blue-400/30" id="user-avatar-initials">

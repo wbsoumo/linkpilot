@@ -148,45 +148,49 @@ function setupNavigation() {
 
     // Set Active State on nav links based on current file name
     const currentFile = window.location.pathname.split('/').pop() || 'index.html';
-    const navLinks = document.querySelectorAll('.sidebar-nav-link');
+    const isSPAPage = currentFile === 'index.html' || currentFile === 'admin.html' || currentFile === '';
     
-    // Inject Email Finder and Recharge links programmatically if not present
-    if (navLinks.length > 0) {
-        const navContainer = navLinks[0].parentNode;
-        if (navContainer && !document.getElementById('email-finder-nav-link')) {
-            const finderLink = document.createElement('a');
-            finderLink.id = 'email-finder-nav-link';
-            finderLink.href = 'email_finder.html';
-            finderLink.className = 'sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150';
-            finderLink.textContent = 'Email Finder';
-            
-            const rechargeLink = document.createElement('a');
-            rechargeLink.id = 'recharge-nav-link';
-            rechargeLink.href = 'recharge.html';
-            rechargeLink.className = 'sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150';
-            rechargeLink.textContent = 'Recharge';
-
-            const adminLink = document.getElementById('admin-nav-link');
-            if (adminLink) {
-                navContainer.insertBefore(finderLink, adminLink);
-                navContainer.insertBefore(rechargeLink, adminLink);
-            } else {
-                navContainer.appendChild(finderLink);
-                navContainer.appendChild(rechargeLink);
+    if (!isSPAPage) {
+        const navLinks = document.querySelectorAll('.sidebar-nav-link');
+        
+        // Inject Email Finder and Recharge links programmatically if not present
+        if (navLinks.length > 0) {
+            const navContainer = navLinks[0].parentNode;
+            if (navContainer && !document.getElementById('email-finder-nav-link')) {
+                const finderLink = document.createElement('a');
+                finderLink.id = 'email-finder-nav-link';
+                finderLink.href = 'email_finder.html';
+                finderLink.className = 'sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150';
+                finderLink.textContent = 'Email Finder';
+                
+                const rechargeLink = document.createElement('a');
+                rechargeLink.id = 'recharge-nav-link';
+                rechargeLink.href = 'recharge.html';
+                rechargeLink.className = 'sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150';
+                rechargeLink.textContent = 'Recharge';
+    
+                const adminLink = document.getElementById('admin-nav-link');
+                if (adminLink) {
+                    navContainer.insertBefore(finderLink, adminLink);
+                    navContainer.insertBefore(rechargeLink, adminLink);
+                } else {
+                    navContainer.appendChild(finderLink);
+                    navContainer.appendChild(rechargeLink);
+                }
             }
         }
+    
+        // Apply active classes to all nav links (including programmatically added ones)
+        const updatedNavLinks = document.querySelectorAll('.sidebar-nav-link');
+        updatedNavLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            if (href === currentFile) {
+                link.className = 'sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150 bg-teal-500 text-white';
+            } else {
+                link.className = 'sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150 text-slate-300 hover:bg-slate-800';
+            }
+        });
     }
-
-    // Apply active classes to all nav links (including programmatically added ones)
-    const updatedNavLinks = document.querySelectorAll('.sidebar-nav-link');
-    updatedNavLinks.forEach(link => {
-        const href = link.getAttribute('href');
-        if (href === currentFile) {
-            link.className = 'sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150 bg-teal-500 text-white';
-        } else {
-            link.className = 'sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150 text-slate-300 hover:bg-slate-800';
-        }
-    });
 
     // Programmatically inject "Install Extension" button in navigation links bar
     if (updatedNavLinks.length > 0) {

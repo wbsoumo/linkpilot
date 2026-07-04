@@ -20,18 +20,22 @@
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="assets/css/style.css">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="assets/css/style.css?v=2.2">
 </head>
 <body class="h-full bg-[#f8fafc] text-slate-800 flex overflow-hidden">
 
     <!-- 1. LEFT SIDEBAR PANEL (ADMIN PRIVILEGE CONTROL) -->
-    <aside class="hidden lg:flex flex-col w-64 bg-[#0a1128] border-r border-slate-800/10 p-5 shrink-0 justify-between">
-        <div class="space-y-6">
-            <!-- Brand Logo -->
+    <aside class="hidden lg:flex flex-col w-64 bg-[#0a1128] border-r border-slate-800/10 shrink-0 h-full justify-between">
+        <!-- Logo (Sticky Top) -->
+        <div class="p-5 border-b border-slate-800/20">
             <a href="index.html" class="flex items-center space-x-2 text-lg font-extrabold tracking-wider text-white">
                 <span class="text-rose-500">🛡️ LinkPilot</span> <span class="text-[9px] px-1.5 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded font-semibold">ADMIN</span>
             </a>
+        </div>
 
+        <!-- Scrollable Navigation Area -->
+        <div class="flex-grow overflow-y-auto p-5">
             <!-- Sidebar Navigation Links -->
             <nav class="space-y-1.5 flex flex-col text-xs" id="admin-navigation-container">
                 <button onclick="switchAdminTab('health', this)" class="sidebar-nav-link text-slate-300 transition w-full text-left active">
@@ -57,8 +61,8 @@
             </nav>
         </div>
 
-        <!-- Sidebar footer logout details -->
-        <div class="border-t border-slate-800 pt-4">
+        <!-- Sidebar footer logout details (Sticky Bottom) -->
+        <div class="p-5 border-t border-slate-800 bg-[#0a1128]">
             <button id="logout-action-btn" class="w-full flex items-center justify-center space-x-2 py-2 border border-slate-800 hover:border-red-500/30 hover:text-red-400 rounded-lg text-xs font-semibold transition bg-slate-950/20 text-slate-400">
                 <i data-lucide="log-out" class="h-3.5 w-3.5"></i>
                 <span>Log Out</span>

@@ -340,132 +340,168 @@ aside .text-white {
 }
 
 /* 2. Global light mode content overrides */
-#main-content-viewport, #admin-main-viewport {
-    color: #1e293b !important; /* text-slate-800 */
-}
-
-#main-content-viewport h1, #main-content-viewport h2, #main-content-viewport h3, #main-content-viewport h4, #main-content-viewport h5,
-#admin-main-viewport h1, #admin-main-viewport h2, #admin-main-viewport h3, #admin-main-viewport h4, #admin-main-viewport h5 {
-    color: #0f172a !important; /* text-slate-900 */
-}
-
-#main-content-viewport .text-white, #admin-main-viewport .text-white,
-#main-content-viewport .text-slate-100, #admin-main-viewport .text-slate-100 {
+body {
+    background-color: #f8fafc !important;
     color: #1e293b !important;
 }
 
-#main-content-viewport .text-slate-300, #admin-main-viewport .text-slate-300 {
+h1, h2, h3, h4, h5 {
+    color: #0f172a !important;
+}
+
+/* Force dark text for Tailwind's text-white and light text classes on everything except aside */
+:not(aside) .text-white, :not(aside) .text-slate-100 {
+    color: #1e293b !important;
+}
+
+:not(aside) .text-slate-350, :not(aside) .text-slate-300 {
     color: #475569 !important; /* text-slate-600 */
 }
 
-#main-content-viewport .text-slate-400, #admin-main-viewport .text-slate-400 {
+:not(aside) .text-slate-450, :not(aside) .text-slate-400 {
     color: #64748b !important; /* text-slate-500 */
 }
 
-#main-content-viewport .bg-slate-900, #main-content-viewport .bg-slate-950, #main-content-viewport .bg-slate-900\/40, #main-content-viewport .bg-slate-950\/40,
-#admin-main-viewport .bg-slate-900, #admin-main-viewport .bg-slate-950, #admin-main-viewport .bg-slate-900\/40, #admin-main-viewport .bg-slate-950\/40 {
+:not(aside) .bg-slate-900, :not(aside) .bg-slate-950, :not(aside) .bg-slate-900\/40, :not(aside) .bg-slate-950\/40 {
     background-color: #ffffff !important;
 }
 
-#main-content-viewport .border-slate-800, #admin-main-viewport .border-slate-800,
-#main-content-viewport .border-slate-700, #admin-main-viewport .border-slate-700 {
+:not(aside) .border-slate-800, :not(aside) .border-slate-700 {
     border-color: #e2e8f0 !important;
 }
 
-#main-content-viewport .glass-panel, #admin-main-viewport .glass-panel {
+:not(aside) .glass-panel {
     background-color: #ffffff !important;
     border-color: #e2e8f0 !important;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03) !important;
 }
 
 /* Form inputs styling */
-#main-content-viewport input, #main-content-viewport select, #main-content-viewport textarea,
-#admin-main-viewport input, #admin-main-viewport select, #admin-main-viewport textarea {
+:not(aside) input, :not(aside) select, :not(aside) textarea {
     background-color: #ffffff !important;
     border: 1px solid #cbd5e1 !important;
     color: #0f172a !important;
 }
 
-#main-content-viewport input:focus, #main-content-viewport select:focus, #main-content-viewport textarea:focus,
-#admin-main-viewport input:focus, #admin-main-viewport select:focus, #admin-main-viewport textarea:focus {
+:not(aside) input:focus, :not(aside) select:focus, :not(aside) textarea:focus {
     border-color: #2563eb !important;
     outline: none !important;
     box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1) !important;
 }
 
-#main-content-viewport input::placeholder, #admin-main-viewport input::placeholder {
+:not(aside) input::placeholder {
     color: #94a3b8 !important;
 }
 
 /* Ensure buttons and badges keep white text */
-#main-content-viewport button, #main-content-viewport button *,
-#admin-main-viewport button, #admin-main-viewport button *,
-#main-content-viewport .bg-indigo-600, #main-content-viewport .bg-indigo-600 *,
-#admin-main-viewport .bg-indigo-600, #admin-main-viewport .bg-indigo-600 *,
-#main-content-viewport .bg-blue-600, #main-content-viewport .bg-blue-600 *,
-#admin-main-viewport .bg-blue-600, #admin-main-viewport .bg-blue-600 *,
-#main-content-viewport .bg-emerald-600, #main-content-viewport .bg-emerald-600 *,
-#admin-main-viewport .bg-emerald-600, #admin-main-viewport .bg-emerald-600 *,
-#main-content-viewport .bg-[#2563eb], #main-content-viewport .bg-[#2563eb] *,
-#admin-main-viewport .bg-[#2563eb], #admin-main-viewport .bg-[#2563eb] *,
-#main-content-viewport .badge, #main-content-viewport .badge *,
-#admin-main-viewport .badge, #admin-main-viewport .badge * {
+button, button *,
+.bg-indigo-600, .bg-indigo-600 *,
+.bg-blue-600, .bg-blue-600 *,
+.bg-emerald-600, .bg-emerald-600 *,
+.bg-[#2563eb], .bg-[#2563eb] *,
+.badge, .badge * {
     color: #ffffff !important;
 }
 
 /* Checkboxes style */
-#main-content-viewport input[type="checkbox"],
-#admin-main-viewport input[type="checkbox"] {
+input[type="checkbox"] {
     accent-color: #2563eb !important;
     background-color: #ffffff !important;
     border-color: #cbd5e1 !important;
 }
 
 /* Secondary/Border Buttons style override */
-#main-content-viewport button.border, #admin-main-viewport button.border {
+:not(aside) button.border {
     background-color: #ffffff !important;
     border: 1px solid #cbd5e1 !important;
     color: #475569 !important;
 }
-#main-content-viewport button.border *, #admin-main-viewport button.border * {
+:not(aside) button.border * {
     color: #475569 !important;
 }
-#main-content-viewport button.border:hover, #admin-main-viewport button.border:hover {
+:not(aside) button.border:hover {
     background-color: #f8fafc !important;
     color: #0f172a !important;
 }
-#main-content-viewport button.border:hover *, #admin-main-viewport button.border:hover * {
+:not(aside) button.border:hover * {
     color: #0f172a !important;
 }
 
 /* Kanban column and card light theme styling */
-#main-content-viewport .kanban-column {
+.kanban-column {
     background-color: #f1f5f9 !important;
     border-color: #e2e8f0 !important;
 }
-#main-content-viewport .kanban-card {
+.kanban-card {
     background-color: #ffffff !important;
     border-color: #e2e8f0 !important;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
 }
-#main-content-viewport .kanban-card:hover {
+.kanban-card:hover {
     border-color: #2563eb !important;
     background-color: #ffffff !important;
 }
 
 /* Table light mode styling */
-#main-content-viewport table, #admin-main-viewport table {
+table {
     color: #334155 !important;
 }
-#main-content-viewport th, #admin-main-viewport th {
+th {
     background-color: #f8fafc !important;
     color: #475569 !important;
     border-bottom: 1px solid #e2e8f0 !important;
 }
-#main-content-viewport td, #admin-main-viewport td {
+td {
     border-bottom: 1px solid #f1f5f9 !important;
 }
-#main-content-viewport tbody tr:hover, #admin-main-viewport tbody tr:hover {
+tbody tr:hover {
     background-color: #f8fafc !important;
+}
+
+/* Sidebar scrollbar styling */
+aside .flex-grow::-webkit-scrollbar {
+    width: 4px;
+}
+aside .flex-grow::-webkit-scrollbar-track {
+    background: transparent;
+}
+aside .flex-grow::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+aside .flex-grow::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* Force light background on all body and main containers, removing gradients */
+body, main {
+    background-color: #f8fafc !important;
+    background-image: none !important; /* Disables any dark bg-gradient-to-tr */
+}
+
+/* Style legacy top navigation header to match the light theme */
+nav.glass-panel {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    color: #1e293b !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+nav.glass-panel *, nav.glass-panel span, nav.glass-panel a {
+    color: #1e293b !important;
+}
+
+nav.glass-panel .sidebar-nav-link:hover {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+}
+
+nav.glass-panel .sidebar-nav-link.active {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+}
+
+nav.glass-panel .sidebar-nav-link.active * {
+    color: #ffffff !important;
 }
 

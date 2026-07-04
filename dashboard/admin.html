@@ -330,7 +330,7 @@
                 user_id: parseInt(document.getElementById('adj_user_id').value),
                 credits: parseInt(document.getElementById('adj_credits').value),
                 reason: document.getElementById('adj_reason').value,
-                action: 'recharge'
+                adjustment_type: 'recharge'
             };
             try {
                 const res = await apiCall('admin/adjust_user_credits.php', 'POST', payload);

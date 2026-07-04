@@ -1,6 +1,7 @@
 // dashboard/assets/js/app.js
 
-const API_BASE_URL = 'https://linkpilot.work/backend/api';
+// Resolve API URL dynamically depending on hosting environment
+const API_BASE_URL = window.location.origin + (window.location.pathname.includes('/LinkPilot%20AI/') ? '/LinkPilot%20AI/backend/api' : '/backend/api');
 
 // central notification system
 function showNotification(type, message) {

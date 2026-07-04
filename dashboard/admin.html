@@ -12,844 +12,383 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="assets/img/logo.png">
-    <title>Admin Dashboard - LinkPilot AI</title>
+    <title>Admin Portal - LinkPilot AI</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom Style Sheet -->
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
-<body class="h-full bg-slate-950 text-slate-100 flex flex-col">
-    <!-- Top Navigation -->
-    <nav class="glass-panel rounded-none border-t-0 border-x-0 sticky top-0 z-40 bg-slate-900/80 text-white px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center space-x-8">
-            <a href="index.html" class="flex items-center space-x-2 text-xl font-bold tracking-wider">
-                <span class="text-teal-400">✨ LinkPilot</span> <span class="text-xs px-2 py-0.5 bg-slate-800 text-teal-400 border border-slate-700 rounded-full font-semibold">AI</span>
+<body class="h-full bg-slate-950 text-slate-100 flex overflow-hidden">
+
+    <!-- 1. LEFT SIDEBAR PANEL (ADMIN PRIVILEGE CONTROL) -->
+    <aside class="hidden lg:flex flex-col w-64 bg-slate-900/90 border-r border-rose-950/20 p-5 shrink-0 justify-between">
+        <div class="space-y-6">
+            <!-- Brand Logo -->
+            <a href="index.html" class="flex items-center space-x-2 text-lg font-extrabold tracking-wider text-white">
+                <span class="text-rose-500">🛡️ LinkPilot</span> <span class="text-[9px] px-1.5 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded font-semibold">ADMIN</span>
             </a>
-            <div class="hidden md:flex items-center space-x-1">
-                <a href="index.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">Dashboard</a>
-                <a href="history.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">History</a>
-                <a href="smtp.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">SMTP Settings</a>
-                <a href="openrouter.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">AI Settings</a>
-                <a href="admin.html" id="admin-nav-link" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150 hidden">Admin</a>
-            </div>
+
+            <!-- Sidebar Navigation Links -->
+            <nav class="space-y-1.5 flex flex-col text-xs" id="admin-navigation-container">
+                <button onclick="switchAdminTab('health', this)" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition w-full text-left active">
+                    <i data-lucide="shield-check" class="h-4 w-4 mr-2.5"></i><span>System Health</span>
+                </button>
+                <button onclick="switchAdminTab('users', this)" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition w-full text-left">
+                    <i data-lucide="users" class="h-4 w-4 mr-2.5"></i><span>User Accounts</span>
+                </button>
+                <button onclick="switchAdminTab('ai-settings', this)" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition w-full text-left">
+                    <i data-lucide="cpu" class="h-4 w-4 mr-2.5"></i><span>AI & Prompts</span>
+                </button>
+                <button onclick="switchAdminTab('credits', this)" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition w-full text-left">
+                    <i data-lucide="wallet" class="h-4 w-4 mr-2.5"></i><span>Credit Adjustments</span>
+                </button>
+                <button onclick="switchAdminTab('logs', this)" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition w-full text-left">
+                    <i data-lucide="file-text" class="h-4 w-4 mr-2.5"></i><span>Processing Logs</span>
+                </button>
+                
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest pt-6 pb-1.5 pl-2">Client Workspace</span>
+                <a href="index.html" class="sidebar-nav-link text-slate-400 hover:bg-slate-800 hover:text-white transition duration-150">
+                    <i data-lucide="arrow-left-circle" class="h-4 w-4 mr-2.5"></i><span>Return to CRM</span>
+                </a>
+            </nav>
         </div>
-        <div class="flex items-center space-x-4">
-            <div class="text-right hidden sm:block">
-                <div class="text-sm font-semibold user-name-display">Loading...</div>
-                <div class="text-xs text-slate-400 user-email-display">...</div>
-            </div>
-            <div class="h-9 w-9 rounded-full bg-teal-500 text-slate-950 font-bold flex items-center justify-center border border-teal-400" id="user-avatar-initials">
-                LP
-            </div>
-            <button id="logout-action-btn" class="p-2 text-slate-400 hover:text-red-400 rounded-lg hover:bg-slate-800/50 transition">
-                <i data-lucide="log-out" class="h-5 w-5"></i>
+
+        <!-- Sidebar footer logout details -->
+        <div class="border-t border-slate-800 pt-4">
+            <button id="logout-action-btn" class="w-full flex items-center justify-center space-x-2 py-2 border border-slate-800 hover:border-red-500/30 hover:text-red-400 rounded-lg text-xs font-semibold transition bg-slate-950/20 text-slate-400">
+                <i data-lucide="log-out" class="h-3.5 w-3.5"></i>
+                <span>Log Out</span>
             </button>
         </div>
-    </nav>
+    </aside>
 
-    <!-- Main Content Area -->
-    <main class="flex-grow p-6 md:p-8 space-y-8 max-w-7xl w-full mx-auto animate-fade-in">
-        <div>
-            <h1 class="text-2xl font-extrabold text-white">System Admin Control Center</h1>
-            <p class="text-slate-400 text-sm mt-1">Review global platform statistics, manage registered users, and audit system logs.</p>
-        </div>
+    <!-- 2. RIGHT CONTENT AREA -->
+    <div class="flex-grow flex flex-col min-w-0 overflow-hidden">
+        <header class="glass-panel rounded-none border-t-0 border-x-0 sticky top-0 z-40 bg-slate-900/60 px-6 py-4 flex items-center justify-between">
+            <h2 class="text-sm font-bold text-rose-400">System Admin Control Center</h2>
+            <div class="text-xs text-slate-400 font-mono">Secure HTTPS Tunnel</div>
+        </header>
 
-        <!-- Admin Metrics Cards Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <!-- Total Users -->
-            <div class="glass-panel p-6 bg-slate-900/40 border-slate-800 flex items-center justify-between">
-                <div>
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Total Users</span>
-                    <span class="text-3xl font-extrabold text-white mt-1 block" id="admin-stat-total-users">0</span>
-                    <span class="text-xs text-slate-500 mt-1 block" id="admin-stat-active-users">0 active last 30d</span>
+        <!-- Main Admin Content Container -->
+        <main class="flex-grow p-6 md:p-8 overflow-y-auto max-w-7xl w-full mx-auto" id="admin-main-viewport">
+            <!-- Dynamic tab render containers -->
+            <div id="admin-health-pane" class="space-y-6">
+                <!-- System Health check grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+                    <!-- Health Checklist -->
+                    <div class="glass-panel p-5 bg-slate-900/40 space-y-4 md:col-span-2">
+                        <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center">
+                            <i data-lucide="activity" class="h-4 w-4 text-emerald-400 mr-2"></i>
+                            <span>Server Diagnostics</span>
+                        </h3>
+                        <div class="grid grid-cols-2 gap-4 text-slate-300" id="health-grid-details">
+                            <p>Loading diagnostics...</p>
+                        </div>
+                    </div>
+
+                    <!-- Queue monitor metrics -->
+                    <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
+                        <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center">
+                            <i data-lucide="cpu" class="h-4 w-4 text-indigo-400 mr-2"></i>
+                            <span>Active Queues</span>
+                        </h3>
+                        <div class="space-y-3" id="queue-stats-details">
+                            <p>Loading stats...</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="p-3 bg-teal-500/10 text-teal-400 rounded-lg"><i data-lucide="users" class="h-6 w-6"></i></div>
             </div>
-
-            <!-- Total AI Requests -->
-            <div class="glass-panel p-6 bg-slate-900/40 border-slate-800 flex items-center justify-between">
-                <div>
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">AI Requests</span>
-                    <span class="text-3xl font-extrabold text-white mt-1 block" id="admin-stat-ai-requests">0</span>
-                    <span class="text-xs text-slate-500 mt-1 block">System-wide requests</span>
-                </div>
-                <div class="p-3 bg-indigo-500/10 text-indigo-400 rounded-lg"><i data-lucide="cpu" class="h-6 w-6"></i></div>
-            </div>
-
-            <!-- Outbox Stats -->
-            <div class="glass-panel p-6 bg-slate-900/40 border-slate-800 flex items-center justify-between">
-                <div>
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Outbox Traffic</span>
-                    <span class="text-3xl font-extrabold text-white mt-1 block" id="admin-stat-emails-sent">0</span>
-                    <span class="text-xs text-slate-500 mt-1 block" id="admin-stat-others-generated">Comments / WhatsApp</span>
-                </div>
-                <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-lg"><i data-lucide="send" class="h-6 w-6"></i></div>
-            </div>
-
-            <!-- Token Usage & Cost -->
-            <div class="glass-panel p-6 bg-slate-900/40 border-slate-800 flex items-center justify-between">
-                <div>
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">API Usage (Billing)</span>
-                    <span class="text-xl font-extrabold text-white mt-1 block" id="admin-stat-tokens-used">0 tokens</span>
-                    <span class="text-xs text-teal-400 font-bold mt-1 block" id="admin-stat-estimated-cost">Est. Cost: $0.00</span>
-                </div>
-                <div class="p-3 bg-amber-500/10 text-amber-400 rounded-lg"><i data-lucide="credit-card" class="h-6 w-6"></i></div>
-            </div>
-        </div>
-
-        <!-- Section: User Management -->
-        <div class="glass-panel bg-slate-900/40 border-slate-800 p-6 space-y-4">
-            <h3 class="text-lg font-bold text-white flex items-center space-x-2">
-                <i data-lucide="shield-alert" class="h-5 w-5 text-teal-400"></i>
-                <span>User Management</span>
-            </h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse custom-table">
-                    <thead>
-                        <tr class="border-b border-slate-800">
-                            <th class="py-3 px-4">User</th>
-                            <th class="py-3 px-4">Type</th>
-                            <th class="py-3 px-4">Company</th>
-                            <th class="py-3 px-4">Role</th>
-                            <th class="py-3 px-4">Requests</th>
-                            <th class="py-3 px-4">Registered</th>
-                            <th class="py-3 px-4 text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="admin-users-table-body" class="divide-y divide-slate-800/50">
-                        <tr>
-                            <td colspan="7" class="py-8 text-center text-slate-500 text-sm">Loading users list...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Section: Audit Log -->
-        <div class="glass-panel bg-slate-900/40 border-slate-800 p-6 space-y-4">
-            <h3 class="text-lg font-bold text-white flex items-center space-x-2">
-                <i data-lucide="history" class="h-5 w-5 text-teal-400"></i>
-                <span>System Audit Logs</span>
-            </h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse custom-table">
-                    <thead>
-                        <tr class="border-b border-slate-800">
-                            <th class="py-3 px-4">User</th>
-                            <th class="py-3 px-4">Action</th>
-                            <th class="py-3 px-4">IP Address</th>
-                            <th class="py-3 px-4">Timestamp</th>
-                        </tr>
-                    </thead>
-                    <tbody id="admin-logs-table-body" class="divide-y divide-slate-800/50">
-                        <tr>
-                            <td colspan="4" class="py-8 text-center text-slate-500 text-sm">Loading system audits...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Section: Email Finder Settings -->
-        <div class="glass-panel bg-slate-900/40 border-slate-800 p-6 space-y-4">
-            <h3 class="text-lg font-bold text-white flex items-center space-x-2">
-                <i data-lucide="mail" class="h-5 w-5 text-teal-400"></i>
-                <span>Email Finder API Settings</span>
-            </h3>
-            <p class="text-xs text-slate-400">Toggle providers, define priority order, and manage connection keys securely.</p>
             
-            <form id="admin-finder-form" onsubmit="saveFinderSettings(event)" class="space-y-6 pt-2">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Hunter.io Card -->
-                    <div class="p-5 bg-slate-950/40 border border-slate-850 rounded-xl space-y-4">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-extrabold uppercase tracking-wider text-teal-400">Hunter.io</span>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="hunter-enabled" class="sr-only peer">
-                                <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-500"></div>
-                            </label>
-                        </div>
-                        <div class="space-y-3 text-xs">
-                            <div>
-                                <label class="block text-slate-500 font-semibold mb-1 uppercase text-[10px]">Priority Order</label>
-                                <input type="number" id="hunter-priority" min="1" max="3" class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-750 text-white rounded focus:outline-none focus:ring-1 focus:ring-teal-500">
-                            </div>
-                            <div>
-                                <label class="block text-slate-500 font-semibold mb-1 uppercase text-[10px]">API Key</label>
-                                <input type="password" id="hunter-key" placeholder="••••••••" class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-750 text-white rounded focus:outline-none focus:ring-1 focus:ring-teal-500">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Prospeo.io Card -->
-                    <div class="p-5 bg-slate-950/40 border border-slate-850 rounded-xl space-y-4">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-extrabold uppercase tracking-wider text-teal-400">Prospeo.io</span>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="prospeo-enabled" class="sr-only peer">
-                                <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-500"></div>
-                            </label>
-                        </div>
-                        <div class="space-y-3 text-xs">
-                            <div>
-                                <label class="block text-slate-500 font-semibold mb-1 uppercase text-[10px]">Priority Order</label>
-                                <input type="number" id="prospeo-priority" min="1" max="3" class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-750 text-white rounded focus:outline-none focus:ring-1 focus:ring-teal-500">
-                            </div>
-                            <div>
-                                <label class="block text-slate-500 font-semibold mb-1 uppercase text-[10px]">API Key</label>
-                                <input type="password" id="prospeo-key" placeholder="••••••••" class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-750 text-white rounded focus:outline-none focus:ring-1 focus:ring-teal-500">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Apollo.io Card -->
-                    <div class="p-5 bg-slate-950/40 border border-slate-850 rounded-xl space-y-4">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-extrabold uppercase tracking-wider text-teal-400">Apollo.io</span>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="apollo-enabled" class="sr-only peer">
-                                <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-500"></div>
-                            </label>
-                        </div>
-                        <div class="space-y-3 text-xs">
-                            <div>
-                                <label class="block text-slate-500 font-semibold mb-1 uppercase text-[10px]">Priority Order</label>
-                                <input type="number" id="apollo-priority" min="1" max="3" class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-750 text-white rounded focus:outline-none focus:ring-1 focus:ring-teal-500">
-                            </div>
-                            <div>
-                                <label class="block text-slate-500 font-semibold mb-1 uppercase text-[10px]">API Key</label>
-                                <input type="password" id="apollo-key" placeholder="••••••••" class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-750 text-white rounded focus:outline-none focus:ring-1 focus:ring-teal-500">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex justify-end">
-                    <button type="submit" class="px-5 py-2.5 bg-teal-400 hover:bg-teal-300 text-slate-950 font-bold text-xs rounded-lg transition duration-150">
-                        Save Finder Settings
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Section: LinkedIn Scraper Settings -->
-        <div class="glass-panel bg-slate-900/40 border-slate-800 p-6 space-y-4">
-            <h3 class="text-lg font-bold text-white flex items-center space-x-2">
-                <i data-lucide="shield-check" class="h-5 w-5 text-teal-400"></i>
-                <span>LinkedIn Scraper Settings</span>
-            </h3>
-            <p class="text-xs text-slate-400">Configure parameters for the background LinkedIn profile scraping service.</p>
-
-            <form id="admin-scraper-form" onsubmit="saveScraperSettings(event)" class="space-y-4 pt-2">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="flex items-center space-x-3 p-3 bg-slate-950/20 border border-slate-850 rounded-lg">
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="scraper-enabled" class="sr-only peer">
-                            <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-500"></div>
-                        </label>
-                        <span class="text-xs font-bold text-slate-300">Enable LinkedIn Profile Scraper</span>
-                    </div>
-
-                    <div class="flex items-center space-x-3 p-3 bg-slate-950/20 border border-slate-850 rounded-lg">
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="scraper-debug" class="sr-only peer">
-                            <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-500"></div>
-                        </label>
-                        <span class="text-xs font-bold text-slate-300">Enable Debug logging</span>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                    <div>
-                        <label class="block text-slate-400 font-semibold mb-1 uppercase text-[10px]">FastAPI Scraper API URL</label>
-                        <input type="text" id="scraper-api-url" placeholder="http://localhost:8000" class="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-teal-500">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 font-semibold mb-1 uppercase text-[10px]">Request Timeout (Seconds)</label>
-                        <input type="number" id="scraper-timeout" placeholder="15" min="5" max="120" class="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-teal-500">
-                    </div>
-                </div>
-
-                <div class="flex justify-end pt-2">
-                    <button type="submit" class="px-5 py-2.5 bg-teal-400 hover:bg-teal-300 text-slate-950 font-bold text-xs rounded-lg transition duration-150">
-                        Save Scraper Settings
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Section: Razorpay Settings -->
-        <div class="glass-panel bg-slate-900/40 border-slate-800 p-6 space-y-4">
-            <h3 class="text-lg font-bold text-white flex items-center space-x-2">
-                <i data-lucide="credit-card" class="h-5 w-5 text-teal-400"></i>
-                <span>Razorpay Gateway Settings</span>
-            </h3>
-            <p class="text-xs text-slate-400">Enable credit recharges and manage Razorpay API authorization keys.</p>
-
-            <form id="admin-payment-form" onsubmit="savePaymentSettings(event)" class="space-y-4 pt-2">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="flex items-center space-x-3 p-3 bg-slate-950/20 border border-slate-850 rounded-lg">
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="pay-enabled" class="sr-only peer">
-                            <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-500"></div>
-                        </label>
-                        <span class="text-xs font-bold text-slate-300">Enable Credit Purchasing Gateway</span>
-                    </div>
-
-                    <div class="flex items-center space-x-3 p-3 bg-slate-950/20 border border-slate-850 rounded-lg">
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="pay-test-mode" class="sr-only peer">
-                            <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-500"></div>
-                        </label>
-                        <span class="text-xs font-bold text-slate-300">Enable Sandbox (Test Mode)</span>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                    <div>
-                        <label class="block text-slate-400 font-semibold mb-1 uppercase text-[10px]">Key ID</label>
-                        <input type="password" id="pay-key-id" placeholder="••••••••" class="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-teal-500">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 font-semibold mb-1 uppercase text-[10px]">Secret Key</label>
-                        <input type="password" id="pay-secret-key" placeholder="••••••••" class="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-teal-500">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 font-semibold mb-1 uppercase text-[10px]">Webhook Secret</label>
-                        <input type="password" id="pay-webhook-secret" placeholder="••••••••" class="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-teal-500">
-                    </div>
-                </div>
-
-                <div class="flex justify-end pt-2">
-                    <button type="submit" class="px-5 py-2.5 bg-teal-400 hover:bg-teal-300 text-slate-950 font-bold text-xs rounded-lg transition duration-150">
-                        Save Payment Settings
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Section: Manual Credit Adjustment -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- Left: Adjust credits Form -->
-            <div class="lg:col-span-5 glass-panel bg-slate-900/40 border-slate-800 p-6 space-y-4">
-                <h3 class="text-md font-bold text-white flex items-center space-x-2 border-b border-slate-800 pb-3">
-                    <i data-lucide="plus-circle" class="h-4.5 w-4.5 text-teal-400"></i>
-                    <span>Adjust User Credits</span>
-                </h3>
-                
-                <form id="admin-credit-adj-form" onsubmit="adjustCredits(event)" class="space-y-4 text-xs">
-                    <div>
-                        <label for="adj-user-id" class="block text-slate-400 font-semibold mb-1 uppercase text-[10px]">Target User ID *</label>
-                        <input type="number" id="adj-user-id" required placeholder="e.g. 1" class="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-teal-500">
-                    </div>
-
-                    <div>
-                        <label for="adj-type" class="block text-slate-400 font-semibold mb-1 uppercase text-[10px]">Adjustment Action *</label>
-                        <select id="adj-type" required class="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-slate-300 focus:outline-none focus:ring-1 focus:ring-teal-500">
-                            <option value="recharge">Recharge (Add credits)</option>
-                            <option value="refund">Refund (Credit back)</option>
-                            <option value="deduction">Deduction (Debit wallet)</option>
-                        </select>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label for="adj-credits" class="block text-slate-400 font-semibold mb-1 uppercase text-[10px]">Credits Amount *</label>
-                            <input type="number" id="adj-credits" min="1" required placeholder="e.g. 100" class="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-teal-500">
-                        </div>
-                        <div>
-                            <label for="adj-cost" class="block text-slate-400 font-semibold mb-1 uppercase text-[10px]">Paid Amount (₹)</label>
-                            <input type="number" step="0.01" id="adj-cost" placeholder="e.g. 49" class="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-teal-500">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label for="adj-reason" class="block text-slate-400 font-semibold mb-1 uppercase text-[10px]">Reason / Description *</label>
-                        <input type="text" id="adj-reason" required placeholder="e.g. Compensation for timeout" class="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-teal-500">
-                    </div>
-
-                    <button type="submit" class="w-full py-3 bg-teal-400 hover:bg-teal-300 text-slate-950 font-bold rounded-lg transition duration-150">
-                        Apply Credit Modification
-                    </button>
-                </form>
-            </div>
-
-            <!-- Right: Global credits audit logs table -->
-            <div class="lg:col-span-7 glass-panel bg-slate-900/40 border-slate-800 p-6 space-y-4">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                    <h3 class="text-md font-bold text-white flex items-center space-x-2">
-                        <i data-lucide="shield-alert" class="h-4.5 w-4.5 text-teal-400"></i>
-                        <span>Global Wallet Transactions</span>
+            <div id="admin-users-pane" class="hidden space-y-6">
+                <!-- User Accounts list panel -->
+                <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
+                    <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center">
+                        <i data-lucide="users" class="h-4 w-4 text-indigo-400 mr-2"></i>
+                        <span>Registered Users</span>
                     </h3>
-                    <input id="search-credit-logs" type="text" oninput="debounceCreditLogsSearch()" placeholder="Search logs..." class="px-2.5 py-1 bg-slate-800/80 border border-slate-700 text-[10px] text-white rounded focus:outline-none focus:ring-1 focus:ring-teal-500 max-w-[150px]">
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-[11px] custom-table">
-                        <thead>
-                            <tr class="border-b border-slate-850 text-slate-400 uppercase tracking-wider font-semibold">
-                                <th class="pb-2">User</th>
-                                <th class="pb-2">Type</th>
-                                <th class="pb-2">Credits</th>
-                                <th class="pb-2">Amount</th>
-                                <th class="pb-2">Desc/Date</th>
-                            </tr>
-                        </thead>
-                        <tbody id="global-credit-tx-tbody" class="divide-y divide-slate-850">
-                            <tr>
-                                <td colspan="5" class="py-6 text-center text-slate-500">Loading credit audits...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="flex justify-between items-center text-[10px] text-slate-500 pt-2" id="credit-logs-pagination">
-                    <!-- dynamically injected -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse custom-table text-xs">
+                            <thead>
+                                <tr class="border-b border-slate-800">
+                                    <th>User</th>
+                                    <th>Role</th>
+                                    <th>Registered</th>
+                                    <th class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-users-tbody">
+                                <tr><td colspan="4" class="text-center py-6 text-slate-500">Loading user lists...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
-
-    </main>
-
-    <!-- Manual Verification Modal -->
-    <div id="verify-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden animate-fade-in">
-        <div class="glass-panel max-w-md w-full bg-slate-900 border-slate-800 p-6 space-y-6 shadow-2xl rounded-xl">
-            <div class="flex items-center space-x-3 text-teal-400 border-b border-slate-800 pb-3">
-                <i data-lucide="shield-check" class="h-6 w-6"></i>
-                <h3 class="text-lg font-bold text-white">Manual Verification Completed</h3>
+            
+            <div id="admin-ai-settings-pane" class="hidden space-y-6">
+                <!-- Prompt management & model selector -->
+                <div class="glass-panel p-6 bg-slate-900/40 space-y-6 max-w-xl">
+                    <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2">Global Scheduler & AI Prompts</h3>
+                    <form onsubmit="saveGlobalSettings(event)" class="space-y-4 text-xs">
+                        <div>
+                            <label class="block text-slate-400 font-semibold mb-1">Global Default Email Sync Interval (Minutes)</label>
+                            <input type="number" id="global_sync_interval" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 font-semibold mb-1">AI Prompt Overrides</label>
+                            <textarea id="ai_system_prompt_overrides" rows="6" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono" placeholder="Default system prompts..."></textarea>
+                        </div>
+                        <button type="submit" class="px-4 py-2 bg-rose-500 text-white rounded-lg font-bold transition hover:bg-rose-600">Save Configurations</button>
+                    </form>
+                </div>
             </div>
-            <p class="text-xs text-slate-400">Copy the message below and send it to the user via WhatsApp or Email:</p>
-            <div class="relative">
-                <textarea id="verification-msg-text" rows="6" readonly class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-300 text-xs font-medium focus:outline-none select-all font-mono leading-relaxed"></textarea>
-                <button onclick="copyVerificationMsg()" class="absolute top-2 right-2 p-1.5 bg-slate-800 hover:bg-teal-500 hover:text-slate-950 rounded-md border border-slate-700 transition text-slate-300 flex items-center justify-center" title="Copy Message">
-                    <i data-lucide="copy" class="h-3.5 w-3.5"></i>
-                </button>
+            
+            <div id="admin-credits-pane" class="hidden space-y-6">
+                <!-- Credits adjustment forms & transaction lists -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
+                        <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2">Adjust User Balance</h3>
+                        <form onsubmit="applyManualCreditAdjustment(event)" class="space-y-4 text-xs">
+                            <div>
+                                <label class="block text-slate-400 font-semibold mb-1">Target User ID</label>
+                                <input type="number" id="adj_user_id" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 font-semibold mb-1">Adjust Value</label>
+                                <input type="number" id="adj_credits" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white" placeholder="Positive to add, negative to subtract">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 font-semibold mb-1">Deduction Reason</label>
+                                <input type="text" id="adj_reason" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                            </div>
+                            <button type="submit" class="w-full py-2 bg-rose-500 text-white rounded-lg font-bold transition hover:bg-rose-600">Update User Credits</button>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <div class="flex justify-end pt-2">
-                <button onclick="closeVerifyModal()" class="px-4 py-2 bg-teal-400 hover:bg-teal-300 text-slate-950 text-xs font-bold rounded-lg transition">Close</button>
+            
+            <div id="admin-logs-pane" class="hidden space-y-6">
+                <!-- Processing logs lists -->
+                <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
+                    <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2">System Processing Log Feeds</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse custom-table text-xs">
+                            <thead>
+                                <tr class="border-b border-slate-800">
+                                    <th>Subject</th>
+                                    <th>User</th>
+                                    <th>Status</th>
+                                    <th>Message</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-processing-logs-tbody">
+                                <tr><td colspan="5" class="text-center py-6 text-slate-500">Loading system processing logs...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-        </div>
+        </main>
     </div>
 
-    <!-- Central JS Handler -->
+    <!-- Scripts integrations -->
     <script src="assets/js/app.js"></script>
     <script>
-        // Check admin role before running
-        function verifyAdminAccess() {
-            const user = getCurrentUser();
-            if (!user || user.role !== 'admin') {
-                showNotification('danger', 'Unauthorized. Redirecting to user dashboard.');
-                setTimeout(() => window.location.href = 'index.html', 1500);
-            }
+        // Check admin role
+        const currentUser = getCurrentUser();
+        if (!currentUser || currentUser.role !== 'admin') {
+            showNotification('error', 'Forbidden. Redirecting to User portal.');
+            setTimeout(() => window.location.href = 'index.html', 1500);
         }
 
-        async function loadAdminDashboard() {
+        function switchAdminTab(tab, btn) {
+            // Highlight button
+            document.querySelectorAll('#admin-navigation-container button').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+
+            // Hide panes
+            document.getElementById('admin-health-pane').classList.add('hidden');
+            document.getElementById('admin-users-pane').classList.add('hidden');
+            document.getElementById('admin-ai-settings-pane').classList.add('hidden');
+            document.getElementById('admin-credits-pane').classList.add('hidden');
+            document.getElementById('admin-logs-pane').classList.add('hidden');
+
+            // Show target
+            document.getElementById(`admin-${tab}-pane`).classList.remove('hidden');
+            
+            if (tab === 'health') loadAdminHealthData();
+            if (tab === 'users') loadAdminUsersData();
+            if (tab === 'logs') loadAdminLogsData();
+        }
+
+        async function loadAdminHealthData() {
             try {
-                // 1. Fetch Stats
-                const statsRes = await apiCall('admin/dashboard.php');
-                document.getElementById('admin-stat-total-users').textContent = statsRes.statistics.total_users;
-                document.getElementById('admin-stat-active-users').textContent = `${statsRes.statistics.active_users} active last 30d`;
-                document.getElementById('admin-stat-ai-requests').textContent = statsRes.statistics.ai_requests;
-                document.getElementById('admin-stat-emails-sent').textContent = statsRes.statistics.emails_sent;
+                const res = await apiCall('admin/crm_settings.php');
+                const h = res.health;
                 
-                const otherGens = statsRes.statistics.whatsapp_generated + statsRes.statistics.comments_generated;
-                document.getElementById('admin-stat-others-generated').textContent = `${statsRes.statistics.whatsapp_generated} WhatsApp, ${statsRes.statistics.comments_generated} Comments`;
-                
-                document.getElementById('admin-stat-tokens-used').textContent = statsRes.statistics.tokens_used.toLocaleString();
-                document.getElementById('admin-stat-estimated-cost').textContent = `Est. Cost: $${statsRes.statistics.estimated_cost_usd}`;
+                // Render health diagnostics list
+                document.getElementById('health-grid-details').innerHTML = `
+                    <p><strong>MySQL Server:</strong> ${h.database_status} (v${h.mysql_version})</p>
+                    <p><strong>PHP Version:</strong> ${h.php_version}</p>
+                    <p><strong>IMAP Mailbox Connection:</strong> ${h.imap_extension_loaded}</p>
+                    <p><strong>OpenSSL Ciphers:</strong> ${h.openssl_encryption}</p>
+                    <p><strong>Total Accounts:</strong> ${h.total_users}</p>
+                    <p><strong>Total Leads Captured:</strong> ${h.total_leads}</p>
+                    <p><strong>Companies:</strong> ${h.total_companies}</p>
+                `;
 
-                // 2. Fetch Users
-                const usersRes = await apiCall('admin/users.php');
-                const usersTableBody = document.getElementById('admin-users-table-body');
-                
-                if (usersRes.users.length === 0) {
-                    usersTableBody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-500">No users found.</td></tr>`;
+                // Render queue counters
+                const stats = res.queue_stats || [];
+                const queueContainer = document.getElementById('queue-stats-details');
+                if (stats.length > 0) {
+                    queueContainer.innerHTML = stats.map(s => `
+                        <div class="flex justify-between items-center bg-slate-950/30 p-2.5 rounded-lg border border-slate-850">
+                            <span class="font-bold text-white uppercase">${s.status}</span>
+                            <span class="px-2 py-0.5 bg-indigo-500/10 text-indigo-400 font-bold rounded-md">${s.count} logs</span>
+                        </div>
+                    `).join('');
                 } else {
-                    const currentUser = getCurrentUser();
-                    usersTableBody.innerHTML = usersRes.users.map(u => {
-                        const date = new Date(u.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-                        const isSelf = u.id === currentUser.id;
-                        
-                        const isVerified = parseInt(u.is_verified) === 1;
-                        
-                        const roleColor = u.role === 'admin' ? 'bg-teal-500/10 text-teal-400 border-teal-500/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/20';
-                        
-                        const unverifiedBadge = !isVerified ? 
-                            `<span class="ml-2 text-[9px] px-1.5 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded font-semibold uppercase tracking-wider">Unverified</span>` : '';
-                        
-                        const actionButtons = isSelf ? 
-                            `<span class="text-xs text-slate-500 italic px-3">Current Admin</span>` : 
-                            `<div class="flex justify-end space-x-2">
-                                ${!isVerified ? 
-                                    `<button onclick="verifyUser(${u.id}, '${escapeHtml(u.name)}')" class="px-2.5 py-1 bg-teal-500/20 border border-teal-500/30 rounded-md text-xs font-semibold text-teal-400 hover:bg-teal-500/40 transition animate-pulse">Mark Verified</button>` : 
-                                    `<button onclick="toggleUserRole(${u.id})" class="px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-md text-xs font-semibold hover:border-teal-400 hover:text-teal-400 transition">Change Privilege</button>`
-                                }
-                                <button onclick="deleteUser(${u.id})" class="px-2.5 py-1 bg-red-950/20 border border-red-900/30 rounded-md text-xs font-semibold text-red-400 hover:bg-red-900/40 transition">Delete</button>
-                             </div>`;
-
-                        return `
-                            <tr class="hover:bg-slate-900/40">
-                                <td class="py-3 px-4">
-                                    <div class="flex items-center">
-                                        <div class="font-semibold text-white">${escapeHtml(u.name)}</div>
-                                        ${unverifiedBadge}
-                                    </div>
-                                    <div class="text-xs text-slate-500">${escapeHtml(u.email)} ${u.phone_number ? '· ' + escapeHtml(u.phone_number) : ''}</div>
-                                </td>
-                                <td class="py-3 px-4 text-sm text-slate-300">${escapeHtml(u.user_type) || '<span class="text-slate-600">-</span>'}</td>
-                                <td class="py-3 px-4 text-sm text-slate-300">${escapeHtml(u.company_name) || '<span class="text-slate-600">-</span>'}</td>
-                                <td class="py-3 px-4">
-                                    <span class="px-2 py-0.5 text-xs border rounded-full font-medium ${roleColor}">${u.role.toUpperCase()}</span>
-                                </td>
-                                <td class="py-3 px-4 text-sm text-slate-300 font-bold">${u.total_requests || 0}</td>
-                                <td class="py-3 px-4 text-sm text-slate-400">${date}</td>
-                                <td class="py-3 px-4 text-right">${actionButtons}</td>
-                            </tr>
-                        `;
-                    }).join('');
+                    queueContainer.innerHTML = '<p class="text-xs text-slate-500">Queue processing logs are empty.</p>';
                 }
 
-                // 3. Fetch Logs
-                const logsRes = await apiCall('admin/logs.php');
-                const logsTableBody = document.getElementById('admin-logs-table-body');
-                
-                if (logsRes.logs.length === 0) {
-                    logsTableBody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-slate-500">No logs found.</td></tr>`;
-                } else {
-                    logsTableBody.innerHTML = logsRes.logs.map(log => {
-                        const date = new Date(log.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-                        return `
-                            <tr class="hover:bg-slate-900/40">
-                                <td class="py-3 px-4">
-                                    <div class="font-semibold text-white">${log.user_name}</div>
-                                    <div class="text-xs text-slate-500">${log.user_email}</div>
-                                </td>
-                                <td class="py-3 px-4 text-sm text-slate-300">${log.action}</td>
-                                <td class="py-3 px-4 text-sm text-slate-400 font-mono">${log.ip_address || '-'}</td>
-                                <td class="py-3 px-4 text-sm text-slate-400">${date}</td>
-                            </tr>
-                        `;
-                    }).join('');
-                }
-                
-                lucide.createIcons();
+                // Populate AI prompts forms values
+                const settings = res.settings || {};
+                document.getElementById('global_sync_interval').value = settings.global_sync_interval || 60;
+                document.getElementById('ai_system_prompt_overrides').value = settings.ai_system_prompt_overrides || '';
 
             } catch (err) {
-                showNotification('error', err.message || 'Failed to load Admin Control center.');
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1500);
+                showNotification('error', 'Diagnostics Load Error: ' + err.message);
             }
         }
 
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-        }
-
-        function openVerifyModal(name) {
-            const message = `Hi ${name},\n\nWe have manually verified your LinkPilot AI account! You are good to go.\n\nYou can set your password and log in using the link below:\nhttps://linkpilot.work/dashboard/login.html?forgot=true\n\nWelcome aboard!`;
-            document.getElementById('verification-msg-text').value = message;
-            document.getElementById('verify-modal').classList.remove('hidden');
-            if (window.lucide) {
-                lucide.createIcons();
-            }
-        }
-
-        function closeVerifyModal() {
-            document.getElementById('verify-modal').classList.add('hidden');
-        }
-
-        function copyVerificationMsg() {
-            const textarea = document.getElementById('verification-msg-text');
-            textarea.select();
-            navigator.clipboard.writeText(textarea.value).then(() => {
-                showNotification('success', 'Message copied to clipboard!');
-            }).catch(() => {
-                showNotification('error', 'Failed to copy. Please manually select and copy.');
-            });
-        }
-
-        async function verifyUser(userId, name) {
-            if (!confirm(`Are you sure you want to manually verify the account of ${name}?`)) return;
+        async function loadAdminUsersData() {
             try {
-                const res = await apiCall('admin/users.php', 'POST', { action: 'verify', user_id: userId });
-                showNotification('success', res.message);
-                loadAdminDashboard();
-                openVerifyModal(name);
+                const res = await apiCall('admin/users.php');
+                const tbody = document.getElementById('admin-users-tbody');
+                
+                tbody.innerHTML = res.users.map(u => `
+                    <tr class="hover:bg-slate-900/40">
+                        <td class="py-3 px-4 font-bold text-white">${u.name}<div class="text-[10px] text-slate-500 font-medium">${u.email}</div></td>
+                        <td class="py-3 px-4"><span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${u.role === 'admin' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-slate-850 text-slate-400'}">${u.role.toUpperCase()}</span></td>
+                        <td class="py-3 px-4 text-slate-400">${new Date(u.created_at).toLocaleDateString()}</td>
+                        <td class="py-3 px-4 text-right">
+                            <button onclick="toggleUserAdminRole(${u.id})" class="text-[10px] px-2 py-1 bg-slate-850 border border-slate-700 rounded hover:border-indigo-400 hover:text-indigo-400 transition mr-2">Toggle Role</button>
+                            <button onclick="deleteUserPermanently(${u.id})" class="text-[10px] px-2 py-1 bg-red-950/20 text-red-400 border border-red-900/20 rounded hover:bg-red-900/20 transition">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
             } catch (err) {
                 showNotification('error', err.message);
             }
         }
 
-        // Toggle user admin/user role
-        async function toggleUserRole(userId) {
-            if (!confirm('Are you sure you want to change this user\'s access privilege level?')) return;
+        async function toggleUserAdminRole(userId) {
+            if (!confirm('Are you sure you want to change this user\'s access privilege role?')) return;
             try {
                 const res = await apiCall('admin/users.php', 'POST', { action: 'toggle_role', user_id: userId });
                 showNotification('success', res.message);
-                loadAdminDashboard();
+                loadAdminUsersData();
             } catch (err) {
                 showNotification('error', err.message);
             }
         }
 
-        // Delete user
-        async function deleteUser(userId) {
-            if (!confirm('WARNING: Deleting this user will permanently erase their profile, SMTP configurations, generations, leads, and analytics. This cannot be undone. Proceed?')) return;
+        async function deleteUserPermanently(userId) {
+            if (!confirm('WARNING: Deleting this user is permanent and erases their entire database logs. Proceed?')) return;
             try {
                 const res = await apiCall('admin/users.php', 'POST', { action: 'delete', user_id: userId });
                 showNotification('success', res.message);
-                loadAdminDashboard();
+                loadAdminUsersData();
             } catch (err) {
                 showNotification('error', err.message);
             }
         }
 
-        let creditLogsPage = 1;
-        let creditLogsSearchTimeout = null;
-
-        async function loadAdminFinderSettings() {
-            try {
-                const res = await apiCall('admin/get_finder_settings.php');
-                if (res && res.status === 'success') {
-                    // Populate email providers
-                    res.providers.forEach(p => {
-                        const enabledInput = document.getElementById(`${p.name}-enabled`);
-                        const priorityInput = document.getElementById(`${p.name}-priority`);
-                        const keyInput = document.getElementById(`${p.name}-key`);
-                        
-                        if (enabledInput) enabledInput.checked = p.is_enabled === 1;
-                        if (priorityInput) priorityInput.value = p.priority;
-                        if (keyInput) {
-                            keyInput.placeholder = p.has_key ? '••••••••' : 'Enter key';
-                            keyInput.value = '';
-                        }
-                    });
-
-                    // Populate Razorpay gateway settings
-                    if (res.razorpay) {
-                        const rz = res.razorpay;
-                        document.getElementById('pay-enabled').checked = rz.is_enabled === 1;
-                        document.getElementById('pay-test-mode').checked = rz.test_mode === 1;
-                        
-                        const keyIdInput = document.getElementById('pay-key-id');
-                        const secretInput = document.getElementById('pay-secret-key');
-                        const webhookInput = document.getElementById('pay-webhook-secret');
-                        
-                        if (keyIdInput) {
-                            keyIdInput.placeholder = rz.has_key_id ? '••••••••' : 'Enter Key ID';
-                            keyIdInput.value = '';
-                        }
-                        if (secretInput) {
-                            secretInput.placeholder = rz.has_secret_key ? '••••••••' : 'Enter Secret Key';
-                            secretInput.value = '';
-                        }
-                        if (webhookInput) {
-                            webhookInput.placeholder = rz.has_webhook_secret ? '••••••••' : 'Enter Webhook Secret';
-                            webhookInput.value = '';
-                        }
-                    }
-                }
-                await loadAdminScraperSettings();
-            } catch (err) {
-                console.error(err);
-                showNotification('error', 'Error loading finder settings: ' + err.message);
-            }
-        }
-
-        async function saveFinderSettings(e) {
-            e.preventDefault();
-            const providers = ['hunter', 'prospeo', 'apollo'].map(name => {
-                return {
-                    name: name,
-                    is_enabled: document.getElementById(`${name}-enabled`).checked ? 1 : 0,
-                    priority: parseInt(document.getElementById(`${name}-priority`).value) || 1,
-                    api_key: document.getElementById(`${name}-key`).value,
-                    api_secret: ''
-                };
-            });
-
-            try {
-                const res = await apiCall('admin/save_finder_settings.php', 'POST', { providers });
-                if (res && res.status === 'success') {
-                    showNotification('success', 'Email Finder settings updated successfully.');
-                    loadAdminFinderSettings();
-                } else {
-                    throw new Error(res.message);
-                }
-            } catch (err) {
-                showNotification('error', 'Failed to save finder settings: ' + err.message);
-            }
-        }
-
-        async function savePaymentSettings(e) {
+        async function saveGlobalSettings(e) {
             e.preventDefault();
             const payload = {
-                is_enabled: document.getElementById('pay-enabled').checked ? 1 : 0,
-                test_mode: document.getElementById('pay-test-mode').checked ? 1 : 0,
-                key_id: document.getElementById('pay-key-id').value,
-                secret_key: document.getElementById('pay-secret-key').value,
-                webhook_secret: document.getElementById('pay-webhook-secret').value
+                global_sync_interval: document.getElementById('global_sync_interval').value,
+                ai_system_prompt_overrides: document.getElementById('ai_system_prompt_overrides').value
             };
-
             try {
-                const res = await apiCall('admin/save_payment_settings.php', 'POST', payload);
-                if (res && res.status === 'success') {
-                    showNotification('success', 'Razorpay gateway settings saved.');
-                    loadAdminFinderSettings();
-                } else {
-                    throw new Error(res.message);
+                const res = await apiCall('admin/crm_settings.php', 'POST', payload);
+                if (res.status === 'success') {
+                    showNotification('success', 'Global settings saved successfully.');
                 }
             } catch (err) {
-                showNotification('error', 'Failed to save payment settings: ' + err.message);
+                showNotification('error', err.message);
             }
         }
 
-        async function loadAdminScraperSettings() {
-            try {
-                const res = await apiCall('admin/get_scraper_settings.php');
-                if (res && res.status === 'success') {
-                    document.getElementById('scraper-enabled').checked = res.is_enabled === 1;
-                    document.getElementById('scraper-debug').checked = res.debug_logging === 1;
-                    document.getElementById('scraper-api-url').value = res.api_url;
-                    document.getElementById('scraper-timeout').value = res.timeout;
-                }
-            } catch (err) {
-                console.error(err);
-                showNotification('error', 'Error loading scraper settings: ' + err.message);
-            }
-        }
-
-        async function saveScraperSettings(e) {
+        async function applyManualCreditAdjustment(e) {
             e.preventDefault();
             const payload = {
-                is_enabled: document.getElementById('scraper-enabled').checked ? 1 : 0,
-                debug_logging: document.getElementById('scraper-debug').checked ? 1 : 0,
-                api_url: document.getElementById('scraper-api-url').value,
-                timeout: parseInt(document.getElementById('scraper-timeout').value) || 15
+                user_id: parseInt(document.getElementById('adj_user_id').value),
+                credits: parseInt(document.getElementById('adj_credits').value),
+                reason: document.getElementById('adj_reason').value,
+                action: 'recharge'
             };
-
             try {
-                const res = await apiCall('admin/save_scraper_settings.php', 'POST', payload);
-                if (res && res.status === 'success') {
-                    showNotification('success', 'LinkedIn Scraper settings saved.');
-                    await loadAdminScraperSettings();
+                const res = await apiCall('admin/adjust_user_credits.php', 'POST', payload);
+                if (res.status === 'success') {
+                    showNotification('success', 'User credit adjustment applied!');
+                    document.getElementById('adj_user_id').value = '';
+                    document.getElementById('adj_credits').value = '';
+                    document.getElementById('adj_reason').value = '';
+                }
+            } catch (err) {
+                showNotification('error', err.message);
+            }
+        }
+
+        async function loadAdminLogsData() {
+            try {
+                const res = await apiCall('admin/crm_settings.php');
+                const logs = res.processing_logs || [];
+                const tbody = document.getElementById('admin-processing-logs-tbody');
+                
+                if (logs.length > 0) {
+                    tbody.innerHTML = logs.map(l => {
+                        const isErr = l.status === 'error';
+                        return `
+                            <tr class="hover:bg-slate-900/40">
+                                <td class="py-2.5 px-4 font-bold text-white max-w-[200px] truncate" title="${l.email_subject || ''}">${l.email_subject || '(Sync Conn)'}</td>
+                                <td class="py-2.5 px-4 text-slate-300 font-medium">${l.user_name} (${l.user_email})</td>
+                                <td class="py-2.5 px-4">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isErr ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-green-500/10 text-green-400 border border-green-500/20'}">
+                                        ${l.status.toUpperCase()}
+                                    </span>
+                                </td>
+                                <td class="py-2.5 px-4 text-slate-400">${l.message}</td>
+                                <td class="py-2.5 px-4 text-slate-500">${new Date(l.created_at).toLocaleString()}</td>
+                            </tr>
+                        `;
+                    }).join('');
                 } else {
-                    throw new Error(res.message);
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-500">Logs database is empty.</td></tr>';
                 }
             } catch (err) {
-                showNotification('error', 'Failed to save scraper settings: ' + err.message);
+                showNotification('error', err.message);
             }
         }
 
-        function debounceCreditLogsSearch() {
-            clearTimeout(creditLogsSearchTimeout);
-            creditLogsSearchTimeout = setTimeout(() => {
-                loadAdminCreditLogs(1);
-            }, 300);
-        }
-
-        async function loadAdminCreditLogs(page = 1) {
-            creditLogsPage = page;
-            const search = document.getElementById('search-credit-logs').value.trim();
-
-            try {
-                const res = await apiCall(`admin/get_credit_logs.php?page=${page}&limit=12&search=${encodeURIComponent(search)}`);
-                if (res && res.status === 'success') {
-                    const tbody = document.getElementById('global-credit-tx-tbody');
-                    if (res.logs.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-500">No transactions log matches query.</td></tr>`;
-                        document.getElementById('credit-logs-pagination').innerHTML = '';
-                    } else {
-                        tbody.innerHTML = res.logs.map(tx => {
-                            const date = new Date(tx.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-                            const sign = parseInt(tx.credits) >= 0 ? '+' : '';
-                            const colorCls = parseInt(tx.credits) >= 0 ? 'text-teal-400 font-semibold' : 'text-red-400 font-semibold';
-                            
-                            const desc = tx.type === 'recharge' ? 
-                                `Razorpay (ID: ${tx.payment_id || '--'})` : 
-                                (tx.type === 'usage' ? `Lookup (${tx.provider_used || '--'})` : `Adj: ${tx.payment_id || '--'}`);
-
-                            return `
-                                <tr class="hover:bg-slate-900/30">
-                                    <td class="py-2.5">
-                                        <div class="font-bold text-white">${escapeHtml(tx.user_name)}</div>
-                                        <div class="text-[9px] text-slate-500">ID: ${tx.user_id} · ${escapeHtml(tx.user_email)}</div>
-                                    </td>
-                                    <td class="py-2.5 uppercase font-bold text-[9px] text-slate-400">${tx.type}</td>
-                                    <td class="py-2.5 ${colorCls}">${sign}${tx.credits}</td>
-                                    <td class="py-2.5 font-mono">${tx.amount > 0 ? '₹' + parseFloat(tx.amount).toFixed(2) : '--'}</td>
-                                    <td class="py-2.5 text-slate-500">
-                                        <div class="truncate max-w-[130px] block" title="${escapeHtml(desc)}">${escapeHtml(desc)}</div>
-                                        <div class="text-[9px] font-mono">${date}</div>
-                                    </td>
-                                </tr>
-                            `;
-                        }).join('');
-
-                        // Pagination footer
-                        const pag = res.pagination;
-                        let btnHtml = `<span>Page ${pag.page} of ${pag.pages}</span> <div class="flex space-x-1">`;
-                        if (pag.page > 1) {
-                            btnHtml += `<button onclick="loadAdminCreditLogs(${pag.page - 1})" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-750 text-slate-350 rounded">Prev</button>`;
-                        }
-                        if (pag.page < pag.pages) {
-                            btnHtml += `<button onclick="loadAdminCreditLogs(${pag.page + 1})" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-750 text-slate-350 rounded">Next</button>`;
-                        }
-                        btnHtml += `</div>`;
-                        document.getElementById('credit-logs-pagination').innerHTML = btnHtml;
-                    }
-                }
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        async function adjustCredits(e) {
-            e.preventDefault();
-            const userId = parseInt(document.getElementById('adj-user-id').value);
-            const type = document.getElementById('adj-type').value;
-            const credits = parseInt(document.getElementById('adj-credits').value);
-            const cost = parseFloat(document.getElementById('adj-cost').value) || 0.00;
-            const reason = document.getElementById('adj-reason').value.trim();
-
-            if (!userId || !credits) {
-                showNotification('warning', 'Please fill target User ID and Credits value.');
-                return;
-            }
-
-            try {
-                const res = await apiCall('admin/adjust_user_credits.php', 'POST', {
-                    user_id: userId,
-                    adjustment_type: type,
-                    credits: credits,
-                    amount: cost,
-                    reason: reason
-                });
-
-                if (res && res.status === 'success') {
-                    showNotification('success', 'User credit adjustment successfully completed.');
-                    document.getElementById('admin-credit-adj-form').reset();
-                    loadAdminCreditLogs(1);
-                    loadAdminDashboard();
-                } else {
-                    throw new Error(res.message);
-                }
-            } catch (err) {
-                showNotification('error', 'Adjustment failed: ' + err.message);
-            }
-        }
-
-        // Initialize Admin page
+        // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
-            verifyAdminAccess();
-            loadAdminDashboard();
-            loadAdminFinderSettings();
-            loadAdminCreditLogs(1);
+            loadAdminHealthData();
             lucide.createIcons();
+            
+            // Hook logoutBtn
+            const logoutBtn = document.getElementById('logout-action-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    logout();
+                });
+            }
         });
     </script>
 </body>

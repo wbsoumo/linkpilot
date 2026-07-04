@@ -1,51 +1,55 @@
 /* dashboard/assets/css/style.css */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
     --primary: #F8FAFC;
-    --secondary: #0F172A;
-    --accent: #14B8A6;
-    --success: #22C55E;
+    --secondary: #0B0F19;
+    --accent: #6366F1; /* Slate Indigo */
+    --accent-glow: rgba(99, 102, 241, 0.15);
+    
+    --teal: #14B8A6;
+    --teal-glow: rgba(20, 184, 166, 0.15);
+    
+    --success: #10B981;
     --warning: #F59E0B;
     --danger: #EF4444;
-    --background: #020617;
+    --background: #030712; /* Premium rich black */
     
-    --accent-light: rgba(20, 184, 166, 0.1);
-    --accent-hover: #0D9488;
-    
-    --radius-card: 16px;
-    --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --card-bg: rgba(17, 24, 39, 0.6);
+    --border-color: rgba(255, 255, 255, 0.06);
+    --radius-card: 20px;
+    --radius-button: 10px;
+    --font-sans: 'Outfit', 'Inter', -apple-system, sans-serif;
 }
 
+/* Base resets and defaults */
 body {
-    font-family: var(--font-inter);
+    font-family: var(--font-sans);
     background-color: var(--background);
     color: var(--primary);
     overflow-x: hidden;
+    letter-spacing: -0.01em;
 }
 
-/* Glassmorphic elements - using :where() to let Tailwind utilities override background and border */
-:where(.glass-panel) {
-    background: rgba(15, 23, 42, 0.45);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
+/* Glassmorphism Accents */
 .glass-panel {
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: var(--card-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-card);
-    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-:where(.glass-panel-dark) {
-    background: rgba(15, 23, 42, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-}
 .glass-panel-dark {
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(11, 15, 25, 0.95);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--radius-card);
-    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 15px 50px -15px rgba(0, 0, 0, 0.7);
 }
 
 /* Card Hover effect */
@@ -54,18 +58,23 @@ body {
 }
 
 .card-hover:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px -10px rgba(20, 184, 166, 0.15);
-    border-color: rgba(20, 184, 166, 0.3);
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 12px 40px -10px var(--accent-glow);
+    border-color: rgba(99, 102, 241, 0.3);
 }
 
-/* Active Glow for Selected Items */
+/* Glowing borders */
 .card-active-glow {
-    border-color: rgba(20, 184, 166, 0.5) !important;
-    box-shadow: 0 0 15px rgba(20, 184, 166, 0.1), inset 0 0 10px rgba(20, 184, 166, 0.05);
+    border-color: rgba(99, 102, 241, 0.5) !important;
+    box-shadow: 0 0 20px var(--accent-glow), inset 0 0 10px rgba(99, 102, 241, 0.05);
 }
 
-/* Custom scrollbars for dark theme */
+.card-teal-glow {
+    border-color: rgba(20, 184, 166, 0.5) !important;
+    box-shadow: 0 0 20px var(--teal-glow);
+}
+
+/* Advanced Scrollbars */
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -74,84 +83,224 @@ body {
     background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(20, 184, 166, 0.4);
+    background: var(--accent);
 }
 
-/* Dynamic Preview Container Transition */
-.preview-container-transition {
-    transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Lucide Icon styling integration */
-.icon-container {
-    display: inline-flex;
+/* Navigation Menu Links */
+.sidebar-nav-link {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    border-radius: 50%;
+    space-x: 3;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-button);
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
-/* Table styling in dark theme */
+.sidebar-nav-link.active {
+    background-color: var(--accent);
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.sidebar-nav-link.active svg {
+    stroke: #FFFFFF !important;
+}
+
+/* Unified Tables */
 .custom-table th {
     font-weight: 600;
     text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.05em;
-    color: #94A3B8;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    color: #6B7280;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 1rem;
 }
 
-.custom-table tr {
-    transition: background-color 0.2s ease;
+.custom-table td {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.custom-table tbody tr {
+    transition: all 0.2s ease;
 }
 
 .custom-table tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.02);
+    background-color: rgba(255, 255, 255, 0.015);
 }
 
-/* Animations */
+/* Timeline Feed CSS */
+.timeline-container {
+    position: relative;
+    padding-left: 24px;
+}
+.timeline-container::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 5px;
+    bottom: 5px;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.06);
+}
+.timeline-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+.timeline-dot {
+    position: absolute;
+    left: -23px;
+    top: 3px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--background);
+    border: 3px solid var(--accent);
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+}
+.timeline-dot.teal {
+    border-color: var(--teal);
+    box-shadow: 0 0 10px rgba(20, 184, 166, 0.5);
+}
+.timeline-dot.success {
+    border-color: var(--success);
+}
+.timeline-dot.danger {
+    border-color: var(--danger);
+}
+
+/* Stepper Wizard CSS (Email Sync Wizard) */
+.wizard-step {
+    position: relative;
+    text-align: center;
+    flex: 1;
+}
+.wizard-step-node {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.04);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px auto;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #6B7280;
+    transition: all 0.3s ease;
+    z-index: 10;
+    position: relative;
+}
+.wizard-step.active .wizard-step-node {
+    background-color: var(--accent);
+    border-color: var(--accent);
+    color: white;
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+}
+.wizard-step.completed .wizard-step-node {
+    background-color: var(--teal);
+    border-color: var(--teal);
+    color: #030712;
+    box-shadow: 0 0 15px rgba(20, 184, 166, 0.3);
+}
+.wizard-line {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background-color: rgba(255, 255, 255, 0.06);
+    z-index: 1;
+}
+.wizard-step.completed .wizard-line {
+    background-color: var(--teal);
+}
+
+/* Kanban Deals CSS */
+.kanban-board {
+    display: flex;
+    overflow-x: auto;
+    gap: 1.25rem;
+    padding-bottom: 1.5rem;
+}
+.kanban-column {
+    flex: 1;
+    min-width: 280px;
+    max-width: 320px;
+    background: rgba(17, 24, 39, 0.35);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-card);
+    padding: 1rem;
+    display: flex;
+    flex-col: true;
+    height: fit-content;
+    max-height: 80vh;
+}
+.kanban-cards-container {
+    overflow-y: auto;
+    flex-grow: 1;
+    margin-top: 1rem;
+    min-height: 150px;
+}
+.kanban-card {
+    background: rgba(31, 41, 55, 0.45);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    cursor: grab;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.kanban-card:active {
+    cursor: grabbing;
+}
+.kanban-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    background: rgba(31, 41, 55, 0.75);
+}
+
+/* Loading skeleton keyframe animations */
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+.skeleton-loader {
+    background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 37%, rgba(255,255,255,0.03) 63%);
+    background-size: 400% 100%;
+    animation: skeleton-loading 1.4s ease infinite;
+    border-radius: 6px;
+}
+
+/* Micro Animations */
+.animate-spin-slow {
+    animation: spin 3s linear infinite;
+}
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
+    from { opacity: 0; transform: translateY(6px); }
     to { opacity: 1; transform: translateY(0); }
 }
-
 .animate-fade-in {
-    animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: fadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-@keyframes pulseBorder {
-    0%, 100% { border-color: rgba(20, 184, 166, 0.2); }
-    50% { border-color: rgba(20, 184, 166, 0.6); }
+/* Standard alerts */
+.alert-banner {
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
 }
-
-.animate-pulse-border {
-    animation: pulseBorder 2s infinite ease-in-out;
+.alert-banner-warning {
+    background-color: rgba(245, 158, 11, 0.08);
+    border-color: rgba(245, 158, 11, 0.2);
+    color: #FBBF24;
 }
-
-/* Navigation items active state */
-.nav-link-active {
-    background-color: var(--accent);
-    color: var(--secondary) !important;
-}
-
-.nav-link-active svg {
-    stroke: var(--secondary) !important;
-}
-
-/* Page loader spinner */
-.loader-spinner {
-    border: 3px solid rgba(20, 184, 166, 0.1);
-    border-radius: 50%;
-    border-top: 3px solid var(--accent);
-    width: 24px;
-    height: 24px;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-

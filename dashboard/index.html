@@ -12,7 +12,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="assets/img/logo.png">
-    <title>Dashboard - LinkPilot AI</title>
+    <title>CRM Workspace - LinkPilot AI</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons CDN -->
@@ -22,967 +22,101 @@
     <!-- Custom Style Sheet -->
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
-<body class="h-full bg-slate-950 text-slate-100 flex flex-col">
-    <!-- Top Navigation -->
-    <nav class="glass-panel rounded-none border-t-0 border-x-0 sticky top-0 z-40 bg-slate-900/80 text-white px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center space-x-8">
-            <a href="index.html" class="flex items-center space-x-2 text-xl font-bold tracking-wider">
-                <span class="text-teal-400">✨ LinkPilot</span> <span class="text-xs px-2 py-0.5 bg-slate-800 text-teal-400 border border-slate-700 rounded-full font-semibold">AI</span>
+<body class="h-full bg-slate-950 text-slate-100 flex overflow-hidden">
+
+    <!-- 1. LEFT SIDEBAR PANEL -->
+    <aside class="hidden lg:flex flex-col w-64 bg-slate-900/90 border-r border-slate-800/80 p-5 shrink-0 justify-between">
+        <div class="space-y-6">
+            <!-- Brand Logo -->
+            <a href="index.html" class="flex items-center space-x-2 text-lg font-extrabold tracking-wider text-white">
+                <span class="text-indigo-400">✨ LinkPilot</span> <span class="text-[9px] px-1.5 py-0.5 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded font-semibold">CRM v2</span>
             </a>
-            <div class="hidden md:flex items-center space-x-1">
-                <a href="index.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">Dashboard</a>
-                <a href="history.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">History</a>
-                <a href="smtp.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">SMTP Settings</a>
-                <a href="openrouter.html" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150">AI Settings</a>
-                <a href="admin.html" id="admin-nav-link" class="sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150 hidden">Admin</a>
-            </div>
+
+            <!-- Sidebar Navigation Links -->
+            <nav class="space-y-1.5 flex flex-col text-xs" id="sidebar-navigation-container">
+                <a href="#/dashboard" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150">
+                    <i data-lucide="layout-dashboard" class="h-4 w-4 mr-2.5"></i><span>Dashboard</span>
+                </a>
+                
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest pt-4 pb-1.5 pl-2">CRM Modules</span>
+                <a href="#/leads" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150">
+                    <i data-lucide="users" class="h-4 w-4 mr-2.5"></i><span>Leads Vault</span>
+                </a>
+                <a href="#/companies" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150">
+                    <i data-lucide="building" class="h-4 w-4 mr-2.5"></i><span>Companies</span>
+                </a>
+                <a href="#/contacts" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150">
+                    <i data-lucide="contact" class="h-4 w-4 mr-2.5"></i><span>Contacts</span>
+                </a>
+                <a href="#/deals" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150">
+                    <i data-lucide="bar-chart-2" class="h-4 w-4 mr-2.5"></i><span>Deals Pipeline</span>
+                </a>
+
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest pt-4 pb-1.5 pl-2">Intelligence</span>
+                <a href="#/inbox" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150">
+                    <i data-lucide="inbox" class="h-4 w-4 mr-2.5"></i><span>AI Inbox Inbox</span>
+                </a>
+                <a href="#/email-intelligence" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150">
+                    <i data-lucide="cpu" class="h-4 w-4 mr-2.5"></i><span>Email Intelligence</span>
+                </a>
+                <a href="#/automation" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150">
+                    <i data-lucide="workflow" class="h-4 w-4 mr-2.5"></i><span>Automations</span>
+                </a>
+                
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest pt-4 pb-1.5 pl-2">System Control</span>
+                <a href="admin.html" id="admin-nav-link" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150 hidden">
+                    <i data-lucide="shield-alert" class="h-4 w-4 mr-2.5 text-rose-400"></i><span class="text-rose-400 font-bold">Admin Portal</span>
+                </a>
+            </nav>
         </div>
-        <div class="flex items-center space-x-4">
-            <div class="text-right hidden sm:block">
-                <div class="text-sm font-semibold user-name-display">Loading...</div>
-                <div class="text-xs text-slate-400 user-email-display">...</div>
+
+        <!-- Sidebar footer profile details -->
+        <div class="border-t border-slate-800/80 pt-4 space-y-4">
+            <div class="flex items-center space-x-3">
+                <div class="h-9 w-9 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center border border-indigo-400/30" id="user-avatar-initials">
+                    LP
+                </div>
+                <div class="truncate max-w-[140px]">
+                    <div class="text-xs font-bold text-white user-name-display">User Name</div>
+                    <div class="text-[10px] text-slate-500 truncate user-email-display">you@email.com</div>
+                </div>
             </div>
-            <div class="h-9 w-9 rounded-full bg-teal-500 text-slate-950 font-bold flex items-center justify-center border border-teal-400" id="user-avatar-initials">
-                LP
-            </div>
-            <button id="logout-action-btn" class="p-2 text-slate-400 hover:text-red-400 rounded-lg hover:bg-slate-800/50 transition">
-                <i data-lucide="log-out" class="h-5 w-5"></i>
+            <button id="logout-action-btn" class="w-full flex items-center justify-center space-x-2 py-2 border border-slate-800 hover:border-red-500/30 hover:text-red-400 rounded-lg text-xs font-semibold transition bg-slate-950/20 text-slate-400">
+                <i data-lucide="log-out" class="h-3.5 w-3.5"></i>
+                <span>Log Out</span>
             </button>
         </div>
-    </nav>
+    </aside>
 
-    <!-- Content Area -->
-    <main class="flex-grow p-6 md:p-8 space-y-8 max-w-7xl w-full mx-auto animate-fade-in">
-        
-        <!-- Welcome Banner -->
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
-            <div>
-                <h1 class="text-3xl font-extrabold text-white">Welcome back, <span class="text-teal-400 user-name-display">User</span>!</h1>
-                <p class="text-slate-400 text-sm mt-1">Here is a summary of your automated LinkedIn outreach activity.</p>
+    <!-- 2. RIGHT CONTENT AREA -->
+    <div class="flex-grow flex flex-col min-w-0 overflow-hidden">
+        <!-- Top bar menu -->
+        <header class="glass-panel rounded-none border-t-0 border-x-0 sticky top-0 z-40 bg-slate-900/60 px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <!-- Hamburger on Mobile -->
+                <button class="lg:hidden text-slate-400 hover:text-white"><i data-lucide="menu" class="h-5 w-5"></i></button>
+                <div class="text-xs font-bold text-slate-400 block lg:hidden">LinkPilot CRM</div>
             </div>
-            <div class="flex space-x-3">
-                <!-- Dynamic Google Sheets Action Button Container -->
-                <div id="google-sheets-btn-container" class="flex items-center">
-                    <button class="flex items-center space-x-2 px-4 py-2 border border-slate-700 rounded-lg text-sm text-slate-400 bg-slate-900/20 cursor-wait animate-pulse" disabled>
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Google_Sheets_logo_%282014-2020%29.svg/1920px-Google_Sheets_logo_%282014-2020%29.svg.png" class="h-4 w-4 object-contain opacity-50" alt="Google Sheets">
-                        <span>Google Sheets...</span>
-                    </button>
-                </div>
-                <a href="leads.html" class="flex items-center space-x-2 px-4 py-2 border border-slate-700 rounded-lg text-sm hover:border-teal-400 hover:text-teal-400 transition">
-                    <i data-lucide="users" class="h-4 w-4"></i>
-                    <span>Lead Vault</span>
-                </a>
-                <a href="history.html" class="flex items-center space-x-2 px-4 py-2 bg-teal-400 text-slate-950 rounded-lg text-sm font-semibold hover:bg-teal-300 transition">
-                    <i data-lucide="history" class="h-4 w-4"></i>
-                    <span>View Logs</span>
+            
+            <div class="flex items-center space-x-4">
+                <!-- Credits Wallet Badge -->
+                <a href="#/email-intelligence" id="nav-credit-balance-container" class="flex items-center space-x-1.5 px-3 py-1.5 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg text-[10px] font-extrabold hover:bg-indigo-600 hover:text-white transition duration-150">
+                    <i data-lucide="zap" class="h-3.5 w-3.5"></i>
+                    <span>Email Credits: <span id="nav-credit-balance-value">...</span></span>
                 </a>
             </div>
-        </div>
-        
-        <!-- Setup Alert Banner -->
-        <div id="setup-warning-banner" class="hidden p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in">
-            <div class="flex items-start space-x-3 text-left">
-                <div class="p-2 bg-amber-500/10 text-amber-400 rounded-lg mt-0.5">
-                    <i data-lucide="alert-triangle" class="h-5 w-5"></i>
-                </div>
-                <div>
-                    <h4 class="text-sm font-bold text-white">Setup AI Settings <span class="text-xs text-amber-400/90 font-medium ml-2">(SMTP is not required)</span></h4>
-                    <p class="text-xs text-slate-400 mt-0.5" id="setup-warning-message">
-                        You have not configured your AI settings yet. Please set up your credentials to enable generation.
-                    </p>
-                </div>
+        </header>
+
+        <!-- Main Content Viewport -->
+        <main class="flex-grow p-6 md:p-8 overflow-y-auto max-w-7xl w-full mx-auto" id="main-content-viewport">
+            <div class="flex items-center justify-center py-20">
+                <div class="loader-spinner"></div>
             </div>
-            <a href="openrouter.html" class="flex-shrink-0 px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-lg text-xs transition">
-                Configure AI Settings
-            </a>
-        </div>
-
-        <!-- Metric Counter Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6">
-            <!-- Card 1: Total AI Requests -->
-            <div class="glass-panel p-6 bg-slate-900/40 border-slate-800 card-hover flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">AI Requests</span>
-                    <span class="p-2 bg-teal-500/10 text-teal-400 rounded-lg"><i data-lucide="cpu" class="h-5 w-5"></i></span>
-                </div>
-                <div class="mt-4">
-                    <span class="text-3xl font-extrabold text-white" id="stat-total-requests">0</span>
-                    <span class="text-xs text-slate-500 block mt-1">All time interactions</span>
-                </div>
-            </div>
-
-            <!-- Card 2: Emails Generated -->
-            <div class="glass-panel p-6 bg-slate-900/40 border-slate-800 card-hover flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Emails Gen</span>
-                    <span class="p-2 bg-purple-500/10 text-purple-400 rounded-lg"><i data-lucide="mail" class="h-5 w-5"></i></span>
-                </div>
-                <div class="mt-4">
-                    <span class="text-3xl font-extrabold text-white" id="stat-emails-generated">0</span>
-                    <span class="text-xs text-slate-500 block mt-1">Outreach drafts written</span>
-                </div>
-            </div>
-
-            <!-- Card 3: Emails Sent -->
-            <div class="glass-panel p-6 bg-slate-900/40 border-slate-800 card-hover flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Emails Sent</span>
-                    <span class="p-2 bg-green-500/10 text-green-400 rounded-lg"><i data-lucide="send" class="h-5 w-5"></i></span>
-                </div>
-                <div class="mt-4">
-                    <span class="text-3xl font-extrabold text-white" id="stat-emails-sent">0</span>
-                    <span class="text-xs text-slate-500 block mt-1">Dispatched via SMTP</span>
-                </div>
-            </div>
-
-            <!-- Card 4: WhatsApp Messages -->
-            <div class="glass-panel p-6 bg-slate-900/40 border-slate-800 card-hover flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">WhatsApp Msg</span>
-                    <span class="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg"><i data-lucide="message-square" class="h-5 w-5"></i></span>
-                </div>
-                <div class="mt-4">
-                    <span class="text-3xl font-extrabold text-white" id="stat-whatsapp-generated">0</span>
-                    <span class="text-xs text-slate-500 block mt-1">Conversations started</span>
-                </div>
-            </div>
-
-            <!-- Card 5: Comments Generated -->
-            <div class="glass-panel p-6 bg-slate-900/40 border-slate-800 card-hover flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Comments Gen</span>
-                    <span class="p-2 bg-amber-500/10 text-amber-400 rounded-lg"><i data-lucide="message-circle" class="h-5 w-5"></i></span>
-                </div>
-                <div class="mt-4">
-                    <span class="text-3xl font-extrabold text-white" id="stat-comments-generated">0</span>
-                    <span class="text-xs text-slate-500 block mt-1">LinkedIn comments</span>
-                </div>
-            </div>
-
-            <!-- Card 6: Email Finder Credits -->
-            <div class="glass-panel p-6 bg-slate-900/40 border-slate-800 card-hover flex flex-col justify-between cursor-pointer hover:border-teal-500/30 transition-colors duration-200" onclick="window.location.href='recharge.html'">
-                <div class="flex justify-between items-start">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Finder Credits</span>
-                    <span class="p-2 bg-teal-500/10 text-teal-400 rounded-lg"><i data-lucide="zap" class="h-5 w-5"></i></span>
-                </div>
-                <div class="mt-4">
-                    <span class="text-3xl font-extrabold text-white animate-pulse" id="stat-finder-credits">...</span>
-                    <span class="text-xs text-slate-500 block mt-1">Available balance</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Charts and Graphs Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- 30-Day Activity Chart -->
-            <div class="glass-panel p-6 bg-slate-900/40 border-slate-800 lg:col-span-2">
-                <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h3 class="text-lg font-bold text-white">AI Activity Trend</h3>
-                        <p class="text-xs text-slate-400">Total requests and generation distribution (last 30 days)</p>
-                    </div>
-                </div>
-                <div class="relative h-80">
-                    <canvas id="trendsChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Recent Activity Table -->
-            <div class="glass-panel p-6 bg-slate-900/40 border-slate-800 flex flex-col h-full">
-                <h3 class="text-lg font-bold text-white mb-4">Most Recent Activity</h3>
-                <div class="flex-grow overflow-y-auto space-y-4 pr-1" id="recent-activities-container">
-                    <div class="text-center text-slate-500 text-sm py-8">Loading activities...</div>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Central JS Handler -->
-    <script src="assets/js/app.js"></script>
-    <script>
-        let trendsChartInstance = null;
-        
-        async function loadDashboardData() {
-            try {
-                const data = await apiCall('analytics/dashboard.php');
-                
-                // 1. Populate Metrics
-                document.getElementById('stat-total-requests').textContent = data.statistics.total_requests;
-                document.getElementById('stat-emails-generated').textContent = data.statistics.emails_generated;
-                document.getElementById('stat-emails-sent').textContent = data.statistics.emails_sent;
-                document.getElementById('stat-whatsapp-generated').textContent = data.statistics.whatsapp_generated;
-                document.getElementById('stat-comments-generated').textContent = data.statistics.comments_generated;
-
-                // Load credits count
-                try {
-                    const creds = await apiCall('profile/get_credits.php');
-                    if (creds && creds.status === 'success' && creds.wallet) {
-                        const el = document.getElementById('stat-finder-credits');
-                        if (el) {
-                            el.textContent = creds.wallet.remaining;
-                            el.classList.remove('animate-pulse');
-                        }
-                    }
-                } catch (e) {
-                    console.warn("Failed to load finder credits metric:", e);
-                }
-                
-                // 2. Populate Recent Activity
-                const activityContainer = document.getElementById('recent-activities-container');
-                if (data.recent_activities.length === 0) {
-                    activityContainer.innerHTML = `<div class="text-center text-slate-500 text-sm py-8">No activities recorded yet.</div>`;
-                } else {
-                    activityContainer.innerHTML = data.recent_activities.map(act => {
-                        const date = new Date(act.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-                        return `
-                            <div class="flex items-start space-x-3 p-3 bg-slate-900/80 border border-slate-800 rounded-lg hover:border-slate-700 transition">
-                                <div class="p-1.5 bg-teal-500/10 text-teal-400 rounded-md mt-0.5"><i data-lucide="activity" class="h-4 w-4"></i></div>
-                                <div class="flex-grow">
-                                    <div class="text-sm font-semibold text-white">${act.action}</div>
-                                    <div class="text-xs text-slate-500 mt-0.5">${date}</div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-                }
-
-                // 3. Render Chart
-                renderChart(data.chart_trends);
-                
-                // 4. Check setup completion
-                try {
-                    const profileData = await apiCall('profile/get.php');
-                    const user = profileData.user;
-                    let showWarning = false;
-                    let warningMsg = "";
-
-                    const hasAnyKey = user.has_openrouter_key || user.has_github_key || user.has_google_key;
-                    
-                    if (!hasAnyKey) {
-                        showWarning = true;
-                        warningMsg = "You have not configured any AI settings yet. Please configure your API key for OpenRouter, GitHub Models, or Google AI Studio to begin. (SMTP setup is not required).";
-                    } else {
-                        const activeProvider = user.active_ai_provider || 'github_models';
-                        if (activeProvider === 'openrouter' && !user.has_openrouter_key) {
-                            showWarning = true;
-                            warningMsg = "Your active provider is set to <strong>OpenRouter</strong>, but your OpenRouter API Key is missing. Please save your API Key in AI settings. (SMTP setup is not required).";
-                        } else if (activeProvider === 'github_models' && !user.has_github_key) {
-                            showWarning = true;
-                            warningMsg = "Your active provider is set to <strong>GitHub Models</strong>, but your GitHub Personal Access Token is missing. Please save your token in AI settings. (SMTP setup is not required).";
-                        } else if (activeProvider === 'google_ai_studio' && !user.has_google_key) {
-                            showWarning = true;
-                            warningMsg = "Your active provider is set to <strong>Google AI Studio</strong>, but your Gemini API Key is missing. Please save your API Key in AI settings. (SMTP setup is not required).";
-                        }
-                    }
-
-                    if (showWarning) {
-                        const banner = document.getElementById('setup-warning-banner');
-                        document.getElementById('setup-warning-message').innerHTML = warningMsg;
-                        banner.classList.remove('hidden');
-                        banner.classList.add('flex');
-                    }
-                } catch (profileErr) {
-                    console.error("Failed to check profile settings status:", profileErr);
-                }
-
-                // Refresh lucide icons
-                lucide.createIcons();
-                
-            } catch (err) {
-                showNotification('error', err.message || 'Failed to load dashboard statistics.');
-            }
-        }
-
-        function renderChart(trendData) {
-            const ctx = document.getElementById('trendsChart').getContext('2d');
-            
-            const labels = trendData.map(item => item.date);
-            const totalData = trendData.map(item => item.total);
-            const emailsData = trendData.map(item => item.emails);
-            const whatsappData = trendData.map(item => item.whatsapp);
-            const commentsData = trendData.map(item => item.comments);
-            
-            if (trendsChartInstance) {
-                trendsChartInstance.destroy();
-            }
-            
-            trendsChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Total Requests',
-                            data: totalData,
-                            borderColor: '#14B8A6',
-                            backgroundColor: 'rgba(20, 184, 166, 0.1)',
-                            borderWidth: 2,
-                            fill: true,
-                            tension: 0.3
-                        },
-                        {
-                            label: 'Emails Generated',
-                            data: emailsData,
-                            borderColor: '#A855F7',
-                            backgroundColor: 'transparent',
-                            borderWidth: 1.5,
-                            tension: 0.3
-                        },
-                        {
-                            label: 'WhatsApp Generated',
-                            data: whatsappData,
-                            borderColor: '#10B981',
-                            backgroundColor: 'transparent',
-                            borderWidth: 1.5,
-                            tension: 0.3
-                        },
-                        {
-                            label: 'Comments Generated',
-                            data: commentsData,
-                            borderColor: '#F59E0B',
-                            backgroundColor: 'transparent',
-                            borderWidth: 1.5,
-                            tension: 0.3
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#94A3B8',
-                                font: {
-                                    family: 'Inter',
-                                    size: 11
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.05)'
-                            },
-                            ticks: {
-                                color: '#64748B',
-                                font: {
-                                    family: 'Inter',
-                                    size: 10
-                                }
-                            }
-                        },
-                        x: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.02)'
-                            },
-                            ticks: {
-                                color: '#64748B',
-                                font: {
-                                    family: 'Inter',
-                                    size: 10
-                                },
-                                maxRotation: 45,
-                                minRotation: 45
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Google Sheets Modal & Sync Management (initialized on DOMContentLoaded)
-        let sheetsModal = null;
-        let sheetsStateUnconnected = null;
-        let sheetsStateConnectedNoSheet = null;
-        let sheetsStateConnectedConfigured = null;
-
-        async function openGoogleSheetsModal() {
-            if (sheetsModal) {
-                sheetsModal.classList.remove('hidden');
-                await refreshGoogleSheetsStatus();
-            }
-        }
-
-        function closeGoogleSheetsModal() {
-            if (sheetsModal) {
-                sheetsModal.classList.add('hidden');
-            }
-        }
-
-        async function refreshGoogleSheetsStatus() {
-            try {
-                const data = await apiCall('google/status.php');
-                if (data.status === 'success') {
-                    renderGoogleSheetsState(data);
-                } else {
-                    showNotification('error', data.message || 'Failed to check Google Sheets status.');
-                }
-            } catch (err) {
-                showNotification('error', err.message || 'Connection status query failed.');
-            }
-        }
-
-        async function syncLeadsDirectly() {
-            const btn = document.getElementById('sheets-direct-sync-btn');
-            const logo = document.getElementById('sheets-btn-logo');
-            const text = document.getElementById('sheets-btn-text');
-            if (!btn) return;
-            
-            btn.disabled = true;
-            
-            // Create and insert spinner before text
-            const spinner = document.createElement('div');
-            spinner.id = 'sheets-btn-spinner';
-            spinner.className = 'loader-spinner !w-3.5 !h-3.5 !border-2 mr-2';
-            
-            if (logo) logo.classList.add('hidden');
-            btn.insertBefore(spinner, text);
-            if (text) text.textContent = 'Syncing...';
-
-            try {
-                const data = await apiCall('google/sync.php', 'POST');
-                if (data.status === 'success') {
-                    showNotification('success', `Sync completed! Synced ${data.rows_synced} leads.`);
-                    if (text) text.textContent = 'Sync Done!';
-                    await refreshGoogleSheetsStatus();
-                } else {
-                    showNotification('error', data.message || 'Sync failed.');
-                    if (text) text.textContent = 'Sync Failed';
-                }
-            } catch (err) {
-                showNotification('error', err.message || 'Sync operation failed.');
-                if (text) text.textContent = 'Sync Error';
-            } finally {
-                setTimeout(() => {
-                    btn.disabled = false;
-                    const activeSpinner = document.getElementById('sheets-btn-spinner');
-                    if (activeSpinner) activeSpinner.remove();
-                    if (logo) logo.classList.remove('hidden');
-                    if (text) text.textContent = 'Sync Now';
-                }, 2000);
-            }
-        }
-
-        function renderGoogleSheetsState(state) {
-            // Render the dynamic button in container
-            const btnContainer = document.getElementById('google-sheets-btn-container');
-            const logoUrl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Google_Sheets_logo_%282014-2020%29.svg/1920px-Google_Sheets_logo_%282014-2020%29.svg.png';
-            
-            if (btnContainer) {
-                if (!state || !state.connected || !state.spreadsheet_id) {
-                    btnContainer.innerHTML = `
-                        <button onclick="openGoogleSheetsModal()" class="flex items-center space-x-2 px-4 py-2 border border-slate-700 rounded-lg text-sm hover:border-teal-400 hover:text-teal-400 transition text-slate-100 bg-slate-900/40">
-                            <img src="${logoUrl}" class="h-4 w-4 object-contain" alt="Google Sheets">
-                            <span>Google Sheets</span>
-                        </button>
-                    `;
-                } else {
-                    btnContainer.innerHTML = `
-                        <div class="flex items-center -space-x-px">
-                            <button id="sheets-direct-sync-btn" onclick="syncLeadsDirectly()" class="flex items-center px-4 py-2 border border-slate-700 rounded-l-lg text-sm hover:border-teal-400 hover:text-teal-400 transition text-slate-100 bg-slate-900/40 font-semibold">
-                                <img src="${logoUrl}" class="h-4 w-4 object-contain mr-2" id="sheets-btn-logo" alt="Google Sheets">
-                                <span id="sheets-btn-text">Sync Now</span>
-                            </button>
-                            <button onclick="openGoogleSheetsModal()" class="flex items-center justify-center px-2.5 py-2 border border-slate-700 rounded-r-lg text-sm hover:border-teal-400 hover:text-teal-400 transition text-slate-100 bg-slate-900/40" title="Google Sheets Settings">
-                                <i data-lucide="chevron-down" class="h-4 w-4"></i>
-                            </button>
-                        </div>
-                    `;
-                }
-            }
-
-            if (!sheetsStateUnconnected || !sheetsStateConnectedNoSheet || !sheetsStateConnectedConfigured) return;
-
-            // Hide all state panels first
-            sheetsStateUnconnected.classList.add('hidden');
-            sheetsStateConnectedNoSheet.classList.add('hidden');
-            sheetsStateConnectedConfigured.classList.add('hidden');
-
-            if (!state || !state.connected) {
-                sheetsStateUnconnected.classList.remove('hidden');
-            } else if (!state.spreadsheet_id) {
-                sheetsStateConnectedNoSheet.classList.remove('hidden');
-                document.querySelectorAll('.user-google-email').forEach(el => el.textContent = state.google_email || 'Connected');
-            } else {
-                sheetsStateConnectedConfigured.classList.remove('hidden');
-                document.querySelectorAll('.user-google-email').forEach(el => el.textContent = state.google_email || 'Connected');
-                
-                // Set sheet link
-                const linkEl = document.getElementById('sheet-link-display');
-                const titleEl = document.getElementById('sheet-title-display');
-                if (linkEl && titleEl) {
-                    linkEl.href = state.spreadsheet_url || '#';
-                    titleEl.textContent = state.sheet_name || 'LinkPilot CRM Leads';
-                }
-
-                // Set statistics
-                const rowsEl = document.getElementById('rows-synced-display');
-                if (rowsEl) rowsEl.textContent = `${state.rows_synced} rows`;
-                
-                const lastSyncEl = document.getElementById('last-sync-display');
-                if (lastSyncEl) {
-                    let lastSyncStr = 'Never';
-                    if (state.last_sync_time) {
-                        const dateObj = new Date(state.last_sync_time);
-                        if (!isNaN(dateObj.getTime())) {
-                            lastSyncStr = dateObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-                        }
-                    }
-                    lastSyncEl.textContent = lastSyncStr;
-                }
-
-                // Set checkbox toggles
-                const chkEnabled = document.getElementById('sync-enabled-chk');
-                if (chkEnabled) chkEnabled.checked = !!state.sync_enabled;
-
-                const chkNew = document.getElementById('sync-new-leads-chk');
-                if (chkNew) chkNew.checked = !!state.sync_new_leads;
-
-                const chkUpdate = document.getElementById('sync-update-leads-chk');
-                if (chkUpdate) chkUpdate.checked = !!state.sync_update_leads;
-
-                const chkStatus = document.getElementById('sync-status-chk');
-                if (chkStatus) chkStatus.checked = !!state.sync_status;
-
-                const chkScore = document.getElementById('sync-lead-score-chk');
-                if (chkScore) chkScore.checked = !!state.sync_lead_score;
-
-                const chkNotes = document.getElementById('sync-notes-chk');
-                if (chkNotes) chkNotes.checked = !!state.sync_notes;
-            }
-
-            if (window.lucide) {
-                window.lucide.createIcons();
-            }
-        }
-
-        // Connect Google Account Auth Action
-        async function connectGoogleAccount() {
-            try {
-                const data = await apiCall('google/auth.php');
-                if (data.status === 'success' && data.auth_url) {
-                    window.location.href = data.auth_url;
-                } else {
-                    showNotification('error', data.message || 'Failed to generate OAuth redirect link.');
-                }
-            } catch (err) {
-                showNotification('error', err.message || 'Google Auth setup error.');
-            }
-        }
-
-        // Create Spreadsheet Action
-        async function createNewSpreadsheet() {
-            const btn = document.getElementById('create-sheet-btn');
-            if (!btn) return;
-            const originalText = btn.innerHTML;
-            try {
-                btn.disabled = true;
-                btn.innerHTML = `<span class="flex items-center justify-center space-x-1"><div class="loader-spinner !w-4 !h-4 !border-2"></div><span>Creating...</span></span>`;
-                const data = await apiCall('google/create_sheet.php', 'POST');
-                if (data.status === 'success') {
-                    showNotification('success', 'Successfully created and linked spreadsheet!');
-                    await refreshGoogleSheetsStatus();
-                } else {
-                    showNotification('error', data.message || 'Creation failed.');
-                }
-            } catch (err) {
-                showNotification('error', err.message || 'Spreadsheet creation error.');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-            }
-        }
-
-        // Connect Existing Spreadsheet Action
-        async function connectExistingSpreadsheet() {
-            const urlInput = document.getElementById('existing-sheet-url');
-            if (!urlInput) return;
-            const url = urlInput.value.trim();
-            if (!url) {
-                showNotification('warning', 'Please enter a valid Google Spreadsheet URL or ID.');
-                return;
-            }
-
-            const btn = document.getElementById('connect-existing-sheet-btn');
-            if (!btn) return;
-            const originalText = btn.innerHTML;
-            try {
-                btn.disabled = true;
-                btn.innerHTML = `<span class="flex items-center justify-center space-x-1"><div class="loader-spinner !w-4 !h-4 !border-2"></div><span>Connecting...</span></span>`;
-                const data = await apiCall('google/connect_sheet.php', 'POST', { spreadsheet_url: url });
-                if (data.status === 'success') {
-                    showNotification('success', 'Spreadsheet connected successfully!');
-                    urlInput.value = '';
-                    await refreshGoogleSheetsStatus();
-                } else {
-                    showNotification('error', data.message || 'Connection failed.');
-                }
-            } catch (err) {
-                showNotification('error', err.message || 'Connection error.');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-            }
-        }
-
-        // Disconnect Account Action
-        async function disconnectGoogleSheets() {
-            if (!confirm('Are you sure you want to disconnect your Google account and stop all spreadsheet synchronization?')) {
-                return;
-            }
-            try {
-                const data = await apiCall('google/disconnect.php', 'POST');
-                if (data.status === 'success') {
-                    showNotification('success', 'Disconnected successfully.');
-                    await refreshGoogleSheetsStatus();
-                } else {
-                    showNotification('error', data.message || 'Disconnection failed.');
-                }
-            } catch (err) {
-                showNotification('error', err.message || 'Disconnection error.');
-            }
-        }
-
-        // Sync Now manual sync action
-        async function syncLeadsNow() {
-            const btn = document.getElementById('sync-now-btn');
-            if (!btn) return;
-            const originalText = btn.innerHTML;
-            try {
-                btn.disabled = true;
-                btn.innerHTML = `<span class="flex items-center justify-center space-x-1"><div class="loader-spinner !w-4 !h-4 !border-2 !border-t-slate-950"></div><span>Syncing...</span></span>`;
-                const data = await apiCall('google/sync.php', 'POST');
-                if (data.status === 'success') {
-                    showNotification('success', `Sync completed! Synced ${data.rows_synced} leads.`);
-                    await refreshGoogleSheetsStatus();
-                } else {
-                    showNotification('error', data.message || 'Sync failed.');
-                }
-            } catch (err) {
-                showNotification('error', err.message || 'Sync operation failed.');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-            }
-        }
-
-        // Save Settings Action
-        async function saveGoogleSheetsSettings() {
-            const settings = {
-                sync_enabled: document.getElementById('sync-enabled-chk').checked,
-                sync_new_leads: document.getElementById('sync-new-leads-chk').checked,
-                sync_update_leads: document.getElementById('sync-update-leads-chk').checked,
-                sync_status: document.getElementById('sync-status-chk').checked,
-                sync_lead_score: document.getElementById('sync-lead-score-chk').checked,
-                sync_notes: document.getElementById('sync-notes-chk').checked
-            };
-
-            try {
-                const data = await apiCall('google/settings.php', 'POST', settings);
-                if (data.status !== 'success') {
-                    showNotification('error', data.message || 'Failed to update preferences.');
-                }
-            } catch (err) {
-                showNotification('error', err.message || 'Preferences update error.');
-            }
-        }
-
-        // Run on load
-        document.addEventListener('DOMContentLoaded', () => {
-            loadDashboardData();
-
-            // Initialize Google Sheets Modal element references now that the DOM is fully parsed
-            sheetsModal = document.getElementById('sheets-modal');
-            sheetsStateUnconnected = document.getElementById('sheets-state-unconnected');
-            sheetsStateConnectedNoSheet = document.getElementById('sheets-state-connected-no-sheet');
-            sheetsStateConnectedConfigured = document.getElementById('sheets-state-connected-configured');
-
-            // Load Google Sheets Connection Status and render buttons on load
-            refreshGoogleSheetsStatus();
-
-            const closeSheetsModalBtn = document.getElementById('close-sheets-modal-btn');
-            if (closeSheetsModalBtn) {
-                closeSheetsModalBtn.addEventListener('click', closeGoogleSheetsModal);
-            }
-
-            const connectGoogleBtn = document.getElementById('connect-google-btn');
-            if (connectGoogleBtn) {
-                connectGoogleBtn.addEventListener('click', connectGoogleAccount);
-            }
-
-            const createSheetBtn = document.getElementById('create-sheet-btn');
-            if (createSheetBtn) {
-                createSheetBtn.addEventListener('click', createNewSpreadsheet);
-            }
-
-            const connectExistingSheetBtn = document.getElementById('connect-existing-sheet-btn');
-            if (connectExistingSheetBtn) {
-                connectExistingSheetBtn.addEventListener('click', connectExistingSpreadsheet);
-            }
-
-            const syncNowBtn = document.getElementById('sync-now-btn');
-            if (syncNowBtn) {
-                syncNowBtn.addEventListener('click', syncLeadsNow);
-            }
-
-            // Disconnect buttons
-            document.querySelectorAll('.disconnect-btn').forEach(btn => {
-                btn.addEventListener('click', disconnectGoogleSheets);
-            });
-
-            // Toggle checkboxes listeners
-            const settingsCheckboxes = [
-                'sync-enabled-chk',
-                'sync-new-leads-chk',
-                'sync-update-leads-chk',
-                'sync-status-chk',
-                'sync-lead-score-chk',
-                'sync-notes-chk'
-            ];
-            settingsCheckboxes.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.addEventListener('change', saveGoogleSheetsSettings);
-                }
-            });
-
-            // URL query parameters check
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('google_sheets')) {
-                const status = urlParams.get('google_sheets');
-                if (status === 'connected') {
-                    showNotification('success', 'Successfully connected Google Account!');
-                    openGoogleSheetsModal();
-                }
-                const newUrl = window.location.pathname;
-                window.history.replaceState({}, document.title, newUrl);
-            } else if (urlParams.has('google_sheets_error')) {
-                const errorMsg = urlParams.get('google_sheets_error');
-                showNotification('error', `Google Connection failed: ${errorMsg}`);
-                openGoogleSheetsModal();
-                const newUrl = window.location.pathname;
-                window.history.replaceState({}, document.title, newUrl);
-            }
-
-            lucide.createIcons();
-        });
-    </script>
-
-    <!-- Google Sheets Integration Modal -->
-    <div id="sheets-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm animate-fade-in p-4">
-        <div class="glass-panel p-6 max-w-xl w-full bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto text-left flex flex-col">
-            <button id="close-sheets-modal-btn" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold">&times;</button>
-            
-            <h2 class="text-xl font-extrabold text-teal-400 mb-2 flex items-center space-x-2">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Google_Sheets_logo_%282014-2020%29.svg/1920px-Google_Sheets_logo_%282014-2020%29.svg.png" class="h-5 w-5 object-contain" alt="Google Sheets">
-                <span>Google Sheets Integration</span>
-            </h2>
-            <p class="text-xs text-slate-400 mb-6">Sync your CRM leads directly to Google Sheets and keep your data updated automatically.</p>
-            
-            <!-- STATE 1: UNCONNECTED -->
-            <div id="sheets-state-unconnected" class="hidden space-y-4 animate-fade-in">
-                <div class="p-4 bg-slate-950/50 border border-slate-800 rounded-xl flex flex-col items-center justify-center text-center py-8">
-                    <div class="p-3 bg-teal-500/10 text-teal-400 rounded-full mb-3">
-                        <i data-lucide="log-in" class="h-8 w-8"></i>
-                    </div>
-                    <h4 class="text-sm font-semibold text-white">Google Account Not Connected</h4>
-                    <p class="text-xs text-slate-500 max-w-xs mt-1">Connect your Google Account to authorize LinkPilot CRM to write lead rows to your spreadsheet.</p>
-                    <button id="connect-google-btn" class="mt-4 flex items-center space-x-2 px-5 py-2.5 bg-teal-400 text-slate-950 font-bold rounded-lg text-sm hover:bg-teal-300 transition shadow-lg shadow-teal-500/10">
-                        <i data-lucide="plus" class="h-4 w-4"></i>
-                        <span>Connect Google Account</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- STATE 2: CONNECTED BUT NO SPREADSHEET -->
-            <div id="sheets-state-connected-no-sheet" class="hidden space-y-6 animate-fade-in">
-                <!-- Connected Email Banner -->
-                <div class="flex items-center justify-between p-3.5 bg-teal-500/10 border border-teal-500/20 rounded-xl">
-                    <div class="flex items-center space-x-3">
-                        <div class="p-2 bg-teal-500/10 text-teal-400 rounded-lg">
-                            <i data-lucide="user-check" class="h-5 w-5"></i>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-400">Connected Google Account</div>
-                            <div class="text-sm font-bold text-white user-google-email">Loading...</div>
-                        </div>
-                    </div>
-                    <button class="disconnect-btn text-xs font-semibold text-red-400 hover:text-red-300 hover:underline">Disconnect</button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Option A: Create Spreadsheet -->
-                    <div class="p-5 bg-slate-950/50 border border-slate-800 rounded-xl hover:border-slate-700 transition flex flex-col justify-between">
-                        <div>
-                            <h4 class="text-sm font-semibold text-white flex items-center space-x-1.5">
-                                <i data-lucide="file-plus" class="h-4 w-4 text-teal-400"></i>
-                                <span>Create New Spreadsheet</span>
-                            </h4>
-                            <p class="text-xs text-slate-500 mt-2">LinkPilot will create a new sheet named "LinkPilot CRM Leads" in your Google Drive and set up all header columns automatically.</p>
-                        </div>
-                        <button id="create-sheet-btn" class="mt-4 w-full py-2 bg-teal-400 text-slate-950 font-bold rounded-lg text-xs hover:bg-teal-300 transition">
-                            Create New Spreadsheet
-                        </button>
-                    </div>
-
-                    <!-- Option B: Connect Existing Spreadsheet -->
-                    <div class="p-5 bg-slate-950/50 border border-slate-800 rounded-xl hover:border-slate-700 transition flex flex-col justify-between">
-                        <div>
-                            <h4 class="text-sm font-semibold text-white flex items-center space-x-1.5">
-                                <i data-lucide="link" class="h-4 w-4 text-purple-400"></i>
-                                <span>Connect Existing Sheet</span>
-                            </h4>
-                            <p class="text-xs text-slate-500 mt-2">Paste the URL or ID of an existing Google Spreadsheet you have permission to edit.</p>
-                            <div class="mt-3">
-                                <input type="text" id="existing-sheet-url" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs" placeholder="https://docs.google.com/spreadsheets/d/...">
-                            </div>
-                        </div>
-                        <button id="connect-existing-sheet-btn" class="mt-4 w-full py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold rounded-lg text-xs transition">
-                            Link Existing Spreadsheet
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- STATE 3: FULLY CONNECTED & CONFIGURED -->
-            <div id="sheets-state-connected-configured" class="hidden space-y-6 animate-fade-in">
-                <!-- Header Status Panel -->
-                <div class="p-4 bg-teal-500/10 border border-teal-500/20 rounded-xl space-y-4">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3">
-                            <div class="p-2 bg-teal-500/10 text-teal-400 rounded-lg">
-                                <i data-lucide="file-spreadsheet" class="h-5 w-5"></i>
-                            </div>
-                            <div>
-                                <div class="text-xs text-slate-400">Connected Spreadsheet</div>
-                                <a id="sheet-link-display" href="#" target="_blank" class="text-sm font-bold text-white hover:underline flex items-center space-x-1">
-                                    <span id="sheet-title-display">LinkPilot CRM Leads</span>
-                                    <i data-lucide="external-link" class="h-3.5 w-3.5 text-slate-400"></i>
-                                </a>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-xs text-slate-400">Google User</div>
-                            <div class="text-xs font-semibold text-slate-200 user-google-email">Loading...</div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-2 text-center pt-2 border-t border-teal-500/10">
-                        <div>
-                            <div class="text-[10px] text-slate-400 uppercase tracking-wider">Sync State</div>
-                            <div class="text-xs font-bold text-emerald-400 flex items-center justify-center space-x-1 mt-0.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                                <span>Active</span>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="text-[10px] text-slate-400 uppercase tracking-wider">Rows Synced</div>
-                            <div class="text-xs font-bold text-slate-200 mt-0.5" id="rows-synced-display">0 rows</div>
-                        </div>
-                        <div>
-                            <div class="text-[10px] text-slate-400 uppercase tracking-wider">Last Synced</div>
-                            <div class="text-xs font-bold text-slate-200 mt-0.5" id="last-sync-display">Never</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sync Toggles & Settings -->
-                <div class="space-y-4">
-                    <h3 class="text-xs font-bold text-teal-400 uppercase tracking-wider">Sync Preferences</h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <!-- Toggle 1: Enable/Disable Entire Sync -->
-                        <div class="p-3 bg-slate-950/40 border border-slate-800 rounded-xl flex items-center justify-between">
-                            <div>
-                                <h5 class="text-xs font-bold text-white">Enable Google Sheets Sync</h5>
-                                <p class="text-[10px] text-slate-500 mt-0.5">If disabled, no leads will sync to the sheet.</p>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="sync-enabled-chk" class="sr-only peer">
-                                <div class="w-9 h-5 bg-slate-850 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-400 peer-checked:after:bg-slate-950 peer-checked:after:border-teal-400"></div>
-                            </label>
-                        </div>
-
-                        <!-- Toggle 2: Sync New Leads -->
-                        <div class="p-3 bg-slate-950/40 border border-slate-800 rounded-xl flex items-center justify-between">
-                            <div>
-                                <h5 class="text-xs font-bold text-white">Sync New Leads</h5>
-                                <p class="text-[10px] text-slate-500 mt-0.5">Sync immediately when new leads are created.</p>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="sync-new-leads-chk" class="sr-only peer">
-                                <div class="w-9 h-5 bg-slate-850 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-400 peer-checked:after:bg-slate-950 peer-checked:after:border-teal-400"></div>
-                            </label>
-                        </div>
-
-                        <!-- Toggle 3: Sync Update Leads -->
-                        <div class="p-3 bg-slate-950/40 border border-slate-800 rounded-xl flex items-center justify-between">
-                            <div>
-                                <h5 class="text-xs font-bold text-white">Sync Updated Leads</h5>
-                                <p class="text-[10px] text-slate-500 mt-0.5">Sync updates when leads are modified.</p>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="sync-update-leads-chk" class="sr-only peer">
-                                <div class="w-9 h-5 bg-slate-850 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-400 peer-checked:after:bg-slate-950 peer-checked:after:border-teal-400"></div>
-                            </label>
-                        </div>
-
-                        <!-- Toggle 4: Sync Lead Status -->
-                        <div class="p-3 bg-slate-950/40 border border-slate-800 rounded-xl flex items-center justify-between">
-                            <div>
-                                <h5 class="text-xs font-bold text-white">Sync Lead Status</h5>
-                                <p class="text-[10px] text-slate-500 mt-0.5">Include current contact / outreach status.</p>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="sync-status-chk" class="sr-only peer">
-                                <div class="w-9 h-5 bg-slate-850 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-400 peer-checked:after:bg-slate-950 peer-checked:after:border-teal-400"></div>
-                            </label>
-                        </div>
-
-                        <!-- Toggle 5: Sync Lead Score -->
-                        <div class="p-3 bg-slate-950/40 border border-slate-800 rounded-xl flex items-center justify-between">
-                            <div>
-                                <h5 class="text-xs font-bold text-white">Sync Lead Score</h5>
-                                <p class="text-[10px] text-slate-500 mt-0.5">Include the estimated Lead Score in sheet columns.</p>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="sync-lead-score-chk" class="sr-only peer">
-                                <div class="w-9 h-5 bg-slate-850 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-400 peer-checked:after:bg-slate-950 peer-checked:after:border-teal-400"></div>
-                            </label>
-                        </div>
-
-                        <!-- Toggle 6: Sync Notes & Remarks -->
-                        <div class="p-3 bg-slate-950/40 border border-slate-800 rounded-xl flex items-center justify-between">
-                            <div>
-                                <h5 class="text-xs font-bold text-white">Sync Notes & Remarks</h5>
-                                <p class="text-[10px] text-slate-500 mt-0.5">Include manual remarks/comments from Leads view.</p>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="sync-notes-chk" class="sr-only peer">
-                                <div class="w-9 h-5 bg-slate-850 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-400 peer-checked:after:bg-slate-950 peer-checked:after:border-teal-400"></div>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Footer Sync Actions -->
-                <div class="mt-6 pt-4 border-t border-slate-800 flex justify-between items-center">
-                    <button class="disconnect-btn px-4 py-2 border border-red-500/30 hover:border-red-500 hover:bg-red-500/10 rounded-lg text-xs font-semibold text-red-400 transition">
-                        Disconnect Account
-                    </button>
-                    <div class="flex space-x-2">
-                        <button id="sync-now-btn" class="flex items-center space-x-1.5 px-4 py-2 bg-teal-400 text-slate-950 font-bold rounded-lg text-xs hover:bg-teal-300 transition">
-                            <i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i>
-                            <span>Sync Now</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-        </div>
+        </main>
     </div>
+
+    <!-- Scripts integrations -->
+    <script src="assets/js/app.js"></script>
+    <script src="assets/js/crm.js"></script>
 </body>
 </html>

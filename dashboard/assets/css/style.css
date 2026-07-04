@@ -3,24 +3,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-    --primary: #F8FAFC;
-    --secondary: #0B0F19;
-    --accent: #6366F1; /* Slate Indigo */
-    --accent-glow: rgba(99, 102, 241, 0.15);
+    --primary: #0F172A; /* Slate 900 for main text */
+    --secondary: #FFFFFF; /* White for cards */
+    --accent: #2563EB; /* Premium blue active color */
+    --accent-glow: rgba(37, 99, 235, 0.05);
     
-    --teal: #14B8A6;
-    --teal-glow: rgba(20, 184, 166, 0.15);
+    --teal: #10B981;
+    --teal-glow: rgba(16, 185, 129, 0.1);
     
     --success: #10B981;
     --warning: #F59E0B;
     --danger: #EF4444;
-    --background: #030712; /* Premium rich black */
+    --background: #F8FAFC; /* Light gray background */
     
-    --card-bg: rgba(17, 24, 39, 0.6);
-    --border-color: rgba(255, 255, 255, 0.06);
-    --radius-card: 20px;
-    --radius-button: 10px;
-    --font-sans: 'Outfit', 'Inter', -apple-system, sans-serif;
+    --card-bg: #FFFFFF; /* White card background */
+    --border-color: #E2E8F0; /* Slate 200 border */
+    --radius-card: 16px;
+    --radius-button: 8px;
+    --font-sans: 'Inter', 'Outfit', -apple-system, sans-serif;
 }
 
 /* Base resets and defaults */
@@ -304,3 +304,168 @@ body {
     border-color: rgba(245, 158, 11, 0.2);
     color: #FBBF24;
 }
+
+/* ==========================================
+   LIGHT MODE & NAVY SIDEBAR GLOBAL OVERRIDES
+   ========================================== */
+
+/* 1. Sidebar specific styling */
+aside {
+    background-color: #0b1428 !important;
+    color: #94a3b8 !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+aside a, aside button, aside span, aside div {
+    color: #94a3b8 !important;
+}
+
+aside a:hover, aside button:hover {
+    color: #ffffff !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+aside a.active, aside button.active, aside .sidebar-nav-link.active {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25) !important;
+}
+
+aside a.active svg, aside button.active svg, aside .sidebar-nav-link.active svg {
+    stroke: #ffffff !important;
+}
+
+aside .text-white {
+    color: #ffffff !important;
+}
+
+/* 2. Global light mode content overrides */
+#main-content-viewport, #admin-main-viewport {
+    color: #1e293b !important; /* text-slate-800 */
+}
+
+#main-content-viewport h1, #main-content-viewport h2, #main-content-viewport h3, #main-content-viewport h4, #main-content-viewport h5,
+#admin-main-viewport h1, #admin-main-viewport h2, #admin-main-viewport h3, #admin-main-viewport h4, #admin-main-viewport h5 {
+    color: #0f172a !important; /* text-slate-900 */
+}
+
+#main-content-viewport .text-white, #admin-main-viewport .text-white,
+#main-content-viewport .text-slate-100, #admin-main-viewport .text-slate-100 {
+    color: #1e293b !important;
+}
+
+#main-content-viewport .text-slate-300, #admin-main-viewport .text-slate-300 {
+    color: #475569 !important; /* text-slate-600 */
+}
+
+#main-content-viewport .text-slate-400, #admin-main-viewport .text-slate-400 {
+    color: #64748b !important; /* text-slate-500 */
+}
+
+#main-content-viewport .bg-slate-900, #main-content-viewport .bg-slate-950, #main-content-viewport .bg-slate-900\/40, #main-content-viewport .bg-slate-950\/40,
+#admin-main-viewport .bg-slate-900, #admin-main-viewport .bg-slate-950, #admin-main-viewport .bg-slate-900\/40, #admin-main-viewport .bg-slate-950\/40 {
+    background-color: #ffffff !important;
+}
+
+#main-content-viewport .border-slate-800, #admin-main-viewport .border-slate-800,
+#main-content-viewport .border-slate-700, #admin-main-viewport .border-slate-700 {
+    border-color: #e2e8f0 !important;
+}
+
+#main-content-viewport .glass-panel, #admin-main-viewport .glass-panel {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03) !important;
+}
+
+/* Form inputs styling */
+#main-content-viewport input, #main-content-viewport select, #main-content-viewport textarea,
+#admin-main-viewport input, #admin-main-viewport select, #admin-main-viewport textarea {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+#main-content-viewport input:focus, #main-content-viewport select:focus, #main-content-viewport textarea:focus,
+#admin-main-viewport input:focus, #admin-main-viewport select:focus, #admin-main-viewport textarea:focus {
+    border-color: #2563eb !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1) !important;
+}
+
+#main-content-viewport input::placeholder, #admin-main-viewport input::placeholder {
+    color: #94a3b8 !important;
+}
+
+/* Ensure buttons and badges keep white text */
+#main-content-viewport button, #main-content-viewport button *,
+#admin-main-viewport button, #admin-main-viewport button *,
+#main-content-viewport .bg-indigo-600, #main-content-viewport .bg-indigo-600 *,
+#admin-main-viewport .bg-indigo-600, #admin-main-viewport .bg-indigo-600 *,
+#main-content-viewport .bg-blue-600, #main-content-viewport .bg-blue-600 *,
+#admin-main-viewport .bg-blue-600, #admin-main-viewport .bg-blue-600 *,
+#main-content-viewport .bg-emerald-600, #main-content-viewport .bg-emerald-600 *,
+#admin-main-viewport .bg-emerald-600, #admin-main-viewport .bg-emerald-600 *,
+#main-content-viewport .bg-[#2563eb], #main-content-viewport .bg-[#2563eb] *,
+#admin-main-viewport .bg-[#2563eb], #admin-main-viewport .bg-[#2563eb] *,
+#main-content-viewport .badge, #main-content-viewport .badge *,
+#admin-main-viewport .badge, #admin-main-viewport .badge * {
+    color: #ffffff !important;
+}
+
+/* Checkboxes style */
+#main-content-viewport input[type="checkbox"],
+#admin-main-viewport input[type="checkbox"] {
+    accent-color: #2563eb !important;
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+}
+
+/* Secondary/Border Buttons style override */
+#main-content-viewport button.border, #admin-main-viewport button.border {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #475569 !important;
+}
+#main-content-viewport button.border *, #admin-main-viewport button.border * {
+    color: #475569 !important;
+}
+#main-content-viewport button.border:hover, #admin-main-viewport button.border:hover {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+}
+#main-content-viewport button.border:hover *, #admin-main-viewport button.border:hover * {
+    color: #0f172a !important;
+}
+
+/* Kanban column and card light theme styling */
+#main-content-viewport .kanban-column {
+    background-color: #f1f5f9 !important;
+    border-color: #e2e8f0 !important;
+}
+#main-content-viewport .kanban-card {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+#main-content-viewport .kanban-card:hover {
+    border-color: #2563eb !important;
+    background-color: #ffffff !important;
+}
+
+/* Table light mode styling */
+#main-content-viewport table, #admin-main-viewport table {
+    color: #334155 !important;
+}
+#main-content-viewport th, #admin-main-viewport th {
+    background-color: #f8fafc !important;
+    color: #475569 !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+#main-content-viewport td, #admin-main-viewport td {
+    border-bottom: 1px solid #f1f5f9 !important;
+}
+#main-content-viewport tbody tr:hover, #admin-main-viewport tbody tr:hover {
+    background-color: #f8fafc !important;
+}
+

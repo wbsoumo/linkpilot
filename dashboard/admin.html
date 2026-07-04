@@ -22,10 +22,10 @@
     <!-- Custom Style Sheet -->
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
-<body class="h-full bg-slate-950 text-slate-100 flex overflow-hidden">
+<body class="h-full bg-[#f8fafc] text-slate-800 flex overflow-hidden">
 
     <!-- 1. LEFT SIDEBAR PANEL (ADMIN PRIVILEGE CONTROL) -->
-    <aside class="hidden lg:flex flex-col w-64 bg-slate-900/90 border-r border-rose-950/20 p-5 shrink-0 justify-between">
+    <aside class="hidden lg:flex flex-col w-64 bg-[#0a1128] border-r border-slate-800/10 p-5 shrink-0 justify-between">
         <div class="space-y-6">
             <!-- Brand Logo -->
             <a href="index.html" class="flex items-center space-x-2 text-lg font-extrabold tracking-wider text-white">
@@ -34,19 +34,19 @@
 
             <!-- Sidebar Navigation Links -->
             <nav class="space-y-1.5 flex flex-col text-xs" id="admin-navigation-container">
-                <button onclick="switchAdminTab('health', this)" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition w-full text-left active">
+                <button onclick="switchAdminTab('health', this)" class="sidebar-nav-link text-slate-300 transition w-full text-left active">
                     <i data-lucide="shield-check" class="h-4 w-4 mr-2.5"></i><span>System Health</span>
                 </button>
-                <button onclick="switchAdminTab('users', this)" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition w-full text-left">
+                <button onclick="switchAdminTab('users', this)" class="sidebar-nav-link text-slate-300 transition w-full text-left">
                     <i data-lucide="users" class="h-4 w-4 mr-2.5"></i><span>User Accounts</span>
                 </button>
-                <button onclick="switchAdminTab('ai-settings', this)" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition w-full text-left">
+                <button onclick="switchAdminTab('ai-settings', this)" class="sidebar-nav-link text-slate-300 transition w-full text-left">
                     <i data-lucide="cpu" class="h-4 w-4 mr-2.5"></i><span>AI & Prompts</span>
                 </button>
-                <button onclick="switchAdminTab('credits', this)" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition w-full text-left">
+                <button onclick="switchAdminTab('credits', this)" class="sidebar-nav-link text-slate-300 transition w-full text-left">
                     <i data-lucide="wallet" class="h-4 w-4 mr-2.5"></i><span>Credit Adjustments</span>
                 </button>
-                <button onclick="switchAdminTab('logs', this)" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition w-full text-left">
+                <button onclick="switchAdminTab('logs', this)" class="sidebar-nav-link text-slate-300 transition w-full text-left">
                     <i data-lucide="file-text" class="h-4 w-4 mr-2.5"></i><span>Processing Logs</span>
                 </button>
                 
@@ -68,9 +68,9 @@
 
     <!-- 2. RIGHT CONTENT AREA -->
     <div class="flex-grow flex flex-col min-w-0 overflow-hidden">
-        <header class="glass-panel rounded-none border-t-0 border-x-0 sticky top-0 z-40 bg-slate-900/60 px-6 py-4 flex items-center justify-between">
-            <h2 class="text-sm font-bold text-rose-400">System Admin Control Center</h2>
-            <div class="text-xs text-slate-400 font-mono">Secure HTTPS Tunnel</div>
+        <header class="bg-white border-b border-slate-200/80 sticky top-0 z-40 px-6 py-4 flex items-center justify-between shadow-sm">
+            <h2 class="text-sm font-bold text-slate-800">System Admin Control Center</h2>
+            <div class="text-xs text-slate-500 font-mono">Secure HTTPS Connection</div>
         </header>
 
         <!-- Main Admin Content Container -->

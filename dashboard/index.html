@@ -22,58 +22,89 @@
     <!-- Custom Style Sheet -->
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
-<body class="h-full bg-slate-950 text-slate-100 flex overflow-hidden">
+<body class="h-full bg-[#f8fafc] text-slate-800 flex overflow-hidden">
 
     <!-- 1. LEFT SIDEBAR PANEL -->
-    <aside class="hidden lg:flex flex-col w-64 bg-slate-900/90 border-r border-slate-800/80 p-5 shrink-0 justify-between">
+    <aside class="hidden lg:flex flex-col w-64 bg-[#0a1128] border-r border-slate-800/10 p-5 shrink-0 justify-between">
         <div class="space-y-6">
             <!-- Brand Logo -->
             <a href="index.html" class="flex items-center space-x-2 text-lg font-extrabold tracking-wider text-white">
-                <span class="text-indigo-400">✨ LinkPilot</span> <span class="text-[9px] px-1.5 py-0.5 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded font-semibold">CRM v2</span>
+                <i data-lucide="send" class="h-5 w-5 text-blue-500 transform rotate-45"></i>
+                <span>LinkPilot <span class="text-blue-500 font-bold">CRM</span></span>
             </a>
 
             <!-- Sidebar Navigation Links -->
-            <nav class="space-y-1.5 flex flex-col text-xs" id="sidebar-navigation-container">
-                <a href="#/dashboard" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150">
-                    <i data-lucide="layout-dashboard" class="h-4 w-4 mr-2.5"></i><span>Dashboard</span>
+            <nav class="space-y-1 flex flex-col text-xs" id="sidebar-navigation-container">
+                <a href="#/dashboard" class="sidebar-nav-link active text-slate-300 transition duration-150">
+                    <i data-lucide="layout-dashboard" class="h-4 w-4 mr-2.5"></i><span>Overview</span>
                 </a>
-                
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest pt-4 pb-1.5 pl-2">CRM Modules</span>
-                <a href="#/leads" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150">
-                    <i data-lucide="users" class="h-4 w-4 mr-2.5"></i><span>Leads Vault</span>
+                <a href="#/dashboard" class="sidebar-nav-link text-slate-300 transition duration-150">
+                    <i data-lucide="grid" class="h-4 w-4 mr-2.5"></i><span>Dashboard</span>
                 </a>
-                <a href="#/companies" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150">
-                    <i data-lucide="building" class="h-4 w-4 mr-2.5"></i><span>Companies</span>
+                <a href="#/inbox" class="sidebar-nav-link text-slate-300 transition duration-150 flex justify-between items-center w-full">
+                    <div class="flex items-center">
+                        <i data-lucide="message-square" class="h-4 w-4 mr-2.5"></i><span>Conversations</span>
+                    </div>
+                    <span class="bg-blue-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">23</span>
                 </a>
-                <a href="#/contacts" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150">
+                <a href="#/leads" class="sidebar-nav-link text-slate-300 transition duration-150">
+                    <i data-lucide="user-plus" class="h-4 w-4 mr-2.5"></i><span>Leads</span>
+                </a>
+                <a href="#/deals" class="sidebar-nav-link text-slate-300 transition duration-150">
+                    <i data-lucide="dollar-sign" class="h-4 w-4 mr-2.5"></i><span>Deals</span>
+                </a>
+                <a href="#/contacts" class="sidebar-nav-link text-slate-300 transition duration-150">
                     <i data-lucide="contact" class="h-4 w-4 mr-2.5"></i><span>Contacts</span>
                 </a>
-                <a href="#/deals" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150">
-                    <i data-lucide="bar-chart-2" class="h-4 w-4 mr-2.5"></i><span>Deals Pipeline</span>
+                <a href="#/companies" class="sidebar-nav-link text-slate-300 transition duration-150">
+                    <i data-lucide="building" class="h-4 w-4 mr-2.5"></i><span>Companies</span>
                 </a>
-
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest pt-4 pb-1.5 pl-2">Intelligence</span>
-                <a href="#/inbox" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150">
-                    <i data-lucide="inbox" class="h-4 w-4 mr-2.5"></i><span>AI Inbox Inbox</span>
+                <a href="#/tasks" class="sidebar-nav-link text-slate-300 transition duration-150 flex justify-between items-center w-full">
+                    <div class="flex items-center">
+                        <i data-lucide="check-square" class="h-4 w-4 mr-2.5"></i><span>Tasks</span>
+                    </div>
+                    <span class="bg-blue-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">8</span>
                 </a>
-                <a href="#/email-intelligence" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150">
-                    <i data-lucide="cpu" class="h-4 w-4 mr-2.5"></i><span>Email Intelligence</span>
+                <a href="#/email-intelligence" class="sidebar-nav-link text-slate-300 transition duration-150">
+                    <i data-lucide="mail" class="h-4 w-4 mr-2.5"></i><span>Email Processing</span>
                 </a>
-                <a href="#/automation" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150">
+                <a href="#/ai-insights" class="sidebar-nav-link text-slate-300 transition duration-150">
+                    <i data-lucide="sparkles" class="h-4 w-4 mr-2.5"></i><span>AI Insights</span>
+                </a>
+                <a href="#/reports" class="sidebar-nav-link text-slate-300 transition duration-150">
+                    <i data-lucide="bar-chart-3" class="h-4 w-4 mr-2.5"></i><span>Reports</span>
+                </a>
+                <a href="#/automation" class="sidebar-nav-link text-slate-300 transition duration-150">
                     <i data-lucide="workflow" class="h-4 w-4 mr-2.5"></i><span>Automations</span>
                 </a>
+                <a href="#/settings" class="sidebar-nav-link text-slate-300 transition duration-150">
+                    <i data-lucide="share-2" class="h-4 w-4 mr-2.5"></i><span>Integrations</span>
+                </a>
+                <a href="#/settings" class="sidebar-nav-link text-slate-300 transition duration-150">
+                    <i data-lucide="settings" class="h-4 w-4 mr-2.5"></i><span>Settings</span>
+                </a>
                 
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest pt-4 pb-1.5 pl-2">System Control</span>
-                <a href="admin.html" id="admin-nav-link" class="sidebar-nav-link text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150 hidden">
-                    <i data-lucide="shield-alert" class="h-4 w-4 mr-2.5 text-rose-400"></i><span class="text-rose-400 font-bold">Admin Portal</span>
+                <a href="admin.html" id="admin-nav-link" class="sidebar-nav-link text-rose-400 hover:bg-slate-800 transition duration-150 hidden">
+                    <i data-lucide="shield-alert" class="h-4 w-4 mr-2.5"></i><span>Admin Portal</span>
                 </a>
             </nav>
         </div>
 
-        <!-- Sidebar footer profile details -->
-        <div class="border-t border-slate-800/80 pt-4 space-y-4">
+        <!-- Pro Plan Card and Profile -->
+        <div class="space-y-4 pt-4 border-t border-slate-800/80">
+            <!-- Pro Plan Card -->
+            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-3.5 space-y-2.5">
+                <div class="text-white text-xs font-bold">Pro Plan</div>
+                <div class="text-slate-500 text-[10px]">Renews on 25 Jun, 2025</div>
+                <button class="w-full flex items-center justify-center space-x-1.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[10px] font-bold transition">
+                    <i data-lucide="rocket" class="h-3 w-3"></i>
+                    <span>Upgrade Plan</span>
+                </button>
+            </div>
+
+            <!-- Profile Details -->
             <div class="flex items-center space-x-3">
-                <div class="h-9 w-9 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center border border-indigo-400/30" id="user-avatar-initials">
+                <div class="h-9 w-9 rounded-lg bg-blue-600 text-white font-bold flex items-center justify-center border border-blue-400/30" id="user-avatar-initials">
                     LP
                 </div>
                 <div class="truncate max-w-[140px]">
@@ -91,19 +122,57 @@
     <!-- 2. RIGHT CONTENT AREA -->
     <div class="flex-grow flex flex-col min-w-0 overflow-hidden">
         <!-- Top bar menu -->
-        <header class="glass-panel rounded-none border-t-0 border-x-0 sticky top-0 z-40 bg-slate-900/60 px-6 py-4 flex items-center justify-between">
-            <div class="flex items-center space-x-4">
+        <header class="bg-white border-b border-slate-200/80 sticky top-0 z-40 px-6 py-3 flex items-center justify-between shadow-sm">
+            <!-- Left Header -->
+            <div class="flex items-center space-x-4 flex-grow max-w-md">
                 <!-- Hamburger on Mobile -->
-                <button class="lg:hidden text-slate-400 hover:text-white"><i data-lucide="menu" class="h-5 w-5"></i></button>
-                <div class="text-xs font-bold text-slate-400 block lg:hidden">LinkPilot CRM</div>
+                <button class="lg:hidden text-slate-500 hover:text-slate-900"><i data-lucide="menu" class="h-5 w-5"></i></button>
+                
+                <!-- Search bar -->
+                <div class="relative w-full hidden md:block">
+                    <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
+                        <i data-lucide="search" class="h-4 w-4"></i>
+                    </span>
+                    <input type="text" placeholder="Search leads, contacts, emails..." class="w-full pl-9 pr-12 py-1.5 bg-[#f8fafc] border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500">
+                    <span class="absolute right-3 top-2 px-1 py-0.5 border border-slate-200 bg-white text-[9px] text-slate-400 rounded font-semibold">⌘ K</span>
+                </div>
             </div>
             
-            <div class="flex items-center space-x-4">
+            <!-- Right Header -->
+            <div class="flex items-center space-x-5 text-slate-500">
+                <!-- Add icon button -->
+                <button class="h-8 w-8 rounded-full border border-slate-200 bg-[#f8fafc] hover:bg-slate-100 flex items-center justify-center text-slate-600 transition">
+                    <i data-lucide="plus" class="h-4 w-4"></i>
+                </button>
+
+                <!-- Notifications icon -->
+                <button class="relative h-8 w-8 flex items-center justify-center hover:text-slate-900 transition">
+                    <i data-lucide="bell" class="h-4 w-4 text-slate-600"></i>
+                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-extrabold px-1 py-0.5 rounded-full">3</span>
+                </button>
+
+                <!-- Envelope inbox icon -->
+                <button class="relative h-8 w-8 flex items-center justify-center hover:text-slate-900 transition">
+                    <i data-lucide="mail" class="h-4 w-4 text-slate-600"></i>
+                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-extrabold px-1 py-0.5 rounded-full">12</span>
+                </button>
+
                 <!-- Credits Wallet Badge -->
-                <a href="#/email-intelligence" id="nav-credit-balance-container" class="flex items-center space-x-1.5 px-3 py-1.5 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg text-[10px] font-extrabold hover:bg-indigo-600 hover:text-white transition duration-150">
+                <a href="#/email-intelligence" id="nav-credit-balance-container" class="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-lg text-[10px] font-extrabold hover:bg-blue-600 hover:text-white transition duration-150">
                     <i data-lucide="zap" class="h-3.5 w-3.5"></i>
-                    <span>Email Credits: <span id="nav-credit-balance-value">...</span></span>
+                    <span>Credits: <span id="nav-credit-balance-value">...</span></span>
                 </a>
+
+                <!-- User profile avatar details -->
+                <div class="flex items-center space-x-2 border-l border-slate-200 pl-4">
+                    <div class="h-8 w-8 rounded-full bg-emerald-500 text-white font-bold flex items-center justify-center text-xs">
+                        AS
+                    </div>
+                    <div class="hidden sm:block text-left text-[10px]">
+                        <div class="font-bold text-slate-800 user-name-display">Admin User</div>
+                        <div class="text-slate-400">Super Admin</div>
+                    </div>
+                </div>
             </div>
         </header>
 

@@ -385,9 +385,9 @@ function renderDashboardCharts(data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: '#94A3B8', font: { family: 'Inter', size: 10 } } } },
+            plugins: { legend: { labels: { color: '#475569', font: { family: 'Inter', size: 10 } } } },
             scales: {
-                y: { grid: { color: 'rgba(255, 255, 255, 0.04)' }, ticks: { color: '#64748B', font: { size: 9 } } },
+                y: { grid: { color: 'rgba(15, 23, 42, 0.06)' }, ticks: { color: '#64748B', font: { size: 9 } } },
                 x: { grid: { color: 'transparent' }, ticks: { color: '#64748B', font: { size: 9 } } }
             }
         }
@@ -411,7 +411,7 @@ function renderDashboardCharts(data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom', labels: { color: '#94A3B8', font: { size: 10 } } } }
+            plugins: { legend: { position: 'bottom', labels: { color: '#475569', font: { size: 10 } } } }
         }
     });
 
@@ -436,7 +436,7 @@ function renderDashboardCharts(data) {
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
-                y: { grid: { color: 'rgba(255, 255, 255, 0.04)' }, ticks: { color: '#64748B', font: { size: 9 } } },
+                y: { grid: { color: 'rgba(15, 23, 42, 0.06)' }, ticks: { color: '#64748B', font: { size: 9 } } },
                 x: { grid: { color: 'transparent' }, ticks: { color: '#64748B', font: { size: 9 } } }
             }
         }
@@ -463,7 +463,7 @@ function renderDashboardCharts(data) {
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
-                x: { grid: { color: 'rgba(255, 255, 255, 0.04)' }, ticks: { color: '#64748B', font: { size: 9 } } },
+                x: { grid: { color: 'rgba(15, 23, 42, 0.06)' }, ticks: { color: '#64748B', font: { size: 9 } } },
                 y: { grid: { color: 'transparent' }, ticks: { color: '#64748B', font: { size: 9 } } }
             }
         }

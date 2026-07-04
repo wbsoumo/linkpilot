@@ -80,7 +80,7 @@ try {
             $newEmails = [];
             try {
                 $newEmails = IMAPHelper::fetchNewEmails($userId, 10); // fetch last 10 messages
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 // Log sync error
                 $errStmt = $db->prepare("INSERT INTO email_processing_logs (user_id, status, message) VALUES (?, 'error', ?)");
                 $errStmt->execute([$userId, 'IMAP Connection Error: ' . $e->getMessage()]);
@@ -140,7 +140,7 @@ You MUST return your response as a valid, parsable JSON block with the following
                     $ai = callAI($systemPrompt, $userPrompt, $userId);
                     $aiResponse = json_decode($ai['text'], true);
                     $tokensUsed = $ai['tokens'];
-                } catch (Exception $e) {
+                } catch (Throwable $e) {
                     // Log AI error
                     $errStmt = $db->prepare("INSERT INTO email_processing_logs (user_id, email_subject, sender, status, message) VALUES (?, ?, ?, 'error', ?)");
                     $errStmt->execute([$userId, $subject, $sender, 'AI extraction failed: ' . $e->getMessage()]);
@@ -331,7 +331,7 @@ You MUST return your response as a valid, parsable JSON block with the following
     } else {
         sendJsonResponse('error', 'Method not allowed', [], 405);
     }
-} catch (Exception $e) {
+} catch (Throwable $e) {
     if ($db->inTransaction()) {
         $db->rollBack();
     }

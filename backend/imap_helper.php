@@ -74,10 +74,7 @@ class IMAPHelper {
         $config = $stmt->fetch();
 
         if (!$config || empty($config['imap_host']) || empty($config['imap_username'])) {
-            return [
-                "success" => false,
-                "message" => "IMAP account is not configured. Please complete the setup wizard."
-            ];
+            throw new Exception("IMAP account is not configured. Please complete the setup wizard.");
         }
 
         // 2. Decrypt Password

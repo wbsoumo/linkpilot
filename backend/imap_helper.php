@@ -166,13 +166,20 @@ class IMAPHelper {
      * Decode MIME headers (e.g. UTF-8 or ISO-8859-1 strings)
      */
     private static function decodeMimeHeader($str) {
-        $decoded = imap_mime_header_decode($str);
+        $decoded = @imap_mime_header_decode($str);
+        if (!$decoded) {
+            return $str;
+        }
         $result = "";
         foreach ($decoded as $element) {
             $text = $element->text;
             $charset = $element->charset;
-            if ($charset !== "default") {
-                $text = @mb_convert_encoding($text, "UTF-8", $charset);
+            if ($charset !== "default" && !empty($charset)) {
+                if (function_exists('mb_convert_encoding')) {
+                    $text = @mb_convert_encoding($text, "UTF-8", $charset);
+                } elseif (function_exists('iconv')) {
+                    $text = @iconv($charset, "UTF-8//IGNORE", $text);
+                }
             }
             $result .= $text;
         }
@@ -184,16 +191,19 @@ class IMAPHelper {
      */
     private static function getBodies($mbox, $msgNum, $structure) {
         $bodies = ['text' => '', 'html' => ''];
+        if (!$structure || !isset($structure->type)) {
+            return $bodies;
+        }
         
         if ($structure->type == 0) { // Primary text format
-            $body = imap_fetchbody($mbox, $msgNum, 1);
-            $body = self::decodeBody($body, $structure->encoding);
-            if (strtolower($structure->subtype) == 'plain') {
+            $body = @imap_fetchbody($mbox, $msgNum, 1);
+            $body = self::decodeBody($body, $structure->encoding ?? 0);
+            if (strtolower($structure->subtype ?? '') == 'plain') {
                 $bodies['text'] = $body;
             } else {
                 $bodies['html'] = $body;
             }
-        } elseif ($structure->type == 1) { // Multipart
+        } elseif ($structure->type == 1 && isset($structure->parts) && is_array($structure->parts)) { // Multipart
             foreach ($structure->parts as $partNum => $part) {
                 self::parseMultipartBody($mbox, $msgNum, $part, ($partNum + 1), $bodies);
             }
@@ -203,15 +213,17 @@ class IMAPHelper {
     }
 
     private static function parseMultipartBody($mbox, $msgNum, $part, $sectionNumber, &$bodies) {
+        if (!$part || !isset($part->type)) return;
+        
         if ($part->type == 0) {
-            $body = imap_fetchbody($mbox, $msgNum, $sectionNumber);
-            $body = self::decodeBody($body, $part->encoding);
-            if (strtolower($part->subtype) == 'plain') {
+            $body = @imap_fetchbody($mbox, $msgNum, $sectionNumber);
+            $body = self::decodeBody($body, $part->encoding ?? 0);
+            if (strtolower($part->subtype ?? '') == 'plain') {
                 $bodies['text'] = $body;
             } else {
                 $bodies['html'] = $body;
             }
-        } elseif ($part->type == 1 && isset($part->parts)) {
+        } elseif ($part->type == 1 && isset($part->parts) && is_array($part->parts)) {
             foreach ($part->parts as $partNum => $subpart) {
                 self::parseMultipartBody($mbox, $msgNum, $subpart, $sectionNumber . '.' . ($partNum + 1), $bodies);
             }
@@ -235,8 +247,11 @@ class IMAPHelper {
      */
     private static function getAttachments($mbox, $msgNum, $structure) {
         $attachments = [];
+        if (!$structure) {
+            return $attachments;
+        }
         
-        if (isset($structure->parts) && count($structure->parts)) {
+        if (isset($structure->parts) && is_array($structure->parts)) {
             for ($i = 0; $i < count($structure->parts); $i++) {
                 $part = $structure->parts[$i];
                 $partNumber = $i + 1;

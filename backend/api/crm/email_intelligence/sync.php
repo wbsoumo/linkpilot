@@ -84,7 +84,7 @@ try {
                 // Log sync error
                 $errStmt = $db->prepare("INSERT INTO email_processing_logs (user_id, status, message) VALUES (?, 'error', ?)");
                 $errStmt->execute([$userId, 'IMAP Connection Error: ' . $e->getMessage()]);
-                sendJsonResponse('error', 'Mailbox sync error: ' . $e->getMessage(), [], 500);
+                sendJsonResponse('error', 'Mailbox sync error: ' . $e->getMessage(), [], 200);
             }
             
             $syncedCount = 0;
@@ -335,5 +335,5 @@ You MUST return your response as a valid, parsable JSON block with the following
     if ($db->inTransaction()) {
         $db->rollBack();
     }
-    sendJsonResponse('error', 'Sync operation failed: ' . $e->getMessage(), [], 500);
+    sendJsonResponse('error', 'Sync operation failed: ' . $e->getMessage(), [], 200);
 }

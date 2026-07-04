@@ -147,6 +147,7 @@ class SMTPHelper {
         $mail = new PHPMailer(true);
         try {
             $mail->isSMTP();
+            $mail->Timeout     = 10; // Set SMTP connection timeout to 10 seconds
             $mail->Host       = $host;
             $mail->SMTPAuth   = true;
             $mail->Username   = $username;

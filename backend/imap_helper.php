@@ -34,6 +34,9 @@ class IMAPHelper {
 
         $connectionString = self::getConnectionString($host, $port, $encryption) . "INBOX";
 
+        // Set connection timeout to 10 seconds
+        @imap_timeout(IMAP_OPENTIMEOUT, 10);
+
         // Suppress PHP warnings to return clean error status
         $mbox = @imap_open($connectionString, $username, $password, OP_HALFOPEN, 1, [
             'DISABLE_AUTHENTICATOR' => 'GSSAPI'
@@ -84,6 +87,7 @@ class IMAPHelper {
         }
 
         $connectionString = self::getConnectionString($config['imap_host'], $config['imap_port'], $config['imap_encryption']) . "INBOX";
+        @imap_timeout(IMAP_OPENTIMEOUT, 10);
         $mbox = @imap_open($connectionString, $config['imap_username'], $decryptedPassword);
 
         if (!$mbox) {

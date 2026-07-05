@@ -132,9 +132,30 @@ Only return the text of the email reply body, and nothing else.";
 
         // Dispatch email
         $recipient = $email['sender_email'];
-        $sendResult = SMTPHelper::sendEmail($userId, $recipient, $subject, $replyBody, $attachments);
+        $sendResult = SMTPHelper::sendEmail($userId, $recipient, $subject, $replyBody, $attachments, $email['recipient_email']);
 
         if ($sendResult['status']) {
+            // Fetch sender SMTP details to save in conversation thread
+            $stmtSmtp = $db->prepare("SELECT sender_name, sender_email FROM smtp_accounts WHERE user_id = ? AND sender_email = ? LIMIT 1");
+            $stmtSmtp->execute([$userId, $email['recipient_email']]);
+            $smtpAcc = $stmtSmtp->fetch();
+            
+            $senderName = $smtpAcc['sender_name'] ?? $email['recipient_email'];
+            $senderEmail = $smtpAcc['sender_email'] ?? $email['recipient_email'];
+            
+            // Insert sent reply into received_emails as a nested child of the thread
+            $insReply = $db->prepare("INSERT INTO received_emails (user_id, parent_id, message_id, sender_email, sender_name, recipient_email, subject, body_text, is_read, is_spam, received_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, 0, NOW())");
+            $insReply->execute([
+                $userId,
+                $emailId,
+                'reply-' . uniqid(),
+                $senderEmail,
+                $smtpAcc ? $senderName : 'You',
+                $recipient,
+                $subject,
+                $replyBody
+            ]);
+
             // Log interaction to timeline
             $db->prepare("INSERT INTO crm_timeline (user_id, company_id, contact_id, activity_type, description) VALUES (?, ?, ?, 'Email Sent', ?)")
                ->execute([

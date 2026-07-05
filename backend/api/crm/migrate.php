@@ -230,6 +230,14 @@ try {
         CONSTRAINT `fk_rec_emails_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
         INDEX `idx_rec_email_msg` (`user_id`, `message_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+    
+    try {
+        $stmt = $db->query("SHOW COLUMNS FROM `received_emails` LIKE 'parent_id'");
+        if (!$stmt->fetch()) {
+            $db->exec("ALTER TABLE `received_emails` ADD COLUMN `parent_id` INT DEFAULT NULL AFTER `user_id`");
+        }
+    } catch (Exception $e) {}
+    
     $messages[] = "Table 'received_emails' checked/created.";
 
     // 10. Received Email Attachments Table

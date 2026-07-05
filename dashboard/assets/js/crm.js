@@ -1372,6 +1372,27 @@ async function selectInboxEmail(emailId) {
                     `}
                 </div>
 
+                <!-- Conversation Replies Thread -->
+                ${(email.replies && email.replies.length > 0) ? `
+                    <div class="space-y-4 border-t border-slate-800 pt-4">
+                        <h4 class="text-xs font-bold text-white uppercase tracking-wider">Conversation History</h4>
+                        <div class="space-y-3">
+                            ${email.replies.map(r => {
+                                const rDate = new Date(r.received_date).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                                return `
+                                    <div class="p-4 bg-slate-950/40 border border-slate-850 rounded-xl ml-6">
+                                        <div class="flex justify-between text-slate-400 text-[10px] mb-1.5 font-bold">
+                                            <span class="text-teal-400">Reply from: ${r.sender_name || r.sender_email}</span>
+                                            <span>${rDate}</span>
+                                        </div>
+                                        <div class="text-slate-200 leading-relaxed font-sans whitespace-pre-line text-[11px]">${r.body_text}</div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+
                 <!-- Attachments section -->
                 ${email.attachments && email.attachments.length > 0 ? `
                     <div class="space-y-2">

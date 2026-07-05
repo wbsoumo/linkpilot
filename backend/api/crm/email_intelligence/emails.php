@@ -40,6 +40,11 @@ try {
             $stmtAtt->execute([$emailId]);
             $email['attachments'] = $stmtAtt->fetchAll();
             
+            // Fetch replies thread
+            $stmtReplies = $db->prepare("SELECT * FROM received_emails WHERE parent_id = ? AND user_id = ? ORDER BY received_date ASC");
+            $stmtReplies->execute([$emailId, $userId]);
+            $email['replies'] = $stmtReplies->fetchAll();
+            
             sendJsonResponse('success', 'Email retrieved successfully', ['email' => $email]);
             
         } else {
@@ -58,7 +63,7 @@ try {
             $limit = max(1, (int)($_GET['limit'] ?? 20));
             $offset = ($page - 1) * $limit;
             
-            $query = "FROM received_emails WHERE user_id = :user_id AND is_spam = :is_spam AND is_archived = :is_archived";
+            $query = "FROM received_emails WHERE user_id = :user_id AND is_spam = :is_spam AND is_archived = :is_archived AND parent_id IS NULL";
             $params = [
                 'user_id' => $userId,
                 'is_spam' => $isSpam,

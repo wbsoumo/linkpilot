@@ -239,6 +239,9 @@ function navigateTo(view, params = {}) {
         case 'reports':
             renderReports(contentArea);
             break;
+        case 'integrations':
+            renderIntegrations(contentArea);
+            break;
         case 'settings':
             renderSettings(contentArea);
             break;
@@ -2196,28 +2199,501 @@ function renderReports(container) {
     container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs animate-fade-in">Aggregated reports database compiled successfully. Explore statistics on the main Hub.</div>`;
 }
 
-function renderSettings(container) {
+async function renderIntegrations(container) {
     container.innerHTML = `
-        <div class="max-w-xl mx-auto space-y-6 pt-4 animate-fade-in text-xs">
-            <div>
-                <h1 class="text-2xl font-extrabold text-white">CRM Configurations</h1>
-                <p class="text-slate-400 text-xs mt-1">Manage global email triggers, credentials, and settings parameters.</p>
-            </div>
-            
-            <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
-                <div class="flex justify-between items-center pb-2 border-b border-slate-800">
-                    <span class="font-bold text-white">AI Sync Configuration</span>
-                    <button onclick="wizardStep=1; navigateTo('email-intelligence')" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[10px] font-bold transition">Re-run Wizard</button>
-                </div>
-                <div class="space-y-2 text-slate-400">
-                    <p>SMTP Host: Configured via Encryption</p>
-                    <p>IMAP Status: Connected</p>
-                    <p>Provider: Custom IMAP/SMTP</p>
-                </div>
-            </div>
+        <div class="flex items-center justify-center py-12">
+            <i data-lucide="loader-2" class="h-8 w-8 animate-spin text-indigo-600"></i>
         </div>
     `;
     lucide.createIcons();
+    
+    try {
+        // Fetch current credentials
+        const profileData = await apiCall('profile/get.php');
+        const emailIntel = await apiCall('crm/email_intelligence/settings.php');
+        
+        const user = profileData.user || {};
+        const connection = emailIntel.connection || {};
+        const settings = emailIntel.settings || {};
+        
+        container.innerHTML = `
+            <div class="space-y-6 pt-4 animate-fade-in text-xs max-w-4xl mx-auto">
+                <div>
+                    <h1 class="text-2xl font-extrabold text-slate-800">Integrations Control</h1>
+                    <p class="text-slate-500 text-xs mt-1">Connect your outbound SMTP, inbound IMAP mail servers, and active AI model APIs.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Column 1: AI Provider & API Keys -->
+                    <div class="glass-panel p-5 bg-white space-y-4 shadow-sm border border-slate-200">
+                        <div class="pb-2 border-b border-slate-100 flex items-center space-x-2 text-slate-800 font-bold text-sm">
+                            <i data-lucide="cpu" class="h-4 w-4 text-indigo-600"></i>
+                            <span>AI Provider & Models Configuration</span>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Active AI Provider</label>
+                                <select id="active-ai-provider-select" onchange="toggleAIProviderFields(this.value)" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-indigo-500">
+                                    <option value="openrouter" ${user.active_ai_provider === 'openrouter' ? 'selected' : ''}>OpenRouter (Vibrant Free & Premium Models)</option>
+                                    <option value="github_models" ${user.active_ai_provider === 'github_models' ? 'selected' : ''}>GitHub Models API</option>
+                                    <option value="google_ai_studio" ${user.active_ai_provider === 'google_ai_studio' ? 'selected' : ''}>Google Gemini AI Studio</option>
+                                </select>
+                            </div>
+                            
+                            <!-- OpenRouter Fields -->
+                            <div id="ai-provider-openrouter-fields" class="space-y-3 ${user.active_ai_provider === 'openrouter' ? '' : 'hidden'}">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">OpenRouter API Key</label>
+                                    <input type="password" id="openrouter-api-key-input" placeholder="${user.has_openrouter_key ? '••••••••' : 'Enter your OpenRouter key'}" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-indigo-500">
+                                </div>
+                            </div>
+                            
+                            <!-- GitHub Models Fields -->
+                            <div id="ai-provider-github-fields" class="space-y-3 ${user.active_ai_provider === 'github_models' ? '' : 'hidden'}">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">GitHub Personal Token</label>
+                                    <input type="password" id="github-api-key-input" placeholder="${user.has_github_key ? '••••••••' : 'Enter your GitHub Token'}" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-indigo-500">
+                                </div>
+                            </div>
+                            
+                            <!-- Google Gemini Fields -->
+                            <div id="ai-provider-google-fields" class="space-y-3 ${user.active_ai_provider === 'google_ai_studio' ? '' : 'hidden'}">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Gemini API Key</label>
+                                    <input type="password" id="google-api-key-input" placeholder="${user.has_google_key ? '••••••••' : 'Enter Gemini API key'}" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-indigo-500">
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">AI Model ID (Optional Custom Override)</label>
+                                <input type="text" id="active-ai-model-input" value="${user.active_ai_model || ''}" placeholder="e.g. google/gemini-2.0-flash-lite:free" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-indigo-500">
+                            </div>
+                            
+                            <button onclick="saveAICredentials()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-sm">
+                                <i data-lucide="save" class="h-3.5 w-3.5"></i>
+                                <span>Save AI Settings</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Column 2: SMTP / IMAP Connection -->
+                    <div class="glass-panel p-5 bg-white space-y-4 shadow-sm border border-slate-200">
+                        <div class="pb-2 border-b border-slate-100 flex items-center space-x-2 text-slate-800 font-bold text-sm">
+                            <i data-lucide="mail" class="h-4 w-4 text-indigo-600"></i>
+                            <span>Inbox Email Synchronization (IMAP & SMTP)</span>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Email Provider Type</label>
+                                    <select id="email-provider-select" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-xs text-slate-800 focus:outline-none">
+                                        <option value="custom" ${connection.email_provider === 'custom' ? 'selected' : ''}>Custom Server</option>
+                                        <option value="gmail" ${connection.email_provider === 'gmail' ? 'selected' : ''}>Gmail App Passwords</option>
+                                        <option value="outlook" ${connection.email_provider === 'outlook' ? 'selected' : ''}>Outlook/Office365</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Sync Interval</label>
+                                    <select id="sync-interval-select" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-xs text-slate-800 focus:outline-none">
+                                        <option value="15" ${settings.sync_interval_minutes === 15 ? 'selected' : ''}>15 minutes</option>
+                                        <option value="30" ${settings.sync_interval_minutes === 30 ? 'selected' : ''}>30 minutes</option>
+                                        <option value="60" ${settings.sync_interval_minutes === 60 ? 'selected' : ''}>1 hour</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- SMTP Config -->
+                            <div class="p-3 bg-slate-50 rounded-xl space-y-2 border border-slate-150">
+                                <span class="font-bold text-[10px] uppercase tracking-wider text-slate-600 block">Outbound Mail (SMTP)</span>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="col-span-2">
+                                        <input type="text" id="smtp-host-input" value="${connection.smtp_host || ''}" placeholder="Host (smtp.mail.com)" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
+                                    </div>
+                                    <div>
+                                        <input type="number" id="smtp-port-input" value="${connection.smtp_port || 587}" placeholder="Port" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input type="text" id="smtp-username-input" value="${connection.smtp_username || ''}" placeholder="Username/Email" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
+                                    <input type="password" id="smtp-password-input" placeholder="••••••••" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
+                                </div>
+                                <div class="grid grid-cols-3 gap-2 items-center">
+                                    <select id="smtp-encryption-select" class="col-span-2 px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
+                                        <option value="tls" ${connection.smtp_encryption === 'tls' ? 'selected' : ''}>TLS Encryption</option>
+                                        <option value="ssl" ${connection.smtp_encryption === 'ssl' ? 'selected' : ''}>SSL Encryption</option>
+                                        <option value="none" ${connection.smtp_encryption === 'none' ? 'selected' : ''}>No Encryption</option>
+                                    </select>
+                                    <button type="button" onclick="testSMTPCredentials(this)" class="py-1 px-2 border border-indigo-200 text-indigo-650 hover:bg-indigo-50 rounded text-[9px] font-bold transition">Test SMTP</button>
+                                </div>
+                            </div>
+                            
+                            <!-- IMAP Config -->
+                            <div class="p-3 bg-slate-50 rounded-xl space-y-2 border border-slate-150">
+                                <span class="font-bold text-[10px] uppercase tracking-wider text-slate-600 block">Inbound Mail (IMAP)</span>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="col-span-2">
+                                        <input type="text" id="imap-host-input" value="${connection.imap_host || ''}" placeholder="Host (imap.mail.com)" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
+                                    </div>
+                                    <div>
+                                        <input type="number" id="imap-port-input" value="${connection.imap_port || 993}" placeholder="Port" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input type="text" id="imap-username-input" value="${connection.imap_username || ''}" placeholder="Username/Email" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
+                                    <input type="password" id="imap-password-input" placeholder="••••••••" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
+                                </div>
+                                <div class="grid grid-cols-3 gap-2 items-center">
+                                    <select id="imap-encryption-select" class="col-span-2 px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
+                                        <option value="ssl" ${connection.imap_encryption === 'ssl' ? 'selected' : ''}>SSL Encryption</option>
+                                        <option value="tls" ${connection.imap_encryption === 'tls' ? 'selected' : ''}>TLS Encryption</option>
+                                        <option value="none" ${connection.imap_encryption === 'none' ? 'selected' : ''}>No Encryption</option>
+                                    </select>
+                                    <button type="button" onclick="testIMAPCredentials(this)" class="py-1 px-2 border border-indigo-200 text-indigo-650 hover:bg-indigo-50 rounded text-[9px] font-bold transition">Test IMAP</button>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start space-x-2 pt-1.5">
+                                <input type="checkbox" id="sync-active-checkbox" ${settings.is_active ? 'checked' : ''} class="mt-0.5 h-3.5 w-3.5 border border-slate-300 rounded text-indigo-600 focus:ring-indigo-500">
+                                <label for="sync-active-checkbox" class="text-[10px] text-slate-500 leading-tight">Enable background mail downloader and AI processing worker pipeline</label>
+                            </div>
+                            
+                            <button onclick="saveMailboxCredentials(this)" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-sm">
+                                <i data-lucide="save" class="h-3.5 w-3.5"></i>
+                                <span>Save Mailbox Credentials</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        lucide.createIcons();
+    } catch (err) {
+        container.innerHTML = `
+            <div class="max-w-xl mx-auto p-5 text-center text-red-500">
+                Failed to load Integrations panel: ${err.message}
+            </div>
+        `;
+    }
+}
+
+function toggleAIProviderFields(provider) {
+    document.getElementById('ai-provider-openrouter-fields').classList.add('hidden');
+    document.getElementById('ai-provider-github-fields').classList.add('hidden');
+    document.getElementById('ai-provider-google-fields').classList.add('hidden');
+    
+    if (provider === 'openrouter') {
+        document.getElementById('ai-provider-openrouter-fields').classList.remove('hidden');
+    } else if (provider === 'github_models') {
+        document.getElementById('ai-provider-github-fields').classList.remove('hidden');
+    } else if (provider === 'google_ai_studio') {
+        document.getElementById('ai-provider-google-fields').classList.remove('hidden');
+    }
+}
+
+async function renderSettings(container) {
+    container.innerHTML = `
+        <div class="flex items-center justify-center py-12">
+            <i data-lucide="loader-2" class="h-8 w-8 animate-spin text-indigo-600"></i>
+        </div>
+    `;
+    lucide.createIcons();
+    
+    try {
+        const data = await apiCall('profile/get.php');
+        const user = data.user || {};
+        const profile = data.profile || {};
+        
+        container.innerHTML = `
+            <div class="max-w-2xl mx-auto space-y-6 pt-4 animate-fade-in text-xs">
+                <div>
+                    <h1 class="text-2xl font-extrabold text-slate-800">Profile & Settings</h1>
+                    <p class="text-slate-500 text-xs mt-1">Manage your account profile details, business descriptors, and workflow settings.</p>
+                </div>
+                
+                <div class="glass-panel p-5 bg-white space-y-4 shadow-sm border border-slate-200">
+                    <div class="pb-2 border-b border-slate-100 flex items-center space-x-2 text-slate-800 font-bold text-sm">
+                        <i data-lucide="user" class="h-4 w-4 text-indigo-600"></i>
+                        <span>Profile Credentials</span>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Full Name</label>
+                                <input type="text" id="profile-name-input" value="${user.name || ''}" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Email Address</label>
+                                <input type="email" id="profile-email-input" value="${user.email || ''}" disabled class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-lg text-slate-400 cursor-not-allowed focus:outline-none">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Company/Business Name</label>
+                                <input type="text" id="profile-company-input" value="${profile.company_name || ''}" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Company Website URL</label>
+                                <input type="text" id="profile-website-input" value="${profile.website || ''}" placeholder="https://example.com" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Job Title</label>
+                                <input type="text" id="profile-job-input" value="${profile.job_title || ''}" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Profile Role Type</label>
+                                <select id="profile-usertype-select" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                                    <option value="owner" ${profile.user_type === 'owner' ? 'selected' : ''}>Business Owner / Founder</option>
+                                    <option value="freelancer" ${profile.user_type === 'freelancer' ? 'selected' : ''}>Freelancer / Contractor</option>
+                                    <option value="agency" ${profile.user_type === 'agency' ? 'selected' : ''}>Agency Executive</option>
+                                    <option value="sales" ${profile.user_type === 'sales' ? 'selected' : ''}>Sales Development Rep</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Brief Description / Business About Details</label>
+                            <textarea id="profile-about-input" rows="3" placeholder="Provide details about your business offerings so the AI writes matching suggestions..." class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500 font-sans">${profile.about_me || ''}</textarea>
+                        </div>
+                        
+                        <button onclick="saveProfileSettings(this)" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-sm">
+                            <i data-lucide="save" class="h-3.5 w-3.5"></i>
+                            <span>Save Profile Details</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        lucide.createIcons();
+    } catch (err) {
+        container.innerHTML = `
+            <div class="max-w-xl mx-auto p-5 text-center text-red-500">
+                Failed to load profile details: ${err.message}
+            </div>
+        `;
+    }
+}
+
+// AI Credentials Saving
+async function saveAICredentials() {
+    const activeProvider = document.getElementById('active-ai-provider-select').value;
+    const model = document.getElementById('active-ai-model-input').value.trim();
+    
+    let keyVal = null;
+    if (activeProvider === 'openrouter') {
+        keyVal = document.getElementById('openrouter-api-key-input').value;
+    } else if (activeProvider === 'github_models') {
+        keyVal = document.getElementById('github-api-key-input').value;
+    } else if (activeProvider === 'google_ai_studio') {
+        keyVal = document.getElementById('google-api-key-input').value;
+    }
+    
+    const payload = {
+        active_ai_provider: activeProvider,
+        active_ai_model: model || null
+    };
+    
+    if (keyVal !== null && keyVal !== '') {
+        if (activeProvider === 'openrouter') payload.openrouter_key = keyVal;
+        else if (activeProvider === 'github_models') payload.github_key = keyVal;
+        else if (activeProvider === 'google_ai_studio') payload.google_key = keyVal;
+    }
+    
+    try {
+        const data = await apiCall('profile/save_openrouter.php', 'POST', payload);
+        if (data.status === 'success') {
+            showNotification('success', 'AI settings saved successfully.');
+            navigateTo('integrations');
+        } else {
+            showNotification('error', data.message);
+        }
+    } catch (e) {
+        showNotification('error', e.message);
+    }
+}
+
+// Mailbox Connection Saving
+async function saveMailboxCredentials(btn) {
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="refresh-cw" class="h-3 w-3 animate-spin mr-1.5 inline"></i> Saving...`;
+    lucide.createIcons();
+    
+    const provider = document.getElementById('email-provider-select').value;
+    const syncInterval = parseInt(document.getElementById('sync-interval-select').value);
+    const syncActive = document.getElementById('sync-active-checkbox').checked ? 1 : 0;
+    
+    const smtpHost = document.getElementById('smtp-host-input').value.trim();
+    const smtpPort = parseInt(document.getElementById('smtp-port-input').value);
+    const smtpUser = document.getElementById('smtp-username-input').value.trim();
+    const smtpPass = document.getElementById('smtp-password-input').value;
+    const smtpEncrypt = document.getElementById('smtp-encryption-select').value;
+    
+    const imapHost = document.getElementById('imap-host-input').value.trim();
+    const imapPort = parseInt(document.getElementById('imap-port-input').value);
+    const imapUser = document.getElementById('imap-username-input').value.trim();
+    const imapPass = document.getElementById('imap-password-input').value;
+    const imapEncrypt = document.getElementById('imap-encryption-select').value;
+    
+    const payload = {
+        email_provider: provider,
+        sync_interval_minutes: syncInterval,
+        is_active: syncActive,
+        consent_accepted: 1,
+        
+        smtp_host: smtpHost,
+        smtp_port: smtpPort,
+        smtp_username: smtpUser,
+        smtp_encryption: smtpEncrypt,
+        
+        imap_host: imapHost,
+        imap_port: imapPort,
+        imap_username: imapUser,
+        imap_encryption: imapEncrypt
+    };
+    
+    if (smtpPass !== '') {
+        payload.smtp_password = smtpPass;
+    }
+    if (imapPass !== '') {
+        payload.imap_password = imapPass;
+    }
+    
+    try {
+        const data = await apiCall('crm/email_intelligence/settings.php', 'POST', payload);
+        if (data.status === 'success') {
+            showNotification('success', 'Mailbox integration updated successfully.');
+            navigateTo('integrations');
+        } else {
+            showNotification('error', data.message);
+        }
+    } catch (e) {
+        showNotification('error', e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+        lucide.createIcons();
+    }
+}
+
+// Test SMTP connection details
+async function testSMTPCredentials(btn) {
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `Testing...`;
+    
+    const host = document.getElementById('smtp-host-input').value.trim();
+    const port = parseInt(document.getElementById('smtp-port-input').value);
+    const user = document.getElementById('smtp-username-input').value.trim();
+    const pass = document.getElementById('smtp-password-input').value;
+    const encrypt = document.getElementById('smtp-encryption-select').value;
+    
+    const payload = {
+        smtp_host: host,
+        smtp_port: port,
+        smtp_username: user,
+        smtp_password: pass || '••••••••',
+        smtp_encryption: encrypt
+    };
+    
+    try {
+        const data = await apiCall('crm/email_intelligence/settings.php?action=test_smtp', 'POST', payload);
+        if (data.status === 'success') {
+            showNotification('success', 'SMTP Connection Test Successful!');
+        } else {
+            showNotification('error', 'SMTP connection failed: ' + data.message);
+        }
+    } catch (e) {
+        showNotification('error', e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+    }
+}
+
+// Test IMAP connection details
+async function testIMAPCredentials(btn) {
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `Testing...`;
+    
+    const host = document.getElementById('imap-host-input').value.trim();
+    const port = parseInt(document.getElementById('imap-port-input').value);
+    const user = document.getElementById('imap-username-input').value.trim();
+    const pass = document.getElementById('imap-password-input').value;
+    const encrypt = document.getElementById('imap-encryption-select').value;
+    
+    const payload = {
+        imap_host: host,
+        imap_port: port,
+        imap_username: user,
+        imap_password: pass || '••••••••',
+        imap_encryption: encrypt
+    };
+    
+    try {
+        const data = await apiCall('crm/email_intelligence/settings.php?action=test_imap', 'POST', payload);
+        if (data.status === 'success') {
+            showNotification('success', 'IMAP Connection Test Successful!');
+        } else {
+            showNotification('error', 'IMAP connection failed: ' + data.message);
+        }
+    } catch (e) {
+        showNotification('error', e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+    }
+}
+
+// Save Profile Info
+async function saveProfileSettings(btn) {
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="refresh-cw" class="h-3 w-3 animate-spin mr-1.5 inline"></i> Saving...`;
+    lucide.createIcons();
+    
+    const name = document.getElementById('profile-name-input').value.trim();
+    const company = document.getElementById('profile-company-input').value.trim();
+    const website = document.getElementById('profile-website-input').value.trim();
+    const jobTitle = document.getElementById('profile-job-input').value.trim();
+    const userType = document.getElementById('profile-usertype-select').value;
+    const about = document.getElementById('profile-about-input').value.trim();
+    
+    const payload = {
+        name,
+        user_type: userType,
+        company_name: company,
+        website,
+        job_title: jobTitle,
+        about_me: about,
+        experience_years: 1,
+        skills: ''
+    };
+    
+    try {
+        const data = await apiCall('profile/update.php', 'POST', payload);
+        if (data.status === 'success') {
+            showNotification('success', 'Profile details updated successfully.');
+            // Sync initials/name on dashboard topbar
+            document.querySelectorAll('.user-name-display').forEach(el => el.textContent = name);
+            renderSettings(document.getElementById('main-content-viewport'));
+        } else {
+            showNotification('error', data.message);
+        }
+    } catch (e) {
+        showNotification('error', e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+        lucide.createIcons();
+    }
 }
 
 // Trigger manual inbox sync from dashboard button

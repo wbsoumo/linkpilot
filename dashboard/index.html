@@ -20,7 +20,7 @@
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="assets/css/style.css?v=2.7">
+    <link rel="stylesheet" href="assets/css/style.css?v=2.8">
 </head>
 <body class="h-full bg-[#f8fafc] text-slate-800 flex overflow-hidden">
 
@@ -198,60 +198,112 @@
         </span>
     </button>
 
-    <div id="ai-chat-assistant-drawer" class="fixed top-0 right-0 h-full w-96 max-w-full bg-[#0a1128]/95 border-l border-slate-800/80 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col backdrop-blur-md">
+    <div id="ai-chat-assistant-drawer" class="fixed top-0 right-0 h-full w-[400px] max-w-full bg-[#f8fafc] border-l border-slate-200 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
         <!-- Header -->
-        <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40">
-            <div class="flex items-center space-x-2.5">
-                <div class="h-8 w-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
-                    <i data-lucide="sparkles" class="h-4 w-4"></i>
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-white">
+            <div class="flex items-center space-x-3">
+                <div class="h-10 w-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-md">
+                    <i data-lucide="sparkles" class="h-5 w-5 text-white"></i>
                 </div>
                 <div>
-                    <h3 class="text-xs font-bold text-white uppercase tracking-wider">LinkPilot AI Assistant</h3>
-                    <div class="flex items-center space-x-1 mt-0.5">
+                    <h3 class="text-sm font-bold text-slate-800 tracking-wide">LinkPilot AI Assistant</h3>
+                    <div class="flex items-center space-x-1.5 mt-0.5">
+                        <span class="text-[11px] text-slate-400 font-medium">Your real-time CRM companion</span>
                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Active Workspace CRM Bot</span>
+                        <span class="text-[10px] font-bold text-emerald-500">Active</span>
                     </div>
                 </div>
             </div>
-            <button onclick="toggleAIChatAssistant()" class="p-1.5 border border-slate-800 text-slate-400 hover:text-white rounded-lg transition hover:bg-slate-900">
+            <button onclick="toggleAIChatAssistant()" class="h-8 w-8 rounded-full border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-800 flex items-center justify-center transition shadow-sm">
                 <i data-lucide="x" class="h-4 w-4"></i>
             </button>
         </div>
 
         <!-- Chat messages view -->
-        <div class="flex-grow p-4 overflow-y-auto space-y-4" id="ai-chat-messages-container">
+        <div class="flex-grow p-4 overflow-y-auto space-y-4 bg-[#f8fafc]" id="ai-chat-messages-container">
             <!-- Greeting message -->
             <div class="flex items-start space-x-2.5">
-                <div class="h-6 w-6 rounded bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px]">
-                    <i data-lucide="sparkles" class="h-3 w-3"></i>
+                <div class="h-7 w-7 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-md border border-indigo-400/20 shrink-0">
+                    <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
                 </div>
-                <div class="p-3 bg-slate-900/40 border border-slate-850 rounded-2xl rounded-tl-none max-w-[85%] text-slate-300 text-xs leading-relaxed">
-                    Hello <span class="font-bold text-indigo-400 user-name-display">User</span>! I am your real-time CRM companion.
-                    <br/><br/>
-                    Ask me anything about:
-                    <ul class="list-disc pl-4 mt-1.5 space-y-1 text-slate-400">
-                        <li>Your scheduled meetings today</li>
-                        <li>Outstanding pipeline tasks</li>
-                        <li>Recent leads and contract values</li>
-                        <li>Summary of incoming emails</li>
-                    </ul>
+                <div class="p-4 bg-white border border-slate-100 rounded-2xl rounded-tl-none max-w-[85%] text-slate-700 text-xs leading-relaxed shadow-sm">
+                    <div class="font-medium text-slate-800">Hello <span class="font-bold text-indigo-600 user-name-display">User</span>! 👋</div>
+                    <p class="mt-1 text-slate-500">I'm your real-time CRM companion.</p>
+                    <div class="mt-3 font-semibold text-slate-800 text-[10px] uppercase tracking-wider">I can help you with:</div>
+                    
+                    <!-- 2x2 Feature Grid -->
+                    <div class="grid grid-cols-2 gap-3 mt-2.5">
+                        <div class="flex items-center space-x-2">
+                            <div class="h-7 w-7 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                                <i data-lucide="calendar" class="h-3.5 w-3.5"></i>
+                            </div>
+                            <span class="text-[10px] text-slate-600 leading-tight">Your scheduled meetings today</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="h-7 w-7 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                                <i data-lucide="check-square" class="h-3.5 w-3.5"></i>
+                            </div>
+                            <span class="text-[10px] text-slate-600 leading-tight">Outstanding pipeline tasks</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="h-7 w-7 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600 shrink-0">
+                                <i data-lucide="users" class="h-3.5 w-3.5"></i>
+                            </div>
+                            <span class="text-[10px] text-slate-600 leading-tight">Recent leads & contract values</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="h-7 w-7 rounded-lg bg-violet-50 flex items-center justify-center text-violet-600 shrink-0">
+                                <i data-lucide="mail" class="h-3.5 w-3.5"></i>
+                            </div>
+                            <span class="text-[10px] text-slate-600 leading-tight">Summary of incoming emails</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Quick actions suggestion chips -->
-        <div class="p-3 border-t border-slate-800/50 flex flex-wrap gap-1.5 bg-slate-950/20">
-            <button onclick="sendQuickAIChatQuery('Meetings today?')" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-850 text-slate-300 border border-slate-800 hover:border-indigo-500 rounded-full text-[10px] font-medium transition">📅 Meetings today?</button>
-            <button onclick="sendQuickAIChatQuery('High priority leads?')" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-850 text-slate-300 border border-slate-800 hover:border-indigo-500 rounded-full text-[10px] font-medium transition">🔥 High priority leads?</button>
-            <button onclick="sendQuickAIChatQuery('Summarize recent emails?')" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-850 text-slate-300 border border-slate-800 hover:border-indigo-500 rounded-full text-[10px] font-medium transition">✉️ Recent emails?</button>
-            <button onclick="sendQuickAIChatQuery('What are my pending tasks?')" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-850 text-slate-300 border border-slate-800 hover:border-indigo-500 rounded-full text-[10px] font-medium transition">✅ Pending tasks?</button>
+        <!-- Quick Actions Panel -->
+        <div class="px-4 py-3 bg-slate-50/50 border-t border-slate-100">
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Quick Actions</div>
+            <div class="grid grid-cols-2 gap-2" id="ai-chat-quick-actions-grid">
+                <button onclick="sendQuickAIChatQuery('Meetings today?')" class="flex items-center space-x-2 p-2 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl text-left transition shadow-sm">
+                    <div class="h-6 w-6 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                        <i data-lucide="calendar" class="h-3.5 w-3.5"></i>
+                    </div>
+                    <span class="text-[10px] font-semibold text-slate-700">Meetings today?</span>
+                </button>
+                <button onclick="sendQuickAIChatQuery('High priority leads?')" class="flex items-center space-x-2 p-2 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl text-left transition shadow-sm">
+                    <div class="h-6 w-6 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
+                        <i data-lucide="flame" class="h-3.5 w-3.5"></i>
+                    </div>
+                    <span class="text-[10px] font-semibold text-slate-700">High priority leads?</span>
+                </button>
+                <button onclick="sendQuickAIChatQuery('Summarize recent emails?')" class="flex items-center space-x-2 p-2 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl text-left transition shadow-sm">
+                    <div class="h-6 w-6 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                        <i data-lucide="mail" class="h-3.5 w-3.5"></i>
+                    </div>
+                    <span class="text-[10px] font-semibold text-slate-700">Recent emails?</span>
+                </button>
+                <button onclick="sendQuickAIChatQuery('What are my pending tasks?')" class="flex items-center space-x-2 p-2 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl text-left transition shadow-sm">
+                    <div class="h-6 w-6 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                        <i data-lucide="check-square" class="h-3.5 w-3.5"></i>
+                    </div>
+                    <span class="text-[10px] font-semibold text-slate-700">Pending tasks?</span>
+                </button>
+            </div>
         </div>
 
-        <!-- Footer Input Form -->
-        <div class="p-4 border-t border-slate-800 bg-slate-950/40">
-            <form onsubmit="handleAIChatSubmit(event)" class="flex space-x-2">
-                <input type="text" id="ai-chat-input-field" placeholder="Ask anything about your CRM..." class="flex-grow px-3 py-2 bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:outline-none rounded-lg text-xs text-slate-300 placeholder-slate-500 font-medium">
-                <button type="submit" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition shadow flex items-center justify-center">
+        <!-- Footer Input Area -->
+        <div class="p-4 border-t border-slate-100 bg-white">
+            <form onsubmit="handleAIChatSubmit(event)" class="relative flex items-center bg-[#f8fafc] border border-slate-200 rounded-2xl p-1.5 focus-within:border-indigo-500 transition-all duration-200">
+                <button type="button" class="p-2 text-slate-400 hover:text-slate-600 transition">
+                    <i data-lucide="paperclip" class="h-4 w-4"></i>
+                </button>
+                <button type="button" class="p-2 text-slate-400 hover:text-indigo-650 transition mr-1">
+                    <i data-lucide="sparkles" class="h-4 w-4"></i>
+                </button>
+                <input type="text" id="ai-chat-input-field" placeholder="Ask anything about your CRM..." class="flex-grow bg-transparent border-0 focus:outline-none focus:ring-0 text-xs text-slate-800 placeholder-slate-400 font-medium py-1.5">
+                <button type="submit" class="h-8 w-8 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition shadow flex items-center justify-center shrink-0">
                     <i data-lucide="send" class="h-3.5 w-3.5"></i>
                 </button>
             </form>

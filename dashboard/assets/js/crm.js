@@ -4024,32 +4024,76 @@ const WORKFLOW_TEMPLATES = [
 const AVAILABLE_NODES = [
     // TRIGGERS
     { type: "email_received", name: "Email Received", category: "TRIGGERS", icon: "mail", desc: "Triggers on incoming email." },
-    { type: "new_lead", name: "New Lead Created", category: "TRIGGERS", icon: "user-plus", desc: "Triggers on lead insert." },
+    { type: "lead_created", name: "Lead Created", category: "TRIGGERS", icon: "user-plus", desc: "Triggers on lead insertion." },
+    { type: "contact_created", name: "Contact Created", category: "TRIGGERS", icon: "contact", desc: "Triggers on contact insertion." },
+    { type: "company_created", name: "Company Created", category: "TRIGGERS", icon: "briefcase", desc: "Triggers on company insertion." },
+    { type: "deal_stage_changed", name: "Deal Stage Changed", category: "TRIGGERS", icon: "trending-up", desc: "Triggers on deal progress." },
     { type: "form_submitted", name: "Form Submitted", category: "TRIGGERS", icon: "file-text", desc: "Triggers on website form." },
-    { type: "website_visit", name: "Website Visit", category: "TRIGGERS", icon: "globe", desc: "Triggers on page hit." },
-    { type: "webhook_trigger", name: "Web Hook", category: "TRIGGERS", icon: "webhook", desc: "External trigger URL." },
-    
+    { type: "meeting_scheduled", name: "Meeting Scheduled", category: "TRIGGERS", icon: "calendar", desc: "Triggers on schedule event." },
+
     // AI ACTIONS
     { type: "ai_categorize", name: "AI Categorize Email", category: "AI ACTIONS", icon: "sparkles", desc: "Classify into tags." },
     { type: "ai_extract", name: "AI Extract Details", category: "AI ACTIONS", icon: "file-text", desc: "Extract contact details." },
-    { type: "ai_scoring", name: "AI Lead Scoring", category: "AI ACTIONS", icon: "trending-up", desc: "Calculate score index." },
-    { type: "ai_sentiment", name: "AI Sentiment Analysis", category: "AI ACTIONS", icon: "smile", desc: "Extract customer emotion." },
-    
+    { type: "ai_summary", name: "AI Generate Summary", category: "AI ACTIONS", icon: "book-open", desc: "Summarize content." },
+    { type: "ai_sentiment", name: "AI Sentiment Analysis", category: "AI ACTIONS", icon: "smile", desc: "Analyze customer emotions." },
+    { type: "ai_scoring", name: "AI Lead Scoring", category: "AI ACTIONS", icon: "award", desc: "Calculate score index." },
+    { type: "ai_reply", name: "AI Generate Reply", category: "AI ACTIONS", icon: "message-square-reply", desc: "Draft a smart reply." },
+    { type: "ai_detect_duplicate", name: "AI Detect Duplicate", category: "AI ACTIONS", icon: "copy", desc: "Find replicate entities." },
+    { type: "ai_translation", name: "AI Translation", category: "AI ACTIONS", icon: "languages", desc: "Translate text languages." },
+
     // CRM ACTIONS
     { type: "create_lead", name: "Create Lead", category: "CRM ACTIONS", icon: "user-plus", desc: "Insert lead record." },
     { type: "update_lead", name: "Update Lead", category: "CRM ACTIONS", icon: "user-check", desc: "Modify lead fields." },
     { type: "create_contact", name: "Create Contact", category: "CRM ACTIONS", icon: "contact", desc: "Insert contact record." },
+    { type: "update_contact", name: "Update Contact", category: "CRM ACTIONS", icon: "contact", desc: "Modify contact fields." },
+    { type: "create_company", name: "Create Company", category: "CRM ACTIONS", icon: "briefcase", desc: "Insert company details." },
+    { type: "create_deal", name: "Create Deal", category: "CRM ACTIONS", icon: "trending-up", desc: "Insert new deal pipeline." },
+    { type: "create_task", name: "Create Task", category: "CRM ACTIONS", icon: "check-square", desc: "Insert action task." },
+    { type: "schedule_meeting", name: "Schedule Meeting", category: "CRM ACTIONS", icon: "video", desc: "Set schedule invite." },
     { type: "add_note", name: "Add Note", category: "CRM ACTIONS", icon: "file-edit", desc: "Append comments log." },
     { type: "add_tag", name: "Add Tag", category: "CRM ACTIONS", icon: "tag", desc: "Label records." },
-    
+
     // COMMUNICATION
     { type: "send_email", name: "Send Email", category: "COMMUNICATION", icon: "send", desc: "Send SMTP mail." },
     { type: "send_notification", name: "Send Notification", category: "COMMUNICATION", icon: "bell", desc: "System toast popup." },
-    { type: "send_whatsapp", name: "Send WhatsApp", category: "COMMUNICATION", icon: "message-circle", desc: "WhatsApp API text." },
-    
-    // FLOW CONTROL
-    { type: "if_branch", name: "IF / Condition", category: "FLOW CONTROL", icon: "git-branch", desc: "Split logic path." },
-    { type: "wait_delay", name: "Wait / Delay", category: "FLOW CONTROL", icon: "clock", desc: "Pause flow run." }
+    { type: "send_slack", name: "Send Slack", category: "COMMUNICATION", icon: "slack", desc: "Slack channel hook." },
+    { type: "send_discord", name: "Send Discord", category: "COMMUNICATION", icon: "hash", desc: "Discord channel payload." },
+    { type: "send_teams", name: "Send Microsoft Teams", category: "COMMUNICATION", icon: "message-circle", desc: "Teams webhook post." },
+
+    // INTEGRATIONS
+    { type: "http_request", name: "HTTP Request", category: "INTEGRATIONS", icon: "globe", desc: "Trigger external API REST query." },
+    { type: "webhook", name: "Webhook", category: "INTEGRATIONS", icon: "webhook", desc: "Payload listener endpoint." },
+    { type: "api_connector", name: "API Connector", category: "INTEGRATIONS", icon: "link", desc: "Reusable API integration." },
+    { type: "database_query", name: "Database Query", category: "INTEGRATIONS", icon: "database", desc: "SQL select or edit query." },
+    { type: "json_parser", name: "JSON Parser", category: "INTEGRATIONS", icon: "code", desc: "Extract JSON fields." },
+    { type: "xml_parser", name: "XML Parser", category: "INTEGRATIONS", icon: "code", desc: "Extract XPath value." },
+
+    // LOGIC
+    { type: "if_branch", name: "IF Condition", category: "LOGIC", icon: "git-branch", desc: "Split logic path." },
+    { type: "switch", name: "Switch", category: "LOGIC", icon: "git-commit", desc: "Branch multiple options." },
+    { type: "wait_delay", name: "Wait", category: "LOGIC", icon: "clock", desc: "Pause flow run." },
+    { type: "loop", name: "Loop", category: "LOGIC", icon: "repeat", desc: "Iterate list elements." },
+    { type: "merge", name: "Merge", category: "LOGIC", icon: "git-pull-request", desc: "Join multiple paths." },
+    { type: "filter", name: "Filter", category: "LOGIC", icon: "filter", desc: "Keep matching criteria." },
+
+    // FILES
+    { type: "upload_file", name: "Upload File", category: "FILES", icon: "upload", desc: "Store file attachment." },
+    { type: "download_file", name: "Download File", category: "FILES", icon: "download", desc: "Retrieve static file URL." },
+    { type: "generate_pdf", name: "Generate PDF", category: "FILES", icon: "file", desc: "Create PDF doc template." },
+    { type: "read_csv", name: "Read CSV", category: "FILES", icon: "file-spreadsheet", desc: "Parse raw CSV columns." },
+    { type: "read_excel", name: "Read Excel", category: "FILES", icon: "file-spreadsheet", desc: "Parse spreadsheet sheets." },
+
+    // REPORTING
+    { type: "generate_report", name: "Generate Report", category: "REPORTING", icon: "bar-chart-2", desc: "Produce analytics dashboard." },
+    { type: "export_data", name: "Export Data", category: "REPORTING", icon: "download", desc: "Export CSV or PDF reports." },
+
+    // UTILITY
+    { type: "delay", name: "Delay", category: "UTILITY", icon: "clock", desc: "Wait helper block." },
+    { type: "random_number", name: "Random Number", category: "UTILITY", icon: "help-circle", desc: "Generate numerical value." },
+    { type: "current_date", name: "Current Date", category: "UTILITY", icon: "calendar", desc: "Get current system time." },
+    { type: "set_variable", name: "Set Variable", category: "UTILITY", icon: "sliders", desc: "Define temporary state." },
+    { type: "get_variable", name: "Get Variable", category: "UTILITY", icon: "sliders", desc: "Fetch temporary state." },
+    { type: "logger", name: "Logger", category: "UTILITY", icon: "info", desc: "Print system debug logs." }
 ];
 
 async function renderAutomation(container) {
@@ -4305,9 +4349,20 @@ function renderVisualCanvas(container) {
             </div>
         `).join('');
         
+        let displayCatName = catName;
+        if (catName === 'TRIGGERS') displayCatName = '📩 Trigger Nodes';
+        else if (catName === 'AI ACTIONS') displayCatName = '🤖 AI Nodes';
+        else if (catName === 'CRM ACTIONS') displayCatName = '👤 CRM Nodes';
+        else if (catName === 'COMMUNICATION') displayCatName = '📧 Communication Nodes';
+        else if (catName === 'INTEGRATIONS') displayCatName = '🌐 Integration Nodes';
+        else if (catName === 'LOGIC') displayCatName = '🔀 Logic Nodes';
+        else if (catName === 'FILES') displayCatName = '📂 File Nodes';
+        else if (catName === 'REPORTING') displayCatName = '📊 Reporting Nodes';
+        else if (catName === 'UTILITY') displayCatName = '⚙️ Utility Nodes';
+        
         groupsHTML += `
             <div class="space-y-1.5">
-                <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider text-left">${catName}</div>
+                <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider text-left">${displayCatName}</div>
                 <div class="grid grid-cols-1 gap-1.5">
                     ${nodesHTML}
                 </div>
@@ -4577,7 +4632,11 @@ function injectVisualBuilderStyles() {
         .wf-node[data-category="AI ACTIONS"] { border-left: 4px solid #8b5cf6; }
         .wf-node[data-category="CRM ACTIONS"] { border-left: 4px solid #3b82f6; }
         .wf-node[data-category="COMMUNICATION"] { border-left: 4px solid #ec4899; }
-        .wf-node[data-category="FLOW CONTROL"] { border-left: 4px solid #f59e0b; }
+        .wf-node[data-category="INTEGRATIONS"] { border-left: 4px solid #06b6d4; }
+        .wf-node[data-category="LOGIC"] { border-left: 4px solid #f59e0b; }
+        .wf-node[data-category="FILES"] { border-left: 4px solid #f43f5e; }
+        .wf-node[data-category="REPORTING"] { border-left: 4px solid #a855f7; }
+        .wf-node[data-category="UTILITY"] { border-left: 4px solid #64748b; }
 
         .wf-node-handle {
             position: absolute;
@@ -6581,6 +6640,314 @@ function renderCanvasNodesHTML() {
     }).join('');
 }
 
+const NODE_FIELDS_MAP = {
+    // Triggers
+    email_received: [
+        { key: 'account', label: 'Email Account', type: 'select', options: ['All accounts', 'Primary SMTP'] },
+        { key: 'folder', label: 'Folder', type: 'select', options: ['Inbox', 'Sent', 'Archive', 'Trash', 'Custom'] },
+        { key: 'unreadOnly', label: 'Only Unread', type: 'checkbox' },
+        { key: 'subjectFilter', label: 'Subject Contains', type: 'text', placeholder: 'e.g. Invoice, Help' },
+        { key: 'senderEmail', label: 'Sender Email', type: 'text', placeholder: 'e.g. client@domain.com' },
+        { key: 'senderDomain', label: 'Sender Domain', type: 'text', placeholder: 'e.g. domain.com' },
+        { key: 'hasAttachment', label: 'Has Attachment', type: 'checkbox' },
+        { key: 'priority', label: 'Priority', type: 'select', options: ['Any', 'High', 'Normal', 'Low'] },
+        { key: 'dateFilter', label: 'Date Filter', type: 'select', options: ['Anytime', 'Today', 'Last 7 Days', 'Last 30 Days'] }
+    ],
+    lead_created: [
+        { key: 'pipeline', label: 'Pipeline', type: 'select', options: ['Sales Pipeline', 'Marketing Pipeline'] },
+        { key: 'source', label: 'Lead Source', type: 'text', placeholder: 'e.g. Cold Email, Web' },
+        { key: 'owner', label: 'Owner', type: 'select', options: ['Unassigned', 'Soumojit Saha', 'Manager'] },
+        { key: 'tags', label: 'Tags', type: 'text', placeholder: 'Comma separated tags' },
+        { key: 'minScore', label: 'Minimum Lead Score', type: 'number', placeholder: 'e.g. 50' }
+    ],
+    contact_created: [
+        { key: 'company', label: 'Company Name', type: 'text', placeholder: 'e.g. Acme Corp' },
+        { key: 'tags', label: 'Tags', type: 'text', placeholder: 'Comma separated' },
+        { key: 'assignedUser', label: 'Assigned User', type: 'select', options: ['Unassigned', 'Soumojit Saha'] }
+    ],
+    company_created: [
+        { key: 'industry', label: 'Industry', type: 'text', placeholder: 'e.g. Software, Finance' },
+        { key: 'country', label: 'Country', type: 'text', placeholder: 'e.g. USA, Canada' },
+        { key: 'companySize', label: 'Company Size', type: 'select', options: ['1-10', '11-50', '51-200', '201-500', '500+'] }
+    ],
+    deal_stage_changed: [
+        { key: 'pipeline', label: 'Pipeline', type: 'select', options: ['Sales', 'Partnership'] },
+        { key: 'prevStage', label: 'Previous Stage', type: 'select', options: ['Any', 'Lead', 'Proposal', 'Negotiation'] },
+        { key: 'newStage', label: 'New Stage', type: 'select', options: ['Proposal', 'Negotiation', 'Won', 'Lost'] }
+    ],
+    form_submitted: [
+        { key: 'formName', label: 'Form Name', type: 'text', placeholder: 'e.g. Contact Form' },
+        { key: 'website', label: 'Website URL', type: 'text', placeholder: 'e.g. mycompany.com' },
+        { key: 'source', label: 'Traffic Source', type: 'text', placeholder: 'e.g. Google Ads' }
+    ],
+    meeting_scheduled: [
+        { key: 'calendar', label: 'Calendar Integration', type: 'select', options: ['Google Calendar', 'Outlook Calendar', 'LinkPilot Calendar'] },
+        { key: 'meetingType', label: 'Meeting Type', type: 'select', options: ['Introduction', 'Demo Call', 'Follow Up', 'Negotiation'] }
+    ],
+
+    // AI
+    ai_categorize: [
+        { key: 'provider', label: 'AI Provider', type: 'select', options: ['Google Gemini Pro', 'OpenRouter Auto', 'OpenAI GPT-4o'] },
+        { key: 'categories', label: 'Target Categories', type: 'text', placeholder: 'Comma separated categories' },
+        { key: 'prompt', label: 'Custom System Prompt', type: 'textarea', placeholder: 'Provide system instructions...' },
+        { key: 'confidence', label: 'Confidence Threshold (%)', type: 'number', placeholder: 'e.g. 75' }
+    ],
+    ai_extract: [
+        { key: 'extName', label: 'Extract Name', type: 'checkbox' },
+        { key: 'extCompany', label: 'Extract Company', type: 'checkbox' },
+        { key: 'extPhone', label: 'Extract Phone Number', type: 'checkbox' },
+        { key: 'extWebsite', label: 'Extract Website', type: 'checkbox' },
+        { key: 'extAddress', label: 'Extract Address', type: 'checkbox' },
+        { key: 'extBudget', label: 'Extract Budget', type: 'checkbox' },
+        { key: 'extDeadline', label: 'Extract Deadline', type: 'checkbox' },
+        { key: 'extServices', label: 'Extract Services Requested', type: 'checkbox' },
+        { key: 'extCustom', label: 'Custom Fields JSON', type: 'textarea', placeholder: 'e.g. {"field": "description"}' }
+    ],
+    ai_summary: [
+        { key: 'format', label: 'Summary Format', type: 'select', options: ['Short paragraph', 'Detailed report', 'Bullet Points'] }
+    ],
+    ai_sentiment: [
+        { key: 'positiveLabel', label: 'Positive Target Tag', type: 'text', placeholder: 'positive' },
+        { key: 'neutralLabel', label: 'Neutral Target Tag', type: 'text', placeholder: 'neutral' },
+        { key: 'negativeLabel', label: 'Negative Target Tag', type: 'text', placeholder: 'negative' }
+    ],
+    ai_scoring: [
+        { key: 'minScore', label: 'Minimum Score Limit', type: 'number', placeholder: '70' },
+        { key: 'formula', label: 'Score Evaluation Formula', type: 'textarea', placeholder: 'e.g. (sentiment * 0.5) + (budget * 0.5)' },
+        { key: 'model', label: 'AI Model', type: 'select', options: ['Gemini 1.5 Flash', 'Gemini 1.5 Pro', 'GPT-4o mini'] }
+    ],
+    ai_reply: [
+        { key: 'tone', label: 'Reply Tone', type: 'select', options: ['Professional', 'Friendly', 'Assertive', 'Empathetic', 'Casual'] },
+        { key: 'language', label: 'Language', type: 'select', options: ['English', 'Spanish', 'French', 'German', 'Japanese', 'Chinese'] },
+        { key: 'length', label: 'Length Limit', type: 'select', options: ['Short (1-2 sentences)', 'Medium (1-2 paragraphs)', 'Detailed response'] },
+        { key: 'signature', label: 'Include User Signature', type: 'checkbox' },
+        { key: 'template', label: 'Reply Base Template', type: 'textarea', placeholder: 'Template skeleton guidelines...' }
+    ],
+    ai_detect_duplicate: [
+        { key: 'compEmail', label: 'Compare Email Addresses', type: 'checkbox' },
+        { key: 'compPhone', label: 'Compare Phone Numbers', type: 'checkbox' },
+        { key: 'compWebsite', label: 'Compare Website URLs', type: 'checkbox' },
+        { key: 'compCompany', label: 'Compare Company Names', type: 'checkbox' },
+        { key: 'compDomain', label: 'Compare Email Domains', type: 'checkbox' }
+    ],
+    ai_translation: [
+        { key: 'sourceLang', label: 'Source Language', type: 'select', options: ['Auto Detect', 'English', 'Spanish', 'French', 'German'] },
+        { key: 'targetLang', label: 'Target Language', type: 'select', options: ['English', 'Spanish', 'French', 'German', 'Japanese'] }
+    ],
+
+    // CRM
+    create_lead: [
+        { key: 'pipeline', label: 'Target Pipeline', type: 'select', options: ['Sales Pipeline', 'Support Tickets'] },
+        { key: 'status', label: 'Initial Status', type: 'select', options: ['New', 'Contacted', 'Qualified', 'Proposal Sent'] },
+        { key: 'owner', label: 'Owner Assignee', type: 'select', options: ['Unassigned', 'Soumojit Saha'] },
+        { key: 'source', label: 'Source Tag', type: 'text', placeholder: 'e.g. Email Processing' },
+        { key: 'tags', label: 'Tags', type: 'text', placeholder: 'Comma separated tags' },
+        { key: 'priority', label: 'Lead Priority', type: 'select', options: ['Normal', 'High', 'Low'] }
+    ],
+    update_lead: [
+        { key: 'leadId', label: 'Lead Reference', type: 'select', options: ['Triggering Lead', 'Latest Edited Lead'] },
+        { key: 'fieldToUpdate', label: 'Field to Update', type: 'select', options: ['status', 'owner_id', 'value', 'notes'] },
+        { key: 'newValue', label: 'New Value', type: 'text', placeholder: 'Enter new value' }
+    ],
+    create_contact: [
+        { key: 'companyRef', label: 'Company Association', type: 'text', placeholder: 'e.g. Acme Corp' },
+        { key: 'tags', label: 'Tags', type: 'text', placeholder: 'e.g. VIP, Customer' },
+        { key: 'owner', label: 'Owner Assignee', type: 'select', options: ['Unassigned', 'Soumojit Saha'] }
+    ],
+    update_contact: [
+        { key: 'contactRef', label: 'Contact Reference', type: 'select', options: ['Triggering Contact', 'Custom ID'] },
+        { key: 'fieldToUpdate', label: 'Field to Update', type: 'select', options: ['email', 'phone', 'first_name', 'last_name'] },
+        { key: 'newValue', label: 'New Value', type: 'text', placeholder: 'Enter new value' }
+    ],
+    create_company: [
+        { key: 'industry', label: 'Industry Sector', type: 'text', placeholder: 'e.g. Technology' },
+        { key: 'owner', label: 'Company Owner', type: 'select', options: ['Unassigned', 'Soumojit Saha'] },
+        { key: 'country', label: 'HQ Country', type: 'text', placeholder: 'e.g. United States' },
+        { key: 'tags', label: 'Tags', type: 'text', placeholder: 'e.g. SaaS, Enterprise' }
+    ],
+    create_deal: [
+        { key: 'pipeline', label: 'Target Pipeline', type: 'select', options: ['Sales Pipeline', 'Partner Pipeline'] },
+        { key: 'stage', label: 'Pipeline Stage', type: 'select', options: ['Lead Created', 'Proposal Sent', 'Contract Pending', 'Closed Won'] },
+        { key: 'value', label: 'Deal Value ($)', type: 'number', placeholder: 'e.g. 5000' },
+        { key: 'currency', label: 'Currency', type: 'select', options: ['USD', 'EUR', 'GBP', 'INR'] }
+    ],
+    create_task: [
+        { key: 'taskTitle', label: 'Task Title', type: 'text', placeholder: 'e.g. Send invoice follow-up' },
+        { key: 'taskDesc', label: 'Description', type: 'textarea', placeholder: 'Details of the task...' },
+        { key: 'dueDate', label: 'Due Date Offset (Days)', type: 'number', placeholder: 'e.g. 3' },
+        { key: 'priority', label: 'Task Priority', type: 'select', options: ['Normal', 'High', 'Low'] },
+        { key: 'assignee', label: 'Assign To', type: 'select', options: ['Unassigned', 'Soumojit Saha'] }
+    ],
+    schedule_meeting: [
+        { key: 'meetDate', label: 'Meeting Date', type: 'text', placeholder: 'YYYY-MM-DD or trigger offset' },
+        { key: 'meetTime', label: 'Meeting Time', type: 'text', placeholder: 'HH:MM' },
+        { key: 'calendar', label: 'Target Calendar', type: 'select', options: ['Google Calendar', 'LinkPilot Native'] },
+        { key: 'duration', label: 'Duration (Minutes)', type: 'select', options: ['15', '30', '45', '60'] },
+        { key: 'reminderOffset', label: 'Reminder (Minutes before)', type: 'select', options: ['10', '15', '30', '60'] }
+    ],
+    add_note: [
+        { key: 'noteText', label: 'Note Body', type: 'textarea', placeholder: 'Add a timeline note...' },
+        { key: 'visibility', label: 'Visibility Level', type: 'select', options: ['Internal Team Only', 'Public Client Facing'] }
+    ],
+    add_tag: [
+        { key: 'tagName', label: 'Tag Name', type: 'text', placeholder: 'e.g. Hot Lead' },
+        { key: 'tagColor', label: 'Tag Badge Color', type: 'select', options: ['indigo', 'emerald', 'rose', 'amber', 'slate'] }
+    ],
+
+    // Communication
+    send_email: [
+        { key: 'smtpAccount', label: 'SMTP Connection', type: 'select', options: ['Primary Account', 'noreply@linkpilot.ai'] },
+        { key: 'fromEmail', label: 'From Address Override', type: 'text', placeholder: 'noreply@domain.com' },
+        { key: 'toEmail', label: 'Recipient Email (To)', type: 'text', placeholder: 'client@domain.com' },
+        { key: 'ccEmail', label: 'Carbon Copy (CC)', type: 'text', placeholder: 'cc@domain.com' },
+        { key: 'bccEmail', label: 'Blind Copy (BCC)', type: 'text', placeholder: 'bcc@domain.com' },
+        { key: 'subject', label: 'Subject Line', type: 'text', placeholder: 'Email Subject' },
+        { key: 'body', label: 'Email Body Content', type: 'textarea', placeholder: 'Supports HTML...' },
+        { key: 'templateName', label: 'Design Template', type: 'select', options: ['None (Plain Text)', 'Modern Corporate', 'Elegant Blue Theme'] },
+        { key: 'attachments', label: 'Attach File Variable', type: 'text', placeholder: 'e.g. {{file}}' }
+    ],
+    send_notification: [
+        { key: 'targetUser', label: 'Target System User', type: 'select', options: ['All Active Admins', 'Soumojit Saha'] },
+        { key: 'notifyTitle', label: 'Notification Title', type: 'text', placeholder: 'System Alert' },
+        { key: 'notifyMsg', label: 'Message Body', type: 'textarea', placeholder: 'Alert details...' },
+        { key: 'priority', label: 'Message Priority', type: 'select', options: ['Normal', 'High', 'Low'] }
+    ],
+    send_slack: [
+        { key: 'slackChannel', label: 'Slack Channel Name', type: 'text', placeholder: 'e.g. #sales-notifications' },
+        { key: 'slackMsg', label: 'Message Text', type: 'textarea', placeholder: 'Enter markdown text...' }
+    ],
+    send_discord: [
+        { key: 'webhookUrl', label: 'Discord Webhook URL', type: 'text', placeholder: 'https://discord.com/api/webhooks/...' },
+        { key: 'discordMsg', label: 'Message Content', type: 'textarea', placeholder: 'Max 2000 characters...' }
+    ],
+    send_teams: [
+        { key: 'teamsUrl', label: 'Microsoft Teams Webhook', type: 'text', placeholder: 'https://outlook.office.com/webhook/...' },
+        { key: 'teamsMsg', label: 'Message Card Content', type: 'textarea', placeholder: 'Adaptive card JSON or plain text...' }
+    ],
+
+    // Integrations
+    http_request: [
+        { key: 'method', label: 'Request Method', type: 'select', options: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] },
+        { key: 'url', label: 'Request URL', type: 'text', placeholder: 'https://api.example.com/endpoint' },
+        { key: 'headers', label: 'Request Headers (JSON)', type: 'textarea', placeholder: '{"Authorization": "BearerToken"}' },
+        { key: 'queryParams', label: 'Query Parameters (JSON)', type: 'textarea', placeholder: '{"id": 123}' },
+        { key: 'reqBody', label: 'Request Body Payload', type: 'textarea', placeholder: '{"name": "test"}' },
+        { key: 'contentType', label: 'Content Type Header', type: 'select', options: ['application/json', 'application/x-www-form-urlencoded', 'multipart/form-data', 'text/plain'] },
+        { key: 'authType', label: 'Authentication Method', type: 'select', options: ['None', 'Bearer Token', 'Basic Auth', 'API Key', 'OAuth 2.0'] },
+        { key: 'timeout', label: 'Connection Timeout (ms)', type: 'number', placeholder: '5000' },
+        { key: 'retryCount', label: 'Retry Count on Fail', type: 'select', options: ['0', '1', '2', '3', '5'] },
+        { key: 'followRedirects', label: 'Follow HTTP Redirects', type: 'checkbox' }
+    ],
+    webhook: [
+        { key: 'hookUrl', label: 'Webhook Endpoint URL', type: 'text', placeholder: 'Generated upon workflow save...' },
+        { key: 'hookMethod', label: 'Allowed Method', type: 'select', options: ['POST', 'GET', 'PUT'] },
+        { key: 'secretKey', label: 'HMAC Signing Secret Key', type: 'text', placeholder: 'e.g. hook_secret_123' },
+        { key: 'authRequired', label: 'Enable Client Auth', type: 'checkbox' },
+        { key: 'resCode', label: 'Response Code Status', type: 'select', options: ['200 OK', '201 Created', '202 Accepted'] },
+        { key: 'resBody', label: 'Custom Response Body (JSON)', type: 'textarea', placeholder: '{"status": "received"}' }
+    ],
+    api_connector: [
+        { key: 'savedApi', label: 'Saved API Profile', type: 'select', options: ['Stripe Integration', 'HubSpot API', 'SendGrid Mailer'] },
+        { key: 'endpointPath', label: 'Endpoint Sub-path', type: 'text', placeholder: '/v1/charges' },
+        { key: 'method', label: 'Method Override', type: 'select', options: ['POST', 'GET'] },
+        { key: 'customHeaders', label: 'Custom Headers', type: 'textarea', placeholder: '{"X-Provider": "custom"}' }
+    ],
+    database_query: [
+        { key: 'dbConnection', label: 'Saved SQL Connection', type: 'select', options: ['LinkPilot Main DB', 'Analytics Replica Warehouse'] },
+        { key: 'sqlQuery', label: 'SQL Query Statement', type: 'textarea', placeholder: 'SELECT * FROM leads WHERE score > :score' },
+        { key: 'sqlParams', label: 'Query Parameters (JSON)', type: 'textarea', placeholder: '{"score": 75}' }
+    ],
+    json_parser: [
+        { key: 'jsonPath', label: 'JSON Path Selector', type: 'text', placeholder: '$.data.customer.id' },
+        { key: 'outputFields', label: 'Output Variable Names', type: 'text', placeholder: 'customerId, customerEmail' }
+    ],
+    xml_parser: [
+        { key: 'xpath', label: 'XPath Selector Expression', type: 'text', placeholder: '//invoice/amount/text()' },
+        { key: 'outputVar', label: 'Output Variable Name', type: 'text', placeholder: 'invoiceAmount' }
+    ],
+
+    // Logic
+    if_branch: [
+        { key: 'leftValue', label: 'Left Value / Variable', type: 'text', placeholder: '{{lead.score}}' },
+        { key: 'operator', label: 'Operator', type: 'select', options: ['Equals', 'Not Equals', 'Contains', 'Starts With', 'Ends With', 'Greater Than', 'Less Than', 'Empty', 'Exists'] },
+        { key: 'rightValue', label: 'Right Value / Comparison', type: 'text', placeholder: '70' }
+    ],
+    switch: [
+        { key: 'switchExpression', label: 'Switch Variable Expression', type: 'text', placeholder: '{{email.category}}' },
+        { key: 'switchCases', label: 'Cases (One per line)', type: 'textarea', placeholder: 'Inquiry\nPricing\nSupport' }
+    ],
+    wait_delay: [
+        { key: 'waitValue', label: 'Wait Duration Value', type: 'number', placeholder: '5' },
+        { key: 'waitUnit', label: 'Duration Unit', type: 'select', options: ['Seconds', 'Minutes', 'Hours', 'Days'] },
+        { key: 'specificDate', label: 'Specific Target Date', type: 'text', placeholder: 'YYYY-MM-DD HH:MM' }
+    ],
+    loop: [
+        { key: 'loopCollection', label: 'Collection Loop Over', type: 'select', options: ['Contacts', 'Emails', 'Deals', 'API Response Array'] }
+    ],
+    merge: [
+        { key: 'mergeStrategy', label: 'Merge Strategy', type: 'select', options: ['Merge by Key Identifier', 'Merge by Array Position'] },
+        { key: 'mergeKeys', label: 'Merge Key References', type: 'text', placeholder: 'e.g. email, contactId' }
+    ],
+    filter: [
+        { key: 'fieldRef', label: 'Filter Field Name', type: 'text', placeholder: 'e.g. status' },
+        { key: 'operator', label: 'Match Operator', type: 'select', options: ['Equals', 'Contains', 'Regular Expression'] },
+        { key: 'filterValue', label: 'Filter Value Criteria', type: 'text', placeholder: 'Active' }
+    ],
+
+    // Files
+    upload_file: [
+        { key: 'storageProvider', label: 'Storage Service Provider', type: 'select', options: ['LinkPilot Server Disk', 'Amazon S3 Bucket', 'Google Cloud Storage'] },
+        { key: 'targetFolder', label: 'Target Folder Directory', type: 'text', placeholder: '/uploads/attachments' }
+    ],
+    download_file: [
+        { key: 'fileUrl', label: 'Source File URL', type: 'text', placeholder: 'https://example.com/invoice.pdf' },
+        { key: 'filename', label: 'Target Save Filename', type: 'text', placeholder: 'downloaded_invoice.pdf' }
+    ],
+    generate_pdf: [
+        { key: 'pdfTemplate', label: 'PDF Document Template', type: 'select', options: ['Standard Invoice', 'Client Proposal Draft', 'Custom HTML Template'] },
+        { key: 'orientation', label: 'Page Layout Orientation', type: 'select', options: ['Portrait', 'Landscape'] }
+    ],
+    read_csv: [
+        { key: 'delimiter', label: 'CSV Cell Delimiter', type: 'select', options: [', (Comma)', '; (Semicolon)', '\\t (Tab)'] },
+        { key: 'headerRow', label: 'CSV Contains Header Row', type: 'checkbox' }
+    ],
+    read_excel: [
+        { key: 'sheetName', label: 'Sheet Name / Index', type: 'text', placeholder: 'Sheet1' },
+        { key: 'columnMapping', label: 'Target Column Names', type: 'text', placeholder: 'A, B, C' }
+    ],
+
+    // Reporting
+    generate_report: [
+        { key: 'reportType', label: 'Report Analytics Type', type: 'select', options: ['Sales Conversion Funnel', 'AI Processing Performance', 'SMTP Deliverability Log'] },
+        { key: 'dateRange', label: 'Date Range Window', type: 'select', options: ['Today', 'Last 7 Days', 'Last 30 Days', 'Custom Range'] },
+        { key: 'exportFormat', label: 'Report Layout Format', type: 'select', options: ['CSV Sheet', 'Excel Spreadsheet', 'PDF Document'] }
+    ],
+    export_data: [
+        { key: 'exportFormat', label: 'Export Format', type: 'select', options: ['CSV', 'Excel', 'PDF', 'JSON'] }
+    ],
+
+    // Utility
+    delay: [
+        { key: 'duration', label: 'Delay Duration (Seconds)', type: 'number', placeholder: '10' }
+    ],
+    random_number: [
+        { key: 'minVal', label: 'Minimum Range Value', type: 'number', placeholder: '1' },
+        { key: 'maxVal', label: 'Maximum Range Value', type: 'number', placeholder: '100' }
+    ],
+    current_date: [],
+    set_variable: [
+        { key: 'varName', label: 'Variable Name Key', type: 'text', placeholder: 'globalCounter' },
+        { key: 'varValue', label: 'Variable Value String', type: 'text', placeholder: '10' }
+    ],
+    get_variable: [
+        { key: 'varName', label: 'Variable Name to Retrieve', type: 'text', placeholder: 'globalCounter' }
+    ],
+    logger: [
+        { key: 'logLevel', label: 'Logger Log Level', type: 'select', options: ['Info Alert', 'Debug Detail', 'Warning Notice', 'Critical Failure'] },
+        { key: 'logMsg', label: 'Debug Log Message', type: 'textarea', placeholder: 'Workflow reached step 4...' }
+    ]
+};
+
 function renderConfigSidebarHTML() {
     const wf = window.wfState.activeWorkflow;
     if (!wf) return '';
@@ -6608,11 +6975,11 @@ function renderConfigSidebarHTML() {
                     </div>
                     <div class="flex justify-between items-center text-[10px]">
                         <span class="text-slate-500 font-bold uppercase">Total Nodes</span>
-                        <span class="text-indigo-600 font-bold">${wf.nodes.length}</span>
+                        <span class="text-indigo-650 font-bold">${wf.nodes.length}</span>
                     </div>
                     <div class="flex justify-between items-center text-[10px]">
                         <span class="text-slate-500 font-bold uppercase">Connections</span>
-                        <span class="text-indigo-600 font-bold">${wf.connections.length}</span>
+                        <span class="text-indigo-650 font-bold">${wf.connections.length}</span>
                     </div>
                     <div class="flex justify-between items-center text-[10px]">
                         <span class="text-slate-500 font-bold uppercase">Status</span>
@@ -6634,110 +7001,76 @@ function renderConfigSidebarHTML() {
     const config = selectedNode.config || {};
     let formsHTML = '';
     
-    if (selectedNode.type === 'email_received') {
+    const fields = NODE_FIELDS_MAP[selectedNode.type] || [
+        { key: 'title', label: 'Node Title', type: 'text', placeholder: 'Node Title' }
+    ];
+    
+    if (fields.length === 0) {
         formsHTML = `
             <div class="space-y-3">
-                <div class="space-y-1">
-                    <label class="text-[9px] font-bold text-slate-500 uppercase">Email Account</label>
-                    <select onchange="updateNodeConfig('account', this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
-                        <option value="all" ${config.account === 'all' ? 'selected' : ''}>All configured accounts</option>
-                        <option value="primary" ${config.account === 'primary' ? 'selected' : ''}>Primary SMTP Account</option>
-                    </select>
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[9px] font-bold text-slate-500 uppercase">Inbox Folder</label>
-                    <input type="text" oninput="updateNodeConfig('folder', this.value)" value="${config.folder || 'Inbox'}" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
-                </div>
-                <div class="flex items-center justify-between py-1">
-                    <label class="text-[9px] font-bold text-slate-500 uppercase">Only Unread Emails</label>
-                    <input type="checkbox" onchange="updateNodeConfig('unreadOnly', this.checked)" ${config.unreadOnly ? 'checked' : ''} class="h-3.5 w-3.5 border-slate-250 bg-white text-indigo-650 rounded cursor-pointer">
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[9px] font-bold text-slate-500 uppercase">Subject Filter (Contains)</label>
-                    <input type="text" placeholder="e.g. Quote, Invoice" oninput="updateNodeConfig('subjectFilter', this.value)" value="${config.subjectFilter || ''}" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
-                </div>
-            </div>
-        `;
-    } else if (selectedNode.type === 'ai_categorize') {
-        formsHTML = `
-            <div class="space-y-3">
-                <div class="space-y-1">
-                    <label class="text-[9px] font-bold text-slate-500 uppercase">AI Provider</label>
-                    <select onchange="updateNodeConfig('provider', this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
-                        <option value="Gemini" ${config.provider === 'Gemini' ? 'selected' : ''}>Google Gemini Pro</option>
-                        <option value="OpenRouter" ${config.provider === 'OpenRouter' ? 'selected' : ''}>OpenRouter Auto</option>
-                    </select>
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[9px] font-bold text-slate-500 uppercase">Temperature</label>
-                    <input type="number" step="0.1" min="0" max="1" oninput="updateNodeConfig('temperature', parseFloat(this.value))" value="${config.temperature !== undefined ? config.temperature : 0.2}" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[9px] font-bold text-slate-500 uppercase">Confidence Threshold</label>
-                    <input type="number" step="5" min="0" max="100" oninput="updateNodeConfig('confidence', parseInt(this.value))" value="${config.confidence || 75}" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
-                </div>
-            </div>
-        `;
-    } else if (selectedNode.type === 'create_lead') {
-        formsHTML = `
-            <div class="space-y-3">
-                <div class="space-y-1">
-                    <label class="text-[9px] font-bold text-slate-500 uppercase">Pipeline Status</label>
-                    <select onchange="updateNodeConfig('status', this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
-                        <option value="New" ${config.status === 'New' ? 'selected' : ''}>New Lead</option>
-                        <option value="Contacted" ${config.status === 'Contacted' ? 'selected' : ''}>Contacted</option>
-                        <option value="Qualified" ${config.status === 'Qualified' ? 'selected' : ''}>Qualified</option>
-                    </select>
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[9px] font-bold text-slate-500 uppercase">Lead Source</label>
-                    <input type="text" oninput="updateNodeConfig('source', this.value)" value="${config.source || 'Email AI'}" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[9px] font-bold text-slate-500 uppercase">Tags (Comma separated)</label>
-                    <input type="text" oninput="updateNodeConfig('tags', this.value)" value="${config.tags || 'AI qualified'}" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
-                </div>
-            </div>
-        `;
-    } else if (selectedNode.type === 'send_email') {
-        formsHTML = `
-            <div class="space-y-3">
-                <div class="space-y-1">
-                    <label class="text-[9px] font-bold text-slate-500 uppercase">Subject</label>
-                    <input type="text" oninput="updateNodeConfig('subject', this.value)" value="${config.subject || ''}" placeholder="Subject line" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[9px] font-bold text-slate-500 uppercase">Email Body</label>
-                    <textarea rows="4" placeholder="Hello, thank you for writing..." oninput="updateNodeConfig('body', this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500 font-sans">${config.body || ''}</textarea>
-                </div>
-            </div>
-        `;
-    } else if (selectedNode.type === 'if_score') {
-        formsHTML = `
-            <div class="space-y-3">
-                <div class="space-y-1">
-                    <label class="text-[9px] font-bold text-slate-500 uppercase">Threshold Value</label>
-                    <input type="number" oninput="updateNodeConfig('threshold', parseInt(this.value))" value="${config.threshold !== undefined ? config.threshold : 70}" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
-                </div>
-                <p class="text-[9px] text-slate-500 leading-normal italic">YES output branches if score exceeds threshold. NO output branches otherwise.</p>
-            </div>
-        `;
-    } else {
-        formsHTML = `
-            <div class="space-y-3">
-                <div class="space-y-1">
-                    <label class="text-[9px] font-bold text-slate-500 uppercase">Node Title</label>
-                    <input type="text" oninput="updateNodeName(this.value)" value="${selectedNode.name}" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
-                </div>
                 <p class="text-[9px] text-slate-500 italic">No extra custom properties for this node type.</p>
             </div>
         `;
+    } else {
+        const fieldsHTML = fields.map(f => {
+            const val = config[f.key] !== undefined ? config[f.key] : '';
+            
+            if (f.type === 'select') {
+                const optionsHTML = f.options.map(opt => {
+                    const optVal = opt.includes(' (') ? opt.split(' (')[0] : opt;
+                    const isSelected = String(val) === optVal ? 'selected' : '';
+                    return `<option value="${optVal}" ${isSelected}>${opt}</option>`;
+                }).join('');
+                return `
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-bold text-slate-500 uppercase">${f.label}</label>
+                        <select onchange="updateNodeConfig('${f.key}', this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[10px] focus:outline-none focus:border-indigo-500">
+                            ${optionsHTML}
+                        </select>
+                    </div>
+                `;
+            } else if (f.type === 'checkbox') {
+                const isChecked = val ? 'checked' : '';
+                return `
+                    <div class="flex items-center justify-between py-1">
+                        <label class="text-[9px] font-bold text-slate-500 uppercase">${f.label}</label>
+                        <input type="checkbox" onchange="updateNodeConfig('${f.key}', this.checked)" ${isChecked} class="h-3.5 w-3.5 border-slate-250 bg-white text-indigo-650 rounded cursor-pointer">
+                    </div>
+                `;
+            } else if (f.type === 'textarea') {
+                return `
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-bold text-slate-500 uppercase">${f.label}</label>
+                        <textarea rows="3" placeholder="${f.placeholder || ''}" oninput="updateNodeConfig('${f.key}', this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[10px] focus:outline-none focus:border-indigo-500 font-sans">${val}</textarea>
+                    </div>
+                `;
+            } else if (f.type === 'number') {
+                return `
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-bold text-slate-500 uppercase">${f.label}</label>
+                        <input type="number" placeholder="${f.placeholder || ''}" oninput="updateNodeConfig('${f.key}', parseFloat(this.value))" value="${val}" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[10px] focus:outline-none focus:border-indigo-500">
+                    </div>
+                `;
+            } else {
+                // text type
+                const inputVal = f.key === 'title' ? selectedNode.name : val;
+                const onInputHandler = f.key === 'title' ? `updateNodeName(this.value)` : `updateNodeConfig('${f.key}', this.value)`;
+                return `
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-bold text-slate-500 uppercase">${f.label}</label>
+                        <input type="text" placeholder="${f.placeholder || ''}" oninput="${onInputHandler}" value="${inputVal}" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[10px] focus:outline-none focus:border-indigo-500">
+                    </div>
+                `;
+            }
+        }).join('');
+        
+        formsHTML = `<div class="space-y-3.5">${fieldsHTML}</div>`;
     }
 
     return `
         <div class="p-4 border-b border-slate-200 bg-slate-50/50 flex items-center justify-between">
             <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Node Configuration</h4>
-            <button onclick="deselectNode()" class="h-6 w-6 rounded-full hover:bg-slate-100 text-slate-500 flex items-center justify-center transition">
+            <button onclick="deselectNode()" class="h-6 w-6 rounded-full hover:bg-slate-100 text-slate-550 flex items-center justify-center transition">
                 <i data-lucide="x" class="h-4 w-4"></i>
             </button>
         </div>

@@ -1345,10 +1345,14 @@ async function renderInbox(container, targetEmailId = null) {
                         <span class="text-[10px] text-slate-500">${date}</span>
                     </div>
                     <div class="text-xs font-semibold text-slate-200 mt-1 truncate" title="${m.subject}">${m.subject}</div>
-                    <p class="text-[11px] text-slate-500 truncate mt-1">${m.ai_summary || 'Click to read summary...'}</p>
+                    ${m.ai_status === 'pending' ? 
+                      `<p class="text-[11px] text-teal-400 animate-pulse flex items-center mt-1"><i data-lucide="sparkles" class="h-3.5 w-3.5 mr-1 text-teal-400 animate-pulse"></i>AI Analyst is analyzing...</p>` : 
+                      `<p class="text-[11px] text-slate-500 truncate mt-1">${m.ai_summary || 'Click to read summary...'}</p>`}
                     <div class="flex space-x-2 mt-2">
                         <span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${priorityColor}">${m.priority}</span>
-                        <span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">${m.category}</span>
+                        ${m.ai_status === 'pending' ? 
+                          `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase bg-teal-500/10 text-teal-400 border border-teal-500/20 animate-pulse">Processing...</span>` : 
+                          `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">${m.category}</span>`}
                     </div>
                 </div>
             `;
@@ -1408,6 +1412,7 @@ async function renderInbox(container, targetEmailId = null) {
         if (activeEmailId) {
             selectInboxEmail(activeEmailId);
         }
+        checkInboxPendingStatus();
     } catch (err) {
         showNotification('error', err.message);
     }
@@ -1488,6 +1493,19 @@ async function selectInboxEmail(emailId) {
                 </div>
 
                 <!-- AI Summarization Accordions -->
+                ${email.ai_status === 'pending' ? `
+                <div class="glass-panel p-4 bg-slate-900/50 space-y-4 border-l-4 border-l-teal-500 animate-pulse">
+                    <div class="flex items-center space-x-2 text-teal-400 font-bold">
+                        <i data-lucide="sparkles" class="h-4 w-4 text-teal-400 animate-pulse"></i>
+                        <span>AI Analyst Extracting Insights...</span>
+                    </div>
+                    <div class="space-y-3 mt-1">
+                        <div class="h-3 bg-slate-800 rounded w-1/3"></div>
+                        <div class="h-3 bg-slate-800 rounded w-1/2"></div>
+                        <div class="h-8 bg-slate-800 rounded w-full"></div>
+                    </div>
+                </div>
+                ` : `
                 <div class="glass-panel p-4 bg-slate-900/50 space-y-3 border-l-4 border-l-indigo-500">
                     <div class="flex items-center space-x-2 text-indigo-400 font-bold">
                         <i data-lucide="cpu" class="h-4 w-4"></i>
@@ -1526,6 +1544,7 @@ async function selectInboxEmail(emailId) {
                         </div>
                     ` : ''}
                 </div>
+                `}
 
                 <!-- Email Message Body Content -->
                 <div class="border border-slate-200 rounded-xl overflow-hidden bg-white">
@@ -2518,6 +2537,68 @@ async function searchLeads(val) {
         }).join('') : `<tr><td colspan="8" class="text-center py-10 text-slate-500">No leads match your search.</td></tr>`;
     } catch (err) {
         showNotification('error', 'Search failed: ' + err.message);
+    }
+}
+
+let inboxPollTimeout = null;
+
+async function checkInboxPendingStatus() {
+    if (currentView !== 'inbox') return;
+    
+    // Check if there is any pending element
+    const pendingElements = document.querySelectorAll('[id^="inbox-mail-card-"] [data-lucide="sparkles"]');
+    if (pendingElements.length > 0) {
+        if (inboxPollTimeout) clearTimeout(inboxPollTimeout);
+        inboxPollTimeout = setTimeout(async () => {
+            if (currentView !== 'inbox') return;
+            try {
+                const listData = await apiCall('crm/email_intelligence/emails.php');
+                const emails = listData.emails || [];
+                
+                const listContainer = document.getElementById('inbox-emails-list-container');
+                if (listContainer) {
+                    const listItems = emails.length > 0 ? emails.map(m => {
+                        const date = new Date(m.received_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+                        const isUnread = !m.is_read;
+                        const priorityColor = m.priority === 'high' ? 'bg-red-500/10 text-red-400 border-red-500/20' : m.priority === 'medium' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+                        
+                        return `
+                            <div onclick="selectInboxEmail(${m.id})" id="inbox-mail-card-${m.id}" class="p-4 border-b border-slate-800/60 hover:bg-slate-900/30 cursor-pointer transition flex flex-col justify-between ${isUnread ? 'border-l-4 border-l-indigo-500 bg-slate-900/10' : ''} ${m.id === activeEmailId ? 'bg-slate-900/40 card-active-glow' : ''}">
+                                <div class="flex justify-between items-start">
+                                    <span class="font-bold text-xs truncate max-w-[140px] text-white">${m.sender_name || m.sender_email}</span>
+                                    <span class="text-[10px] text-slate-500">${date}</span>
+                                </div>
+                                <div class="text-xs font-semibold text-slate-200 mt-1 truncate" title="${m.subject}">${m.subject}</div>
+                                ${m.ai_status === 'pending' ? 
+                                  `<p class="text-[11px] text-teal-400 animate-pulse flex items-center mt-1"><i data-lucide="sparkles" class="h-3.5 w-3.5 mr-1 text-teal-400 animate-pulse"></i>AI Analyst is analyzing...</p>` : 
+                                  `<p class="text-[11px] text-slate-500 truncate mt-1">${m.ai_summary || 'Click to read summary...'}</p>`}
+                                <div class="flex space-x-2 mt-2">
+                                    <span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${priorityColor}">${m.priority}</span>
+                                    ${m.ai_status === 'pending' ? 
+                                      `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase bg-teal-500/10 text-teal-400 border border-teal-500/20 animate-pulse">Processing...</span>` : 
+                                      `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">${m.category}</span>`}
+                                </div>
+                            </div>
+                        `;
+                    }).join('') : `<div class="p-6 text-center text-slate-500 text-xs">Inbox is empty.</div>`;
+                    
+                    listContainer.innerHTML = listItems;
+                    lucide.createIcons();
+                }
+                
+                if (activeEmailId) {
+                    const activeEmail = emails.find(x => x.id === activeEmailId);
+                    if (activeEmail && activeEmail.ai_status !== 'pending') {
+                        const detailsAcc = document.querySelector('#inbox-email-detail-container [data-lucide="sparkles"]');
+                        if (detailsAcc) {
+                            selectInboxEmail(activeEmailId);
+                        }
+                    }
+                }
+                
+                checkInboxPendingStatus();
+            } catch (e) {}
+        }, 5000);
     }
 }
 

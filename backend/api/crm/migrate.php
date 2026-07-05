@@ -237,6 +237,13 @@ try {
             $db->exec("ALTER TABLE `received_emails` ADD COLUMN `parent_id` INT DEFAULT NULL AFTER `user_id`");
         }
     } catch (Exception $e) {}
+
+    try {
+        $stmt = $db->query("SHOW COLUMNS FROM `received_emails` LIKE 'ai_status'");
+        if (!$stmt->fetch()) {
+            $db->exec("ALTER TABLE `received_emails` ADD COLUMN `ai_status` VARCHAR(20) DEFAULT 'pending' AFTER `is_spam`");
+        }
+    } catch (Exception $e) {}
     
     $messages[] = "Table 'received_emails' checked/created.";
 

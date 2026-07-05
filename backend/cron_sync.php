@@ -44,6 +44,16 @@ try {
         }
     }
     
+    // In addition, trigger the background AI queue worker to process any pending items
+    echo "Running background AI queue processor...\n";
+    require_once __DIR__ . '/queue_worker.php';
+    try {
+        $processed = QueueWorker::processPendingEmails();
+        echo "AI processing complete. Processed $processed pending emails.\n";
+    } catch (Throwable $e) {
+        echo "AI Queue Processor Error: " . $e->getMessage() . "\n";
+    }
+    
     echo "[" . date('Y-m-d H:i:s') . "] Sync process finished. Successfully completed $successCount/$jobsCount jobs.\n";
 } catch (Throwable $e) {
     echo "Critical Cron Error: " . $e->getMessage() . "\n";

@@ -505,3 +505,88 @@ nav.glass-panel .sidebar-nav-link.active * {
     color: #ffffff !important;
 }
 
+/* ==========================================
+   LIGHT MODE CONTRAST & TYPOGRAPHY ADJUSTMENTS
+   ========================================== */
+
+/* Overrides to fix the translucent dark backgrounds in light mode */
+:not(aside) .bg-slate-950\/30 {
+    background-color: #f1f5f9 !important; /* light slate background for email body */
+    border-color: #cbd5e1 !important;
+}
+
+:not(aside) .bg-slate-900\/50 {
+    background-color: #f8fafc !important; /* light background for AI summary card */
+    border-color: #e2e8f0 !important;
+}
+
+:not(aside) .bg-slate-950\/20 {
+    background-color: #f1f5f9 !important; /* light background for permissions checklist */
+    border-color: #e2e8f0 !important;
+}
+
+:not(aside) .bg-slate-950\/40, :not(aside) .bg-slate-950\/60 {
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+}
+
+/* Fix email card list styles (middle column) */
+[id^="inbox-mail-card-"] {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    border-left: 4px solid transparent !important;
+}
+
+[id^="inbox-mail-card-"].bg-slate-900\/10 {
+    background-color: #f1f5f9 !important; /* unread email background */
+    border-left-color: #6366f1 !important;
+}
+
+[id^="inbox-mail-card-"].bg-slate-900\/40 {
+    background-color: #e0e7ff !important; /* active/selected email background - soft purple-blue */
+    border-left-color: #2563eb !important;
+}
+
+[id^="inbox-mail-card-"]:hover {
+    background-color: #f8fafc !important; /* hover state for email cards */
+}
+
+/* Ensure attachment items and links have clean light backgrounds */
+:not(aside) a.bg-slate-900\/30 {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #1e293b !important;
+}
+:not(aside) a.bg-slate-900\/30 * {
+    color: #2563eb !important;
+}
+
+/* Text color fixes for AI Summary labels */
+:not(aside) .text-slate-500 {
+    color: #475569 !important; /* darker label color for better contrast */
+}
+
+:not(aside) .text-slate-300 {
+    color: #0f172a !important; /* dark slate color for summary paragraph and main text */
+}
+
+/* Force details email text elements to be dark slate */
+#inbox-email-detail-container h2 {
+    color: #0f172a !important;
+}
+#inbox-email-detail-container strong {
+    color: #0f172a !important;
+}
+#inbox-email-detail-container span {
+    color: #334155 !important;
+}
+
+/* Fix monospace body display contrast */
+.font-mono {
+    font-family: var(--font-sans) !important; /* clean professional font */
+    color: #1e293b !important; /* high contrast dark text */
+    font-size: 12px !important;
+    letter-spacing: 0.01em !important;
+}
+
+

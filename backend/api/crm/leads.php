@@ -63,8 +63,13 @@ try {
             $params = ['user_id' => $userId];
             
             if ($search !== '') {
-                $query .= " AND (l.name LIKE :search OR l.email LIKE :search OR l.company LIKE :search OR l.services_required LIKE :search OR co.name LIKE :search OR c.name LIKE :search)";
-                $params['search'] = '%' . $search . '%';
+                $query .= " AND (l.name LIKE :search1 OR l.email LIKE :search2 OR l.company LIKE :search3 OR l.services_required LIKE :search4 OR co.name LIKE :search5 OR c.name LIKE :search6)";
+                $params['search1'] = '%' . $search . '%';
+                $params['search2'] = '%' . $search . '%';
+                $params['search3'] = '%' . $search . '%';
+                $params['search4'] = '%' . $search . '%';
+                $params['search5'] = '%' . $search . '%';
+                $params['search6'] = '%' . $search . '%';
             }
             if ($stage !== '') {
                 $query .= " AND l.stage = :stage";
@@ -83,7 +88,14 @@ try {
             // Fetch records
             $dataStmt = $db->prepare("SELECT l.*, co.name AS company_name, c.name AS contact_name " . $query . " ORDER BY l.created_at DESC LIMIT :limit OFFSET :offset");
             $dataStmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-            if ($search !== '') $dataStmt->bindValue(':search', '%' . $search . '%', PDO::PARAM_STR);
+            if ($search !== '') {
+                $dataStmt->bindValue(':search1', '%' . $search . '%', PDO::PARAM_STR);
+                $dataStmt->bindValue(':search2', '%' . $search . '%', PDO::PARAM_STR);
+                $dataStmt->bindValue(':search3', '%' . $search . '%', PDO::PARAM_STR);
+                $dataStmt->bindValue(':search4', '%' . $search . '%', PDO::PARAM_STR);
+                $dataStmt->bindValue(':search5', '%' . $search . '%', PDO::PARAM_STR);
+                $dataStmt->bindValue(':search6', '%' . $search . '%', PDO::PARAM_STR);
+            }
             if ($stage !== '') $dataStmt->bindValue(':stage', $stage, PDO::PARAM_STR);
             if ($priority !== '') $dataStmt->bindValue(':priority', $priority, PDO::PARAM_STR);
             $dataStmt->bindValue(':limit', $limit, PDO::PARAM_INT);

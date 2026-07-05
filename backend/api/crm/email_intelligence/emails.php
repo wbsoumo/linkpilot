@@ -66,8 +66,11 @@ try {
             ];
             
             if ($search !== '') {
-                $query .= " AND (sender_name LIKE :search OR sender_email LIKE :search OR subject LIKE :search OR body_text LIKE :search)";
-                $params['search'] = '%' . $search . '%';
+                $query .= " AND (sender_name LIKE :search1 OR sender_email LIKE :search2 OR subject LIKE :search3 OR body_text LIKE :search4)";
+                $params['search1'] = '%' . $search . '%';
+                $params['search2'] = '%' . $search . '%';
+                $params['search3'] = '%' . $search . '%';
+                $params['search4'] = '%' . $search . '%';
             }
             if ($category !== '') {
                 $query .= " AND category = :category";
@@ -101,7 +104,12 @@ try {
             $dataStmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
             $dataStmt->bindValue(':is_spam', $isSpam, PDO::PARAM_INT);
             $dataStmt->bindValue(':is_archived', $isArchived, PDO::PARAM_INT);
-            if ($search !== '') $dataStmt->bindValue(':search', '%' . $search . '%', PDO::PARAM_STR);
+            if ($search !== '') {
+                $dataStmt->bindValue(':search1', '%' . $search . '%', PDO::PARAM_STR);
+                $dataStmt->bindValue(':search2', '%' . $search . '%', PDO::PARAM_STR);
+                $dataStmt->bindValue(':search3', '%' . $search . '%', PDO::PARAM_STR);
+                $dataStmt->bindValue(':search4', '%' . $search . '%', PDO::PARAM_STR);
+            }
             if ($category !== '') $dataStmt->bindValue(':category', $category, PDO::PARAM_STR);
             if ($priority !== '') $dataStmt->bindValue(':priority', $priority, PDO::PARAM_STR);
             if ($sentiment !== '') $dataStmt->bindValue(':sentiment', $sentiment, PDO::PARAM_STR);

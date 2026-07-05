@@ -100,31 +100,76 @@ function getSkeletonLoader(view) {
             </div>
         `;
     } else {
-        // Table/list views skeleton
+        // Structured sequence list table view skeleton (matching Saleshandy template design)
         return `
             <div class="space-y-6 animate-pulse text-xs">
+                <!-- Page Title & Main Actions -->
                 <div class="flex justify-between items-center">
                     <div class="space-y-2 w-1/3">
-                        <div class="h-7 bg-slate-800 rounded-md w-2/3"></div>
-                        <div class="h-3 bg-slate-800 rounded-md w-1/2"></div>
+                        <div class="h-6 bg-slate-800 rounded w-2/3"></div>
+                        <div class="h-3 bg-slate-800 rounded w-1/2"></div>
                     </div>
-                    <div class="h-9 bg-slate-800 rounded-md w-24"></div>
+                    <div class="h-9 bg-slate-800 rounded-md w-28"></div>
                 </div>
-                <div class="bg-slate-900/40 border border-slate-800/60 rounded-xl p-5 space-y-4">
-                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                        <div class="h-8 bg-slate-800 rounded-md w-60"></div>
-                        <div class="flex space-x-2">
-                            <div class="h-8 w-16 bg-slate-800 rounded-md"></div>
-                            <div class="h-8 w-16 bg-slate-800 rounded-md"></div>
-                        </div>
+
+                <!-- Tab/Sequence Filter Navigation Bar -->
+                <div class="flex space-x-3 pb-2 border-b border-slate-800/80">
+                    <div class="h-7 bg-slate-800 rounded-full w-24"></div>
+                    <div class="h-7 bg-slate-800 rounded-full w-28"></div>
+                    <div class="h-7 bg-slate-800 rounded-full w-20"></div>
+                    <div class="h-7 bg-slate-800 rounded-full w-24"></div>
+                </div>
+
+                <!-- Search and Tools Toolbar -->
+                <div class="flex justify-between items-center py-2">
+                    <div class="h-8 bg-slate-800 rounded w-64"></div>
+                    <div class="flex space-x-2">
+                        <div class="h-8 w-8 bg-slate-800 rounded-md"></div>
+                        <div class="h-8 w-8 bg-slate-800 rounded-md"></div>
                     </div>
-                    <div class="space-y-3">
+                </div>
+
+                <!-- Structured Table Grid -->
+                <div class="glass-panel bg-slate-900/40 border border-slate-800/80 rounded-xl overflow-hidden shadow-lg">
+                    <!-- Column Headers -->
+                    <div class="grid grid-cols-12 gap-4 px-6 py-3.5 bg-slate-950/60 border-b border-slate-800/80 items-center">
+                        <div class="col-span-1"><div class="h-3.5 bg-slate-800 rounded w-1/2"></div></div>
+                        <div class="col-span-4"><div class="h-3.5 bg-slate-800 rounded w-2/3"></div></div>
+                        <div class="col-span-2"><div class="h-3.5 bg-slate-800 rounded w-1/2"></div></div>
+                        <div class="col-span-2"><div class="h-3.5 bg-slate-800 rounded w-2/3"></div></div>
+                        <div class="col-span-1"><div class="h-3.5 bg-slate-800 rounded w-1/2"></div></div>
+                        <div class="col-span-2"><div class="h-3.5 bg-slate-800 rounded w-1/3"></div></div>
+                    </div>
+                    <!-- Data Rows -->
+                    <div class="divide-y divide-slate-850">
                         ${Array(6).fill(0).map(() => `
-                            <div class="flex justify-between items-center py-3 border-b border-slate-800/40">
-                                <div class="h-3.5 bg-slate-800 rounded w-1/4"></div>
-                                <div class="h-3 bg-slate-800 rounded w-1/6"></div>
-                                <div class="h-3 bg-slate-800 rounded w-12"></div>
-                                <div class="h-6 w-12 bg-slate-800 rounded-full"></div>
+                            <div class="grid grid-cols-12 gap-4 px-6 py-4 items-center">
+                                <!-- Checkbox / Icon Column -->
+                                <div class="col-span-1 flex items-center">
+                                    <div class="h-4 w-4 bg-slate-800/80 rounded"></div>
+                                </div>
+                                <!-- Title / Description Column -->
+                                <div class="col-span-4 space-y-1.5">
+                                    <div class="h-3.5 bg-slate-800 rounded w-4/5"></div>
+                                    <div class="h-2.5 bg-slate-800 rounded w-1/2"></div>
+                                </div>
+                                <!-- Stats / Number Column -->
+                                <div class="col-span-2">
+                                    <div class="h-3 bg-slate-800 rounded w-1/2"></div>
+                                </div>
+                                <!-- Owner / Date Column -->
+                                <div class="col-span-2">
+                                    <div class="h-3 bg-slate-800 rounded w-2/3"></div>
+                                </div>
+                                <!-- Badge Status Column -->
+                                <div class="col-span-1">
+                                    <div class="h-5 bg-slate-800/80 rounded-full w-12"></div>
+                                </div>
+                                <!-- Action triggers Column -->
+                                <div class="col-span-2 flex space-x-2.5 justify-end">
+                                    <div class="h-6 w-6 bg-slate-800/80 rounded"></div>
+                                    <div class="h-6 w-6 bg-slate-800/80 rounded"></div>
+                                </div>
                             </div>
                         `).join('')}
                     </div>

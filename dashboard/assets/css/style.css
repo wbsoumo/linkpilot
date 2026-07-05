@@ -645,8 +645,8 @@ aside .bg-blue-600 * {
 /* Chat bubble styling inside the drawer */
 .chat-bubble-ai {
     align-self: flex-start;
-    background: rgba(30, 41, 59, 0.45) !important;
-    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    background: #1e293b !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
     color: #e2e8f0 !important;
     border-radius: 0.75rem 0.75rem 0.75rem 0;
 }

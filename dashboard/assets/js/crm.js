@@ -2668,19 +2668,10 @@ async function sendAIChatMessage(text) {
     aiChatHistory.push({ role: 'user', content: text });
     
     try {
-        const response = await fetch('backend/api/crm/chat_assistant.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + (localStorage.getItem('jwt_token') || '')
-            },
-            body: JSON.stringify({
-                message: text,
-                history: aiChatHistory.slice(0, -1) // pass history excluding the current query
-            })
+        const data = await apiCall('crm/chat_assistant.php', 'POST', {
+            message: text,
+            history: aiChatHistory.slice(0, -1)
         });
-        
-        const data = await response.json();
         
         // Remove loader
         const loader = document.getElementById(loaderId);

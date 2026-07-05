@@ -708,6 +708,52 @@ aside .bg-blue-600 * {
     color: #818cf8 !important;
 }
 
+/* Specific text overrides to bypass global light mode slate overrides */
+#ai-chat-assistant-drawer,
+#ai-chat-assistant-drawer div,
+#ai-chat-assistant-drawer p,
+#ai-chat-assistant-drawer span,
+#ai-chat-assistant-drawer li,
+#ai-chat-assistant-drawer ul,
+#ai-chat-assistant-drawer strong,
+#ai-chat-assistant-drawer em {
+    color: #cbd5e1 !important;
+}
+
+#ai-chat-assistant-drawer .chat-bubble-user,
+#ai-chat-assistant-drawer .chat-bubble-user * {
+    color: #ffffff !important;
+}
+
+#ai-chat-assistant-drawer .chat-bubble-ai,
+#ai-chat-assistant-drawer .chat-bubble-ai p,
+#ai-chat-assistant-drawer .chat-bubble-ai span,
+#ai-chat-assistant-drawer .chat-bubble-ai li,
+#ai-chat-assistant-drawer .chat-bubble-ai strong {
+    color: #e2e8f0 !important;
+}
+
+#ai-chat-assistant-drawer .text-indigo-400,
+#ai-chat-assistant-drawer .text-indigo-400 * {
+    color: #818cf8 !important;
+}
+
+#ai-chat-assistant-drawer .text-teal-400,
+#ai-chat-assistant-drawer .text-teal-400 * {
+    color: #2dd4bf !important;
+}
+
+#ai-chat-assistant-drawer .text-slate-400,
+#ai-chat-assistant-drawer .text-slate-400 * {
+    color: #94a3b8 !important;
+}
+
+#ai-chat-assistant-drawer .text-slate-500,
+#ai-chat-assistant-drawer .text-slate-500 * {
+    color: #64748b !important;
+}
+
+
 
 
 

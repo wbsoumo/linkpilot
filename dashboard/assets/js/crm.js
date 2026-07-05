@@ -2208,30 +2208,117 @@ async function renderIntegrations(container) {
     lucide.createIcons();
     
     try {
-        // Fetch current credentials
+        // Fetch current credentials, email intelligence settings, and token credits
         const profileData = await apiCall('profile/get.php');
         const emailIntel = await apiCall('crm/email_intelligence/settings.php');
+        const creditData = await apiCall('profile/get_credits.php');
         
         const user = profileData.user || {};
         const connection = emailIntel.connection || {};
         const settings = emailIntel.settings || {};
+        const wallet = creditData.wallet || { total: 0, used: 0, remaining: 0 };
+        const todayUsage = creditData.today_usage || 0;
+
+        // Determine SMTP configuration status
+        const isMailConfigured = !!(connection.smtp_host && connection.imap_host);
         
+        // Determine AI key configuration status
+        let isAIConfigured = false;
+        let aiProviderLabel = 'None';
+        if (user.active_ai_provider === 'openrouter') {
+            isAIConfigured = user.has_openrouter_key;
+            aiProviderLabel = 'OpenRouter';
+        } else if (user.active_ai_provider === 'github_models') {
+            isAIConfigured = user.has_github_key;
+            aiProviderLabel = 'GitHub Models';
+        } else if (user.active_ai_provider === 'google_ai_studio') {
+            isAIConfigured = user.has_google_key;
+            aiProviderLabel = 'Google Gemini AI Studio';
+        }
+
         container.innerHTML = `
             <div class="space-y-6 pt-4 animate-fade-in text-xs max-w-4xl mx-auto">
                 <div>
                     <h1 class="text-2xl font-extrabold text-slate-800">Integrations Control</h1>
                     <p class="text-slate-500 text-xs mt-1">Connect your outbound SMTP, inbound IMAP mail servers, and active AI model APIs.</p>
                 </div>
-                
+
+                <!-- Token & Credit Usage Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="glass-panel p-4 bg-white shadow-sm border border-slate-200 rounded-2xl flex items-center space-x-3.5">
+                        <div class="h-10 w-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
+                            <i data-lucide="wallet" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Remaining Credits</span>
+                            <span class="text-lg font-bold text-slate-800">${wallet.remaining.toLocaleString()} Tokens</span>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-panel p-4 bg-white shadow-sm border border-slate-200 rounded-2xl flex items-center space-x-3.5">
+                        <div class="h-10 w-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
+                            <i data-lucide="line-chart" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Tokens Used</span>
+                            <span class="text-lg font-bold text-slate-800">${wallet.used.toLocaleString()} Tokens</span>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-panel p-4 bg-white shadow-sm border border-slate-200 rounded-2xl flex items-center space-x-3.5">
+                        <div class="h-10 w-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
+                            <i data-lucide="activity" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Today's Consumption</span>
+                            <span class="text-lg font-bold text-slate-800">${todayUsage.toLocaleString()} Tokens</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Column 1: AI Provider & API Keys -->
-                    <div class="glass-panel p-5 bg-white space-y-4 shadow-sm border border-slate-200">
-                        <div class="pb-2 border-b border-slate-100 flex items-center space-x-2 text-slate-800 font-bold text-sm">
-                            <i data-lucide="cpu" class="h-4 w-4 text-indigo-600"></i>
-                            <span>AI Provider & Models Configuration</span>
+                    <div class="glass-panel p-5 bg-white space-y-4 shadow-sm border border-slate-200 rounded-2xl">
+                        <div class="pb-2 border-b border-slate-100 flex justify-between items-center">
+                            <div class="flex items-center space-x-2 text-slate-800 font-bold text-sm">
+                                <i data-lucide="cpu" class="h-4 w-4 text-indigo-600"></i>
+                                <span>AI Provider API Status</span>
+                            </div>
+                            <!-- Status Badge -->
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider flex items-center space-x-1 ${isAIConfigured ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-red-50 text-red-550 border border-red-200'}">
+                                <span class="h-1.5 w-1.5 rounded-full ${isAIConfigured ? 'bg-emerald-500' : 'bg-red-500'} mr-1"></span>
+                                ${isAIConfigured ? 'Key Saved' : 'Not Configured'}
+                            </span>
                         </div>
                         
-                        <div class="space-y-3">
+                        <!-- Read-only Summary details -->
+                        <div class="p-3 bg-slate-50/50 border border-slate-150 rounded-xl space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Active Provider:</span>
+                                <span class="font-bold text-slate-700">${aiProviderLabel}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">AI Model Override:</span>
+                                <span class="font-bold text-slate-700">${user.active_ai_model || 'System Default'}</span>
+                            </div>
+                            <div class="flex justify-between items-center pt-1">
+                                <span class="text-slate-500">Credentials:</span>
+                                <span class="text-[10px] px-2 py-0.5 bg-slate-200/50 rounded font-semibold text-slate-600">
+                                    ${isAIConfigured ? '•••••••• (Encrypted)' : 'Not Configured'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Add/Edit Trigger Button -->
+                        <div>
+                            <button onclick="toggleAIForm()" class="flex items-center justify-center space-x-1 px-3 py-1.5 border border-indigo-200 hover:bg-indigo-50 text-indigo-650 rounded-lg text-[10px] font-bold transition shadow-sm" id="toggle-ai-form-btn">
+                                <i data-lucide="pencil" class="h-3 w-3"></i>
+                                <span>Add / Edit API Keys</span>
+                            </button>
+                        </div>
+
+                        <!-- Toggleable AI Credentials Form -->
+                        <div id="ai-credentials-form-container" class="space-y-3 pt-3 border-t border-slate-100 hidden">
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Active AI Provider</label>
                                 <select id="active-ai-provider-select" onchange="toggleAIProviderFields(this.value)" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-indigo-500">
@@ -2278,13 +2365,49 @@ async function renderIntegrations(container) {
                     </div>
                     
                     <!-- Column 2: SMTP / IMAP Connection -->
-                    <div class="glass-panel p-5 bg-white space-y-4 shadow-sm border border-slate-200">
-                        <div class="pb-2 border-b border-slate-100 flex items-center space-x-2 text-slate-800 font-bold text-sm">
-                            <i data-lucide="mail" class="h-4 w-4 text-indigo-600"></i>
-                            <span>Inbox Email Synchronization (IMAP & SMTP)</span>
+                    <div class="glass-panel p-5 bg-white space-y-4 shadow-sm border border-slate-200 rounded-2xl">
+                        <div class="pb-2 border-b border-slate-100 flex justify-between items-center">
+                            <div class="flex items-center space-x-2 text-slate-800 font-bold text-sm">
+                                <i data-lucide="mail" class="h-4 w-4 text-indigo-600"></i>
+                                <span>Email Sync Connection Status</span>
+                            </div>
+                            <!-- Status Badge -->
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider flex items-center space-x-1 ${isMailConfigured ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-red-50 text-red-550 border border-red-200'}">
+                                <span class="h-1.5 w-1.5 rounded-full ${isMailConfigured ? 'bg-emerald-500' : 'bg-red-500'} mr-1"></span>
+                                ${isMailConfigured ? 'Connected' : 'Disconnected'}
+                            </span>
                         </div>
                         
-                        <div class="space-y-3">
+                        <!-- Read-only Summary details -->
+                        <div class="p-3 bg-slate-50/50 border border-slate-150 rounded-xl space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">SMTP Host:</span>
+                                <span class="font-bold text-slate-700">${connection.smtp_host ? `${connection.smtp_host}:${connection.smtp_port}` : 'None'}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">IMAP Host:</span>
+                                <span class="font-bold text-slate-700">${connection.imap_host ? `${connection.imap_host}:${connection.imap_port}` : 'None'}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Sync Mail Username:</span>
+                                <span class="font-bold text-slate-700">${connection.smtp_username || 'None'}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Sync Interval:</span>
+                                <span class="font-bold text-slate-700">${settings.sync_interval_minutes ? `Every ${settings.sync_interval_minutes} min` : '60 min'}</span>
+                            </div>
+                        </div>
+
+                        <!-- Add/Edit Trigger Button -->
+                        <div>
+                            <button onclick="toggleMailForm()" class="flex items-center justify-center space-x-1 px-3 py-1.5 border border-indigo-200 hover:bg-indigo-50 text-indigo-650 rounded-lg text-[10px] font-bold transition shadow-sm" id="toggle-mail-form-btn">
+                                <i data-lucide="pencil" class="h-3 w-3"></i>
+                                <span>Add / Edit Mail Details</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Toggleable Mail Credentials Form -->
+                        <div id="mail-credentials-form-container" class="space-y-3 pt-3 border-t border-slate-100 hidden">
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Email Provider Type</label>
@@ -2376,6 +2499,33 @@ async function renderIntegrations(container) {
             </div>
         `;
     }
+}
+
+// Toggle Helper Functions
+function toggleAIForm() {
+    const el = document.getElementById('ai-credentials-form-container');
+    const btn = document.getElementById('toggle-ai-form-btn');
+    if (el.classList.contains('hidden')) {
+        el.classList.remove('hidden');
+        btn.innerHTML = `<i data-lucide="eye-off" class="h-3 w-3"></i><span>Cancel Update</span>`;
+    } else {
+        el.classList.add('hidden');
+        btn.innerHTML = `<i data-lucide="pencil" class="h-3 w-3"></i><span>Add / Edit API Keys</span>`;
+    }
+    lucide.createIcons();
+}
+
+function toggleMailForm() {
+    const el = document.getElementById('mail-credentials-form-container');
+    const btn = document.getElementById('toggle-mail-form-btn');
+    if (el.classList.contains('hidden')) {
+        el.classList.remove('hidden');
+        btn.innerHTML = `<i data-lucide="eye-off" class="h-3 w-3"></i><span>Cancel Update</span>`;
+    } else {
+        el.classList.add('hidden');
+        btn.innerHTML = `<i data-lucide="pencil" class="h-3 w-3"></i><span>Add / Edit Mail Details</span>`;
+    }
+    lucide.createIcons();
 }
 
 function toggleAIProviderFields(provider) {

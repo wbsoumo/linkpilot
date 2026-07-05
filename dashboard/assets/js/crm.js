@@ -491,6 +491,24 @@ async function renderEmailIntelligence(container) {
 
 function renderSetupWizard(container, data) {
     const conn = data.connection || {};
+    
+    // Auto pre-fill if not already configured
+    if (conn.email_provider === 'gmail') {
+        if (!conn.smtp_host) conn.smtp_host = 'smtp.gmail.com';
+        if (!conn.smtp_port) conn.smtp_port = 587;
+        if (!conn.smtp_encryption) conn.smtp_encryption = 'tls';
+        if (!conn.imap_host) conn.imap_host = 'imap.gmail.com';
+        if (!conn.imap_port) conn.imap_port = 993;
+        if (!conn.imap_encryption) conn.imap_encryption = 'ssl';
+    } else if (conn.email_provider === 'outlook') {
+        if (!conn.smtp_host) conn.smtp_host = 'smtp.office365.com';
+        if (!conn.smtp_port) conn.smtp_port = 587;
+        if (!conn.smtp_encryption) conn.smtp_encryption = 'tls';
+        if (!conn.imap_host) conn.imap_host = 'outlook.office365.com';
+        if (!conn.imap_port) conn.imap_port = 993;
+        if (!conn.imap_encryption) conn.imap_encryption = 'ssl';
+    }
+
     const settings = data.settings || {};
     const permissions = settings.permissions || { read_emails: true, read_attachments: true, store_metadata: true, ai_processing: true, auto_sync: true, background_processing: true };
     
@@ -586,6 +604,9 @@ function renderSetupWizard(container, data) {
                             <div>
                                 <label class="block text-slate-400 font-semibold mb-1">Password</label>
                                 <input type="password" id="wiz_smtp_password" placeholder="••••••••" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                                <p class="text-[9px] text-slate-500 mt-1 font-medium select-none">
+                                    💡 For Gmail/Workspace or Outlook, enter your 16-character <strong>App Password</strong>.
+                                </p>
                             </div>
                         </div>
                         <div class="pt-4 flex justify-between">
@@ -623,6 +644,9 @@ function renderSetupWizard(container, data) {
                             <div>
                                 <label class="block text-slate-400 font-semibold mb-1">Password</label>
                                 <input type="password" id="wiz_imap_password" placeholder="••••••••" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                                <p class="text-[9px] text-slate-500 mt-1 font-medium select-none">
+                                    💡 For Gmail/Workspace or Outlook, enter your 16-character <strong>App Password</strong>.
+                                </p>
                             </div>
                         </div>
                         <div class="pt-4 flex justify-between">
@@ -723,19 +747,21 @@ function renderSetupWizard(container, data) {
 
                     <!-- Action buttons -->
                     <div class="pt-6 border-t border-slate-800 flex justify-between mt-8">
-                        <button type="button" onclick="adjustWizardStep(-1)" class="px-4 py-2 border border-slate-700 rounded-lg text-xs font-semibold text-slate-300 hover:border-slate-500 transition ${wizardStep === 1 ? 'invisible' : ''}">
+                        <button type="button" id="wiz-back-btn" onclick="adjustWizardStep(-1)" class="px-4 py-2 border border-slate-700 rounded-lg text-xs font-semibold text-slate-300 hover:border-slate-500 transition ${wizardStep === 1 ? 'invisible' : ''}">
                             Back
                         </button>
                         
-                        ${wizardStep === 6 ? `
-                            <button type="button" onclick="activateEmailIntelligenceService(this)" class="px-5 py-2.5 bg-teal-400 text-slate-950 rounded-lg text-xs font-bold hover:bg-teal-300 transition shadow-lg shadow-teal-500/10">
-                                Activate Email Intelligence
-                            </button>
-                        ` : `
-                            <button type="button" onclick="adjustWizardStep(1)" class="px-5 py-2.5 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-500 transition">
-                                Continue
-                            </button>
-                        `}
+                        <div id="wiz-action-btn-container">
+                            ${wizardStep === 6 ? `
+                                <button type="button" onclick="activateEmailIntelligenceService(this)" class="px-5 py-2.5 bg-teal-400 text-slate-950 rounded-lg text-xs font-bold hover:bg-teal-300 transition shadow-lg shadow-teal-500/10">
+                                    Activate Email Intelligence
+                                </button>
+                            ` : `
+                                <button type="button" onclick="adjustWizardStep(1)" class="px-5 py-2.5 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-500 transition">
+                                    Continue
+                                </button>
+                            `}
+                        </div>
                     </div>
                 </form>
             </div>
@@ -745,8 +771,88 @@ function renderSetupWizard(container, data) {
 }
 
 function adjustWizardStep(dir) {
-    wizardStep = Math.max(1, Math.min(6, wizardStep + dir));
-    navigateTo('email-intelligence');
+    const nextStep = Math.max(1, Math.min(6, wizardStep + dir));
+    if (nextStep === wizardStep) return;
+    
+    // If moving forward from step 1, pre-fill values based on provider choice
+    if (dir === 1 && wizardStep === 1) {
+        const provider = document.querySelector('input[name="email_provider"]:checked')?.value || 'custom';
+        const smtpHost = document.getElementById('wiz_smtp_host');
+        const smtpPort = document.getElementById('wiz_smtp_port');
+        const smtpEnc = document.getElementById('wiz_smtp_encryption');
+        const imapHost = document.getElementById('wiz_imap_host');
+        const imapPort = document.getElementById('wiz_imap_port');
+        const imapEnc = document.getElementById('wiz_imap_encryption');
+        
+        if (provider === 'gmail') {
+            if (smtpHost) smtpHost.value = 'smtp.gmail.com';
+            if (smtpPort) smtpPort.value = '587';
+            if (smtpEnc) smtpEnc.value = 'tls';
+            if (imapHost) imapHost.value = 'imap.gmail.com';
+            if (imapPort) imapPort.value = '993';
+            if (imapEnc) imapEnc.value = 'ssl';
+        } else if (provider === 'outlook') {
+            if (smtpHost) smtpHost.value = 'smtp.office365.com';
+            if (smtpPort) smtpPort.value = '587';
+            if (smtpEnc) smtpEnc.value = 'tls';
+            if (imapHost) imapHost.value = 'outlook.office365.com';
+            if (imapPort) imapPort.value = '993';
+            if (imapEnc) imapEnc.value = 'ssl';
+        }
+    }
+    
+    wizardStep = nextStep;
+
+    // Toggle panes
+    const panes = document.querySelectorAll('.wizard-pane');
+    panes.forEach((pane, idx) => {
+        if (idx === (wizardStep - 1)) {
+            pane.classList.remove('hidden');
+        } else {
+            pane.classList.add('hidden');
+        }
+    });
+
+    // Update stepper progress nodes
+    const steps = document.querySelectorAll('.wizard-step');
+    steps.forEach((step, idx) => {
+        const stepNum = idx + 1;
+        step.classList.remove('active', 'completed');
+        if (stepNum === wizardStep) {
+            step.classList.add('active');
+        } else if (stepNum < wizardStep) {
+            step.classList.add('completed');
+        }
+    });
+
+    // Toggle Back button visibility
+    const backBtn = document.getElementById('wiz-back-btn');
+    if (backBtn) {
+        if (wizardStep === 1) {
+            backBtn.classList.add('invisible');
+        } else {
+            backBtn.classList.remove('invisible');
+        }
+    }
+
+    // Toggle Next / Activate button at bottom
+    const actionBtnContainer = document.getElementById('wiz-action-btn-container');
+    if (actionBtnContainer) {
+        if (wizardStep === 6) {
+            actionBtnContainer.innerHTML = `
+                <button type="button" onclick="activateEmailIntelligenceService(this)" class="px-5 py-2.5 bg-teal-400 text-slate-950 rounded-lg text-xs font-bold hover:bg-teal-300 transition shadow-lg shadow-teal-500/10">
+                    Activate Email Intelligence
+                </button>
+            `;
+        } else {
+            actionBtnContainer.innerHTML = `
+                <button type="button" onclick="adjustWizardStep(1)" class="px-5 py-2.5 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-500 transition">
+                    Continue
+                </button>
+            `;
+        }
+        lucide.createIcons();
+    }
 }
 
 function previewDynamicFields(type) {
@@ -889,7 +995,7 @@ async function activateEmailIntelligenceService(btn) {
             showNotification('error', data.message);
         }
     } catch (err) {
-        showNotification('error', 'Activation failed: ' . err.message);
+        showNotification('error', 'Activation failed: ' + err.message);
     } finally {
         btn.disabled = false;
         btn.innerHTML = 'Activate Email Intelligence';

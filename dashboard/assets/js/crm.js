@@ -3956,60 +3956,647 @@ function renderMeetings(container) {
     container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs animate-fade-in">Meetings scheduler calendar loaded. Track scheduled items on the Dashboard.</div>`;
 }
 
+// Global State for Visual Workflow Builder
+if (!window.wfState) {
+    window.wfState = {
+        activeWorkflow: null,
+        zoom: 1.0,
+        panX: 100,
+        panY: 100,
+        selectedNodeId: null,
+        isPanning: false,
+        dragStart: { x: 0, y: 0 },
+        isConnecting: false,
+        connStart: { nodeId: null, x: 0, y: 0 },
+        undoStack: [],
+        redoStack: [],
+        autoSaveTimer: null,
+        activeCategoryFilter: 'all',
+        searchTerm: ''
+    };
+}
+
+const WORKFLOW_TEMPLATES = [
+    {
+        name: "Welcome New Lead Automation",
+        description: "Automatically welcome and qualify new leads from inbound emails.",
+        trigger_type: "visual_workflow",
+        trigger_value: "canvas",
+        is_active: 1,
+        nodes: [
+            { id: "node-1", type: "email_received", name: "Email Received", category: "Email", icon: "mail", x: 300, y: 50, config: { folder: "Inbox", unreadOnly: true } },
+            { id: "node-2", type: "ai_categorize", name: "AI Categorize Email", category: "AI", icon: "sparkles", x: 300, y: 150, config: { provider: "Gemini", temperature: 0.2 } },
+            { id: "node-3", type: "if_score", name: "IF Lead Score > 70", category: "Conditions", icon: "git-branch", x: 300, y: 250, config: { threshold: 70 } },
+            { id: "node-4", type: "create_lead", name: "Create Lead", category: "CRM", icon: "user-plus", x: 150, y: 380, config: { status: "New", source: "Email AI" } },
+            { id: "node-5", type: "send_email", name: "Send Welcome Email", category: "Communication", icon: "send", x: 150, y: 480, config: { subject: "Welcome to LinkPilot CRM!" } },
+            { id: "node-6", type: "wait_1d", name: "Wait 1 Day", category: "Delay", icon: "clock", x: 150, y: 580, config: { duration: 1, unit: "day" } },
+            { id: "node-7", type: "create_task", name: "Create Follow-up Task", category: "CRM", icon: "check-square", x: 150, y: 680, config: { title: "Follow-up call" } },
+            { id: "node-8", type: "add_to_nurture", name: "Add to Nurture List", category: "CRM", icon: "list", x: 450, y: 380, config: { listName: "Nurture" } }
+        ],
+        connections: [
+            { from: "node-1", to: "node-2" },
+            { from: "node-2", to: "node-3" },
+            { from: "node-3", to: "node-4", handle: "yes" },
+            { from: "node-4", to: "node-5" },
+            { from: "node-5", to: "node-6" },
+            { from: "node-6", to: "node-7" },
+            { from: "node-3", to: "node-8", handle: "no" }
+        ]
+    },
+    {
+        name: "Auto Follow-up Automation",
+        description: "Follow up automatically after days of silence.",
+        trigger_type: "visual_workflow",
+        trigger_value: "canvas",
+        is_active: 1,
+        nodes: [
+            { id: "node-1", type: "create_task", name: "Create Task", category: "CRM", icon: "check-square", x: 300, y: 50, config: { title: "Initiate Outreach" } },
+            { id: "node-2", type: "wait_custom", name: "Wait 1 Day", category: "Delay", icon: "clock", x: 300, y: 160, config: { duration: 24, unit: "hours" } },
+            { id: "node-3", type: "send_email", name: "Send Follow-up Email", category: "Communication", icon: "send", x: 300, y: 270, config: { subject: "Gentle reminder" } }
+        ],
+        connections: [
+            { from: "node-1", to: "node-2" },
+            { from: "node-2", to: "node-3" }
+        ]
+    }
+];
+
+const AVAILABLE_NODES = [
+    // Email
+    { type: "email_received", name: "Email Received", category: "Email", icon: "mail", desc: "Triggers on incoming email." },
+    { type: "email_replied", name: "Email Replied", category: "Email", icon: "reply", desc: "Triggers when a reply is detected." },
+    { type: "email_opened", name: "Email Opened", category: "Email", icon: "eye", desc: "Triggers on email open event." },
+    { type: "email_sent", name: "Email Sent", category: "Email", icon: "send", desc: "Triggers when email is sent." },
+    { type: "attachment_received", name: "Attachment Received", category: "Email", icon: "paperclip", desc: "Trigger on file attachments." },
+    { type: "spam_detected", name: "Spam Detected", category: "Email", icon: "shield-alert", desc: "Trigger on spam rating." },
+    
+    // AI
+    { type: "ai_categorize", name: "AI Categorize Email", category: "AI", icon: "sparkles", desc: "Classify into tags." },
+    { type: "ai_summary", name: "AI Generate Summary", category: "AI", icon: "file-text", desc: "Summarize content." },
+    { type: "ai_sentiment", name: "AI Detect Sentiment", category: "AI", icon: "smile", desc: "Analyze user emotions." },
+    { type: "ai_extract_contact", name: "AI Extract Contact", category: "AI", icon: "user", desc: "Parse contact fields." },
+    { type: "ai_extract_company", name: "AI Extract Company", category: "AI", icon: "briefcase", desc: "Parse company details." },
+    { type: "ai_reply", name: "AI Generate Reply", category: "AI", icon: "message-square-reply", desc: "Draft a smart reply." },
+    
+    // CRM
+    { type: "create_lead", name: "Create Lead", category: "CRM", icon: "user-plus", desc: "Insert lead record." },
+    { type: "update_lead", name: "Update Lead", category: "CRM", icon: "user-check", desc: "Modify lead fields." },
+    { type: "create_task", name: "Create Task", category: "CRM", icon: "check-square", desc: "Create followup task." },
+    { type: "create_meeting", name: "Create Meeting", category: "CRM", icon: "video", desc: "Set schedule event." },
+    { type: "add_tag", name: "Add Tag", category: "CRM", icon: "tag", desc: "Label lead or company." },
+    
+    // Conditions
+    { type: "if_branch", name: "IF Branch", category: "Conditions", icon: "git-branch", desc: "Split logic execution." },
+    { type: "equals_check", name: "Equals", category: "Conditions", icon: "help-circle", desc: "Compare static values." },
+    { type: "contains_check", name: "Contains", category: "Conditions", icon: "search", desc: "Substring matching." },
+    
+    // Communication
+    { type: "send_email", name: "Send Email", category: "Communication", icon: "send", desc: "Send email with SMTP." },
+    { type: "send_whatsapp", name: "Send WhatsApp", category: "Communication", icon: "message-circle", desc: "Dispatched API alert." },
+    
+    // Delay
+    { type: "wait_5m", name: "Wait 5 Minutes", category: "Delay", icon: "clock", desc: "Pause flow run." },
+    { type: "wait_1h", name: "Wait 1 Hour", category: "Delay", icon: "clock", desc: "Pause flow run." },
+    { type: "wait_1d", name: "Wait 1 Day", category: "Delay", icon: "clock", desc: "Pause flow run." },
+    
+    // Utility
+    { type: "webhook", name: "Webhook", category: "Utility", icon: "webhook", desc: "Send webhook POST payload." },
+    { type: "http_request", name: "HTTP Request", category: "Utility", icon: "globe", desc: "Trigger external API REST query." }
+];
+
 async function renderAutomation(container) {
+    injectVisualBuilderStyles();
+    
+    if (window.wfState.activeWorkflow) {
+        renderVisualCanvas(container);
+        return;
+    }
+
     try {
         const data = await apiCall('crm/automation.php');
         const workflows = data.workflows || [];
         
-        let wfItems = workflows.map(w => `
-            <div class="p-4 bg-slate-950/40 border border-slate-850 rounded-xl flex justify-between items-center">
+        let wfItems = workflows.map(w => {
+            const act = w.is_active ? 'ACTIVE' : 'PAUSED';
+            const badgeClass = w.is_active ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-500';
+            return `
+                <div class="p-4 bg-slate-900 border border-slate-850 rounded-xl flex justify-between items-center transition hover:border-slate-750">
+                    <div class="text-left">
+                        <h4 class="font-bold text-white text-xs">${w.name}</h4>
+                        <p class="text-[10px] text-slate-400 mt-1">Visual Workflow Creator • Created ${new Date(w.created_at || Date.now()).toLocaleDateString()}</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="px-2 py-0.5 rounded text-[8px] font-bold ${badgeClass}">${act}</span>
+                        <button onclick="editVisualWorkflow(${w.id})" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded text-[10px] font-bold transition">Open Builder</button>
+                        <button onclick="duplicateWorkflow(${w.id})" class="p-1 text-slate-400 hover:text-indigo-400 transition" title="Duplicate"><i data-lucide="copy" class="h-3.5 w-3.5"></i></button>
+                        <button onclick="deleteWorkflow(${w.id})" class="p-1 text-slate-400 hover:text-rose-500 transition" title="Delete"><i data-lucide="trash" class="h-3.5 w-3.5"></i></button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        let templateCards = WORKFLOW_TEMPLATES.map((t, idx) => `
+            <div class="p-4 bg-slate-900 border border-slate-850 rounded-xl flex flex-col justify-between text-left space-y-3">
                 <div>
-                    <h4 class="font-bold text-white">${w.name}</h4>
-                    <p class="text-[10px] text-slate-500 mt-1">If Category = <strong>${w.trigger_value}</strong> -> Execute Actions (${w.actions.length})</p>
+                    <h4 class="font-bold text-white text-xs flex items-center space-x-1.5">
+                        <i data-lucide="sparkles" class="h-3.5 w-3.5 text-indigo-500"></i>
+                        <span>${t.name}</span>
+                    </h4>
+                    <p class="text-[10px] text-slate-400 mt-1 leading-normal">${t.description}</p>
                 </div>
-                <div class="flex items-center space-x-3">
-                    <span class="px-2 py-0.5 rounded text-[8px] font-bold ${w.is_active ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-500'}">${w.is_active ? 'ACTIVE' : 'PAUSED'}</span>
-                    <button onclick="deleteWorkflow(${w.id})" class="p-1 text-slate-400 hover:text-red-400 transition"><i data-lucide="trash" class="h-4 w-4"></i></button>
-                </div>
+                <button onclick="installWorkflowTemplate(${idx})" class="w-full py-1.5 bg-indigo-650 hover:bg-indigo-600 text-white rounded-lg text-[10px] font-bold transition flex items-center justify-center space-x-1">
+                    <i data-lucide="download-cloud" class="h-3.5 w-3.5"></i>
+                    <span>Use Template</span>
+                </button>
             </div>
         `).join('');
 
         container.innerHTML = `
-            <div class="space-y-6 animate-fade-in pt-4 max-w-2xl mx-auto">
+            <div class="space-y-6 animate-fade-in pt-4 max-w-4xl mx-auto pb-12">
                 <div class="flex justify-between items-center border-b border-slate-850 pb-4">
-                    <div>
-                        <h1 class="text-2xl font-extrabold text-white">CRM Automations</h1>
-                        <p class="text-slate-400 text-xs mt-1">Set up custom triggers and automated pipeline actions.</p>
+                    <div class="text-left">
+                        <h1 class="text-2xl font-extrabold text-white">Visual Workflow Builder</h1>
+                        <p class="text-slate-400 text-xs mt-1">Design automated visual pathways for emails, CRM triggers, and AI intelligence.</p>
+                    </div>
+                    <button onclick="createNewVisualWorkflow()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[10px] font-bold transition flex items-center space-x-1.5 shadow-sm">
+                        <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                        <span>New Workflow</span>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Left: Workflows list -->
+                    <div class="md:col-span-2 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-white uppercase tracking-wider">Your Workflows</span>
+                        </div>
+                        <div class="space-y-3">
+                            ${wfItems || `
+                                <div class="p-8 text-center bg-slate-900 border border-slate-850 rounded-xl text-slate-500 italic text-[11px]">
+                                    No custom workflows created yet. Build a new one or choose a template below.
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                    
+                    <!-- Right: Execution Log Reports -->
+                    <div class="space-y-4 text-left">
+                        <span class="text-xs font-bold text-white uppercase tracking-wider">Recent Executions</span>
+                        <div class="p-4 bg-slate-900 border border-slate-850 rounded-xl space-y-3 max-h-[300px] overflow-y-auto" id="recent-executions-list">
+                            <div class="text-center text-slate-500 py-6 italic text-[10px]">Loading reports...</div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
-                    <div class="flex justify-between items-center pb-2 border-b border-slate-800/80">
-                        <span class="text-xs font-bold text-white uppercase tracking-wider">Active Workflows</span>
-                        <button onclick="alert('Creating custom workflow...')" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[10px] font-bold transition">New Workflow</button>
-                    </div>
-                    <div class="space-y-3">
-                        ${wfItems || `<p class="text-xs text-slate-500 text-center py-6">No custom workflows defined yet.</p>`}
+                <!-- Section: Ready Made Templates -->
+                <div class="space-y-4">
+                    <h3 class="text-xs font-bold text-white uppercase tracking-wider text-left">Workflow Templates</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        ${templateCards}
                     </div>
                 </div>
             </div>
         `;
+        
+        loadRecentExecutionLogs();
         lucide.createIcons();
     } catch (err) {
         showNotification('error', err.message);
     }
 }
 
-async function deleteWorkflow(id) {
-    if (!confirm('Are you sure you want to delete this automation workflow?')) return;
+async function loadRecentExecutionLogs() {
+    const list = document.getElementById('recent-executions-list');
+    if (!list) return;
     try {
-        await apiCall('crm/automation.php?action=delete', 'POST', { id });
-        showNotification('success', 'Workflow deleted.');
-        navigateTo('automation');
-    } catch (err) {
-        showNotification('error', err.message);
+        const data = await apiCall('crm/automation.php?action=get_logs');
+        const logs = data.logs || [];
+        if (logs.length === 0) {
+            list.innerHTML = `<div class="text-center text-slate-500 py-6 italic text-[10px]">No run logs yet.</div>`;
+            return;
+        }
+        
+        list.innerHTML = logs.map(l => {
+            const timeStr = new Date(l.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const isSuccess = l.status === 'success';
+            const badge = isSuccess 
+                ? `<span class="text-emerald-400 font-bold bg-emerald-500/10 px-1 py-0.5 rounded text-[8px]">SUCCESS</span>`
+                : `<span class="text-rose-400 font-bold bg-rose-500/10 px-1 py-0.5 rounded text-[8px]">FAILED</span>`;
+            return `
+                <div class="p-2.5 bg-slate-950/60 rounded-lg border border-slate-850/80 flex justify-between items-start text-[10px]">
+                    <div class="space-y-1 pr-2">
+                        <p class="font-bold text-slate-200 leading-tight">${l.workflow_name}</p>
+                        <p class="text-[9px] text-slate-550">${timeStr} • ${l.execution_time}s</p>
+                        ${l.error_message ? `<p class="text-[9px] text-rose-400 mt-1 italic">${l.error_message}</p>` : ''}
+                    </div>
+                    <div>${badge}</div>
+                </div>
+            `;
+        }).join('');
+    } catch(e) {
+        list.innerHTML = `<div class="text-center text-slate-500 py-4 italic text-[10px]">Failed to load logs.</div>`;
     }
 }
+
+function createNewVisualWorkflow() {
+    window.wfState.activeWorkflow = {
+        id: 0,
+        name: "New Automation Workflow",
+        trigger_type: "visual_workflow",
+        trigger_value: "canvas",
+        is_active: 1,
+        nodes: [
+            { id: "node-trigger", type: "email_received", name: "Email Received", category: "Email", icon: "mail", x: 250, y: 80, config: { folder: "Inbox" } }
+        ],
+        connections: []
+    };
+    navigateTo('automation');
+}
+
+async function editVisualWorkflow(id) {
+    try {
+        const data = await apiCall('crm/automation.php');
+        const workflows = data.workflows || [];
+        const found = workflows.find(w => (w.id === id));
+        if (found) {
+            let actions = found.actions || {};
+            // If it is in old format, convert or fallback
+            if (!actions.nodes) {
+                actions = {
+                    nodes: [
+                        { id: "node-trigger", type: "email_received", name: "Email Received", category: "Email", icon: "mail", x: 250, y: 80, config: { folder: found.trigger_value || "Inbox" } }
+                    ],
+                    connections: []
+                };
+            }
+            window.wfState.activeWorkflow = {
+                id: found.id,
+                name: found.name,
+                trigger_type: found.trigger_type,
+                trigger_value: found.trigger_value,
+                is_active: parseInt(found.is_active),
+                nodes: actions.nodes,
+                connections: actions.connections
+            };
+            navigateTo('automation');
+        }
+    } catch(e) {
+        showNotification('error', e.message);
+    }
+}
+
+async function duplicateWorkflow(id) {
+    try {
+        const res = await apiCall('crm/automation.php?action=duplicate', 'POST', { id });
+        if (res.status === 'success') {
+            showNotification('success', 'Workflow duplicated successfully.');
+            navigateTo('automation');
+        }
+    } catch(e) {
+        showNotification('error', e.message);
+    }
+}
+
+async function deleteWorkflow(id) {
+    if (!confirm('Are you sure you want to delete this workflow?')) return;
+    try {
+        const res = await apiCall('crm/automation.php?action=delete', 'POST', { id });
+        if (res.status === 'success') {
+            showNotification('success', 'Workflow deleted.');
+            navigateTo('automation');
+        }
+    } catch(e) {
+        showNotification('error', e.message);
+    }
+}
+
+function installWorkflowTemplate(idx) {
+    const template = WORKFLOW_TEMPLATES[idx];
+    window.wfState.activeWorkflow = {
+        id: 0,
+        name: template.name + " (Template)",
+        trigger_type: template.trigger_type,
+        trigger_value: template.trigger_value,
+        is_active: template.is_active,
+        nodes: JSON.parse(JSON.stringify(template.nodes)),
+        connections: JSON.parse(JSON.stringify(template.connections))
+    };
+    showNotification('success', 'Template pre-loaded! Save to activate.');
+    navigateTo('automation');
+}
+
+// ----------------------------------------------------
+// RENDER VISUAL BUILDER CANVAS
+// ----------------------------------------------------
+function renderVisualCanvas(container) {
+    const wf = window.wfState.activeWorkflow;
+    
+    // Build Left Sidebar groups
+    const categories = ['all', 'Email', 'AI', 'CRM', 'Conditions', 'Communication', 'Delay', 'Utility'];
+    const tabHeaders = categories.map(cat => {
+        const activeClass = window.wfState.activeCategoryFilter === cat ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:bg-slate-800';
+        return `<button onclick="filterBuilderNodes('${cat}')" class="px-2.5 py-1 rounded-md transition text-[10px] capitalize whitespace-nowrap">${cat}</button>`;
+    }).join('');
+
+    // Left Sidebar node cards list
+    const filteredNodes = AVAILABLE_NODES.filter(n => {
+        const catMatch = window.wfState.activeCategoryFilter === 'all' || n.category === window.wfState.activeCategoryFilter;
+        const searchMatch = window.wfState.searchTerm === '' || n.name.toLowerCase().includes(window.wfState.searchTerm.toLowerCase());
+        return catMatch && searchMatch;
+    });
+
+    const sidebarCards = filteredNodes.map(n => `
+        <div draggable="true" ondragstart="handleNodeDragStart(event, '${n.type}')" class="p-3 bg-slate-900 border border-slate-850 hover:border-indigo-500 rounded-xl space-y-1 transition cursor-grab select-none text-left">
+            <div class="flex items-center space-x-2">
+                <div class="h-6 w-6 bg-slate-800 rounded-md flex items-center justify-center text-indigo-400">
+                    <i data-lucide="${n.icon}" class="h-3.5 w-3.5"></i>
+                </div>
+                <div>
+                    <h5 class="font-bold text-white text-[11px] leading-tight">${n.name}</h5>
+                    <p class="text-[9px] text-slate-500">${n.category}</p>
+                </div>
+            </div>
+            <p class="text-[9px] text-slate-400 line-clamp-1 leading-normal">${n.desc}</p>
+        </div>
+    `).join('');
+
+    container.innerHTML = `
+        <div id="workflow-builder-layout" class="animate-fade-in">
+            <!-- Left Sidebar -->
+            <div class="w-72 bg-slate-950/90 border-r border-slate-850 flex flex-col h-full overflow-hidden select-none">
+                <div class="p-4 border-b border-slate-850 space-y-3">
+                    <div class="flex items-center space-x-2">
+                        <button onclick="backToWorkflowList()" class="h-7 w-7 rounded-lg hover:bg-slate-800 text-slate-400 flex items-center justify-center transition" title="Back to List">
+                            <i data-lucide="arrow-left" class="h-4.5 w-4.5"></i>
+                        </button>
+                        <input type="text" id="workflow-rename-input" onblur="renameWorkflow(this.value)" value="${wf.name}" class="bg-transparent text-white font-bold text-sm focus:outline-none border-b border-transparent focus:border-indigo-500 w-full">
+                    </div>
+                    
+                    <div class="relative text-left">
+                        <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-slate-500 pointer-events-none">
+                            <i data-lucide="search" class="h-3.5 w-3.5"></i>
+                        </span>
+                        <input type="text" id="builder-node-search" oninput="searchBuilderNodes(this.value)" value="${window.wfState.searchTerm}" placeholder="Search nodes..." class="w-full bg-slate-900 border border-slate-850 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <!-- Tabs header -->
+                <div class="px-4 py-2 border-b border-slate-850 flex items-center space-x-1.5 overflow-x-auto scrollbar-none">
+                    ${tabHeaders}
+                </div>
+
+                <!-- Cards container -->
+                <div class="flex-grow overflow-y-auto p-4 space-y-3">
+                    ${sidebarCards || `<div class="text-center py-8 text-slate-500 italic text-[11px]">No nodes found.</div>`}
+                </div>
+            </div>
+
+            <!-- Center Canvas -->
+            <div class="flex-grow flex flex-col h-full relative overflow-hidden" id="wf-canvas-container" onwheel="handleCanvasScroll(event)" onmousedown="handleCanvasMouseDown(event)" ondragover="event.preventDefault()" ondrop="handleNodeDrop(event)">
+                <!-- Canvas Top Bar -->
+                <div class="absolute top-4 left-4 z-20 bg-slate-950/80 backdrop-blur border border-slate-850 rounded-xl p-1.5 flex items-center space-x-2 text-[10px] shadow-lg">
+                    <button onclick="undoWorkflowChange()" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Undo"><i data-lucide="undo" class="h-4 w-4"></i></button>
+                    <button onclick="redoWorkflowChange()" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Redo"><i data-lucide="redo" class="h-4 w-4"></i></button>
+                    <div class="h-4 w-px bg-slate-800"></div>
+                    <button onclick="zoomWorkflow(-0.1)" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Zoom Out"><i data-lucide="zoom-out" class="h-4 w-4"></i></button>
+                    <span class="text-white font-bold px-1 select-none">${Math.round(window.wfState.zoom * 100)}%</span>
+                    <button onclick="zoomWorkflow(0.1)" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Zoom In"><i data-lucide="zoom-in" class="h-4 w-4"></i></button>
+                    <div class="h-4 w-px bg-slate-800"></div>
+                    <button onclick="autoArrangeCanvas()" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition flex items-center space-x-1" title="Auto Arrange">
+                        <i data-lucide="git-commit" class="h-4 w-4"></i>
+                        <span>Auto Arrange</span>
+                    </button>
+                </div>
+
+                <!-- Canvas Top Right Bar (Actions) -->
+                <div class="absolute top-4 right-4 z-20 flex items-center space-x-2 text-[10px]">
+                    <button onclick="runWorkflowSimulation(this)" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition flex items-center space-x-1 shadow-lg">
+                        <i data-lucide="play" class="h-3.5 w-3.5"></i>
+                        <span>Run Test</span>
+                    </button>
+                    <button onclick="saveActiveWorkflow()" class="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-white rounded-lg font-bold transition flex items-center space-x-1 shadow-lg">
+                        <i data-lucide="save" class="h-3.5 w-3.5 text-indigo-400"></i>
+                        <span>Save</span>
+                    </button>
+                    <div class="h-6 w-px bg-slate-800"></div>
+                    <button onclick="toggleWorkflowActiveState()" class="px-3 py-1.5 bg-emerald-650 hover:bg-emerald-600 text-white rounded-lg font-bold transition shadow-lg">
+                        ${wf.is_active ? 'Deactivate' : 'Activate'}
+                    </button>
+                </div>
+
+                <!-- Main draggable canvas area -->
+                <div id="workflow-canvas" class="wf-canvas" style="transform: translate(${window.wfState.panX}px, ${window.wfState.panY}px) scale(${window.wfState.zoom});">
+                    <!-- SVG Connection Line Layer -->
+                    <svg id="workflow-svg" class="wf-svg-lines">
+                        <defs>
+                            <linearGradient id="conn-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#4f46e5" />
+                                <stop offset="100%" stop-color="#6366f1" />
+                            </linearGradient>
+                            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="#6366f1" />
+                            </marker>
+                        </defs>
+                        <!-- Rendered paths injected here -->
+                    </svg>
+
+                    <!-- Active Canvas Nodes -->
+                    <div id="canvas-nodes-container">
+                        ${renderCanvasNodesHTML()}
+                    </div>
+                </div>
+
+                <!-- Mini Map (Bottom-Left Canvas HUD overlay) -->
+                <div class="absolute bottom-4 left-4 z-20 w-32 h-24 bg-slate-950/95 border border-slate-850 rounded-lg p-1.5 flex flex-col justify-between shadow-lg text-[9px] select-none pointer-events-none">
+                    <span class="text-slate-400 uppercase font-bold tracking-wider">Mini Map</span>
+                    <div class="flex-grow relative border border-slate-900 bg-slate-950/60 overflow-hidden my-1" id="minimap-viewport">
+                        <!-- Mini nodes rendering dynamically -->
+                    </div>
+                </div>
+
+                <!-- Bottom Status Bar / Tabs -->
+                <div class="absolute bottom-4 right-4 z-20 flex items-center bg-slate-950/90 border border-slate-850 rounded-xl p-1 shadow-lg text-[10px]">
+                    <button onclick="openJSONConfigPanel()" class="px-3 py-1 text-slate-400 hover:text-white rounded-lg transition font-bold">Import/Export JSON</button>
+                    <div class="h-4 w-px bg-slate-800 mx-1"></div>
+                    <button onclick="openLogsHistoryDrawer()" class="px-3 py-1 text-indigo-400 hover:text-indigo-300 rounded-lg transition font-bold">Logs Drawer</button>
+                </div>
+            </div>
+
+            <!-- Right Configuration Panel -->
+            <div class="w-80 bg-slate-950/90 border-l border-slate-850 flex flex-col h-full overflow-hidden text-left" id="wf-config-sidebar">
+                ${renderConfigSidebarHTML()}
+            </div>
+        </div>
+    `;
+
+    lucide.createIcons();
+    drawConnections();
+    drawMiniMap();
+    startBuilderAutoSave();
+}
+
+function renameWorkflow(val) {
+    if (!val.trim()) return;
+    saveUndoState();
+    window.wfState.activeWorkflow.name = val.trim();
+}
+
+function filterBuilderNodes(cat) {
+    window.wfState.activeCategoryFilter = cat;
+    navigateTo('automation');
+}
+
+function searchBuilderNodes(query) {
+    window.wfState.searchTerm = query;
+    navigateTo('automation');
+}
+
+function backToWorkflowList() {
+    stopBuilderAutoSave();
+    window.wfState.activeWorkflow = null;
+    navigateTo('automation');
+}
+
+// ----------------------------------------------------
+// STYLING INJECTOR
+// ----------------------------------------------------
+function injectVisualBuilderStyles() {
+    if (document.getElementById('wf-builder-style-block')) return;
+    const style = document.createElement('style');
+    style.id = 'wf-builder-style-block';
+    style.innerHTML = `
+        #workflow-builder-layout {
+            display: flex;
+            height: calc(100vh - 100px);
+            overflow: hidden;
+            background-color: #0b0f19;
+        }
+        .wf-canvas-container {
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+            background-color: #080b12;
+            background-image: radial-gradient(#1c2333 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .wf-canvas {
+            position: absolute;
+            width: 5000px;
+            height: 5000px;
+            transform-origin: 0 0;
+        }
+        .wf-node {
+            position: absolute;
+            width: 190px;
+            background: #0f1626;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+            padding: 10px;
+            cursor: grab;
+            transition: box-shadow 0.15s, border-color 0.15s;
+        }
+        .wf-node:active {
+            cursor: grabbing;
+        }
+        .wf-node.selected {
+            border-color: #6366f1;
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+        }
+        .wf-node.executing {
+            border-color: #a855f7;
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.7);
+            animation: pulse-border 1.5s infinite alternate;
+        }
+        @keyframes pulse-border {
+            from { border-color: #a855f7; }
+            to { border-color: #ec4899; }
+        }
+        .wf-node-handle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #6366f1;
+            border: 2px solid #0f1626;
+            border-radius: 50%;
+            cursor: crosshair;
+            z-index: 10;
+        }
+        .wf-node-handle:hover {
+            transform: scale(1.3);
+            background: #818cf8;
+        }
+        .wf-node-handle.input {
+            left: -5px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .wf-node-handle.output {
+            right: -5px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .wf-node-handle.output-yes {
+            right: -5px;
+            top: 35%;
+            background: #10b981;
+        }
+        .wf-node-handle.output-no {
+            right: -5px;
+            top: 65%;
+            background: #ef4444;
+        }
+        .wf-svg-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .connection-path {
+            fill: none;
+            stroke: #4f46e5;
+            stroke-width: 2.2;
+            stroke-linecap: round;
+        }
+        .connection-path.pulsing {
+            stroke: url(#conn-grad);
+            stroke-dasharray: 6 4;
+            animation: dash 1s linear infinite;
+        }
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -20;
+            }
+        }
+        #custom-node-context-menu {
+            position: fixed;
+            background: #0f1626;
+            border: 1px solid #1e293b;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-radius: 8px;
+            padding: 4px 0;
+            z-index: 1000;
+            min-width: 130px;
+        }
+        #custom-node-context-menu button {
+            width: 100%;
+            text-align: left;
+            padding: 6px 12px;
+            font-size: 10px;
+            color: #cbd5e1;
+            transition: background 0.15s;
+        }
+        #custom-node-context-menu button:hover {
+            background: #1e293b;
+            color: #fff;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 
 async function renderAIInsights(container) {
     // Show skeleton loaders first
@@ -5874,9 +6461,1053 @@ function formatAIChatReply(text) {
 }
 
 // ----------------------------------------------------
+// CANVAS HTML AND HELPERS
+// ----------------------------------------------------
+function renderCanvasNodesHTML() {
+    const wf = window.wfState.activeWorkflow;
+    if (!wf || !wf.nodes) return '';
+    const selectedId = window.wfState.selectedNodeId;
+    
+    return wf.nodes.map(n => {
+        const isSelected = n.id === selectedId ? 'selected' : '';
+        const isExecuting = n.execStatus === 'executing' ? 'executing' : '';
+        const isCondition = n.type === 'if_branch' || n.type === 'if_score';
+        
+        let handlesHTML = '';
+        if (n.id !== 'node-trigger' && n.type !== 'email_received') {
+            handlesHTML += `<div class="wf-node-handle input" data-node-id="${n.id}" data-handle-type="input" onmousedown="handleConnectionMouseDown(event, '${n.id}', 'input')"></div>`;
+        }
+        
+        if (isCondition) {
+            handlesHTML += `
+                <div class="wf-node-handle output-yes" data-node-id="${n.id}" data-handle-type="output-yes" title="YES Path" onmousedown="handleConnectionMouseDown(event, '${n.id}', 'output-yes')"></div>
+                <div class="wf-node-handle output-no" data-node-id="${n.id}" data-handle-type="output-no" title="NO Path" onmousedown="handleConnectionMouseDown(event, '${n.id}', 'output-no')"></div>
+            `;
+        } else {
+            handlesHTML += `<div class="wf-node-handle output" data-node-id="${n.id}" data-handle-type="output" onmousedown="handleConnectionMouseDown(event, '${n.id}', 'output')"></div>`;
+        }
+
+        const badge = n.execStatus ? `
+            <span class="absolute -top-2.5 -right-1 px-1 py-0.5 rounded text-[7px] font-bold shadow-md uppercase tracking-wider z-20
+                ${n.execStatus === 'success' ? 'bg-emerald-500 text-white' : n.execStatus === 'executing' ? 'bg-purple-500 text-white animate-pulse' : 'bg-rose-500 text-white'}">
+                ${n.execStatus} ${n.execTime ? n.execTime + 'ms' : ''}
+            </span>
+        ` : '';
+
+        return `
+            <div id="${n.id}" class="wf-node ${isSelected} ${isExecuting}" style="left: ${n.x}px; top: ${n.y}px;" 
+                 onmousedown="handleNodeMouseDown(event, '${n.id}')" oncontextmenu="handleNodeContextMenu(event, '${n.id}')">
+                ${badge}
+                <div class="flex items-center space-x-2">
+                    <div class="wf-node-icon bg-slate-800 text-indigo-400 p-1 flex items-center justify-center shrink-0">
+                        <i data-lucide="${n.icon || 'circle'}" class="h-3.5 w-3.5"></i>
+                    </div>
+                    <div class="text-left overflow-hidden w-full select-none">
+                        <h5 class="font-bold text-white text-[10px] leading-tight truncate">${n.name}</h5>
+                        <p class="text-[7px] text-slate-500 capitalize leading-normal truncate">${n.category}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderConfigSidebarHTML() {
+    const wf = window.wfState.activeWorkflow;
+    if (!wf) return '';
+    const selectedId = window.wfState.selectedNodeId;
+    const selectedNode = wf.nodes.find(n => n.id === selectedId);
+    
+    if (!selectedNode) {
+        return `
+            <div class="p-4 border-b border-slate-850 bg-slate-900/50">
+                <h4 class="text-xs font-bold text-white uppercase tracking-wider">Workflow Configuration</h4>
+            </div>
+            <div class="p-4 space-y-4 flex-grow overflow-y-auto text-xs text-slate-400 leading-relaxed">
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Workflow Name</label>
+                    <input type="text" oninput="renameWorkflow(this.value)" value="${wf.name}" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Description</label>
+                    <textarea rows="3" placeholder="Describe what this automation does..." class="w-full bg-slate-900 border border-slate-850 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500 font-sans">Visual builder workflow graph automation model.</textarea>
+                </div>
+                <div class="border-t border-slate-850 pt-3 space-y-2">
+                    <div class="flex justify-between items-center text-[10px]">
+                        <span class="text-slate-500 font-bold uppercase">Trigger Category</span>
+                        <span class="text-white font-semibold">Visual Canvas</span>
+                    </div>
+                    <div class="flex justify-between items-center text-[10px]">
+                        <span class="text-slate-500 font-bold uppercase">Total Nodes</span>
+                        <span class="text-indigo-400 font-bold">${wf.nodes.length}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-[10px]">
+                        <span class="text-slate-500 font-bold uppercase">Connections</span>
+                        <span class="text-indigo-400 font-bold">${wf.connections.length}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-[10px]">
+                        <span class="text-slate-500 font-bold uppercase">Status</span>
+                        <span class="px-2 py-0.5 rounded text-[8px] font-bold ${wf.is_active ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-500'}">
+                            ${wf.is_active ? 'Active' : 'Deactive'}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="pt-6">
+                    <button onclick="deleteActiveWorkflow()" class="w-full py-2 bg-rose-950/20 hover:bg-rose-950/40 text-rose-400 hover:text-rose-350 border border-rose-900/40 rounded-xl font-bold transition text-[10px]">
+                        Delete Entire Workflow
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
+    const config = selectedNode.config || {};
+    let formsHTML = '';
+    
+    if (selectedNode.type === 'email_received') {
+        formsHTML = `
+            <div class="space-y-3">
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase">Email Account</label>
+                    <select onchange="updateNodeConfig('account', this.value)" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2 py-1.5 text-white text-[11px] focus:outline-none">
+                        <option value="all" ${config.account === 'all' ? 'selected' : ''}>All configured accounts</option>
+                        <option value="primary" ${config.account === 'primary' ? 'selected' : ''}>Primary SMTP Account</option>
+                    </select>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase">Inbox Folder</label>
+                    <input type="text" oninput="updateNodeConfig('folder', this.value)" value="${config.folder || 'Inbox'}" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2.5 py-1.5 text-white text-[11px] focus:outline-none">
+                </div>
+                <div class="flex items-center justify-between py-1">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase">Only Unread Emails</label>
+                    <input type="checkbox" onchange="updateNodeConfig('unreadOnly', this.checked)" ${config.unreadOnly ? 'checked' : ''} class="h-3.5 w-3.5 border-slate-800 bg-slate-900 text-indigo-650 rounded cursor-pointer">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase">Subject Filter (Contains)</label>
+                    <input type="text" placeholder="e.g. Quote, Invoice" oninput="updateNodeConfig('subjectFilter', this.value)" value="${config.subjectFilter || ''}" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2.5 py-1.5 text-white text-[11px] focus:outline-none">
+                </div>
+            </div>
+        `;
+    } else if (selectedNode.type === 'ai_categorize') {
+        formsHTML = `
+            <div class="space-y-3">
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase">AI Provider</label>
+                    <select onchange="updateNodeConfig('provider', this.value)" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2 py-1.5 text-white text-[11px] focus:outline-none">
+                        <option value="Gemini" ${config.provider === 'Gemini' ? 'selected' : ''}>Google Gemini Pro</option>
+                        <option value="OpenRouter" ${config.provider === 'OpenRouter' ? 'selected' : ''}>OpenRouter Auto</option>
+                    </select>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase">Temperature</label>
+                    <input type="number" step="0.1" min="0" max="1" oninput="updateNodeConfig('temperature', parseFloat(this.value))" value="${config.temperature !== undefined ? config.temperature : 0.2}" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2.5 py-1.5 text-white text-[11px] focus:outline-none">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase">Confidence Threshold</label>
+                    <input type="number" step="5" min="0" max="100" oninput="updateNodeConfig('confidence', parseInt(this.value))" value="${config.confidence || 75}" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2.5 py-1.5 text-white text-[11px] focus:outline-none">
+                </div>
+            </div>
+        `;
+    } else if (selectedNode.type === 'create_lead') {
+        formsHTML = `
+            <div class="space-y-3">
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase">Pipeline Status</label>
+                    <select onchange="updateNodeConfig('status', this.value)" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2 py-1.5 text-white text-[11px] focus:outline-none">
+                        <option value="New" ${config.status === 'New' ? 'selected' : ''}>New Lead</option>
+                        <option value="Contacted" ${config.status === 'Contacted' ? 'selected' : ''}>Contacted</option>
+                        <option value="Qualified" ${config.status === 'Qualified' ? 'selected' : ''}>Qualified</option>
+                    </select>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase">Lead Source</label>
+                    <input type="text" oninput="updateNodeConfig('source', this.value)" value="${config.source || 'Email AI'}" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2.5 py-1.5 text-white text-[11px] focus:outline-none">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase">Tags (Comma separated)</label>
+                    <input type="text" oninput="updateNodeConfig('tags', this.value)" value="${config.tags || 'AI qualified'}" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2.5 py-1.5 text-white text-[11px] focus:outline-none">
+                </div>
+            </div>
+        `;
+    } else if (selectedNode.type === 'send_email') {
+        formsHTML = `
+            <div class="space-y-3">
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase">Subject</label>
+                    <input type="text" oninput="updateNodeConfig('subject', this.value)" value="${config.subject || ''}" placeholder="Subject line" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2.5 py-1.5 text-white text-[11px] focus:outline-none">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase">Email Body</label>
+                    <textarea rows="4" placeholder="Hello, thank you for writing..." oninput="updateNodeConfig('body', this.value)" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2.5 py-1.5 text-white text-[11px] focus:outline-none font-sans">${config.body || ''}</textarea>
+                </div>
+            </div>
+        `;
+    } else if (selectedNode.type === 'if_score') {
+        formsHTML = `
+            <div class="space-y-3">
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase">Threshold Value</label>
+                    <input type="number" oninput="updateNodeConfig('threshold', parseInt(this.value))" value="${config.threshold !== undefined ? config.threshold : 70}" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2.5 py-1.5 text-white text-[11px] focus:outline-none">
+                </div>
+                <p class="text-[9px] text-slate-500 leading-normal italic">YES output branches if score exceeds threshold. NO output branches otherwise.</p>
+            </div>
+        `;
+    } else {
+        formsHTML = `
+            <div class="space-y-3">
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase">Node Title</label>
+                    <input type="text" oninput="updateNodeName(this.value)" value="${selectedNode.name}" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2.5 py-1.5 text-white text-[11px] focus:outline-none">
+                </div>
+                <p class="text-[9px] text-slate-500 italic">No extra custom properties for this node type.</p>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="p-4 border-b border-slate-850 bg-slate-900/50 flex items-center justify-between">
+            <h4 class="text-xs font-bold text-white uppercase tracking-wider">Node Configuration</h4>
+            <button onclick="deselectNode()" class="h-6 w-6 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+                <i data-lucide="x" class="h-4 w-4"></i>
+            </button>
+        </div>
+        <div class="p-4 space-y-4 flex-grow overflow-y-auto text-xs text-slate-400">
+            <div class="flex items-center space-x-2 pb-2 border-b border-slate-850">
+                <div class="h-7 w-7 bg-slate-900 rounded-md flex items-center justify-center text-indigo-400">
+                    <i data-lucide="${selectedNode.icon}" class="h-4 w-4"></i>
+                </div>
+                <div>
+                    <h5 class="font-bold text-white text-[11px] leading-tight truncate">${selectedNode.name}</h5>
+                    <p class="text-[8px] text-slate-500 uppercase font-semibold">${selectedNode.category} Node</p>
+                </div>
+            </div>
+            
+            ${formsHTML}
+
+            <div class="pt-4 border-t border-slate-850 flex justify-between space-x-2">
+                <button onclick="duplicateSelectedNode()" class="flex-grow py-1.5 bg-slate-900 hover:bg-slate-800 text-white border border-slate-850 rounded-lg font-bold transition text-[10px]">
+                    Duplicate
+                </button>
+                <button onclick="deleteSelectedNode()" class="flex-grow py-1.5 bg-rose-950/20 hover:bg-rose-950/40 text-rose-400 hover:text-rose-350 border border-rose-900/40 rounded-lg font-bold transition text-[10px]">
+                    Delete Node
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function handleNodeDragStart(e, nodeType) {
+    e.dataTransfer.setData('text/plain', nodeType);
+}
+
+function handleNodeDrop(e) {
+    e.preventDefault();
+    const nodeType = e.dataTransfer.getData('text/plain');
+    const template = AVAILABLE_NODES.find(n => n.type === nodeType);
+    if (!template) return;
+    
+    saveUndoState();
+    
+    const rect = document.getElementById('wf-canvas-container').getBoundingClientRect();
+    const xOnCanvas = (e.clientX - rect.left - window.wfState.panX) / window.wfState.zoom;
+    const yOnCanvas = (e.clientY - rect.top - window.wfState.panY) / window.wfState.zoom;
+    
+    const newNode = {
+        id: 'node-' + Date.now(),
+        type: template.type,
+        name: template.name,
+        category: template.category,
+        icon: template.icon,
+        x: Math.round(xOnCanvas / 20) * 20,
+        y: Math.round(yOnCanvas / 20) * 20,
+        config: {}
+    };
+    
+    window.wfState.activeWorkflow.nodes.push(newNode);
+    window.wfState.selectedNodeId = newNode.id;
+    
+    navigateTo('automation');
+}
+
+function handleCanvasScroll(e) {
+    e.preventDefault();
+    const newZoom = window.wfState.zoom + e.deltaY * -0.0015;
+    window.wfState.zoom = Math.min(Math.max(0.3, newZoom), 2.0);
+    
+    const canvas = document.getElementById('workflow-canvas');
+    if (canvas) {
+        canvas.style.transform = `translate(${window.wfState.panX}px, ${window.wfState.panY}px) scale(${window.wfState.zoom})`;
+    }
+    
+    const zoomText = document.querySelector('.wf-canvas-container button + span');
+    if (zoomText) zoomText.textContent = `${Math.round(window.wfState.zoom * 100)}%`;
+}
+
+function handleCanvasMouseDown(e) {
+    if (e.target.closest('.wf-node') || e.target.closest('.wf-node-handle')) return;
+    
+    window.wfState.isPanning = true;
+    window.wfState.dragStart = { x: e.clientX - window.wfState.panX, y: e.clientY - window.wfState.panY };
+    
+    const onMouseMove = (ev) => {
+        if (!window.wfState.isPanning) return;
+        window.wfState.panX = ev.clientX - window.wfState.dragStart.x;
+        window.wfState.panY = ev.clientY - window.wfState.dragStart.y;
+        
+        const canvas = document.getElementById('workflow-canvas');
+        if (canvas) {
+            canvas.style.transform = `translate(${window.wfState.panX}px, ${window.wfState.panY}px) scale(${window.wfState.zoom})`;
+        }
+    };
+    
+    const onMouseUp = () => {
+        window.wfState.isPanning = false;
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        drawMiniMap();
+    };
+    
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+}
+
+function handleNodeMouseDown(e, nodeId) {
+    e.stopPropagation();
+    saveUndoState();
+    window.wfState.selectedNodeId = nodeId;
+    
+    // Select styling update
+    document.querySelectorAll('.wf-node').forEach(el => el.classList.remove('selected'));
+    const el = document.getElementById(nodeId);
+    if (el) el.classList.add('selected');
+    
+    // Refresh config panel
+    const sidebar = document.getElementById('wf-config-sidebar');
+    if (sidebar) sidebar.innerHTML = renderConfigSidebarHTML();
+    lucide.createIcons();
+    
+    const nodeObj = window.wfState.activeWorkflow.nodes.find(n => n.id === nodeId);
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const initialNodeX = nodeObj.x;
+    const initialNodeY = nodeObj.y;
+    
+    const onMouseMove = (ev) => {
+        const dx = (ev.clientX - startX) / window.wfState.zoom;
+        const dy = (ev.clientY - startY) / window.wfState.zoom;
+        
+        nodeObj.x = Math.round((initialNodeX + dx) / 20) * 20;
+        nodeObj.y = Math.round((initialNodeY + dy) / 20) * 20;
+        
+        if (el) {
+            el.style.left = `${nodeObj.x}px`;
+            el.style.top = `${nodeObj.y}px`;
+        }
+        drawConnections();
+    };
+    
+    const onMouseUp = () => {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        drawMiniMap();
+    };
+    
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+}
+
+function handleConnectionMouseDown(e, nodeId, handleType) {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    const containerRect = document.getElementById('wf-canvas-container').getBoundingClientRect();
+    window.wfState.isConnecting = true;
+    
+    const nodeObj = window.wfState.activeWorkflow.nodes.find(n => n.id === nodeId);
+    let startX = nodeObj.x;
+    let startY = nodeObj.y;
+    
+    if (handleType === 'input') {
+        startX += 0;
+        startY += 20;
+    } else if (handleType === 'output-yes') {
+        startX += 190;
+        startY += 15;
+    } else if (handleType === 'output-no') {
+        startX += 190;
+        startY += 30;
+    } else {
+        startX += 190;
+        startY += 20;
+    }
+    
+    const onMouseMove = (ev) => {
+        if (!window.wfState.isConnecting) return;
+        const mouseX = (ev.clientX - containerRect.left - window.wfState.panX) / window.wfState.zoom;
+        const mouseY = (ev.clientY - containerRect.top - window.wfState.panY) / window.wfState.zoom;
+        
+        drawConnections(startX, startY, mouseX, mouseY);
+    };
+    
+    const onMouseUp = (ev) => {
+        window.wfState.isConnecting = false;
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        
+        // Find input handle released on
+        const targetHandle = ev.target.closest('.wf-node-handle.input');
+        if (targetHandle) {
+            const targetNodeId = targetHandle.getAttribute('data-node-id');
+            if (targetNodeId && targetNodeId !== nodeId) {
+                saveUndoState();
+                
+                // Remove existing connection to targetNode input to keep simple tree
+                window.wfState.activeWorkflow.connections = window.wfState.activeWorkflow.connections.filter(c => c.to !== targetNodeId);
+                
+                window.wfState.activeWorkflow.connections.push({
+                    from: nodeId,
+                    to: targetNodeId,
+                    handle: handleType
+                });
+            }
+        }
+        drawConnections();
+        drawMiniMap();
+    };
+    
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+}
+
+function drawConnections(tempX1, tempY1, tempX2, tempY2) {
+    const svg = document.getElementById('workflow-svg');
+    if (!svg) return;
+    
+    const wf = window.wfState.activeWorkflow;
+    if (!wf) return;
+    
+    let pathsHTML = '';
+    
+    // Draw existing connections
+    wf.connections.forEach(c => {
+        const fromNode = wf.nodes.find(n => n.id === c.from);
+        const toNode = wf.nodes.find(n => n.id === c.to);
+        if (!fromNode || !toNode) return;
+        
+        let x1 = fromNode.x;
+        let y1 = fromNode.y;
+        let x2 = toNode.x;
+        let y2 = toNode.y;
+        
+        if (c.handle === 'output-yes') {
+            x1 += 190;
+            y1 += 15;
+        } else if (c.handle === 'output-no') {
+            x1 += 190;
+            y1 += 30;
+        } else {
+            x1 += 190;
+            y1 += 20;
+        }
+        
+        // Input handle is on the left
+        x2 += 0;
+        y2 += 20;
+        
+        const dx = Math.abs(x2 - x1) * 0.5;
+        const pathStr = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+        const pulsing = fromNode.execStatus === 'executing' ? 'pulsing' : '';
+        
+        pathsHTML += `<path d="${pathStr}" class="connection-path ${pulsing}" marker-end="url(#arrow)" />`;
+        
+        // Draw labels for Yes/No branches
+        if (c.handle === 'output-yes') {
+            pathsHTML += `<text x="${x1 + 15}" y="${y1 - 5}" fill="#10b981" font-size="8" font-family="sans-serif" font-weight="bold">Yes</text>`;
+        } else if (c.handle === 'output-no') {
+            pathsHTML += `<text x="${x1 + 15}" y="${y1 + 15}" fill="#ef4444" font-size="8" font-family="sans-serif" font-weight="bold">No</text>`;
+        }
+    });
+    
+    // Draw temporary connection line if user is dragging
+    if (tempX1 !== undefined) {
+        const dx = Math.abs(tempX2 - tempX1) * 0.5;
+        const pathStr = `M ${tempX1} ${tempY1} C ${tempX1 + dx} ${tempY1}, ${tempX2 - dx} ${tempY2}, ${tempX2} ${tempY2}`;
+        pathsHTML += `<path d="${pathStr}" class="connection-path pulsing" />`;
+    }
+    
+    svg.innerHTML = `
+        <defs>
+            <linearGradient id="conn-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#4f46e5" />
+                <stop offset="100%" stop-color="#6366f1" />
+            </linearGradient>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#6366f1" />
+            </marker>
+        </defs>
+        ${pathsHTML}
+    `;
+}
+
+function drawMiniMap() {
+    const viewport = document.getElementById('minimap-viewport');
+    if (!viewport) return;
+    
+    const wf = window.wfState.activeWorkflow;
+    if (!wf || !wf.nodes || wf.nodes.length === 0) {
+        viewport.innerHTML = '';
+        return;
+    }
+    
+    // Find min/max coordinate bounds
+    const xs = wf.nodes.map(n => n.x);
+    const ys = wf.nodes.map(n => n.y);
+    const minX = Math.min(...xs) - 100;
+    const maxX = Math.max(...xs) + 300;
+    const minY = Math.min(...ys) - 100;
+    const maxY = Math.max(...ys) + 200;
+    
+    const rangeX = maxX - minX;
+    const rangeY = maxY - minY;
+    
+    const width = viewport.clientWidth;
+    const height = viewport.clientHeight;
+    
+    const miniNodesHTML = wf.nodes.map(n => {
+        const px = ((n.x - minX) / rangeX) * width;
+        const py = ((n.y - minY) / rangeY) * height;
+        const selectedClass = n.id === window.wfState.selectedNodeId ? 'bg-indigo-500' : 'bg-slate-700';
+        
+        return `<div class="absolute w-2 h-1.5 ${selectedClass} rounded-xs" style="left: ${px}px; top: ${py}px;"></div>`;
+    }).join('');
+    
+    viewport.innerHTML = miniNodesHTML;
+}
+
+function handleNodeContextMenu(e, nodeId) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const existing = document.getElementById('custom-node-context-menu');
+    if (existing) existing.remove();
+    
+    const menu = document.createElement('div');
+    menu.id = 'custom-node-context-menu';
+    menu.innerHTML = `
+        <button onclick="duplicateNodeById('${nodeId}')">Duplicate Node</button>
+        <button onclick="deleteNodeById('${nodeId}')" class="text-rose-400">Delete Node</button>
+    `;
+    
+    menu.style.top = `${e.clientY}px`;
+    menu.style.left = `${e.clientX}px`;
+    document.body.appendChild(menu);
+    
+    const close = () => {
+        menu.remove();
+        document.removeEventListener('click', close);
+    };
+    setTimeout(() => document.addEventListener('click', close), 50);
+}
+
+function duplicateNodeById(nodeId) {
+    const wf = window.wfState.activeWorkflow;
+    const found = wf.nodes.find(n => n.id === nodeId);
+    if (!found) return;
+    
+    saveUndoState();
+    const newNode = JSON.parse(JSON.stringify(found));
+    newNode.id = 'node-' + Date.now();
+    newNode.x += 40;
+    newNode.y += 40;
+    newNode.execStatus = null;
+    newNode.execTime = null;
+    
+    wf.nodes.push(newNode);
+    window.wfState.selectedNodeId = newNode.id;
+    
+    navigateTo('automation');
+}
+
+function deleteNodeById(nodeId) {
+    if (nodeId === 'node-trigger') {
+        showNotification('error', 'Cannot delete trigger node.');
+        return;
+    }
+    saveUndoState();
+    
+    const wf = window.wfState.activeWorkflow;
+    wf.nodes = wf.nodes.filter(n => n.id !== nodeId);
+    wf.connections = wf.connections.filter(c => c.from !== nodeId && c.to !== nodeId);
+    
+    if (window.wfState.selectedNodeId === nodeId) {
+        window.wfState.selectedNodeId = null;
+    }
+    
+    navigateTo('automation');
+}
+
+function deselectNode() {
+    window.wfState.selectedNodeId = null;
+    navigateTo('automation');
+}
+
+function updateNodeConfig(field, value) {
+    const wf = window.wfState.activeWorkflow;
+    const selectedNode = wf.nodes.find(n => n.id === window.wfState.selectedNodeId);
+    if (!selectedNode) return;
+    
+    saveUndoState();
+    if (!selectedNode.config) selectedNode.config = {};
+    selectedNode.config[field] = value;
+}
+
+function updateNodeName(name) {
+    const wf = window.wfState.activeWorkflow;
+    const selectedNode = wf.nodes.find(n => n.id === window.wfState.selectedNodeId);
+    if (!selectedNode) return;
+    
+    saveUndoState();
+    selectedNode.name = name;
+    const nodeEl = document.getElementById(selectedNode.id);
+    if (nodeEl) {
+        const titleEl = nodeEl.querySelector('h5');
+        if (titleEl) titleEl.textContent = name;
+    }
+}
+
+function duplicateSelectedNode() {
+    if (window.wfState.selectedNodeId) {
+        duplicateNodeById(window.wfState.selectedNodeId);
+    }
+}
+
+function deleteSelectedNode() {
+    if (window.wfState.selectedNodeId) {
+        deleteNodeById(window.wfState.selectedNodeId);
+    }
+}
+
+function deleteActiveWorkflow() {
+    const wf = window.wfState.activeWorkflow;
+    if (wf.id > 0) {
+        deleteWorkflow(wf.id);
+    } else {
+        backToWorkflowList();
+    }
+}
+
+// ----------------------------------------------------
+// UNDO / REDO STATE STACK
+// ----------------------------------------------------
+function saveUndoState() {
+    const wf = window.wfState.activeWorkflow;
+    if (!wf) return;
+    
+    // Cap undo stack at 20 entries
+    if (window.wfState.undoStack.length >= 20) {
+        window.wfState.undoStack.shift();
+    }
+    
+    window.wfState.undoStack.push(JSON.stringify(wf));
+    window.wfState.redoStack = []; // Reset redo
+}
+
+function undoWorkflowChange() {
+    if (window.wfState.undoStack.length === 0) {
+        showNotification('info', 'Nothing to undo.');
+        return;
+    }
+    
+    const current = JSON.stringify(window.wfState.activeWorkflow);
+    window.wfState.redoStack.push(current);
+    
+    const previous = window.wfState.undoStack.pop();
+    window.wfState.activeWorkflow = JSON.parse(previous);
+    
+    navigateTo('automation');
+}
+
+function redoWorkflowChange() {
+    if (window.wfState.redoStack.length === 0) {
+        showNotification('info', 'Nothing to redo.');
+        return;
+    }
+    
+    const current = JSON.stringify(window.wfState.activeWorkflow);
+    window.wfState.undoStack.push(current);
+    
+    const next = window.wfState.redoStack.pop();
+    window.wfState.activeWorkflow = JSON.parse(next);
+    
+    navigateTo('automation');
+}
+
+function zoomWorkflow(delta) {
+    window.wfState.zoom = Math.min(Math.max(0.3, window.wfState.zoom + delta), 2.0);
+    
+    const canvas = document.getElementById('workflow-canvas');
+    if (canvas) {
+        canvas.style.transform = `translate(${window.wfState.panX}px, ${window.wfState.panY}px) scale(${window.wfState.zoom})`;
+    }
+    
+    const zoomText = document.querySelector('.wf-canvas-container button + span');
+    if (zoomText) zoomText.textContent = `${Math.round(window.wfState.zoom * 100)}%`;
+}
+
+function autoArrangeCanvas() {
+    const wf = window.wfState.activeWorkflow;
+    if (!wf || !wf.nodes || wf.nodes.length === 0) return;
+    
+    saveUndoState();
+    
+    // Sort nodes topologically using connection runs
+    let levels = {};
+    let visited = new Set();
+    
+    // Find trigger node
+    const trigger = wf.nodes.find(n => n.id === 'node-trigger' || n.type === 'email_received') || wf.nodes[0];
+    
+    const assignLevel = (nodeId, lvl) => {
+        if (visited.has(nodeId)) return;
+        visited.add(nodeId);
+        
+        if (!levels[lvl]) levels[lvl] = [];
+        levels[lvl].push(nodeId);
+        
+        // Find outgoing connections
+        const outConnections = wf.connections.filter(c => c.from === nodeId);
+        outConnections.forEach(c => assignLevel(c.to, lvl + 1));
+    };
+    
+    assignLevel(trigger.id, 0);
+    
+    // Place remaining un-connected nodes at level 0
+    wf.nodes.forEach(n => {
+        if (!visited.has(n.id)) {
+            if (!levels[0]) levels[0] = [];
+            levels[0].push(n.id);
+        }
+    });
+    
+    // Arrange positions
+    Object.keys(levels).forEach(lvl => {
+        const nodeIds = levels[lvl];
+        const lvlInt = parseInt(lvl);
+        const startY = 80 + lvlInt * 130;
+        
+        const totalWidth = nodeIds.length * 240;
+        const startX = 300 - (totalWidth / 2);
+        
+        nodeIds.forEach((id, idx) => {
+            const node = wf.nodes.find(n => n.id === id);
+            if (node) {
+                node.x = Math.round((startX + idx * 240) / 20) * 20;
+                node.y = Math.round(startY / 20) * 20;
+            }
+        });
+    });
+    
+    navigateTo('automation');
+}
+
+// ----------------------------------------------------
+// TEST RUN & SIMULATION ACTIONS
+// ----------------------------------------------------
+async function runWorkflowSimulation(btn) {
+    const wf = window.wfState.activeWorkflow;
+    if (!wf || !wf.nodes || wf.nodes.length === 0) return;
+    
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin text-white"></i>`;
+    lucide.createIcons();
+    
+    // Reset simulation status badges
+    wf.nodes.forEach(n => {
+        n.execStatus = null;
+        n.execTime = null;
+    });
+    
+    navigateTo('automation');
+    
+    // Walk through execution pathway
+    const startNode = wf.nodes.find(n => n.id === 'node-trigger' || n.type === 'email_received') || wf.nodes[0];
+    
+    let path = [];
+    const traverse = (nodeId) => {
+        if (path.includes(nodeId)) return; // Prev loop
+        path.push(nodeId);
+        
+        const out = wf.connections.find(c => c.from === nodeId);
+        if (out) traverse(out.to);
+    };
+    
+    traverse(startNode.id);
+    
+    const startRunTime = Date.now();
+    
+    for (let i = 0; i < path.length; i++) {
+        const nodeId = path[i];
+        const node = wf.nodes.find(n => n.id === nodeId);
+        if (!node) continue;
+        
+        node.execStatus = 'executing';
+        const nodeEl = document.getElementById(nodeId);
+        if (nodeEl) nodeEl.classList.add('executing');
+        drawConnections();
+        
+        // Wait 900ms to simulate computation
+        await new Promise(r => setTimeout(r, 900));
+        
+        node.execStatus = 'success';
+        node.execTime = Math.round(40 + Math.random() * 80);
+        if (nodeEl) {
+            nodeEl.classList.remove('executing');
+            // Refresh inner HTML badge status
+            const badgeContainer = document.createElement('div');
+            badgeContainer.innerHTML = renderCanvasNodesHTML();
+            // Re-render nodes container
+            document.getElementById('canvas-nodes-container').innerHTML = badgeContainer.innerHTML;
+        }
+        drawConnections();
+    }
+    
+    const totalDuration = ((Date.now() - startRunTime) / 1000).toFixed(2);
+    
+    btn.disabled = false;
+    btn.innerHTML = origText;
+    lucide.createIcons();
+    
+    showNotification('success', `Test run completed successfully in ${totalDuration}s!`);
+    
+    // Log execution back to the server
+    try {
+        await apiCall('crm/automation.php?action=log_run', 'POST', {
+            workflow_id: wf.id > 0 ? wf.id : null,
+            workflow_name: wf.name,
+            status: 'success',
+            execution_time: parseFloat(totalDuration)
+        });
+    } catch(e) {
+        console.error('Failed to log test run', e);
+    }
+}
+
+// ----------------------------------------------------
+// SAVE AND UPDATE STATE API HANDLERS
+// ----------------------------------------------------
+async function saveActiveWorkflow() {
+    const wf = window.wfState.activeWorkflow;
+    if (!wf) return;
+    
+    try {
+        // Find trigger value inside the nodes config to keep database compatible
+        const triggerNode = wf.nodes.find(n => n.id === 'node-trigger' || n.type === 'email_received');
+        const triggerValue = triggerNode && triggerNode.config ? triggerNode.config.folder : 'Inbox';
+        
+        const payload = {
+            id: wf.id,
+            name: wf.name,
+            trigger_type: 'visual_workflow',
+            trigger_value: triggerValue || 'Inbox',
+            is_active: wf.is_active,
+            actions: {
+                nodes: wf.nodes,
+                connections: wf.connections
+            }
+        };
+        
+        const res = await apiCall('crm/automation.php', 'POST', payload);
+        if (res.status === 'success') {
+            showNotification('success', 'Workflow saved successfully!');
+            if (res.workflow_id) {
+                wf.id = res.workflow_id;
+            }
+        } else {
+            showNotification('error', res.message);
+        }
+    } catch(e) {
+        showNotification('error', e.message);
+    }
+}
+
+function toggleWorkflowActiveState() {
+    window.wfState.activeWorkflow.is_active = window.wfState.activeWorkflow.is_active ? 0 : 1;
+    saveActiveWorkflow();
+    navigateTo('automation');
+}
+
+// ----------------------------------------------------
+// IMPORT / EXPORT AND HISTORY LOGS OVERLAYS
+// ----------------------------------------------------
+function openJSONConfigPanel() {
+    const wf = window.wfState.activeWorkflow;
+    const jsonStr = JSON.stringify({ nodes: wf.nodes, connections: wf.connections }, null, 2);
+    
+    const existing = document.getElementById('wf-json-overlay');
+    if (existing) existing.remove();
+    
+    const overlay = document.createElement('div');
+    overlay.id = 'wf-json-overlay';
+    overlay.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm';
+    overlay.innerHTML = `
+        <div class="bg-slate-950 border border-slate-850 rounded-2xl w-full max-w-lg shadow-2xl p-6 text-left space-y-4">
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Import / Export JSON</h3>
+            <textarea id="wf-json-area" class="w-full h-64 bg-slate-900 border border-slate-850 rounded-lg p-3 text-[10px] text-indigo-300 font-mono focus:outline-none focus:border-indigo-500">${jsonStr}</textarea>
+            <div class="flex justify-end space-x-2 text-[10px]">
+                <button onclick="document.getElementById('wf-json-overlay').remove()" class="px-4 py-2 border border-slate-800 hover:bg-slate-900 text-slate-400 rounded-lg transition font-bold">Cancel</button>
+                <button onclick="applyImportedJSON()" class="px-4 py-2 bg-indigo-650 hover:bg-indigo-600 text-white rounded-lg transition font-bold shadow-md">Apply JSON</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
+
+function applyImportedJSON() {
+    const txt = document.getElementById('wf-json-area').value;
+    try {
+        const parsed = JSON.parse(txt);
+        if (!parsed.nodes || !parsed.connections) {
+            throw new Error("JSON must contain 'nodes' and 'connections' fields.");
+        }
+        
+        saveUndoState();
+        window.wfState.activeWorkflow.nodes = parsed.nodes;
+        window.wfState.activeWorkflow.connections = parsed.connections;
+        
+        document.getElementById('wf-json-overlay').remove();
+        showNotification('success', 'Workflow JSON configuration applied!');
+        navigateTo('automation');
+    } catch(e) {
+        alert("Invalid JSON format: " + e.message);
+    }
+}
+
+function openLogsHistoryDrawer() {
+    const existing = document.getElementById('wf-logs-drawer');
+    if (existing) {
+        existing.remove();
+        return;
+    }
+    
+    const drawer = document.createElement('div');
+    drawer.id = 'wf-logs-drawer';
+    drawer.className = 'fixed bottom-0 right-0 left-72 bg-slate-950/95 border-t border-slate-850 h-64 z-[90] p-4 flex flex-col justify-between text-left';
+    drawer.innerHTML = `
+        <div class="flex justify-between items-center pb-2 border-b border-slate-900">
+            <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center space-x-1.5">
+                <i data-lucide="activity" class="h-4 w-4 text-indigo-400"></i>
+                <span>Execution History Logs</span>
+            </h4>
+            <button onclick="document.getElementById('wf-logs-drawer').remove()" class="h-6 w-6 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+                <i data-lucide="x" class="h-4 w-4"></i>
+            </button>
+        </div>
+        <div class="flex-grow overflow-y-auto py-2 space-y-2" id="drawer-logs-body">
+            <div class="text-slate-500 italic text-[11px] text-center py-12">Loading execution runs...</div>
+        </div>
+    `;
+    
+    document.body.appendChild(drawer);
+    lucide.createIcons();
+    
+    loadDrawerExecutionLogs();
+}
+
+async function loadDrawerExecutionLogs() {
+    const body = document.getElementById('drawer-logs-body');
+    if (!body) return;
+    try {
+        const data = await apiCall('crm/automation.php?action=get_logs');
+        const logs = data.logs || [];
+        if (logs.length === 0) {
+            body.innerHTML = `<div class="text-slate-500 italic text-[11px] text-center py-12">No execution runs logged. Run a simulation test first.</div>`;
+            return;
+        }
+        
+        body.innerHTML = `
+            <table class="w-full text-[10px] text-left text-slate-400 leading-normal">
+                <thead>
+                    <tr class="border-b border-slate-900 text-slate-500 font-bold">
+                        <th class="py-1">Run Date</th>
+                        <th class="py-1">Workflow Name</th>
+                        <th class="py-1">Execution Time</th>
+                        <th class="py-1">Status</th>
+                        <th class="py-1">Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${logs.map(l => `
+                        <tr class="border-b border-slate-900/60 hover:bg-slate-900/30">
+                            <td class="py-1.5">${new Date(l.created_at).toLocaleString()}</td>
+                            <td class="py-1.5 font-bold text-white">${l.workflow_name}</td>
+                            <td class="py-1.5">${l.execution_time}s</td>
+                            <td class="py-1.5">
+                                <span class="px-1.5 py-0.5 rounded text-[8px] font-bold ${l.status === 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">
+                                    ${l.status.toUpperCase()}
+                                </span>
+                            </td>
+                            <td class="py-1.5 italic text-slate-500">${l.error_message || 'Ran to completion without issues.'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    } catch(e) {
+        body.innerHTML = `<div class="text-slate-500 italic text-[11px] text-center py-12">Failed to load run logs.</div>`;
+    }
+}
+
+// ----------------------------------------------------
+// AUTO-SAVE TIMER MECHANICS
+// ----------------------------------------------------
+function startBuilderAutoSave() {
+    stopBuilderAutoSave();
+    window.wfState.autoSaveTimer = setInterval(() => {
+        const wf = window.wfState.activeWorkflow;
+        if (wf) {
+            saveActiveWorkflow();
+            console.log('Visual builder automated background save triggered.');
+        }
+    }, 120000); // Save every 2 minutes
+}
+
+function stopBuilderAutoSave() {
+    if (window.wfState.autoSaveTimer) {
+        clearInterval(window.wfState.autoSaveTimer);
+        window.wfState.autoSaveTimer = null;
+    }
+}
+
+// ----------------------------------------------------
 // BOOTSTRAP INITIALIZATION
 // ----------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
+    // Keyboard Shortcuts (Delete node, Undo / Redo)
+    document.addEventListener('keydown', (e) => {
+        if (!window.wfState.activeWorkflow) return;
+        
+        // Exclude input fields typing
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+        
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+            if (window.wfState.selectedNodeId) {
+                deleteSelectedNode();
+            }
+        }
+        
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+            e.preventDefault();
+            undoWorkflowChange();
+        }
+        
+        if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+            e.preventDefault();
+            redoWorkflowChange();
+        }
+    });
+
     // Intercept hash change
     window.addEventListener('hashchange', () => {
         const hash = window.location.hash || '#/dashboard';
@@ -5884,7 +7515,6 @@ document.addEventListener('DOMContentLoaded', () => {
         navigateTo(view);
     });
 
-    // Check query params or current view on load
     const hash = window.location.hash || '#/dashboard';
     const view = hash.replace('#/', '');
     navigateTo(view);

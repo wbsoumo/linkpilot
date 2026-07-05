@@ -29,6 +29,52 @@ try {
         sendJsonResponse('success', 'Automation workflows retrieved successfully', ['workflows' => $workflows]);
     }
     
+    elseif ($method === 'LOG_RUN') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!$input) $input = $_POST;
+        
+        $wfId = isset($input['workflow_id']) ? (int)$input['workflow_id'] : null;
+        $wfName = trim($input['workflow_name'] ?? 'Unnamed Workflow');
+        $status = trim($input['status'] ?? 'success');
+        $executionTime = isset($input['execution_time']) ? (float)$input['execution_time'] : 0.0;
+        $errorMsg = isset($input['error_message']) ? trim($input['error_message']) : null;
+        
+        $stmt = $db->prepare("INSERT INTO workflow_execution_logs (user_id, workflow_id, workflow_name, status, execution_time, error_message) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$userId, $wfId, $wfName, $status, $executionTime, $errorMsg]);
+        
+        sendJsonResponse('success', 'Execution log saved successfully');
+    }
+    
+    elseif ($method === 'GET_LOGS') {
+        $stmt = $db->prepare("SELECT * FROM workflow_execution_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT 50");
+        $stmt->execute([$userId]);
+        $logs = $stmt->fetchAll();
+        sendJsonResponse('success', 'Execution logs retrieved successfully', ['logs' => $logs]);
+    }
+    
+    elseif ($method === 'DUPLICATE') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!$input) $input = $_POST;
+        
+        $id = (int)($input['id'] ?? 0);
+        if ($id <= 0) {
+            sendJsonResponse('error', 'Workflow ID is required.', [], 400);
+        }
+        
+        $stmtCheck = $db->prepare("SELECT * FROM automation_workflows WHERE id = ? AND user_id = ?");
+        $stmtCheck->execute([$id, $userId]);
+        $wf = $stmtCheck->fetch();
+        if (!$wf) {
+            sendJsonResponse('error', 'Workflow not found or access denied.', [], 404);
+        }
+        
+        $newName = $wf['name'] . ' (Copy)';
+        $stmt = $db->prepare("INSERT INTO automation_workflows (user_id, name, trigger_type, trigger_value, actions_json, is_active) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$userId, $newName, $wf['trigger_type'], $wf['trigger_value'], $wf['actions_json'], $wf['is_active']]);
+        
+        sendJsonResponse('success', 'Workflow duplicated successfully');
+    }
+    
     elseif ($method === 'POST') {
         $input = json_decode(file_get_contents('php://input'), true);
         if (!$input) {

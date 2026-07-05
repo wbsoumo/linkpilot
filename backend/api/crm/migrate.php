@@ -326,6 +326,18 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
     $messages[] = "Table 'automation_workflows' checked/created.";
 
+    $db->exec("CREATE TABLE IF NOT EXISTS `workflow_execution_logs` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `workflow_id` INT DEFAULT NULL,
+        `workflow_name` VARCHAR(255) NOT NULL,
+        `status` VARCHAR(50) NOT NULL,
+        `execution_time` FLOAT NOT NULL,
+        `error_message` TEXT DEFAULT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+    $messages[] = "Table 'workflow_execution_logs' checked/created.";
+
     // 15. Email Processing Logs Table
     $db->exec("CREATE TABLE IF NOT EXISTS `email_processing_logs` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,

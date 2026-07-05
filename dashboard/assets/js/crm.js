@@ -3536,14 +3536,13 @@ async function renderAIInsights(container) {
             return;
         }
         
-        const data = res.data || {};
-        const highlights = data.highlights || [];
-        const overview = data.overview || {};
-        const chartsData = data.charts || {};
-        const recommendations = data.recommendations || [];
-        const timeline = data.timeline || [];
-        const smartInsights = data.smart_insights || [];
-        const lowConfidence = data.low_confidence || [];
+        const highlights = res.highlights || [];
+        const overview = res.overview || {};
+        const chartsData = res.charts || {};
+        const recommendations = res.recommendations || [];
+        const timeline = res.timeline || [];
+        const smartInsights = res.smart_insights || [];
+        const lowConfidence = res.low_confidence || [];
 
         // Build HTML
         let html = `

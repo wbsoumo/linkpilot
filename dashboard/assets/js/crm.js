@@ -1902,9 +1902,457 @@ async function renderLeads(container) {
     }
 }
 
-// Placeholder modals for creation and edits
+// Add New Lead Modal Overlay
 function createNewLeadModal() {
-    alert('Quick addition modal initialized! Direct automated inserts are fully active via AI email intelligence sync.');
+    // Remove existing modal if any
+    const existing = document.getElementById('crm-lead-modal');
+    if (existing) existing.remove();
+
+    const modalHTML = `
+        <div id="crm-lead-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+            <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+                <!-- Modal Header -->
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                    <div class="flex items-center space-x-2">
+                        <div class="h-8 w-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center">
+                            <i data-lucide="user-plus" class="h-4.5 w-4.5"></i>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-800">Add New CRM Lead</h3>
+                    </div>
+                    <button onclick="closeCrmModal()" class="h-7 w-7 rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                    </button>
+                </div>
+                
+                <!-- Modal Body -->
+                <div class="p-6 overflow-y-auto space-y-4 text-xs">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Lead Name *</label>
+                            <input type="text" id="new-lead-name" placeholder="Full name" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Company / Organization</label>
+                            <input type="text" id="new-lead-company" placeholder="Company Name" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Email Address</label>
+                            <input type="email" id="new-lead-email" placeholder="name@company.com" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Phone Number</label>
+                            <input type="text" id="new-lead-phone" placeholder="Contact number" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Estimated Budget (₹)</label>
+                            <input type="number" id="new-lead-budget" value="0" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Lead Source</label>
+                            <select id="new-lead-source" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                                <option value="Manual Entry">Manual Entry</option>
+                                <option value="Email Sync">Email Intelligence Sync</option>
+                                <option value="LinkedIn Extension">LinkedIn Extension</option>
+                                <option value="Website Contact">Website Form</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Priority</label>
+                            <select id="new-lead-priority" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Pipeline Stage</label>
+                            <select id="new-lead-stage" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                                <option value="New" selected>New Lead</option>
+                                <option value="Contacted">Contacted</option>
+                                <option value="Qualified">Qualified</option>
+                                <option value="Proposal">Proposal Sent</option>
+                                <option value="Negotiation">Negotiation</option>
+                                <option value="Closed Won">Closed Won</option>
+                                <option value="Closed Lost">Closed Lost</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Services Required / Lead Scope</label>
+                        <input type="text" id="new-lead-services" placeholder="e.g. Web Development, CRM setup" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Requirements & notes</label>
+                        <textarea id="new-lead-requirements" rows="3" placeholder="Provide extra requirements details..." class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500 font-sans"></textarea>
+                    </div>
+                </div>
+                
+                <!-- Modal Footer -->
+                <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end space-x-2">
+                    <button onclick="closeCrmModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 rounded-lg font-bold transition">Cancel</button>
+                    <button onclick="submitNewLeadForm(this)" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition flex items-center space-x-1.5">
+                        <i data-lucide="check" class="h-4 w-4"></i>
+                        <span>Save Lead</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    lucide.createIcons();
+}
+
+async function submitNewLeadForm(btn) {
+    const name = document.getElementById('new-lead-name').value.trim();
+    if (!name) {
+        showNotification('error', 'Lead Name is required.');
+        return;
+    }
+    
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin text-white"></i>`;
+    lucide.createIcons();
+    
+    const company = document.getElementById('new-lead-company').value.trim();
+    const email = document.getElementById('new-lead-email').value.trim();
+    const phone = document.getElementById('new-lead-phone').value.trim();
+    const budget = parseFloat(document.getElementById('new-lead-budget').value || 0);
+    const source = document.getElementById('new-lead-source').value;
+    const priority = document.getElementById('new-lead-priority').value;
+    const stage = document.getElementById('new-lead-stage').value;
+    const services = document.getElementById('new-lead-services').value.trim();
+    const requirements = document.getElementById('new-lead-requirements').value.trim();
+    
+    const payload = {
+        name,
+        company,
+        email,
+        phone,
+        budget,
+        lead_source: source,
+        priority,
+        stage,
+        services_required: services,
+        requirements
+    };
+    
+    try {
+        const data = await apiCall('crm/leads.php', 'POST', payload);
+        if (data.status === 'success') {
+            showNotification('success', 'Lead created successfully.');
+            closeCrmModal();
+            // Refresh viewport
+            const viewport = document.getElementById('main-content-viewport');
+            if (viewport) renderLeads(viewport);
+        } else {
+            showNotification('error', data.message);
+        }
+    } catch (e) {
+        showNotification('error', e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+        lucide.createIcons();
+    }
+}
+
+// Edit/View Lead Details Modal Overlay
+async function editCrmLead(leadId) {
+    // Remove existing modal if any
+    const existing = document.getElementById('crm-lead-modal');
+    if (existing) existing.remove();
+
+    // Render a temporary spinner overlay
+    const spinnerHTML = `
+        <div id="crm-lead-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+            <div class="bg-white rounded-2xl p-8 flex items-center justify-center border border-slate-200">
+                <i data-lucide="loader-2" class="h-8 w-8 animate-spin text-indigo-600"></i>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', spinnerHTML);
+    lucide.createIcons();
+
+    try {
+        const data = await apiCall('crm/leads.php?id=' + leadId);
+        const modal = document.getElementById('crm-lead-modal');
+        if (!modal) return;
+        
+        if (data.status !== 'success') {
+            showNotification('error', 'Failed to retrieve lead details.');
+            closeCrmModal();
+            return;
+        }
+
+        const l = data.lead || {};
+        const deals = l.deals || [];
+        const tasks = l.tasks || [];
+        const timeline = l.timeline || [];
+        const date = new Date(l.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+
+        // Build Timeline Log HTML
+        const timelineLogs = timeline.length > 0 ? timeline.map(t => {
+            const time = new Date(t.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+            return `
+                <div class="flex items-start space-x-2 pb-3 border-l border-slate-100 pl-3 relative ml-1.5 last:border-0">
+                    <div class="h-2 w-2 rounded-full bg-indigo-500 absolute -left-[5px] mt-1"></div>
+                    <div class="flex-grow">
+                        <div class="font-bold text-slate-700 text-[10px]">${t.activity_type}</div>
+                        <p class="text-slate-500 text-[10px] mt-0.5">${t.description}</p>
+                        <span class="text-[8px] text-slate-400 font-medium block mt-1">${time}</span>
+                    </div>
+                </div>
+            `;
+        }).join('') : `<p class="text-slate-400 text-[10px] italic">No activity logs recorded yet.</p>`;
+
+        const modalContent = `
+            <div class="bg-white rounded-2xl w-full max-w-4xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+                <!-- Modal Header -->
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="h-9 w-9 bg-indigo-50 text-indigo-655 rounded-xl flex items-center justify-center">
+                            <i data-lucide="user" class="h-5 w-5 text-indigo-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800">${l.name}</h3>
+                            <p class="text-[10px] text-slate-500 font-medium">Added to pipeline on ${date}</p>
+                        </div>
+                    </div>
+                    <button onclick="closeCrmModal()" class="h-7 w-7 rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                    </button>
+                </div>
+                
+                <!-- Modal Body (Two-Column layout) -->
+                <div class="p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-5 gap-6 text-xs">
+                    <!-- Column 1: Editable Form fields (width 3/5) -->
+                    <div class="md:col-span-3 space-y-4 pr-0 md:pr-4 md:border-r border-slate-100 text-left">
+                        <div class="font-bold text-slate-800 text-[11px] uppercase tracking-wider mb-2">Lead Information</div>
+                        <input type="hidden" id="edit-lead-id" value="${l.id}">
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Lead Name *</label>
+                                <input type="text" id="edit-lead-name" value="${l.name || ''}" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Company Name</label>
+                                <input type="text" id="edit-lead-company" value="${l.company || ''}" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Email Address</label>
+                                <input type="email" id="edit-lead-email" value="${l.email || ''}" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Phone Number</label>
+                                <input type="text" id="edit-lead-phone" value="${l.phone || ''}" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Pipeline Stage</label>
+                                <select id="edit-lead-stage" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none">
+                                    <option value="New" ${l.stage === 'New' ? 'selected' : ''}>New Lead</option>
+                                    <option value="Contacted" ${l.stage === 'Contacted' ? 'selected' : ''}>Contacted</option>
+                                    <option value="Qualified" ${l.stage === 'Qualified' ? 'selected' : ''}>Qualified</option>
+                                    <option value="Proposal" ${l.stage === 'Proposal' ? 'selected' : ''}>Proposal Sent</option>
+                                    <option value="Negotiation" ${l.stage === 'Negotiation' ? 'selected' : ''}>Negotiation</option>
+                                    <option value="Closed Won" ${l.stage === 'Closed Won' ? 'selected' : ''}>Closed Won</option>
+                                    <option value="Closed Lost" ${l.stage === 'Closed Lost' ? 'selected' : ''}>Closed Lost</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Priority</label>
+                                <select id="edit-lead-priority" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none">
+                                    <option value="low" ${l.priority === 'low' ? 'selected' : ''}>Low</option>
+                                    <option value="medium" ${l.priority === 'medium' ? 'selected' : ''}>Medium</option>
+                                    <option value="high" ${l.priority === 'high' ? 'selected' : ''}>High</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Lead Budget (₹)</label>
+                                <input type="number" id="edit-lead-budget" value="${l.budget || 0}" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Lead Source</label>
+                                <input type="text" id="edit-lead-source" value="${l.lead_source || ''}" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Services Required</label>
+                            <input type="text" id="edit-lead-services" value="${l.services_required || ''}" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Requirements & notes</label>
+                            <textarea id="edit-lead-requirements" rows="3" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none font-sans">${l.requirements || ''}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Lead metrics & timeline (width 2/5) -->
+                    <div class="md:col-span-2 space-y-4 text-left">
+                        <div>
+                            <span class="font-bold text-slate-800 text-[11px] uppercase tracking-wider mb-2 block">AI Analysis Metrics</span>
+                            <div class="grid grid-cols-2 gap-2.5">
+                                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col items-center">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wide">Lead Score</span>
+                                    <span class="text-lg font-bold text-slate-800 mt-0.5">${l.lead_score || 'N/A'}</span>
+                                </div>
+                                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col items-center">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wide">AI Confidence</span>
+                                    <span class="text-lg font-bold text-indigo-600 mt-0.5">${l.ai_confidence_score || '100'}%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Timeline Log -->
+                        <div class="flex-grow flex flex-col">
+                            <span class="font-bold text-slate-800 text-[11px] uppercase tracking-wider mb-2 block">Activity Timeline</span>
+                            <div class="bg-slate-50 p-4 border border-slate-100 rounded-xl overflow-y-auto max-h-[220px]">
+                                ${timelineLogs}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Modal Footer -->
+                <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-between items-center">
+                    <button onclick="deleteCrmLead(this, ${l.id})" class="px-3.5 py-2 border border-red-200 text-red-650 hover:bg-red-50 rounded-lg font-bold transition flex items-center space-x-1">
+                        <i data-lucide="trash-2" class="h-4 w-4 text-red-600"></i>
+                        <span>Delete Lead</span>
+                    </button>
+                    <div class="flex space-x-2">
+                        <button onclick="closeCrmModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 rounded-lg font-bold transition">Cancel</button>
+                        <button onclick="submitEditLeadForm(this)" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition flex items-center space-x-1.5 shadow-sm">
+                            <i data-lucide="save" class="h-4 w-4"></i>
+                            <span>Save Changes</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
+
+        modal.innerHTML = modalContent;
+        lucide.createIcons();
+
+    } catch (e) {
+        showNotification('error', 'Error opening lead details: ' + e.message);
+        closeCrmModal();
+    }
+}
+
+async function submitEditLeadForm(btn) {
+    const leadId = document.getElementById('edit-lead-id').value;
+    const name = document.getElementById('edit-lead-name').value.trim();
+    if (!name) {
+        showNotification('error', 'Lead Name is required.');
+        return;
+    }
+    
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin text-white"></i>`;
+    lucide.createIcons();
+    
+    const company = document.getElementById('edit-lead-company').value.trim();
+    const email = document.getElementById('edit-lead-email').value.trim();
+    const phone = document.getElementById('edit-lead-phone').value.trim();
+    const stage = document.getElementById('edit-lead-stage').value;
+    const priority = document.getElementById('edit-lead-priority').value;
+    const budget = parseFloat(document.getElementById('edit-lead-budget').value || 0);
+    const source = document.getElementById('edit-lead-source').value.trim();
+    const services = document.getElementById('edit-lead-services').value.trim();
+    const requirements = document.getElementById('edit-lead-requirements').value.trim();
+    
+    const payload = {
+        id: leadId,
+        name,
+        company,
+        email,
+        phone,
+        stage,
+        priority,
+        budget,
+        lead_source: source,
+        services_required: services,
+        requirements
+    };
+    
+    try {
+        const data = await apiCall('crm/leads.php?action=PUT', 'POST', payload);
+        if (data.status === 'success') {
+            showNotification('success', 'Lead details updated successfully.');
+            closeCrmModal();
+            // Refresh viewport
+            const viewport = document.getElementById('main-content-viewport');
+            if (viewport) renderLeads(viewport);
+        } else {
+            showNotification('error', data.message);
+        }
+    } catch (e) {
+        showNotification('error', e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+        lucide.createIcons();
+    }
+}
+
+async function deleteCrmLead(btn, leadId) {
+    if (!confirm('Are you absolutely sure you want to delete this lead? This action is permanent.')) {
+        return;
+    }
+    
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin text-red-500"></i>`;
+    lucide.createIcons();
+    
+    try {
+        const data = await apiCall('crm/leads.php?action=DELETE', 'POST', { id: leadId });
+        if (data.status === 'success') {
+            showNotification('success', 'Lead deleted successfully.');
+            closeCrmModal();
+            // Refresh viewport
+            const viewport = document.getElementById('main-content-viewport');
+            if (viewport) renderLeads(viewport);
+        } else {
+            showNotification('error', data.message);
+        }
+    } catch (e) {
+        showNotification('error', e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+        lucide.createIcons();
+    }
+}
+
+function closeCrmModal() {
+    const modal = document.getElementById('crm-lead-modal');
+    if (modal) modal.remove();
 }
 
 // ----------------------------------------------------

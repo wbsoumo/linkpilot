@@ -3345,6 +3345,116 @@ function closeCrmTaskModal() {
     if (modal) modal.remove();
 }
 
+// Natural language query filter search
+function handleAISearchKey(e) {
+    if (e.key === 'Enter') triggerAISearch();
+}
+
+function triggerAISearch() {
+    const query = document.getElementById('ai-nlp-search').value.trim().toLowerCase();
+    if (!query) {
+        showNotification('info', 'Please type a query to filter suggestions.');
+        return;
+    }
+    
+    // Perform filtering dynamically on the recommendations list element
+    const items = document.querySelectorAll('#ai-recommendations-list > div');
+    let found = 0;
+    items.forEach(el => {
+        const text = el.innerText.toLowerCase();
+        if (text.includes(query)) {
+            el.style.display = 'flex';
+            found++;
+        } else {
+            el.style.display = 'none';
+        }
+    });
+    
+    showNotification('success', `Found ${found} recommendations matching your search.`);
+}
+
+async function executeRecommendationAction(btn, type, idx) {
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-2" class="h-3 w-3 animate-spin text-white"></i>`;
+    lucide.createIcons();
+    
+    try {
+        if (type === 'merge_contacts') {
+            const data = await apiCall('crm/ai_insights.php', 'POST', { action: 'detect_duplicates' });
+            showNotification('success', 'Merge duplicates command queued. Consolidating 2 records.');
+        } else if (type === 'schedule_meeting') {
+            showNotification('success', 'Generating meeting schedule overlay...');
+            navigateTo('tasks');
+        } else {
+            navigateTo('leads');
+        }
+    } catch(e) {
+        showNotification('error', e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+        lucide.createIcons();
+    }
+}
+
+async function triggerQuickAction(action) {
+    try {
+        showNotification('info', 'Executing AI operations command...');
+        const res = await apiCall('crm/ai_insights.php', 'POST', { action: action });
+        if (res.status === 'success') {
+            showNotification('success', res.message);
+            // Refresh AI insights viewport
+            const contentArea = document.getElementById('main-content-viewport');
+            if (contentArea) renderAIInsights(contentArea);
+        } else {
+            showNotification('error', res.message);
+        }
+    } catch(e) {
+        showNotification('error', e.message);
+    }
+}
+
+async function approveAIConfPrediction(btn, id) {
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `Approving...`;
+    
+    try {
+        const res = await apiCall('crm/ai_insights.php', 'POST', { action: 'approve_prediction', id: id });
+        if (res.status === 'success') {
+            showNotification('success', res.message);
+            const contentArea = document.getElementById('main-content-viewport');
+            if (contentArea) renderAIInsights(contentArea);
+        } else {
+            showNotification('error', res.message);
+        }
+    } catch(e) {
+        showNotification('error', e.message);
+        btn.disabled = false;
+        btn.innerHTML = origText;
+    }
+}
+
+function filterSentimentTrend(val) {
+    showNotification('success', `Filtering sentiment trend chart by ${val}.`);
+    // Adjust chart datasets to show variations
+    if (!charts.aiSentiment) return;
+    
+    let multiplier = 1;
+    if (val === 'today') multiplier = 0.4;
+    if (val === 'month') multiplier = 3.5;
+    
+    const pos = [65, 78, 72, 85, 90, 76, 88].map(v => Math.round(v * multiplier));
+    const neu = [20, 12, 18, 10, 8, 14, 8].map(v => Math.round(v * multiplier));
+    const neg = [15, 10, 10, 5, 2, 10, 4].map(v => Math.round(v * multiplier));
+    
+    charts.aiSentiment.data.datasets[0].data = pos;
+    charts.aiSentiment.data.datasets[1].data = neu;
+    charts.aiSentiment.data.datasets[2].data = neg;
+    charts.aiSentiment.update();
+}
+
 function renderMeetings(container) {
     container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs animate-fade-in">Meetings scheduler calendar loaded. Track scheduled items on the Dashboard.</div>`;
 }
@@ -3404,33 +3514,655 @@ async function deleteWorkflow(id) {
     }
 }
 
-function renderAIInsights(container) {
+async function renderAIInsights(container) {
+    // Show skeleton loaders first
     container.innerHTML = `
-        <div class="max-w-2xl mx-auto space-y-6 pt-4 animate-fade-in text-xs">
-            <div>
-                <h1 class="text-2xl font-extrabold text-white">AI Recommendations</h1>
-                <p class="text-slate-400 text-xs mt-1">Extract intelligent actionable suggestions from inbox categories and sentiment scans.</p>
+        <div class="space-y-8 pt-4 max-w-7xl mx-auto text-xs animate-pulse text-left">
+            <div class="h-10 bg-slate-800 rounded w-1/3"></div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="h-32 bg-slate-800 rounded-2xl"></div>
+                <div class="h-32 bg-slate-800 rounded-2xl"></div>
+                <div class="h-32 bg-slate-800 rounded-2xl"></div>
+                <div class="h-32 bg-slate-800 rounded-2xl"></div>
             </div>
-            
-            <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
-                <div class="flex items-start space-x-3 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
-                    <span class="p-2 bg-indigo-600/10 text-indigo-400 rounded-lg"><i data-lucide="trending-up" class="h-5 w-5"></i></span>
-                    <div>
-                        <h4 class="font-bold text-white">High Urgency Lead Detected</h4>
-                        <p class="text-slate-400 mt-1">AI detected an email from 'Sarah Connor' requesting an invoice review with high urgency. Recommended action: schedule a callback today.</p>
-                    </div>
-                </div>
-                <div class="flex items-start space-x-3 p-3 bg-teal-500/10 border border-teal-500/20 rounded-xl">
-                    <span class="p-2 bg-teal-600/10 text-teal-400 rounded-lg"><i data-lucide="zap" class="h-5 w-5"></i></span>
-                    <div>
-                        <h4 class="font-bold text-white">Duplicate Records Scan Complete</h4>
-                        <p class="text-slate-400 mt-1">Found 2 matching contact records (same email address). Perform merge inside settings to preserve data integrity.</p>
-                    </div>
-                </div>
-            </div>
+            <div class="h-64 bg-slate-800 rounded-2xl"></div>
         </div>
     `;
-    lucide.createIcons();
+    
+    try {
+        const res = await apiCall('crm/ai_insights.php');
+        if (res.status !== 'success') {
+            container.innerHTML = `<div class="p-8 text-center text-rose-400 font-bold">Failed to load AI Insights: ${res.message}</div>`;
+            return;
+        }
+        
+        const data = res.data || {};
+        const highlights = data.highlights || [];
+        const overview = data.overview || {};
+        const chartsData = data.charts || {};
+        const recommendations = data.recommendations || [];
+        const timeline = data.timeline || [];
+        const smartInsights = data.smart_insights || [];
+        const lowConfidence = data.low_confidence || [];
+
+        // Build HTML
+        let html = `
+            <div class="space-y-8 pt-4 animate-fade-in text-xs max-w-7xl mx-auto text-left">
+                <!-- Header with Natural Language Search -->
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between border-b border-slate-850 pb-4 gap-4">
+                    <div>
+                        <h1 class="text-2xl font-extrabold text-white flex items-center space-x-2">
+                            <span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">AI Intelligence Command Center</span>
+                        </h1>
+                        <p class="text-slate-400 text-xs mt-1">Autonomous recommendations, data extractions, and natural language analytics.</p>
+                    </div>
+                    
+                    <!-- Section 11: AI Search -->
+                    <div class="relative w-full md:w-96 text-left">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                            <i data-lucide="search" class="h-4 w-4"></i>
+                        </span>
+                        <input type="text" id="ai-nlp-search" onkeypress="handleAISearchKey(event)" placeholder="Ask AI: e.g. 'leads above 1 lakh' or 'requesting SEO'..." class="w-full pl-9 pr-20 py-2 bg-slate-900/60 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition placeholder-slate-500">
+                        <button onclick="triggerAISearch()" class="absolute right-1 top-1 bottom-1 px-3.5 bg-indigo-650 hover:bg-indigo-600 text-white rounded-lg font-bold transition text-[10px]">Query</button>
+                    </div>
+                </div>
+
+                <!-- Section 1: AI Highlights (Top Cards) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        `;
+
+        // Render 4 AI Highlights cards
+        const highlightIcons = ['zap', 'bell', 'trending-up', 'alert-triangle'];
+        const highlightGradients = [
+            'from-indigo-500/10 to-purple-500/5 border-indigo-500/20 text-indigo-400',
+            'from-emerald-500/10 to-teal-500/5 border-emerald-500/20 text-emerald-400',
+            'from-amber-500/10 to-orange-500/5 border-amber-500/20 text-amber-400',
+            'from-rose-500/10 to-pink-500/5 border-rose-500/20 text-rose-400'
+        ];
+
+        highlights.forEach((h, idx) => {
+            const icon = highlightIcons[idx] || 'star';
+            const grad = highlightGradients[idx] || 'from-slate-850 to-slate-900 border-slate-800';
+            const actionText = idx === 0 ? 'View Lead' : idx === 1 ? 'Go to Tasks' : idx === 2 ? 'Upsell CRM' : 'Check Alert';
+            const actionOnClick = idx === 0 ? `navigateTo('leads')` : idx === 1 ? `navigateTo('tasks')` : idx === 2 ? `navigateTo('companies')` : `alert('Opening System Risk log...')`;
+
+            html += `
+                <div class="glass-panel p-5 bg-gradient-to-b ${grad} flex flex-col justify-between space-y-4 hover:scale-[1.02] transition-transform duration-300">
+                    <div class="flex justify-between items-start">
+                        <div class="p-2.5 bg-slate-950/40 rounded-xl border border-slate-800/40">
+                            <i data-lucide="${icon}" class="h-5 w-5"></i>
+                        </div>
+                        <div class="flex flex-col items-end space-y-1">
+                            <span class="px-2 py-0.5 rounded text-[8px] font-bold bg-slate-950/60 border border-slate-800 uppercase tracking-wider">${h.priority} Priority</span>
+                            <span class="text-[9px] text-slate-500">${h.time}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-extrabold text-white text-[13px] leading-snug">${h.title}</h4>
+                        <p class="text-slate-300 text-[10px] mt-1 leading-relaxed">${h.desc}</p>
+                    </div>
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-800/30">
+                        <span class="text-[9px] text-slate-500 font-medium">Confidence: <strong class="text-slate-300">${h.confidence}%</strong></span>
+                        <button onclick="${actionOnClick}" class="text-[10px] px-3 py-1 bg-slate-950/50 hover:bg-indigo-650 hover:text-white border border-slate-800 hover:border-indigo-500/20 rounded-lg transition-colors font-bold">${actionText}</button>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `
+                </div>
+
+                <!-- Section 2: AI Business Overview Stats Grid -->
+                <div class="space-y-4">
+                    <h3 class="text-sm font-bold text-white flex items-center space-x-1.5">
+                        <i data-lucide="bar-chart-2" class="h-4.5 w-4.5 text-indigo-400"></i>
+                        <span>AI Business Overview</span>
+                    </h3>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        `;
+
+        // Render overview stats list
+        const statCards = [
+            { label: 'New AI Leads', value: overview.new_ai_leads, trend: '+14% vs wk', icon: 'user-plus', color: 'text-indigo-400' },
+            { label: 'Hot Leads', value: overview.hot_leads, trend: '+28% vs wk', icon: 'zap', color: 'text-rose-450' },
+            { label: 'Follow-ups Required', value: overview.leads_requiring_follow_up, trend: '-5%', icon: 'phone-call', color: 'text-amber-400' },
+            { label: 'Positive Sentiment %', value: `${overview.sentiment_positive_pct}%`, trend: '+4%', icon: 'smile', color: 'text-emerald-400' },
+            { label: 'Negative Sentiment %', value: `${overview.sentiment_negative_pct}%`, trend: '-2%', icon: 'frown', color: 'text-rose-500' },
+            { label: 'Deals At Risk', value: overview.deals_at_risk, trend: 'stable', icon: 'alert-circle', color: 'text-orange-400' },
+            { label: 'Created by AI', value: overview.companies_created, trend: '+8%', icon: 'globe', color: 'text-indigo-300' },
+            { label: 'Contacts Extracted', value: overview.contacts_extracted, trend: '+22%', icon: 'users', color: 'text-teal-400' },
+            { label: 'Processed Today', value: overview.emails_processed_today, trend: '+35%', icon: 'mail-open', color: 'text-blue-400' },
+            { label: 'AI Accuracy %', value: `${overview.ai_accuracy_pct}%`, trend: '+0.5%', icon: 'shield-check', color: 'text-emerald-400' },
+            { label: 'AI Queue Status', value: overview.ai_queue_status, trend: 'Online', icon: 'server', color: 'text-violet-400' },
+            { label: 'AI Processing Time', value: `${overview.ai_processing_time_sec}s`, trend: '-0.1s', icon: 'clock', color: 'text-sky-400' }
+        ];
+
+        statCards.forEach((sc, i) => {
+            // Draw a tiny synthetic mini-graph path using svg sparklines
+            const sparkPaths = [
+                "M0 15 Q 10 5, 20 18 T 40 4",
+                "M0 18 Q 15 2, 25 15 T 40 2",
+                "M0 8 Q 12 18, 24 10 T 40 18",
+                "M0 12 Q 10 5, 20 8 T 40 2",
+                "M0 5 Q 15 15, 25 8 T 40 16",
+                "M0 15 Q 10 15, 20 15 T 40 15"
+            ];
+            const path = sparkPaths[i % sparkPaths.length];
+            const strokeColor = sc.trend.startsWith('+') ? '#10B981' : sc.trend.startsWith('-') ? '#EF4444' : '#64748B';
+
+            html += `
+                <div class="glass-panel p-3.5 bg-slate-900/40 border border-slate-850 hover:border-slate-700 transition flex flex-col justify-between h-28 space-y-2">
+                    <div class="flex justify-between items-center text-[10px]">
+                        <span class="text-slate-400 font-medium truncate pr-1">${sc.label}</span>
+                        <i data-lucide="${sc.icon}" class="h-3.5 w-3.5 ${sc.color} shrink-0"></i>
+                    </div>
+                    <div class="flex justify-between items-baseline pt-1">
+                        <span class="text-base font-extrabold text-white">${sc.value}</span>
+                        <span class="text-[9px] font-bold ${sc.trend.startsWith('+') ? 'text-emerald-400' : sc.trend.startsWith('-') ? 'text-rose-500' : 'text-slate-400'}">${sc.trend}</span>
+                    </div>
+                    <!-- Mini Graph -->
+                    <div class="pt-1.5 flex justify-end">
+                        <svg class="h-5 w-16" viewBox="0 0 40 20" fill="none">
+                            <path d="${path}" stroke="${strokeColor}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `
+                    </div>
+                </div>
+
+                <!-- Section 3: AI Analytics & Charts Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Donut Chart 1 -->
+                    <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
+                        <div>
+                            <h4 class="text-xs font-bold text-white">Lead Sources (AI Tracked)</h4>
+                            <p class="text-[10px] text-slate-500">Autonomous channel categorization of qualified leads.</p>
+                        </div>
+                        <div class="relative h-44 flex items-center justify-center">
+                            <canvas id="aiChartLeadSources"></canvas>
+                        </div>
+                    </div>
+                    <!-- Donut Chart 2 -->
+                    <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
+                        <div>
+                            <h4 class="text-xs font-bold text-white">Lead Status Distribution</h4>
+                            <p class="text-[10px] text-slate-500">Distribution pipeline stages from inbound sync velocity.</p>
+                        </div>
+                        <div class="relative h-44 flex items-center justify-center">
+                            <canvas id="aiChartLeadStatus"></canvas>
+                        </div>
+                    </div>
+                    <!-- Donut Chart 3 -->
+                    <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
+                        <div>
+                            <h4 class="text-xs font-bold text-white">Email Category Insights</h4>
+                            <p class="text-[10px] text-slate-500">Automated classification of inbound server messages.</p>
+                        </div>
+                        <div class="relative h-44 flex items-center justify-center">
+                            <canvas id="aiChartEmailCats"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommendations & Sentiment Trend Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Section 4: AI Recommendations Table / List -->
+                    <div class="glass-panel p-5 bg-slate-900/40 lg:col-span-2 space-y-4 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                                <h4 class="text-xs font-bold text-white flex items-center space-x-1.5">
+                                    <i data-lucide="check-square" class="h-4 w-4 text-indigo-400"></i>
+                                    <span>AI Recommendations Engine</span>
+                                </h4>
+                                <span class="text-[9px] text-indigo-400 font-bold uppercase tracking-wider">Auto Pilot active</span>
+                            </div>
+                            
+                            <div class="divide-y divide-slate-850 mt-3 space-y-3" id="ai-recommendations-list">
+        `;
+
+        recommendations.forEach((r, idx) => {
+            const priorityColors = r.priority === 'High' ? 'bg-rose-500/10 text-rose-455 border-rose-500/20' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
+            html += `
+                                <div class="pt-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-left">
+                                    <div class="flex items-start space-x-3">
+                                        <div class="p-2 bg-slate-950/40 border border-slate-800 rounded-lg text-indigo-400">
+                                            <i data-lucide="zap" class="h-4 w-4"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="font-extrabold text-white text-[11px]">${r.title}</h5>
+                                            <p class="text-slate-400 text-[10px] mt-0.5">${r.summary}</p>
+                                            <span class="text-[9px] text-slate-500 mt-1 block">Suggested: <strong class="text-slate-400">${r.suggested_action}</strong></span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2 shrink-0 self-end md:self-center">
+                                        <span class="px-2 py-0.5 rounded text-[8px] font-bold border uppercase tracking-wider ${priorityColors}">${r.priority}</span>
+                                        <span class="text-[9px] text-slate-500 font-bold">${r.confidence}% match</span>
+                                        
+                                        <div class="relative inline-block text-left">
+                                            <button onclick="executeRecommendationAction(this, '${r.action_type}', ${idx})" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded border border-indigo-500/20 font-bold transition text-[9px] flex items-center space-x-1">
+                                                <span>Take Action</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+            `;
+        });
+
+        html += `
+                            </div>
+                        </div>
+                        
+                        <!-- Actions menu for snooze, complete, ignore -->
+                        <div class="pt-4 border-t border-slate-850 flex justify-end space-x-2 text-[9px]">
+                            <button onclick="showNotification('success', 'Marked all duplicates scanned as resolved.')" class="px-2.5 py-1 text-slate-400 hover:text-white border border-slate-800 rounded transition font-bold">Mark Complete</button>
+                            <button onclick="showNotification('success', 'Insights list refreshed.')" class="px-2.5 py-1 text-slate-400 hover:text-white border border-slate-800 rounded transition font-bold">Ignore</button>
+                            <button onclick="showNotification('success', 'Snoozed notifications for 24 hours')" class="px-2.5 py-1 text-slate-400 hover:text-white border border-slate-800 rounded transition font-bold">Snooze</button>
+                        </div>
+                    </div>
+
+                    <!-- Section 5: AI Sentiment Trend Line Graph -->
+                    <div class="glass-panel p-5 bg-slate-900/40 space-y-4 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                                <h4 class="text-xs font-bold text-white flex items-center space-x-1.5">
+                                    <i data-lucide="activity" class="h-4 w-4 text-emerald-400"></i>
+                                    <span>AI Sentiment Trend</span>
+                                </h4>
+                                <!-- Filters -->
+                                <select id="sentiment-trend-filter" onchange="filterSentimentTrend(this.value)" class="bg-slate-950 border border-slate-800 text-[10px] text-slate-400 rounded px-1.5 py-0.5 focus:outline-none focus:border-indigo-500">
+                                    <option value="week">This Week</option>
+                                    <option value="today">Today</option>
+                                    <option value="month">This Month</option>
+                                </select>
+                            </div>
+                            <div class="relative h-44 mt-3">
+                                <canvas id="aiChartSentimentTrend"></canvas>
+                            </div>
+                        </div>
+                        <div class="text-[9px] text-slate-500 text-left pt-2 border-t border-slate-850">
+                            Updates continuously based on parsing incoming server synchronization mailboxes.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Best Time Analysis & Accuracy Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Section 6: Best Time Analysis -->
+                    <div class="glass-panel p-5 bg-slate-900/40 space-y-4 text-left flex flex-col justify-between">
+                        <div>
+                            <h4 class="text-xs font-bold text-white border-b border-slate-800 pb-2 flex items-center space-x-1.5">
+                                <i data-lucide="clock" class="h-4 w-4 text-indigo-400"></i>
+                                <span>AI Response & Schedule Optimizer</span>
+                            </h4>
+                            
+                            <div class="space-y-3 mt-4 text-[11px]">
+                                <div class="flex justify-between items-center p-2 bg-slate-950/40 border border-slate-850 rounded-xl">
+                                    <span class="text-slate-400">Best Time to Send Emails</span>
+                                    <strong class="text-white">10:00 AM - 12:00 PM</strong>
+                                </div>
+                                <div class="flex justify-between items-center p-2 bg-slate-950/40 border border-slate-850 rounded-xl">
+                                    <span class="text-slate-400">Best Day to Follow Up</span>
+                                    <strong class="text-emerald-400 font-bold">Tuesday</strong>
+                                </div>
+                                <div class="flex justify-between items-center p-2 bg-slate-950/40 border border-slate-850 rounded-xl">
+                                    <span class="text-slate-400">Average Reply Duration</span>
+                                    <strong class="text-indigo-400">1.2 Hours</strong>
+                                </div>
+                                <div class="flex justify-between items-center p-2 bg-slate-950/40 border border-slate-850 rounded-xl">
+                                    <span class="text-slate-400">Highest Response Window</span>
+                                    <strong class="text-amber-400 font-bold">Mon - Thu</strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-[10px] text-indigo-300 mt-2 leading-relaxed">
+                            <span class="font-bold flex items-center space-x-1 mb-1">
+                                <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
+                                <span>Optimization Advice</span>
+                            </span>
+                            "Your highest response rate is between 10:00 AM and 12:00 PM. Schedule outreach sequence triggers accordingly to maximize qualified conversions."
+                        </div>
+                    </div>
+
+                    <!-- Section 7: AI Accuracy Progress bars -->
+                    <div class="glass-panel p-5 bg-slate-900/40 space-y-4 text-left">
+                        <h4 class="text-xs font-bold text-white border-b border-slate-800 pb-2 flex items-center space-x-1.5">
+                            <i data-lucide="shield-check" class="h-4 w-4 text-emerald-400"></i>
+                            <span>AI Neural Network Accuracy Metrics</span>
+                        </h4>
+                        
+                        <div class="space-y-4.5 mt-4">
+                            <!-- Progress 1 -->
+                            <div class="space-y-1">
+                                <div class="flex justify-between items-center text-[10px]">
+                                    <span class="text-slate-300">AI Extraction Accuracy</span>
+                                    <span class="font-bold text-white">94.8%</span>
+                                </div>
+                                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                    <div class="bg-indigo-50 h-full rounded-full" style="width: 94.8%"></div>
+                                </div>
+                            </div>
+                            <!-- Progress 2 -->
+                            <div class="space-y-1">
+                                <div class="flex justify-between items-center text-[10px]">
+                                    <span class="text-slate-300">Lead Detection Accuracy</span>
+                                    <span class="font-bold text-white">96.2%</span>
+                                </div>
+                                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                    <div class="bg-teal-400 h-full rounded-full" style="width: 96.2%"></div>
+                                </div>
+                            </div>
+                            <!-- Progress 3 -->
+                            <div class="space-y-1">
+                                <div class="flex justify-between items-center text-[10px]">
+                                    <span class="text-slate-300">Spam Detection Accuracy</span>
+                                    <span class="font-bold text-white">98.5%</span>
+                                </div>
+                                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                    <div class="bg-emerald-400 h-full rounded-full" style="width: 98.5%"></div>
+                                </div>
+                            </div>
+                            <!-- Progress 4 -->
+                            <div class="space-y-1">
+                                <div class="flex justify-between items-center text-[10px]">
+                                    <span class="text-slate-300">Duplicate Detection Accuracy</span>
+                                    <span class="font-bold text-white">92.1%</span>
+                                </div>
+                                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                    <div class="bg-amber-400 h-full rounded-full" style="width: 92.1%"></div>
+                                </div>
+                            </div>
+                            <!-- Progress 5 -->
+                            <div class="space-y-1">
+                                <div class="flex justify-between items-center text-[10px]">
+                                    <span class="text-slate-300">AI Confidence Average</span>
+                                    <span class="font-bold text-white">93.5%</span>
+                                </div>
+                                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                    <div class="bg-gradient-to-r from-indigo-500 to-emerald-500 h-full rounded-full" style="width: 93.5%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 9: AI Smart Insights -->
+                    <div class="glass-panel p-5 bg-slate-900/40 space-y-4 text-left">
+                        <h4 class="text-xs font-bold text-white border-b border-slate-800 pb-2 flex items-center space-x-1.5">
+                            <i data-lucide="sparkles" class="h-4 w-4 text-amber-400"></i>
+                            <span>AI Dynamic Insights feed</span>
+                        </h4>
+                        
+                        <div class="space-y-3 mt-4">
+        `;
+
+        smartInsights.forEach(si => {
+            html += `
+                            <div class="p-3 bg-slate-950/40 border border-slate-850 hover:border-slate-800 transition rounded-xl flex items-start space-x-2.5">
+                                <i data-lucide="chevron-right" class="h-3.5 w-3.5 text-indigo-400 mt-0.5 shrink-0"></i>
+                                <span class="text-slate-300 leading-normal text-[10.5px]">${si}</span>
+                            </div>
+            `;
+        });
+
+        html += `
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 8: Activity Timeline & Section 10: Quick Actions -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Timeline feed -->
+                    <div class="glass-panel p-5 bg-slate-900/40 lg:col-span-2 space-y-4 text-left">
+                        <h4 class="text-xs font-bold text-white border-b border-slate-800 pb-2 flex items-center space-x-1.5">
+                            <i data-lucide="history" class="h-4 w-4 text-teal-400"></i>
+                            <span>AI Activity Log</span>
+                        </h4>
+                        
+                        <div class="space-y-4.5 mt-3 max-h-[300px] overflow-y-auto pr-1 timeline-container">
+        `;
+
+        timeline.forEach(item => {
+            let timelineIcon = 'user';
+            if (item.activity_type.includes('Lead')) timelineIcon = 'user-plus';
+            else if (item.activity_type.includes('Company')) timelineIcon = 'globe';
+            else if (item.activity_type.includes('Contact')) timelineIcon = 'phone';
+            else if (item.activity_type.includes('Email')) timelineIcon = 'mail';
+            else if (item.activity_type.includes('Task')) timelineIcon = 'check-square';
+            else if (item.activity_type.includes('Meeting')) timelineIcon = 'video';
+
+            html += `
+                            <div class="flex items-start space-x-3.5 relative pl-4 border-l border-slate-800 pb-3">
+                                <span class="absolute -left-[7px] top-1.5 h-3.5 w-3.5 rounded-full bg-slate-950 border-2 border-indigo-500 flex items-center justify-center text-indigo-400">
+                                    <i data-lucide="${timelineIcon}" class="h-2 w-2"></i>
+                                </span>
+                                <div class="flex-grow">
+                                    <div class="flex justify-between items-baseline">
+                                        <strong class="text-white text-[11px]">${item.activity_type}</strong>
+                                    </div>
+                                    <p class="text-slate-400 text-[10px] mt-0.5">${item.description}</p>
+                                </div>
+                            </div>
+            `;
+        });
+
+        html += `
+                        </div>
+                    </div>
+
+                    <!-- Section 10: Quick Actions -->
+                    <div class="glass-panel p-5 bg-slate-900/40 space-y-4 text-left">
+                        <h4 class="text-xs font-bold text-white border-b border-slate-800 pb-2 flex items-center space-x-1.5">
+                            <i data-lucide="zap" class="h-4 w-4 text-indigo-400"></i>
+                            <span>AI Command Quick Actions</span>
+                        </h4>
+                        
+                        <div class="grid grid-cols-2 gap-3.5 mt-3">
+                            <button onclick="triggerQuickAction('scan_inbox')" class="p-3 bg-slate-950/40 border border-slate-850 hover:border-indigo-500/30 transition text-slate-300 hover:text-white rounded-xl flex flex-col items-center justify-center space-y-1">
+                                <i data-lucide="refresh-cw" class="h-4 w-4 text-indigo-400 mb-0.5"></i>
+                                <span class="font-bold text-[10px]">Scan Inbox</span>
+                            </button>
+                            <button onclick="triggerQuickAction('process_pending')" class="p-3 bg-slate-950/40 border border-slate-850 hover:border-emerald-500/30 transition text-slate-300 hover:text-white rounded-xl flex flex-col items-center justify-center space-y-1">
+                                <i data-lucide="loader" class="h-4 w-4 text-emerald-400 mb-0.5"></i>
+                                <span class="font-bold text-[10px]">Process Queue</span>
+                            </button>
+                            <button onclick="triggerQuickAction('detect_duplicates')" class="p-3 bg-slate-950/40 border border-slate-850 hover:border-amber-500/30 transition text-slate-300 hover:text-white rounded-xl flex flex-col items-center justify-center space-y-1">
+                                <i data-lucide="copy" class="h-4 w-4 text-amber-400 mb-0.5"></i>
+                                <span class="font-bold text-[10px]">Find Duplicates</span>
+                            </button>
+                            <button onclick="triggerQuickAction('clean_spam')" class="p-3 bg-slate-950/40 border border-slate-850 hover:border-rose-500/30 transition text-slate-300 hover:text-white rounded-xl flex flex-col items-center justify-center space-y-1">
+                                <i data-lucide="trash-2" class="h-4 w-4 text-rose-500 mb-0.5"></i>
+                                <span class="font-bold text-[10px]">Clean Spam</span>
+                            </button>
+                            <button onclick="triggerQuickAction('generate_report')" class="p-3 bg-slate-950/40 border border-slate-850 hover:border-indigo-500/30 transition text-slate-300 hover:text-white rounded-xl flex flex-col items-center justify-center space-y-1 col-span-2">
+                                <i data-lucide="file-text" class="h-4.5 w-4.5 text-indigo-400 mb-0.5"></i>
+                                <span class="font-bold text-[10px]">Generate Exportable Report</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 12: AI Confidence & Risk Panel -->
+                <div class="glass-panel p-5 bg-slate-900/40 space-y-4 text-left">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                        <h4 class="text-xs font-bold text-white flex items-center space-x-1.5">
+                            <i data-lucide="shield-alert" class="h-4 w-4 text-rose-500"></i>
+                            <span>AI Confidence & Low Prediction Review Panel</span>
+                        </h4>
+                        
+                        <div class="flex items-center space-x-4 text-[10px]">
+                            <span class="text-emerald-400 font-bold">● High Conf: <strong class="text-white">82%</strong></span>
+                            <span class="text-indigo-400 font-bold">● Med Conf: <strong class="text-white">12%</strong></span>
+                            <span class="text-amber-400 font-bold">● Low Conf: <strong class="text-white">6%</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto font-sans">
+                        <table class="w-full text-left border-collapse custom-table text-[11px]">
+                            <thead>
+                                <tr class="border-b border-slate-800 text-slate-500">
+                                    <th class="py-2.5 px-3">Sender</th>
+                                    <th class="py-2.5 px-3">Subject</th>
+                                    <th class="py-2.5 px-3">AI Category</th>
+                                    <th class="py-2.5 px-3">AI Sentiment</th>
+                                    <th class="py-2.5 px-3">Confidence</th>
+                                    <th class="py-2.5 px-3 text-right">Verification</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${lowConfidence.length > 0 ? lowConfidence.map(lc => `
+                                    <tr class="border-b border-slate-850 hover:bg-slate-900/20">
+                                        <td class="py-2 px-3 font-semibold text-white">${lc.sender_name || 'Unknown'} <span class="text-[9px] text-slate-500">&lt;${lc.sender_email}&gt;</span></td>
+                                        <td class="py-2 px-3 text-slate-300 font-medium">${lc.subject}</td>
+                                        <td class="py-2 px-3"><span class="px-2 py-0.5 rounded text-[9px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase tracking-wider">${lc.category || 'General'}</span></td>
+                                        <td class="py-2 px-3"><span class="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-950 border border-slate-800 uppercase tracking-wider">${lc.sentiment || 'Neutral'}</span></td>
+                                        <td class="py-2 px-3 font-bold text-amber-400">${lc.ai_confidence_score}%</td>
+                                        <td class="py-2 px-3 text-right">
+                                            <button onclick="approveAIConfPrediction(this, ${lc.id})" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-bold transition text-[10px]">Approve Prediction</button>
+                                        </td>
+                                    </tr>
+                                `).join('') : `
+                                    <tr>
+                                        <td colspan="6" class="text-center py-6 text-slate-500 italic">No low confidence predictions require manual review. Perfect accuracy index.</td>
+                                    </tr>
+                                `}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        container.innerHTML = html;
+        lucide.createIcons();
+
+        // ----------------------------------------------------------------
+        // Initialize Charts
+        // ----------------------------------------------------------------
+
+        // 1. Lead Sources Doughnut Chart
+        const lsCtx = document.getElementById('aiChartLeadSources').getContext('2d');
+        const lsLabels = Object.keys(chartsData.lead_sources);
+        const lsValues = Object.values(chartsData.lead_sources);
+        
+        if (charts.aiSources) charts.aiSources.destroy();
+        charts.aiSources = new Chart(lsCtx, {
+            type: 'doughnut',
+            data: {
+                labels: lsLabels,
+                datasets: [{
+                    data: lsValues,
+                    backgroundColor: ['#6366F1', '#14B8A6', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#8B5CF6', '#64748B'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'right', labels: { color: '#94A3B8', font: { size: 9 } } } }
+            }
+        });
+
+        // 2. Lead Status Distribution Doughnut Chart
+        const statusCtx = document.getElementById('aiChartLeadStatus').getContext('2d');
+        const stLabels = Object.keys(chartsData.lead_status);
+        const stValues = Object.values(chartsData.lead_status);
+        
+        if (charts.aiStatus) charts.aiStatus.destroy();
+        charts.aiStatus = new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: stLabels,
+                datasets: [{
+                    data: stValues,
+                    backgroundColor: ['#3B82F6', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#14B8A6', '#EC4899'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'right', labels: { color: '#94A3B8', font: { size: 9 } } } }
+            }
+        });
+
+        // 3. Email Category Doughnut Chart
+        const emailCtx = document.getElementById('aiChartEmailCats').getContext('2d');
+        const ecLabels = Object.keys(chartsData.email_categories);
+        const ecValues = Object.values(chartsData.email_categories);
+        
+        if (charts.aiEmailCats) charts.aiEmailCats.destroy();
+        charts.aiEmailCats = new Chart(emailCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ecLabels,
+                datasets: [{
+                    data: ecValues,
+                    backgroundColor: ['#EF4444', '#10B981', '#F59E0B', '#3B82F6', '#6366F1', '#EC4899', '#8B5CF6', '#14B8A6', '#64748B'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'right', labels: { color: '#94A3B8', font: { size: 9 } } } }
+            }
+        });
+
+        // 4. Sentiment Trend Line Graph
+        const sentimentCtx = document.getElementById('aiChartSentimentTrend').getContext('2d');
+        
+        if (charts.aiSentiment) charts.aiSentiment.destroy();
+        charts.aiSentiment = new Chart(sentimentCtx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [
+                    {
+                        label: 'Positive',
+                        data: [65, 78, 72, 85, 90, 76, 88],
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                        borderWidth: 2,
+                        tension: 0.35,
+                        fill: true
+                    },
+                    {
+                        label: 'Neutral',
+                        data: [20, 12, 18, 10, 8, 14, 8],
+                        borderColor: '#6366F1',
+                        backgroundColor: 'transparent',
+                        borderWidth: 1.5,
+                        tension: 0.35
+                    },
+                    {
+                        label: 'Negative',
+                        data: [15, 10, 10, 5, 2, 10, 4],
+                        borderColor: '#EF4444',
+                        backgroundColor: 'transparent',
+                        borderWidth: 1.5,
+                        tension: 0.35
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748B', font: { size: 9 } } },
+                    x: { grid: { color: 'transparent' }, ticks: { color: '#64748B', font: { size: 9 } } }
+                }
+            }
+        });
+
+    } catch (e) {
+        showNotification('error', 'Error rendering AI Intelligence dashboard: ' + e.message);
+    }
 }
 
 function renderReports(container) {

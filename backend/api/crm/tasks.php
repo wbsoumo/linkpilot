@@ -69,14 +69,16 @@ try {
         $dueDate = !empty($input['due_date']) ? $input['due_date'] : null;
         $priority = trim($input['priority'] ?? 'medium');
         $status = trim($input['status'] ?? 'pending');
+        $dueTime = !empty($input['due_time']) ? trim($input['due_time']) : null;
+        $meetLink = !empty($input['meet_link']) ? trim($input['meet_link']) : null;
         
         $companyId = !empty($input['company_id']) ? (int)$input['company_id'] : null;
         $contactId = !empty($input['contact_id']) ? (int)$input['contact_id'] : null;
         $leadId = !empty($input['lead_id']) ? (int)$input['lead_id'] : null;
         
-        $stmt = $db->prepare("INSERT INTO crm_tasks (user_id, company_id, contact_id, lead_id, title, description, due_date, status, priority) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $db->prepare("INSERT INTO crm_tasks (user_id, company_id, contact_id, lead_id, title, description, due_date, status, priority, due_time, meet_link) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
-            $userId, $companyId, $contactId, $leadId, $title, $description, $dueDate, $status, $priority
+            $userId, $companyId, $contactId, $leadId, $title, $description, $dueDate, $status, $priority, $dueTime, $meetLink
         ]);
         
         $taskId = $db->lastInsertId();
@@ -100,7 +102,7 @@ try {
         }
         
         // Check ownership
-        $stmtCheck = $db->prepare("SELECT id, title, status, company_id, contact_id, lead_id FROM crm_tasks WHERE id = ? AND user_id = ?");
+        $stmtCheck = $db->prepare("SELECT id, title, status, company_id, contact_id, lead_id, due_time, meet_link FROM crm_tasks WHERE id = ? AND user_id = ?");
         $stmtCheck->execute([$taskId, $userId]);
         $task = $stmtCheck->fetch();
         if (!$task) {
@@ -112,14 +114,16 @@ try {
         $dueDate = !empty($input['due_date']) ? $input['due_date'] : null;
         $priority = trim($input['priority'] ?? 'medium');
         $status = trim($input['status'] ?? $task['status']);
+        $dueTime = isset($input['due_time']) ? (!empty($input['due_time']) ? trim($input['due_time']) : null) : $task['due_time'];
+        $meetLink = isset($input['meet_link']) ? (!empty($input['meet_link']) ? trim($input['meet_link']) : $task['meet_link']);
         
         $companyId = !empty($input['company_id']) ? (int)$input['company_id'] : $task['company_id'];
         $contactId = !empty($input['contact_id']) ? (int)$input['contact_id'] : $task['contact_id'];
         $leadId = !empty($input['lead_id']) ? (int)$input['lead_id'] : $task['lead_id'];
         
-        $stmt = $db->prepare("UPDATE crm_tasks SET company_id = ?, contact_id = ?, lead_id = ?, title = ?, description = ?, due_date = ?, status = ?, priority = ? WHERE id = ? AND user_id = ?");
+        $stmt = $db->prepare("UPDATE crm_tasks SET company_id = ?, contact_id = ?, lead_id = ?, title = ?, description = ?, due_date = ?, status = ?, priority = ?, due_time = ?, meet_link = ? WHERE id = ? AND user_id = ?");
         $stmt->execute([
-            $companyId, $contactId, $leadId, $title, $description, $dueDate, $status, $priority, $taskId, $userId
+            $companyId, $contactId, $leadId, $title, $description, $dueDate, $status, $priority, $dueTime, $meetLink, $taskId, $userId
         ]);
         
         // Log changes

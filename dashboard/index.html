@@ -65,7 +65,7 @@
                     <div class="flex items-center">
                         <i data-lucide="check-square" class="h-4 w-4 mr-2.5"></i><span>Tasks</span>
                     </div>
-                    <span class="bg-blue-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">8</span>
+                    <span id="sidebar-tasks-today-badge" class="bg-blue-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full hidden">0</span>
                 </a>
                 <a href="#/email-intelligence" class="sidebar-nav-link text-slate-300 transition duration-150">
                     <i data-lucide="mail" class="h-4 w-4 mr-2.5"></i><span>Email Processing</span>
@@ -151,6 +151,12 @@
                 <button class="h-8 w-8 rounded-full border border-slate-200 bg-[#f8fafc] hover:bg-slate-100 flex items-center justify-center text-slate-600 transition">
                     <i data-lucide="plus" class="h-4 w-4"></i>
                 </button>
+
+                <!-- Today's Tasks Badge in Header -->
+                <a href="#/tasks" class="relative h-8 w-8 flex items-center justify-center hover:text-slate-900 transition hover:bg-slate-100 rounded-full" title="Tasks Due Today">
+                    <i data-lucide="check-square" class="h-4.5 w-4.5 text-slate-650 text-indigo-600"></i>
+                    <span id="header-tasks-today-badge" class="absolute -top-0.5 -right-0.5 bg-indigo-650 text-white text-[7px] font-extrabold px-1.5 py-0.5 rounded-full hidden">0</span>
+                </a>
 
                 <!-- Notifications icon -->
                 <button class="relative h-8 w-8 flex items-center justify-center hover:text-slate-900 transition">

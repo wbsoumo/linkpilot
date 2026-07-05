@@ -388,6 +388,21 @@ try {
         $messages[] = "Linkedin scraper settings updated.";
     }
 
+    // Alter table crm_tasks to add due_time and meet_link if they do not exist
+    try {
+        $db->exec("ALTER TABLE `crm_tasks` ADD COLUMN `due_time` TIME DEFAULT NULL");
+        $messages[] = "Added column 'due_time' to 'crm_tasks'.";
+    } catch (Exception $e) {
+        // Column might already exist
+    }
+
+    try {
+        $db->exec("ALTER TABLE `crm_tasks` ADD COLUMN `meet_link` VARCHAR(500) DEFAULT NULL");
+        $messages[] = "Added column 'meet_link' to 'crm_tasks'.";
+    } catch (Exception $e) {
+        // Column might already exist
+    }
+
     sendJsonResponse('success', 'LinkPilot CRM v2.0 Database Migrations executed successfully.', [
         'details' => $messages
     ]);

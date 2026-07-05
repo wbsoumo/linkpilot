@@ -185,6 +185,9 @@ function navigateTo(view, params = {}) {
     currentView = view;
     window.location.hash = `#/${view}`;
     
+    // Dynamically update today's tasks badge count on sidebar and top header
+    updateGlobalTaskBadges();
+    
     // Highlight sidebar links
     document.querySelectorAll('.sidebar-nav-link').forEach(link => {
         const href = link.getAttribute('href');
@@ -413,7 +416,7 @@ async function renderDashboard(container) {
                 <!-- Dashboard charts and timeline widgets -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <!-- Trends Chart -->
-                    <div class="glass-panel p-6 bg-slate-900/40 lg:col-span-2 space-y-4">
+                    <div class="glass-panel p-6 bg-slate-900/40 lg:col-span-2 space-y-4 text-left">
                         <div>
                             <h3 class="text-lg font-bold text-white">Outreach & Leads Velocity</h3>
                             <p class="text-xs text-slate-400">Comparing emails synchronized against qualified leads generated.</p>
@@ -422,30 +425,37 @@ async function renderDashboard(container) {
                             <canvas id="dashboardTrendChart"></canvas>
                         </div>
                     </div>
-                    <!-- Recent Activities Timeline -->
-                    <div class="glass-panel p-6 bg-slate-900/40 space-y-4 flex flex-col h-full">
-                        <h3 class="text-lg font-bold text-white border-b border-slate-800 pb-2">Recent Activities</h3>
-                        <div class="flex-grow overflow-y-auto pr-1 space-y-4 max-h-[300px] timeline-container" id="dash-timeline-feed">
-                            <p class="text-xs text-slate-500 py-6 text-center">Loading feeds...</p>
+                    <!-- Today's Tasks Checklist -->
+                    <div class="glass-panel p-6 bg-slate-900/40 space-y-4 flex flex-col h-full text-left">
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                            <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                                <i data-lucide="check-square" class="h-4.5 w-4.5 text-indigo-400"></i>
+                                <span>Today's Tasks</span>
+                            </h3>
+                            <a href="#/tasks" class="text-xs text-indigo-400 hover:text-indigo-300 font-bold transition">View Hub</a>
+                        </div>
+                        <div class="flex-grow overflow-y-auto pr-1 space-y-3 max-h-[220px]" id="dash-tasks-today-list">
+                            <p class="text-xs text-slate-500 py-6 text-center">Loading tasks...</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Additional Charts Row -->
+                <!-- Additional Charts & Timeline Row -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="glass-panel p-6 bg-slate-900/40 space-y-4">
+                    <div class="glass-panel p-6 bg-slate-900/40 space-y-4 text-left">
                         <h4 class="text-sm font-bold text-white text-left">Lead Sources Distribution</h4>
                         <div class="relative h-60 flex items-center justify-center">
                             <canvas id="leadSourcesChart"></canvas>
                         </div>
                     </div>
-                    <div class="glass-panel p-6 bg-slate-900/40 space-y-4">
-                        <h4 class="text-sm font-bold text-white text-left">AI Category Breakdowns</h4>
-                        <div class="relative h-60 flex items-center justify-center">
-                            <canvas id="aiCategoriesChart"></canvas>
+                    <!-- Recent Activities Timeline -->
+                    <div class="glass-panel p-6 bg-slate-900/40 space-y-4 flex flex-col h-full text-left">
+                        <h4 class="text-sm font-bold text-white text-left border-b border-slate-800 pb-2">Recent Activities</h4>
+                        <div class="flex-grow overflow-y-auto pr-1 space-y-4 max-h-[200px] timeline-container" id="dash-timeline-feed">
+                            <p class="text-xs text-slate-500 py-6 text-center">Loading feeds...</p>
                         </div>
                     </div>
-                    <div class="glass-panel p-6 bg-slate-900/40 space-y-4">
+                    <div class="glass-panel p-6 bg-slate-900/40 space-y-4 text-left">
                         <h4 class="text-sm font-bold text-white text-left">Sales Pipeline Funnel (₹)</h4>
                         <div class="relative h-60 flex items-center justify-center">
                             <canvas id="pipelineFunnelChart"></canvas>
@@ -482,9 +492,78 @@ async function renderDashboard(container) {
         document.getElementById('stat-revenue-val').textContent = '₹' + totalRev.toLocaleString('en-IN');
         
         // Tasks Due Today & Follow-ups
-        const tasksToday = tasksData.tasks.filter(t => t.due_date === new Date().toISOString().split('T')[0]).length;
-        document.getElementById('stat-tasks-today').textContent = tasksToday;
+        const todayStr = new Date().toISOString().split('T')[0];
+        const pendingTodayTasks = tasksData.tasks.filter(t => {
+            return t.status !== 'completed' && t.due_date && t.due_date <= todayStr;
+        });
+        document.getElementById('stat-tasks-today').textContent = pendingTodayTasks.length;
         document.getElementById('stat-followups-due').textContent = tasksData.tasks.filter(t => t.status === 'pending').length;
+        
+        // Render Dashboard Today's Tasks list
+        const tasksContainer = document.getElementById('dash-tasks-today-list');
+        if (pendingTodayTasks.length > 0) {
+            tasksContainer.innerHTML = pendingTodayTasks.map(t => {
+                const priority = t.priority || 'medium';
+                let priorityBadge = '';
+                if (priority === 'high') {
+                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase">High</span>`;
+                } else if (priority === 'medium') {
+                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase">Medium</span>`;
+                } else {
+                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-slate-800 text-slate-400 border border-slate-700 uppercase">Low</span>`;
+                }
+
+                // Parse category prefix out
+                let displayTitle = t.title || '';
+                let categoryHTML = '';
+                if (displayTitle.startsWith('[Follow-up]')) {
+                    categoryHTML = `<span class="text-indigo-400 font-bold mr-1">[Follow-up]</span>`;
+                    displayTitle = displayTitle.replace('[Follow-up] ', '');
+                } else if (displayTitle.startsWith('[Reply]')) {
+                    categoryHTML = `<span class="text-emerald-400 font-bold mr-1">[Reply]</span>`;
+                    displayTitle = displayTitle.replace('[Reply] ', '');
+                } else if (displayTitle.startsWith('[Meeting]')) {
+                    categoryHTML = `<span class="text-blue-400 font-bold mr-1">[Meeting]</span>`;
+                    displayTitle = displayTitle.replace('[Meeting] ', '');
+                } else if (displayTitle.startsWith('[Arrange]')) {
+                    categoryHTML = `<span class="text-amber-400 font-bold mr-1">[Arrange]</span>`;
+                    displayTitle = displayTitle.replace('[Arrange] ', '');
+                }
+
+                const timeStr = t.due_time ? `<span class="text-slate-500 ml-1.5">@ ${t.due_time.substring(0, 5)}</span>` : '';
+                const meetHTML = t.meet_link ? `
+                    <a href="${t.meet_link}" target="_blank" class="mt-1 flex items-center space-x-1 text-[9px] text-blue-400 hover:text-blue-300 font-bold bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20 transition w-fit inline-flex">
+                        <i data-lucide="video" class="h-3 w-3 mr-0.5"></i>
+                        <span>Join Meet</span>
+                    </a>
+                ` : '';
+
+                return `
+                    <div class="p-2.5 bg-slate-900/60 border border-slate-850 rounded-xl flex items-start space-x-2.5 hover:border-indigo-500/30 transition">
+                        <input type="checkbox" onclick="dashboardToggleTask(${t.id}, '${t.status}')" class="mt-0.5 h-3.5 w-3.5 border-slate-700 rounded text-indigo-500 bg-slate-950 focus:ring-indigo-500 cursor-pointer">
+                        <div class="flex-grow text-left">
+                            <div class="font-bold text-white text-[11px] leading-tight flex flex-wrap items-center">
+                                ${categoryHTML}
+                                <span>${displayTitle}</span>
+                                ${timeStr}
+                            </div>
+                            <p class="text-[9px] text-slate-400 mt-0.5 line-clamp-1">${t.description || 'No description.'}</p>
+                            ${meetHTML}
+                        </div>
+                        <div class="shrink-0 flex items-center">
+                            ${priorityBadge}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            tasksContainer.innerHTML = `
+                <div class="text-center py-6 text-slate-550 text-[10px] flex flex-col items-center justify-center space-y-1.5">
+                    <i data-lucide="check-circle-2" class="h-6 w-6 text-emerald-500"></i>
+                    <span class="text-slate-400">No pending tasks due today.</span>
+                </div>
+            `;
+        }
         
         // Meetings
         document.getElementById('stat-meetings').textContent = meetingsData.meetings.length;
@@ -508,6 +587,9 @@ async function renderDashboard(container) {
             timelineContainer.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">No interactions logged yet.</p>`;
         }
         
+        // Update global task badges
+        updateGlobalTaskBadges();
+
         // Initialize Charts
         renderDashboardCharts(data);
         
@@ -519,123 +601,192 @@ async function renderDashboard(container) {
 
 function renderDashboardCharts(data) {
     // 1. Line Trend Chart
-    const trendCtx = document.getElementById('dashboardTrendChart').getContext('2d');
-    
-    // Fallback Mock data if trend datasets are empty
-    const emailLabels = data.emails_received_trend.length > 0 ? data.emails_received_trend.map(e => e.date) : ['Jul 01', 'Jul 02', 'Jul 03', 'Jul 04', 'Jul 05'];
-    const emailCounts = data.emails_received_trend.length > 0 ? data.emails_received_trend.map(e => e.count) : [5, 8, 12, 6, 9];
-    const leadCounts = data.leads_generated_trend.length > 0 ? data.leads_generated_trend.map(l => l.count) : [2, 4, 3, 5, 4];
-    
-    charts.trend = new Chart(trendCtx, {
-        type: 'line',
-        data: {
-            labels: emailLabels,
-            datasets: [
-                {
-                    label: 'Emails Received',
-                    data: emailCounts,
-                    borderColor: '#14B8A6',
-                    backgroundColor: 'rgba(20, 184, 166, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.35
-                },
-                {
-                    label: 'Leads Created',
-                    data: leadCounts,
-                    borderColor: '#6366F1',
-                    backgroundColor: 'transparent',
-                    borderWidth: 2,
-                    tension: 0.35
+    const trendEl = document.getElementById('dashboardTrendChart');
+    if (trendEl) {
+        const trendCtx = trendEl.getContext('2d');
+        const emailLabels = data.emails_received_trend.length > 0 ? data.emails_received_trend.map(e => e.date) : ['Jul 01', 'Jul 02', 'Jul 03', 'Jul 04', 'Jul 05'];
+        const emailCounts = data.emails_received_trend.length > 0 ? data.emails_received_trend.map(e => e.count) : [5, 8, 12, 6, 9];
+        const leadCounts = data.leads_generated_trend.length > 0 ? data.leads_generated_trend.map(l => l.count) : [2, 4, 3, 5, 4];
+        
+        charts.trend = new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: emailLabels,
+                datasets: [
+                    {
+                        label: 'Emails Received',
+                        data: emailCounts,
+                        borderColor: '#14B8A6',
+                        backgroundColor: 'rgba(20, 184, 166, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.35
+                    },
+                    {
+                        label: 'Leads Created',
+                        data: leadCounts,
+                        borderColor: '#6366F1',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        tension: 0.35
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#475569', font: { family: 'Inter', size: 10 } } } },
+                scales: {
+                    y: { grid: { color: 'rgba(15, 23, 42, 0.06)' }, ticks: { color: '#64748B', font: { size: 9 } } },
+                    x: { grid: { color: 'transparent' }, ticks: { color: '#64748B', font: { size: 9 } } }
                 }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: '#475569', font: { family: 'Inter', size: 10 } } } },
-            scales: {
-                y: { grid: { color: 'rgba(15, 23, 42, 0.06)' }, ticks: { color: '#64748B', font: { size: 9 } } },
-                x: { grid: { color: 'transparent' }, ticks: { color: '#64748B', font: { size: 9 } } }
             }
-        }
-    });
+        });
+    }
 
     // 2. Lead Sources Doughnut Chart
-    const sourcesCtx = document.getElementById('leadSourcesChart').getContext('2d');
-    const sourceLabels = data.lead_sources.length > 0 ? data.lead_sources.map(s => s.source) : ['Email', 'LinkedIn', 'Website', 'WhatsApp'];
-    const sourceValues = data.lead_sources.length > 0 ? data.lead_sources.map(s => s.count) : [12, 18, 9, 5];
-    
-    charts.sources = new Chart(sourcesCtx, {
-        type: 'doughnut',
-        data: {
-            labels: sourceLabels,
-            datasets: [{
-                data: sourceValues,
-                backgroundColor: ['#6366F1', '#14B8A6', '#F59E0B', '#10B981', '#EC4899'],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom', labels: { color: '#475569', font: { size: 10 } } } }
-        }
-    });
+    const sourcesEl = document.getElementById('leadSourcesChart');
+    if (sourcesEl) {
+        const sourcesCtx = sourcesEl.getContext('2d');
+        const sourceLabels = data.lead_sources.length > 0 ? data.lead_sources.map(s => s.source) : ['Email', 'LinkedIn', 'Website', 'WhatsApp'];
+        const sourceValues = data.lead_sources.length > 0 ? data.lead_sources.map(s => s.count) : [12, 18, 9, 5];
+        
+        charts.sources = new Chart(sourcesCtx, {
+            type: 'doughnut',
+            data: {
+                labels: sourceLabels,
+                datasets: [{
+                    data: sourceValues,
+                    backgroundColor: ['#6366F1', '#14B8A6', '#F59E0B', '#10B981', '#EC4899'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { color: '#475569', font: { size: 10 } } } }
+            }
+        });
+    }
 
     // 3. AI Categories Bar Chart
-    const catsCtx = document.getElementById('aiCategoriesChart').getContext('2d');
-    const catLabels = data.ai_categorization.length > 0 ? data.ai_categorization.map(c => c.category) : ['New Lead', 'Invoice', 'Complaint', 'General'];
-    const catValues = data.ai_categorization.length > 0 ? data.ai_categorization.map(c => c.count) : [8, 4, 2, 11];
-    
-    charts.categories = new Chart(catsCtx, {
-        type: 'bar',
-        data: {
-            labels: catLabels,
-            datasets: [{
-                label: 'Emails',
-                data: catValues,
-                backgroundColor: '#8B5CF6',
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { grid: { color: 'rgba(15, 23, 42, 0.06)' }, ticks: { color: '#64748B', font: { size: 9 } } },
-                x: { grid: { color: 'transparent' }, ticks: { color: '#64748B', font: { size: 9 } } }
+    const catsEl = document.getElementById('aiCategoriesChart');
+    if (catsEl) {
+        const catsCtx = catsEl.getContext('2d');
+        const catLabels = data.ai_categorization.length > 0 ? data.ai_categorization.map(c => c.category) : ['New Lead', 'Invoice', 'Complaint', 'General'];
+        const catValues = data.ai_categorization.length > 0 ? data.ai_categorization.map(c => c.count) : [8, 4, 2, 11];
+        
+        charts.categories = new Chart(catsCtx, {
+            type: 'bar',
+            data: {
+                labels: catLabels,
+                datasets: [{
+                    label: 'Emails',
+                    data: catValues,
+                    backgroundColor: '#8B5CF6',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: 'rgba(15, 23, 42, 0.06)' }, ticks: { color: '#64748B', font: { size: 9 } } },
+                    x: { grid: { color: 'transparent' }, ticks: { color: '#64748B', font: { size: 9 } } }
+                }
             }
-        }
-    });
+        });
+    }
 
     // 4. Revenue Pipeline Horizontal Bar
-    const pipeCtx = document.getElementById('pipelineFunnelChart').getContext('2d');
-    const pipeLabels = data.revenue_pipeline.length > 0 ? data.revenue_pipeline.map(r => r.stage) : ['Lead', 'Qualified', 'Proposal', 'Won'];
-    const pipeValues = data.revenue_pipeline.length > 0 ? data.revenue_pipeline.map(r => r.value) : [12000, 25000, 18000, 32000];
-    
-    charts.pipeline = new Chart(pipeCtx, {
-        type: 'bar',
-        data: {
-            labels: pipeLabels,
-            datasets: [{
-                data: pipeValues,
-                backgroundColor: 'rgba(20, 184, 166, 0.75)',
-                borderRadius: 6
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { grid: { color: 'rgba(15, 23, 42, 0.06)' }, ticks: { color: '#64748B', font: { size: 9 } } },
-                y: { grid: { color: 'transparent' }, ticks: { color: '#64748B', font: { size: 9 } } }
+    const pipeEl = document.getElementById('pipelineFunnelChart');
+    if (pipeEl) {
+        const pipeCtx = pipeEl.getContext('2d');
+        const pipeLabels = data.revenue_pipeline.length > 0 ? data.revenue_pipeline.map(r => r.stage) : ['Lead', 'Qualified', 'Proposal', 'Won'];
+        const pipeValues = data.revenue_pipeline.length > 0 ? data.revenue_pipeline.map(r => r.value) : [12000, 25000, 18000, 32000];
+        
+        charts.pipeline = new Chart(pipeCtx, {
+            type: 'bar',
+            data: {
+                labels: pipeLabels,
+                datasets: [{
+                    data: pipeValues,
+                    backgroundColor: 'rgba(20, 184, 166, 0.75)',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { color: 'rgba(15, 23, 42, 0.06)' }, ticks: { color: '#64748B', font: { size: 9 } } },
+                    y: { grid: { color: 'transparent' }, ticks: { color: '#64748B', font: { size: 9 } } }
+                }
+            }
+        });
+    }
+}
+
+// Update Top Header & Sidebar Task Badges Dynamically
+async function updateGlobalTaskBadges() {
+    try {
+        const res = await apiCall('crm/tasks.php');
+        const tasks = res.tasks || [];
+        const todayStr = new Date().toISOString().split('T')[0];
+        
+        // Count pending tasks due today or overdue
+        const pendingTodayCount = tasks.filter(t => {
+            return t.status !== 'completed' && t.due_date && t.due_date <= todayStr;
+        }).length;
+        
+        // Update sidebar tasks badge
+        const sidebarBadge = document.getElementById('sidebar-tasks-today-badge');
+        if (sidebarBadge) {
+            if (pendingTodayCount > 0) {
+                sidebarBadge.textContent = pendingTodayCount;
+                sidebarBadge.classList.remove('hidden');
+            } else {
+                sidebarBadge.classList.add('hidden');
             }
         }
-    });
+        
+        // Update header tasks badge
+        const headerBadge = document.getElementById('header-tasks-today-badge');
+        if (headerBadge) {
+            if (pendingTodayCount > 0) {
+                headerBadge.textContent = pendingTodayCount;
+                headerBadge.classList.remove('hidden');
+            } else {
+                headerBadge.classList.add('hidden');
+            }
+        }
+    } catch (e) {
+        console.error('Error updating task badges:', e);
+    }
+}
+
+// Toggle status of task from the dashboard list
+async function dashboardToggleTask(taskId, currentStatus) {
+    const nextStatus = currentStatus === 'completed' ? 'pending' : 'completed';
+    try {
+        const data = await apiCall('crm/tasks.php?action=PUT', 'POST', {
+            id: taskId,
+            status: nextStatus
+        });
+        if (data.status === 'success') {
+            showNotification('success', `Task marked as ${nextStatus}!`);
+            updateGlobalTaskBadges();
+            const viewport = document.getElementById('main-content-viewport');
+            if (viewport) renderDashboard(viewport);
+        } else {
+            showNotification('error', data.message);
+        }
+    } catch (e) {
+        showNotification('error', e.message);
+    }
 }
 
 // ----------------------------------------------------
@@ -2637,7 +2788,15 @@ async function renderTasks(container) {
                     borderAccent = 'border-l-4 border-l-slate-350';
                 }
 
-                const dateStr = t.due_date ? new Date(t.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'No date';
+                const timeStr = t.due_time ? ` @ ${t.due_time.substring(0, 5)}` : '';
+                const dateStr = t.due_date ? new Date(t.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + timeStr : 'No date';
+                
+                const meetLinkHTML = t.meet_link ? `
+                    <a href="${t.meet_link}" target="_blank" class="mt-2 flex items-center space-x-1 text-[10px] text-blue-600 hover:text-blue-800 font-bold bg-blue-50 px-2 py-1 rounded-md border border-blue-100 transition inline-flex w-fit">
+                        <i data-lucide="video" class="h-3.5 w-3.5 text-blue-600"></i>
+                        <span>Join Meet</span>
+                    </a>
+                ` : '';
 
                 return `
                     <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-2.5 transition hover:shadow-md ${borderAccent} ${isCompleted ? 'opacity-65' : ''}">
@@ -2646,6 +2805,7 @@ async function renderTasks(container) {
                             <div class="flex-grow text-left">
                                 <h5 class="font-bold text-slate-800 leading-tight ${isCompleted ? 'line-through text-slate-400' : ''}">${t.displayTitle}</h5>
                                 <p class="text-[10px] text-slate-500 mt-1 line-clamp-2">${t.description || 'No extra description.'}</p>
+                                ${meetLinkHTML}
                             </div>
                         </div>
                         
@@ -2734,7 +2894,15 @@ async function renderTasks(container) {
                                     priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-slate-50 text-slate-500 border border-slate-200 uppercase">Low</span>`;
                                     borderAccent = 'border-l-4 border-l-slate-350';
                                 }
-                                const dateStr = t.due_date ? new Date(t.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'No date';
+                                const timeStr = t.due_time ? ` @ ${t.due_time.substring(0, 5)}` : '';
+                                const dateStr = t.due_date ? new Date(t.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + timeStr : 'No date';
+                                
+                                const meetLinkHTML = t.meet_link ? `
+                                    <a href="${t.meet_link}" target="_blank" class="mt-2 flex items-center space-x-1 text-[10px] text-blue-600 hover:text-blue-800 font-bold bg-blue-50 px-2 py-1 rounded-md border border-blue-100 transition inline-flex w-fit">
+                                        <i data-lucide="video" class="h-3.5 w-3.5 text-blue-600"></i>
+                                        <span>Join Meet</span>
+                                    </a>
+                                ` : '';
 
                                 return `
                                     <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-2.5 transition hover:shadow-md ${borderAccent} ${isCompleted ? 'opacity-65' : ''}">
@@ -2743,6 +2911,7 @@ async function renderTasks(container) {
                                             <div class="flex-grow text-left">
                                                 <h5 class="font-bold text-slate-800 leading-tight ${isCompleted ? 'line-through text-slate-400' : ''}">${t.displayTitle}</h5>
                                                 <p class="text-[10px] text-slate-500 mt-1 line-clamp-2">${t.description || 'No extra description.'}</p>
+                                                ${meetLinkHTML}
                                             </div>
                                         </div>
                                         
@@ -2813,7 +2982,7 @@ function createNewTaskModal() {
                 <!-- Modal Header -->
                 <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                     <div class="flex items-center space-x-2">
-                        <div class="h-8 w-8 bg-indigo-50 text-indigo-655 rounded-lg flex items-center justify-center">
+                        <div class="h-8 w-8 bg-indigo-50 text-indigo-650 rounded-lg flex items-center justify-center">
                             <i data-lucide="check-square" class="h-4.5 w-4.5 text-indigo-600"></i>
                         </div>
                         <h3 class="text-sm font-bold text-slate-800">Create New Task</h3>
@@ -2841,11 +3010,18 @@ function createNewTaskModal() {
                         <input type="text" id="new-task-title" placeholder="Describe task..." class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="col-span-2">
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Due Date</label>
                             <input type="date" id="new-task-duedate" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
                         </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Due Time</label>
+                            <input type="time" id="new-task-duetime" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Priority</label>
                             <select id="new-task-priority" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
@@ -2853,6 +3029,10 @@ function createNewTaskModal() {
                                 <option value="medium" selected>Medium</option>
                                 <option value="high">High</option>
                             </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Google Meet Link</label>
+                            <input type="url" id="new-task-meetlink" placeholder="https://meet.google.com/..." class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
                         </div>
                     </div>
 
@@ -2865,7 +3045,7 @@ function createNewTaskModal() {
                 <!-- Modal Footer -->
                 <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end space-x-2">
                     <button onclick="closeCrmTaskModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 rounded-lg font-bold transition">Cancel</button>
-                    <button onclick="submitNewTaskForm(this)" class="px-4 py-2 bg-indigo-650 hover:bg-indigo-600 text-white rounded-lg font-bold transition flex items-center space-x-1.5 shadow-sm">
+                    <button onclick="submitNewTaskForm(this)" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition flex items-center space-x-1.5 shadow-sm">
                         <i data-lucide="check" class="h-4 w-4"></i>
                         <span>Create Task</span>
                     </button>
@@ -2894,7 +3074,9 @@ async function submitNewTaskForm(btn) {
     
     const category = document.getElementById('new-task-category').value;
     const dueDate = document.getElementById('new-task-duedate').value;
+    const dueTime = document.getElementById('new-task-duetime').value;
     const priority = document.getElementById('new-task-priority').value;
+    const meetLink = document.getElementById('new-task-meetlink').value.trim();
     const description = document.getElementById('new-task-description').value.trim();
     
     // Prefix title if categorized
@@ -2906,7 +3088,9 @@ async function submitNewTaskForm(btn) {
     const payload = {
         title,
         due_date: dueDate,
+        due_time: dueTime || null,
         priority,
+        meet_link: meetLink || null,
         status: 'pending',
         description
     };
@@ -2916,8 +3100,15 @@ async function submitNewTaskForm(btn) {
         if (data.status === 'success') {
             showNotification('success', 'Task added successfully.');
             closeCrmTaskModal();
+            updateGlobalTaskBadges();
             const viewport = document.getElementById('main-content-viewport');
-            if (viewport) renderTasks(viewport);
+            if (viewport) {
+                if (currentView === 'dashboard') {
+                    renderDashboard(viewport);
+                } else {
+                    renderTasks(viewport);
+                }
+            }
         } else {
             showNotification('error', data.message);
         }
@@ -2984,7 +3175,7 @@ async function editCrmTask(taskId) {
                 <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                     <div class="flex items-center space-x-2">
                         <div class="h-8 w-8 bg-indigo-50 text-indigo-650 rounded-lg flex items-center justify-center">
-                            <i data-lucide="edit" class="h-4.5 w-4.5 text-indigo-650"></i>
+                            <i data-lucide="edit" class="h-4.5 w-4.5 text-indigo-600"></i>
                         </div>
                         <h3 class="text-sm font-bold text-slate-800">Edit CRM Task</h3>
                     </div>
@@ -3013,11 +3204,18 @@ async function editCrmTask(taskId) {
                         <input type="text" id="edit-task-title" value="${cleanTitle}" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="col-span-2">
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Due Date</label>
                             <input type="date" id="edit-task-duedate" value="${t.due_date || ''}" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
                         </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Due Time</label>
+                            <input type="time" id="edit-task-duetime" value="${t.due_time || ''}" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Priority</label>
                             <select id="edit-task-priority" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
@@ -3025,6 +3223,10 @@ async function editCrmTask(taskId) {
                                 <option value="medium" ${t.priority === 'medium' ? 'selected' : ''}>Medium</option>
                                 <option value="high" ${t.priority === 'high' ? 'selected' : ''}>High</option>
                             </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Google Meet Link</label>
+                            <input type="url" id="edit-task-meetlink" value="${t.meet_link || ''}" placeholder="https://meet.google.com/..." class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
                         </div>
                     </div>
 
@@ -3067,7 +3269,9 @@ async function submitEditTaskForm(btn) {
     
     const category = document.getElementById('edit-task-category').value;
     const dueDate = document.getElementById('edit-task-duedate').value;
+    const dueTime = document.getElementById('edit-task-duetime').value;
     const priority = document.getElementById('edit-task-priority').value;
+    const meetLink = document.getElementById('edit-task-meetlink').value.trim();
     const description = document.getElementById('edit-task-description').value.trim();
     
     // Prefix title if categorized
@@ -3080,7 +3284,9 @@ async function submitEditTaskForm(btn) {
         id: taskId,
         title,
         due_date: dueDate,
+        due_time: dueTime || null,
         priority,
+        meet_link: meetLink || null,
         description
     };
     
@@ -3089,8 +3295,15 @@ async function submitEditTaskForm(btn) {
         if (data.status === 'success') {
             showNotification('success', 'Task updated successfully.');
             closeCrmTaskModal();
+            updateGlobalTaskBadges();
             const viewport = document.getElementById('main-content-viewport');
-            if (viewport) renderTasks(viewport);
+            if (viewport) {
+                if (currentView === 'dashboard') {
+                    renderDashboard(viewport);
+                } else {
+                    renderTasks(viewport);
+                }
+            }
         } else {
             showNotification('error', data.message);
         }
@@ -3110,8 +3323,15 @@ async function deleteCrmTask(btn, taskId) {
         const data = await apiCall('crm/tasks.php?action=DELETE', 'POST', { id: taskId });
         if (data.status === 'success') {
             showNotification('success', 'Task deleted successfully.');
+            updateGlobalTaskBadges();
             const viewport = document.getElementById('main-content-viewport');
-            if (viewport) renderTasks(viewport);
+            if (viewport) {
+                if (currentView === 'dashboard') {
+                    renderDashboard(viewport);
+                } else {
+                    renderTasks(viewport);
+                }
+            }
         } else {
             showNotification('error', data.message);
         }

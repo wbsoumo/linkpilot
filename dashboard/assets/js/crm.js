@@ -1287,6 +1287,15 @@ async function selectInboxEmail(emailId) {
                         <button onclick="deleteInboxEmail(${email.id})" class="p-1.5 border border-slate-800 hover:border-red-500 hover:text-red-400 text-slate-400 rounded-md transition" title="Delete Permanent">
                             <i data-lucide="trash" class="h-4 w-4"></i>
                         </button>
+                        <div class="h-7 w-[1px] bg-slate-800 self-center"></div>
+                        <button onclick="markEmailAsSpamPromo(${email.id}, 'Spam')" class="p-1.5 border border-slate-800 hover:border-amber-600 hover:text-amber-500 text-slate-400 rounded-md transition flex items-center space-x-1.5" title="Block Sender & Mark Spam">
+                            <i data-lucide="shield-alert" class="h-3.5 w-3.5"></i>
+                            <span class="text-[9px] font-bold">Spam</span>
+                        </button>
+                        <button onclick="markEmailAsSpamPromo(${email.id}, 'Promotion')" class="p-1.5 border border-slate-800 hover:border-blue-500 hover:text-blue-400 text-slate-400 rounded-md transition flex items-center space-x-1.5" title="Mark as Promotion">
+                            <i data-lucide="tag" class="h-3.5 w-3.5"></i>
+                            <span class="text-[9px] font-bold">Promo</span>
+                        </button>
                     </div>
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">${email.category}</span>
                 </div>
@@ -1467,6 +1476,20 @@ async function deleteInboxEmail(emailId) {
     try {
         await apiCall('crm/email_intelligence/emails.php?action=delete', 'POST', { id: emailId });
         showNotification('success', 'Email deleted successfully.');
+        navigateTo('inbox');
+    } catch (err) {
+        showNotification('error', err.message);
+    }
+}
+
+async function markEmailAsSpamPromo(emailId, category) {
+    if (!confirm(`Mark this email and all future emails from this sender as ${category}?`)) return;
+    try {
+        const res = await apiCall('crm/email_intelligence/spam_rules.php?action=mark_spam_promo', 'POST', {
+            email_id: emailId,
+            category: category
+        });
+        showNotification('success', res.message);
         navigateTo('inbox');
     } catch (err) {
         showNotification('error', err.message);

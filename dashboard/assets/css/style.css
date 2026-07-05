@@ -589,4 +589,41 @@ nav.glass-panel .sidebar-nav-link.active * {
     letter-spacing: 0.01em !important;
 }
 
+/* ==========================================
+   SIDEBAR ICONS & TEXT VISIBILITY OVERRIDES
+   ========================================== */
+aside, aside * {
+    color: #94a3b8 !important;
+}
+aside a svg, aside button svg, aside i, aside svg {
+    stroke: #94a3b8 !important;
+    color: #94a3b8 !important;
+}
+aside a:hover, aside button:hover, aside a:hover *, aside button:hover * {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+}
+aside a.active, aside button.active, aside .sidebar-nav-link.active,
+aside a.active *, aside button.active *, aside .sidebar-nav-link.active * {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+}
+aside .bg-blue-600 {
+    background-color: #2563eb !important;
+}
+aside .bg-blue-600 * {
+    color: #ffffff !important;
+}
+aside .text-white {
+    color: #ffffff !important;
+}
+aside .text-white * {
+    color: #ffffff !important;
+}
+aside .text-white svg {
+    stroke: #ffffff !important;
+}
+
+
 

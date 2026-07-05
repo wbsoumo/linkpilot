@@ -87,18 +87,120 @@ try {
                 sendJsonResponse('error', 'Mailbox sync error: ' . $e->getMessage(), [], 200);
             }
             
+            // Fetch spam rules
+            $stmtRules = $db->prepare("SELECT * FROM spam_filters WHERE user_id = ?");
+            $stmtRules->execute([$userId]);
+            $rules = $stmtRules->fetchAll(PDO::FETCH_ASSOC);
+
+            // Separate rules by type
+            $emailRules = [];
+            $domainRules = [];
+            $keywordRules = [];
+            foreach ($rules as $r) {
+                $val = strtolower(trim($r['filter_value']));
+                if ($r['filter_type'] === 'email') {
+                    $emailRules[$val] = $r['category'] ?: 'Spam';
+                } elseif ($r['filter_type'] === 'domain') {
+                    $domainRules[$val] = $r['category'] ?: 'Spam';
+                } elseif ($r['filter_type'] === 'keyword') {
+                    $keywordRules[] = [
+                        'value' => $val,
+                        'category' => $r['category'] ?: 'Spam'
+                    ];
+                }
+            }
+
             $syncedCount = 0;
             $businessType = $settings['business_type'] ?? 'Software Company';
             $industry = $settings['industry'] ?? 'Technology';
             
             foreach ($newEmails as $email) {
                 $subject = $email['subject'];
-                $sender = $email['sender_email'];
+                $sender = strtolower(trim($email['sender_email']));
                 $senderName = $email['sender_name'];
                 $bodyText = $email['body_text'] ?: strip_tags($email['body_html']);
                 
-                // Formulate system prompt for structured extraction
-                $systemPrompt = "You are an AI Email CRM Analyst. Your task is to analyze incoming business emails and extract structured properties.
+                // Get domain
+                $senderDomain = '';
+                $parts = explode('@', $sender);
+                if (count($parts) === 2) {
+                    $senderDomain = strtolower(trim($parts[1]));
+                }
+
+                // Check spam / promotional filters
+                $matchedCategory = null;
+                if (isset($emailRules[$sender])) {
+                    $matchedCategory = $emailRules[$sender];
+                } elseif (!empty($senderDomain) && isset($domainRules[$senderDomain])) {
+                    $matchedCategory = $domainRules[$senderDomain];
+                } else {
+                    foreach ($keywordRules as $kr) {
+                        if (stripos($subject, $kr['value']) !== false || stripos($bodyText, $kr['value']) !== false) {
+                            $matchedCategory = $kr['category'];
+                            break;
+                        }
+                    }
+                }
+
+                // Check built-in heuristics (no-reply, alerts, updates, banking)
+                if (!$matchedCategory) {
+                    $lowerSubject = strtolower($subject);
+                    $lowerSender = strtolower($sender);
+                    
+                    if (str_contains($lowerSender, 'no-reply') || str_contains($lowerSender, 'noreply') || str_contains($lowerSender, 'newsletter')) {
+                        $matchedCategory = 'Newsletter';
+                    } elseif (str_contains($lowerSubject, 'otp') || str_contains($lowerSubject, 'verification code') || str_contains($lowerSubject, 'verify your') || str_contains($lowerSubject, 'security alert') || str_contains($lowerSubject, 'login alert') || str_contains($lowerSubject, 'password reset')) {
+                        $matchedCategory = 'Security Alerts';
+                    } elseif (str_contains($lowerSubject, 'invoice') || str_contains($lowerSubject, 'receipt') || str_contains($lowerSubject, 'statement') || str_contains($lowerSubject, 'payment confirmation') || str_contains($lowerSubject, 'transaction alert') || str_contains($lowerSubject, 'bank statement') || str_contains($lowerSubject, 'debit alert') || str_contains($lowerSubject, 'credit alert') || str_contains($lowerSubject, 'otp code')) {
+                        $matchedCategory = 'Updates';
+                    }
+                }
+
+                $aiResponse = null;
+                $tokensUsed = 0;
+
+                if ($matchedCategory) {
+                    // Filter match: bypass OpenRouter/AI
+                    $isSpam = ($matchedCategory === 'Spam' || $matchedCategory === 'Promotion') ? 1 : 0;
+                    $category = $matchedCategory;
+                    $priority = 'low';
+                    $sentiment = 'neutral';
+                    $confidence = 100;
+                    
+                    $aiResponse = [
+                        'person_name' => '',
+                        'company_name' => '',
+                        'phone_number' => '',
+                        'email' => $sender,
+                        'website' => '',
+                        'address' => '',
+                        'requirement' => '',
+                        'budget' => 0.00,
+                        'deadline' => '',
+                        'urgency' => 'low',
+                        'services_requested' => '',
+                        'location' => '',
+                        'country' => '',
+                        'language' => '',
+                        'keywords' => [],
+                        'intent' => 'filtered_out',
+                        'follow_up_required' => false,
+                        'action_items' => [],
+                        'short_summary' => 'Auto-filtered email categorized as ' . $category,
+                        'suggested_reply' => '',
+                        'spam_probability' => ($matchedCategory === 'Spam') ? 100 : (($matchedCategory === 'Promotion') ? 80 : 0),
+                        'category' => $category,
+                        'priority' => $priority,
+                        'sentiment' => $sentiment,
+                        'confidence_score' => $confidence
+                    ];
+                    
+                    // Log filter match (0 tokens used)
+                    $logStmt = $db->prepare("INSERT INTO email_processing_logs (user_id, email_subject, sender, status, message) VALUES (?, ?, ?, 'success', ?)");
+                    $logStmt->execute([$userId, $subject, $sender, 'Auto-filtered (0 tokens used): ' . $category]);
+                } else {
+                    // Formulate system prompt for structured extraction
+                    $systemPrompt = "You are an AI Email CRM Analyst. Your task is to analyze incoming business emails and extract structured properties.
 User's Business Profile: Type: '$businessType', Industry: '$industry'.
 
 You MUST return your response as a valid, parsable JSON block with the following keys, and nothing else (no extra markdown code blocks, only raw JSON):
@@ -131,26 +233,24 @@ You MUST return your response as a valid, parsable JSON block with the following
   \"confidence_score\": 90
 }";
 
-                $userPrompt = "Email Headers:\nSender: $senderName <$sender>\nSubject: $subject\nDate: {$email['received_date']}\n\nEmail Content:\n$bodyText";
-                
-                $aiResponse = null;
-                $tokensUsed = 0;
-                
-                try {
-                    $ai = callAI($systemPrompt, $userPrompt, $userId);
-                    $aiResponse = json_decode($ai['text'], true);
-                    $tokensUsed = $ai['tokens'];
-                } catch (Throwable $e) {
-                    // Log AI error
-                    $errStmt = $db->prepare("INSERT INTO email_processing_logs (user_id, email_subject, sender, status, message) VALUES (?, ?, ?, 'error', ?)");
-                    $errStmt->execute([$userId, $subject, $sender, 'AI extraction failed: ' . $e->getMessage()]);
-                    continue;
-                }
-                
-                if (!$aiResponse) {
-                    $errStmt = $db->prepare("INSERT INTO email_processing_logs (user_id, email_subject, sender, status, message) VALUES (?, ?, ?, 'error', ?)");
-                    $errStmt->execute([$userId, $subject, $sender, 'AI returned invalid JSON: ' . substr($ai['text'], 0, 200)]);
-                    continue;
+                    $userPrompt = "Email Headers:\nSender: $senderName <$sender>\nSubject: $subject\nDate: {$email['received_date']}\n\nEmail Content:\n$bodyText";
+                    
+                    try {
+                        $ai = callAI($systemPrompt, $userPrompt, $userId);
+                        $aiResponse = json_decode($ai['text'], true);
+                        $tokensUsed = $ai['tokens'];
+                    } catch (Throwable $e) {
+                        // Log AI error
+                        $errStmt = $db->prepare("INSERT INTO email_processing_logs (user_id, email_subject, sender, status, message) VALUES (?, ?, ?, 'error', ?)");
+                        $errStmt->execute([$userId, $subject, $sender, 'AI extraction failed: ' . $e->getMessage()]);
+                        continue;
+                    }
+                    
+                    if (!$aiResponse) {
+                        $errStmt = $db->prepare("INSERT INTO email_processing_logs (user_id, email_subject, sender, status, message) VALUES (?, ?, ?, 'error', ?)");
+                        $errStmt->execute([$userId, $subject, $sender, 'AI returned invalid JSON: ' . substr($ai['text'], 0, 200)]);
+                        continue;
+                    }
                 }
                 
                 // Write email to database

@@ -348,6 +348,19 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
     $messages[] = "Table 'scraper_requests_log' checked/created.";
 
+    // 19. Create spam_filters table
+    $db->exec("CREATE TABLE IF NOT EXISTS `spam_filters` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `filter_type` VARCHAR(50) NOT NULL, -- 'email', 'domain', or 'keyword'
+        `filter_value` VARCHAR(255) NOT NULL,
+        `category` VARCHAR(50) DEFAULT 'Spam', -- 'Spam' or 'Promotion'
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT `fk_spam_filters_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+        UNIQUE KEY `idx_user_filter` (`user_id`, `filter_type`, `filter_value`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+    $messages[] = "Table 'spam_filters' checked/created.";
+
     // 18. Insert or update linkedin_scraper settings
     $stmtScrapCount = $db->prepare("SELECT COUNT(*) FROM `email_provider_settings` WHERE provider_name = ?");
     $stmtScrapCount->execute(['linkedin_scraper']);

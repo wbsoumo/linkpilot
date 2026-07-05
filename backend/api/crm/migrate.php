@@ -403,6 +403,13 @@ try {
         // Column might already exist
     }
 
+    try {
+        $db->exec("ALTER TABLE `crm_tasks` ADD COLUMN `remarks` TEXT DEFAULT NULL");
+        $messages[] = "Added column 'remarks' to 'crm_tasks'.";
+    } catch (Exception $e) {
+        // Column might already exist
+    }
+
     sendJsonResponse('success', 'LinkPilot CRM v2.0 Database Migrations executed successfully.', [
         'details' => $messages
     ]);

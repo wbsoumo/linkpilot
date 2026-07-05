@@ -2809,7 +2809,8 @@ async function renderTasks(container) {
                 }
 
                 return `
-                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-2.5 transition hover:shadow-md ${borderAccent} ${isCompleted ? 'opacity-65' : ''}">
+                    <div class="task-card-contextable bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-2.5 transition hover:shadow-md cursor-context-menu ${borderAccent} ${isCompleted ? 'opacity-65' : ''}"
+                         oncontextmenu="handleTaskRightClick(event, ${t.id}, '${t.status}', '${t.title.replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${(t.description || '').replace(/\r?\n/g, ' ').replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${(t.meet_link || '').replace(/'/g, "\\'")}', '${(t.remarks || '').replace(/\r?\n/g, ' ').replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${t.category || ''}', '${t.due_date || ''}', '${t.due_time || ''}', '${t.priority || ''}')">
                         <div class="flex items-start space-x-2.5">
                             <input type="checkbox" ${isCompleted ? 'checked' : ''} onclick="toggleTaskStatus(${t.id}, '${t.status}')" class="mt-0.5 h-3.5 w-3.5 border-slate-300 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
                             <div class="flex-grow text-left">
@@ -2925,7 +2926,8 @@ async function renderTasks(container) {
                                 }
 
                                 return `
-                                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-2.5 transition hover:shadow-md ${borderAccent} ${isCompleted ? 'opacity-65' : ''}">
+                                    <div class="task-card-contextable bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-2.5 transition hover:shadow-md cursor-context-menu ${borderAccent} ${isCompleted ? 'opacity-65' : ''}"
+                                         oncontextmenu="handleTaskRightClick(event, ${t.id}, '${t.status}', '${t.title.replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${(t.description || '').replace(/\r?\n/g, ' ').replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${(t.meet_link || '').replace(/'/g, "\\'")}', '${(t.remarks || '').replace(/\r?\n/g, ' ').replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${t.category || ''}', '${t.due_date || ''}', '${t.due_time || ''}', '${t.priority || ''}')">
                                         <div class="flex items-start space-x-2.5">
                                             <input type="checkbox" ${isCompleted ? 'checked' : ''} onclick="toggleTaskStatus(${t.id}, '${t.status}')" class="mt-0.5 h-3.5 w-3.5 border-slate-300 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
                                             <div class="flex-grow text-left">
@@ -3686,6 +3688,260 @@ async function submitMeetingInviteForm(btn, taskId) {
             }
         } else {
             showNotification('error', data.message);
+        }
+    } catch(e) {
+        showNotification('error', e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+        lucide.createIcons();
+    }
+}
+
+// Task Right Click Custom Context Menu Handler
+function handleTaskRightClick(e, id, status, title, desc, meet, remarks, category, date, time, priority) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Remove existing context menu if any
+    const existing = document.getElementById('custom-task-context-menu');
+    if (existing) existing.remove();
+    
+    const lowerCategory = (category || '').toLowerCase();
+    const isMeeting = lowerCategory.includes('meet') || title.includes('[Meeting]');
+    
+    let optionsHTML = '';
+    
+    // 1. View Details
+    optionsHTML += `
+        <button onclick="viewTaskDetailsModal(${id}, '${status}', '${title.replace(/'/g, "\\'")}', '${desc.replace(/'/g, "\\'")}', '${meet.replace(/'/g, "\\'")}', '${remarks.replace(/'/g, "\\'")}', '${category}', '${date}', '${time}', '${priority}')" class="w-full text-left px-3.5 py-2 hover:bg-indigo-50 hover:text-indigo-700 transition flex items-center space-x-2 text-slate-700">
+            <i data-lucide="eye" class="h-3.5 w-3.5 text-indigo-500"></i>
+            <span>View Details</span>
+        </button>
+    `;
+    
+    // 2. Mark as Done / Pending
+    const statusText = status === 'completed' ? 'Mark as Pending' : 'Mark as Done';
+    const statusIcon = status === 'completed' ? 'circle' : 'check-circle';
+    optionsHTML += `
+        <button onclick="toggleTaskStatus(${id}, '${status}')" class="w-full text-left px-3.5 py-2 hover:bg-indigo-50 hover:text-indigo-700 transition flex items-center space-x-2 text-slate-700">
+            <i data-lucide="${statusIcon}" class="h-3.5 w-3.5 text-indigo-500"></i>
+            <span>${statusText}</span>
+        </button>
+    `;
+    
+    // 3. Add Peoples / Configure invite (Meetings Only)
+    if (isMeeting) {
+        optionsHTML += `
+            <button onclick="openConfigureMeetingModal(${id})" class="w-full text-left px-3.5 py-2 hover:bg-indigo-50 hover:text-indigo-700 transition flex items-center space-x-2 text-slate-700">
+                <i data-lucide="users" class="h-3.5 w-3.5 text-indigo-500"></i>
+                <span>Add Peoples</span>
+            </button>
+        `;
+    }
+    
+    // 4. Edit Details
+    optionsHTML += `
+        <button onclick="editCrmTask(${id})" class="w-full text-left px-3.5 py-2 hover:bg-indigo-50 hover:text-indigo-700 transition flex items-center space-x-2 text-slate-700">
+            <i data-lucide="edit-3" class="h-3.5 w-3.5 text-indigo-500"></i>
+            <span>Edit Details</span>
+        </button>
+    `;
+    
+    // 5. Add Remarks
+    optionsHTML += `
+        <button onclick="openAddRemarksModal(${id}, '${remarks.replace(/'/g, "\\'")}')" class="w-full text-left px-3.5 py-2 hover:bg-indigo-50 hover:text-indigo-700 transition flex items-center space-x-2 text-slate-700">
+            <i data-lucide="message-square" class="h-3.5 w-3.5 text-indigo-500"></i>
+            <span>Add Remarks</span>
+        </button>
+    `;
+    
+    optionsHTML += `<div class="border-t border-slate-100 my-1"></div>`;
+    
+    // 6. Delete
+    optionsHTML += `
+        <button onclick="deleteCrmTask(this, ${id})" class="w-full text-left px-3.5 py-2 hover:bg-rose-50 hover:text-rose-600 transition flex items-center space-x-2 text-rose-600">
+            <i data-lucide="trash-2" class="h-3.5 w-3.5 text-rose-500"></i>
+            <span>Delete</span>
+        </button>
+    `;
+    
+    const menu = document.createElement('div');
+    menu.id = 'custom-task-context-menu';
+    menu.className = 'fixed bg-white border border-slate-200 rounded-xl shadow-xl py-1.5 z-[200] min-w-[160px] animate-fade-in text-[11px] font-sans';
+    menu.innerHTML = optionsHTML;
+    
+    menu.style.top = `${e.clientY}px`;
+    menu.style.left = `${e.clientX}px`;
+    
+    document.body.appendChild(menu);
+    lucide.createIcons();
+    
+    const closeMenu = (event) => {
+        if (!menu.contains(event.target)) {
+            menu.remove();
+            document.removeEventListener('click', closeMenu);
+            document.removeEventListener('contextmenu', closeMenu);
+        }
+    };
+    setTimeout(() => {
+        document.addEventListener('click', closeMenu);
+        document.addEventListener('contextmenu', closeMenu);
+    }, 50);
+}
+
+function viewTaskDetailsModal(id, status, title, desc, meet, remarks, category, date, time, priority) {
+    const existing = document.getElementById('task-details-view-modal');
+    if (existing) existing.remove();
+    
+    const priorityBadge = priority === 'high' 
+        ? `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-50 text-rose-650 border border-rose-100 uppercase">High</span>` 
+        : priority === 'medium' 
+            ? `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-indigo-50 text-indigo-650 border border-indigo-100 uppercase">Medium</span>` 
+            : `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-50 text-slate-500 border border-slate-200 uppercase">Low</span>`;
+            
+    const statusBadge = status === 'completed'
+        ? `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-650 border border-emerald-100 uppercase">Completed</span>`
+        : `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-650 border border-amber-100 uppercase">Pending</span>`;
+
+    const meetLinkHTML = meet 
+        ? `<a href="${meet}" target="_blank" class="text-indigo-600 hover:text-indigo-800 underline break-all">${meet}</a>` 
+        : '<span class="text-slate-400">No meeting link configured.</span>';
+
+    const modalHTML = `
+        <div id="task-details-view-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+            <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-slate-200 overflow-hidden flex flex-col text-left text-xs">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-1.5">
+                        <i data-lucide="info" class="h-4.5 w-4.5 text-indigo-500"></i>
+                        <span>Task Details</span>
+                    </h3>
+                    <button onclick="document.getElementById('task-details-view-modal').remove()" class="h-7 w-7 rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                    </button>
+                </div>
+                
+                <div class="p-6 space-y-4 max-h-[480px] overflow-y-auto">
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Category</label>
+                        <p class="font-semibold text-slate-700">${category}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Task Title</label>
+                        <p class="text-sm font-bold text-slate-800">${title}</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Status</label>
+                            <div>${statusBadge}</div>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Priority</label>
+                            <div>${priorityBadge}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Due Date</label>
+                            <p class="font-medium text-slate-750">${date || 'No due date'}</p>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Due Time</label>
+                            <p class="font-medium text-slate-750">${time ? time.substring(0, 5) : 'No due time'}</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Google Meet Link</label>
+                        <p class="font-medium text-slate-700">${meetLinkHTML}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Description</label>
+                        <p class="text-slate-650 bg-slate-50 p-2.5 rounded-lg border border-slate-150 break-words leading-relaxed whitespace-pre-line">${desc || 'No description provided.'}</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Remarks / Progress Notes</label>
+                        <p class="text-indigo-950 bg-indigo-50/50 p-2.5 rounded-lg border border-indigo-100 break-words leading-relaxed whitespace-pre-line">${remarks || 'No remarks added yet. Right click to add remarks.'}</p>
+                    </div>
+                </div>
+                
+                <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end">
+                    <button onclick="document.getElementById('task-details-view-modal').remove()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition shadow-sm">Close</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    lucide.createIcons();
+}
+
+function openAddRemarksModal(taskId, currentRemarks) {
+    const existing = document.getElementById('task-add-remarks-modal');
+    if (existing) existing.remove();
+    
+    const modalHTML = `
+        <div id="task-add-remarks-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+            <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-slate-200 overflow-hidden flex flex-col text-left text-xs">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-1.5">
+                        <i data-lucide="message-square" class="h-4.5 w-4.5 text-indigo-500"></i>
+                        <span>Add Task Remarks</span>
+                    </h3>
+                    <button onclick="document.getElementById('task-add-remarks-modal').remove()" class="h-7 w-7 rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                    </button>
+                </div>
+                
+                <div class="p-6 space-y-3">
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Remarks / Comments / Updates</label>
+                    <textarea id="task-modal-remarks-input" rows="4" placeholder="Enter remarks..." class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500 font-sans">${currentRemarks}</textarea>
+                </div>
+                
+                <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end space-x-2">
+                    <button onclick="document.getElementById('task-add-remarks-modal').remove()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 rounded-lg font-bold transition">Cancel</button>
+                    <button onclick="submitTaskRemarks(this, ${taskId})" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition shadow-sm">Save Remarks</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    lucide.createIcons();
+}
+
+async function submitTaskRemarks(btn, taskId) {
+    const remarks = document.getElementById('task-modal-remarks-input').value.trim();
+    
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin text-white"></i>`;
+    lucide.createIcons();
+    
+    try {
+        const res = await apiCall('crm/tasks.php?action=PUT', 'POST', {
+            id: taskId,
+            remarks: remarks
+        });
+        
+        if (res.status === 'success') {
+            showNotification('success', 'Remarks updated successfully!');
+            document.getElementById('task-add-remarks-modal').remove();
+            const viewport = document.getElementById('main-content-viewport');
+            if (viewport) {
+                if (currentView === 'dashboard') {
+                    renderDashboard(viewport);
+                } else {
+                    renderTasks(viewport);
+                }
+            }
+        } else {
+            showNotification('error', res.message);
         }
     } catch(e) {
         showNotification('error', e.message);

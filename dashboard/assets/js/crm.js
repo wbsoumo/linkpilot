@@ -10,6 +10,130 @@ let activeDealId = null;
 let charts = {};
 let wizardStep = 1;
 
+function getSkeletonLoader(view) {
+    if (view === 'dashboard') {
+        return `
+            <div class="space-y-8 animate-pulse text-xs">
+                <div class="flex justify-between items-center">
+                    <div class="space-y-2 w-1/3">
+                        <div class="h-7 bg-slate-800 rounded-md w-3/4"></div>
+                        <div class="h-3 bg-slate-800 rounded-md w-1/2"></div>
+                    </div>
+                    <div class="h-9 bg-slate-800 rounded-md w-28"></div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    ${Array(12).fill(0).map(() => `
+                        <div class="bg-slate-900/40 border border-slate-800/60 rounded-xl p-4 space-y-3">
+                            <div class="flex justify-between">
+                                <div class="h-3 bg-slate-800 rounded w-12"></div>
+                                <div class="h-6 w-6 bg-slate-800 rounded-md"></div>
+                            </div>
+                            <div class="h-6 bg-slate-800 rounded w-16"></div>
+                            <div class="h-2.5 bg-slate-800 rounded w-10"></div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 bg-slate-900/40 border border-slate-800/60 rounded-xl p-5 h-80 flex flex-col justify-between">
+                        <div class="h-4 bg-slate-800 rounded w-1/4"></div>
+                        <div class="h-60 bg-slate-800/40 rounded-lg w-full"></div>
+                    </div>
+                    <div class="bg-slate-900/40 border border-slate-800/60 rounded-xl p-5 h-80 space-y-4">
+                        <div class="h-4 bg-slate-800 rounded w-1/3"></div>
+                        <div class="space-y-3">
+                            ${Array(4).fill(0).map(() => `
+                                <div class="flex items-center space-x-3">
+                                    <div class="h-8 w-8 bg-slate-800 rounded-full"></div>
+                                    <div class="space-y-1.5 flex-1">
+                                        <div class="h-3 bg-slate-800 rounded w-2/3"></div>
+                                        <div class="h-2 bg-slate-800 rounded w-1/3"></div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (view === 'inbox') {
+        return `
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[75vh] animate-pulse text-xs">
+                <!-- Left email list -->
+                <div class="lg:col-span-4 bg-slate-900/40 border border-slate-800/60 rounded-xl p-4 space-y-4 h-full flex flex-col">
+                    <div class="h-8 bg-slate-800 rounded-md w-full"></div>
+                    <div class="space-y-3 flex-grow overflow-hidden">
+                        ${Array(5).fill(0).map(() => `
+                            <div class="p-3 border border-slate-800/50 rounded-lg space-y-2">
+                                <div class="flex justify-between">
+                                    <div class="h-3 bg-slate-800 rounded w-1/3"></div>
+                                    <div class="h-2.5 bg-slate-800 rounded w-10"></div>
+                                </div>
+                                <div class="h-3.5 bg-slate-800 rounded w-3/4"></div>
+                                <div class="h-2.5 bg-slate-800 rounded w-1/2"></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <!-- Right details -->
+                <div class="lg:col-span-8 bg-slate-900/40 border border-slate-800/60 rounded-xl p-6 space-y-6 h-full flex flex-col">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <div class="flex space-x-2">
+                            <div class="h-8 w-8 bg-slate-800 rounded-md"></div>
+                            <div class="h-8 w-8 bg-slate-800 rounded-md"></div>
+                        </div>
+                        <div class="h-5 bg-slate-800 rounded w-16"></div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="h-5 bg-slate-800 rounded w-1/2"></div>
+                        <div class="h-3.5 bg-slate-800 rounded w-1/3"></div>
+                    </div>
+                    <div class="bg-slate-900/60 rounded-xl p-4 h-24 space-y-2">
+                        <div class="h-3 bg-slate-800 rounded w-1/4"></div>
+                        <div class="h-3 bg-slate-800 rounded w-1/2"></div>
+                    </div>
+                    <div class="h-44 bg-slate-950/40 rounded-xl p-4 space-y-3">
+                        <div class="h-3 bg-slate-800 rounded w-full"></div>
+                        <div class="h-3 bg-slate-800 rounded w-5/6"></div>
+                        <div class="h-3 bg-slate-800 rounded w-4/5"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        // Table/list views skeleton
+        return `
+            <div class="space-y-6 animate-pulse text-xs">
+                <div class="flex justify-between items-center">
+                    <div class="space-y-2 w-1/3">
+                        <div class="h-7 bg-slate-800 rounded-md w-2/3"></div>
+                        <div class="h-3 bg-slate-800 rounded-md w-1/2"></div>
+                    </div>
+                    <div class="h-9 bg-slate-800 rounded-md w-24"></div>
+                </div>
+                <div class="bg-slate-900/40 border border-slate-800/60 rounded-xl p-5 space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <div class="h-8 bg-slate-800 rounded-md w-60"></div>
+                        <div class="flex space-x-2">
+                            <div class="h-8 w-16 bg-slate-800 rounded-md"></div>
+                            <div class="h-8 w-16 bg-slate-800 rounded-md"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        ${Array(6).fill(0).map(() => `
+                            <div class="flex justify-between items-center py-3 border-b border-slate-800/40">
+                                <div class="h-3.5 bg-slate-800 rounded w-1/4"></div>
+                                <div class="h-3 bg-slate-800 rounded w-1/6"></div>
+                                <div class="h-3 bg-slate-800 rounded w-12"></div>
+                                <div class="h-6 w-12 bg-slate-800 rounded-full"></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+}
+
 // Router routing interceptor
 function navigateTo(view, params = {}) {
     currentView = view;
@@ -28,13 +152,8 @@ function navigateTo(view, params = {}) {
     const contentArea = document.getElementById('main-content-viewport');
     if (!contentArea) return;
     
-    // Show loader
-    contentArea.innerHTML = `
-        <div class="flex flex-col items-center justify-center py-20 space-y-4">
-            <div class="loader-spinner !w-8 !h-8 !border-4"></div>
-            <p class="text-xs text-slate-500 font-medium">Loading panel components...</p>
-        </div>
-    `;
+    // Show skeleton loader
+    contentArea.innerHTML = getSkeletonLoader(view);
 
     // Render corresponding screen
     switch (view) {

@@ -2791,12 +2791,22 @@ async function renderTasks(container) {
                 const timeStr = t.due_time ? ` @ ${t.due_time.substring(0, 5)}` : '';
                 const dateStr = t.due_date ? new Date(t.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + timeStr : 'No date';
                 
-                const meetLinkHTML = t.meet_link ? `
-                    <a href="${t.meet_link}" target="_blank" class="mt-2 flex items-center space-x-1 text-[10px] text-blue-600 hover:text-blue-800 font-bold bg-blue-50 px-2 py-1 rounded-md border border-blue-100 transition inline-flex w-fit">
-                        <i data-lucide="video" class="h-3.5 w-3.5 text-blue-600"></i>
-                        <span>Join Meet</span>
-                    </a>
-                ` : '';
+                let meetLinkHTML = '';
+                if (t.meet_link) {
+                    meetLinkHTML = `
+                        <a href="${t.meet_link}" target="_blank" class="mt-2 flex items-center space-x-1 text-[10px] text-blue-600 hover:text-blue-800 font-bold bg-blue-50 px-2 py-1 rounded-md border border-blue-100 transition inline-flex w-fit">
+                            <i data-lucide="video" class="h-3.5 w-3.5 text-blue-600"></i>
+                            <span>Join Meet</span>
+                        </a>
+                    `;
+                } else if (t.title.includes('[Meeting]') || t.title.startsWith('[Meeting]') || t.displayTitle.toLowerCase().includes('meeting')) {
+                    meetLinkHTML = `
+                        <button onclick="openConfigureMeetingModal(${t.id})" class="mt-2 flex items-center space-x-1 text-[10px] text-rose-650 hover:text-rose-800 font-bold bg-rose-50 px-2 py-1 rounded-md border border-rose-100 transition inline-flex w-fit">
+                            <i data-lucide="video" class="h-3.5 w-3.5 text-rose-600"></i>
+                            <span>Configure Invite</span>
+                        </button>
+                    `;
+                }
 
                 return `
                     <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-2.5 transition hover:shadow-md ${borderAccent} ${isCompleted ? 'opacity-65' : ''}">
@@ -2897,12 +2907,22 @@ async function renderTasks(container) {
                                 const timeStr = t.due_time ? ` @ ${t.due_time.substring(0, 5)}` : '';
                                 const dateStr = t.due_date ? new Date(t.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + timeStr : 'No date';
                                 
-                                const meetLinkHTML = t.meet_link ? `
-                                    <a href="${t.meet_link}" target="_blank" class="mt-2 flex items-center space-x-1 text-[10px] text-blue-600 hover:text-blue-800 font-bold bg-blue-50 px-2 py-1 rounded-md border border-blue-100 transition inline-flex w-fit">
-                                        <i data-lucide="video" class="h-3.5 w-3.5 text-blue-600"></i>
-                                        <span>Join Meet</span>
-                                    </a>
-                                ` : '';
+                                let meetLinkHTML = '';
+                                if (t.meet_link) {
+                                    meetLinkHTML = `
+                                        <a href="${t.meet_link}" target="_blank" class="mt-2 flex items-center space-x-1 text-[10px] text-blue-600 hover:text-blue-800 font-bold bg-blue-50 px-2 py-1 rounded-md border border-blue-100 transition inline-flex w-fit">
+                                            <i data-lucide="video" class="h-3.5 w-3.5 text-blue-600"></i>
+                                            <span>Join Meet</span>
+                                        </a>
+                                    `;
+                                } else if (t.title.includes('[Meeting]') || t.title.startsWith('[Meeting]') || t.displayTitle.toLowerCase().includes('meeting')) {
+                                    meetLinkHTML = `
+                                        <button onclick="openConfigureMeetingModal(${t.id})" class="mt-2 flex items-center space-x-1 text-[10px] text-rose-650 hover:text-rose-800 font-bold bg-rose-50 px-2 py-1 rounded-md border border-rose-100 transition inline-flex w-fit">
+                                            <i data-lucide="video" class="h-3.5 w-3.5 text-rose-600"></i>
+                                            <span>Configure Invite</span>
+                                        </button>
+                                    `;
+                                }
 
                                 return `
                                     <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-2.5 transition hover:shadow-md ${borderAccent} ${isCompleted ? 'opacity-65' : ''}">
@@ -2961,8 +2981,15 @@ async function toggleTaskStatus(taskId, currentStatus) {
         });
         if (data.status === 'success') {
             showNotification('success', `Task marked as ${nextStatus}!`);
+            updateGlobalTaskBadges();
             const viewport = document.getElementById('main-content-viewport');
-            if (viewport) renderTasks(viewport);
+            if (viewport) {
+                if (currentView === 'dashboard') {
+                    renderDashboard(viewport);
+                } else {
+                    renderTasks(viewport);
+                }
+            }
         } else {
             showNotification('error', data.message);
         }
@@ -2978,7 +3005,7 @@ function createNewTaskModal() {
 
     const modalHTML = `
         <div id="crm-task-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-            <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+            <div class="bg-white rounded-2xl w-full max-w-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
                 <!-- Modal Header -->
                 <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                     <div class="flex items-center space-x-2">
@@ -2992,53 +3019,64 @@ function createNewTaskModal() {
                     </button>
                 </div>
                 
-                <!-- Modal Body -->
-                <div class="p-6 space-y-4 text-xs text-left">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Task Category</label>
-                        <select id="new-task-category" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
-                            <option value="Follow-up">📞 Follow-up Call/Email</option>
-                            <option value="Reply">✉️ Reply to Incoming Pitch</option>
-                            <option value="Meeting">📅 Meeting Set / Appointment</option>
-                            <option value="Arrange">⚙️ Need to Arrange / Schedule</option>
-                            <option value="General">📋 General To-Do</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Task Title *</label>
-                        <input type="text" id="new-task-title" placeholder="Describe task..." class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-3">
-                        <div class="col-span-2">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Due Date</label>
-                            <input type="date" id="new-task-duedate" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
-                        </div>
+                <!-- Grid container for Form and AI Suggestions -->
+                <div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+                    <!-- Left: Form -->
+                    <div class="md:col-span-2 p-6 space-y-4 text-xs text-left">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Due Time</label>
-                            <input type="time" id="new-task-duetime" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Priority</label>
-                            <select id="new-task-priority" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
-                                <option value="low">Low</option>
-                                <option value="medium" selected>Medium</option>
-                                <option value="high">High</option>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Task Category</label>
+                            <select id="new-task-category" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500 bg-white">
+                                <option value="Follow-up">📞 Follow-up Call/Email</option>
+                                <option value="Reply">✉️ Reply to Incoming Pitch</option>
+                                <option value="Meeting">📅 Meeting Set / Appointment</option>
+                                <option value="Arrange">⚙️ Need to Arrange / Schedule</option>
+                                <option value="General">📋 General To-Do</option>
                             </select>
                         </div>
+
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Google Meet Link</label>
-                            <input type="url" id="new-task-meetlink" placeholder="https://meet.google.com/..." class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Task Title *</label>
+                            <input type="text" id="new-task-title" placeholder="Describe task..." class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="col-span-2">
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Due Date</label>
+                                <input type="date" id="new-task-duedate" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Due Time</label>
+                                <input type="time" id="new-task-duetime" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Priority</label>
+                                <select id="new-task-priority" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500 bg-white">
+                                    <option value="low">Low</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="high">High</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Google Meet Link</label>
+                                <input type="url" id="new-task-meetlink" placeholder="https://meet.google.com/..." class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Task Description</label>
+                            <textarea id="new-task-description" rows="3" placeholder="Provide extra description notes..." class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500 font-sans"></textarea>
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Task Description</label>
-                        <textarea id="new-task-description" rows="3" placeholder="Provide extra description notes..." class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500 font-sans"></textarea>
+                    <!-- Right: AI Suggestions -->
+                    <div class="p-6 bg-slate-50/50 space-y-4 text-xs text-left" id="ai-suggestions-modal-box">
+                        <div class="flex items-center justify-center py-12">
+                            <i data-lucide="loader-2" class="h-6 w-6 animate-spin text-indigo-600"></i>
+                            <span class="text-[10px] text-slate-500 ml-2">Loading AI recommendations...</span>
+                        </div>
                     </div>
                 </div>
                 
@@ -3057,6 +3095,9 @@ function createNewTaskModal() {
     document.body.insertAdjacentHTML('beforeend', modalHTML);
     // Set default date to today
     document.getElementById('new-task-duedate').valueAsDate = new Date();
+    loadTaskAiSuggestions();
+    lucide.createIcons();
+}ementById('new-task-duedate').valueAsDate = new Date();
     lucide.createIcons();
 }
 
@@ -3453,6 +3494,208 @@ function filterSentimentTrend(val) {
     charts.aiSentiment.data.datasets[1].data = neu;
     charts.aiSentiment.data.datasets[2].data = neg;
     charts.aiSentiment.update();
+}
+
+// Load AI task suggestions from actual leads data
+async function loadTaskAiSuggestions() {
+    const container = document.getElementById('ai-suggestions-modal-box');
+    if (!container) return;
+    
+    try {
+        const res = await apiCall('crm/leads.php');
+        const leads = res.leads || [];
+        
+        let suggestionsHTML = '';
+        if (leads.length > 0) {
+            // Suggest followups/meetings for latest qualified/new leads
+            const latestLeads = leads.slice(0, 3);
+            latestLeads.forEach((lead, idx) => {
+                const titleStr = idx === 0 
+                    ? `Call ${lead.name} regarding project scope` 
+                    : idx === 1 
+                        ? `[Meeting] Pitch sync with ${lead.name}` 
+                        : `Send proposal email to ${lead.name}`;
+                const category = idx === 1 ? 'Meeting' : 'Follow-up';
+                const priority = idx === 0 ? 'high' : 'medium';
+                const desc = `Follow up with ${lead.name}. Status: ${lead.stage}. Source: ${lead.lead_source || 'Web'}.`;
+                
+                suggestionsHTML += `
+                    <div id="ai-sugg-card-${idx}" class="p-3 bg-indigo-50/50 border border-indigo-100 hover:border-indigo-250 rounded-xl space-y-1.5 transition text-[11px] relative text-left">
+                        <button onclick="dismissAiSuggestion(${idx})" class="absolute right-2 top-2 text-slate-400 hover:text-slate-600 p-0.5" title="Dismiss">
+                            <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                        </button>
+                        <div class="font-bold text-indigo-750 flex items-center space-x-1">
+                            <i data-lucide="sparkles" class="h-3 w-3 text-indigo-500"></i>
+                            <span>AI SUGGESTION</span>
+                        </div>
+                        <p class="font-bold text-slate-800 leading-snug pr-4">${titleStr}</p>
+                        <p class="text-[10px] text-slate-500 line-clamp-2">${desc}</p>
+                        <button onclick="applyAiSuggestion('${category}', '${titleStr}', '${desc}', '${priority}')" class="text-[9px] text-indigo-600 hover:text-indigo-800 font-bold flex items-center space-x-0.5 pt-1">
+                            <span>Use Suggestion</span>
+                            <i data-lucide="arrow-right" class="h-2.5 w-2.5"></i>
+                        </button>
+                    </div>
+                `;
+            });
+        } else {
+            // Default suggestions in case there are no leads
+            const fallbacks = [
+                { category: 'Follow-up', title: 'Follow-up with Vikas Kumar regarding contract signature', priority: 'high', desc: 'Client requested review of contract clauses.' },
+                { category: 'Meeting', title: '[Meeting] Project kickoff sync with Rahul Mehta', priority: 'medium', desc: 'Kickoff meeting for Phase 1 requirements.' }
+            ];
+            fallbacks.forEach((lead, idx) => {
+                suggestionsHTML += `
+                    <div id="ai-sugg-card-${idx}" class="p-3 bg-indigo-50/50 border border-indigo-100 hover:border-indigo-250 rounded-xl space-y-1.5 transition text-[11px] relative text-left">
+                        <button onclick="dismissAiSuggestion(${idx})" class="absolute right-2 top-2 text-slate-400 hover:text-slate-600 p-0.5" title="Dismiss">
+                            <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                        </button>
+                        <div class="font-bold text-indigo-750 flex items-center space-x-1">
+                            <i data-lucide="sparkles" class="h-3 w-3 text-indigo-500"></i>
+                            <span>AI SUGGESTION</span>
+                        </div>
+                        <p class="font-bold text-slate-800 leading-snug pr-4">${lead.title}</p>
+                        <p class="text-[10px] text-slate-500 line-clamp-2">${lead.desc}</p>
+                        <button onclick="applyAiSuggestion('${lead.category}', '${lead.title}', '${lead.desc}', '${lead.priority}')" class="text-[9px] text-indigo-600 hover:text-indigo-800 font-bold flex items-center space-x-0.5 pt-1">
+                            <span>Use Suggestion</span>
+                            <i data-lucide="arrow-right" class="h-2.5 w-2.5"></i>
+                        </button>
+                    </div>
+                `;
+            });
+        }
+        
+        container.innerHTML = `
+            <div class="space-y-3">
+                <div class="font-bold text-slate-700 text-[10px] uppercase tracking-wider flex items-center space-x-1">
+                    <i data-lucide="sparkles" class="h-3.5 w-3.5 text-indigo-500"></i>
+                    <span>AI Suggested Tasks</span>
+                </div>
+                <div class="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                    ${suggestionsHTML}
+                </div>
+            </div>
+        `;
+        lucide.createIcons();
+    } catch(e) {
+        container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4">Suggestions paused.</p>`;
+    }
+}
+
+function applyAiSuggestion(category, title, description, priority) {
+    document.getElementById('new-task-category').value = category;
+    document.getElementById('new-task-title').value = title;
+    document.getElementById('new-task-description').value = description;
+    document.getElementById('new-task-priority').value = priority;
+    showNotification('success', 'AI Suggestion details copied to form!');
+}
+
+function dismissAiSuggestion(idx) {
+    const card = document.getElementById(`ai-sugg-card-${idx}`);
+    if (card) card.remove();
+}
+
+function openConfigureMeetingModal(taskId) {
+    const existing = document.getElementById('crm-meeting-invite-modal');
+    if (existing) existing.remove();
+    
+    // Generate a default mock meet URL for convenience
+    const randomCode = Math.random().toString(36).substring(2, 5) + '-' + Math.random().toString(36).substring(2, 6) + '-' + Math.random().toString(36).substring(2, 5);
+    const defaultMeet = `https://meet.google.com/${randomCode}`;
+
+    const modalHTML = `
+        <div id="crm-meeting-invite-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+            <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-slate-200 overflow-hidden flex flex-col text-left">
+                <!-- Header -->
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                    <div class="flex items-center space-x-2">
+                        <div class="h-8 w-8 bg-indigo-50 text-indigo-650 rounded-lg flex items-center justify-center">
+                            <i data-lucide="video" class="h-4.5 w-4.5 text-indigo-600"></i>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-800">Configure Meeting Link & Invite</h3>
+                    </div>
+                    <button onclick="closeConfigureMeetingModal()" class="h-7 w-7 rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                    </button>
+                </div>
+                
+                <!-- Body -->
+                <div class="p-6 space-y-4 text-xs">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Google Meet Link</label>
+                        <input type="url" id="meet-modal-link" value="${defaultMeet}" placeholder="https://meet.google.com/..." class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Add Invitees (Comma-separated emails)</label>
+                        <input type="text" id="meet-modal-invitees" placeholder="client@example.com, developer@example.com" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                        <p class="text-[9px] text-slate-450 mt-1">This will send an automated invitation with a calendar <b>invite.ics</b> attachment for one-click calendar import.</p>
+                    </div>
+                </div>
+                
+                <!-- Footer -->
+                <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end space-x-2">
+                    <button onclick="closeConfigureMeetingModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 rounded-lg font-bold transition">Cancel</button>
+                    <button onclick="submitMeetingInviteForm(this, ${taskId})" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition flex items-center space-x-1.5 shadow-sm">
+                        <i data-lucide="send" class="h-4 w-4"></i>
+                        <span>Send Invite</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    lucide.createIcons();
+}
+
+function closeConfigureMeetingModal() {
+    const modal = document.getElementById('crm-meeting-invite-modal');
+    if (modal) modal.remove();
+}
+
+async function submitMeetingInviteForm(btn, taskId) {
+    const meetLink = document.getElementById('meet-modal-link').value.trim();
+    const invitees = document.getElementById('meet-modal-invitees').value.trim();
+    
+    if (!meetLink) {
+        showNotification('error', 'Meeting link is required.');
+        return;
+    }
+    
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin text-white"></i>`;
+    lucide.createIcons();
+    
+    try {
+        const data = await apiCall('crm/send_meeting_invite.php', 'POST', {
+            task_id: taskId,
+            meet_link: meetLink,
+            invitees: invitees
+        });
+        
+        if (data.status === 'success') {
+            showNotification('success', data.message);
+            closeConfigureMeetingModal();
+            updateGlobalTaskBadges();
+            const viewport = document.getElementById('main-content-viewport');
+            if (viewport) {
+                if (currentView === 'dashboard') {
+                    renderDashboard(viewport);
+                } else {
+                    renderTasks(viewport);
+                }
+            }
+        } else {
+            showNotification('error', data.message);
+        }
+    } catch(e) {
+        showNotification('error', e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+        lucide.createIcons();
+    }
 }
 
 function renderMeetings(container) {

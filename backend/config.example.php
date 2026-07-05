@@ -141,6 +141,13 @@ class Database {
                 } catch (Exception $e) {}
 
                 try {
+                    $stmt = self::$instance->query("SHOW COLUMNS FROM `received_emails` LIKE 'parent_id'");
+                    if (!$stmt->fetch()) {
+                        self::$instance->exec("ALTER TABLE `received_emails` ADD COLUMN `parent_id` INT DEFAULT NULL AFTER `user_id`");
+                    }
+                } catch (Exception $e) {}
+
+                try {
                     $stmt = self::$instance->query("SHOW COLUMNS FROM `users` LIKE 'phone_number'");
                     if (!$stmt->fetch()) {
                         self::$instance->exec("ALTER TABLE `users` ADD COLUMN `phone_number` VARCHAR(50) UNIQUE DEFAULT NULL");

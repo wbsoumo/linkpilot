@@ -7283,84 +7283,238 @@ function autoArrangeCanvas() {
 // ----------------------------------------------------
 // TEST RUN & SIMULATION ACTIONS
 // ----------------------------------------------------
+function showTestDetailsModal(onConfirm) {
+    const existing = document.getElementById('wf-test-modal');
+    if (existing) existing.remove();
+    
+    const wf = window.wfState.activeWorkflow;
+    if (!wf) return;
+    
+    let formFieldsHTML = '';
+    
+    const hasEmailTrigger = wf.nodes.some(n => n.type === 'email_received');
+    const hasSendEmail = wf.nodes.some(n => n.type === 'send_email');
+    const hasCreateLead = wf.nodes.some(n => n.type === 'create_lead');
+    const hasSendWhatsapp = wf.nodes.some(n => n.type === 'send_whatsapp');
+    
+    if (hasEmailTrigger) {
+        formFieldsHTML += `
+            <div class="space-y-3 pb-3 border-b border-slate-100">
+                <h6 class="text-[10px] font-bold text-indigo-650 uppercase tracking-wider">Trigger: Email Received Details</h6>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-bold text-slate-500 uppercase">Test Sender Address</label>
+                        <input type="email" id="test-sender-email" value="customer@example.com" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-800 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-bold text-slate-500 uppercase">Test Subject</label>
+                        <input type="text" id="test-sender-subject" value="Inquiry about pricing plans" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-800 focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase">Test Email Body Content</label>
+                    <textarea id="test-sender-body" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-800 focus:outline-none focus:border-indigo-500 font-sans">Hi there, we would love to know more about your CRM integration pricing plans.</textarea>
+                </div>
+            </div>
+        `;
+    }
+    
+    if (hasSendEmail) {
+        formFieldsHTML += `
+            <div class="space-y-3 py-3 border-b border-slate-100">
+                <h6 class="text-[10px] font-bold text-indigo-650 uppercase tracking-wider">Action: Send Email Details</h6>
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase">Send Test Email To (Override Recipient)</label>
+                    <input type="email" id="test-recipient-email" value="${window.wfState.testRecipientEmail || 'wbsoumo@gmail.com'}" placeholder="Enter email to receive test message" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-800 focus:outline-none focus:border-indigo-500">
+                    <span class="text-[8px] text-slate-400">If configured, an actual test email will be sent to this inbox using your SMTP server.</span>
+                </div>
+            </div>
+        `;
+    }
+    
+    if (hasCreateLead) {
+        formFieldsHTML += `
+            <div class="space-y-3 py-3 border-b border-slate-100">
+                <h6 class="text-[10px] font-bold text-indigo-650 uppercase tracking-wider">Action: Create Lead Details</h6>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-bold text-slate-500 uppercase">Test Lead Full Name</label>
+                        <input type="text" id="test-lead-name" value="Jane Doe" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-800 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-bold text-slate-500 uppercase">Test Company Name</label>
+                        <input type="text" id="test-lead-company" value="Acme Corporation" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-800 focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    if (hasSendWhatsapp) {
+        formFieldsHTML += `
+            <div class="space-y-3 py-3">
+                <h6 class="text-[10px] font-bold text-indigo-650 uppercase tracking-wider">Action: Send WhatsApp Details</h6>
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase">Test Phone Number (E.164)</label>
+                    <input type="text" id="test-whatsapp-phone" value="+1234567890" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-800 focus:outline-none focus:border-indigo-500">
+                </div>
+            </div>
+        `;
+    }
+    
+    if (formFieldsHTML === '') {
+        formFieldsHTML = `
+            <div class="text-center text-slate-500 py-6 italic text-[11px]">
+                No parameters needed for this node configuration.
+            </div>
+        `;
+    }
+    
+    const modal = document.createElement('div');
+    modal.id = 'wf-test-modal';
+    modal.className = 'fixed inset-0 z-[2000] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4';
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in flex flex-col text-slate-700">
+            <!-- Header -->
+            <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
+                <div>
+                    <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Workflow Test Configuration</h4>
+                    <p class="text-[9px] text-slate-400">Configure parameters for simulation run</p>
+                </div>
+                <button onclick="document.getElementById('wf-test-modal').remove()" class="h-6 w-6 rounded-full hover:bg-slate-100 text-slate-400 flex items-center justify-center transition">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            </div>
+            <!-- Body -->
+            <div class="p-5 flex-grow overflow-y-auto max-h-[60vh] space-y-4 text-xs">
+                ${formFieldsHTML}
+            </div>
+            <!-- Footer -->
+            <div class="p-4 border-t border-slate-200 bg-slate-50/50 flex justify-end space-x-2">
+                <button onclick="document.getElementById('wf-test-modal').remove()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-650 rounded-xl font-bold transition text-[10px]">Cancel</button>
+                <button id="wf-confirm-test-btn" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition text-[10px] flex items-center space-x-1.5">
+                    <i data-lucide="play" class="h-3.5 w-3.5"></i>
+                    <span>Start Test Run</span>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    lucide.createIcons();
+    
+    document.getElementById('wf-confirm-test-btn').onclick = () => {
+        const details = {};
+        if (document.getElementById('test-sender-email')) details.sender = document.getElementById('test-sender-email').value;
+        if (document.getElementById('test-sender-subject')) details.subject = document.getElementById('test-sender-subject').value;
+        if (document.getElementById('test-sender-body')) details.body = document.getElementById('test-sender-body').value;
+        if (document.getElementById('test-recipient-email')) {
+            details.recipient = document.getElementById('test-recipient-email').value;
+            window.wfState.testRecipientEmail = details.recipient; // Save to session
+        }
+        if (document.getElementById('test-lead-name')) details.leadName = document.getElementById('test-lead-name').value;
+        if (document.getElementById('test-lead-company')) details.leadCompany = document.getElementById('test-lead-company').value;
+        if (document.getElementById('test-whatsapp-phone')) details.phone = document.getElementById('test-whatsapp-phone').value;
+        
+        modal.remove();
+        onConfirm(details);
+    };
+}
+
 async function runWorkflowSimulation(btn) {
     const wf = window.wfState.activeWorkflow;
     if (!wf || !wf.nodes || wf.nodes.length === 0) return;
     
-    const origText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = `<i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin text-white"></i>`;
-    lucide.createIcons();
-    
-    // Reset simulation status badges
-    wf.nodes.forEach(n => {
-        n.execStatus = null;
-        n.execTime = null;
-    });
-    
-    navigateTo('automation');
-    
-    // Walk through execution pathway
-    const startNode = wf.nodes.find(n => n.id === 'node-trigger' || n.type === 'email_received') || wf.nodes[0];
-    
-    let path = [];
-    const traverse = (nodeId) => {
-        if (path.includes(nodeId)) return; // Prev loop
-        path.push(nodeId);
+    showTestDetailsModal(async (details) => {
+        const origText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin text-white"></i>`;
+        lucide.createIcons();
         
-        const out = wf.connections.find(c => c.from === nodeId);
-        if (out) traverse(out.to);
-    };
-    
-    traverse(startNode.id);
-    
-    const startRunTime = Date.now();
-    
-    for (let i = 0; i < path.length; i++) {
-        const nodeId = path[i];
-        const node = wf.nodes.find(n => n.id === nodeId);
-        if (!node) continue;
-        
-        node.execStatus = 'executing';
-        const nodeEl = document.getElementById(nodeId);
-        if (nodeEl) nodeEl.classList.add('executing');
-        drawConnections();
-        
-        // Wait 900ms to simulate computation
-        await new Promise(r => setTimeout(r, 900));
-        
-        node.execStatus = 'success';
-        node.execTime = Math.round(40 + Math.random() * 80);
-        if (nodeEl) {
-            nodeEl.classList.remove('executing');
-            // Refresh inner HTML badge status
-            const badgeContainer = document.createElement('div');
-            badgeContainer.innerHTML = renderCanvasNodesHTML();
-            // Re-render nodes container
-            document.getElementById('canvas-nodes-container').innerHTML = badgeContainer.innerHTML;
-        }
-        drawConnections();
-    }
-    
-    const totalDuration = ((Date.now() - startRunTime) / 1000).toFixed(2);
-    
-    btn.disabled = false;
-    btn.innerHTML = origText;
-    lucide.createIcons();
-    
-    showNotification('success', `Test run completed successfully in ${totalDuration}s!`);
-    
-    // Log execution back to the server
-    try {
-        await apiCall('crm/automation.php?action=log_run', 'POST', {
-            workflow_id: wf.id > 0 ? wf.id : null,
-            workflow_name: wf.name,
-            status: 'success',
-            execution_time: parseFloat(totalDuration)
+        // Reset simulation status badges
+        wf.nodes.forEach(n => {
+            n.execStatus = null;
+            n.execTime = null;
         });
-    } catch(e) {
-        console.error('Failed to log test run', e);
-    }
+        
+        navigateTo('automation');
+        
+        // Walk through execution pathway
+        const startNode = wf.nodes.find(n => n.id === 'node-trigger' || n.type === 'email_received') || wf.nodes[0];
+        
+        let path = [];
+        const traverse = (nodeId) => {
+            if (path.includes(nodeId)) return; // Prev loop
+            path.push(nodeId);
+            
+            const out = wf.connections.find(c => c.from === nodeId);
+            if (out) traverse(out.to);
+        };
+        
+        traverse(startNode.id);
+        
+        const startRunTime = Date.now();
+        
+        for (let i = 0; i < path.length; i++) {
+            const nodeId = path[i];
+            const node = wf.nodes.find(n => n.id === nodeId);
+            if (!node) continue;
+            
+            node.execStatus = 'executing';
+            const nodeEl = document.getElementById(nodeId);
+            if (nodeEl) nodeEl.classList.add('executing');
+            drawConnections();
+            
+            // Wait 900ms to simulate computation
+            await new Promise(r => setTimeout(r, 900));
+            
+            // If the node type is 'send_email', trigger backend email delivery
+            if (node.type === 'send_email' && details.recipient) {
+                try {
+                    const mailConfig = node.config || {};
+                    await apiCall('crm/automation.php?action=test_send_email', 'POST', {
+                        recipient: details.recipient,
+                        subject: mailConfig.subject || details.subject || 'Workflow Builder Test Email',
+                        body: mailConfig.body || details.body || 'This is a test notification from LinkPilot Workflow Builder.'
+                    });
+                } catch (err) {
+                    console.error('Failed to dispatch test email', err);
+                }
+            }
+            
+            node.execStatus = 'success';
+            node.execTime = Math.round(40 + Math.random() * 80);
+            if (nodeEl) {
+                nodeEl.classList.remove('executing');
+                // Refresh inner HTML badge status
+                const badgeContainer = document.createElement('div');
+                badgeContainer.innerHTML = renderCanvasNodesHTML();
+                // Re-render nodes container
+                document.getElementById('canvas-nodes-container').innerHTML = badgeContainer.innerHTML;
+            }
+            drawConnections();
+        }
+        
+        const totalDuration = ((Date.now() - startRunTime) / 1000).toFixed(2);
+        
+        btn.disabled = false;
+        btn.innerHTML = origText;
+        lucide.createIcons();
+        
+        showNotification('success', `Test run completed successfully in ${totalDuration}s!`);
+        
+        // Log execution back to the server
+        try {
+            await apiCall('crm/automation.php?action=log_run', 'POST', {
+                workflow_id: wf.id > 0 ? wf.id : null,
+                workflow_name: wf.name,
+                status: 'success',
+                execution_time: parseFloat(totalDuration)
+            });
+        } catch(e) {
+            console.error('Failed to log test run', e);
+        }
+    });
 }
 
 // ----------------------------------------------------

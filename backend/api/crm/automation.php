@@ -3,6 +3,12 @@
 
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../jwt_helper.php';
+require_once __DIR__ . '/../../libs/PHPMailer/PHPMailer.php';
+require_once __DIR__ . '/../../libs/PHPMailer/SMTP.php';
+require_once __DIR__ . '/../../libs/PHPMailer/Exception.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 $user = JWTHelper::requireAuth();
 $userId = $user['id'];
@@ -27,6 +33,68 @@ try {
         }
         
         sendJsonResponse('success', 'Automation workflows retrieved successfully', ['workflows' => $workflows]);
+    }
+    
+    elseif ($method === 'TEST_SEND_EMAIL') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!$input) $input = $_POST;
+        
+        $recipient = filter_var(trim($input['recipient'] ?? ''), FILTER_VALIDATE_EMAIL);
+        $subject = trim($input['subject'] ?? 'Workflow Builder Test Email');
+        $body = trim($input['body'] ?? 'This is a test notification from LinkPilot Workflow Builder.');
+        
+        if (!$recipient) {
+            sendJsonResponse('error', 'A valid override recipient email is required to run the test.', [], 400);
+        }
+        
+        $stmtSmtp = $db->prepare("SELECT smtp_host, smtp_port, smtp_username, smtp_password, smtp_encryption FROM imap_smtp_configurations WHERE user_id = ?");
+        $stmtSmtp->execute([$userId]);
+        $smtp = $stmtSmtp->fetch();
+        
+        $mail = new PHPMailer(true);
+        try {
+            if ($smtp && !empty($smtp['smtp_host'])) {
+                $mail->isSMTP();
+                $mail->Host = $smtp['smtp_host'];
+                $mail->SMTPAuth = true;
+                $mail->Username = $smtp['smtp_username'];
+                $mail->Password = decryptData($smtp['smtp_password']);
+                $mail->Port = (int)$smtp['smtp_port'];
+                $mail->SMTPSecure = strtolower($smtp['smtp_encryption']) === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
+            } else {
+                $mail->isMail();
+            }
+            
+            $mail->setFrom($smtp['smtp_username'] ?? 'noreply@linkpilot.ai', 'LinkPilot CRM Workflow Test');
+            $mail->addAddress($recipient);
+            $mail->Subject = $subject;
+            $mail->isHTML(true);
+            $mail->Body = "
+                <div style='font-family: sans-serif; padding: 20px; color: #1e293b; background-color: #f8fafc;'>
+                    <h2 style='color: #4f46e5;'>LinkPilot Workflow Test Dispatch</h2>
+                    <p>Hello,</p>
+                    <p>This email was triggered by running a test inside your LinkPilot CRM Visual Workflow Builder.</p>
+                    <div style='background-color: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin: 15px 0;'>
+                        <p style='margin: 0 0 10px 0;'><strong>Test Email Content:</strong></p>
+                        <p style='margin: 0; white-space: pre-wrap;'>{$body}</p>
+                    </div>
+                    <p style='font-size: 11px; color: #64748b;'>You received this because your address was specified as the test override email recipient.</p>
+                </div>
+            ";
+            
+            $mail->send();
+            sendJsonResponse('success', 'Test email dispatched successfully!');
+        } catch (Exception $e) {
+            try {
+                $headers = "From: " . ($smtp['smtp_username'] ?? 'noreply@linkpilot.ai') . "\r\n";
+                $headers .= "MIME-Version: 1.0\r\n";
+                $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+                mail($recipient, $subject, $mail->Body, $headers);
+                sendJsonResponse('success', 'Test email dispatched successfully (via fallback mailer)!');
+            } catch (\Throwable $ex) {
+                sendJsonResponse('error', 'Failed to dispatch SMTP email: ' . $mail->ErrorInfo);
+            }
+        }
     }
     
     elseif ($method === 'LOG_RUN') {

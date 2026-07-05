@@ -115,7 +115,7 @@ try {
         $priority = trim($input['priority'] ?? 'medium');
         $status = trim($input['status'] ?? $task['status']);
         $dueTime = isset($input['due_time']) ? (!empty($input['due_time']) ? trim($input['due_time']) : null) : $task['due_time'];
-        $meetLink = isset($input['meet_link']) ? (!empty($input['meet_link']) ? trim($input['meet_link']) : $task['meet_link']);
+        $meetLink = isset($input['meet_link']) ? (!empty($input['meet_link']) ? trim($input['meet_link']) : null) : $task['meet_link'];
         
         $companyId = !empty($input['company_id']) ? (int)$input['company_id'] : $task['company_id'];
         $contactId = !empty($input['contact_id']) ? (int)$input['contact_id'] : $task['contact_id'];

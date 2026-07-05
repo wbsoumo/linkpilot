@@ -21,6 +21,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom Style Sheet -->
     <link rel="stylesheet" href="assets/css/style.css?v=2.8">
+    <!-- Lottie Files Animation Integration -->
+    <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.14/dist/dotlottie-wc.js" type="module"></script>
 </head>
 <body class="h-full bg-[#f8fafc] text-slate-800 flex overflow-hidden">
 
@@ -190,12 +192,8 @@
     </div>
 
     <!-- AI CRM Chat Assistant Button & Panel -->
-    <button onclick="toggleAIChatAssistant()" class="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all duration-200 border border-indigo-400/30" id="ai-chat-trigger-btn">
-        <i data-lucide="message-square" class="h-6 w-6"></i>
-        <span class="absolute -top-1 -right-1 flex h-3 w-3">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
-        </span>
+    <button onclick="toggleAIChatAssistant()" class="fixed bottom-4 right-4 z-50 h-20 w-20 hover:scale-110 active:scale-95 transition-all duration-200 focus:outline-none flex items-center justify-center cursor-pointer" id="ai-chat-trigger-btn">
+        <dotlottie-wc src="https://lottie.host/552e272b-c3ae-421a-ad48-888f5e132fc0/e6lqFrYMMX.lottie" style="width: 80px; height: 80px" autoplay loop></dotlottie-wc>
     </button>
 
     <div id="ai-chat-assistant-drawer" class="fixed top-0 right-0 h-full w-[400px] max-w-full bg-[#f8fafc] border-l border-slate-200 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">

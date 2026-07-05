@@ -2636,11 +2636,11 @@ async function sendAIChatMessage(text) {
     
     // 1. Append User Message
     container.insertAdjacentHTML('beforeend', `
-        <div class="flex items-start justify-end space-x-2.5 mt-3">
-            <div class="p-3 chat-bubble-user text-xs leading-relaxed max-w-[85%]">
+        <div class="flex items-start justify-end space-x-2.5 mt-4">
+            <div class="p-3 chat-bubble-user text-xs leading-relaxed max-w-[80%] shadow-[0_4px_12px_rgba(99,102,241,0.15)]">
                 ${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
             </div>
-            <div class="h-6 w-6 rounded bg-indigo-600 text-white flex items-center justify-center text-[10px] font-bold">
+            <div class="h-7 w-7 rounded-full bg-gradient-to-tr from-indigo-500 to-indigo-700 text-white flex items-center justify-center text-[10px] font-bold border border-indigo-400/30 shrink-0">
                 U
             </div>
         </div>
@@ -2652,11 +2652,11 @@ async function sendAIChatMessage(text) {
     // 2. Append Thinking Loader
     const loaderId = 'ai-chat-thinking-' + Date.now();
     container.insertAdjacentHTML('beforeend', `
-        <div class="flex items-start space-x-2.5 animate-pulse mt-3" id="${loaderId}">
-            <div class="h-6 w-6 rounded bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px]">
-                <i data-lucide="sparkles" class="h-3 w-3"></i>
+        <div class="flex items-start space-x-2.5 mt-4 animate-pulse" id="${loaderId}">
+            <div class="h-7 w-7 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-600 text-white flex items-center justify-center shadow-[0_0_10px_rgba(99,102,241,0.4)] border border-indigo-400/20 shrink-0">
+                <i data-lucide="sparkles" class="h-3.5 w-3.5 text-teal-300"></i>
             </div>
-            <div class="p-3 chat-bubble-ai text-xs text-indigo-300 max-w-[85%] italic">
+            <div class="p-3 chat-bubble-ai text-xs text-indigo-300 max-w-[80%] italic">
                 AI is searching workspace data...
             </div>
         </div>
@@ -2681,26 +2681,26 @@ async function sendAIChatMessage(text) {
             const reply = data.reply;
             aiChatHistory.push({ role: 'assistant', content: reply });
             
-            // Format markdown-like lists/bolds for premium display
+            // Format markdown-like lists/bolds/headings for premium display
             const formatted = formatAIChatReply(reply);
             
             container.insertAdjacentHTML('beforeend', `
-                <div class="flex items-start space-x-2.5 animate-fade-in mt-3">
-                    <div class="h-6 w-6 rounded bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px]">
-                        <i data-lucide="sparkles" class="h-3 w-3"></i>
+                <div class="flex items-start space-x-2.5 mt-4 animate-fade-in">
+                    <div class="h-7 w-7 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-600 text-white flex items-center justify-center shadow-[0_0_10px_rgba(99,102,241,0.4)] border border-indigo-400/20 shrink-0">
+                        <i data-lucide="sparkles" class="h-3.5 w-3.5 text-teal-300 animate-pulse"></i>
                     </div>
-                    <div class="p-3 chat-bubble-ai text-xs leading-relaxed max-w-[85%]">
+                    <div class="p-3 chat-bubble-ai text-xs leading-relaxed max-w-[80%] shadow-[0_4px_15px_rgba(0,0,0,0.25)]">
                         ${formatted}
                     </div>
                 </div>
             `);
         } else {
             container.insertAdjacentHTML('beforeend', `
-                <div class="flex items-start space-x-2.5 mt-3">
-                    <div class="h-6 w-6 rounded bg-red-600/10 border border-red-500/20 text-red-400 flex items-center justify-center text-[10px]">
-                        <i data-lucide="alert-triangle" class="h-3 w-3"></i>
+                <div class="flex items-start space-x-2.5 mt-4">
+                    <div class="h-7 w-7 rounded-full bg-red-650 text-white flex items-center justify-center text-[10px] shrink-0 border border-red-500/20">
+                        <i data-lucide="alert-triangle" class="h-3.5 w-3.5 text-red-400"></i>
                     </div>
-                    <div class="p-3 bg-red-950/20 border border-red-900/30 text-red-400 text-xs rounded-lg max-w-[85%]">
+                    <div class="p-3 bg-red-950/20 border border-red-900/30 text-red-400 text-xs rounded-lg max-w-[80%]">
                         Error: ${data.message}
                     </div>
                 </div>
@@ -2711,11 +2711,11 @@ async function sendAIChatMessage(text) {
         const loader = document.getElementById(loaderId);
         if (loader) loader.remove();
         container.insertAdjacentHTML('beforeend', `
-            <div class="flex items-start space-x-2.5 mt-3">
-                <div class="h-6 w-6 rounded bg-red-600/10 border border-red-500/20 text-red-400 flex items-center justify-center text-[10px]">
-                    <i data-lucide="alert-triangle" class="h-3 w-3"></i>
+            <div class="flex items-start space-x-2.5 mt-4">
+                <div class="h-7 w-7 rounded-full bg-red-655 text-white flex items-center justify-center text-[10px] shrink-0 border border-red-500/20">
+                    <i data-lucide="alert-triangle" class="h-3.5 w-3.5 text-red-400"></i>
                 </div>
-                <div class="p-3 bg-red-950/20 border border-red-900/30 text-red-400 text-xs rounded-lg max-w-[85%]">
+                <div class="p-3 bg-red-950/20 border border-red-900/30 text-red-400 text-xs rounded-lg max-w-[80%]">
                     Connection failed. Please check network.
                 </div>
             </div>
@@ -2729,15 +2729,22 @@ async function sendAIChatMessage(text) {
 function formatAIChatReply(text) {
     // 1. Escape HTML
     let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    
     // 2. Bold tags
     html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-white">$1</strong>');
-    // 3. Bullet points format
-    html = html.replace(/^\s*[-*]\s+(.*)$/gm, '<li class="ml-4 list-disc text-slate-300 mt-1">$1</li>');
-    // 4. Wrap adjacent li items in ul blocks
+    
+    // 3. Headers formatting
+    html = html.replace(/^### (.*)$/gm, '<h4 class="text-indigo-400 font-bold text-xs mt-3 mb-1 tracking-wider uppercase border-b border-slate-800 pb-1">$1</h4>');
+    html = html.replace(/^## (.*)$/gm, '<h3 class="text-white font-extrabold text-xs mt-4 mb-1.5 tracking-wide uppercase">$1</h3>');
+    html = html.replace(/^# (.*)$/gm, '<h2 class="text-indigo-400 font-extrabold text-sm mt-4 mb-2 border-b border-indigo-500/20 pb-1.5">$1</h2>');
+
+    // 4. Bullet points format
+    html = html.replace(/^\s*[-*]\s+(.*)$/gm, '<li class="ml-4 list-disc text-slate-350 mt-1">$1</li>');
+    // 5. Wrap adjacent li items in ul blocks
     html = html.replace(/((?:<li.*<\/li>\s*)+)/g, '<ul class="my-2 space-y-1">$1</ul>');
-    // 5. Newlines conversion
+    // 6. Newlines conversion
     html = html.replace(/\n\n/g, '<br/><br/>');
-    html = html.replace(/(?<!<\/li>)\n/g, '<br/>');
+    html = html.replace(/(?<!<\/li>|h2>|h3>|h4>)\n/g, '<br/>');
     return html;
 }
 

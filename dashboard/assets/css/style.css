@@ -632,6 +632,83 @@ aside .bg-blue-600 * {
     color: #334155 !important;
 }
 
+/* ==========================================
+   AI CRM CHAT ASSISTANT STYLING
+   ========================================== */
+#ai-chat-assistant-drawer.translate-x-full {
+    transform: translateX(100%);
+}
+#ai-chat-assistant-drawer:not(.translate-x-full) {
+    transform: translateX(0);
+}
+
+/* Chat bubble styling inside the drawer */
+.chat-bubble-ai {
+    align-self: flex-start;
+    background: rgba(30, 41, 59, 0.45) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    color: #e2e8f0 !important;
+    border-radius: 0.75rem 0.75rem 0.75rem 0;
+}
+.chat-bubble-user {
+    align-self: flex-end;
+    background-color: #4f46e5 !important; /* Indigo-600 */
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
+    border-radius: 0.75rem 0.75rem 0 0.75rem;
+}
+
+/* Force dark theme rules on the assistant drawer container elements */
+#ai-chat-assistant-drawer {
+    background-color: #050b18 !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+#ai-chat-assistant-drawer h3 {
+    color: #ffffff !important;
+}
+#ai-chat-assistant-drawer button:not(.bg-indigo-600) {
+    color: #94a3b8 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+#ai-chat-assistant-drawer button:not(.bg-indigo-600) * {
+    color: #94a3b8 !important;
+}
+#ai-chat-assistant-drawer button:not(.bg-indigo-600):hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
+}
+#ai-chat-assistant-drawer button:not(.bg-indigo-600):hover * {
+    color: #ffffff !important;
+}
+#ai-chat-assistant-drawer button.bg-indigo-600 {
+    background-color: #4f46e5 !important;
+    border-color: #4f46e5 !important;
+    color: #ffffff !important;
+}
+#ai-chat-assistant-drawer button.bg-indigo-600:hover {
+    background-color: #4338ca !important;
+    color: #ffffff !important;
+}
+#ai-chat-assistant-drawer button.bg-indigo-600 * {
+    color: #ffffff !important;
+}
+#ai-chat-assistant-drawer input {
+    background-color: #020617 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: #f3f4f6 !important;
+}
+#ai-chat-assistant-drawer input::placeholder {
+    color: #6b7280 !important;
+}
+#ai-chat-assistant-drawer input:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1) !important;
+}
+#ai-chat-assistant-drawer .user-name-display {
+    color: #818cf8 !important;
+}
+
+
 
 
 

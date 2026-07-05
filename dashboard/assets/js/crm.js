@@ -9,6 +9,7 @@ let activeLeadId = null;
 let activeDealId = null;
 let charts = {};
 let wizardStep = 1;
+let aiChatHistory = [];
 
 function getSkeletonLoader(view) {
     if (view === 'dashboard') {
@@ -2600,6 +2601,153 @@ async function checkInboxPendingStatus() {
             } catch (e) {}
         }, 5000);
     }
+}
+
+// AI Chat Assistant Helpers
+function toggleAIChatAssistant() {
+    const drawer = document.getElementById('ai-chat-assistant-drawer');
+    if (!drawer) return;
+    drawer.classList.toggle('translate-x-full');
+    
+    // Sync user name inside the greeting if loaded
+    const activeName = document.querySelector('.user-name-display')?.textContent || 'User';
+    document.querySelectorAll('#ai-chat-assistant-drawer .user-name-display').forEach(el => {
+        el.textContent = activeName;
+    });
+}
+
+function sendQuickAIChatQuery(text) {
+    sendAIChatMessage(text);
+}
+
+function handleAIChatSubmit(e) {
+    e.preventDefault();
+    const input = document.getElementById('ai-chat-input-field');
+    if (!input) return;
+    const text = input.value.trim();
+    if (text === '') return;
+    input.value = '';
+    sendAIChatMessage(text);
+}
+
+async function sendAIChatMessage(text) {
+    const container = document.getElementById('ai-chat-messages-container');
+    if (!container) return;
+    
+    // 1. Append User Message
+    container.insertAdjacentHTML('beforeend', `
+        <div class="flex items-start justify-end space-x-2.5 mt-3">
+            <div class="p-3 chat-bubble-user text-xs leading-relaxed max-w-[85%]">
+                ${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+            </div>
+            <div class="h-6 w-6 rounded bg-indigo-600 text-white flex items-center justify-center text-[10px] font-bold">
+                U
+            </div>
+        </div>
+    `);
+    
+    // Scroll to bottom
+    container.scrollTop = container.scrollHeight;
+    
+    // 2. Append Thinking Loader
+    const loaderId = 'ai-chat-thinking-' + Date.now();
+    container.insertAdjacentHTML('beforeend', `
+        <div class="flex items-start space-x-2.5 animate-pulse mt-3" id="${loaderId}">
+            <div class="h-6 w-6 rounded bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px]">
+                <i data-lucide="sparkles" class="h-3 w-3"></i>
+            </div>
+            <div class="p-3 chat-bubble-ai text-xs text-indigo-300 max-w-[85%] italic">
+                AI is searching workspace data...
+            </div>
+        </div>
+    `);
+    container.scrollTop = container.scrollHeight;
+    lucide.createIcons();
+    
+    // Keep history
+    aiChatHistory.push({ role: 'user', content: text });
+    
+    try {
+        const response = await fetch('backend/api/crm/chat_assistant.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + (localStorage.getItem('jwt_token') || '')
+            },
+            body: JSON.stringify({
+                message: text,
+                history: aiChatHistory.slice(0, -1) // pass history excluding the current query
+            })
+        });
+        
+        const data = await response.json();
+        
+        // Remove loader
+        const loader = document.getElementById(loaderId);
+        if (loader) loader.remove();
+        
+        if (data.status === 'success') {
+            const reply = data.reply;
+            aiChatHistory.push({ role: 'assistant', content: reply });
+            
+            // Format markdown-like lists/bolds for premium display
+            const formatted = formatAIChatReply(reply);
+            
+            container.insertAdjacentHTML('beforeend', `
+                <div class="flex items-start space-x-2.5 animate-fade-in mt-3">
+                    <div class="h-6 w-6 rounded bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px]">
+                        <i data-lucide="sparkles" class="h-3 w-3"></i>
+                    </div>
+                    <div class="p-3 chat-bubble-ai text-xs leading-relaxed max-w-[85%]">
+                        ${formatted}
+                    </div>
+                </div>
+            `);
+        } else {
+            container.insertAdjacentHTML('beforeend', `
+                <div class="flex items-start space-x-2.5 mt-3">
+                    <div class="h-6 w-6 rounded bg-red-600/10 border border-red-500/20 text-red-400 flex items-center justify-center text-[10px]">
+                        <i data-lucide="alert-triangle" class="h-3 w-3"></i>
+                    </div>
+                    <div class="p-3 bg-red-950/20 border border-red-900/30 text-red-400 text-xs rounded-lg max-w-[85%]">
+                        Error: ${data.message}
+                    </div>
+                </div>
+            `);
+        }
+        
+    } catch (e) {
+        const loader = document.getElementById(loaderId);
+        if (loader) loader.remove();
+        container.insertAdjacentHTML('beforeend', `
+            <div class="flex items-start space-x-2.5 mt-3">
+                <div class="h-6 w-6 rounded bg-red-600/10 border border-red-500/20 text-red-400 flex items-center justify-center text-[10px]">
+                    <i data-lucide="alert-triangle" class="h-3 w-3"></i>
+                </div>
+                <div class="p-3 bg-red-950/20 border border-red-900/30 text-red-400 text-xs rounded-lg max-w-[85%]">
+                    Connection failed. Please check network.
+                </div>
+            </div>
+        `);
+    }
+    
+    container.scrollTop = container.scrollHeight;
+    lucide.createIcons();
+}
+
+function formatAIChatReply(text) {
+    // 1. Escape HTML
+    let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    // 2. Bold tags
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-white">$1</strong>');
+    // 3. Bullet points format
+    html = html.replace(/^\s*[-*]\s+(.*)$/gm, '<li class="ml-4 list-disc text-slate-300 mt-1">$1</li>');
+    // 4. Wrap adjacent li items in ul blocks
+    html = html.replace(/((?:<li.*<\/li>\s*)+)/g, '<ul class="my-2 space-y-1">$1</ul>');
+    // 5. Newlines conversion
+    html = html.replace(/\n\n/g, '<br/><br/>');
+    html = html.replace(/(?<!<\/li>)\n/g, '<br/>');
+    return html;
 }
 
 // ----------------------------------------------------

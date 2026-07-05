@@ -4022,46 +4022,34 @@ const WORKFLOW_TEMPLATES = [
 ];
 
 const AVAILABLE_NODES = [
-    // Email
-    { type: "email_received", name: "Email Received", category: "Email", icon: "mail", desc: "Triggers on incoming email." },
-    { type: "email_replied", name: "Email Replied", category: "Email", icon: "reply", desc: "Triggers when a reply is detected." },
-    { type: "email_opened", name: "Email Opened", category: "Email", icon: "eye", desc: "Triggers on email open event." },
-    { type: "email_sent", name: "Email Sent", category: "Email", icon: "send", desc: "Triggers when email is sent." },
-    { type: "attachment_received", name: "Attachment Received", category: "Email", icon: "paperclip", desc: "Trigger on file attachments." },
-    { type: "spam_detected", name: "Spam Detected", category: "Email", icon: "shield-alert", desc: "Trigger on spam rating." },
+    // TRIGGERS
+    { type: "email_received", name: "Email Received", category: "TRIGGERS", icon: "mail", desc: "Triggers on incoming email." },
+    { type: "new_lead", name: "New Lead Created", category: "TRIGGERS", icon: "user-plus", desc: "Triggers on lead insert." },
+    { type: "form_submitted", name: "Form Submitted", category: "TRIGGERS", icon: "file-text", desc: "Triggers on website form." },
+    { type: "website_visit", name: "Website Visit", category: "TRIGGERS", icon: "globe", desc: "Triggers on page hit." },
+    { type: "webhook_trigger", name: "Web Hook", category: "TRIGGERS", icon: "webhook", desc: "External trigger URL." },
     
-    // AI
-    { type: "ai_categorize", name: "AI Categorize Email", category: "AI", icon: "sparkles", desc: "Classify into tags." },
-    { type: "ai_summary", name: "AI Generate Summary", category: "AI", icon: "file-text", desc: "Summarize content." },
-    { type: "ai_sentiment", name: "AI Detect Sentiment", category: "AI", icon: "smile", desc: "Analyze user emotions." },
-    { type: "ai_extract_contact", name: "AI Extract Contact", category: "AI", icon: "user", desc: "Parse contact fields." },
-    { type: "ai_extract_company", name: "AI Extract Company", category: "AI", icon: "briefcase", desc: "Parse company details." },
-    { type: "ai_reply", name: "AI Generate Reply", category: "AI", icon: "message-square-reply", desc: "Draft a smart reply." },
+    // AI ACTIONS
+    { type: "ai_categorize", name: "AI Categorize Email", category: "AI ACTIONS", icon: "sparkles", desc: "Classify into tags." },
+    { type: "ai_extract", name: "AI Extract Details", category: "AI ACTIONS", icon: "file-text", desc: "Extract contact details." },
+    { type: "ai_scoring", name: "AI Lead Scoring", category: "AI ACTIONS", icon: "trending-up", desc: "Calculate score index." },
+    { type: "ai_sentiment", name: "AI Sentiment Analysis", category: "AI ACTIONS", icon: "smile", desc: "Extract customer emotion." },
     
-    // CRM
-    { type: "create_lead", name: "Create Lead", category: "CRM", icon: "user-plus", desc: "Insert lead record." },
-    { type: "update_lead", name: "Update Lead", category: "CRM", icon: "user-check", desc: "Modify lead fields." },
-    { type: "create_task", name: "Create Task", category: "CRM", icon: "check-square", desc: "Create followup task." },
-    { type: "create_meeting", name: "Create Meeting", category: "CRM", icon: "video", desc: "Set schedule event." },
-    { type: "add_tag", name: "Add Tag", category: "CRM", icon: "tag", desc: "Label lead or company." },
+    // CRM ACTIONS
+    { type: "create_lead", name: "Create Lead", category: "CRM ACTIONS", icon: "user-plus", desc: "Insert lead record." },
+    { type: "update_lead", name: "Update Lead", category: "CRM ACTIONS", icon: "user-check", desc: "Modify lead fields." },
+    { type: "create_contact", name: "Create Contact", category: "CRM ACTIONS", icon: "contact", desc: "Insert contact record." },
+    { type: "add_note", name: "Add Note", category: "CRM ACTIONS", icon: "file-edit", desc: "Append comments log." },
+    { type: "add_tag", name: "Add Tag", category: "CRM ACTIONS", icon: "tag", desc: "Label records." },
     
-    // Conditions
-    { type: "if_branch", name: "IF Branch", category: "Conditions", icon: "git-branch", desc: "Split logic execution." },
-    { type: "equals_check", name: "Equals", category: "Conditions", icon: "help-circle", desc: "Compare static values." },
-    { type: "contains_check", name: "Contains", category: "Conditions", icon: "search", desc: "Substring matching." },
+    // COMMUNICATION
+    { type: "send_email", name: "Send Email", category: "COMMUNICATION", icon: "send", desc: "Send SMTP mail." },
+    { type: "send_notification", name: "Send Notification", category: "COMMUNICATION", icon: "bell", desc: "System toast popup." },
+    { type: "send_whatsapp", name: "Send WhatsApp", category: "COMMUNICATION", icon: "message-circle", desc: "WhatsApp API text." },
     
-    // Communication
-    { type: "send_email", name: "Send Email", category: "Communication", icon: "send", desc: "Send email with SMTP." },
-    { type: "send_whatsapp", name: "Send WhatsApp", category: "Communication", icon: "message-circle", desc: "Dispatched API alert." },
-    
-    // Delay
-    { type: "wait_5m", name: "Wait 5 Minutes", category: "Delay", icon: "clock", desc: "Pause flow run." },
-    { type: "wait_1h", name: "Wait 1 Hour", category: "Delay", icon: "clock", desc: "Pause flow run." },
-    { type: "wait_1d", name: "Wait 1 Day", category: "Delay", icon: "clock", desc: "Pause flow run." },
-    
-    // Utility
-    { type: "webhook", name: "Webhook", category: "Utility", icon: "webhook", desc: "Send webhook POST payload." },
-    { type: "http_request", name: "HTTP Request", category: "Utility", icon: "globe", desc: "Trigger external API REST query." }
+    // FLOW CONTROL
+    { type: "if_branch", name: "IF / Condition", category: "FLOW CONTROL", icon: "git-branch", desc: "Split logic path." },
+    { type: "wait_delay", name: "Wait / Delay", category: "FLOW CONTROL", icon: "clock", desc: "Pause flow run." }
 ];
 
 async function renderAutomation(container) {
@@ -4206,7 +4194,7 @@ function createNewVisualWorkflow() {
         trigger_value: "canvas",
         is_active: 1,
         nodes: [
-            { id: "node-trigger", type: "email_received", name: "Email Received", category: "Email", icon: "mail", x: 250, y: 80, config: { folder: "Inbox" } }
+            { id: "node-trigger", type: "email_received", name: "Email Received", category: "TRIGGERS", icon: "mail", x: 250, y: 80, config: { folder: "Inbox" } }
         ],
         connections: []
     };
@@ -4224,7 +4212,7 @@ async function editVisualWorkflow(id) {
             if (!actions.nodes) {
                 actions = {
                     nodes: [
-                        { id: "node-trigger", type: "email_received", name: "Email Received", category: "Email", icon: "mail", x: 250, y: 80, config: { folder: found.trigger_value || "Inbox" } }
+                        { id: "node-trigger", type: "email_received", name: "Email Received", category: "TRIGGERS", icon: "mail", x: 250, y: 80, config: { folder: found.trigger_value || "Inbox" } }
                     ],
                     connections: []
                 };
@@ -4285,146 +4273,205 @@ function installWorkflowTemplate(idx) {
     navigateTo('automation');
 }
 
-// ----------------------------------------------------
-// RENDER VISUAL BUILDER CANVAS
-// ----------------------------------------------------
+// -------------------------------------
 function renderVisualCanvas(container) {
     const wf = window.wfState.activeWorkflow;
     
-    // Build Left Sidebar groups
-    const categories = ['all', 'Email', 'AI', 'CRM', 'Conditions', 'Communication', 'Delay', 'Utility'];
-    const tabHeaders = categories.map(cat => {
-        const activeClass = window.wfState.activeCategoryFilter === cat ? 'bg-indigo-600 text-white font-bold' : 'text-slate-500 hover:bg-slate-100';
-        return `<button onclick="filterBuilderNodes('${cat}')" class="px-2.5 py-1 rounded-md transition text-[10px] capitalize whitespace-nowrap ${activeClass}">${cat}</button>`;
-    }).join('');
-
-    // Left Sidebar node cards list
-    const filteredNodes = AVAILABLE_NODES.filter(n => {
-        const catMatch = window.wfState.activeCategoryFilter === 'all' || n.category === window.wfState.activeCategoryFilter;
-        const searchMatch = window.wfState.searchTerm === '' || n.name.toLowerCase().includes(window.wfState.searchTerm.toLowerCase());
-        return catMatch && searchMatch;
+    // Group nodes by category
+    const groups = {};
+    AVAILABLE_NODES.forEach(n => {
+        if (!groups[n.category]) groups[n.category] = [];
+        groups[n.category].push(n);
     });
 
-    const sidebarCards = filteredNodes.map(n => `
-        <div draggable="true" ondragstart="handleNodeDragStart(event, '${n.type}')" class="p-3 bg-white border border-slate-200 hover:border-indigo-500 rounded-xl space-y-1 transition cursor-grab select-none text-left hover:shadow-md">
-            <div class="flex items-center space-x-2">
-                <div class="h-6 w-6 bg-slate-100 rounded-md flex items-center justify-center text-indigo-600 shrink-0">
-                    <i data-lucide="${n.icon}" class="h-3.5 w-3.5"></i>
-                </div>
-                <div>
-                    <h5 class="font-bold text-slate-800 text-[11px] leading-tight">${n.name}</h5>
-                    <p class="text-[9px] text-slate-400">${n.category}</p>
+    let groupsHTML = '';
+    for (const catName in groups) {
+        const nodesInCat = groups[catName].filter(n => {
+            return window.wfState.searchTerm === '' || n.name.toLowerCase().includes(window.wfState.searchTerm.toLowerCase());
+        });
+        
+        if (nodesInCat.length === 0) continue;
+        
+        const nodesHTML = nodesInCat.map(n => `
+            <div draggable="true" ondragstart="handleNodeDragStart(event, '${n.type}')" class="p-2 bg-white border border-slate-200 hover:border-indigo-500 rounded-xl space-y-0.5 transition cursor-grab select-none text-left hover:shadow-md">
+                <div class="flex items-center space-x-2">
+                    <div class="h-6 w-6 bg-slate-100 rounded-md flex items-center justify-center text-indigo-650 shrink-0">
+                        <i data-lucide="${n.icon}" class="h-3.5 w-3.5"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <h5 class="font-bold text-slate-800 text-[10px] leading-tight truncate">${n.name}</h5>
+                    </div>
                 </div>
             </div>
-            <p class="text-[9px] text-slate-550 line-clamp-1 leading-normal">${n.desc}</p>
-        </div>
-    `).join('');
+        `).join('');
+        
+        groupsHTML += `
+            <div class="space-y-1.5">
+                <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider text-left">${catName}</div>
+                <div class="grid grid-cols-1 gap-1.5">
+                    ${nodesHTML}
+                </div>
+            </div>
+        `;
+    }
 
     container.innerHTML = `
-        <div id="workflow-builder-layout" class="animate-fade-in">
-            <!-- Left Sidebar -->
-            <div class="w-72 bg-white border-r border-slate-200 flex flex-col h-full overflow-hidden select-none">
-                <div class="p-4 border-b border-slate-200 space-y-3">
-                    <div class="flex items-center space-x-2">
-                        <button onclick="backToWorkflowList()" class="h-7 w-7 rounded-lg hover:bg-slate-100 text-slate-500 flex items-center justify-center transition" title="Back to List">
-                            <i data-lucide="arrow-left" class="h-4.5 w-4.5"></i>
-                        </button>
-                        <input type="text" id="workflow-rename-input" onblur="renameWorkflow(this.value)" value="${wf.name}" class="bg-transparent text-slate-800 font-bold text-sm focus:outline-none border-b border-slate-200 focus:border-indigo-500 w-full px-1 py-0.5">
+        <div id="workflow-builder-layout" class="animate-fade-in flex flex-col h-full bg-slate-50 w-full">
+            <!-- Top Viewport Navigation -->
+            <div class="h-14 border-b border-slate-200 bg-white flex items-center justify-between px-6 select-none shrink-0 w-full overflow-x-auto overflow-y-hidden">
+                <!-- Left: Path and Edit -->
+                <div class="flex items-center space-x-2 text-xs shrink-0">
+                    <button onclick="backToWorkflowList()" class="h-7 w-7 rounded-lg hover:bg-slate-100 text-slate-500 flex items-center justify-center transition mr-1" title="Back to List">
+                        <i data-lucide="arrow-left" class="h-4.5 w-4.5"></i>
+                    </button>
+                    <div class="flex items-center space-x-1.5 text-slate-500">
+                        <i data-lucide="folder" class="h-3.5 w-3.5 text-slate-400"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-wider">Personal</span>
+                        <span class="text-slate-350">/</span>
                     </div>
-                    
-                    <div class="relative text-left">
-                        <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-slate-400 pointer-events-none">
-                            <i data-lucide="search" class="h-3.5 w-3.5"></i>
+                    <input type="text" id="workflow-rename-input" onblur="renameWorkflow(this.value)" value="${wf.name}" class="bg-transparent text-slate-800 font-bold focus:outline-none border-b border-transparent focus:border-indigo-500 px-1 py-0.5 text-xs w-40">
+                    <button onclick="document.getElementById('workflow-rename-input').focus()" class="text-slate-450 hover:text-slate-650 p-0.5"><i data-lucide="pencil" class="h-3 w-3"></i></button>
+                    <button class="px-2 py-0.5 border border-slate-200 rounded text-[9px] font-bold text-slate-500 hover:bg-slate-50 transition">+ Add tag</button>
+                </div>
+
+                <!-- Center: Navigation Tabs -->
+                <div class="flex items-center bg-slate-100 rounded-lg p-0.5 text-[10px] font-bold shrink-0 mx-4">
+                    <button class="px-3.5 py-1 bg-white text-slate-800 rounded-md shadow-sm">Editor</button>
+                    <button class="px-3.5 py-1 text-slate-500 hover:text-slate-800 transition">Executions</button>
+                    <button class="px-3.5 py-1 text-slate-500 hover:text-slate-800 transition">Evaluations</button>
+                </div>
+
+                <!-- Right: Actions -->
+                <div class="flex items-center space-x-3 text-[10px] shrink-0">
+                    <span class="text-slate-400 font-bold">0 / 1</span>
+                    <div class="flex items-center rounded-lg overflow-hidden shadow-sm">
+                        <button onclick="toggleWorkflowActiveState()" class="px-3.5 py-1.5 bg-indigo-650 hover:bg-indigo-600 text-white font-bold transition">Publish</button>
+                        <button onclick="toggleWorkflowActiveState()" class="px-2 py-1.5 bg-indigo-700 hover:bg-indigo-650 text-white border-l border-indigo-500 transition"><i data-lucide="chevron-down" class="h-3 w-3"></i></button>
+                    </div>
+                    <button onclick="openLogsHistoryDrawer()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 transition" title="History"><i data-lucide="history" class="h-4 w-4"></i></button>
+                    <button class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="more-horizontal" class="h-4 w-4"></i></button>
+                    <div class="hidden lg:flex items-center border border-slate-200 rounded-lg overflow-hidden text-[9px] font-bold bg-white">
+                        <span class="px-2 py-1 bg-slate-50 border-r border-slate-200 text-slate-650 flex items-center space-x-1">
+                            <i data-lucide="star" class="h-3 w-3 text-amber-500 fill-amber-500"></i>
+                            <span>Star</span>
                         </span>
-                        <input type="text" id="builder-node-search" oninput="searchBuilderNodes(this.value)" value="${window.wfState.searchTerm}" placeholder="Search nodes..." class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-indigo-500">
+                        <span class="px-2.5 py-1 bg-white text-slate-700">195,281</span>
                     </div>
-                </div>
-
-                <!-- Tabs header -->
-                <div class="px-4 py-2 border-b border-slate-200 flex items-center space-x-1.5 overflow-x-auto scrollbar-none bg-slate-50/50">
-                    ${tabHeaders}
-                </div>
-
-                <!-- Cards container -->
-                <div class="flex-grow overflow-y-auto p-4 space-y-3 bg-slate-50/30">
-                    ${sidebarCards || `<div class="text-center py-8 text-slate-400 italic text-[11px]">No nodes found.</div>`}
                 </div>
             </div>
 
-            <!-- Center Canvas -->
-            <div class="flex-grow flex flex-col h-full relative overflow-hidden wf-canvas-container" id="wf-canvas-container" onwheel="handleCanvasScroll(event)" onmousedown="handleCanvasMouseDown(event)" ondragover="event.preventDefault()" ondrop="handleNodeDrop(event)">
-                <!-- Canvas Top Bar -->
-                <div class="absolute top-4 left-4 z-20 bg-white/95 border border-slate-200 rounded-xl p-1.5 flex items-center space-x-2 text-[10px] shadow-md">
-                    <button onclick="undoWorkflowChange()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 hover:text-slate-800 transition" title="Undo"><i data-lucide="undo" class="h-4 w-4"></i></button>
-                    <button onclick="redoWorkflowChange()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 hover:text-slate-800 transition" title="Redo"><i data-lucide="redo" class="h-4 w-4"></i></button>
-                    <div class="h-4 w-px bg-slate-200"></div>
-                    <button onclick="zoomWorkflow(-0.1)" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 hover:text-slate-800 transition" title="Zoom Out"><i data-lucide="zoom-out" class="h-4 w-4"></i></button>
-                    <span class="text-slate-700 font-bold px-1 select-none">${Math.round(window.wfState.zoom * 100)}%</span>
-                    <button onclick="zoomWorkflow(0.1)" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 hover:text-slate-800 transition" title="Zoom In"><i data-lucide="zoom-in" class="h-4 w-4"></i></button>
-                    <div class="h-4 w-px bg-slate-200"></div>
-                    <button onclick="autoArrangeCanvas()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 hover:text-slate-800 transition flex items-center space-x-1" title="Auto Arrange">
-                        <i data-lucide="git-commit" class="h-4 w-4"></i>
-                        <span>Auto Arrange</span>
-                    </button>
-                </div>
+            <!-- Main Content Area: Left Sidebar, Canvas, Right Config -->
+            <div class="flex flex-grow overflow-hidden relative w-full">
+                <!-- Left Sidebar (Add Nodes) -->
+                <div class="w-64 bg-white border-r border-slate-200 flex flex-col h-full overflow-hidden select-none shrink-0">
+                    <div class="p-4 border-b border-slate-200 space-y-3">
+                        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider text-left">Add Nodes</h3>
+                        <div class="relative text-left">
+                            <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-slate-400 pointer-events-none">
+                                <i data-lucide="search" class="h-3.5 w-3.5"></i>
+                            </span>
+                            <input type="text" id="builder-node-search" oninput="searchBuilderNodes(this.value)" value="${window.wfState.searchTerm}" placeholder="Search nodes..." class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-indigo-500">
+                        </div>
+                    </div>
 
-                <!-- Canvas Top Right Bar (Actions) -->
-                <div class="absolute top-4 right-4 z-20 flex items-center space-x-2 text-[10px]">
-                    <button onclick="runWorkflowSimulation(this)" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition flex items-center space-x-1 shadow-md">
-                        <i data-lucide="play" class="h-3.5 w-3.5"></i>
-                        <span>Run Test</span>
-                    </button>
-                    <button onclick="saveActiveWorkflow()" class="px-3.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-250 text-slate-700 rounded-lg font-bold transition flex items-center space-x-1 shadow-md">
-                        <i data-lucide="save" class="h-3.5 w-3.5 text-indigo-650"></i>
-                        <span>Save</span>
-                    </button>
-                    <div class="h-6 w-px bg-slate-200"></div>
-                    <button onclick="toggleWorkflowActiveState()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold transition shadow-md">
-                        ${wf.is_active ? 'Deactivate' : 'Activate'}
-                    </button>
-                </div>
-
-                <!-- Main draggable canvas area -->
-                <div id="workflow-canvas" class="wf-canvas" style="transform: translate(${window.wfState.panX}px, ${window.wfState.panY}px) scale(${window.wfState.zoom});">
-                    <!-- SVG Connection Line Layer -->
-                    <svg id="workflow-svg" class="wf-svg-lines">
-                        <defs>
-                            <linearGradient id="conn-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stop-color="#4f46e5" />
-                                <stop offset="100%" stop-color="#6366f1" />
-                            </linearGradient>
-                            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                                <path d="M 0 0 L 10 5 L 0 10 z" fill="#6366f1" />
-                            </marker>
-                        </defs>
-                        <!-- Rendered paths injected here -->
-                    </svg>
-
-                    <!-- Active Canvas Nodes -->
-                    <div id="canvas-nodes-container">
-                        ${renderCanvasNodesHTML()}
+                    <!-- Category Groups -->
+                    <div class="flex-grow overflow-y-auto p-4 space-y-4 bg-slate-50/10">
+                        ${groupsHTML}
+                        <div class="pt-2">
+                            <button class="w-full py-2 border border-dashed border-indigo-200 hover:border-indigo-400 rounded-xl text-[10px] font-bold text-indigo-650 hover:text-indigo-800 bg-indigo-50/10 transition flex items-center justify-center space-x-1">
+                                <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                                <span>More Nodes</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Mini Map (Bottom-Left Canvas HUD overlay) -->
-                <div class="absolute bottom-4 left-4 z-20 w-32 h-24 bg-white/95 border border-slate-200 rounded-lg p-1.5 flex flex-col justify-between shadow-md text-[9px] select-none pointer-events-none">
-                    <span class="text-slate-500 uppercase font-bold tracking-wider">Mini Map</span>
-                    <div class="flex-grow relative border border-slate-100 bg-slate-50 overflow-hidden my-1" id="minimap-viewport">
-                        <!-- Mini nodes rendering dynamically -->
+                <!-- Center Canvas -->
+                <div class="flex-grow flex flex-col h-full relative overflow-hidden wf-canvas-container" id="wf-canvas-container" onwheel="handleCanvasScroll(event)" onmousedown="handleCanvasMouseDown(event)" ondragover="event.preventDefault()" ondrop="handleNodeDrop(event)">
+                    <!-- Canvas Floating Toolbar -->
+                    <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 bg-white/95 border border-slate-200 rounded-xl p-1.5 flex items-center space-x-1 shadow-md text-[9px] font-bold text-slate-550 select-none">
+                        <button onclick="undoWorkflowChange()" class="flex flex-col items-center px-2 py-0.5 rounded-lg hover:bg-slate-100 transition">
+                            <i data-lucide="undo" class="h-3.5 w-3.5 mb-0.5 text-slate-500"></i>
+                            <span>Undo</span>
+                        </button>
+                        <button onclick="redoWorkflowChange()" class="flex flex-col items-center px-2 py-0.5 rounded-lg hover:bg-slate-100 transition">
+                            <i data-lucide="redo" class="h-3.5 w-3.5 mb-0.5 text-slate-500"></i>
+                            <span>Redo</span>
+                        </button>
+                        <div class="h-6 w-px bg-slate-200 mx-1"></div>
+                        <button onclick="zoomWorkflow(-0.1)" class="flex flex-col items-center px-1.5 py-0.5 rounded-lg hover:bg-slate-100 transition">
+                            <i data-lucide="zoom-out" class="h-3.5 w-3.5 mb-0.5 text-slate-500"></i>
+                            <span>Zoom Out</span>
+                        </button>
+                        <div class="flex flex-col items-center px-1.5">
+                            <span class="text-slate-800 font-bold">${Math.round(window.wfState.zoom * 100)}%</span>
+                            <span class="text-[6px] text-slate-400">Scale</span>
+                        </div>
+                        <button onclick="zoomWorkflow(0.1)" class="flex flex-col items-center px-1.5 py-0.5 rounded-lg hover:bg-slate-100 transition">
+                            <i data-lucide="zoom-in" class="h-3.5 w-3.5 mb-0.5 text-slate-500"></i>
+                            <span>Zoom In</span>
+                        </button>
+                        <div class="h-6 w-px bg-slate-200 mx-1"></div>
+                        <button onclick="zoomToFit()" class="flex flex-col items-center px-2 py-0.5 rounded-lg hover:bg-slate-100 transition">
+                            <i data-lucide="maximize" class="h-3.5 w-3.5 mb-0.5 text-slate-500"></i>
+                            <span>Fit</span>
+                        </button>
+                        <button onclick="autoArrangeCanvas()" class="flex flex-col items-center px-2 py-0.5 rounded-lg hover:bg-slate-100 transition">
+                            <i data-lucide="layout-grid" class="h-3.5 w-3.5 mb-0.5 text-slate-500"></i>
+                            <span>Auto Layout</span>
+                        </button>
+                    </div>
+
+                    <!-- Canvas Workspace -->
+                    <div id="workflow-canvas" class="wf-canvas" style="transform: translate(${window.wfState.panX}px, ${window.wfState.panY}px) scale(${window.wfState.zoom});">
+                        <svg id="workflow-svg" class="wf-svg-lines">
+                            <defs>
+                                <linearGradient id="conn-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#4f46e5" />
+                                    <stop offset="100%" stop-color="#6366f1" />
+                                </linearGradient>
+                                <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#6366f1" />
+                                </marker>
+                            </defs>
+                        </svg>
+                        <div id="canvas-nodes-container">
+                            ${renderCanvasNodesHTML()}
+                        </div>
+                    </div>
+
+                    <!-- Bottom Left Canvas Overlay Tools -->
+                    <div class="absolute bottom-4 left-4 z-20 bg-white/95 border border-slate-200 rounded-xl p-1.5 flex items-center space-x-1.5 shadow-md">
+                        <button class="p-1 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="expand" class="h-3.5 w-3.5"></i></button>
+                        <button class="p-1 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="hand" class="h-3.5 w-3.5"></i></button>
+                        <button onclick="zoomWorkflow(-0.1)" class="p-1 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="minus" class="h-3.5 w-3.5"></i></button>
+                        <button onclick="zoomWorkflow(0.1)" class="p-1 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="plus" class="h-3.5 w-3.5"></i></button>
+                        <button onclick="zoomToFit()" class="p-1 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="maximize-2" class="h-3.5 w-3.5"></i></button>
+                        <button onclick="autoArrangeCanvas()" class="p-1 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="layout" class="h-3.5 w-3.5"></i></button>
+                    </div>
+
+                    <!-- Bottom Center Action Button -->
+                    <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex items-center bg-orange-650 hover:bg-orange-600 text-white rounded-xl shadow-lg overflow-hidden text-[10px] font-bold">
+                        <button onclick="runWorkflowSimulation(this)" class="px-5 py-2 flex items-center space-x-1.5 transition">
+                            <i data-lucide="play-circle" class="h-4 w-4"></i>
+                            <span>Execute Workflow</span>
+                        </button>
+                        <button onclick="runWorkflowSimulation(this)" class="px-2 py-2 border-l border-orange-550 hover:bg-orange-550 transition">
+                            <i data-lucide="chevron-up" class="h-3.5 w-3.5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Bottom Right Action Button -->
+                    <div class="absolute bottom-4 right-4 z-20 bg-white/95 border border-slate-200 hover:bg-slate-50 rounded-xl px-4 py-2 shadow-md flex items-center space-x-1.5 text-[10px] font-bold text-slate-700 cursor-pointer transition" onclick="runWorkflowSimulation(this)">
+                        <i data-lucide="play" class="h-3.5 w-3.5 text-indigo-650"></i>
+                        <span>Test Workflow</span>
                     </div>
                 </div>
 
-                <!-- Bottom Status Bar / Tabs -->
-                <div class="absolute bottom-4 right-4 z-20 flex items-center bg-white/95 border border-slate-200 rounded-xl p-1 shadow-md text-[10px]">
-                    <button onclick="openJSONConfigPanel()" class="px-3 py-1 text-slate-550 hover:text-slate-800 rounded-lg transition font-bold">Import/Export JSON</button>
-                    <div class="h-4 w-px bg-slate-200 mx-1"></div>
-                    <button onclick="openLogsHistoryDrawer()" class="px-3 py-1 text-indigo-650 hover:text-indigo-800 rounded-lg transition font-bold font-bold">Logs Drawer</button>
+                <!-- Right Configuration Panel -->
+                <div class="w-80 bg-white border-l border-slate-200 flex flex-col h-full overflow-hidden text-left shrink-0" id="wf-config-sidebar">
+                    ${renderConfigSidebarHTML()}
                 </div>
-            </div>
-
-            <!-- Right Configuration Panel -->
-            <div class="w-80 bg-white border-l border-slate-200 flex flex-col h-full overflow-hidden text-left" id="wf-config-sidebar">
-                ${renderConfigSidebarHTML()}
             </div>
         </div>
     `;
@@ -4444,6 +4491,18 @@ function renameWorkflow(val) {
 function filterBuilderNodes(cat) {
     window.wfState.activeCategoryFilter = cat;
     navigateTo('automation');
+}
+
+function zoomToFit() {
+    window.wfState.zoom = 1.0;
+    window.wfState.panX = 100;
+    window.wfState.panY = 100;
+    const canvas = document.getElementById('workflow-canvas');
+    if (canvas) {
+        canvas.style.transform = `translate(${window.wfState.panX}px, ${window.wfState.panY}px) scale(${window.wfState.zoom})`;
+    }
+    drawConnections();
+    drawMiniMap();
 }
 
 function searchBuilderNodes(query) {
@@ -4514,13 +4573,11 @@ function injectVisualBuilderStyles() {
             to { transform: scale(1.02); }
         }
         /* Left accent borders based on category */
-        .wf-node[data-category="Email"] { border-left: 4px solid #10b981; }
-        .wf-node[data-category="AI"] { border-left: 4px solid #8b5cf6; }
-        .wf-node[data-category="CRM"] { border-left: 4px solid #3b82f6; }
-        .wf-node[data-category="Conditions"] { border-left: 4px solid #f59e0b; }
-        .wf-node[data-category="Communication"] { border-left: 4px solid #ec4899; }
-        .wf-node[data-category="Delay"] { border-left: 4px solid #64748b; }
-        .wf-node[data-category="Utility"] { border-left: 4px solid #06b6d4; }
+        .wf-node[data-category="TRIGGERS"] { border-left: 4px solid #10b981; }
+        .wf-node[data-category="AI ACTIONS"] { border-left: 4px solid #8b5cf6; }
+        .wf-node[data-category="CRM ACTIONS"] { border-left: 4px solid #3b82f6; }
+        .wf-node[data-category="COMMUNICATION"] { border-left: 4px solid #ec4899; }
+        .wf-node[data-category="FLOW CONTROL"] { border-left: 4px solid #f59e0b; }
 
         .wf-node-handle {
             position: absolute;
@@ -6514,10 +6571,11 @@ function renderCanvasNodesHTML() {
                         <i data-lucide="${n.icon || 'circle'}" class="h-3.5 w-3.5"></i>
                     </div>
                     <div class="text-left overflow-hidden w-full select-none">
-                        <h5 class="font-bold text-white text-[10px] leading-tight truncate">${n.name}</h5>
+                        <h5 class="font-bold text-slate-800 text-[10px] leading-tight truncate">${n.name}</h5>
                         <p class="text-[7px] text-slate-500 capitalize leading-normal truncate">${n.category}</p>
                     </div>
                 </div>
+                ${handlesHTML}
             </div>
         `;
     }).join('');

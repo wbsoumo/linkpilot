@@ -224,5 +224,5 @@ Do NOT include any greetings like 'Subject:' or subject lines. Just output the b
         sendJsonResponse('error', 'Method not allowed', [], 405);
     }
 } catch (Exception $e) {
-    sendJsonResponse('error', 'Database operation failed: ' . $e->getMessage(), [], 500);
+    sendJsonResponse('error', 'Database operation failed: ' . $e->getMessage() . ' | Query: ' . ($query ?? 'none') . ' | Params: ' . json_encode($params ?? []), [], 500);
 }

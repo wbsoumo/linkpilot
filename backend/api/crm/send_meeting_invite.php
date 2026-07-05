@@ -110,61 +110,84 @@ try {
 
     $mail = new PHPMailer(true);
 
-    if ($smtp && !empty($smtp['smtp_host'])) {
-        // Configure SMTP
-        $mail->isSMTP();
-        $mail->Host = $smtp['smtp_host'];
-        $mail->SMTPAuth = true;
-        $mail->Username = $smtp['smtp_username'];
-        $mail->Password = $smtp['smtp_password'];
-        $mail->Port = (int)$smtp['smtp_port'];
-        $mail->SMTPSecure = strtolower($smtp['smtp_encryption']) === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
-    } else {
-        // Fallback to PHP mail() SAPI SENDER
-        $mail->isMail();
+    try {
+        if ($smtp && !empty($smtp['smtp_host'])) {
+            // Configure SMTP
+            $mail->isSMTP();
+            $mail->Host = $smtp['smtp_host'];
+            $mail->SMTPAuth = true;
+            $mail->Username = $smtp['smtp_username'];
+            $mail->Password = $smtp['smtp_password'];
+            $mail->Port = (int)$smtp['smtp_port'];
+            $mail->SMTPSecure = strtolower($smtp['smtp_encryption']) === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
+        } else {
+            // Fallback to PHP mail() SAPI SENDER
+            $mail->isMail();
+        }
+
+        // Sender details
+        $mail->setFrom($smtp['smtp_username'] ?? 'noreply@linkpilot.ai', 'LinkPilot AI CRM');
+        $mail->Subject = "Meeting Invite: " . $cleanTitle;
+        
+        $mail->isHTML(true);
+        $mailBody = "
+            <div style='font-family: sans-serif; padding: 20px; color: #1e293b;'>
+                <h2 style='color: #4f46e5;'>Meeting Scheduled</h2>
+                <p>Hello,</p>
+                <p>You have been invited to a meeting scheduled through LinkPilot CRM.</p>
+                <table style='border-collapse: collapse; width: 100%; margin: 20px 0;'>
+                    <tr>
+                        <td style='padding: 8px; font-weight: bold; border-bottom: 1px solid #e2e8f0; width: 120px;'>Subject:</td>
+                        <td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{$cleanTitle}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 8px; font-weight: bold; border-bottom: 1px solid #e2e8f0;'>Date & Time:</td>
+                        <td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{$dateStr} @ " . substr($timeStr, 0, 5) . "</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 8px; font-weight: bold; border-bottom: 1px solid #e2e8f0;'>Meeting Link:</td>
+                        <td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'><a href='{$meetLink}' style='color: #4f46e5; font-weight: bold;'>Join Google Meet</a></td>
+                    </tr>
+                </table>
+                <p style='color: #64748b; font-size: 12px;'>An <b>invite.ics</b> file is attached to this email. You can add it directly to your Google Calendar, Outlook, or Apple Calendar in one click.</p>
+            </div>
+        ";
+        $mail->Body = $mailBody;
+
+        // Add attendees as recipients
+        foreach ($inviteeEmails as $email) {
+            $mail->addAddress($email);
+        }
+
+        // Attach invite.ics
+        $mail->addStringAttachment($icsContent, 'invite.ics', 'base64', 'text/calendar; method=REQUEST');
+
+        $mail->send();
+
+        sendJsonResponse('success', 'Meeting link configured and calendar invites sent successfully with invite.ics!');
+    } catch (\Exception $e) {
+        // SMTP failed, attempt local mail SAPI fallback
+        if ($smtp && !empty($smtp['smtp_host'])) {
+            try {
+                $fallbackMail = new PHPMailer(true);
+                $fallbackMail->isMail();
+                $fallbackMail->setFrom('noreply@linkpilot.ai', 'LinkPilot AI CRM');
+                $fallbackMail->Subject = "Meeting Invite: " . $cleanTitle;
+                $fallbackMail->isHTML(true);
+                $fallbackMail->Body = $mailBody;
+                foreach ($inviteeEmails as $email) {
+                    $fallbackMail->addAddress($email);
+                }
+                $fallbackMail->addStringAttachment($icsContent, 'invite.ics', 'base64', 'text/calendar; method=REQUEST');
+                $fallbackMail->send();
+                sendJsonResponse('success', 'Meeting link updated. SMTP failed, but invite was sent successfully via fallback mailer!');
+                exit;
+            } catch (\Exception $fallbackEx) {
+                // Both failed
+            }
+        }
+        sendJsonResponse('success', 'Meeting link saved. Note: Calendar email invitation could not be sent (SMTP error: ' . $e->getMessage() . ').');
     }
-
-    // Sender details
-    $mail->setFrom($smtp['smtp_username'] ?? 'noreply@linkpilot.ai', 'LinkPilot AI CRM');
-    $mail->Subject = "Meeting Invite: " . $cleanTitle;
-    
-    $mail->isHTML(true);
-    $mailBody = "
-        <div style='font-family: sans-serif; padding: 20px; color: #1e293b;'>
-            <h2 style='color: #4f46e5;'>Meeting Scheduled</h2>
-            <p>Hello,</p>
-            <p>You have been invited to a meeting scheduled through LinkPilot CRM.</p>
-            <table style='border-collapse: collapse; width: 100%; margin: 20px 0;'>
-                <tr>
-                    <td style='padding: 8px; font-weight: bold; border-bottom: 1px solid #e2e8f0; width: 120px;'>Subject:</td>
-                    <td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{$cleanTitle}</td>
-                </tr>
-                <tr>
-                    <td style='padding: 8px; font-weight: bold; border-bottom: 1px solid #e2e8f0;'>Date & Time:</td>
-                    <td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{$dateStr} @ " . substr($timeStr, 0, 5) . "</td>
-                </tr>
-                <tr>
-                    <td style='padding: 8px; font-weight: bold; border-bottom: 1px solid #e2e8f0;'>Meeting Link:</td>
-                    <td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'><a href='{$meetLink}' style='color: #4f46e5; font-weight: bold;'>Join Google Meet</a></td>
-                </tr>
-            </table>
-            <p style='color: #64748b; font-size: 12px;'>An <b>invite.ics</b> file is attached to this email. You can add it directly to your Google Calendar, Outlook, or Apple Calendar in one click.</p>
-        </div>
-    ";
-    $mail->Body = $mailBody;
-
-    // Add attendees as recipients
-    foreach ($inviteeEmails as $email) {
-        $mail->addAddress($email);
-    }
-
-    // Attach invite.ics
-    $mail->addStringAttachment($icsContent, 'invite.ics', 'base64', 'text/calendar; method=REQUEST');
-
-    $mail->send();
-
-    sendJsonResponse('success', 'Meeting link configured and calendar invites sent successfully with invite.ics!');
-
-} catch (Exception $e) {
+} catch (\Exception $e) {
     sendJsonResponse('error', 'Meeting invite operation failed: ' . $e->getMessage(), [], 500);
 }

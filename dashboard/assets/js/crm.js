@@ -1226,7 +1226,7 @@ async function renderInbox(container, targetEmailId = null) {
                 <!-- Inbox List pane -->
                 <div class="lg:col-span-4 glass-panel bg-slate-900/40 overflow-hidden flex flex-col h-full max-h-[75vh]">
                     <div class="p-3 border-b border-slate-800/80">
-                        <input type="text" oninput="handleGlobalSearch(this.value)" placeholder="Search emails..." class="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white">
+                        <input type="text" oninput="handleInboxInlineSearch(this.value)" placeholder="Search emails..." class="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white">
                     </div>
                     <div class="flex-grow overflow-y-auto divide-y divide-slate-800/40" id="inbox-emails-list-container">
                         ${listItems}
@@ -2133,8 +2133,17 @@ function handleGlobalSearch(value) {
     
     globalSearchTimeout = setTimeout(() => {
         fetchGlobalSearchResults(value);
-        executeSearch(value);
     }, 2000); // 2 second delay
+}
+
+let inboxInlineSearchTimeout = null;
+function handleInboxInlineSearch(value) {
+    if (inboxInlineSearchTimeout) {
+        clearTimeout(inboxInlineSearchTimeout);
+    }
+    inboxInlineSearchTimeout = setTimeout(() => {
+        searchInbox(value);
+    }, 2000);
 }
 
 async function fetchGlobalSearchResults(value) {

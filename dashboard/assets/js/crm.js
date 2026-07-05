@@ -2551,8 +2551,578 @@ async function renderContacts(container) {
 }
 
 // Simple implementations for secondary view states (Tasks, Meetings, Automation, Settings, Reports, AI Insights)
-function renderTasks(container) {
-    container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs animate-fade-in">Tasks lists fully synchronized. Tasks due today can be monitored on the main Dashboard widget.</div>`;
+async function renderTasks(container) {
+    container.innerHTML = `
+        <div class="flex items-center justify-center py-12">
+            <i data-lucide="loader-2" class="h-8 w-8 animate-spin text-indigo-600"></i>
+        </div>
+    `;
+    lucide.createIcons();
+    
+    try {
+        const res = await apiCall('crm/tasks.php');
+        const tasks = res.tasks || [];
+        
+        // Buckets for grouping
+        const categories = {
+            'Follow-up': [],
+            'Reply': [],
+            'Meeting': [],
+            'Arrange': [],
+            'General': []
+        };
+        
+        tasks.forEach(t => {
+            const title = t.title || '';
+            let category = 'General';
+            let cleanTitle = title;
+            
+            if (title.startsWith('[Follow-up]')) {
+                category = 'Follow-up';
+                cleanTitle = title.replace('[Follow-up] ', '');
+            } else if (title.startsWith('[Reply]')) {
+                category = 'Reply';
+                cleanTitle = title.replace('[Reply] ', '');
+            } else if (title.startsWith('[Meeting]')) {
+                category = 'Meeting';
+                cleanTitle = title.replace('[Meeting] ', '');
+            } else if (title.startsWith('[Arrange]')) {
+                category = 'Arrange';
+                cleanTitle = title.replace('[Arrange] ', '');
+            } else {
+                // Fallback to keyword matching
+                const lower = title.toLowerCase() + ' ' + (t.description || '').toLowerCase();
+                if (lower.includes('follow') || lower.includes('call')) {
+                    category = 'Follow-up';
+                } else if (lower.includes('reply') || lower.includes('email') || lower.includes('respond')) {
+                    category = 'Reply';
+                } else if (lower.includes('meeting') || lower.includes('setted') || lower.includes('appointment')) {
+                    category = 'Meeting';
+                } else if (lower.includes('arrange') || lower.includes('schedule') || lower.includes('prep')) {
+                    category = 'Arrange';
+                }
+            }
+            
+            t.displayTitle = cleanTitle;
+            categories[category].push(t);
+        });
+
+        // Sort each category by priority (high -> medium -> low)
+        const priorityWeight = { 'high': 3, 'medium': 2, 'low': 1 };
+        Object.keys(categories).forEach(cat => {
+            categories[cat].sort((a, b) => {
+                // Pending first, then priority weight
+                if (a.status !== b.status) {
+                    return a.status === 'completed' ? 1 : -1;
+                }
+                return (priorityWeight[b.priority] || 2) - (priorityWeight[a.priority] || 2);
+            });
+        });
+
+        const getCategoryHTML = (catName, catTasks, icon, colorClass, borderClass) => {
+            const listItems = catTasks.length > 0 ? catTasks.map(t => {
+                const isCompleted = t.status === 'completed';
+                const priority = t.priority || 'medium';
+                let priorityBadge = '';
+                let borderAccent = 'border-l-4 border-l-slate-300';
+                
+                if (priority === 'high') {
+                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-rose-50 text-rose-600 border border-rose-100 uppercase">High</span>`;
+                    borderAccent = 'border-l-4 border-l-rose-500';
+                } else if (priority === 'medium') {
+                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100 uppercase">Medium</span>`;
+                    borderAccent = 'border-l-4 border-l-indigo-500';
+                } else {
+                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-slate-50 text-slate-500 border border-slate-200 uppercase">Low</span>`;
+                    borderAccent = 'border-l-4 border-l-slate-350';
+                }
+
+                const dateStr = t.due_date ? new Date(t.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'No date';
+
+                return `
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-2.5 transition hover:shadow-md ${borderAccent} ${isCompleted ? 'opacity-65' : ''}">
+                        <div class="flex items-start space-x-2.5">
+                            <input type="checkbox" ${isCompleted ? 'checked' : ''} onclick="toggleTaskStatus(${t.id}, '${t.status}')" class="mt-0.5 h-3.5 w-3.5 border-slate-300 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
+                            <div class="flex-grow text-left">
+                                <h5 class="font-bold text-slate-800 leading-tight ${isCompleted ? 'line-through text-slate-400' : ''}">${t.displayTitle}</h5>
+                                <p class="text-[10px] text-slate-500 mt-1 line-clamp-2">${t.description || 'No extra description.'}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                            <div class="flex items-center space-x-2">
+                                <div class="flex items-center text-[9px] text-slate-400 font-semibold">
+                                    <i data-lucide="calendar" class="h-3 w-3 mr-0.5"></i>
+                                    <span>${dateStr}</span>
+                                </div>
+                                ${priorityBadge}
+                            </div>
+                            
+                            <div class="flex items-center space-x-1">
+                                <button onclick="editCrmTask(${t.id})" class="p-1 text-slate-400 hover:text-indigo-600 transition" title="Edit Task">
+                                    <i data-lucide="edit" class="h-3.5 w-3.5"></i>
+                                </button>
+                                <button onclick="deleteCrmTask(this, ${t.id})" class="p-1 text-slate-400 hover:text-red-500 transition" title="Delete Task">
+                                    <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('') : `<div class="text-center py-6 text-slate-400 text-[10px] italic border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">No tasks in this category</div>`;
+
+            return `
+                <div class="glass-panel p-4 bg-white shadow-sm border border-slate-200 rounded-2xl flex flex-col space-y-3.5">
+                    <div class="pb-2 border-b border-slate-100 flex justify-between items-center">
+                        <div class="flex items-center space-x-2 text-slate-800 font-bold text-sm">
+                            <div class="h-7 w-7 rounded-lg ${colorClass} flex items-center justify-center shrink-0">
+                                <i data-lucide="${icon}" class="h-4 w-4"></i>
+                            </div>
+                            <span>${catName}</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                            ${catTasks.length}
+                        </span>
+                    </div>
+                    <div class="space-y-3 flex-grow overflow-y-auto max-h-[450px] pr-1">
+                        ${listItems}
+                    </div>
+                </div>
+            `;
+        };
+
+        container.innerHTML = `
+            <div class="space-y-6 pt-4 animate-fade-in text-xs max-w-7xl mx-auto">
+                <div class="flex justify-between items-center border-b border-slate-150 pb-4">
+                    <div>
+                        <h1 class="text-2xl font-extrabold text-slate-800">Tasks Hub</h1>
+                        <p class="text-slate-500 text-xs mt-1">Manage, categorize, and complete tasks ordered by priority metrics.</p>
+                    </div>
+                    <button onclick="createNewTaskModal()" class="px-4 py-2 bg-indigo-650 hover:bg-indigo-600 text-white rounded-lg text-xs font-bold transition flex items-center space-x-1.5 shadow-sm">
+                        <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                        <span>Add New Task</span>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    ${getCategoryHTML('Follow-ups', categories['Follow-up'], 'phone-call', 'bg-indigo-50 text-indigo-600', 'border-indigo-500')}
+                    ${getCategoryHTML('Replies / Email', categories['Reply'], 'mail', 'bg-emerald-50 text-emerald-600', 'border-emerald-500')}
+                    ${getCategoryHTML('Meetings Set', categories['Meeting'], 'calendar', 'bg-blue-50 text-blue-600', 'border-blue-500')}
+                    ${getCategoryHTML('Need to Arrange', categories['Arrange'], 'sliders', 'bg-amber-50 text-amber-600', 'border-amber-500')}
+                </div>
+                
+                ${categories['General'].length > 0 ? `
+                    <div class="mt-8">
+                        <div class="font-bold text-slate-800 text-xs mb-3 flex items-center space-x-1 text-left">
+                            <i data-lucide="clipboard-list" class="h-4 w-4 text-slate-600"></i>
+                            <span>General Tasks</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            ${categories['General'].map(t => {
+                                const isCompleted = t.status === 'completed';
+                                const priority = t.priority || 'medium';
+                                let priorityBadge = '';
+                                let borderAccent = 'border-l-4 border-l-slate-350';
+                                
+                                if (priority === 'high') {
+                                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-rose-50 text-rose-600 border border-rose-100 uppercase">High</span>`;
+                                    borderAccent = 'border-l-4 border-l-rose-500';
+                                } else if (priority === 'medium') {
+                                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100 uppercase">Medium</span>`;
+                                    borderAccent = 'border-l-4 border-l-indigo-500';
+                                } else {
+                                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-slate-50 text-slate-500 border border-slate-200 uppercase">Low</span>`;
+                                    borderAccent = 'border-l-4 border-l-slate-350';
+                                }
+                                const dateStr = t.due_date ? new Date(t.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'No date';
+
+                                return `
+                                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-2.5 transition hover:shadow-md ${borderAccent} ${isCompleted ? 'opacity-65' : ''}">
+                                        <div class="flex items-start space-x-2.5">
+                                            <input type="checkbox" ${isCompleted ? 'checked' : ''} onclick="toggleTaskStatus(${t.id}, '${t.status}')" class="mt-0.5 h-3.5 w-3.5 border-slate-300 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
+                                            <div class="flex-grow text-left">
+                                                <h5 class="font-bold text-slate-800 leading-tight ${isCompleted ? 'line-through text-slate-400' : ''}">${t.displayTitle}</h5>
+                                                <p class="text-[10px] text-slate-500 mt-1 line-clamp-2">${t.description || 'No extra description.'}</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                                            <div class="flex items-center space-x-2">
+                                                <div class="flex items-center text-[9px] text-slate-400 font-semibold">
+                                                    <i data-lucide="calendar" class="h-3 w-3 mr-0.5"></i>
+                                                    <span>${dateStr}</span>
+                                                </div>
+                                                ${priorityBadge}
+                                            </div>
+                                            
+                                            <div class="flex items-center space-x-1">
+                                                <button onclick="editCrmTask(${t.id})" class="p-1 text-slate-400 hover:text-indigo-600 transition" title="Edit Task">
+                                                    <i data-lucide="edit" class="h-3.5 w-3.5"></i>
+                                                </button>
+                                                <button onclick="deleteCrmTask(this, ${t.id})" class="p-1 text-slate-400 hover:text-red-500 transition" title="Delete Task">
+                                                    <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+        lucide.createIcons();
+    } catch (err) {
+        container.innerHTML = `
+            <div class="max-w-xl mx-auto p-5 text-center text-red-500">
+                Failed to load tasks: ${err.message}
+            </div>
+        `;
+    }
+}
+
+// Toggle Complete / Pending Task Status
+async function toggleTaskStatus(taskId, currentStatus) {
+    const nextStatus = currentStatus === 'completed' ? 'pending' : 'completed';
+    try {
+        const data = await apiCall('crm/tasks.php?action=PUT', 'POST', {
+            id: taskId,
+            status: nextStatus
+        });
+        if (data.status === 'success') {
+            showNotification('success', `Task marked as ${nextStatus}!`);
+            const viewport = document.getElementById('main-content-viewport');
+            if (viewport) renderTasks(viewport);
+        } else {
+            showNotification('error', data.message);
+        }
+    } catch (e) {
+        showNotification('error', e.message);
+    }
+}
+
+// Add New Task Modal Overlay
+function createNewTaskModal() {
+    const existing = document.getElementById('crm-task-modal');
+    if (existing) existing.remove();
+
+    const modalHTML = `
+        <div id="crm-task-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+            <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+                <!-- Modal Header -->
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                    <div class="flex items-center space-x-2">
+                        <div class="h-8 w-8 bg-indigo-50 text-indigo-655 rounded-lg flex items-center justify-center">
+                            <i data-lucide="check-square" class="h-4.5 w-4.5 text-indigo-600"></i>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-800">Create New Task</h3>
+                    </div>
+                    <button onclick="closeCrmTaskModal()" class="h-7 w-7 rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                    </button>
+                </div>
+                
+                <!-- Modal Body -->
+                <div class="p-6 space-y-4 text-xs text-left">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Task Category</label>
+                        <select id="new-task-category" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                            <option value="Follow-up">📞 Follow-up Call/Email</option>
+                            <option value="Reply">✉️ Reply to Incoming Pitch</option>
+                            <option value="Meeting">📅 Meeting Set / Appointment</option>
+                            <option value="Arrange">⚙️ Need to Arrange / Schedule</option>
+                            <option value="General">📋 General To-Do</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Task Title *</label>
+                        <input type="text" id="new-task-title" placeholder="Describe task..." class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Due Date</label>
+                            <input type="date" id="new-task-duedate" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Priority</label>
+                            <select id="new-task-priority" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Task Description</label>
+                        <textarea id="new-task-description" rows="3" placeholder="Provide extra description notes..." class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500 font-sans"></textarea>
+                    </div>
+                </div>
+                
+                <!-- Modal Footer -->
+                <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end space-x-2">
+                    <button onclick="closeCrmTaskModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 rounded-lg font-bold transition">Cancel</button>
+                    <button onclick="submitNewTaskForm(this)" class="px-4 py-2 bg-indigo-650 hover:bg-indigo-600 text-white rounded-lg font-bold transition flex items-center space-x-1.5 shadow-sm">
+                        <i data-lucide="check" class="h-4 w-4"></i>
+                        <span>Create Task</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    // Set default date to today
+    document.getElementById('new-task-duedate').valueAsDate = new Date();
+    lucide.createIcons();
+}
+
+async function submitNewTaskForm(btn) {
+    const rawTitle = document.getElementById('new-task-title').value.trim();
+    if (!rawTitle) {
+        showNotification('error', 'Task Title is required.');
+        return;
+    }
+    
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin text-white"></i>`;
+    lucide.createIcons();
+    
+    const category = document.getElementById('new-task-category').value;
+    const dueDate = document.getElementById('new-task-duedate').value;
+    const priority = document.getElementById('new-task-priority').value;
+    const description = document.getElementById('new-task-description').value.trim();
+    
+    // Prefix title if categorized
+    let title = rawTitle;
+    if (category !== 'General') {
+        title = `[${category}] ${rawTitle}`;
+    }
+    
+    const payload = {
+        title,
+        due_date: dueDate,
+        priority,
+        status: 'pending',
+        description
+    };
+    
+    try {
+        const data = await apiCall('crm/tasks.php', 'POST', payload);
+        if (data.status === 'success') {
+            showNotification('success', 'Task added successfully.');
+            closeCrmTaskModal();
+            const viewport = document.getElementById('main-content-viewport');
+            if (viewport) renderTasks(viewport);
+        } else {
+            showNotification('error', data.message);
+        }
+    } catch (e) {
+        showNotification('error', e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+        lucide.createIcons();
+    }
+}
+
+// Edit Task Modal Overlay
+async function editCrmTask(taskId) {
+    const existing = document.getElementById('crm-task-modal');
+    if (existing) existing.remove();
+
+    // Spinner overlay
+    const spinnerHTML = `
+        <div id="crm-task-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+            <div class="bg-white rounded-2xl p-8 flex items-center justify-center border border-slate-200">
+                <i data-lucide="loader-2" class="h-8 w-8 animate-spin text-indigo-600"></i>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', spinnerHTML);
+    lucide.createIcons();
+
+    try {
+        const res = await apiCall('crm/tasks.php');
+        const tasks = res.tasks || [];
+        const t = tasks.find(item => item.id === taskId);
+        
+        const modal = document.getElementById('crm-task-modal');
+        if (!modal) return;
+        
+        if (!t) {
+            showNotification('error', 'Task details not found.');
+            closeCrmTaskModal();
+            return;
+        }
+
+        // Parse category prefix out
+        let category = 'General';
+        let cleanTitle = t.title || '';
+        
+        if (cleanTitle.startsWith('[Follow-up]')) {
+            category = 'Follow-up';
+            cleanTitle = cleanTitle.replace('[Follow-up] ', '');
+        } else if (cleanTitle.startsWith('[Reply]')) {
+            category = 'Reply';
+            cleanTitle = cleanTitle.replace('[Reply] ', '');
+        } else if (cleanTitle.startsWith('[Meeting]')) {
+            category = 'Meeting';
+            cleanTitle = cleanTitle.replace('[Meeting] ', '');
+        } else if (cleanTitle.startsWith('[Arrange]')) {
+            category = 'Arrange';
+            cleanTitle = cleanTitle.replace('[Arrange] ', '');
+        }
+
+        const modalHTML = `
+            <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-slate-200 overflow-hidden flex flex-col text-left">
+                <!-- Modal Header -->
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                    <div class="flex items-center space-x-2">
+                        <div class="h-8 w-8 bg-indigo-50 text-indigo-650 rounded-lg flex items-center justify-center">
+                            <i data-lucide="edit" class="h-4.5 w-4.5 text-indigo-650"></i>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-800">Edit CRM Task</h3>
+                    </div>
+                    <button onclick="closeCrmTaskModal()" class="h-7 w-7 rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                    </button>
+                </div>
+                
+                <!-- Modal Body -->
+                <div class="p-6 space-y-4 text-xs">
+                    <input type="hidden" id="edit-task-id" value="${t.id}">
+                    
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Task Category</label>
+                        <select id="edit-task-category" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                            <option value="Follow-up" ${category === 'Follow-up' ? 'selected' : ''}>📞 Follow-up Call/Email</option>
+                            <option value="Reply" ${category === 'Reply' ? 'selected' : ''}>✉️ Reply to Incoming Pitch</option>
+                            <option value="Meeting" ${category === 'Meeting' ? 'selected' : ''}>📅 Meeting Set / Appointment</option>
+                            <option value="Arrange" ${category === 'Arrange' ? 'selected' : ''}>⚙️ Need to Arrange / Schedule</option>
+                            <option value="General" ${category === 'General' ? 'selected' : ''}>📋 General To-Do</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Task Title *</label>
+                        <input type="text" id="edit-task-title" value="${cleanTitle}" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Due Date</label>
+                            <input type="date" id="edit-task-duedate" value="${t.due_date || ''}" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Priority</label>
+                            <select id="edit-task-priority" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                                <option value="low" ${t.priority === 'low' ? 'selected' : ''}>Low</option>
+                                <option value="medium" ${t.priority === 'medium' ? 'selected' : ''}>Medium</option>
+                                <option value="high" ${t.priority === 'high' ? 'selected' : ''}>High</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Task Description</label>
+                        <textarea id="edit-task-description" rows="3" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500 font-sans">${t.description || ''}</textarea>
+                    </div>
+                </div>
+                
+                <!-- Modal Footer -->
+                <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end space-x-2">
+                    <button onclick="closeCrmTaskModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 rounded-lg font-bold transition">Cancel</button>
+                    <button onclick="submitEditTaskForm(this)" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition flex items-center space-x-1.5 shadow-sm">
+                        <i data-lucide="save" class="h-4 w-4"></i>
+                        <span>Save Changes</span>
+                    </button>
+                </div>
+            </div>
+        `;
+        modal.innerHTML = modalHTML;
+        lucide.createIcons();
+    } catch (e) {
+        showNotification('error', e.message);
+        closeCrmTaskModal();
+    }
+}
+
+async function submitEditTaskForm(btn) {
+    const taskId = document.getElementById('edit-task-id').value;
+    const rawTitle = document.getElementById('edit-task-title').value.trim();
+    if (!rawTitle) {
+        showNotification('error', 'Task Title is required.');
+        return;
+    }
+    
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin text-white"></i>`;
+    lucide.createIcons();
+    
+    const category = document.getElementById('edit-task-category').value;
+    const dueDate = document.getElementById('edit-task-duedate').value;
+    const priority = document.getElementById('edit-task-priority').value;
+    const description = document.getElementById('edit-task-description').value.trim();
+    
+    // Prefix title if categorized
+    let title = rawTitle;
+    if (category !== 'General') {
+        title = `[${category}] ${rawTitle}`;
+    }
+    
+    const payload = {
+        id: taskId,
+        title,
+        due_date: dueDate,
+        priority,
+        description
+    };
+    
+    try {
+        const data = await apiCall('crm/tasks.php?action=PUT', 'POST', payload);
+        if (data.status === 'success') {
+            showNotification('success', 'Task updated successfully.');
+            closeCrmTaskModal();
+            const viewport = document.getElementById('main-content-viewport');
+            if (viewport) renderTasks(viewport);
+        } else {
+            showNotification('error', data.message);
+        }
+    } catch (e) {
+        showNotification('error', e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+        lucide.createIcons();
+    }
+}
+
+async function deleteCrmTask(btn, taskId) {
+    if (!confirm('Are you sure you want to delete this task?')) return;
+    
+    try {
+        const data = await apiCall('crm/tasks.php?action=DELETE', 'POST', { id: taskId });
+        if (data.status === 'success') {
+            showNotification('success', 'Task deleted successfully.');
+            const viewport = document.getElementById('main-content-viewport');
+            if (viewport) renderTasks(viewport);
+        } else {
+            showNotification('error', data.message);
+        }
+    } catch (e) {
+        showNotification('error', e.message);
+    }
+}
+
+function closeCrmTaskModal() {
+    const modal = document.getElementById('crm-task-modal');
+    if (modal) modal.remove();
 }
 
 function renderMeetings(container) {

@@ -3097,8 +3097,6 @@ function createNewTaskModal() {
     document.getElementById('new-task-duedate').valueAsDate = new Date();
     loadTaskAiSuggestions();
     lucide.createIcons();
-}ementById('new-task-duedate').valueAsDate = new Date();
-    lucide.createIcons();
 }
 
 async function submitNewTaskForm(btn) {

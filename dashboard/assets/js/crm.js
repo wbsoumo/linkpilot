@@ -2113,10 +2113,108 @@ function handleGlobalSearch(value) {
         inboxInlineInput.value = value;
     }
     
+    const dropdown = document.getElementById('global-search-dropdown');
+    const list = document.getElementById('global-search-results-list');
+    
+    if (value.trim() === '') {
+        if (dropdown) dropdown.classList.add('hidden');
+        return;
+    }
+    
+    if (dropdown && list) {
+        dropdown.classList.remove('hidden');
+        list.innerHTML = `
+            <div class="p-4 text-center text-slate-400">
+                <div class="loader-spinner !w-4 !h-4 !border-2 inline-block mr-2 align-middle"></div>
+                <span class="align-middle">Searching...</span>
+            </div>
+        `;
+    }
+    
     globalSearchTimeout = setTimeout(() => {
+        fetchGlobalSearchResults(value);
         executeSearch(value);
     }, 2000); // 2 second delay
 }
+
+async function fetchGlobalSearchResults(value) {
+    const list = document.getElementById('global-search-results-list');
+    const dropdown = document.getElementById('global-search-dropdown');
+    if (!list || !dropdown) return;
+    
+    try {
+        const [emailsRes, leadsRes] = await Promise.all([
+            apiCall(`crm/email_intelligence/emails.php?search=${encodeURIComponent(value)}&limit=5`),
+            apiCall(`crm/leads.php?search=${encodeURIComponent(value)}&limit=5`)
+        ]);
+        
+        const emails = emailsRes.emails || [];
+        const leads = leadsRes.leads || [];
+        
+        if (emails.length === 0 && leads.length === 0) {
+            list.innerHTML = `<div class="p-4 text-center text-slate-400 font-medium">No matches found for "${value}"</div>`;
+            return;
+        }
+        
+        let html = '';
+        
+        // Render Leads
+        leads.forEach(l => {
+            html += `
+                <div onclick="selectSearchItem('lead', ${l.id})" class="p-2.5 hover:bg-slate-50 cursor-pointer flex justify-between items-center transition border-b border-slate-100/50">
+                    <div class="min-w-0 flex-grow pr-3">
+                        <div class="font-bold text-slate-800 truncate">${l.name}</div>
+                        <div class="text-[10px] text-slate-450 truncate">Company: ${l.company || 'N/A'} • ${l.email}</div>
+                    </div>
+                    <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 flex-shrink-0">Lead</span>
+                </div>
+            `;
+        });
+        
+        // Render Emails
+        emails.forEach(e => {
+            html += `
+                <div onclick="selectSearchItem('email', ${e.id})" class="p-2.5 hover:bg-slate-50 cursor-pointer flex justify-between items-center transition border-b border-slate-100/50">
+                    <div class="min-w-0 flex-grow pr-3">
+                        <div class="font-bold text-slate-800 truncate">${e.subject}</div>
+                        <div class="text-[10px] text-slate-450 truncate">From: ${e.sender_name} (${e.sender_email})</div>
+                    </div>
+                    <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-blue-50 text-blue-600 border border-blue-100 flex-shrink-0">Email</span>
+                </div>
+            `;
+        });
+        
+        list.innerHTML = html;
+    } catch (err) {
+        list.innerHTML = `<div class="p-4 text-center text-red-500 font-medium">Error: ${err.message}</div>`;
+    }
+}
+
+function selectSearchItem(type, id) {
+    const dropdown = document.getElementById('global-search-dropdown');
+    const globalInput = document.getElementById('global-search-input');
+    
+    if (dropdown) dropdown.classList.add('hidden');
+    if (globalInput) globalInput.value = '';
+    
+    if (type === 'email') {
+        navigateTo('inbox', { emailId: id });
+    } else if (type === 'lead') {
+        navigateTo('leads');
+        setTimeout(() => {
+            editCrmLead(id);
+        }, 300);
+    }
+}
+
+// Close dropdown on click outside
+document.addEventListener('click', (e) => {
+    const container = document.getElementById('global-search-container');
+    const dropdown = document.getElementById('global-search-dropdown');
+    if (dropdown && container && !container.contains(e.target)) {
+        dropdown.classList.add('hidden');
+    }
+});
 
 async function executeSearch(value) {
     const hash = window.location.hash || '#/dashboard';

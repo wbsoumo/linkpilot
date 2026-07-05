@@ -436,4 +436,16 @@ document.addEventListener('DOMContentLoaded', () => {
             logout();
         });
     }
+
+    // Keyboard shortcut Ctrl+K / Cmd+K to focus search input
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+            e.preventDefault();
+            const searchInput = document.getElementById('global-search-input');
+            if (searchInput) {
+                searchInput.focus();
+                searchInput.select();
+            }
+        }
+    });
 });

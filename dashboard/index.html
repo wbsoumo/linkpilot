@@ -133,7 +133,7 @@
                     <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
                         <i data-lucide="search" class="h-4 w-4"></i>
                     </span>
-                    <input type="text" placeholder="Search leads, contacts, emails..." class="w-full pl-9 pr-12 py-1.5 bg-[#f8fafc] border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500">
+                    <input type="text" id="global-search-input" oninput="handleGlobalSearch(this.value)" placeholder="Search leads, contacts, emails..." class="w-full pl-9 pr-12 py-1.5 bg-[#f8fafc] border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500">
                     <span class="absolute right-3 top-2 px-1 py-0.5 border border-slate-200 bg-white text-[9px] text-slate-400 rounded font-semibold">⌘ K</span>
                 </div>
             </div>

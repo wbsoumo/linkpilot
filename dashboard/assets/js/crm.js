@@ -1226,7 +1226,7 @@ async function renderInbox(container, targetEmailId = null) {
                 <!-- Inbox List pane -->
                 <div class="lg:col-span-4 glass-panel bg-slate-900/40 overflow-hidden flex flex-col h-full max-h-[75vh]">
                     <div class="p-3 border-b border-slate-800/80">
-                        <input type="text" oninput="searchInbox(this.value)" placeholder="Search emails..." class="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white">
+                        <input type="text" oninput="handleGlobalSearch(this.value)" placeholder="Search emails..." class="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white">
                     </div>
                     <div class="flex-grow overflow-y-auto divide-y divide-slate-800/40" id="inbox-emails-list-container">
                         ${listItems}
@@ -1656,7 +1656,7 @@ async function renderLeads(container) {
                                     <th class="py-3 px-4 text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="leads-table-body">
                                 ${leadRows}
                             </tbody>
                         </table>
@@ -2092,6 +2092,116 @@ async function generateReplyOnDemand(emailId) {
     } catch (err) {
         showNotification('error', err.message);
         container.innerHTML = origHTML;
+    }
+}
+
+// Global search debouncing & context execution
+let globalSearchTimeout = null;
+
+function handleGlobalSearch(value) {
+    if (globalSearchTimeout) {
+        clearTimeout(globalSearchTimeout);
+    }
+    
+    // Sync the input value between the global header search input and active inline search inputs
+    const globalInput = document.getElementById('global-search-input');
+    if (globalInput && globalInput.value !== value) {
+        globalInput.value = value;
+    }
+    const inboxInlineInput = document.querySelector('input[placeholder="Search emails..."]');
+    if (inboxInlineInput && inboxInlineInput.value !== value) {
+        inboxInlineInput.value = value;
+    }
+    
+    globalSearchTimeout = setTimeout(() => {
+        executeSearch(value);
+    }, 2000); // 2 second delay
+}
+
+async function executeSearch(value) {
+    const hash = window.location.hash || '#/dashboard';
+    const view = hash.replace('#/', '');
+    
+    if (view === 'inbox') {
+        searchInbox(value);
+    } else if (view === 'leads') {
+        searchLeads(value);
+    } else {
+        // Navigate to inbox view and run search
+        window.location.hash = '#/inbox';
+        setTimeout(() => {
+            const inboxInlineInput = document.querySelector('input[placeholder="Search emails..."]');
+            if (inboxInlineInput) {
+                inboxInlineInput.value = value;
+            }
+            searchInbox(value);
+        }, 200);
+    }
+}
+
+async function searchInbox(val) {
+    const container = document.getElementById('inbox-emails-list-container');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="flex items-center justify-center py-10">
+            <div class="loader-spinner !w-6 !h-6 !border-2"></div>
+        </div>
+    `;
+    
+    try {
+        const listData = await apiCall(`crm/email_intelligence/emails.php?search=${encodeURIComponent(val)}`);
+        const emails = listData.emails || [];
+        
+        container.innerHTML = emails.map(m => {
+            const date = new Date(m.received_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+            const isUnread = !m.is_read;
+            return `
+                <div onclick="selectInboxEmail(${m.id})" id="inbox-mail-card-${m.id}" class="p-4 border-b border-slate-800/60 hover:bg-slate-900/30 cursor-pointer transition flex flex-col justify-between ${isUnread ? 'border-l-4 border-l-indigo-500 bg-slate-900/10' : ''} ${m.id === activeEmailId ? 'bg-slate-900/40 card-active-glow' : ''}">
+                    <div class="flex justify-between items-start">
+                        <span class="font-bold text-xs truncate max-w-[140px] text-white">${m.sender_name || m.sender_email}</span>
+                        <span class="text-[10px] text-slate-500">${date}</span>
+                    </div>
+                    <div class="text-xs font-semibold text-slate-200 mt-1 truncate" title="${m.subject}">${m.subject}</div>
+                </div>
+            `;
+        }).join('');
+    } catch (err) {
+        showNotification('error', 'Search failed: ' + err.message);
+    }
+}
+
+async function searchLeads(val) {
+    const tbody = document.getElementById('leads-table-body');
+    if (!tbody) return;
+    
+    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-10"><div class="loader-spinner !w-6 !h-6 !border-2 inline-block"></div></td></tr>`;
+    
+    try {
+        const res = await apiCall(`crm/leads.php?search=${encodeURIComponent(val)}`);
+        const leads = res.leads || [];
+        
+        tbody.innerHTML = leads.length > 0 ? leads.map(l => {
+            const date = new Date(l.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+            return `
+                <tr class="hover:bg-slate-900/40">
+                    <td class="py-3 px-4 font-bold text-white">${l.name}</td>
+                    <td class="py-3 px-4 text-slate-300 font-medium">${l.company || '-'}</td>
+                    <td class="py-3 px-4 text-slate-400 font-mono text-[11px]">${l.email}</td>
+                    <td class="py-3 px-4 text-indigo-400 font-bold">₹${parseFloat(l.budget).toLocaleString('en-IN')}</td>
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-teal-500/10 text-teal-400 border border-teal-500/20">${l.stage}</span>
+                    </td>
+                    <td class="py-3 px-4 text-slate-400">${l.priority}</td>
+                    <td class="py-3 px-4 text-slate-500">${date}</td>
+                    <td class="py-3 px-4 text-right">
+                        <button onclick="editCrmLead(${l.id})" class="text-xs px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-md hover:border-teal-400 hover:text-teal-400 transition">View Details</button>
+                    </td>
+                </tr>
+            `;
+        }).join('') : `<tr><td colspan="8" class="text-center py-10 text-slate-500">No leads match your search.</td></tr>`;
+    } catch (err) {
+        showNotification('error', 'Search failed: ' + err.message);
     }
 }
 

@@ -88,6 +88,7 @@ class SMTPHelper {
         
         try {
             // Server settings
+            $mail->CharSet    = 'UTF-8';
             $mail->isSMTP();
             $mail->Host       = $smtp['host'];
             $mail->SMTPAuth   = true;
@@ -169,6 +170,7 @@ class SMTPHelper {
     public static function testConnection($host, $port, $username, $password, $senderName, $senderEmail) {
         $mail = new PHPMailer(true);
         try {
+            $mail->CharSet    = 'UTF-8';
             $mail->isSMTP();
             $mail->Timeout     = 10; // Set SMTP connection timeout to 10 seconds
             $mail->Host       = $host;

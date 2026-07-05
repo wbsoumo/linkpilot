@@ -117,7 +117,7 @@ try {
             $mail->Host = $smtp['smtp_host'];
             $mail->SMTPAuth = true;
             $mail->Username = $smtp['smtp_username'];
-            $mail->Password = $smtp['smtp_password'];
+            $mail->Password = decryptData($smtp['smtp_password']);
             $mail->Port = (int)$smtp['smtp_port'];
             $mail->SMTPSecure = strtolower($smtp['smtp_encryption']) === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
         } else {

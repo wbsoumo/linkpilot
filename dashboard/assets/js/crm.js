@@ -1271,7 +1271,9 @@ async function selectInboxEmail(emailId) {
 
     try {
         const data = await apiCall(`crm/email_intelligence/emails.php?id=${emailId}`);
+        const smtpData = await apiCall('smtp/list.php');
         const email = data.email;
+        const accounts = smtpData.accounts || [];
         const meta = email.extracted_data_json ? JSON.parse(email.extracted_data_json) : {};
         
         const date = new Date(email.received_date).toLocaleString();
@@ -1410,20 +1412,30 @@ async function selectInboxEmail(emailId) {
 
                 <!-- AI Suggested Reply & Editor -->
                 <div class="border-t border-slate-800 pt-4 space-y-4">
-                    <div class="flex justify-between items-center">
-                        <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center">
-                            <i data-lucide="sparkles" class="h-4 w-4 text-teal-400 mr-1.5 animate-spin-slow"></i>
-                            <span>AI Reply Assistant</span>
-                        </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-900/50 p-3 rounded-lg border border-slate-800/80">
+                        <!-- Reply From Account Selector -->
+                        <div class="flex flex-col space-y-1">
+                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Reply From Account</span>
+                            <select id="reply-sender-account-select" class="w-full px-2 py-1 bg-slate-950 border border-slate-800 text-slate-300 rounded text-[10px] focus:outline-none focus:border-teal-400">
+                                ${accounts.map(acc => {
+                                    const isSelected = (acc.sender_email.toLowerCase() === email.recipient_email.toLowerCase()) ? 'selected' : '';
+                                    return `<option value="${acc.sender_email}" ${isSelected}>${acc.sender_name} (${acc.sender_email}) ${acc.is_default ? '[Default]' : ''}</option>`;
+                                }).join('')}
+                            </select>
+                        </div>
+                        
                         <!-- Tone selection -->
-                        <select id="inbox-reply-tone" class="px-2 py-1 bg-slate-800 border border-slate-700 text-slate-300 rounded text-[10px] focus:outline-none" onchange="generateToneDraft(${email.id}, this.value)">
-                            <option value="Professional">Professional (Default)</option>
-                            <option value="Friendly">Friendly Tone</option>
-                            <option value="Sales">Sales Pitch</option>
-                            <option value="Support">Support Response</option>
-                            <option value="Proposal">Send Proposal</option>
-                            <option value="Meeting Confirmation">Confirm Meeting</option>
-                        </select>
+                        <div class="flex flex-col space-y-1">
+                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">AI Reply Tone</span>
+                            <select id="inbox-reply-tone" class="w-full px-2 py-1 bg-slate-950 border border-slate-800 text-slate-300 rounded text-[10px] focus:outline-none focus:border-teal-400" onchange="generateToneDraft(${email.id}, this.value)">
+                                <option value="Professional">Professional (Default)</option>
+                                <option value="Friendly">Friendly Tone</option>
+                                <option value="Sales">Sales Pitch</option>
+                                <option value="Support">Support Response</option>
+                                <option value="Proposal">Send Proposal</option>
+                                <option value="Meeting Confirmation">Confirm Meeting</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="relative">
@@ -1459,7 +1471,7 @@ async function selectInboxEmail(emailId) {
                     </div>
 
                     <div class="flex justify-end space-x-3 pt-2">
-                        <button onclick="dispatchSmtpReply(${email.id}, this)" class="px-4 py-2 bg-teal-400 hover:bg-teal-300 text-slate-950 rounded-lg font-bold transition flex items-center space-x-1.5 shadow-lg shadow-teal-500/10">
+                        <button onclick="dispatchSmtpReply(${email.id}, this, \`${email.subject.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" class="px-4 py-2 bg-teal-400 hover:bg-teal-300 text-slate-950 rounded-lg font-bold transition flex items-center space-x-1.5 shadow-lg shadow-teal-500/10">
                             <i data-lucide="send" class="h-3.5 w-3.5"></i>
                             <span>Send Reply Now</span>
                         </button>
@@ -1509,7 +1521,7 @@ async function generateToneDraft(emailId, tone) {
     }
 }
 
-async function dispatchSmtpReply(emailId, btn) {
+async function dispatchSmtpReply(emailId, btn, originalSubject) {
     const origText = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = `<div class="loader-spinner !w-3.5 !h-3.5 !border-2 mr-1"></div> Sending...`;
@@ -1520,7 +1532,19 @@ async function dispatchSmtpReply(emailId, btn) {
     const formData = new FormData();
     formData.append('email_id', emailId);
     formData.append('reply_body', replyBody);
-    formData.append('subject', 'Re: Inquiry');
+    
+    // Prefix subject with Re: if missing
+    let subject = originalSubject || 'Inquiry';
+    if (!subject.toUpperCase().startsWith('RE:')) {
+        subject = 'Re: ' + subject;
+    }
+    formData.append('subject', subject);
+    
+    // Selected sender account email
+    const senderEmailSelect = document.getElementById('reply-sender-account-select');
+    if (senderEmailSelect && senderEmailSelect.value) {
+        formData.append('sender_email', senderEmailSelect.value);
+    }
     
     // Append all selected files
     selectedReplyAttachments.forEach(file => {

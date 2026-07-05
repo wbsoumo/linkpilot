@@ -58,13 +58,13 @@ class EmailTemplateHelper {
         $linkedin = htmlspecialchars($senderDetails['linkedin'] ?? '');
 
         // Prepare signature block
-        $signature = "<p style='margin: 0; font-size: 14px; font-weight: bold; color: #1E293B;'>{$name}</p>";
+        $signature = "<p style='margin: 0; font-size: 14px; font-weight: bold;'>{$name}</p>";
         if (!empty($title)) {
             $sigDetails = $title;
             if (!empty($company)) {
                 $sigDetails .= " at {$company}";
             }
-            $signature .= "<p style='margin: 2px 0 0 0; font-size: 12px; color: #64748B;'>{$sigDetails}</p>";
+            $signature .= "<p style='margin: 2px 0 0 0; font-size: 12px; opacity: 0.8;'>{$sigDetails}</p>";
         }
         if (!empty($linkedin)) {
             $signature .= "<p style='margin: 6px 0 0 0; font-size: 12px;'><a href='{$linkedin}' target='_blank' style='color: #14B8A6; text-decoration: none; font-weight: 500;'>Connect on LinkedIn</a></p>";

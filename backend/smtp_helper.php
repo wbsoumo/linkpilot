@@ -14,13 +14,22 @@ class SMTPHelper {
     /**
      * Send email using user's custom SMTP configuration
      */
-    public static function sendEmail($userId, $recipientEmail, $subject, $body, $attachments = []) {
+    public static function sendEmail($userId, $recipientEmail, $subject, $body, $attachments = [], $senderEmail = null, $originalMessageId = null) {
         $db = Database::getConnection();
         
         // 1. Fetch default SMTP Account, fallback to first configured
-        $stmt = $db->prepare("SELECT * FROM smtp_accounts WHERE user_id = ? ORDER BY is_default DESC, id ASC LIMIT 1");
-        $stmt->execute([$userId]);
-        $smtp = $stmt->fetch();
+        $smtp = null;
+        if ($senderEmail) {
+            $stmt = $db->prepare("SELECT * FROM smtp_accounts WHERE user_id = ? AND sender_email = ? LIMIT 1");
+            $stmt->execute([$userId, $senderEmail]);
+            $smtp = $stmt->fetch();
+        }
+        
+        if (!$smtp) {
+            $stmt = $db->prepare("SELECT * FROM smtp_accounts WHERE user_id = ? ORDER BY is_default DESC, id DESC LIMIT 1");
+            $stmt->execute([$userId]);
+            $smtp = $stmt->fetch();
+        }
         
         if (!$smtp) {
             self::logSentEmail($userId, $recipientEmail, $subject, $body, 'failed', 'SMTP Configuration missing. Please configure SMTP in settings.');
@@ -71,7 +80,8 @@ class SMTPHelper {
         } catch (Exception $e) {}
 
         require_once __DIR__ . '/email_template_helper.php';
-        $wrappedBody = EmailTemplateHelper::wrap($body, $templateId, $senderDetails);
+        $formattedBody = (strpos($body, '<p>') === false && strpos($body, '<br>') === false && strpos($body, '<br/>') === false) ? nl2br($body) : $body;
+        $wrappedBody = EmailTemplateHelper::wrap($formattedBody, $templateId, $senderDetails);
         
         // 4. Setup PHPMailer
         $mail = new PHPMailer(true);
@@ -122,6 +132,12 @@ class SMTPHelper {
                 if (isset($att['path']) && is_file($att['path'])) {
                     $mail->addAttachment($att['path'], $att['name'] ?? '');
                 }
+            }
+            
+            // Custom threading headers to prevent spam and link conversation
+            if ($originalMessageId) {
+                $mail->addCustomHeader('In-Reply-To', $originalMessageId);
+                $mail->addCustomHeader('References', $originalMessageId);
             }
             
             // Send

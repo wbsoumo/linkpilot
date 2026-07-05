@@ -74,6 +74,7 @@ Only return the text of the email reply body, and nothing else.";
         $emailId = (int)($input['email_id'] ?? 0);
         $replyBody = trim($input['reply_body'] ?? '');
         $subject = trim($input['subject'] ?? '');
+        $senderEmail = trim($input['sender_email'] ?? '');
 
         if ($emailId <= 0 || empty($replyBody) || empty($subject)) {
             sendJsonResponse('error', 'Email ID, Subject, and Reply Body are required.', [], 400);
@@ -85,6 +86,11 @@ Only return the text of the email reply body, and nothing else.";
         $email = $stmtEmail->fetch();
         if (!$email) {
             sendJsonResponse('error', 'Original email not found.', [], 404);
+        }
+
+        // If sender_email wasn't provided, default to recipient_email of incoming mail
+        if (empty($senderEmail)) {
+            $senderEmail = $email['recipient_email'];
         }
 
         // Process attachments
@@ -132,16 +138,16 @@ Only return the text of the email reply body, and nothing else.";
 
         // Dispatch email
         $recipient = $email['sender_email'];
-        $sendResult = SMTPHelper::sendEmail($userId, $recipient, $subject, $replyBody, $attachments, $email['recipient_email']);
+        $sendResult = SMTPHelper::sendEmail($userId, $recipient, $subject, $replyBody, $attachments, $senderEmail, $email['message_id']);
 
         if ($sendResult['status']) {
             // Fetch sender SMTP details to save in conversation thread
             $stmtSmtp = $db->prepare("SELECT sender_name, sender_email FROM smtp_accounts WHERE user_id = ? AND sender_email = ? LIMIT 1");
-            $stmtSmtp->execute([$userId, $email['recipient_email']]);
+            $stmtSmtp->execute([$userId, $senderEmail]);
             $smtpAcc = $stmtSmtp->fetch();
             
-            $senderName = $smtpAcc['sender_name'] ?? $email['recipient_email'];
-            $senderEmail = $smtpAcc['sender_email'] ?? $email['recipient_email'];
+            $senderName = $smtpAcc['sender_name'] ?? $senderEmail;
+            $loggedSenderEmail = $smtpAcc['sender_email'] ?? $senderEmail;
             
             // Insert sent reply into received_emails as a nested child of the thread
             $insReply = $db->prepare("INSERT INTO received_emails (user_id, parent_id, message_id, sender_email, sender_name, recipient_email, subject, body_text, is_read, is_spam, received_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, 0, NOW())");
@@ -149,7 +155,7 @@ Only return the text of the email reply body, and nothing else.";
                 $userId,
                 $emailId,
                 'reply-' . uniqid(),
-                $senderEmail,
+                $loggedSenderEmail,
                 $smtpAcc ? $senderName : 'You',
                 $recipient,
                 $subject,

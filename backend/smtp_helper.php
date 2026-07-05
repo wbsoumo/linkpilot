@@ -14,7 +14,7 @@ class SMTPHelper {
     /**
      * Send email using user's custom SMTP configuration
      */
-    public static function sendEmail($userId, $recipientEmail, $subject, $body) {
+    public static function sendEmail($userId, $recipientEmail, $subject, $body, $attachments = []) {
         $db = Database::getConnection();
         
         // 1. Fetch default SMTP Account, fallback to first configured
@@ -116,6 +116,13 @@ class SMTPHelper {
             $mail->Body    = $wrappedBody;
             // Plain text version
             $mail->AltBody = strip_tags(str_replace(['<br>', '<br/>', '<p>'], ["\n", "\n", "\n"], $body));
+            
+            // Attachments
+            foreach ($attachments as $att) {
+                if (isset($att['path']) && is_file($att['path'])) {
+                    $mail->addAttachment($att['path'], $att['name'] ?? '');
+                }
+            }
             
             // Send
             $mail->send();

@@ -20,7 +20,7 @@
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="assets/css/style.css?v=2.4">
+    <link rel="stylesheet" href="assets/css/style.css?v=2.5">
 </head>
 <body class="h-full bg-[#f8fafc] text-slate-800 flex overflow-hidden">
 
@@ -45,7 +45,7 @@
                     <div class="flex items-center">
                         <i data-lucide="message-square" class="h-4 w-4 mr-2.5"></i><span>Conversations</span>
                     </div>
-                    <span class="bg-blue-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">23</span>
+                    <span id="sidebar-conversations-unread-badge" class="bg-blue-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full hidden">0</span>
                 </a>
                 <a href="#/leads" class="sidebar-nav-link text-slate-300 transition duration-150">
                     <i data-lucide="user-plus" class="h-4 w-4 mr-2.5"></i><span>Leads</span>

@@ -87,9 +87,52 @@ Only return the text of the email reply body, and nothing else.";
             sendJsonResponse('error', 'Original email not found.', [], 404);
         }
 
+        // Process attachments
+        $attachments = [];
+        if (!empty($_FILES['attachments'])) {
+            $files = $_FILES['attachments'];
+            $allowedExts = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'mp3', 'mp4', 'm4a'];
+            
+            if (is_array($files['name'])) {
+                // Multiple files
+                for ($i = 0; $i < count($files['name']); $i++) {
+                    if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                        $tmpPath = $files['tmp_name'][$i];
+                        $filename = $files['name'][$i];
+                        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                        
+                        if (in_array($ext, $allowedExts)) {
+                            $attachments[] = [
+                                'path' => $tmpPath,
+                                'name' => $filename
+                            ];
+                        } else {
+                            sendJsonResponse('error', "File extension '$ext' is not allowed. Supported formats: pdf, jpg, jpeg, png, webp, mp3, mp4, m4a", [], 400);
+                        }
+                    }
+                }
+            } else {
+                // Single file
+                if ($files['error'] === UPLOAD_ERR_OK) {
+                    $tmpPath = $files['tmp_name'];
+                    $filename = $files['name'];
+                    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                    
+                    if (in_array($ext, $allowedExts)) {
+                        $attachments[] = [
+                            'path' => $tmpPath,
+                            'name' => $filename
+                        ];
+                    } else {
+                        sendJsonResponse('error', "File extension '$ext' is not allowed. Supported formats: pdf, jpg, jpeg, png, webp, mp3, mp4, m4a", [], 400);
+                    }
+                }
+            }
+        }
+
         // Dispatch email
         $recipient = $email['sender_email'];
-        $sendResult = SMTPHelper::sendEmail($userId, $recipient, $subject, $replyBody);
+        $sendResult = SMTPHelper::sendEmail($userId, $recipient, $subject, $replyBody, $attachments);
 
         if ($sendResult['status']) {
             // Log interaction to timeline

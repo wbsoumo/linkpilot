@@ -118,10 +118,31 @@ function logout() {
     window.location.href = 'login.html';
 }
 
+// Dynamic unread count badge loader
+function refreshUnreadBadgeCount() {
+    const badge = document.getElementById('sidebar-conversations-unread-badge');
+    if (!badge || !getAuthToken()) return;
+    
+    apiCall('crm/email_intelligence/emails.php?limit=1')
+        .then(res => {
+            if (res && res.status === 'success' && typeof res.unread_count !== 'undefined') {
+                badge.textContent = res.unread_count;
+                if (res.unread_count > 0) {
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+        })
+        .catch(err => console.warn('Failed to load unread count:', err));
+}
+
 // Populate user navigation and menus
 function setupNavigation() {
     const user = getCurrentUser();
     if (!user) return;
+    
+    refreshUnreadBadgeCount();
 
     // Set User Name in UI
     const userNameElements = document.querySelectorAll('.user-name-display');

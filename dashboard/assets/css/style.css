@@ -627,6 +627,11 @@ aside .bg-blue-600 * {
     color: #ffffff !important;
 }
 
+/* Override text-slate-200 to dark slate color in light mode for proper subject readability */
+:not(aside) .text-slate-200 {
+    color: #334155 !important;
+}
+
 
 
 

@@ -281,11 +281,15 @@ You MUST return your response as a valid, parsable JSON block with the following
                     'action_items' => $aiResponse['action_items'] ?? []
                 ]);
                 
+                // Prevent automatic reply generation for newsletters, promotions, spam, and security alerts
+                $isNoReplyCategory = in_array($category, ['Newsletter', 'Promotion', 'Spam', 'Security Alerts']);
+                $suggestedReply = $isNoReplyCategory ? '' : ($aiResponse['suggested_reply'] ?? '');
+
                 $db->beginTransaction();
                 
                 $insEmail = $db->prepare("INSERT INTO received_emails (user_id, message_id, sender_email, sender_name, recipient_email, subject, body_text, body_html, received_date, category, ai_summary, ai_suggested_reply, ai_confidence_score, sentiment, priority, is_spam, spam_probability, extracted_data_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 $insEmail->execute([
-                    $userId, $email['message_id'], $sender, $senderName, $email['recipient_email'], $subject, $email['body_text'], $email['body_html'], $email['received_date'], $category, $aiResponse['short_summary'] ?? '', $aiResponse['suggested_reply'] ?? '', $confidence, $sentiment, $priority, $isSpam, $aiResponse['spam_probability'] ?? 0, $extractedDataJson
+                    $userId, $email['message_id'], $sender, $senderName, $email['recipient_email'], $subject, $email['body_text'], $email['body_html'], $email['received_date'], $category, $aiResponse['short_summary'] ?? '', $suggestedReply, $confidence, $sentiment, $priority, $isSpam, $aiResponse['spam_probability'] ?? 0, $extractedDataJson
                 ]);
                 
                 $receivedEmailId = $db->lastInsertId();

@@ -171,6 +171,44 @@ try {
             sendJsonResponse('success', 'Email deleted permanently.');
         } 
         
+        elseif ($action === 'generate_reply') {
+            // Fetch email details
+            $stmtEmail = $db->prepare("SELECT * FROM received_emails WHERE id = ? AND user_id = ?");
+            $stmtEmail->execute([$emailId, $userId]);
+            $email = $stmtEmail->fetch();
+            
+            if (!$email) {
+                sendJsonResponse('error', 'Email not found.', [], 404);
+            }
+            
+            $tone = trim($input['tone'] ?? 'Professional');
+            
+            // Get business settings for context
+            $stmtSettings = $db->prepare("SELECT business_type, industry FROM email_intelligence_settings WHERE user_id = ?");
+            $stmtSettings->execute([$userId]);
+            $settings = $stmtSettings->fetch();
+            $businessType = $settings['business_type'] ?? 'Software Company';
+            $industry = $settings['industry'] ?? 'Technology';
+
+            // Generate reply using AI
+            $systemPrompt = "You are an AI Email Assistant. Your job is to draft a clean, professional, and context-aware email reply.
+User's Business Profile: Type: '$businessType', Industry: '$industry'.
+Tone required: '$tone'.
+Do NOT include any greetings like 'Subject:' or subject lines. Just output the body of the reply email. Keep it concise.";
+            
+            $bodyText = $email['body_text'] ?: strip_tags($email['body_html']);
+            $userPrompt = "Email details:\nSender Name: {$email['sender_name']}\nSender Email: {$email['sender_email']}\nSubject: {$email['subject']}\n\nEmail Content:\n$bodyText";
+            
+            require_once __DIR__ . '/../../../smtp_helper.php'; // holds callAI
+            $ai = callAI($systemPrompt, $userPrompt, $userId);
+            $replyText = trim($ai['text']);
+            
+            // Save reply to database
+            $db->prepare("UPDATE received_emails SET ai_suggested_reply = ? WHERE id = ?")->execute([$replyText, $emailId]);
+            
+            sendJsonResponse('success', 'AI reply generated successfully.', ['reply' => $replyText]);
+        } 
+        
         else {
             sendJsonResponse('error', 'Invalid action query parameter.', [], 400);
         }

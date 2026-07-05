@@ -1162,6 +1162,9 @@ async function renderInbox(container, targetEmailId = null) {
     try {
         const listData = await apiCall('crm/email_intelligence/emails.php');
         const emails = listData.emails || [];
+        if (typeof refreshUnreadBadgeCount === 'function') {
+            refreshUnreadBadgeCount();
+        }
         
         let initialEmailId = targetEmailId || (emails.length > 0 ? emails[0].id : null);
         activeEmailId = initialEmailId;
@@ -1248,6 +1251,7 @@ async function renderInbox(container, targetEmailId = null) {
 
 async function selectInboxEmail(emailId) {
     activeEmailId = emailId;
+    selectedReplyAttachments = []; // reset reply attachments
     
     // Set active style in list
     document.querySelectorAll('[id^="inbox-mail-card-"]').forEach(c => c.classList.remove('bg-slate-900/40', 'card-active-glow'));
@@ -1288,14 +1292,22 @@ async function selectInboxEmail(emailId) {
                             <i data-lucide="trash" class="h-4 w-4"></i>
                         </button>
                         <div class="h-7 w-[1px] bg-slate-800 self-center"></div>
-                        <button onclick="markEmailAsSpamPromo(${email.id}, 'Spam')" class="p-1.5 border border-slate-800 hover:border-amber-600 hover:text-amber-500 text-slate-400 rounded-md transition flex items-center space-x-1.5" title="Block Sender & Mark Spam">
-                            <i data-lucide="shield-alert" class="h-3.5 w-3.5"></i>
-                            <span class="text-[9px] font-bold">Spam</span>
-                        </button>
-                        <button onclick="markEmailAsSpamPromo(${email.id}, 'Promotion')" class="p-1.5 border border-slate-800 hover:border-blue-500 hover:text-blue-400 text-slate-400 rounded-md transition flex items-center space-x-1.5" title="Mark as Promotion">
-                            <i data-lucide="tag" class="h-3.5 w-3.5"></i>
-                            <span class="text-[9px] font-bold">Promo</span>
-                        </button>
+                        
+                        ${(email.category === 'Spam' || email.category === 'Promotion' || parseInt(email.is_spam) === 1) ? `
+                            <button onclick="unblockEmailSender(${email.id})" class="p-1.5 border border-green-500 hover:bg-green-500 hover:text-white text-green-600 rounded-md transition flex items-center space-x-1.5" title="Unblock Sender & Move to General">
+                                <i data-lucide="shield-check" class="h-3.5 w-3.5 text-green-500"></i>
+                                <span class="text-[9px] font-bold text-green-600">Unblock & Restore</span>
+                            </button>
+                        ` : `
+                            <button onclick="markEmailAsSpamPromo(${email.id}, 'Spam')" class="p-1.5 border border-slate-800 hover:border-amber-600 hover:text-amber-500 text-slate-400 rounded-md transition flex items-center space-x-1.5" title="Block Sender & Mark Spam">
+                                <i data-lucide="shield-alert" class="h-3.5 w-3.5"></i>
+                                <span class="text-[9px] font-bold">Spam</span>
+                            </button>
+                            <button onclick="markEmailAsSpamPromo(${email.id}, 'Promotion')" class="p-1.5 border border-slate-800 hover:border-blue-500 hover:text-blue-400 text-slate-400 rounded-md transition flex items-center space-x-1.5" title="Mark as Promotion">
+                                <i data-lucide="tag" class="h-3.5 w-3.5"></i>
+                                <span class="text-[9px] font-bold">Promo</span>
+                            </button>
+                        `}
                     </div>
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">${email.category}</span>
                 </div>
@@ -1350,8 +1362,14 @@ async function selectInboxEmail(emailId) {
                 </div>
 
                 <!-- Email Message Body Content -->
-                <div class="p-4 bg-slate-950/30 border border-slate-850 rounded-xl max-h-60 overflow-y-auto text-slate-300 leading-relaxed font-mono whitespace-pre-line text-[11px]">
-                    ${email.body_text || stripHtml(email.body_html)}
+                <div class="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                    ${(email.body_html && email.body_html.trim() !== '') ? `
+                        <iframe id="inbox-email-body-iframe" class="w-full h-80 bg-white border-0 block" sandbox="allow-same-origin allow-popups"></iframe>
+                    ` : `
+                        <div class="p-4 bg-slate-50 text-slate-800 leading-relaxed font-sans whitespace-pre-line text-[11px] max-h-80 overflow-y-auto">
+                            ${email.body_text}
+                        </div>
+                    `}
                 </div>
 
                 <!-- Attachments section -->
@@ -1388,13 +1406,38 @@ async function selectInboxEmail(emailId) {
                     </div>
 
                     <div class="relative">
-                        <textarea id="inbox-reply-textarea" rows="8" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-300 focus:outline-none focus:ring-1 focus:ring-teal-400 leading-relaxed font-sans text-[11px]" placeholder="Generating draft reply...">${email.ai_suggested_reply || ''}</textarea>
+                        ${(!email.ai_suggested_reply || email.ai_suggested_reply.trim() === '') ? `
+                            <div id="ai-reply-generation-container" class="flex flex-col items-center justify-center py-8 border border-dashed border-slate-200 rounded-xl bg-slate-50/50 space-y-2">
+                                <i data-lucide="sparkles" class="h-5 w-5 text-indigo-500 animate-pulse"></i>
+                                <p class="text-[10px] text-slate-500 font-medium">Automatic draft reply generation skipped for this category.</p>
+                                <button type="button" onclick="generateReplyOnDemand(${email.id})" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[10px] font-bold transition flex items-center space-x-1.5 shadow">
+                                    <i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i>
+                                    <span>Generate AI Reply Now</span>
+                                </button>
+                            </div>
+                            <textarea id="inbox-reply-textarea" rows="8" class="hidden w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-300 focus:outline-none focus:ring-1 focus:ring-teal-400 leading-relaxed font-sans text-[11px]" placeholder="Drafting reply..."></textarea>
+                        ` : `
+                            <textarea id="inbox-reply-textarea" rows="8" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-300 focus:outline-none focus:ring-1 focus:ring-teal-400 leading-relaxed font-sans text-[11px]" placeholder="Drafting reply...">${email.ai_suggested_reply || ''}</textarea>
+                        `}
                         <button onclick="copyReplyText()" class="absolute top-2 right-2 p-1.5 bg-slate-800 hover:bg-teal-500 hover:text-slate-950 rounded-md border border-slate-700 transition" title="Copy Reply">
                             <i data-lucide="copy" class="h-3.5 w-3.5"></i>
                         </button>
                     </div>
 
-                    <div class="flex justify-end space-x-3">
+                    <!-- File attachment selector -->
+                    <div class="space-y-2 border-t border-slate-100 pt-3">
+                        <div class="flex items-center justify-between text-[11px] text-slate-500">
+                            <label class="flex items-center space-x-1.5 cursor-pointer hover:text-indigo-600 transition">
+                                <i data-lucide="paperclip" class="h-3.5 w-3.5"></i>
+                                <span class="font-semibold">Attach files...</span>
+                                <input type="file" id="inbox-reply-attachments" multiple class="hidden" onchange="handleReplyAttachmentChange(this)" accept=".pdf,.jpg,.jpeg,.png,.webp,.mp3,.mp4,.m4a">
+                            </label>
+                            <span id="inbox-reply-attachments-count" class="font-bold text-slate-400">No files attached</span>
+                        </div>
+                        <div id="inbox-reply-attachments-list" class="flex flex-wrap gap-1.5"></div>
+                    </div>
+
+                    <div class="flex justify-end space-x-3 pt-2">
                         <button onclick="dispatchSmtpReply(${email.id}, this)" class="px-4 py-2 bg-teal-400 hover:bg-teal-300 text-slate-950 rounded-lg font-bold transition flex items-center space-x-1.5 shadow-lg shadow-teal-500/10">
                             <i data-lucide="send" class="h-3.5 w-3.5"></i>
                             <span>Send Reply Now</span>
@@ -1403,6 +1446,20 @@ async function selectInboxEmail(emailId) {
                 </div>
             </div>
         `;
+        if (typeof refreshUnreadBadgeCount === 'function') {
+            refreshUnreadBadgeCount();
+        }
+        if (email.body_html && email.body_html.trim() !== '') {
+            setTimeout(() => {
+                const iframe = document.getElementById('inbox-email-body-iframe');
+                if (iframe) {
+                    const doc = iframe.contentDocument || iframe.contentWindow.document;
+                    doc.open();
+                    doc.write(email.body_html);
+                    doc.close();
+                }
+            }, 50);
+        }
         lucide.createIcons();
     } catch (err) {
         showNotification('error', 'Error rendering details: ' + err.message);
@@ -1411,7 +1468,14 @@ async function selectInboxEmail(emailId) {
 
 async function generateToneDraft(emailId, tone) {
     const text = document.getElementById('inbox-reply-textarea');
-    text.value = 'Generating new draft... Please hold.';
+    const container = document.getElementById('ai-reply-generation-container');
+    if (text) {
+        text.value = 'Generating new draft... Please hold.';
+        text.classList.remove('hidden');
+    }
+    if (container) {
+        container.classList.add('hidden');
+    }
     try {
         const res = await apiCall('crm/email_intelligence/reply.php', 'POST', { email_id: emailId, tone });
         if (res.status === 'success') {
@@ -1431,17 +1495,38 @@ async function dispatchSmtpReply(emailId, btn) {
     
     const replyBody = document.getElementById('inbox-reply-textarea').value;
     
+    // Prepare FormData to support file uploads
+    const formData = new FormData();
+    formData.append('email_id', emailId);
+    formData.append('reply_body', replyBody);
+    formData.append('subject', 'Re: Inquiry');
+    
+    // Append all selected files
+    selectedReplyAttachments.forEach(file => {
+        formData.append('attachments[]', file);
+    });
+    
     try {
-        const data = await apiCall('crm/email_intelligence/reply.php?action=send', 'POST', {
-            email_id: emailId,
-            reply_body: replyBody,
-            subject: 'Re: Inquiry'
+        const token = getAuthToken();
+        const headers = {};
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const response = await fetch(`${API_BASE_URL}/crm/email_intelligence/reply.php?action=send`, {
+            method: 'POST',
+            headers: headers,
+            body: formData
         });
-        if (data.status === 'success') {
+        
+        const res = await response.json();
+        
+        if (res.status === 'success') {
             showNotification('success', 'Reply sent successfully!');
+            selectedReplyAttachments = []; // reset attachments array
             navigateTo('inbox');
         } else {
-            showNotification('error', data.message);
+            showNotification('error', res.message);
         }
     } catch (err) {
         showNotification('error', 'Transmission failed: ' + err.message);
@@ -1927,6 +2012,86 @@ async function triggerManualEmailSync(btn) {
         btn.disabled = false;
         btn.innerHTML = origText;
         lucide.createIcons();
+    }
+}
+
+// Global state for reply attachments
+let selectedReplyAttachments = [];
+
+function handleReplyAttachmentChange(input) {
+    const list = document.getElementById('inbox-reply-attachments-list');
+    const countEl = document.getElementById('inbox-reply-attachments-count');
+    if (!list || !countEl) return;
+    
+    if (input.files) {
+        for (let i = 0; i < input.files.length; i++) {
+            selectedReplyAttachments.push(input.files[i]);
+        }
+    }
+    
+    list.innerHTML = selectedReplyAttachments.map((f, idx) => `
+        <span class="inline-flex items-center space-x-1 px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-700 text-[10px]">
+            <span class="truncate max-w-[120px] font-semibold">${f.name}</span>
+            <button type="button" onclick="removeReplyAttachment(${idx})" class="text-slate-400 hover:text-red-500 font-bold ml-1">&times;</button>
+        </span>
+    `).join('');
+    
+    countEl.textContent = selectedReplyAttachments.length > 0 
+        ? `${selectedReplyAttachments.length} file(s) attached` 
+        : 'No files attached';
+}
+
+function removeReplyAttachment(index) {
+    selectedReplyAttachments.splice(index, 1);
+    handleReplyAttachmentChange({ files: [] });
+}
+
+async function unblockEmailSender(emailId) {
+    if (!confirm('Are you sure you want to unblock this sender and restore their emails?')) return;
+    try {
+        const res = await apiCall('crm/email_intelligence/spam_rules.php?action=unblock', 'POST', {
+            email_id: emailId
+        });
+        showNotification('success', res.message);
+        if (typeof refreshUnreadBadgeCount === 'function') {
+            refreshUnreadBadgeCount();
+        }
+        navigateTo('inbox');
+    } catch (err) {
+        showNotification('error', err.message);
+    }
+}
+
+async function generateReplyOnDemand(emailId) {
+    const tone = document.getElementById('inbox-reply-tone')?.value || 'Professional';
+    const container = document.getElementById('ai-reply-generation-container');
+    const textarea = document.getElementById('inbox-reply-textarea');
+    if (!container || !textarea) return;
+    
+    const origHTML = container.innerHTML;
+    container.innerHTML = `
+        <div class="flex items-center space-x-2 py-4">
+            <div class="loader-spinner !w-4 !h-4 !border-2"></div>
+            <span class="text-[10px] text-slate-500 font-semibold">AI is drafting your reply...</span>
+        </div>
+    `;
+    
+    try {
+        const res = await apiCall('crm/email_intelligence/emails.php?action=generate_reply', 'POST', {
+            email_id: emailId,
+            tone: tone
+        });
+        if (res.status === 'success' && res.reply) {
+            textarea.value = res.reply;
+            container.classList.add('hidden');
+            textarea.classList.remove('hidden');
+        } else {
+            showNotification('error', res.message);
+            container.innerHTML = origHTML;
+        }
+    } catch (err) {
+        showNotification('error', err.message);
+        container.innerHTML = origHTML;
     }
 }
 

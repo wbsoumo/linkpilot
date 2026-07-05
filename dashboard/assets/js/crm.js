@@ -4294,8 +4294,8 @@ function renderVisualCanvas(container) {
     // Build Left Sidebar groups
     const categories = ['all', 'Email', 'AI', 'CRM', 'Conditions', 'Communication', 'Delay', 'Utility'];
     const tabHeaders = categories.map(cat => {
-        const activeClass = window.wfState.activeCategoryFilter === cat ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:bg-slate-800';
-        return `<button onclick="filterBuilderNodes('${cat}')" class="px-2.5 py-1 rounded-md transition text-[10px] capitalize whitespace-nowrap">${cat}</button>`;
+        const activeClass = window.wfState.activeCategoryFilter === cat ? 'bg-indigo-600 text-white font-bold' : 'text-slate-500 hover:bg-slate-100';
+        return `<button onclick="filterBuilderNodes('${cat}')" class="px-2.5 py-1 rounded-md transition text-[10px] capitalize whitespace-nowrap ${activeClass}">${cat}</button>`;
     }).join('');
 
     // Left Sidebar node cards list
@@ -4306,63 +4306,63 @@ function renderVisualCanvas(container) {
     });
 
     const sidebarCards = filteredNodes.map(n => `
-        <div draggable="true" ondragstart="handleNodeDragStart(event, '${n.type}')" class="p-3 bg-slate-900 border border-slate-850 hover:border-indigo-500 rounded-xl space-y-1 transition cursor-grab select-none text-left">
+        <div draggable="true" ondragstart="handleNodeDragStart(event, '${n.type}')" class="p-3 bg-white border border-slate-200 hover:border-indigo-500 rounded-xl space-y-1 transition cursor-grab select-none text-left hover:shadow-md">
             <div class="flex items-center space-x-2">
-                <div class="h-6 w-6 bg-slate-800 rounded-md flex items-center justify-center text-indigo-400">
+                <div class="h-6 w-6 bg-slate-100 rounded-md flex items-center justify-center text-indigo-600 shrink-0">
                     <i data-lucide="${n.icon}" class="h-3.5 w-3.5"></i>
                 </div>
                 <div>
-                    <h5 class="font-bold text-white text-[11px] leading-tight">${n.name}</h5>
-                    <p class="text-[9px] text-slate-500">${n.category}</p>
+                    <h5 class="font-bold text-slate-800 text-[11px] leading-tight">${n.name}</h5>
+                    <p class="text-[9px] text-slate-400">${n.category}</p>
                 </div>
             </div>
-            <p class="text-[9px] text-slate-400 line-clamp-1 leading-normal">${n.desc}</p>
+            <p class="text-[9px] text-slate-550 line-clamp-1 leading-normal">${n.desc}</p>
         </div>
     `).join('');
 
     container.innerHTML = `
         <div id="workflow-builder-layout" class="animate-fade-in">
             <!-- Left Sidebar -->
-            <div class="w-72 bg-slate-950/90 border-r border-slate-850 flex flex-col h-full overflow-hidden select-none">
-                <div class="p-4 border-b border-slate-850 space-y-3">
+            <div class="w-72 bg-white border-r border-slate-200 flex flex-col h-full overflow-hidden select-none">
+                <div class="p-4 border-b border-slate-200 space-y-3">
                     <div class="flex items-center space-x-2">
-                        <button onclick="backToWorkflowList()" class="h-7 w-7 rounded-lg hover:bg-slate-800 text-slate-400 flex items-center justify-center transition" title="Back to List">
+                        <button onclick="backToWorkflowList()" class="h-7 w-7 rounded-lg hover:bg-slate-100 text-slate-500 flex items-center justify-center transition" title="Back to List">
                             <i data-lucide="arrow-left" class="h-4.5 w-4.5"></i>
                         </button>
-                        <input type="text" id="workflow-rename-input" onblur="renameWorkflow(this.value)" value="${wf.name}" class="bg-transparent text-white font-bold text-sm focus:outline-none border-b border-transparent focus:border-indigo-500 w-full">
+                        <input type="text" id="workflow-rename-input" onblur="renameWorkflow(this.value)" value="${wf.name}" class="bg-transparent text-slate-800 font-bold text-sm focus:outline-none border-b border-slate-200 focus:border-indigo-500 w-full px-1 py-0.5">
                     </div>
                     
                     <div class="relative text-left">
-                        <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-slate-500 pointer-events-none">
+                        <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-slate-400 pointer-events-none">
                             <i data-lucide="search" class="h-3.5 w-3.5"></i>
                         </span>
-                        <input type="text" id="builder-node-search" oninput="searchBuilderNodes(this.value)" value="${window.wfState.searchTerm}" placeholder="Search nodes..." class="w-full bg-slate-900 border border-slate-850 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                        <input type="text" id="builder-node-search" oninput="searchBuilderNodes(this.value)" value="${window.wfState.searchTerm}" placeholder="Search nodes..." class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-indigo-500">
                     </div>
                 </div>
 
                 <!-- Tabs header -->
-                <div class="px-4 py-2 border-b border-slate-850 flex items-center space-x-1.5 overflow-x-auto scrollbar-none">
+                <div class="px-4 py-2 border-b border-slate-200 flex items-center space-x-1.5 overflow-x-auto scrollbar-none bg-slate-50/50">
                     ${tabHeaders}
                 </div>
 
                 <!-- Cards container -->
-                <div class="flex-grow overflow-y-auto p-4 space-y-3">
-                    ${sidebarCards || `<div class="text-center py-8 text-slate-500 italic text-[11px]">No nodes found.</div>`}
+                <div class="flex-grow overflow-y-auto p-4 space-y-3 bg-slate-50/30">
+                    ${sidebarCards || `<div class="text-center py-8 text-slate-400 italic text-[11px]">No nodes found.</div>`}
                 </div>
             </div>
 
             <!-- Center Canvas -->
-            <div class="flex-grow flex flex-col h-full relative overflow-hidden" id="wf-canvas-container" onwheel="handleCanvasScroll(event)" onmousedown="handleCanvasMouseDown(event)" ondragover="event.preventDefault()" ondrop="handleNodeDrop(event)">
+            <div class="flex-grow flex flex-col h-full relative overflow-hidden wf-canvas-container" id="wf-canvas-container" onwheel="handleCanvasScroll(event)" onmousedown="handleCanvasMouseDown(event)" ondragover="event.preventDefault()" ondrop="handleNodeDrop(event)">
                 <!-- Canvas Top Bar -->
-                <div class="absolute top-4 left-4 z-20 bg-slate-950/80 backdrop-blur border border-slate-850 rounded-xl p-1.5 flex items-center space-x-2 text-[10px] shadow-lg">
-                    <button onclick="undoWorkflowChange()" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Undo"><i data-lucide="undo" class="h-4 w-4"></i></button>
-                    <button onclick="redoWorkflowChange()" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Redo"><i data-lucide="redo" class="h-4 w-4"></i></button>
-                    <div class="h-4 w-px bg-slate-800"></div>
-                    <button onclick="zoomWorkflow(-0.1)" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Zoom Out"><i data-lucide="zoom-out" class="h-4 w-4"></i></button>
-                    <span class="text-white font-bold px-1 select-none">${Math.round(window.wfState.zoom * 100)}%</span>
-                    <button onclick="zoomWorkflow(0.1)" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Zoom In"><i data-lucide="zoom-in" class="h-4 w-4"></i></button>
-                    <div class="h-4 w-px bg-slate-800"></div>
-                    <button onclick="autoArrangeCanvas()" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition flex items-center space-x-1" title="Auto Arrange">
+                <div class="absolute top-4 left-4 z-20 bg-white/95 border border-slate-200 rounded-xl p-1.5 flex items-center space-x-2 text-[10px] shadow-md">
+                    <button onclick="undoWorkflowChange()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 hover:text-slate-800 transition" title="Undo"><i data-lucide="undo" class="h-4 w-4"></i></button>
+                    <button onclick="redoWorkflowChange()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 hover:text-slate-800 transition" title="Redo"><i data-lucide="redo" class="h-4 w-4"></i></button>
+                    <div class="h-4 w-px bg-slate-200"></div>
+                    <button onclick="zoomWorkflow(-0.1)" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 hover:text-slate-800 transition" title="Zoom Out"><i data-lucide="zoom-out" class="h-4 w-4"></i></button>
+                    <span class="text-slate-700 font-bold px-1 select-none">${Math.round(window.wfState.zoom * 100)}%</span>
+                    <button onclick="zoomWorkflow(0.1)" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 hover:text-slate-800 transition" title="Zoom In"><i data-lucide="zoom-in" class="h-4 w-4"></i></button>
+                    <div class="h-4 w-px bg-slate-200"></div>
+                    <button onclick="autoArrangeCanvas()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 hover:text-slate-800 transition flex items-center space-x-1" title="Auto Arrange">
                         <i data-lucide="git-commit" class="h-4 w-4"></i>
                         <span>Auto Arrange</span>
                     </button>
@@ -4370,16 +4370,16 @@ function renderVisualCanvas(container) {
 
                 <!-- Canvas Top Right Bar (Actions) -->
                 <div class="absolute top-4 right-4 z-20 flex items-center space-x-2 text-[10px]">
-                    <button onclick="runWorkflowSimulation(this)" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition flex items-center space-x-1 shadow-lg">
+                    <button onclick="runWorkflowSimulation(this)" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition flex items-center space-x-1 shadow-md">
                         <i data-lucide="play" class="h-3.5 w-3.5"></i>
                         <span>Run Test</span>
                     </button>
-                    <button onclick="saveActiveWorkflow()" class="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-white rounded-lg font-bold transition flex items-center space-x-1 shadow-lg">
-                        <i data-lucide="save" class="h-3.5 w-3.5 text-indigo-400"></i>
+                    <button onclick="saveActiveWorkflow()" class="px-3.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-250 text-slate-700 rounded-lg font-bold transition flex items-center space-x-1 shadow-md">
+                        <i data-lucide="save" class="h-3.5 w-3.5 text-indigo-650"></i>
                         <span>Save</span>
                     </button>
-                    <div class="h-6 w-px bg-slate-800"></div>
-                    <button onclick="toggleWorkflowActiveState()" class="px-3 py-1.5 bg-emerald-650 hover:bg-emerald-600 text-white rounded-lg font-bold transition shadow-lg">
+                    <div class="h-6 w-px bg-slate-200"></div>
+                    <button onclick="toggleWorkflowActiveState()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold transition shadow-md">
                         ${wf.is_active ? 'Deactivate' : 'Activate'}
                     </button>
                 </div>
@@ -4407,23 +4407,23 @@ function renderVisualCanvas(container) {
                 </div>
 
                 <!-- Mini Map (Bottom-Left Canvas HUD overlay) -->
-                <div class="absolute bottom-4 left-4 z-20 w-32 h-24 bg-slate-950/95 border border-slate-850 rounded-lg p-1.5 flex flex-col justify-between shadow-lg text-[9px] select-none pointer-events-none">
-                    <span class="text-slate-400 uppercase font-bold tracking-wider">Mini Map</span>
-                    <div class="flex-grow relative border border-slate-900 bg-slate-950/60 overflow-hidden my-1" id="minimap-viewport">
+                <div class="absolute bottom-4 left-4 z-20 w-32 h-24 bg-white/95 border border-slate-200 rounded-lg p-1.5 flex flex-col justify-between shadow-md text-[9px] select-none pointer-events-none">
+                    <span class="text-slate-500 uppercase font-bold tracking-wider">Mini Map</span>
+                    <div class="flex-grow relative border border-slate-100 bg-slate-50 overflow-hidden my-1" id="minimap-viewport">
                         <!-- Mini nodes rendering dynamically -->
                     </div>
                 </div>
 
                 <!-- Bottom Status Bar / Tabs -->
-                <div class="absolute bottom-4 right-4 z-20 flex items-center bg-slate-950/90 border border-slate-850 rounded-xl p-1 shadow-lg text-[10px]">
-                    <button onclick="openJSONConfigPanel()" class="px-3 py-1 text-slate-400 hover:text-white rounded-lg transition font-bold">Import/Export JSON</button>
-                    <div class="h-4 w-px bg-slate-800 mx-1"></div>
-                    <button onclick="openLogsHistoryDrawer()" class="px-3 py-1 text-indigo-400 hover:text-indigo-300 rounded-lg transition font-bold">Logs Drawer</button>
+                <div class="absolute bottom-4 right-4 z-20 flex items-center bg-white/95 border border-slate-200 rounded-xl p-1 shadow-md text-[10px]">
+                    <button onclick="openJSONConfigPanel()" class="px-3 py-1 text-slate-550 hover:text-slate-800 rounded-lg transition font-bold">Import/Export JSON</button>
+                    <div class="h-4 w-px bg-slate-200 mx-1"></div>
+                    <button onclick="openLogsHistoryDrawer()" class="px-3 py-1 text-indigo-650 hover:text-indigo-800 rounded-lg transition font-bold font-bold">Logs Drawer</button>
                 </div>
             </div>
 
             <!-- Right Configuration Panel -->
-            <div class="w-80 bg-slate-950/90 border-l border-slate-850 flex flex-col h-full overflow-hidden text-left" id="wf-config-sidebar">
+            <div class="w-80 bg-white border-l border-slate-200 flex flex-col h-full overflow-hidden text-left" id="wf-config-sidebar">
                 ${renderConfigSidebarHTML()}
             </div>
         </div>
@@ -4469,14 +4469,15 @@ function injectVisualBuilderStyles() {
             display: flex;
             height: calc(100vh - 100px);
             overflow: hidden;
-            background-color: #0b0f19;
+            background-color: #f8fafc;
+            color: #0f172a;
         }
         .wf-canvas-container {
             flex-grow: 1;
             position: relative;
             overflow: hidden;
-            background-color: #080b12;
-            background-image: radial-gradient(#1c2333 1px, transparent 1px);
+            background-color: #f8fafc;
+            background-image: radial-gradient(#cbd5e1 1.2px, transparent 1.2px);
             background-size: 20px 20px;
         }
         .wf-canvas {
@@ -4487,12 +4488,12 @@ function injectVisualBuilderStyles() {
         }
         .wf-node {
             position: absolute;
-            width: 190px;
-            background: #0f1626;
-            border: 1px solid #1e293b;
+            width: 200px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
             border-radius: 12px;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
-            padding: 10px;
+            box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 12px;
             cursor: grab;
             transition: box-shadow 0.15s, border-color 0.15s;
         }
@@ -4501,30 +4502,40 @@ function injectVisualBuilderStyles() {
         }
         .wf-node.selected {
             border-color: #6366f1;
-            box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
         .wf-node.executing {
             border-color: #a855f7;
-            box-shadow: 0 0 20px rgba(168, 85, 247, 0.7);
-            animation: pulse-border 1.5s infinite alternate;
+            box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.3), 0 0 15px rgba(168, 85, 247, 0.4);
+            animation: nodePulse 1.2s infinite alternate;
         }
-        @keyframes pulse-border {
-            from { border-color: #a855f7; }
-            to { border-color: #ec4899; }
+        @keyframes nodePulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.02); }
         }
+        /* Left accent borders based on category */
+        .wf-node[data-category="Email"] { border-left: 4px solid #10b981; }
+        .wf-node[data-category="AI"] { border-left: 4px solid #8b5cf6; }
+        .wf-node[data-category="CRM"] { border-left: 4px solid #3b82f6; }
+        .wf-node[data-category="Conditions"] { border-left: 4px solid #f59e0b; }
+        .wf-node[data-category="Communication"] { border-left: 4px solid #ec4899; }
+        .wf-node[data-category="Delay"] { border-left: 4px solid #64748b; }
+        .wf-node[data-category="Utility"] { border-left: 4px solid #06b6d4; }
+
         .wf-node-handle {
             position: absolute;
             width: 8px;
             height: 8px;
             background: #6366f1;
-            border: 2px solid #0f1626;
+            border: 2px solid #ffffff;
             border-radius: 50%;
             cursor: crosshair;
             z-index: 10;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
         }
         .wf-node-handle:hover {
             transform: scale(1.3);
-            background: #818cf8;
+            background: #4f46e5;
         }
         .wf-node-handle.input {
             left: -5px;
@@ -4557,12 +4568,12 @@ function injectVisualBuilderStyles() {
         }
         .connection-path {
             fill: none;
-            stroke: #4f46e5;
-            stroke-width: 2.2;
+            stroke: #94a3b8;
+            stroke-width: 2.5;
             stroke-linecap: round;
         }
         .connection-path.pulsing {
-            stroke: url(#conn-grad);
+            stroke: #6366f1;
             stroke-dasharray: 6 4;
             animation: dash 1s linear infinite;
         }
@@ -4573,9 +4584,9 @@ function injectVisualBuilderStyles() {
         }
         #custom-node-context-menu {
             position: fixed;
-            background: #0f1626;
-            border: 1px solid #1e293b;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
             border-radius: 8px;
             padding: 4px 0;
             z-index: 1000;
@@ -4586,12 +4597,12 @@ function injectVisualBuilderStyles() {
             text-align: left;
             padding: 6px 12px;
             font-size: 10px;
-            color: #cbd5e1;
+            color: #334155;
             transition: background 0.15s;
         }
         #custom-node-context-menu button:hover {
-            background: #1e293b;
-            color: #fff;
+            background: #f1f5f9;
+            color: #0f172a;
         }
     `;
     document.head.appendChild(style);
@@ -6495,11 +6506,11 @@ function renderCanvasNodesHTML() {
         ` : '';
 
         return `
-            <div id="${n.id}" class="wf-node ${isSelected} ${isExecuting}" style="left: ${n.x}px; top: ${n.y}px;" 
+            <div id="${n.id}" class="wf-node ${isSelected} ${isExecuting}" data-category="${n.category}" style="left: ${n.x}px; top: ${n.y}px;" 
                  onmousedown="handleNodeMouseDown(event, '${n.id}')" oncontextmenu="handleNodeContextMenu(event, '${n.id}')">
                 ${badge}
                 <div class="flex items-center space-x-2">
-                    <div class="wf-node-icon bg-slate-800 text-indigo-400 p-1 flex items-center justify-center shrink-0">
+                    <div class="wf-node-icon bg-slate-100 text-indigo-600 p-1 rounded-md flex items-center justify-center shrink-0">
                         <i data-lucide="${n.icon || 'circle'}" class="h-3.5 w-3.5"></i>
                     </div>
                     <div class="text-left overflow-hidden w-full select-none">
@@ -6520,41 +6531,41 @@ function renderConfigSidebarHTML() {
     
     if (!selectedNode) {
         return `
-            <div class="p-4 border-b border-slate-850 bg-slate-900/50">
-                <h4 class="text-xs font-bold text-white uppercase tracking-wider">Workflow Configuration</h4>
+            <div class="p-4 border-b border-slate-200 bg-slate-50/50">
+                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Workflow Configuration</h4>
             </div>
-            <div class="p-4 space-y-4 flex-grow overflow-y-auto text-xs text-slate-400 leading-relaxed">
+            <div class="p-4 space-y-4 flex-grow overflow-y-auto text-xs text-slate-600 leading-relaxed bg-white">
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Workflow Name</label>
-                    <input type="text" oninput="renameWorkflow(this.value)" value="${wf.name}" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+                    <input type="text" oninput="renameWorkflow(this.value)" value="${wf.name}" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-indigo-500">
                 </div>
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Description</label>
-                    <textarea rows="3" placeholder="Describe what this automation does..." class="w-full bg-slate-900 border border-slate-850 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500 font-sans">Visual builder workflow graph automation model.</textarea>
+                    <textarea rows="3" placeholder="Describe what this automation does..." class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-indigo-500 font-sans">Visual builder workflow graph automation model.</textarea>
                 </div>
-                <div class="border-t border-slate-850 pt-3 space-y-2">
+                <div class="border-t border-slate-200 pt-3 space-y-2">
                     <div class="flex justify-between items-center text-[10px]">
                         <span class="text-slate-500 font-bold uppercase">Trigger Category</span>
-                        <span class="text-white font-semibold">Visual Canvas</span>
+                        <span class="text-slate-800 font-semibold">Visual Canvas</span>
                     </div>
                     <div class="flex justify-between items-center text-[10px]">
                         <span class="text-slate-500 font-bold uppercase">Total Nodes</span>
-                        <span class="text-indigo-400 font-bold">${wf.nodes.length}</span>
+                        <span class="text-indigo-600 font-bold">${wf.nodes.length}</span>
                     </div>
                     <div class="flex justify-between items-center text-[10px]">
                         <span class="text-slate-500 font-bold uppercase">Connections</span>
-                        <span class="text-indigo-400 font-bold">${wf.connections.length}</span>
+                        <span class="text-indigo-600 font-bold">${wf.connections.length}</span>
                     </div>
                     <div class="flex justify-between items-center text-[10px]">
                         <span class="text-slate-500 font-bold uppercase">Status</span>
-                        <span class="px-2 py-0.5 rounded text-[8px] font-bold ${wf.is_active ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-500'}">
+                        <span class="px-2 py-0.5 rounded text-[8px] font-bold ${wf.is_active ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-105 text-slate-500'}">
                             ${wf.is_active ? 'Active' : 'Deactive'}
                         </span>
                     </div>
                 </div>
                 
                 <div class="pt-6">
-                    <button onclick="deleteActiveWorkflow()" class="w-full py-2 bg-rose-950/20 hover:bg-rose-950/40 text-rose-400 hover:text-rose-350 border border-rose-900/40 rounded-xl font-bold transition text-[10px]">
+                    <button onclick="deleteActiveWorkflow()" class="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 rounded-xl font-bold transition text-[10px]">
                         Delete Entire Workflow
                     </button>
                 </div>
@@ -6570,22 +6581,22 @@ function renderConfigSidebarHTML() {
             <div class="space-y-3">
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-slate-500 uppercase">Email Account</label>
-                    <select onchange="updateNodeConfig('account', this.value)" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2 py-1.5 text-white text-[11px] focus:outline-none">
+                    <select onchange="updateNodeConfig('account', this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
                         <option value="all" ${config.account === 'all' ? 'selected' : ''}>All configured accounts</option>
                         <option value="primary" ${config.account === 'primary' ? 'selected' : ''}>Primary SMTP Account</option>
                     </select>
                 </div>
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-slate-500 uppercase">Inbox Folder</label>
-                    <input type="text" oninput="updateNodeConfig('folder', this.value)" value="${config.folder || 'Inbox'}" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2.5 py-1.5 text-white text-[11px] focus:outline-none">
+                    <input type="text" oninput="updateNodeConfig('folder', this.value)" value="${config.folder || 'Inbox'}" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
                 </div>
                 <div class="flex items-center justify-between py-1">
                     <label class="text-[9px] font-bold text-slate-500 uppercase">Only Unread Emails</label>
-                    <input type="checkbox" onchange="updateNodeConfig('unreadOnly', this.checked)" ${config.unreadOnly ? 'checked' : ''} class="h-3.5 w-3.5 border-slate-800 bg-slate-900 text-indigo-650 rounded cursor-pointer">
+                    <input type="checkbox" onchange="updateNodeConfig('unreadOnly', this.checked)" ${config.unreadOnly ? 'checked' : ''} class="h-3.5 w-3.5 border-slate-250 bg-white text-indigo-650 rounded cursor-pointer">
                 </div>
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-slate-500 uppercase">Subject Filter (Contains)</label>
-                    <input type="text" placeholder="e.g. Quote, Invoice" oninput="updateNodeConfig('subjectFilter', this.value)" value="${config.subjectFilter || ''}" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2.5 py-1.5 text-white text-[11px] focus:outline-none">
+                    <input type="text" placeholder="e.g. Quote, Invoice" oninput="updateNodeConfig('subjectFilter', this.value)" value="${config.subjectFilter || ''}" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
                 </div>
             </div>
         `;
@@ -6594,18 +6605,18 @@ function renderConfigSidebarHTML() {
             <div class="space-y-3">
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-slate-500 uppercase">AI Provider</label>
-                    <select onchange="updateNodeConfig('provider', this.value)" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2 py-1.5 text-white text-[11px] focus:outline-none">
+                    <select onchange="updateNodeConfig('provider', this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
                         <option value="Gemini" ${config.provider === 'Gemini' ? 'selected' : ''}>Google Gemini Pro</option>
                         <option value="OpenRouter" ${config.provider === 'OpenRouter' ? 'selected' : ''}>OpenRouter Auto</option>
                     </select>
                 </div>
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-slate-500 uppercase">Temperature</label>
-                    <input type="number" step="0.1" min="0" max="1" oninput="updateNodeConfig('temperature', parseFloat(this.value))" value="${config.temperature !== undefined ? config.temperature : 0.2}" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2.5 py-1.5 text-white text-[11px] focus:outline-none">
+                    <input type="number" step="0.1" min="0" max="1" oninput="updateNodeConfig('temperature', parseFloat(this.value))" value="${config.temperature !== undefined ? config.temperature : 0.2}" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
                 </div>
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-slate-500 uppercase">Confidence Threshold</label>
-                    <input type="number" step="5" min="0" max="100" oninput="updateNodeConfig('confidence', parseInt(this.value))" value="${config.confidence || 75}" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2.5 py-1.5 text-white text-[11px] focus:outline-none">
+                    <input type="number" step="5" min="0" max="100" oninput="updateNodeConfig('confidence', parseInt(this.value))" value="${config.confidence || 75}" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
                 </div>
             </div>
         `;
@@ -6614,7 +6625,7 @@ function renderConfigSidebarHTML() {
             <div class="space-y-3">
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-slate-500 uppercase">Pipeline Status</label>
-                    <select onchange="updateNodeConfig('status', this.value)" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2 py-1.5 text-white text-[11px] focus:outline-none">
+                    <select onchange="updateNodeConfig('status', this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
                         <option value="New" ${config.status === 'New' ? 'selected' : ''}>New Lead</option>
                         <option value="Contacted" ${config.status === 'Contacted' ? 'selected' : ''}>Contacted</option>
                         <option value="Qualified" ${config.status === 'Qualified' ? 'selected' : ''}>Qualified</option>
@@ -6622,11 +6633,11 @@ function renderConfigSidebarHTML() {
                 </div>
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-slate-500 uppercase">Lead Source</label>
-                    <input type="text" oninput="updateNodeConfig('source', this.value)" value="${config.source || 'Email AI'}" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2.5 py-1.5 text-white text-[11px] focus:outline-none">
+                    <input type="text" oninput="updateNodeConfig('source', this.value)" value="${config.source || 'Email AI'}" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
                 </div>
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-slate-500 uppercase">Tags (Comma separated)</label>
-                    <input type="text" oninput="updateNodeConfig('tags', this.value)" value="${config.tags || 'AI qualified'}" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2.5 py-1.5 text-white text-[11px] focus:outline-none">
+                    <input type="text" oninput="updateNodeConfig('tags', this.value)" value="${config.tags || 'AI qualified'}" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
                 </div>
             </div>
         `;
@@ -6635,11 +6646,11 @@ function renderConfigSidebarHTML() {
             <div class="space-y-3">
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-slate-500 uppercase">Subject</label>
-                    <input type="text" oninput="updateNodeConfig('subject', this.value)" value="${config.subject || ''}" placeholder="Subject line" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2.5 py-1.5 text-white text-[11px] focus:outline-none">
+                    <input type="text" oninput="updateNodeConfig('subject', this.value)" value="${config.subject || ''}" placeholder="Subject line" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
                 </div>
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-slate-500 uppercase">Email Body</label>
-                    <textarea rows="4" placeholder="Hello, thank you for writing..." oninput="updateNodeConfig('body', this.value)" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2.5 py-1.5 text-white text-[11px] focus:outline-none font-sans">${config.body || ''}</textarea>
+                    <textarea rows="4" placeholder="Hello, thank you for writing..." oninput="updateNodeConfig('body', this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500 font-sans">${config.body || ''}</textarea>
                 </div>
             </div>
         `;
@@ -6648,7 +6659,7 @@ function renderConfigSidebarHTML() {
             <div class="space-y-3">
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-slate-500 uppercase">Threshold Value</label>
-                    <input type="number" oninput="updateNodeConfig('threshold', parseInt(this.value))" value="${config.threshold !== undefined ? config.threshold : 70}" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2.5 py-1.5 text-white text-[11px] focus:outline-none">
+                    <input type="number" oninput="updateNodeConfig('threshold', parseInt(this.value))" value="${config.threshold !== undefined ? config.threshold : 70}" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
                 </div>
                 <p class="text-[9px] text-slate-500 leading-normal italic">YES output branches if score exceeds threshold. NO output branches otherwise.</p>
             </div>
@@ -6658,7 +6669,7 @@ function renderConfigSidebarHTML() {
             <div class="space-y-3">
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-slate-500 uppercase">Node Title</label>
-                    <input type="text" oninput="updateNodeName(this.value)" value="${selectedNode.name}" class="w-full bg-slate-900 border border-slate-850 rounded-lg px-2.5 py-1.5 text-white text-[11px] focus:outline-none">
+                    <input type="text" oninput="updateNodeName(this.value)" value="${selectedNode.name}" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[11px] focus:outline-none focus:border-indigo-500">
                 </div>
                 <p class="text-[9px] text-slate-500 italic">No extra custom properties for this node type.</p>
             </div>
@@ -6666,30 +6677,30 @@ function renderConfigSidebarHTML() {
     }
 
     return `
-        <div class="p-4 border-b border-slate-850 bg-slate-900/50 flex items-center justify-between">
-            <h4 class="text-xs font-bold text-white uppercase tracking-wider">Node Configuration</h4>
-            <button onclick="deselectNode()" class="h-6 w-6 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+        <div class="p-4 border-b border-slate-200 bg-slate-50/50 flex items-center justify-between">
+            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Node Configuration</h4>
+            <button onclick="deselectNode()" class="h-6 w-6 rounded-full hover:bg-slate-100 text-slate-500 flex items-center justify-center transition">
                 <i data-lucide="x" class="h-4 w-4"></i>
             </button>
         </div>
-        <div class="p-4 space-y-4 flex-grow overflow-y-auto text-xs text-slate-400">
-            <div class="flex items-center space-x-2 pb-2 border-b border-slate-850">
-                <div class="h-7 w-7 bg-slate-900 rounded-md flex items-center justify-center text-indigo-400">
+        <div class="p-4 space-y-4 flex-grow overflow-y-auto text-xs text-slate-600 bg-white">
+            <div class="flex items-center space-x-2 pb-2 border-b border-slate-200">
+                <div class="h-7 w-7 bg-slate-100 rounded-md flex items-center justify-center text-indigo-650 shrink-0">
                     <i data-lucide="${selectedNode.icon}" class="h-4 w-4"></i>
                 </div>
                 <div>
-                    <h5 class="font-bold text-white text-[11px] leading-tight truncate">${selectedNode.name}</h5>
-                    <p class="text-[8px] text-slate-500 uppercase font-semibold">${selectedNode.category} Node</p>
+                    <h5 class="font-bold text-slate-800 text-[11px] leading-tight truncate">${selectedNode.name}</h5>
+                    <p class="text-[8px] text-slate-400 uppercase font-semibold">${selectedNode.category} Node</p>
                 </div>
             </div>
             
             ${formsHTML}
 
-            <div class="pt-4 border-t border-slate-850 flex justify-between space-x-2">
-                <button onclick="duplicateSelectedNode()" class="flex-grow py-1.5 bg-slate-900 hover:bg-slate-800 text-white border border-slate-850 rounded-lg font-bold transition text-[10px]">
+            <div class="pt-4 border-t border-slate-200 flex justify-between space-x-2 bg-white">
+                <button onclick="duplicateSelectedNode()" class="flex-grow py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-250 rounded-lg font-bold transition text-[10px]">
                     Duplicate
                 </button>
-                <button onclick="deleteSelectedNode()" class="flex-grow py-1.5 bg-rose-950/20 hover:bg-rose-950/40 text-rose-400 hover:text-rose-350 border border-rose-900/40 rounded-lg font-bold transition text-[10px]">
+                <button onclick="deleteSelectedNode()" class="flex-grow py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 rounded-lg font-bold transition text-[10px]">
                     Delete Node
                 </button>
             </div>

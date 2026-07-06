@@ -18,6 +18,10 @@ if ($method === 'POST' && !empty($action)) {
 
 try {
     if ($method === 'GET') {
+        header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+        header("Cache-Control: post-check=0, pre-check=0", false);
+        header("Pragma: no-cache");
+
         // Retrieve connection status and business details
         $stmtAcc = $db->prepare("SELECT * FROM whatsapp_accounts WHERE user_id = ? ORDER BY id DESC LIMIT 1");
         $stmtAcc->execute([$userId]);

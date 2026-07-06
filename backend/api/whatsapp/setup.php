@@ -211,12 +211,15 @@ try {
         // Encrypt the Access Token
         $encryptedToken = encryptData($accessToken);
         
-        // Check if account row already exists to avoid duplicates
-        $stmtCheck = $db->prepare("SELECT id FROM whatsapp_accounts WHERE user_id = ? LIMIT 1");
+        // Check if account row already exists to avoid duplicates (fetch latest)
+        $stmtCheck = $db->prepare("SELECT id FROM whatsapp_accounts WHERE user_id = ? ORDER BY id DESC LIMIT 1");
         $stmtCheck->execute([$userId]);
         $existingId = $stmtCheck->fetchColumn();
         
         if ($existingId) {
+            // Delete other older duplicate rows to ensure database consistency
+            $db->prepare("DELETE FROM whatsapp_accounts WHERE user_id = ? AND id != ?")->execute([$userId, $existingId]);
+            
             // Update existing connection row
             $stmtUpsert = $db->prepare("
                 UPDATE whatsapp_accounts 

@@ -149,12 +149,15 @@ if (!$user) {
         // Encrypt the Access Token
         $encryptedToken = encryptData($accessToken);
         
-        // Save connection state
-        $stmtCheck = $db->prepare("SELECT id FROM whatsapp_accounts WHERE user_id = ? LIMIT 1");
+        // Save connection state (fetch latest)
+        $stmtCheck = $db->prepare("SELECT id FROM whatsapp_accounts WHERE user_id = ? ORDER BY id DESC LIMIT 1");
         $stmtCheck->execute([$userId]);
         $existingId = $stmtCheck->fetchColumn();
         
         if ($existingId) {
+            // Delete other older duplicate rows to ensure database consistency
+            $db->prepare("DELETE FROM whatsapp_accounts WHERE user_id = ? AND id != ?")->execute([$userId, $existingId]);
+            
             $stmtUpsert = $db->prepare("
                 UPDATE whatsapp_accounts 
                 SET business_name = ?, business_id = ?, waba_id = ?, phone_number_id = ?, display_phone_number = ?, access_token = ?, status = 'connected', quality_rating = ?, messaging_limit = ?

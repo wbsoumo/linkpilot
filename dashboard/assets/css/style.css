@@ -366,7 +366,7 @@ h1, h2, h3, h4, h5 {
     background-color: #ffffff !important;
 }
 
-:not(aside) .border-slate-800, :not(aside) .border-slate-700 {
+:not(aside) .border-slate-850, :not(aside) .border-slate-800, :not(aside) .border-slate-700 {
     border-color: #e2e8f0 !important;
 }
 
@@ -525,7 +525,7 @@ nav.glass-panel .sidebar-nav-link.active * {
     border-color: #e2e8f0 !important;
 }
 
-:not(aside) .bg-slate-950\/40, :not(aside) .bg-slate-950\/60 {
+:not(aside) .bg-slate-950\/45, :not(aside) .bg-slate-950\/50, :not(aside) .bg-slate-950\/55, :not(aside) .bg-slate-950\/40, :not(aside) .bg-slate-950\/60 {
     background-color: #f8fafc !important;
     border-color: #e2e8f0 !important;
 }

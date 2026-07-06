@@ -643,6 +643,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'run') {
     <title>Meta WhatsApp Cloud API Diagnostics</title>
     <!-- Bootstrap 5 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <!-- FontAwesome for icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -660,6 +662,13 @@ if (isset($_GET['action']) && $_GET['action'] === 'run') {
             background-color: #1e293b;
             border: 1px solid #334155;
             border-radius: 12px;
+        }
+        .form-label {
+            color: #94a3b8 !important;
+        }
+        .form-control::placeholder {
+            color: #475569 !important;
+            opacity: 1;
         }
         .card-header {
             background-color: #1e293b;

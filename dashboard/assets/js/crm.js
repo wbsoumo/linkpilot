@@ -2815,11 +2815,7 @@ async function renderContacts(container) {
                                 ${contRows || `<tr><td colspan="6" class="text-center py-10 text-slate-500">No contact profiles found.</td></tr>`}
                             </tbody>
                         </table>
-                    </div>
-                </div>
-            </div>
-        `;
-        lucide.createIcons();
+                      lucide.createIcons();
     } catch (err) {
         showNotification('error', err.message);
     }
@@ -2830,13 +2826,13 @@ async function openInspectContactModal(contactId) {
     if (existing) existing.remove();
 
     let modalHTML = `
-        <div id="crm-contact-inspect-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm animate-fade-in">
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl p-6 text-white text-xs space-y-4 shadow-2xl relative">
-                <button onclick="document.getElementById('crm-contact-inspect-modal').remove()" class="absolute top-4 right-4 h-7 w-7 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+        <div id="crm-contact-inspect-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm animate-fade-in">
+            <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl p-6 text-slate-800 text-xs space-y-4 shadow-2xl relative">
+                <button onclick="document.getElementById('crm-contact-inspect-modal').remove()" class="absolute top-4 right-4 h-7 w-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
                     <i data-lucide="x" class="h-4 w-4"></i>
                 </button>
                 <div class="flex items-center justify-center py-12">
-                    <i data-lucide="loader-2" class="h-8 w-8 animate-spin text-indigo-500"></i>
+                    <i data-lucide="loader-2" class="h-8 w-8 animate-spin text-indigo-600"></i>
                 </div>
             </div>
         </div>
@@ -2865,16 +2861,16 @@ async function openInspectContactModal(contactId) {
         if (!modal) return;
 
         modal.innerHTML = `
-            <div class="bg-slate-900 border border-slate-850 rounded-2xl w-full max-w-3xl text-white text-xs shadow-2xl relative flex flex-col max-h-[85vh]">
-                <div class="p-5 border-b border-slate-800/60 flex justify-between items-start">
+            <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-3xl text-slate-700 text-xs shadow-2xl relative flex flex-col max-h-[85vh]">
+                <div class="p-5 border-b border-slate-100 flex justify-between items-start">
                     <div>
                         <div class="flex items-center space-x-2.5">
-                            <h2 class="text-lg font-bold text-white">${c.name}</h2>
-                            ${c.designation ? `<span class="px-2 py-0.5 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full text-[10px] font-bold">${c.designation}</span>` : ''}
+                            <h2 class="text-lg font-bold text-slate-800">${c.name}</h2>
+                            ${c.designation ? `<span class="px-2 py-0.5 bg-indigo-50 text-indigo-650 border border-indigo-100 rounded-full text-[10px] font-bold">${c.designation}</span>` : ''}
                         </div>
-                        <p class="text-slate-400 text-[11px] mt-0.5">${c.company_name || 'No Associated Company'} • ${c.department || 'No Department'}</p>
+                        <p class="text-slate-550 text-[11px] mt-0.5">${c.company_name || 'No Associated Company'} • ${c.department || 'No Department'}</p>
                     </div>
-                    <button onclick="document.getElementById('crm-contact-inspect-modal').remove()" class="h-7 w-7 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+                    <button onclick="document.getElementById('crm-contact-inspect-modal').remove()" class="h-7 w-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
                         <i data-lucide="x" class="h-4 w-4"></i>
                     </button>
                 </div>
@@ -2882,55 +2878,55 @@ async function openInspectContactModal(contactId) {
                 <div class="p-6 overflow-y-auto space-y-6 flex-1 text-left">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-4">
-                            <h3 class="text-xs font-bold text-teal-400 uppercase tracking-wider">Contact Details</h3>
-                            <div class="space-y-2.5 bg-slate-950/50 p-4 border border-slate-850 rounded-xl">
+                            <h3 class="text-xs font-bold text-teal-650 uppercase tracking-wider">Contact Details</h3>
+                            <div class="space-y-2.5 bg-slate-50 p-4 border border-slate-200/80 rounded-xl">
                                 <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-500 font-medium">Email:</span>
-                                    <span class="font-semibold text-slate-200">${c.email || '-'}</span>
+                                    <span class="text-slate-550 font-medium">Email:</span>
+                                    <span class="font-semibold text-slate-800">${c.email || '-'}</span>
                                 </div>
                                 ${c.alternate_email ? `
                                 <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-500 font-medium">Alternate Email:</span>
-                                    <span class="font-semibold text-slate-200">${c.alternate_email}</span>
+                                    <span class="text-slate-550 font-medium">Alternate Email:</span>
+                                    <span class="font-semibold text-slate-800">${c.alternate_email}</span>
                                 </div>` : ''}
                                 <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-500 font-medium">Phone:</span>
-                                    <span class="font-semibold text-slate-200">${c.phone || '-'}</span>
+                                    <span class="text-slate-550 font-medium">Phone:</span>
+                                    <span class="font-semibold text-slate-800">${c.phone || '-'}</span>
                                 </div>
                                 ${c.whatsapp ? `
                                 <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-500 font-medium">WhatsApp:</span>
-                                    <span class="font-semibold text-slate-200">${c.whatsapp}</span>
+                                    <span class="text-slate-550 font-medium">WhatsApp:</span>
+                                    <span class="font-semibold text-slate-800">${c.whatsapp}</span>
                                 </div>` : ''}
                                 <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-500 font-medium">LinkedIn Link:</span>
-                                    ${c.linkedin ? `<a href="${c.linkedin.startsWith('http') ? c.linkedin : `https://linkedin.com/in/${c.linkedin}`}" target="_blank" class="font-semibold text-indigo-400 hover:underline flex items-center space-x-1"><span>View Profile</span><i data-lucide="external-link" class="h-3 w-3"></i></a>` : '<span class="text-slate-500">-</span>'}
+                                    <span class="text-slate-550 font-medium">LinkedIn Link:</span>
+                                    ${c.linkedin ? `<a href="${c.linkedin.startsWith('http') ? c.linkedin : `https://linkedin.com/in/${c.linkedin}`}" target="_blank" class="font-semibold text-indigo-600 hover:underline flex items-center space-x-1"><span>View Profile</span><i data-lucide="external-link" class="h-3 w-3"></i></a>` : '<span class="text-slate-500">-</span>'}
                                 </div>
                                 ${c.location ? `
                                 <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-500 font-medium">Location:</span>
-                                    <span class="font-semibold text-slate-200">${c.location}</span>
+                                    <span class="text-slate-550 font-medium">Location:</span>
+                                    <span class="font-semibold text-slate-800">${c.location}</span>
                                 </div>` : ''}
                                 ${c.birthday ? `
                                 <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-500 font-medium">Birthday:</span>
-                                    <span class="font-semibold text-slate-200">${c.birthday}</span>
+                                    <span class="text-slate-550 font-medium">Birthday:</span>
+                                    <span class="font-semibold text-slate-800">${c.birthday}</span>
                                 </div>` : ''}
                                 <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-500 font-medium">Source:</span>
-                                    <span class="font-semibold text-slate-300 px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-[10px]">${sourceVal}</span>
+                                    <span class="text-slate-550 font-medium">Source:</span>
+                                    <span class="font-semibold text-slate-750 px-1.5 py-0.5 bg-slate-100 rounded border border-slate-200 text-[10px]">${sourceVal}</span>
                                 </div>
                                 ${postUrl ? `
                                 <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-500 font-medium">LinkedIn Post:</span>
-                                    <a href="${postUrl}" target="_blank" class="font-semibold text-indigo-400 hover:underline flex items-center space-x-1"><span>View Post</span><i data-lucide="external-link" class="h-3 w-3"></i></a>
+                                    <span class="text-slate-550 font-medium">LinkedIn Post:</span>
+                                    <a href="${postUrl}" target="_blank" class="font-semibold text-indigo-600 hover:underline flex items-center space-x-1"><span>View Post</span><i data-lucide="external-link" class="h-3 w-3"></i></a>
                                 </div>` : ''}
                             </div>
                         </div>
 
                         <div class="space-y-4">
-                            <h3 class="text-xs font-bold text-teal-400 uppercase tracking-wider">Extension Scraped Data / Notes</h3>
-                            <div class="bg-slate-950/50 p-4 border border-slate-850 rounded-xl max-h-[175px] overflow-y-auto text-slate-300 whitespace-pre-line">
+                            <h3 class="text-xs font-bold text-teal-650 uppercase tracking-wider">Extension Scraped Data / Notes</h3>
+                            <div class="bg-slate-50 p-4 border border-slate-200/80 rounded-xl max-h-[175px] overflow-y-auto text-slate-700 whitespace-pre-line leading-relaxed">
                                 ${c.notes || 'No scraped notes or LinkedIn post contents available for this contact.'}
                             </div>
                         </div>
@@ -2938,23 +2934,23 @@ async function openInspectContactModal(contactId) {
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                         <div class="space-y-3">
-                            <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-wider">Scheduled Tasks & Meetings</h3>
-                            <div class="space-y-2 bg-slate-950/40 p-4 border border-slate-850 rounded-xl max-h-[160px] overflow-y-auto">
-                                ${tasks.length === 0 && meetings.length === 0 ? `<div class="text-slate-500 text-center py-4">No tasks or meetings scheduled.</div>` : ''}
+                            <h3 class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Scheduled Tasks & Meetings</h3>
+                            <div class="space-y-2 bg-slate-50 p-4 border border-slate-200/80 rounded-xl max-h-[160px] overflow-y-auto">
+                                ${tasks.length === 0 && meetings.length === 0 ? `<div class="text-slate-450 text-center py-4">No tasks or meetings scheduled.</div>` : ''}
                                 ${tasks.map(t => `
-                                    <div class="flex justify-between items-start border-b border-slate-900 pb-1.5 last:border-b-0 last:pb-0">
+                                    <div class="flex justify-between items-start border-b border-slate-100 pb-1.5 last:border-b-0 last:pb-0">
                                         <div>
-                                            <span class="font-semibold text-slate-200 block">${t.title}</span>
-                                            <span class="text-[10px] text-slate-500">Task • Due: ${new Date(t.due_date).toLocaleDateString()}</span>
+                                            <span class="font-semibold text-slate-800 block">${t.title}</span>
+                                            <span class="text-[10px] text-slate-450">Task • Due: ${new Date(t.due_date).toLocaleDateString()}</span>
                                         </div>
-                                        <span class="px-1.5 py-0.5 bg-slate-800 text-slate-300 rounded text-[9px] font-bold uppercase">${t.priority}</span>
+                                        <span class="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded text-[9px] font-bold uppercase">${t.priority}</span>
                                     </div>
                                 `).join('')}
                                 ${meetings.map(m => `
-                                    <div class="flex justify-between items-start border-b border-slate-900 pb-1.5 last:border-b-0 last:pb-0">
+                                    <div class="flex justify-between items-start border-b border-slate-100 pb-1.5 last:border-b-0 last:pb-0">
                                         <div>
-                                            <span class="font-semibold text-slate-200 block">${m.title}</span>
-                                            <span class="text-[10px] text-slate-500">Meeting • Start: ${new Date(m.start_time).toLocaleString()}</span>
+                                            <span class="font-semibold text-slate-800 block">${m.title}</span>
+                                            <span class="text-[10px] text-slate-450">Meeting • Start: ${new Date(m.start_time).toLocaleString()}</span>
                                         </div>
                                     </div>
                                 `).join('')}
@@ -2962,16 +2958,16 @@ async function openInspectContactModal(contactId) {
                         </div>
 
                         <div class="space-y-3">
-                            <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-wider">Activity Timeline</h3>
-                            <div class="space-y-2 bg-slate-950/40 p-4 border border-slate-850 rounded-xl max-h-[160px] overflow-y-auto text-[11px]">
-                                ${timeline.length === 0 ? `<div class="text-slate-500 text-center py-4">No activities logged.</div>` : ''}
+                            <h3 class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Activity Timeline</h3>
+                            <div class="space-y-2 bg-slate-50 p-4 border border-slate-200/80 rounded-xl max-h-[160px] overflow-y-auto text-[11px]">
+                                ${timeline.length === 0 ? `<div class="text-slate-450 text-center py-4">No activities logged.</div>` : ''}
                                 ${timeline.map(t => {
                                     const date = new Date(t.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
                                     return `
-                                        <div class="border-b border-slate-900 pb-1.5 last:border-b-0 last:pb-0">
-                                            <span class="text-[10px] text-slate-500 block font-mono">${date}</span>
-                                            <span class="font-semibold text-slate-200">${t.activity_type}:</span>
-                                            <span class="text-slate-400">${t.description}</span>
+                                        <div class="border-b border-slate-100 pb-1.5 last:border-b-0 last:pb-0">
+                                            <span class="text-[10px] text-slate-400 block font-mono">${date}</span>
+                                            <span class="font-semibold text-slate-700">${t.activity_type}:</span>
+                                            <span class="text-slate-600">${t.description}</span>
                                         </div>
                                     `;
                                 }).join('')}
@@ -2980,16 +2976,15 @@ async function openInspectContactModal(contactId) {
                     </div>
                 </div>
 
-                <div class="p-5 border-t border-slate-800/60 flex justify-end">
-                    <button onclick="document.getElementById('crm-contact-inspect-modal').remove()" class="px-4 py-2 bg-slate-800 hover:bg-slate-750 text-white rounded-lg font-bold transition">Close</button>
+                <div class="p-5 border-t border-slate-100 flex justify-end">
+                    <button onclick="document.getElementById('crm-contact-inspect-modal').remove()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold transition">Close</button>
                 </div>
             </div>
         `;
         lucide.createIcons();
     } catch (e) {
         showNotification('error', 'Failed to retrieve contact details: ' + e.message);
-        document.getElementById('crm-contact-inspect-modal').remove();
-    }
+     }
 }
 
 async function openInspectCompanyModal(companyId) {
@@ -2997,13 +2992,13 @@ async function openInspectCompanyModal(companyId) {
     if (existing) existing.remove();
 
     let modalHTML = `
-        <div id="crm-company-inspect-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm animate-fade-in">
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl p-6 text-white text-xs space-y-4 shadow-2xl relative">
-                <button onclick="document.getElementById('crm-company-inspect-modal').remove()" class="absolute top-4 right-4 h-7 w-7 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+        <div id="crm-company-inspect-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm animate-fade-in">
+            <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl p-6 text-slate-800 text-xs space-y-4 shadow-2xl relative">
+                <button onclick="document.getElementById('crm-company-inspect-modal').remove()" class="absolute top-4 right-4 h-7 w-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
                     <i data-lucide="x" class="h-4 w-4"></i>
                 </button>
                 <div class="flex items-center justify-center py-12">
-                    <i data-lucide="loader-2" class="h-8 w-8 animate-spin text-indigo-500"></i>
+                    <i data-lucide="loader-2" class="h-8 w-8 animate-spin text-indigo-650"></i>
                 </div>
             </div>
         </div>
@@ -3024,16 +3019,16 @@ async function openInspectCompanyModal(companyId) {
         if (!modal) return;
 
         modal.innerHTML = `
-            <div class="bg-slate-900 border border-slate-850 rounded-2xl w-full max-w-3xl text-white text-xs shadow-2xl relative flex flex-col max-h-[85vh]">
-                <div class="p-5 border-b border-slate-800/60 flex justify-between items-start">
+            <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-3xl text-slate-700 text-xs shadow-2xl relative flex flex-col max-h-[85vh]">
+                <div class="p-5 border-b border-slate-100 flex justify-between items-start">
                     <div>
                         <div class="flex items-center space-x-2.5">
-                            <h2 class="text-lg font-bold text-white">${c.name}</h2>
-                            ${c.industry ? `<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full text-[10px] font-bold">${c.industry}</span>` : ''}
+                            <h2 class="text-lg font-bold text-slate-800">${c.name}</h2>
+                            ${c.industry ? `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full text-[10px] font-bold">${c.industry}</span>` : ''}
                         </div>
-                        <p class="text-slate-400 text-[11px] mt-0.5">${c.website || 'No website registered'} • Status: ${c.status || 'Active'}</p>
+                        <p class="text-slate-550 text-[11px] mt-0.5">${c.website || 'No website registered'} • Status: ${c.status || 'Active'}</p>
                     </div>
-                    <button onclick="document.getElementById('crm-company-inspect-modal').remove()" class="h-7 w-7 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+                    <button onclick="document.getElementById('crm-company-inspect-modal').remove()" class="h-7 w-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
                         <i data-lucide="x" class="h-4 w-4"></i>
                     </button>
                 </div>
@@ -3041,45 +3036,45 @@ async function openInspectCompanyModal(companyId) {
                 <div class="p-6 overflow-y-auto space-y-6 flex-1 text-left">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-4">
-                            <h3 class="text-xs font-bold text-teal-400 uppercase tracking-wider">Company Information</h3>
-                            <div class="space-y-2.5 bg-slate-950/50 p-4 border border-slate-850 rounded-xl">
+                            <h3 class="text-xs font-bold text-teal-650 uppercase tracking-wider">Company Information</h3>
+                            <div class="space-y-2.5 bg-slate-50 p-4 border border-slate-200/80 rounded-xl">
                                 <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-500 font-medium">Website:</span>
-                                    ${c.website ? `<a href="${c.website.startsWith('http') ? c.website : `https://${c.website}`}" target="_blank" class="font-semibold text-indigo-400 hover:underline flex items-center space-x-1"><span>${c.website}</span><i data-lucide="external-link" class="h-3 w-3"></i></a>` : '<span class="text-slate-500">-</span>'}
+                                    <span class="text-slate-550 font-medium">Website:</span>
+                                    ${c.website ? `<a href="${c.website.startsWith('http') ? c.website : `https://${c.website}`}" target="_blank" class="font-semibold text-indigo-600 hover:underline flex items-center space-x-1"><span>${c.website}</span><i data-lucide="external-link" class="h-3 w-3"></i></a>` : '<span class="text-slate-500">-</span>'}
                                 </div>
                                 <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-500 font-medium">GST / Tax ID:</span>
-                                    <span class="font-semibold text-slate-200">${c.gst || '-'}</span>
+                                    <span class="text-slate-550 font-medium">GST / Tax ID:</span>
+                                    <span class="font-semibold text-slate-800">${c.gst || '-'}</span>
                                 </div>
                                 <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-500 font-medium">Employees:</span>
-                                    <span class="font-semibold text-slate-200">${c.employees ? c.employees.toLocaleString() : '-'}</span>
+                                    <span class="text-slate-550 font-medium">Employees:</span>
+                                    <span class="font-semibold text-slate-800">${c.employees ? c.employees.toLocaleString() : '-'}</span>
                                 </div>
                                 <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-500 font-medium">Annual Revenue:</span>
-                                    <span class="font-semibold text-slate-200">${c.revenue ? `₹${c.revenue.toLocaleString()}` : '-'}</span>
+                                    <span class="text-slate-550 font-medium">Annual Revenue:</span>
+                                    <span class="font-semibold text-slate-800">${c.revenue ? `₹${c.revenue.toLocaleString()}` : '-'}</span>
                                 </div>
                                 <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-500 font-medium">Owner / Account Manager:</span>
-                                    <span class="font-semibold text-slate-200">${c.owner || '-'}</span>
+                                    <span class="text-slate-550 font-medium">Owner / Account Manager:</span>
+                                    <span class="font-semibold text-slate-800">${c.owner || '-'}</span>
                                 </div>
                                 <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-500 font-medium">Source:</span>
-                                    <span class="font-semibold text-slate-300 px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-[10px]">${c.source || 'CRM Manual'}</span>
+                                    <span class="text-slate-550 font-medium">Source:</span>
+                                    <span class="font-semibold text-slate-700 px-1.5 py-0.5 bg-slate-100 rounded border border-slate-200 text-[10px]">${c.source || 'CRM Manual'}</span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="space-y-4 flex flex-col justify-between">
                             <div class="space-y-3">
-                                <h3 class="text-xs font-bold text-teal-400 uppercase tracking-wider">Office Address</h3>
-                                <div class="bg-slate-950/50 p-4 border border-slate-850 rounded-xl text-slate-300">
+                                <h3 class="text-xs font-bold text-teal-650 uppercase tracking-wider">Office Address</h3>
+                                <div class="bg-slate-50 p-4 border border-slate-200/80 rounded-xl text-slate-700">
                                     ${c.address || 'No address details available.'}
                                 </div>
                             </div>
                             <div class="space-y-3">
-                                <h3 class="text-xs font-bold text-teal-400 uppercase tracking-wider">Internal Notes</h3>
-                                <div class="bg-slate-950/50 p-4 border border-slate-850 rounded-xl text-slate-300 max-h-[90px] overflow-y-auto">
+                                <h3 class="text-xs font-bold text-teal-650 uppercase tracking-wider">Internal Notes</h3>
+                                <div class="bg-slate-50 p-4 border border-slate-200/80 rounded-xl text-slate-700 max-h-[90px] overflow-y-auto leading-relaxed">
                                     ${c.notes || 'No general notes available.'}
                                 </div>
                             </div>
@@ -3088,14 +3083,14 @@ async function openInspectCompanyModal(companyId) {
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                         <div class="space-y-3">
-                            <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-wider">Associated Contacts</h3>
-                            <div class="space-y-2 bg-slate-950/40 p-4 border border-slate-850 rounded-xl max-h-[160px] overflow-y-auto text-[11px]">
-                                ${contacts.length === 0 ? `<div class="text-slate-500 text-center py-4">No contacts linked to this company.</div>` : ''}
+                            <h3 class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Associated Contacts</h3>
+                            <div class="space-y-2 bg-slate-50 p-4 border border-slate-200/80 rounded-xl max-h-[160px] overflow-y-auto text-[11px]">
+                                ${contacts.length === 0 ? `<div class="text-slate-450 text-center py-4">No contacts linked to this company.</div>` : ''}
                                 ${contacts.map(con => `
-                                    <div class="flex justify-between items-center border-b border-slate-900 pb-1.5 last:border-b-0 last:pb-0">
+                                    <div class="flex justify-between items-center border-b border-slate-100 pb-1.5 last:border-b-0 last:pb-0">
                                         <div>
-                                            <span class="font-bold text-slate-200 block">${con.name}</span>
-                                            <span class="text-[10px] text-slate-400">${con.designation || 'Contact'} • ${con.email || 'No Email'}</span>
+                                            <span class="font-bold text-slate-800 block">${con.name}</span>
+                                            <span class="text-[10px] text-slate-450">${con.designation || 'Contact'} • ${con.email || 'No Email'}</span>
                                         </div>
                                     </div>
                                 `).join('')}
@@ -3103,16 +3098,16 @@ async function openInspectCompanyModal(companyId) {
                         </div>
 
                         <div class="space-y-3">
-                            <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-wider">Company Activity Timeline</h3>
-                            <div class="space-y-2 bg-slate-950/40 p-4 border border-slate-850 rounded-xl max-h-[160px] overflow-y-auto text-[11px]">
-                                ${timeline.length === 0 ? `<div class="text-slate-500 text-center py-4">No activities logged.</div>` : ''}
+                            <h3 class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Company Activity Timeline</h3>
+                            <div class="space-y-2 bg-slate-50 p-4 border border-slate-200/80 rounded-xl max-h-[160px] overflow-y-auto text-[11px]">
+                                ${timeline.length === 0 ? `<div class="text-slate-450 text-center py-4">No activities logged.</div>` : ''}
                                 ${timeline.map(t => {
                                     const date = new Date(t.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
                                     return `
-                                        <div class="border-b border-slate-900 pb-1.5 last:border-b-0 last:pb-0">
-                                            <span class="text-[10px] text-slate-500 block font-mono">${date}</span>
-                                            <span class="font-semibold text-slate-200">${t.activity_type}:</span>
-                                            <span class="text-slate-400">${t.description}</span>
+                                        <div class="border-b border-slate-100 pb-1.5 last:border-b-0 last:pb-0">
+                                            <span class="text-[10px] text-slate-400 block font-mono">${date}</span>
+                                            <span class="font-semibold text-slate-700">${t.activity_type}:</span>
+                                            <span class="text-slate-600">${t.description}</span>
                                         </div>
                                     `;
                                 }).join('')}
@@ -3121,8 +3116,8 @@ async function openInspectCompanyModal(companyId) {
                     </div>
                 </div>
 
-                <div class="p-5 border-t border-slate-800/60 flex justify-end">
-                    <button onclick="document.getElementById('crm-company-inspect-modal').remove()" class="px-4 py-2 bg-slate-800 hover:bg-slate-750 text-white rounded-lg font-bold transition">Close</button>
+                <div class="p-5 border-t border-slate-100 flex justify-end">
+                    <button onclick="document.getElementById('crm-company-inspect-modal').remove()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-750 rounded-lg font-bold transition">Close</button>
                 </div>
             </div>
         `;

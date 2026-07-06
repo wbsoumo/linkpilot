@@ -19,7 +19,7 @@ if ($method === 'POST' && !empty($action)) {
 try {
     if ($method === 'GET') {
         // Retrieve connection status and business details
-        $stmtAcc = $db->prepare("SELECT * FROM whatsapp_accounts WHERE user_id = ? LIMIT 1");
+        $stmtAcc = $db->prepare("SELECT * FROM whatsapp_accounts WHERE user_id = ? ORDER BY id DESC LIMIT 1");
         $stmtAcc->execute([$userId]);
         $account = $stmtAcc->fetch();
         
@@ -93,24 +93,31 @@ try {
         // Encrypt the Access Token
         $encryptedToken = encryptData($accessToken);
         
-        // Save/Update account connection details
-        $stmtUpsert = $db->prepare("
-            INSERT INTO whatsapp_accounts (user_id, business_name, business_id, waba_id, phone_number_id, display_phone_number, access_token, status, quality_rating, messaging_limit)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'connected', ?, 'TIER_50')
-            ON DUPLICATE KEY UPDATE 
-                business_name = VALUES(business_name),
-                business_id = VALUES(business_id),
-                waba_id = VALUES(waba_id),
-                phone_number_id = VALUES(phone_number_id),
-                display_phone_number = VALUES(display_phone_number),
-                access_token = VALUES(access_token),
-                status = 'connected',
-                quality_rating = VALUES(quality_rating)
-        ");
+        // Check if account row already exists to avoid duplicates
+        $stmtCheck = $db->prepare("SELECT id FROM whatsapp_accounts WHERE user_id = ? LIMIT 1");
+        $stmtCheck->execute([$userId]);
+        $existingId = $stmtCheck->fetchColumn();
         
-        $stmtUpsert->execute([
-            $userId, $displayName, $businessId, $wabaId, $phoneNumberId, $displayNo, $encryptedToken, $qualityRating
-        ]);
+        if ($existingId) {
+            // Update existing connection row
+            $stmtUpsert = $db->prepare("
+                UPDATE whatsapp_accounts 
+                SET business_name = ?, business_id = ?, waba_id = ?, phone_number_id = ?, display_phone_number = ?, access_token = ?, status = 'connected', quality_rating = ?
+                WHERE id = ?
+            ");
+            $stmtUpsert->execute([
+                $displayName, $businessId, $wabaId, $phoneNumberId, $displayNo, $encryptedToken, $qualityRating, $existingId
+            ]);
+        } else {
+            // Insert new connection row
+            $stmtUpsert = $db->prepare("
+                INSERT INTO whatsapp_accounts (user_id, business_name, business_id, waba_id, phone_number_id, display_phone_number, access_token, status, quality_rating, messaging_limit)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'connected', ?, 'TIER_50')
+            ");
+            $stmtUpsert->execute([
+                $userId, $displayName, $businessId, $wabaId, $phoneNumberId, $displayNo, $encryptedToken, $qualityRating
+            ]);
+        }
         
         // Register Webhook Subscription dynamically
         if (!$isMock) {

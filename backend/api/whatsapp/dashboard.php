@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 
 try {
     // 1. Fetch connected account info
-    $stmtAcc = $db->prepare("SELECT business_name, display_phone_number, status, quality_rating, messaging_limit FROM whatsapp_accounts WHERE user_id = ? LIMIT 1");
+    $stmtAcc = $db->prepare("SELECT business_name, display_phone_number, status, quality_rating, messaging_limit FROM whatsapp_accounts WHERE user_id = ? ORDER BY id DESC LIMIT 1");
     $stmtAcc->execute([$userId]);
     $account = $stmtAcc->fetch() ?: null;
     

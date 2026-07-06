@@ -27,6 +27,16 @@ try {
         $stmtSettings->execute([$userId]);
         $settings = $stmtSettings->fetch();
         
+        // Diagnostics Log to backend/setup_debug.log
+        $logInfo = [
+            'timestamp' => date('Y-m-d H:i:s'),
+            'user_id' => $userId,
+            'account_present' => !empty($account),
+            'db_status' => $account ? ($account['status'] ?? 'null') : 'no_row',
+            'is_connected' => ($account && $account['status'] === 'connected')
+        ];
+        file_put_contents(__DIR__ . '/../../setup_debug.log', json_encode($logInfo) . "\n", FILE_APPEND);
+        
         sendJsonResponse('success', 'WhatsApp connection details loaded.', [
             'connected' => ($account && $account['status'] === 'connected'),
             'account' => $account ?: null,

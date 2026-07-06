@@ -311,7 +311,7 @@ try {
                 $phoneStatus = $phoneDetails['status'] ?? 'unknown';
                 $codeStatus = $phoneDetails['code_verification_status'] ?? '';
                 
-                if ($phoneStatus === 'APPROVED' && $codeStatus === 'VERIFIED') {
+                if (in_array($phoneStatus, ['CONNECTED', 'APPROVED']) && (empty($codeStatus) || $codeStatus === 'VERIFIED')) {
                     $checklist['ready_to_send'] = true;
                 }
             }

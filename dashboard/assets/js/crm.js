@@ -195,12 +195,36 @@ async function checkSmtpConfig() {
     return isSmtpConfigured;
 }
 
+let isEmailSyncConfigured = null;
+async function checkEmailSyncConfig() {
+    if (isEmailSyncConfigured !== null) {
+        return isEmailSyncConfigured;
+    }
+    try {
+        const res = await apiCall('crm/email_intelligence/settings.php');
+        const conn = res.connection || {};
+        isEmailSyncConfigured = !!(conn.smtp_host && conn.imap_host && conn.smtp_username);
+    } catch (e) {
+        console.error("Failed to check email sync config", e);
+        isEmailSyncConfigured = false;
+    }
+    return isEmailSyncConfigured;
+}
+
 // Router routing interceptor
 async function navigateTo(view, params = {}) {
-    const actionPages = ['inbox', 'email-intelligence', 'automation'];
-    if (actionPages.includes(view)) {
-        const configured = await checkSmtpConfig();
-        if (!configured) {
+    if (view === 'inbox') {
+        const syncConfigured = await checkEmailSyncConfig();
+        if (!syncConfigured) {
+            showNotification('warning', 'Please configure your Email Sync connection details first.');
+            window.location.hash = '#/email-intelligence';
+            return;
+        }
+    }
+
+    if (view === 'automation') {
+        const smtpConfigured = await checkSmtpConfig();
+        if (!smtpConfigured) {
             window.location.href = 'smtp.html?setup_smtp=true';
             return;
         }
@@ -1332,6 +1356,8 @@ async function activateEmailIntelligenceService(btn) {
         const data = await apiCall('crm/email_intelligence/settings.php', 'POST', payload);
         if (data.status === 'success') {
             showNotification('success', 'Email Intelligence service activated! Initiating sync.');
+            isSmtpConfigured = null;
+            isEmailSyncConfigured = null;
             wizardStep = 1;
             navigateTo('email-intelligence');
         } else {
@@ -1469,6 +1495,8 @@ async function deactivateEmailService() {
     try {
         await apiCall('crm/email_intelligence/settings.php', 'POST', { is_active: 0, consent_accepted: 1 });
         showNotification('success', 'Email Intelligence deactivated.');
+        isSmtpConfigured = null;
+        isEmailSyncConfigured = null;
         navigateTo('email-intelligence');
     } catch (err) {
         showNotification('error', err.message);
@@ -5924,6 +5952,7 @@ async function saveMailboxCredentials(btn) {
         if (data.status === 'success') {
             showNotification('success', 'Mailbox integration updated successfully.');
             isSmtpConfigured = null;
+            isEmailSyncConfigured = null;
             navigateTo('integrations');
         } else {
             showNotification('error', data.message);

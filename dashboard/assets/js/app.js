@@ -400,6 +400,12 @@ document.addEventListener('DOMContentLoaded', () => {
     requireAuth();
     setupNavigation();
     
+    // Check if redirected because SMTP needs setup
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('setup_smtp') === 'true') {
+        showNotification('warning', 'Please configure your SMTP server first to access action pages.');
+    }
+    
     // Refresh user profile details asynchronously to sync roles securely if token is present
     const token = getAuthToken();
     if (token) {

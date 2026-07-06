@@ -180,8 +180,32 @@ function getSkeletonLoader(view) {
     }
 }
 
+let isSmtpConfigured = null;
+async function checkSmtpConfig() {
+    if (isSmtpConfigured !== null) {
+        return isSmtpConfigured;
+    }
+    try {
+        const res = await apiCall('smtp/list.php');
+        isSmtpConfigured = res && res.accounts && res.accounts.length > 0;
+    } catch (e) {
+        console.error("Failed to check SMTP config", e);
+        isSmtpConfigured = false;
+    }
+    return isSmtpConfigured;
+}
+
 // Router routing interceptor
-function navigateTo(view, params = {}) {
+async function navigateTo(view, params = {}) {
+    const actionPages = ['inbox', 'email-intelligence', 'automation'];
+    if (actionPages.includes(view)) {
+        const configured = await checkSmtpConfig();
+        if (!configured) {
+            window.location.href = 'smtp.html?setup_smtp=true';
+            return;
+        }
+    }
+
     currentView = view;
     window.location.hash = `#/${view}`;
     
@@ -5899,6 +5923,7 @@ async function saveMailboxCredentials(btn) {
         const data = await apiCall('crm/email_intelligence/settings.php', 'POST', payload);
         if (data.status === 'success') {
             showNotification('success', 'Mailbox integration updated successfully.');
+            isSmtpConfigured = null;
             navigateTo('integrations');
         } else {
             showNotification('error', data.message);

@@ -57,6 +57,38 @@ try {
             
             sendJsonResponse('success', "Sender '$senderEmail' has been blacklisted, and all their emails marked as $category.");
             
+        } elseif ($action === 'unblock') {
+            $emailId = (int)($input['email_id'] ?? 0);
+            
+            if (!$emailId) {
+                sendJsonResponse('error', 'Missing email_id.', [], 400);
+            }
+            
+            // 1. Fetch sender_email from received_emails
+            $stmtEmail = $db->prepare("SELECT sender_email FROM received_emails WHERE id = ? AND user_id = ?");
+            $stmtEmail->execute([$emailId, $userId]);
+            $email = $stmtEmail->fetch();
+            
+            if (!$email) {
+                sendJsonResponse('error', 'Email not found.', [], 404);
+            }
+            
+            $senderEmail = strtolower(trim($email['sender_email']));
+            
+            $db->beginTransaction();
+            
+            // 2. Delete rule from spam_filters
+            $stmtDeleteRule = $db->prepare("DELETE FROM spam_filters WHERE user_id = ? AND filter_value = ?");
+            $stmtDeleteRule->execute([$userId, $senderEmail]);
+            
+            // 3. Restore all emails from this sender to 'General Query' category and set is_spam = 0
+            $stmtUpdateEmails = $db->prepare("UPDATE received_emails SET category = 'General Query', is_spam = 0, spam_probability = 0 WHERE sender_email = ? AND user_id = ?");
+            $stmtUpdateEmails->execute([$senderEmail, $userId]);
+            
+            $db->commit();
+            
+            sendJsonResponse('success', "Sender '$senderEmail' has been unblocked, and all their emails restored to Inbox.");
+            
         } elseif ($action === 'add') {
             $type = trim($input['filter_type'] ?? 'email'); // 'email' or 'domain'
             $value = strtolower(trim($input['filter_value'] ?? ''));

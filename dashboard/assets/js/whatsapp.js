@@ -19,7 +19,7 @@ async function checkWaConnectionAndRender(viewName, container, renderFn) {
             renderWhatsAppSetup(container, res.settings);
         }
     } catch (err) {
-        showNotification('error', 'Failed to load WhatsApp status: ' . err.message);
+        showNotification('error', 'Failed to load WhatsApp status: ' + err.message);
         container.innerHTML = `<div class="p-6 text-center text-slate-500">Failed to connect to backend APIs.</div>`;
     }
 }
@@ -258,6 +258,7 @@ function renderWhatsAppSetup(container, settings) {
                 currentStep = 2;
                 drawWizard();
             });
+        }, 2500);
     };
     
     window.setConnectMethod = function(method) {
@@ -815,7 +816,7 @@ window.sendWaMessage = function(e) {
     }).then(res => {
         loadWaThreadMessages();
     }).catch(err => {
-        showNotification('error', 'Failed to send message: ' . err.message);
+        showNotification('error', 'Failed to send message: ' + err.message);
     });
 };
 

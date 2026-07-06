@@ -100,6 +100,22 @@ $stmtCPost = $db->prepare("SELECT COUNT(*) FROM crm_contacts WHERE user_id = ?")
 $stmtCPost->execute([$userId]);
 echo "  Contacts count: " . $stmtCPost->fetchColumn() . "\n";
 
+$stmtCList = $db->prepare("SELECT id, name, email, company_id FROM crm_contacts WHERE user_id = ?");
+$stmtCList->execute([$userId]);
+echo "  Contacts:\n";
+while ($c = $stmtCList->fetch()) {
+    echo "    - ID: {$c['id']} | Name: {$c['name']} | Email: {$c['email']} | Company ID: {$c['company_id']}\n";
+}
+echo "\n";
+
 $stmtCoPost = $db->prepare("SELECT COUNT(*) FROM crm_companies WHERE user_id = ?");
 $stmtCoPost->execute([$userId]);
 echo "  Companies count: " . $stmtCoPost->fetchColumn() . "\n";
+
+$stmtCoList = $db->prepare("SELECT id, name, website, source FROM crm_companies WHERE user_id = ?");
+$stmtCoList->execute([$userId]);
+echo "  Companies:\n";
+while ($c = $stmtCoList->fetch()) {
+    echo "    - ID: {$c['id']} | Name: {$c['name']} | Website: {$c['website']} | Source: {$c['source']}\n";
+}
+echo "\n";

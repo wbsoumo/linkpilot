@@ -131,8 +131,112 @@ class CRMSyncHelper {
                     $stmtUpdate->execute($params);
                 }
             }
+
+            // Sync inbound processed emails to CRM contacts & companies
+            self::syncReceivedEmailsToCRM($userId, $db);
+
         } catch (Exception $e) {
             error_log("CRM Auto Sync error: " . $e->getMessage());
+        }
+    }
+
+    public static function syncReceivedEmailsToCRM($userId, $db) {
+        try {
+            $stmt = $db->prepare("SELECT id, sender_email, subject, ai_summary, extracted_data_json FROM received_emails WHERE user_id = ? AND ai_status = 'processed'");
+            $stmt->execute([$userId]);
+            $emails = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($emails as $email) {
+                $meta = json_decode($email['extracted_data_json'], true);
+                if (!$meta || empty($meta['person_name'])) {
+                    continue;
+                }
+
+                $personName = trim($meta['person_name']);
+                $companyName = trim($meta['company_name'] ?? '');
+                $phone = trim($meta['phone_number'] ?? '');
+                $emailAddress = strtolower(trim($meta['email'] ?? $email['sender_email'] ?? ''));
+                $website = trim($meta['website'] ?? '');
+                $location = trim($meta['location'] ?? '');
+                $address = trim($meta['address'] ?? '');
+                
+                // 1. Resolve / Create Company
+                $companyId = null;
+                if ($companyName !== '') {
+                    $stmtComp = $db->prepare("SELECT id FROM crm_companies WHERE name = ? AND user_id = ? LIMIT 1");
+                    $stmtComp->execute([$companyName, $userId]);
+                    $company = $stmtComp->fetch();
+                    if ($company) {
+                        $companyId = $company['id'];
+                    } else {
+                        // Create company
+                        $insComp = $db->prepare("INSERT INTO crm_companies (user_id, name, website, address, source, status, notes) VALUES (?, ?, ?, ?, 'Inbound Email', 'Active', 'Created from incoming email analysis')");
+                        $insComp->execute([
+                            $userId,
+                            $companyName,
+                            $website !== '' ? $website : null,
+                            $address !== '' ? $address : null
+                        ]);
+                        $companyId = $db->lastInsertId();
+                    }
+                }
+
+                // 2. Resolve / Create / Update Contact
+                $stmtCon = $db->prepare("SELECT * FROM crm_contacts WHERE (
+                    (email IS NOT NULL AND email != '' AND email = ?) OR
+                    (name = ? AND user_id = ?)
+                ) LIMIT 1");
+                $stmtCon->execute([$emailAddress, $personName, $userId]);
+                $contact = $stmtCon->fetch();
+
+                if (!$contact) {
+                    // Create Contact
+                    $customFields = json_encode([
+                        'source' => 'Inbound Email',
+                        'email_id' => $email['id'],
+                        'location' => $location
+                    ]);
+                    
+                    $notes = "AI Inbound Summary:\n" . ($email['ai_summary'] ?? '');
+                    
+                    $insCon = $db->prepare("INSERT INTO crm_contacts (user_id, company_id, name, email, phone, notes, custom_fields) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                    $insCon->execute([
+                        $userId,
+                        $companyId,
+                        $personName,
+                        $emailAddress !== '' ? $emailAddress : null,
+                        $phone,
+                        $notes,
+                        $customFields
+                    ]);
+                } else {
+                    // Update missing fields
+                    $updates = [];
+                    $params = [];
+
+                    if (empty($contact['company_id']) && !empty($companyId)) {
+                        $updates[] = "company_id = ?";
+                        $params[] = $companyId;
+                    }
+                    if (empty($contact['phone']) && !empty($phone)) {
+                        $updates[] = "phone = ?";
+                        $params[] = $phone;
+                    }
+                    if (empty($contact['notes']) && !empty($email['ai_summary'])) {
+                        $updates[] = "notes = ?";
+                        $params[] = "AI Inbound Summary:\n" . $email['ai_summary'];
+                    }
+
+                    if (count($updates) > 0) {
+                        $params[] = $contact['id'];
+                        $params[] = $userId;
+                        $stmtUpdate = $db->prepare("UPDATE crm_contacts SET " . implode(", ", $updates) . " WHERE id = ? AND user_id = ?");
+                        $stmtUpdate->execute($params);
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            error_log("Inbound Email CRM Sync error: " . $e->getMessage());
         }
     }
 }

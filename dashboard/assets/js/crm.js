@@ -8781,7 +8781,7 @@ async function renderInstallExtensions(container) {
                             </a>
                             
                             <!-- Option 2: Download Directly -->
-                            <a href="../linkpilot-extension.zip" download class="flex items-start p-3 bg-slate-950 hover:bg-slate-900 border border-slate-800 rounded-xl transition group/item">
+                            <a href="../linkpilot-extension.zip?t=${Date.now()}" download class="flex items-start p-3 bg-slate-950 hover:bg-slate-900 border border-slate-800 rounded-xl transition group/item">
                                 <div class="h-8 w-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0 mr-3">
                                     <i data-lucide="file-archive" class="h-4.5 w-4.5"></i>
                                 </div>

@@ -93,6 +93,32 @@ function apiRequest($url, $method = 'GET', $payload = null, $token = null) {
     ];
 }
 
+// Handle Subscription Fix AJAX Request
+if (isset($_GET['action']) && $_GET['action'] === 'subscribe') {
+    header('Content-Type: application/json; charset=utf-8');
+    if (ob_get_length()) {
+        ob_clean();
+    }
+    
+    $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+    $wabaId = trim($input['waba_id'] ?? '');
+    $accessToken = trim($input['access_token'] ?? '');
+    
+    if (empty($wabaId) || empty($accessToken)) {
+        echo json_encode(['success' => false, 'error' => 'Missing WABA ID or Access Token.']);
+        exit;
+    }
+    
+    $res = apiRequest("https://graph.facebook.com/v20.0/{$wabaId}/subscribed_apps", 'POST', null, $accessToken);
+    if ($res['http_code'] === 200) {
+        echo json_encode(['success' => true, 'response' => json_decode($res['response'], true)]);
+    } else {
+        $err = json_decode($res['response'], true);
+        echo json_encode(['success' => false, 'error' => $err['error']['message'] ?? 'Failed subscribing app to WABA.']);
+    }
+    exit;
+}
+
 // Handle AJAX Request
 if (isset($_GET['action']) && $_GET['action'] === 'run') {
     header('Content-Type: application/json; charset=utf-8');
@@ -862,6 +888,12 @@ if (isset($_GET['action']) && $_GET['action'] === 'run') {
                         <div class="mb-4 p-4 border border-teal-500/20 bg-teal-500/5 rounded-xl d-none" id="recommended-fix-box">
                             <h6 class="text-xs font-extrabold text-teal-400 uppercase tracking-wider mb-1"><i class="fa-solid fa-wrench me-1.5"></i>Recommended Actions</h6>
                             <pre class="mb-0 text-slate-200 mt-2 whitespace-pre-line" id="recommended-fix-text"></pre>
+                            <div class="mt-3 d-none" id="action-btn-container">
+                                <button type="button" class="btn btn-sm btn-teal font-bold px-3 py-1.5 text-xs shadow-md" id="btn-fix-subscription" onclick="triggerSubscriptionFix()">
+                                    <i class="fa-solid fa-circle-nodes me-1"></i>Auto-Subscribe App to WABA
+                                </button>
+                                <span class="text-xs text-slate-400 ms-2" id="subscription-fix-status"></span>
+                            </div>
                         </div>
                         
                         <!-- Collapsible Steps results checklist -->
@@ -1005,6 +1037,17 @@ if (isset($_GET['action']) && $_GET['action'] === 'run') {
                         fixBox.classList.remove('d-none');
                         document.getElementById('root-cause-text').textContent = res.root_cause;
                         document.getElementById('recommended-fix-text').textContent = res.recommended_fix;
+                        
+                        const actionBtnContainer = document.getElementById('action-btn-container');
+                        const statusLabel = document.getElementById('subscription-fix-status');
+                        statusLabel.textContent = '';
+                        document.getElementById('btn-fix-subscription').disabled = false;
+                        
+                        if (states['subscription'] === 'FAIL') {
+                            actionBtnContainer.classList.remove('d-none');
+                        } else {
+                            actionBtnContainer.classList.add('d-none');
+                        }
                     } else {
                         rootCauseBox.classList.add('d-none');
                         fixBox.classList.add('d-none');
@@ -1087,6 +1130,46 @@ if (isset($_GET['action']) && $_GET['action'] === 'run') {
                 updateProgress(100, "Failed.");
             }
             btn.disabled = false;
+        }
+
+        async function triggerSubscriptionFix() {
+            const btn = document.getElementById('btn-fix-subscription');
+            const statusLabel = document.getElementById('subscription-fix-status');
+            
+            const wabaId = document.querySelector('input[name="waba_id"]').value.trim();
+            const token = document.querySelector('input[name="access_token"]').value.trim();
+            
+            if (!wabaId || !token) {
+                statusLabel.className = 'text-xs text-rose-400 ms-2';
+                statusLabel.textContent = 'Error: Missing parameters.';
+                return;
+            }
+            
+            btn.disabled = true;
+            statusLabel.className = 'text-xs text-teal-400 ms-2';
+            statusLabel.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Subscribing...';
+            
+            try {
+                const response = await fetch('testwa.php?action=subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ waba_id: wabaId, access_token: token })
+                });
+                
+                const res = await response.json();
+                if (res.success) {
+                    statusLabel.className = 'text-xs text-emerald-400 ms-2 font-bold';
+                    statusLabel.innerHTML = '<i class="fa-solid fa-circle-check"></i> Deployed subscription linked successfully!';
+                } else {
+                    statusLabel.className = 'text-xs text-rose-400 ms-2';
+                    statusLabel.textContent = 'Failed: ' + res.error;
+                    btn.disabled = false;
+                }
+            } catch(e) {
+                statusLabel.className = 'text-xs text-rose-400 ms-2';
+                statusLabel.textContent = 'Error: ' + e.message;
+                btn.disabled = false;
+            }
         }
     </script>
 </body>

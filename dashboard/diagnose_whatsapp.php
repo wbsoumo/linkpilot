@@ -195,43 +195,92 @@ $account = $stmt->fetch(PDO::FETCH_ASSOC);
                     </div>
                     
                     <!-- Send Test Action -->
-                    <div class="space-y-3 pt-1">
-                        <div class="text-xs font-semibold text-slate-400">Verify Send API Call directly:</div>
-                        <form method="POST" class="flex space-x-2">
-                            <input type="text" name="test_phone" placeholder="Recipient Phone Number (with country code, e.g. 919242322991)" class="px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs flex-1 focus:outline-none focus:border-teal-500">
-                            <button type="submit" class="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-xs transition">Send Test Message</button>
-                        </form>
-                        
-                        <?php
-                        if (!empty($_POST['test_phone'])) {
-                            $to = trim($_POST['test_phone']);
-                            try {
-                                echo "<div class='p-3 bg-slate-900 border border-slate-800 rounded-lg text-xs space-y-2 mt-2'>";
-                                echo "<div class='font-bold text-teal-400'>Sending request...</div>";
-                                
-                                $payload = [
-                                    "messaging_product" => "whatsapp",
-                                    "recipient_type" => "individual",
-                                    "to" => $to,
-                                    "type" => "text",
-                                    "text" => [
-                                        "preview_url" => false,
-                                        "body" => "Hello, this is a connection check message from LinkPilot Diagnostics."
-                                    ]
-                                ];
-                                
-                                $res = WhatsAppMetaService::executeRequest("{$phoneId}/messages", "POST", $payload, $accessToken);
-                                echo "<div class='text-emerald-400 font-bold'>Success! Meta Response:</div>";
-                                echo "<pre class='text-[10px] text-slate-400 overflow-x-auto bg-slate-950 p-2.5 rounded font-mono'>" . htmlspecialchars(print_r($res, true)) . "</pre>";
-                                echo "</div>";
-                            } catch (Exception $e) {
-                                echo "<div class='p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-xs space-y-1 mt-2'>";
-                                echo "<div class='text-rose-400 font-bold'>Failed! Meta Error:</div>";
-                                echo "<p class='text-rose-500 font-semibold'>" . htmlspecialchars($e->getMessage()) . "</p>";
-                                echo "</div>";
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-1">
+                        <!-- 5a. Text Message Form -->
+                        <div class="space-y-3 bg-slate-900/30 border border-slate-800 p-4 rounded-xl">
+                            <div class="text-xs font-semibold text-slate-400">Verify Free-form Text Message:</div>
+                            <form method="POST" class="space-y-2">
+                                <input type="text" name="test_phone" placeholder="Recipient Phone (e.g. 919242322991)" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs focus:outline-none focus:border-teal-500">
+                                <button type="submit" class="w-full px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-xs transition">Send Test Message</button>
+                            </form>
+                            
+                            <?php
+                            if (!empty($_POST['test_phone'])) {
+                                $to = trim($_POST['test_phone']);
+                                try {
+                                    echo "<div class='p-3 bg-slate-900 border border-slate-800 rounded-lg text-xs space-y-2 mt-2'>";
+                                    echo "<div class='font-bold text-teal-400'>Sending request...</div>";
+                                    
+                                    $payload = [
+                                        "messaging_product" => "whatsapp",
+                                        "recipient_type" => "individual",
+                                        "to" => $to,
+                                        "type" => "text",
+                                        "text" => [
+                                            "preview_url" => false,
+                                            "body" => "Hello, this is a connection check message from LinkPilot Diagnostics."
+                                        ]
+                                    ];
+                                    
+                                    $res = WhatsAppMetaService::executeRequest("{$phoneId}/messages", "POST", $payload, $accessToken);
+                                    echo "<div class='text-emerald-400 font-bold'>Success! Meta Response:</div>";
+                                    echo "<pre class='text-[10px] text-slate-400 overflow-x-auto bg-slate-950 p-2.5 rounded font-mono'>" . htmlspecialchars(print_r($res, true)) . "</pre>";
+                                    echo "</div>";
+                                } catch (Exception $e) {
+                                    echo "<div class='p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-xs space-y-1 mt-2'>";
+                                    echo "<div class='text-rose-400 font-bold'>Failed! Meta Error:</div>";
+                                    echo "<p class='text-rose-500 font-semibold'>" . htmlspecialchars($e->getMessage()) . "</p>";
+                                    echo "</div>";
+                                }
                             }
-                        }
-                        ?>
+                            ?>
+                        </div>
+
+                        <!-- 5b. Template Message Form -->
+                        <div class="space-y-3 bg-slate-900/30 border border-slate-800 p-4 rounded-xl">
+                            <div class="text-xs font-semibold text-slate-400">Verify Template Message:</div>
+                            <form method="POST" class="space-y-2">
+                                <input type="text" name="test_phone_template" placeholder="Recipient Phone (e.g. 919242322991)" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs focus:outline-none focus:border-teal-500" required>
+                                <input type="text" name="template_name" value="hello_world" placeholder="Template Name (e.g. hello_world)" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs focus:outline-none focus:border-teal-500" required>
+                                <input type="text" name="template_lang" value="en_US" placeholder="Language Code (e.g. en_US)" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs focus:outline-none focus:border-teal-500" required>
+                                <button type="submit" class="w-full px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-xs transition">Send Template Message</button>
+                            </form>
+                            
+                            <?php
+                            if (!empty($_POST['test_phone_template']) && !empty($_POST['template_name'])) {
+                                $to = trim($_POST['test_phone_template']);
+                                $templateName = trim($_POST['template_name']);
+                                $lang = trim($_POST['template_lang'] ?: 'en_US');
+                                try {
+                                    echo "<div class='p-3 bg-slate-900 border border-slate-800 rounded-lg text-xs space-y-2 mt-2'>";
+                                    echo "<div class='font-bold text-teal-400'>Sending template request...</div>";
+                                    
+                                    $payload = [
+                                        "messaging_product" => "whatsapp",
+                                        "recipient_type" => "individual",
+                                        "to" => $to,
+                                        "type" => "template",
+                                        "template" => [
+                                            "name" => $templateName,
+                                            "language" => [
+                                                "code" => $lang
+                                            ]
+                                        ]
+                                    ];
+                                    
+                                    $res = WhatsAppMetaService::executeRequest("{$phoneId}/messages", "POST", $payload, $accessToken);
+                                    echo "<div class='text-emerald-400 font-bold'>Success! Meta Response:</div>";
+                                    echo "<pre class='text-[10px] text-slate-400 overflow-x-auto bg-slate-950 p-2.5 rounded font-mono'>" . htmlspecialchars(print_r($res, true)) . "</pre>";
+                                    echo "</div>";
+                                } catch (Exception $e) {
+                                    echo "<div class='p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-xs space-y-1 mt-2'>";
+                                    echo "<div class='text-rose-400 font-bold'>Failed! Meta Error:</div>";
+                                    echo "<p class='text-rose-500 font-semibold'>" . htmlspecialchars($e->getMessage()) . "</p>";
+                                    echo "</div>";
+                                }
+                            }
+                            ?>
+                        </div>
                     </div>
                 <?php else: ?>
                     <p class="text-xs text-rose-400 font-semibold"><?= $debugResult['phone'] ?? 'Failed retrieving phone details.' ?></p>

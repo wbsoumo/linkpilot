@@ -53,6 +53,9 @@
                 <button onclick="switchAdminTab('logs', this)" class="sidebar-nav-link text-slate-300 transition w-full text-left">
                     <i data-lucide="file-text" class="h-4 w-4 mr-2.5"></i><span>Processing Logs</span>
                 </button>
+                <button onclick="switchAdminTab('whatsapp', this)" class="sidebar-nav-link text-slate-300 transition w-full text-left">
+                    <i data-lucide="message-circle" class="h-4 w-4 mr-2.5 text-emerald-500"></i><span>WhatsApp Settings</span>
+                </button>
                 
                 <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest pt-6 pb-1.5 pl-2">Client Workspace</span>
                 <a href="index.html" class="sidebar-nav-link text-slate-400 hover:bg-slate-800 hover:text-white transition duration-150">
@@ -196,6 +199,109 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- WhatsApp Admin Pane -->
+            <div id="admin-whatsapp-pane" class="hidden space-y-6">
+                <!-- Meta Secrets Form and Queue Manager -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Form Settings -->
+                    <div class="glass-panel p-5 bg-slate-900/40 space-y-4 md:col-span-1">
+                        <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2">Meta API Configurations</h3>
+                        <form onsubmit="saveAdminWhatsAppKeys(event)" class="space-y-4 text-xs">
+                            <div>
+                                <label class="block text-slate-400 font-semibold mb-1">Meta App ID</label>
+                                <input type="text" id="adm-wa-app-id" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 font-semibold mb-1">Meta App Secret</label>
+                                <input type="password" id="adm-wa-app-secret" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 font-semibold mb-1">Webhook Verify Token</label>
+                                <input type="text" id="adm-wa-verify-token" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 font-semibold mb-1">Max Campaign Size</label>
+                                <input type="number" id="adm-wa-camp-size" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white" value="1000">
+                            </div>
+                            <button type="submit" class="w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-bold transition">Save Meta Credentials</button>
+                        </form>
+                    </div>
+
+                    <!-- WABA Client Connections List -->
+                    <div class="glass-panel p-5 bg-slate-900/40 space-y-4 md:col-span-2">
+                        <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2">Active WhatsApp Connections</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse custom-table text-[11px]">
+                                <thead>
+                                    <tr class="border-b border-slate-800">
+                                        <th>Owner Account</th>
+                                        <th>Display Number</th>
+                                        <th>WABA ID</th>
+                                        <th>Quality</th>
+                                        <th>Limit</th>
+                                        <th>Connected At</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adm-wa-connections-tbody">
+                                    <tr><td colspan="6" class="text-center py-4 text-slate-500">Loading connections...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Queue Monitor & Webhooks Log Feed -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Queue Dispatch Logs -->
+                    <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                            <h3 class="text-sm font-bold text-white">Broadcast Queue Dispatch logs</h3>
+                            <div class="flex space-x-2">
+                                <button onclick="retryFailedWhatsAppQueue()" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded text-[10px] font-bold transition">Retry Failed</button>
+                                <button onclick="cancelPendingWhatsAppQueue()" class="px-2.5 py-1 bg-rose-500 hover:bg-rose-600 text-white rounded text-[10px] font-bold transition">Clear Pending</button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse custom-table text-[10px]">
+                                <thead>
+                                    <tr class="border-b border-slate-800">
+                                        <th>User</th>
+                                        <th>Recipient</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                        <th>Error Message</th>
+                                        <th>Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adm-wa-queue-tbody">
+                                    <tr><td colspan="6" class="text-center py-4 text-slate-500">Loading queue...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Webhook raw Logs -->
+                    <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
+                        <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2">Incoming Webhook Payload Log Feed</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse custom-table text-[10px]">
+                                <thead>
+                                    <tr class="border-b border-slate-800">
+                                        <th>ID</th>
+                                        <th>Status</th>
+                                        <th>Raw Payload excerpt</th>
+                                        <th>Timestamp</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adm-wa-webhooks-tbody">
+                                    <tr><td colspan="4" class="text-center py-4 text-slate-500">Loading webhooks...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -220,6 +326,7 @@
             document.getElementById('admin-ai-settings-pane').classList.add('hidden');
             document.getElementById('admin-credits-pane').classList.add('hidden');
             document.getElementById('admin-logs-pane').classList.add('hidden');
+            document.getElementById('admin-whatsapp-pane').classList.add('hidden');
 
             // Show target
             document.getElementById(`admin-${tab}-pane`).classList.remove('hidden');
@@ -227,6 +334,7 @@
             if (tab === 'health') loadAdminHealthData();
             if (tab === 'users') loadAdminUsersData();
             if (tab === 'logs') loadAdminLogsData();
+            if (tab === 'whatsapp') loadAdminWhatsAppDetails();
         }
 
         async function loadAdminHealthData() {
@@ -379,6 +487,116 @@
                 showNotification('error', err.message);
             }
         }
+
+        async function loadAdminWhatsAppDetails() {
+            try {
+                const res = await apiCall('whatsapp/admin.php');
+                const s = res.settings;
+                
+                // Load credentials input values
+                document.getElementById('adm-wa-app-id').value = s.whatsapp_meta_app_id || '';
+                document.getElementById('adm-wa-app-secret').value = s.whatsapp_meta_app_secret || '';
+                document.getElementById('adm-wa-verify-token').value = s.whatsapp_webhook_verify_token || '';
+                document.getElementById('adm-wa-camp-size').value = s.whatsapp_global_max_campaign_size || '1000';
+                
+                // Render active connections
+                const connContainer = document.getElementById('adm-wa-connections-tbody');
+                if (res.connections.length === 0) {
+                    connContainer.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-slate-500">No connected client WhatsApp numbers.</td></tr>';
+                } else {
+                    connContainer.innerHTML = res.connections.map(c => `
+                        <tr class="border-b border-slate-800 hover:bg-slate-900/10">
+                            <td class="py-2.5 font-bold">${c.user_name} (${c.user_email})</td>
+                            <td class="py-2.5 font-mono">${c.display_phone_number || 'N/A'}</td>
+                            <td class="py-2.5 font-mono">${c.waba_id}</td>
+                            <td class="py-2.5 uppercase font-bold text-emerald-400">${c.quality_rating}</td>
+                            <td class="py-2.5">${c.messaging_limit}</td>
+                            <td class="py-2.5 text-slate-500">${new Date(c.created_at).toLocaleDateString()}</td>
+                        </tr>
+                    `).join('');
+                }
+                
+                // Render queue logs
+                const queueContainer = document.getElementById('adm-wa-queue-tbody');
+                if (res.queue_logs.length === 0) {
+                    queueContainer.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-slate-500">Queue is completely empty.</td></tr>';
+                } else {
+                    queueContainer.innerHTML = res.queue_logs.map(q => `
+                        <tr class="border-b border-slate-800 hover:bg-slate-900/10">
+                            <td class="py-2.5 font-bold">${q.user_name}</td>
+                            <td class="py-2.5 font-mono">+${q.recipient_number}</td>
+                            <td class="py-2.5 uppercase font-bold text-slate-300">${q.type}</td>
+                            <td class="py-2.5 font-bold ${q.status === 'sent' ? 'text-emerald-400' : q.status === 'failed' ? 'text-red-400' : 'text-blue-400'}">${q.status.toUpperCase()}</td>
+                            <td class="py-2.5 font-mono">${q.error_message || '<span class="text-slate-600">None</span>'}</td>
+                            <td class="py-2.5 text-slate-500">${new Date(q.created_at).toLocaleTimeString()}</td>
+                        </tr>
+                    `).join('');
+                }
+                
+                // Render webhook logs
+                const webhookContainer = document.getElementById('adm-wa-webhooks-tbody');
+                if (res.webhook_logs.length === 0) {
+                    webhookContainer.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">No Webhook payloads received yet.</td></tr>';
+                } else {
+                    webhookContainer.innerHTML = res.webhook_logs.map(w => `
+                        <tr class="border-b border-slate-800 hover:bg-slate-900/10">
+                            <td class="py-2.5 font-bold">${w.id}</td>
+                            <td class="py-2.5 font-bold ${w.status === 'processed' ? 'text-emerald-400' : w.status === 'failed' ? 'text-red-400' : 'text-slate-400'}">${w.status.toUpperCase()}</td>
+                            <td class="py-2.5 font-mono max-w-[200px] truncate" title="${escapeHtml(w.payload)}">${escapeHtml(w.payload)}</td>
+                            <td class="py-2.5 text-slate-500">${new Date(w.created_at).toLocaleTimeString()}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (err) {
+                showNotification('error', 'Failed loading admin settings details: ' + err.message);
+            }
+        }
+        
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+        
+        window.saveAdminWhatsAppKeys = function(e) {
+            e.preventDefault();
+            const payload = {
+                whatsapp_meta_app_id: document.getElementById('adm-wa-app-id').value.trim(),
+                whatsapp_meta_app_secret: document.getElementById('adm-wa-app-secret').value.trim(),
+                whatsapp_webhook_verify_token: document.getElementById('adm-wa-verify-token').value.trim(),
+                whatsapp_global_max_campaign_size: parseInt(document.getElementById('adm-wa-camp-size').value)
+            };
+            
+            apiCall('whatsapp/admin.php?action=save_meta_keys', 'POST', payload)
+                .then(res => {
+                    showNotification('success', res.message);
+                    loadAdminWhatsAppDetails();
+                })
+                .catch(err => {
+                    showNotification('error', err.message);
+                });
+        };
+        
+        window.retryFailedWhatsAppQueue = function() {
+            apiCall('whatsapp/admin.php?action=retry_queue', 'POST')
+                .then(res => {
+                    showNotification('success', res.message);
+                    loadAdminWhatsAppDetails();
+                })
+                .catch(err => {
+                    showNotification('error', err.message);
+                });
+        };
+        
+        window.cancelPendingWhatsAppQueue = function() {
+            if (!confirm('Purge all pending WhatsApp queue messages?')) return;
+            apiCall('whatsapp/admin.php?action=cancel_queue', 'POST')
+                .then(res => {
+                    showNotification('success', res.message);
+                    loadAdminWhatsAppDetails();
+                })
+                .catch(err => {
+                    showNotification('error', err.message);
+                });
+        };
 
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {

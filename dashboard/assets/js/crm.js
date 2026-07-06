@@ -237,14 +237,30 @@ async function navigateTo(view, params = {}) {
     updateGlobalTaskBadges();
     
     // Highlight sidebar links
-    document.querySelectorAll('.sidebar-nav-link').forEach(link => {
+    document.querySelectorAll('.sidebar-nav-link, .sidebar-submenu-link').forEach(link => {
         const href = link.getAttribute('href');
         if (href && href.includes(view)) {
             link.classList.add('active');
+            if (link.classList.contains('sidebar-submenu-link')) {
+                link.classList.remove('text-slate-400');
+                link.classList.add('text-white', 'bg-slate-800', 'font-bold');
+            }
         } else {
             link.classList.remove('active');
+            if (link.classList.contains('sidebar-submenu-link')) {
+                link.classList.remove('text-white', 'bg-slate-800', 'font-bold');
+                link.classList.add('text-slate-400');
+            }
         }
     });
+
+    const isWhatsAppView = view.startsWith('whatsapp-');
+    const waSubmenu = document.getElementById('whatsapp-submenu');
+    const waChevron = document.getElementById('wa-chevron');
+    if (isWhatsAppView && waSubmenu) {
+        waSubmenu.classList.remove('hidden');
+        if (waChevron) waChevron.classList.add('rotate-180');
+    }
 
     const contentArea = document.getElementById('main-content-viewport');
     if (!contentArea) return;
@@ -298,6 +314,33 @@ async function navigateTo(view, params = {}) {
             break;
         case 'install-extensions':
             renderInstallExtensions(contentArea);
+            break;
+        case 'whatsapp-dashboard':
+            renderWhatsAppDashboard(contentArea);
+            break;
+        case 'whatsapp-inbox':
+            renderWhatsAppInbox(contentArea);
+            break;
+        case 'whatsapp-contacts':
+            renderWhatsAppContacts(contentArea);
+            break;
+        case 'whatsapp-campaigns':
+            renderWhatsAppCampaigns(contentArea);
+            break;
+        case 'whatsapp-templates':
+            renderWhatsAppTemplates(contentArea);
+            break;
+        case 'whatsapp-broadcast':
+            renderWhatsAppBroadcast(contentArea);
+            break;
+        case 'whatsapp-automation':
+            renderWhatsAppAutomation(contentArea);
+            break;
+        case 'whatsapp-reports':
+            renderWhatsAppReports(contentArea);
+            break;
+        case 'whatsapp-settings':
+            renderWhatsAppSettings(contentArea);
             break;
         default:
             renderDashboard(contentArea);

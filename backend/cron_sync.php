@@ -50,8 +50,11 @@ try {
     try {
         $processed = QueueWorker::processPendingEmails();
         echo "AI processing complete. Processed $processed pending emails.\n";
+        
+        $processedWa = QueueWorker::processWhatsAppQueue();
+        echo "WhatsApp queue complete. Dispatched $processedWa messages.\n";
     } catch (Throwable $e) {
-        echo "AI Queue Processor Error: " . $e->getMessage() . "\n";
+        echo "Queue Processor Error: " . $e->getMessage() . "\n";
     }
     
     echo "[" . date('Y-m-d H:i:s') . "] Sync process finished. Successfully completed $successCount/$jobsCount jobs.\n";

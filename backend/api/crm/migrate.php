@@ -422,6 +422,13 @@ try {
         // Column might already exist
     }
 
+    try {
+        require_once __DIR__ . '/migrate_whatsapp.php';
+        $messages[] = "WhatsApp Business Module migrations completed.";
+    } catch (Exception $waEx) {
+        $messages[] = "WhatsApp migrations warning: " . $waEx->getMessage();
+    }
+
     sendJsonResponse('success', 'LinkPilot CRM v2.0 Database Migrations executed successfully.', [
         'details' => $messages
     ]);

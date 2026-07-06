@@ -3,6 +3,7 @@
 
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/smtp_helper.php';
+require_once __DIR__ . '/providers/whatsapp_meta_service.php';
 
 class QueueWorker {
     
@@ -305,6 +306,122 @@ You MUST return your response as a valid, parsable JSON block with the following
                 $db->prepare("UPDATE received_emails SET ai_status = 'failed' WHERE id = ?")->execute([$emailId]);
                 $errStmt = $db->prepare("INSERT INTO email_processing_logs (user_id, email_subject, sender, status, message) VALUES (?, ?, ?, 'error', ?)");
                 $errStmt->execute([$userId, $subject, $sender, 'Ingestion failed: ' . $trxError->getMessage()]);
+            }
+        }
+        
+        return $processedCount;
+    }
+
+    /**
+     * Fetch pending WhatsApp queue payloads and transmit them via Meta.
+     */
+    public static function processWhatsAppQueue() {
+        $db = Database::getConnection();
+        
+        // Fetch up to 20 pending items across all users
+        $stmt = $db->query("
+            SELECT q.*, a.access_token, a.phone_number_id
+            FROM whatsapp_queue q
+            JOIN whatsapp_accounts a ON q.user_id = a.user_id AND a.status = 'connected'
+            WHERE q.status = 'pending' AND (q.scheduled_at <= NOW() OR q.scheduled_at IS NULL)
+            ORDER BY q.created_at ASC
+            LIMIT 20
+        ");
+        $pendingItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $count = count($pendingItems);
+        if ($count === 0) {
+            return 0;
+        }
+        
+        $processedCount = 0;
+        foreach ($pendingItems as $item) {
+            $queueId = (int)$item['id'];
+            $userId = (int)$item['user_id'];
+            $phoneNumberId = $item['phone_number_id'];
+            $recipient = $item['recipient_number'];
+            $type = $item['type'];
+            $attempts = (int)$item['attempts'];
+            
+            // Mark as processing
+            $db->prepare("UPDATE whatsapp_queue SET status = 'processing', attempts = attempts + 1 WHERE id = ?")->execute([$queueId]);
+            
+            $payload = json_decode($item['payload_json'], true) ?: [];
+            
+            // Get Decrypted Token
+            $encryptedToken = $item['access_token'];
+            $decrypted = decryptData($encryptedToken);
+            $accessToken = ($decrypted !== false) ? $decrypted : $encryptedToken;
+            
+            try {
+                $response = null;
+                if ($type === 'text') {
+                    $body = $payload['body'] ?? '';
+                    $response = WhatsAppMetaService::sendTextMessage($userId, $phoneNumberId, $recipient, $body, $accessToken);
+                } elseif ($type === 'template') {
+                    $tplName = $payload['template_name'] ?? '';
+                    $tplLang = $payload['language_code'] ?? 'en';
+                    $tplComponents = $payload['components'] ?? [];
+                    $response = WhatsAppMetaService::sendTemplateMessage($userId, $phoneNumberId, $recipient, $tplName, $tplLang, $tplComponents, $accessToken);
+                } elseif (in_array($type, ['image', 'video', 'document', 'audio'])) {
+                    $mediaId = $payload['media_id'] ?? '';
+                    $filename = $payload['filename'] ?? null;
+                    $response = WhatsAppMetaService::sendMediaMessage($userId, $phoneNumberId, $recipient, $type, $mediaId, $filename, $accessToken);
+                } else {
+                    throw new Exception("Unsupported WhatsApp queue dispatch type: " . $type);
+                }
+                
+                // Success
+                $metaMsgId = $response['messages'][0]['id'] ?? '';
+                
+                $db->beginTransaction();
+                try {
+                    // Update queue status
+                    $db->prepare("UPDATE whatsapp_queue SET status = 'sent', error_message = NULL WHERE id = ?")->execute([$queueId]);
+                    
+                    // Create/Find WhatsApp Contact
+                    $stmtContact = $db->prepare("SELECT id FROM whatsapp_contacts WHERE user_id = ? AND wa_id = ?");
+                    $stmtContact->execute([$userId, $recipient]);
+                    $waContactId = $stmtContact->fetchColumn();
+                    
+                    if (!$waContactId) {
+                        // Create basic contact
+                        $stmtCrmCon = $db->prepare("SELECT id FROM crm_contacts WHERE (phone = ? OR whatsapp = ?) AND user_id = ? LIMIT 1");
+                        $stmtCrmCon->execute([$recipient, $recipient, $userId]);
+                        $crmContactId = $stmtCrmCon->fetchColumn() ?: null;
+                        
+                        $stmtInsWaCon = $db->prepare("INSERT INTO whatsapp_contacts (user_id, contact_id, wa_id, profile_name, last_message_at, unread_count) VALUES (?, ?, ?, ?, NOW(), 0)");
+                        $stmtInsWaCon->execute([$userId, $crmContactId, $recipient, 'WhatsApp Contact']);
+                        $waContactId = (int)$db->lastInsertId();
+                    }
+                    
+                    // Save Outbound Message Log
+                    $bodyText = $payload['body'] ?? ($payload['template_name'] ?? "Outbound " . ucfirst($type));
+                    $stmtInsMsg = $db->prepare("INSERT INTO whatsapp_messages (user_id, wa_contact_id, message_id, direction, type, body, status) VALUES (?, ?, ?, 'outbound', ?, ?, 'sent')");
+                    $stmtInsMsg->execute([$userId, $waContactId, $metaMsgId, $type, $bodyText]);
+                    
+                    // Hook to campaign logs if matching
+                    $campaignLogId = isset($payload['campaign_log_id']) ? (int)$payload['campaign_log_id'] : null;
+                    if ($campaignLogId) {
+                        $db->prepare("UPDATE whatsapp_campaign_logs SET message_id = ?, status = 'sent', sent_at = NOW() WHERE id = ?")->execute([$metaMsgId, $campaignLogId]);
+                    }
+                    
+                    $db->commit();
+                    $processedCount++;
+                } catch (Exception $trxEx) {
+                    $db->rollBack();
+                    throw $trxEx;
+                }
+                
+            } catch (Throwable $e) {
+                // Failure handler
+                $statusVal = ($attempts >= 2) ? 'failed' : 'pending';
+                $db->prepare("UPDATE whatsapp_queue SET status = ?, error_message = ? WHERE id = ?")->execute([$statusVal, $e->getMessage(), $queueId]);
+                
+                $campaignLogId = isset($payload['campaign_log_id']) ? (int)$payload['campaign_log_id'] : null;
+                if ($campaignLogId && $statusVal === 'failed') {
+                    $db->prepare("UPDATE whatsapp_campaign_logs SET status = 'failed', error_message = ? WHERE id = ?")->execute([$e->getMessage(), $campaignLogId]);
+                }
             }
         }
         

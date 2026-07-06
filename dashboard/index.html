@@ -49,6 +49,49 @@
                     </div>
                     <span id="sidebar-conversations-unread-badge" class="bg-blue-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full hidden">0</span>
                 </a>
+                
+                <!-- WhatsApp Module Collapsible Menu -->
+                <div class="space-y-1 mt-1">
+                    <button onclick="toggleWhatsAppMenu()" class="w-full flex items-center justify-between sidebar-nav-link text-slate-300 transition duration-150 focus:outline-none bg-slate-900/30">
+                        <div class="flex items-center">
+                            <i data-lucide="message-circle" class="h-4 w-4 mr-2.5 text-emerald-500"></i>
+                            <span class="font-bold text-slate-200">WhatsApp</span>
+                        </div>
+                        <i id="wa-chevron" data-lucide="chevron-down" class="h-3.5 w-3.5 transform transition-transform duration-200"></i>
+                    </button>
+                    <div id="whatsapp-submenu" class="hidden pl-6 space-y-1 text-[11px]">
+                        <a href="#/whatsapp-dashboard" class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
+                            <i data-lucide="layout-dashboard" class="h-3 w-3 mr-2 shrink-0"></i>Dashboard
+                        </a>
+                        <a href="#/whatsapp-inbox" class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition justify-between">
+                            <div class="flex items-center">
+                                <i data-lucide="message-square" class="h-3 w-3 mr-2 shrink-0"></i>Inbox
+                            </div>
+                        </a>
+                        <a href="#/whatsapp-contacts" class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
+                            <i data-lucide="users" class="h-3 w-3 mr-2 shrink-0"></i>Contacts
+                        </a>
+                        <a href="#/whatsapp-campaigns" class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
+                            <i data-lucide="megaphone" class="h-3 w-3 mr-2 shrink-0"></i>Campaigns
+                        </a>
+                        <a href="#/whatsapp-templates" class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
+                            <i data-lucide="file-text" class="h-3 w-3 mr-2 shrink-0"></i>Templates
+                        </a>
+                        <a href="#/whatsapp-broadcast" class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
+                            <i data-lucide="send" class="h-3 w-3 mr-2 shrink-0"></i>Broadcast
+                        </a>
+                        <a href="#/whatsapp-automation" class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
+                            <i data-lucide="workflow" class="h-3 w-3 mr-2 shrink-0"></i>Automation
+                        </a>
+                        <a href="#/whatsapp-reports" class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
+                            <i data-lucide="line-chart" class="h-3 w-3 mr-2 shrink-0"></i>Reports
+                        </a>
+                        <a href="#/whatsapp-settings" class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
+                            <i data-lucide="settings-2" class="h-3 w-3 mr-2 shrink-0"></i>Settings
+                        </a>
+                    </div>
+                </div>
+                
                 <a href="#/leads" class="sidebar-nav-link text-slate-300 transition duration-150">
                     <i data-lucide="user-plus" class="h-4 w-4 mr-2.5"></i><span>Leads</span>
                 </a>
@@ -319,6 +362,20 @@
 
     <!-- Scripts integrations -->
     <script src="assets/js/app.js?v=1.0.8"></script>
+    <script src="assets/js/whatsapp.js?v=1.0.0"></script>
     <script src="assets/js/crm.js?v=1.0.9"></script>
+    <script>
+        function toggleWhatsAppMenu() {
+            const menu = document.getElementById('whatsapp-submenu');
+            const chev = document.getElementById('wa-chevron');
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                chev.classList.add('rotate-180');
+            } else {
+                menu.classList.add('hidden');
+                chev.classList.remove('rotate-180');
+            }
+        }
+    </script>
 </body>
 </html>

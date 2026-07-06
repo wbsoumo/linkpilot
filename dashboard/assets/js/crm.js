@@ -1382,17 +1382,52 @@ function renderSyncStatus(container, data) {
             const logs = syncData.logs || [];
             const logsBody = logs.length > 0 ? logs.map(l => {
                 const date = new Date(l.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-                const isErr = l.status === 'error';
+                
+                // Clean up details message to remove internal system errors / noise
+                let cleanMsg = l.message || '';
+                if (l.status === 'error') {
+                    if (cleanMsg.includes('Rate limit') || cleanMsg.includes('429') || cleanMsg.includes('limit of')) {
+                        cleanMsg = 'System busy (AI Rate Limit). Retrying shortly.';
+                    } else if (cleanMsg.includes('Connection') || cleanMsg.includes('IMAP')) {
+                        cleanMsg = 'Mail Server Connection issue. Retrying connection.';
+                    } else {
+                        cleanMsg = 'AI analysis paused. Retrying shortly.';
+                    }
+                } else if (l.status === 'pending') {
+                    cleanMsg = 'Queued for background AI processing.';
+                } else if (l.status === 'processed' || l.status === 'success') {
+                    if (cleanMsg.includes('Auto-filtered')) {
+                        const catMatch = cleanMsg.match(/Auto-filtered.*:\s*([\w\s]+)/);
+                        const categoryName = catMatch ? catMatch[1].trim() : 'Newsletter/Spam';
+                        cleanMsg = `Auto-filtered: ${categoryName} (Bypassed AI)`;
+                    } else {
+                        cleanMsg = 'Email successfully processed & synced.';
+                    }
+                }
+
+                // Show user friendly status labels
+                let statusLabel = l.status || '';
+                if (statusLabel === 'processed') statusLabel = 'success';
+                const isSuccess = statusLabel === 'success';
+                const isPending = statusLabel === 'pending';
+
+                let statusColorClass = 'bg-red-500/10 text-red-400 border border-red-500/20';
+                if (isSuccess) {
+                    statusColorClass = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+                } else if (isPending) {
+                    statusColorClass = 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+                }
+
                 return `
                     <tr class="hover:bg-slate-900/40">
                         <td class="py-2.5 px-4 font-semibold text-white max-w-[200px] truncate" title="${l.email_subject || ''}">${l.email_subject || '(Sync Connection)'}</td>
                         <td class="py-2.5 px-4 text-slate-300 font-medium">${l.sender || 'System'}</td>
                         <td class="py-2.5 px-4">
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isErr ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-green-500/10 text-green-400 border border-green-500/20'}">
-                                ${l.status.toUpperCase()}
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusColorClass}">
+                                ${statusLabel.toUpperCase()}
                             </span>
                         </td>
-                        <td class="py-2.5 px-4 text-slate-400">${l.message}</td>
+                        <td class="py-2.5 px-4 text-slate-400">${cleanMsg}</td>
                         <td class="py-2.5 px-4 text-slate-400 font-bold">${l.tokens_used || 0}</td>
                         <td class="py-2.5 px-4 text-slate-500 font-mono text-[10px]">${date}</td>
                     </tr>
@@ -1407,7 +1442,7 @@ function renderSyncStatus(container, data) {
                     </div>
 
                     <!-- Scheduler Statistics widget row -->
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-5 gap-4">
                         <div class="glass-panel p-5 bg-slate-900/40 flex items-center justify-between">
                             <div>
                                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Service Status</span>
@@ -1416,6 +1451,10 @@ function renderSyncStatus(container, data) {
                                 </span>
                             </div>
                             <button onclick="toggleSyncActiveState(false, this)" class="px-2.5 py-1 bg-red-950/20 border border-red-950 text-red-400 text-[10px] font-bold rounded-lg hover:bg-red-900/20 transition">Pause Sync</button>
+                        </div>
+                        <div class="glass-panel p-5 bg-slate-900/40">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Synced</span>
+                            <span class="text-sm font-extrabold text-indigo-400 mt-1 block">${syncData.total_emails || 0} Emails</span>
                         </div>
                         <div class="glass-panel p-5 bg-slate-900/40">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Last Sync Run</span>
@@ -1428,7 +1467,7 @@ function renderSyncStatus(container, data) {
                         <div class="glass-panel p-5 bg-slate-900/40 flex items-center justify-between">
                             <div>
                                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sync Frequency</span>
-                                <span class="text-sm font-extrabold text-indigo-400 mt-1 block">Every ${set.sync_interval_minutes || 60} Minutes</span>
+                                <span class="text-sm font-extrabold text-indigo-400 mt-1 block">Every ${set.sync_interval_minutes || 60} Min</span>
                             </div>
                             <button onclick="wizardStep=5; navigateTo('email-intelligence')" class="p-1 text-slate-400 hover:text-white transition"><i data-lucide="edit-3" class="h-4 w-4"></i></button>
                         </div>

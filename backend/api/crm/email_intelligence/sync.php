@@ -20,8 +20,17 @@ try {
         $stmtSettings->execute([$userId]);
         $settings = $stmtSettings->fetch();
         
-        // Fetch processing logs
-        $stmtLogs = $db->prepare("SELECT * FROM email_processing_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT 20");
+        // Fetch processing logs, grouping by email and selecting the latest status for each to prevent duplicate rows
+        $stmtLogs = $db->prepare("
+            SELECT l1.* FROM email_processing_logs l1
+            JOIN (
+                SELECT MAX(id) as max_id 
+                FROM email_processing_logs 
+                WHERE user_id = ? 
+                GROUP BY COALESCE(email_subject, ''), COALESCE(sender, ''), (CASE WHEN email_subject IS NULL AND sender IS NULL THEN id ELSE 0 END)
+            ) l2 ON l1.id = l2.max_id
+            ORDER BY l1.created_at DESC LIMIT 20
+        ");
         $stmtLogs->execute([$userId]);
         $logs = $stmtLogs->fetchAll();
         

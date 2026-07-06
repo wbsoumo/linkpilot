@@ -20,16 +20,21 @@ try {
         $stmtSettings->execute([$userId]);
         $settings = $stmtSettings->fetch();
         
-        // Fetch processing logs, grouping by email and selecting the latest status for each to prevent duplicate rows
+        // Fetch processing logs, grouping by minute to summarize sync runs
         $stmtLogs = $db->prepare("
-            SELECT l1.* FROM email_processing_logs l1
-            JOIN (
-                SELECT MAX(id) as max_id 
-                FROM email_processing_logs 
-                WHERE user_id = ? 
-                GROUP BY COALESCE(email_subject, ''), COALESCE(sender, ''), (CASE WHEN email_subject IS NULL AND sender IS NULL THEN id ELSE 0 END)
-            ) l2 ON l1.id = l2.max_id
-            ORDER BY l1.created_at DESC LIMIT 20
+            SELECT 
+                DATE_FORMAT(created_at, '%Y-%m-%d %H:%i') as sync_minute,
+                MAX(created_at) as created_at,
+                SUM(CASE WHEN status = 'error' THEN 1 ELSE 0 END) as error_count,
+                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_count,
+                SUM(CASE WHEN status IN ('success', 'processed') THEN 1 ELSE 0 END) as success_count,
+                SUM(tokens_used) as total_tokens,
+                MAX(CASE WHEN email_subject IS NULL AND sender IS NULL THEN message ELSE NULL END) as connection_message
+            FROM email_processing_logs
+            WHERE user_id = ?
+            GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d %H:%i')
+            ORDER BY created_at DESC
+            LIMIT 20
         ");
         $stmtLogs->execute([$userId]);
         $logs = $stmtLogs->fetchAll();

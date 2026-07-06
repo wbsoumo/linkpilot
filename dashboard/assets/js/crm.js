@@ -1383,56 +1383,57 @@ function renderSyncStatus(container, data) {
             const logsBody = logs.length > 0 ? logs.map(l => {
                 const date = new Date(l.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
                 
-                // Clean up details message to remove internal system errors / noise
-                let cleanMsg = l.message || '';
-                if (l.status === 'error') {
-                    if (cleanMsg.includes('Rate limit') || cleanMsg.includes('429') || cleanMsg.includes('limit of')) {
-                        cleanMsg = 'System busy (AI Rate Limit). Retrying shortly.';
-                    } else if (cleanMsg.includes('Connection') || cleanMsg.includes('IMAP')) {
+                // Construct user friendly message based on counts of emails synced
+                let cleanMsg = '';
+                let statusLabel = 'success';
+                let statusColorClass = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+
+                const errs = parseInt(l.error_count || 0);
+                const pends = parseInt(l.pending_count || 0);
+                const succs = parseInt(l.success_count || 0);
+                const total = errs + pends + succs;
+
+                if (l.connection_message) {
+                    statusLabel = 'error';
+                    statusColorClass = 'bg-red-500/10 text-red-400 border border-red-500/20';
+                    if (l.connection_message.includes('Connection') || l.connection_message.includes('IMAP')) {
                         cleanMsg = 'Mail Server Connection issue. Retrying connection.';
                     } else {
-                        cleanMsg = 'AI analysis paused. Retrying shortly.';
+                        cleanMsg = 'Synchronizer connection error. Retrying shortly.';
                     }
-                } else if (l.status === 'pending') {
-                    cleanMsg = 'Queued for background AI processing.';
-                } else if (l.status === 'processed' || l.status === 'success') {
-                    if (cleanMsg.includes('Auto-filtered')) {
-                        const catMatch = cleanMsg.match(/Auto-filtered.*:\s*([\w\s]+)/);
-                        const categoryName = catMatch ? catMatch[1].trim() : 'Newsletter/Spam';
-                        cleanMsg = `Auto-filtered: ${categoryName} (Bypassed AI)`;
+                } else {
+                    if (errs > 0 && succs > 0) {
+                        statusLabel = 'warning';
+                        statusColorClass = 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+                        cleanMsg = `Synchronized ${succs} email${succs > 1 ? 's' : ''} successfully. ${errs} email${errs > 1 ? 's' : ''} failed due to rate limits.`;
+                    } else if (errs > 0 && succs === 0) {
+                        statusLabel = 'error';
+                        statusColorClass = 'bg-red-500/10 text-red-400 border border-red-500/20';
+                        cleanMsg = `Synchronization attempted but failed to parse ${errs} email${errs > 1 ? 's' : ''} (System Busy/Rate Limits).`;
+                    } else if (pends > 0 && succs === 0) {
+                        statusLabel = 'pending';
+                        statusColorClass = 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+                        cleanMsg = `Queued ${pends} email${pends > 1 ? 's' : ''} for background analysis.`;
                     } else {
-                        cleanMsg = 'Email successfully processed & synced.';
+                        statusLabel = 'success';
+                        statusColorClass = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+                        cleanMsg = `Successfully synchronized and analyzed ${succs} email${succs > 1 ? 's' : ''}.`;
                     }
-                }
-
-                // Show user friendly status labels
-                let statusLabel = l.status || '';
-                if (statusLabel === 'processed') statusLabel = 'success';
-                const isSuccess = statusLabel === 'success';
-                const isPending = statusLabel === 'pending';
-
-                let statusColorClass = 'bg-red-500/10 text-red-400 border border-red-500/20';
-                if (isSuccess) {
-                    statusColorClass = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
-                } else if (isPending) {
-                    statusColorClass = 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
                 }
 
                 return `
                     <tr class="hover:bg-slate-900/40">
-                        <td class="py-2.5 px-4 font-semibold text-white max-w-[200px] truncate" title="${l.email_subject || ''}">${l.email_subject || '(Sync Connection)'}</td>
-                        <td class="py-2.5 px-4 text-slate-300 font-medium">${l.sender || 'System'}</td>
                         <td class="py-2.5 px-4">
                             <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusColorClass}">
                                 ${statusLabel.toUpperCase()}
                             </span>
                         </td>
-                        <td class="py-2.5 px-4 text-slate-400">${cleanMsg}</td>
-                        <td class="py-2.5 px-4 text-slate-400 font-bold">${l.tokens_used || 0}</td>
+                        <td class="py-2.5 px-4 text-slate-300 font-medium">${cleanMsg}</td>
+                        <td class="py-2.5 px-4 text-slate-400 font-bold">${l.total_tokens || 0}</td>
                         <td class="py-2.5 px-4 text-slate-500 font-mono text-[10px]">${date}</td>
                     </tr>
                 `;
-            }).join('') : `<tr><td colspan="6" class="text-center py-6 text-slate-500 text-xs">No processing logs generated yet.</td></tr>`;
+            }).join('') : `<tr><td colspan="4" class="text-center py-6 text-slate-500 text-xs">No processing logs generated yet.</td></tr>`;
 
             container.innerHTML = `
                 <div class="space-y-8 animate-fade-in pt-4">
@@ -1496,8 +1497,6 @@ function renderSyncStatus(container, data) {
                             <table class="w-full text-left border-collapse text-xs custom-table">
                                 <thead>
                                     <tr class="border-b border-slate-800">
-                                        <th class="py-3 px-4">Subject</th>
-                                        <th class="py-3 px-4">Sender</th>
                                         <th class="py-3 px-4">Status</th>
                                         <th class="py-3 px-4">Details</th>
                                         <th class="py-3 px-4">Tokens</th>

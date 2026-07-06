@@ -160,131 +160,33 @@ try {
         }
     }
     
-    elseif ($method === 'VERIFY_BUSINESS_ID') {
+    elseif ($method === 'VERIFY_WABA') {
         $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
         $accessToken = trim($input['access_token'] ?? '');
-        $businessId = trim($input['business_id'] ?? '');
+        $wabaId = trim($input['waba_id'] ?? '');
         
-        if (empty($businessId)) {
-            sendJsonResponse('error', 'Business ID is required.', [], 400);
+        if (empty($wabaId)) {
+            sendJsonResponse('error', 'WABA ID is required.', [], 400);
         }
         
         $isMock = (strpos($accessToken, 'Mock') !== false || strpos($accessToken, 'EAAGemini') !== false);
         if ($isMock) {
-            sendJsonResponse('success', 'Business verified successfully.', [
-                'business_id' => $businessId,
-                'business_name' => 'Taskbazi Corp (Mock)'
+            sendJsonResponse('success', 'WABA verified successfully.', [
+                'waba_id' => $wabaId,
+                'waba_name' => 'Taskbazi Main Account (Mock)',
+                'waba_status' => 'APPROVED'
             ]);
         }
         
         try {
-            $bizDetails = WhatsAppMetaService::getBusinessDetails($businessId, $accessToken);
-            sendJsonResponse('success', 'Business verified successfully.', [
-                'business_id' => $bizDetails['id'] ?? $businessId,
-                'business_name' => $bizDetails['name'] ?? 'Business Manager'
+            $w = WhatsAppMetaService::executeRequest("{$wabaId}?fields=id,name,status", "GET", null, $accessToken);
+            sendJsonResponse('success', 'WABA verified successfully.', [
+                'waba_id' => $w['id'] ?? $wabaId,
+                'waba_name' => $w['name'] ?? 'WhatsApp Business Account',
+                'waba_status' => $w['status'] ?? 'unknown'
             ]);
-        } catch (Exception $e) {
-            sendJsonResponse('error', 'Business verification failed: Permission denied or invalid Business ID.', [], 400);
-        }
-    }
-    
-    elseif ($method === 'GET_OWNED_WABAS') {
-        $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
-        $accessToken = trim($input['access_token'] ?? '');
-        $businessId = trim($input['business_id'] ?? '');
-        
-        if (empty($businessId)) {
-            sendJsonResponse('error', 'Business ID is required.', [], 400);
-        }
-        
-        $isMock = (strpos($accessToken, 'Mock') !== false || strpos($accessToken, 'EAAGemini') !== false);
-        if ($isMock) {
-            sendJsonResponse('success', 'WABA accounts loaded.', [
-                'wabas' => [
-                    [
-                        'id' => 'WABA_MOCK_112',
-                        'name' => 'Taskbazi Main Account (Mock)',
-                        'status' => 'APPROVED',
-                        'phone_count' => 1
-                    ]
-                ]
-            ]);
-        }
-        
-        try {
-            $wabaData = WhatsAppMetaService::getOwnedWabas($businessId, $accessToken);
-            $wabas = [];
-            if (!empty($wabaData['data'])) {
-                foreach ($wabaData['data'] as $w) {
-                    $phoneCount = 0;
-                    try {
-                        $phoneData = WhatsAppMetaService::getPhoneNumbers($w['id'], $accessToken);
-                        $phoneCount = count($phoneData['data'] ?? []);
-                    } catch (Exception $e) {}
-                    
-                    $wabas[] = [
-                        'id' => $w['id'],
-                        'name' => $w['name'] ?? 'WhatsApp Business Account',
-                        'status' => $w['status'] ?? 'unknown',
-                        'phone_count' => $phoneCount
-                    ];
-                }
-            }
-            sendJsonResponse('success', 'Owned WhatsApp accounts retrieved.', [
-                'wabas' => $wabas
-            ]);
-        } catch (Exception $e) {
-            sendJsonResponse('error', 'Failed retrieving owned WABAs: ' . $e->getMessage(), [], 400);
-        }
-    }
-    
-    elseif ($method === 'GET_CLIENT_WABAS') {
-        $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
-        $accessToken = trim($input['access_token'] ?? '');
-        $businessId = trim($input['business_id'] ?? '');
-        
-        if (empty($businessId)) {
-            sendJsonResponse('error', 'Business ID is required.', [], 400);
-        }
-        
-        $isMock = (strpos($accessToken, 'Mock') !== false || strpos($accessToken, 'EAAGemini') !== false);
-        if ($isMock) {
-            sendJsonResponse('success', 'WABA accounts loaded.', [
-                'wabas' => [
-                    [
-                        'id' => 'WABA_MOCK_CLIENT_99',
-                        'name' => 'LinkPilot Client WABA (Mock)',
-                        'status' => 'APPROVED',
-                        'phone_count' => 1
-                    ]
-                ]
-            ]);
-        }
-        
-        try {
-            $wabaData = WhatsAppMetaService::getClientWabas($businessId, $accessToken);
-            $wabas = [];
-            if (!empty($wabaData['data'])) {
-                foreach ($wabaData['data'] as $w) {
-                    $phoneCount = 0;
-                    try {
-                        $phoneData = WhatsAppMetaService::getPhoneNumbers($w['id'], $accessToken);
-                        $phoneCount = count($phoneData['data'] ?? []);
-                    } catch (Exception $e) {}
-                    
-                    $wabas[] = [
-                        'id' => $w['id'],
-                        'name' => $w['name'] ?? 'Client WhatsApp Business Account',
-                        'status' => $w['status'] ?? 'unknown',
-                        'phone_count' => $phoneCount
-                    ];
-                }
-            }
-            sendJsonResponse('success', 'Client WhatsApp accounts retrieved.', [
-                'wabas' => $wabas
-            ]);
-        } catch (Exception $e) {
-            sendJsonResponse('error', 'Failed retrieving client WABAs: ' . $e->getMessage(), [], 400);
+        } catch (Throwable $e) {
+            sendJsonResponse('error', 'WABA verification failed: WABA ID not found or permission denied.', [], 400);
         }
     }
     
@@ -339,7 +241,6 @@ try {
     elseif ($method === 'HEALTH_CHECK') {
         $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
         $accessToken = trim($input['access_token'] ?? '');
-        $businessId = trim($input['business_id'] ?? '');
         $wabaId = trim($input['waba_id'] ?? '');
         $phoneNumberId = trim($input['phone_number_id'] ?? '');
         
@@ -352,14 +253,13 @@ try {
             sendJsonResponse('success', 'Health check diagnostics succeeded.', [
                 'checklist' => [
                     'token_valid' => true,
-                    'business_found' => true,
                     'waba_found' => true,
                     'phone_found' => true,
                     'cloud_api_enabled' => true,
                     'ready_to_send' => true
                 ],
                 'details' => [
-                    'business_name' => 'Taskbazi Corp (Mock)',
+                    'business_name' => 'WABA Mock parent',
                     'waba_name' => 'Taskbazi Main Account',
                     'phone_number' => '+1 (555) 019-2834',
                     'messaging_limit' => '1000/day',
@@ -372,7 +272,6 @@ try {
         
         $checklist = [
             'token_valid' => false,
-            'business_found' => !empty($businessId),
             'waba_found' => false,
             'phone_found' => false,
             'cloud_api_enabled' => false,
@@ -417,14 +316,8 @@ try {
                 }
             }
             
-            // 4. Resolve Business Name
-            $businessName = 'Business Manager';
-            if (!empty($businessId)) {
-                try {
-                    $biz = WhatsAppMetaService::getBusinessDetails($businessId, $accessToken);
-                    $businessName = $biz['name'] ?? 'Business Manager';
-                } catch (Exception $bizEx) {}
-            }
+            // 4. Resolve Business Name from WABA info if available, else use WABA name
+            $businessName = $wabaName;
             
             $limitMap = [
                 'TIER_50' => '50/day',
@@ -448,7 +341,7 @@ try {
                     'status' => $phoneStatus
                 ]
             ]);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             sendJsonResponse('error', 'Diagnostics check failed: ' . $e->getMessage(), [
                 'checklist' => $checklist
             ], 400);

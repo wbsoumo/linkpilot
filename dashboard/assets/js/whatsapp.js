@@ -54,30 +54,24 @@ async function checkWaConnectionAndRender(viewName, container, renderFn) {
 function renderWhatsAppSetup(container, settings) {
     let currentStep = 1;
     let accessToken = '';
-    let businessId = '';
+    let wabaId = '';
     
     // Discovered Assets
-    let businesses = [];
-    let wabas = [];
     let phones = [];
     
     // Selections
-    let selectedBiz = null;
     let selectedWaba = null;
     let selectedPhone = null;
     
     // Status metrics
     let tokenVerifiedInfo = null;
     let verifyError = '';
-    let businessVerifiedInfo = null;
-    let businessError = '';
+    let wabaVerifiedInfo = null;
+    let wabaError = '';
     let healthChecklist = null;
     let healthDetails = null;
     let healthError = '';
     let connectedDetails = {};
-    
-    // Search filters
-    let businessSearch = '';
 
     function drawWizard() {
         let stepHtml = '';
@@ -126,7 +120,7 @@ function renderWhatsAppSetup(container, settings) {
                         
                         <div class="pt-4 flex justify-between">
                             <button onclick="goWizardStep(1); tokenVerifiedInfo = null;" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Change Token</button>
-                            <button onclick="goWizardStep(2)" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">Next: Business ID →</button>
+                            <button onclick="goWizardStep(2)" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">Next: WABA ID →</button>
                         </div>
                     </div>
                 `;
@@ -166,42 +160,46 @@ function renderWhatsAppSetup(container, settings) {
         } 
         
         else if (currentStep === 2) {
-            if (businessError) {
+            if (wabaError) {
                 stepHtml = `
                     <div class="space-y-4 py-2 text-center">
                         <div class="h-10 w-10 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mx-auto text-base font-bold">✕</div>
                         <div>
-                            <h3 class="text-xs font-bold text-slate-800">Business Verification Failed</h3>
-                            <p class="text-xs text-rose-500 mt-2 bg-rose-50 border border-rose-100 rounded-lg p-3 text-left font-semibold">${businessError}</p>
+                            <h3 class="text-xs font-bold text-slate-800">WABA Verification Failed</h3>
+                            <p class="text-xs text-rose-500 mt-2 bg-rose-50 border border-rose-100 rounded-lg p-3 text-left font-semibold">${wabaError}</p>
                         </div>
                         <div class="pt-4 flex justify-between">
-                            <button onclick="clearBusinessError()" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
-                            <button onclick="verifyBusinessId()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">Retry Verification</button>
+                            <button onclick="clearWabaError()" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
+                            <button onclick="verifyWabaId()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">Retry Verification</button>
                         </div>
                     </div>
                 `;
-            } else if (businessVerifiedInfo) {
+            } else if (wabaVerifiedInfo) {
                 stepHtml = `
                     <div class="space-y-4 py-2">
                         <div class="text-center">
                             <div class="h-10 w-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto text-base font-bold">✓</div>
-                            <h3 class="text-xs font-bold text-emerald-600 mt-2">✓ Business Account Verified</h3>
+                            <h3 class="text-xs font-bold text-emerald-600 mt-2">✓ WABA Verified Successfully</h3>
                         </div>
                         
                         <div class="bg-slate-50 border border-slate-100 rounded-xl p-4 text-xs space-y-2.5 max-w-xs mx-auto">
                             <div class="flex justify-between border-b border-slate-200/50 pb-1.5">
-                                <span class="text-slate-500 font-semibold">Business Name</span>
-                                <span class="text-slate-800 font-bold">${businessVerifiedInfo.business_name}</span>
+                                <span class="text-slate-500 font-semibold">WABA Name</span>
+                                <span class="text-slate-800 font-bold">${wabaVerifiedInfo.waba_name}</span>
+                            </div>
+                            <div class="flex justify-between border-b border-slate-200/50 pb-1.5">
+                                <span class="text-slate-500 font-semibold">WABA ID</span>
+                                <span class="text-slate-800 font-bold font-mono text-[10px]">${wabaVerifiedInfo.waba_id}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-slate-500 font-semibold">Business ID</span>
-                                <span class="text-slate-800 font-bold font-mono text-[10px]">${businessVerifiedInfo.business_id}</span>
+                                <span class="text-slate-500 font-semibold">Status</span>
+                                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[9px] uppercase">${wabaVerifiedInfo.waba_status}</span>
                             </div>
                         </div>
                         
                         <div class="pt-4 flex justify-between">
-                            <button onclick="goWizardStep(2); businessVerifiedInfo = null;" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Change ID</button>
-                            <button onclick="fetchWabas()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">Next: Select WABA →</button>
+                            <button onclick="goWizardStep(2); wabaVerifiedInfo = null;" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Change ID</button>
+                            <button onclick="fetchPhones()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">Next: Select Phone →</button>
                         </div>
                     </div>
                 `;
@@ -209,21 +207,21 @@ function renderWhatsAppSetup(container, settings) {
                 stepHtml = `
                     <div class="space-y-4">
                         <div class="text-center pb-2">
-                            <h3 class="text-sm font-bold text-slate-800">Meta Business ID</h3>
-                            <p class="text-xs text-slate-500 mt-1">Specify your Meta Business Manager Account ID.</p>
+                            <h3 class="text-sm font-bold text-slate-800">WhatsApp Business Account ID</h3>
+                            <p class="text-xs text-slate-500 mt-1">Specify your WhatsApp Business Account (WABA) ID.</p>
                         </div>
                         
                         <div class="space-y-3.5 text-left">
                             <div>
-                                <label class="block text-slate-600 font-semibold text-[11px] mb-1">Meta Business Manager ID</label>
-                                <input type="text" id="wa-business-id" value="${businessId}" placeholder="e.g. 123456789012345" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500 font-mono">
+                                <label class="block text-slate-600 font-semibold text-[11px] mb-1">WABA ID</label>
+                                <input type="text" id="wa-waba-id" value="${wabaId}" placeholder="e.g. 718557" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500 font-mono">
                             </div>
                         </div>
                         
                         <div class="pt-4 flex justify-between">
                             <button onclick="goWizardStep(1)" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
-                            <button id="btn-verify-business" onclick="verifyBusinessId()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">
-                                Verify Business Manager
+                            <button id="btn-verify-waba" onclick="verifyWabaId()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">
+                                Verify WABA Account
                             </button>
                         </div>
                     </div>
@@ -232,39 +230,6 @@ function renderWhatsAppSetup(container, settings) {
         }
         
         else if (currentStep === 3) {
-            // Select WABA Account
-            stepHtml = `
-                <div class="space-y-4">
-                    <div>
-                        <h3 class="text-xs font-bold text-slate-800">Choose WhatsApp Business Account</h3>
-                        <p class="text-[11px] text-slate-500 mt-0.5">Select the WhatsApp Business Account (WABA) to link.</p>
-                    </div>
-                    
-                    <div class="space-y-2.5 max-h-56 overflow-y-auto pr-1">
-                        ${wabas.map(w => `
-                            <div onclick="selectWaba('${w.id}')" class="p-3 border rounded-xl cursor-pointer transition flex justify-between items-center ${selectedWaba && selectedWaba.id === w.id ? 'border-blue-500 bg-blue-50/20' : 'border-slate-200 hover:bg-slate-50/60'}">
-                                <div class="space-y-0.5 text-left">
-                                    <div class="text-xs text-slate-700 font-extrabold">${w.name}</div>
-                                    <div class="text-[10px] text-slate-400 font-semibold font-mono">WABA ID: ${w.id}</div>
-                                    <div class="text-[10px] text-slate-500 font-medium">Phones count: ${w.phone_count}</div>
-                                </div>
-                                <div class="text-right">
-                                    <span class="px-2 py-0.5 text-[9px] font-bold rounded ${w.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${w.status}</span>
-                                </div>
-                            </div>
-                        `).join('')}
-                        ${wabas.length === 0 ? '<p class="text-xs text-slate-400 text-center py-4">No WhatsApp Business Accounts found in this Business Manager.</p>' : ''}
-                    </div>
-                    
-                    <div class="pt-4 flex justify-between">
-                        <button onclick="goWizardStep(2)" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
-                        <button onclick="fetchPhones()" ${!selectedWaba ? 'disabled' : ''} class="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-lg transition shadow-md">Next: Select Phone →</button>
-                    </div>
-                </div>
-            `;
-        }
-        
-        else if (currentStep === 4) {
             // Select Phone Number
             stepHtml = `
                 <div class="space-y-4">
@@ -296,14 +261,14 @@ function renderWhatsAppSetup(container, settings) {
                     </div>
                     
                     <div class="pt-4 flex justify-between">
-                        <button onclick="goWizardStep(3)" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
+                        <button onclick="goWizardStep(2)" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
                         <button onclick="triggerHealthCheck()" ${!selectedPhone ? 'disabled' : ''} class="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-lg transition shadow-md">Next: Health Check →</button>
                     </div>
                 </div>
             `;
         }
         
-        else if (currentStep === 5) {
+        else if (currentStep === 4) {
             // Connection Health Check
             if (healthError) {
                 stepHtml = `
@@ -314,7 +279,7 @@ function renderWhatsAppSetup(container, settings) {
                             <p class="text-xs text-rose-500 mt-2 bg-rose-50 border border-rose-100 rounded-lg p-3 text-left font-semibold">${healthError}</p>
                         </div>
                         <div class="pt-4 flex justify-between">
-                            <button onclick="goWizardStep(4)" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
+                            <button onclick="goWizardStep(3)" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
                             <button onclick="triggerHealthCheck()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">Retry Diagnostics</button>
                         </div>
                     </div>
@@ -347,7 +312,6 @@ function renderWhatsAppSetup(container, settings) {
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2 bg-slate-50/50 border border-slate-100 p-4 rounded-2xl max-w-sm mx-auto">
                             ${renderCheck(healthChecklist.token_valid, 'Access Token Valid')}
-                            ${renderCheck(healthChecklist.business_found, 'Business Found')}
                             ${renderCheck(healthChecklist.waba_found, 'WABA Found')}
                             ${renderCheck(healthChecklist.phone_found, 'Phone Number Found')}
                             ${renderCheck(healthChecklist.cloud_api_enabled, 'Cloud API Enabled')}
@@ -356,10 +320,6 @@ function renderWhatsAppSetup(container, settings) {
 
                         ${healthDetails ? `
                         <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 text-xs space-y-1.5 max-w-sm mx-auto mt-2">
-                            <div class="flex justify-between">
-                                <span class="text-slate-400">Business Name</span>
-                                <span class="text-slate-700 font-bold text-right">${healthDetails.business_name}</span>
-                            </div>
                             <div class="flex justify-between">
                                 <span class="text-slate-400">WABA Name</span>
                                 <span class="text-slate-700 font-bold text-right">${healthDetails.waba_name}</span>
@@ -388,7 +348,7 @@ function renderWhatsAppSetup(container, settings) {
                         ` : ''}
                         
                         <div class="pt-4 flex justify-between">
-                            <button onclick="goWizardStep(4)" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
+                            <button onclick="goWizardStep(3)" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
                             <button onclick="saveConnection()" ${!passes ? 'disabled' : ''} class="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-lg transition shadow-md">Next: Save & Connect →</button>
                         </div>
                     </div>
@@ -396,7 +356,7 @@ function renderWhatsAppSetup(container, settings) {
             }
         }
         
-        else if (currentStep === 6 || currentStep === 7) {
+        else if (currentStep === 5 || currentStep === 6) {
             // Success & Test Connection Dashboard Overview
             stepHtml = `
                 <div class="space-y-5 text-center py-4">
@@ -458,15 +418,13 @@ function renderWhatsAppSetup(container, settings) {
                 <div class="flex items-center justify-center space-x-2 text-[10px] font-bold text-slate-400 border-b border-slate-100 pb-3">
                     <span class="${currentStep === 1 ? 'text-blue-600 border-b-2 border-blue-600 pb-1.5' : ''}">1. Token</span>
                     <span class="text-slate-300">•</span>
-                    <span class="${currentStep === 2 ? 'text-blue-600 border-b-2 border-blue-600 pb-1.5' : ''}">2. Business</span>
+                    <span class="${currentStep === 2 ? 'text-blue-600 border-b-2 border-blue-600 pb-1.5' : ''}">2. WABA</span>
                     <span class="text-slate-300">•</span>
-                    <span class="${currentStep === 3 ? 'text-blue-600 border-b-2 border-blue-600 pb-1.5' : ''}">3. WABA</span>
+                    <span class="${currentStep === 3 ? 'text-blue-600 border-b-2 border-blue-600 pb-1.5' : ''}">3. Phone</span>
                     <span class="text-slate-300">•</span>
-                    <span class="${currentStep === 4 ? 'text-blue-600 border-b-2 border-blue-600 pb-1.5' : ''}">4. Phone</span>
+                    <span class="${currentStep === 4 ? 'text-blue-600 border-b-2 border-blue-600 pb-1.5' : ''}">4. Health</span>
                     <span class="text-slate-300">•</span>
-                    <span class="${currentStep === 5 ? 'text-blue-600 border-b-2 border-blue-600 pb-1.5' : ''}">5. Health</span>
-                    <span class="text-slate-300">•</span>
-                    <span class="${currentStep >= 6 ? 'text-blue-600 border-b-2 border-blue-600 pb-1.5' : ''}">6. Success</span>
+                    <span class="${currentStep >= 5 ? 'text-blue-600 border-b-2 border-blue-600 pb-1.5' : ''}">5. Success</span>
                 </div>
                 
                 <div class="py-2">
@@ -518,7 +476,6 @@ function renderWhatsAppSetup(container, settings) {
                         <ul class="list-disc pl-4 space-y-0.5 font-mono text-[10px] text-slate-400">
                             <li>whatsapp_business_management</li>
                             <li>whatsapp_business_messaging</li>
-                            <li>business_management</li>
                         </ul>
                     </div>
                     <div class="space-y-1">
@@ -595,41 +552,36 @@ function renderWhatsAppSetup(container, settings) {
         drawWizard();
     };
 
-    window.verifyBusinessId = function() {
-        const input = document.getElementById('wa-business-id');
-        const bizVal = input ? input.value.trim() : businessId;
+    window.verifyWabaId = function() {
+        const input = document.getElementById('wa-waba-id');
+        const wabaVal = input ? input.value.trim() : wabaId;
         
-        if (!bizVal) {
-            showNotification('error', 'Please enter your Meta Business Manager ID.');
+        if (!wabaVal) {
+            showNotification('error', 'Please enter your WABA Account ID.');
             return;
         }
         
-        businessId = bizVal;
-        businessError = '';
-        businessVerifiedInfo = null;
+        wabaId = wabaVal;
+        wabaError = '';
+        wabaVerifiedInfo = null;
         drawWizard();
         
-        apiCall('whatsapp/setup.php?action=verify_business_id', 'POST', {
+        apiCall('whatsapp/setup.php?action=verify_waba', 'POST', {
             access_token: accessToken,
-            business_id: businessId
+            waba_id: wabaId
         }).then(res => {
-            businessVerifiedInfo = res.data || res;
-            selectedBiz = { id: businessVerifiedInfo.business_id, name: businessVerifiedInfo.business_name };
+            wabaVerifiedInfo = res.data || res;
+            selectedWaba = { id: wabaVerifiedInfo.waba_id, name: wabaVerifiedInfo.waba_name, status: wabaVerifiedInfo.waba_status };
             drawWizard();
         }).catch(err => {
-            businessError = err.message || 'Business verification failed.';
+            wabaError = err.message || 'WABA verification failed.';
             drawWizard();
         });
     };
 
-    window.clearBusinessError = function() {
-        businessError = '';
-        businessVerifiedInfo = null;
-        drawWizard();
-    };
-    
-    window.selectWaba = function(id) {
-        selectedWaba = wabas.find(w => w.id === id);
+    window.clearWabaError = function() {
+        wabaError = '';
+        wabaVerifiedInfo = null;
         drawWizard();
     };
     
@@ -643,47 +595,10 @@ function renderWhatsAppSetup(container, settings) {
         drawWizard();
     };
     
-    // 3. Fetch WABAs
-    window.fetchWabas = function() {
-        currentStep = 3;
-        wabas = [];
-        selectedWaba = null;
-        drawWizard();
-        
-        apiCall('whatsapp/setup.php?action=get_owned_wabas', 'POST', {
-            access_token: accessToken,
-            business_id: businessId
-        }).then(res => {
-            wabas = res.wabas || [];
-            if (wabas.length === 0) {
-                return apiCall('whatsapp/setup.php?action=get_client_wabas', 'POST', {
-                    access_token: accessToken,
-                    business_id: businessId
-                });
-            } else {
-                if (wabas.length === 1) {
-                    selectedWaba = wabas[0];
-                }
-                drawWizard();
-            }
-        }).then(res => {
-            if (res) {
-                wabas = res.wabas || [];
-                if (wabas.length === 1) {
-                    selectedWaba = wabas[0];
-                }
-                drawWizard();
-            }
-        }).catch(err => {
-            showNotification('error', 'Failed retrieving WhatsApp accounts: ' + err.message);
-            goWizardStep(2);
-        });
-    };
-    
-    // 4. Fetch Phone Numbers
+    // 3. Fetch Phone Numbers
     window.fetchPhones = function() {
         if (!selectedWaba) return;
-        currentStep = 4;
+        currentStep = 3;
         phones = [];
         selectedPhone = null;
         drawWizard();
@@ -699,13 +614,13 @@ function renderWhatsAppSetup(container, settings) {
             drawWizard();
         }).catch(err => {
             showNotification('error', 'Failed retrieving phone numbers: ' + err.message);
-            goWizardStep(3);
+            goWizardStep(2);
         });
     };
     
-    // 5. Diagnostics Checklist health check
+    // 4. Diagnostics Checklist health check
     window.triggerHealthCheck = function() {
-        currentStep = 5;
+        currentStep = 4;
         healthChecklist = null;
         healthDetails = null;
         healthError = '';
@@ -713,7 +628,6 @@ function renderWhatsAppSetup(container, settings) {
         
         apiCall('whatsapp/setup.php?action=health_check', 'POST', {
             access_token: accessToken,
-            business_id: businessId,
             waba_id: selectedWaba.id,
             phone_number_id: selectedPhone.id
         }).then(res => {
@@ -726,12 +640,12 @@ function renderWhatsAppSetup(container, settings) {
         });
     };
     
-    // 6. Save connection details
+    // 5. Save connection details
     window.saveConnection = function() {
         apiCall('whatsapp/setup.php?action=save_connection', 'POST', {
             access_token: accessToken,
-            business_id: businessId,
-            business_name: selectedBiz ? selectedBiz.name : 'Manual Biz',
+            business_id: 'WABA_' + selectedWaba.id,
+            business_name: selectedWaba.name,
             waba_id: selectedWaba.id,
             waba_name: selectedWaba.name,
             phone_number_id: selectedPhone.id,
@@ -739,11 +653,11 @@ function renderWhatsAppSetup(container, settings) {
             display_name: selectedPhone.verified_name || selectedWaba.name
         }).then(res => {
             connectedDetails = res.data || res;
-            currentStep = 6;
+            currentStep = 5;
             drawWizard();
         }).catch(err => {
             showNotification('error', 'Failed saving connection: ' + err.message);
-            currentStep = 5;
+            currentStep = 4;
             drawWizard();
         });
     };

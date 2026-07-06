@@ -481,7 +481,7 @@ try {
                 $phoneDetails = WhatsAppMetaService::getPhoneNumberDetails($phoneNumberId, $token);
                 
                 $phoneStatus = $phoneDetails['status'] ?? '';
-                if ($phoneStatus !== 'APPROVED') {
+                if (!in_array($phoneStatus, ['CONNECTED', 'APPROVED'])) {
                     $tokenStatus = 'restricted';
                 }
             } catch (Exception $e) {

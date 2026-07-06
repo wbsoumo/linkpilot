@@ -12,6 +12,10 @@ async function checkWaConnectionAndRender(viewName, container, renderFn) {
     try {
         const res = await apiCall('whatsapp/setup.php?t=' + Date.now());
         console.log("[Diagnostics] Connection status fetched:", res);
+        
+        const dbStatus = res.account ? res.account.status : 'no_account';
+        showNotification('info', `Diagnostics: connected=${res.connected}, db_status=${dbStatus}`);
+        
         if (res && res.connected) {
             // User connected, render the specific dashboard page
             renderFn(container, res);

@@ -2683,7 +2683,7 @@ async function handleDealDrop(e, targetStage) {
 // ----------------------------------------------------
 async function renderCompanies(container) {
     try {
-        const res = await apiCall('crm/companies.php');
+        const res = await apiCall('crm/companies.php?limit=1000');
         const comps = res.companies || [];
         
         let compRows = comps.map(c => `
@@ -2739,7 +2739,7 @@ async function renderCompanies(container) {
 
 async function renderContacts(container) {
     try {
-        const res = await apiCall('crm/contacts.php');
+        const res = await apiCall('crm/contacts.php?limit=1000');
         const conts = res.contacts || [];
         
         let contRows = conts.map(c => `

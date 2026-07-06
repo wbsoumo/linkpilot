@@ -857,7 +857,13 @@ function renderWhatsAppInbox(container) {
                 <!-- Pane 1: Left List (Threads) -->
                 <div class="w-1/4 border-r border-slate-200 flex flex-col justify-between bg-slate-50/50">
                     <div class="p-3 border-b border-slate-100 space-y-3 bg-white">
-                        <h3 class="text-xs font-bold text-slate-800">WhatsApp Chats</h3>
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs font-bold text-slate-800">WhatsApp Chats</h3>
+                            <button onclick="openNewChatModal()" class="flex items-center space-x-1 py-1 px-2 border border-blue-500/20 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-[10px] font-bold transition">
+                                <i data-lucide="plus" class="h-3 w-3"></i>
+                                <span>New Chat</span>
+                            </button>
+                        </div>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-2.5 flex items-center text-slate-400">
                                 <i data-lucide="search" class="h-3.5 w-3.5"></i>
@@ -2001,4 +2007,169 @@ function renderWhatsAppSettings(container) {
             showNotification('error', err.message);
         }
     });
+}
+
+// -------------------------------------------------------------
+// NEW CHAT MODAL AND FLOW (CRM LEADS & MANUAL PHONES)
+// -------------------------------------------------------------
+window.openNewChatModal = function() {
+    let modal = document.getElementById('wa-new-chat-modal');
+    if (modal) modal.remove();
+    
+    modal = document.createElement('div');
+    modal.id = 'wa-new-chat-modal';
+    modal.className = 'fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4';
+    
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl w-full max-w-md overflow-hidden animate-fade-in text-xs text-slate-700 flex flex-col max-h-[500px]">
+            <!-- Header -->
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 class="text-xs font-bold text-slate-800 flex items-center space-x-1.5">
+                    <i data-lucide="message-square-plus" class="h-4 w-4 text-blue-600"></i>
+                    <span>Start New Chat</span>
+                </h3>
+                <button onclick="document.getElementById('wa-new-chat-modal').remove()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">&times;</button>
+            </div>
+            
+            <!-- Tab switches -->
+            <div class="flex border-b border-slate-100 bg-slate-50/50 text-[11px] font-bold">
+                <button id="tab-crm-btn" onclick="switchNewChatTab('crm')" class="flex-1 py-2 text-center text-blue-600 border-b-2 border-blue-600 focus:outline-none">
+                    Select CRM Lead
+                </button>
+                <button id="tab-manual-btn" onclick="switchNewChatTab('manual')" class="flex-1 py-2 text-center text-slate-400 hover:text-slate-600 focus:outline-none">
+                    Enter Phone Number
+                </button>
+            </div>
+            
+            <!-- Content -->
+            <div class="p-4 flex-grow overflow-y-auto flex flex-col justify-between">
+                <!-- Tab 1: CRM -->
+                <div id="tab-crm-content" class="space-y-3 flex-grow flex flex-col">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-2.5 flex items-center text-slate-400">
+                            <i data-lucide="search" class="h-3.5 w-3.5"></i>
+                        </span>
+                        <input type="text" id="new-chat-lead-search" oninput="searchNewChatLeads(this.value)" placeholder="Search CRM leads by name or phone..." class="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div id="new-chat-leads-results" class="flex-grow overflow-y-auto max-h-[220px] divide-y divide-slate-100 border border-slate-100 rounded-lg">
+                        <div class="p-4 text-center text-slate-400">Type above to search CRM leads...</div>
+                    </div>
+                </div>
+                
+                <!-- Tab 2: Manual -->
+                <div id="tab-manual-content" class="space-y-4 hidden py-4">
+                    <div class="space-y-1.5">
+                        <label class="font-bold text-[10px] text-slate-500 uppercase tracking-wider">Phone Number</label>
+                        <input type="text" id="new-chat-manual-phone" placeholder="e.g. 919242322991" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500 font-mono">
+                        <p class="text-[10px] text-slate-400 mt-1">Include country code without any plus (+), hyphens (-), or spaces.</p>
+                    </div>
+                    <button onclick="submitManualNewChat()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition flex items-center justify-center space-x-1.5 shadow-sm">
+                        <span>Open Chat Window</span>
+                        <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    lucide.createIcons();
+    
+    // Auto load recent leads
+    searchNewChatLeads('');
+};
+
+window.switchNewChatTab = function(tab) {
+    const tabCrmBtn = document.getElementById('tab-crm-btn');
+    const tabManualBtn = document.getElementById('tab-manual-btn');
+    const tabCrmContent = document.getElementById('tab-crm-content');
+    const tabManualContent = document.getElementById('tab-manual-content');
+    
+    if (tab === 'crm') {
+        tabCrmBtn.className = "flex-1 py-2 text-center text-blue-600 border-b-2 border-blue-600 focus:outline-none";
+        tabManualBtn.className = "flex-1 py-2 text-center text-slate-400 hover:text-slate-600 focus:outline-none";
+        tabCrmContent.classList.remove('hidden');
+        tabManualContent.classList.add('hidden');
+    } else {
+        tabCrmBtn.className = "flex-1 py-2 text-center text-slate-400 hover:text-slate-600 focus:outline-none";
+        tabManualBtn.className = "flex-1 py-2 text-center text-blue-600 border-b-2 border-blue-600 focus:outline-none";
+        tabCrmContent.classList.add('hidden');
+        tabManualContent.classList.remove('hidden');
+    }
+};
+
+window.searchNewChatLeads = async function(query) {
+    const container = document.getElementById('new-chat-leads-results');
+    if (!container) return;
+    
+    container.innerHTML = '<div class="p-4 text-center text-slate-400"><span class="spinner-border spinner-border-sm text-blue-600 me-2" role="status"></span>Searching...</div>';
+    
+    try {
+        const res = await apiCall(`crm/leads.php?search=${encodeURIComponent(query)}&limit=15`);
+        const leads = res.leads || [];
+        
+        if (leads.length === 0) {
+            container.innerHTML = '<div class="p-4 text-center text-slate-400">No leads found.</div>';
+            return;
+        }
+        
+        container.innerHTML = '';
+        leads.forEach(lead => {
+            const hasPhone = !!lead.phone;
+            const phoneDisplay = hasPhone ? lead.phone : 'No Phone Number';
+            const actionAttr = hasPhone ? `onclick="selectLeadForChat('${lead.phone}', '${lead.name.replace(/'/g, "\\'")}')"` : '';
+            const opacityClass = hasPhone ? 'hover:bg-slate-50 cursor-pointer' : 'opacity-50 cursor-not-allowed';
+            
+            container.innerHTML += `
+                <div ${actionAttr} class="p-3 flex justify-between items-center transition ${opacityClass}">
+                    <div>
+                        <div class="font-bold text-slate-800">${lead.name}</div>
+                        <div class="text-[10px] text-slate-500 font-mono mt-0.5">${phoneDisplay}</div>
+                    </div>
+                    ${hasPhone ? `<i data-lucide="message-square" class="h-4 w-4 text-blue-500"></i>` : ''}
+                </div>
+            `;
+        });
+        
+        lucide.createIcons();
+    } catch(err) {
+        console.error(err);
+        container.innerHTML = '<div class="p-4 text-center text-rose-500">Failed loading CRM leads.</div>';
+    }
+};
+
+window.selectLeadForChat = async function(phone, name) {
+    await resolveAndOpenNewChat(phone);
+};
+
+window.submitManualNewChat = async function() {
+    const phoneInput = document.getElementById('new-chat-manual-phone');
+    if (!phoneInput) return;
+    const phone = phoneInput.value.trim();
+    if (!phone) {
+        alert('Please enter a valid phone number.');
+        return;
+    }
+    await resolveAndOpenNewChat(phone);
+};
+
+async function resolveAndOpenNewChat(phone) {
+    const modal = document.getElementById('wa-new-chat-modal');
+    
+    try {
+        const res = await apiCall('whatsapp/inbox.php?action=resolve_contact', 'POST', { phone: phone });
+        if (res.success && res.wa_contact_id) {
+            // Close modal
+            if (modal) modal.remove();
+            
+            // Reload thread list and open chat
+            await loadWaThreads();
+            selectWaThread(res.wa_contact_id);
+        } else {
+            alert('Failed starting chat: ' + (res.message || 'Unknown error'));
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Error starting chat thread: ' + err.message);
+    }
 }

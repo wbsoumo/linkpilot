@@ -152,8 +152,59 @@ try {
     }
     
     elseif ($method === 'POST') {
-        // Send a message (Live Send immediately)
         $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+        
+        if ($action === 'resolve_contact') {
+            $phone = trim($input['phone'] ?? '');
+            if (empty($phone)) {
+                sendJsonResponse('error', 'Phone number is required.', [], 400);
+            }
+            
+            // Clean phone number
+            $phoneClean = preg_replace('/[^0-9]/', '', $phone);
+            if (empty($phoneClean)) {
+                sendJsonResponse('error', 'Invalid phone number format.', [], 400);
+            }
+            
+            // 1. Check if thread already exists in whatsapp_contacts
+            $stmt = $db->prepare("SELECT id FROM whatsapp_contacts WHERE user_id = ? AND wa_id = ?");
+            $stmt->execute([$userId, $phoneClean]);
+            $existingId = $stmt->fetchColumn();
+            
+            if ($existingId) {
+                sendJsonResponse('success', 'Contact thread resolved.', ['wa_contact_id' => (int)$existingId]);
+            }
+            
+            // 2. Look up CRM contact or lead info
+            $crmContactId = null;
+            $profileName = 'WhatsApp Contact';
+            
+            // Search in crm_contacts
+            $stmtContact = $db->prepare("SELECT id, name FROM crm_contacts WHERE (phone = ? OR whatsapp = ?) AND user_id = ? LIMIT 1");
+            $stmtContact->execute([$phoneClean, $phoneClean, $userId]);
+            $contactRow = $stmtContact->fetch();
+            
+            if ($contactRow) {
+                $crmContactId = $contactRow['id'];
+                $profileName = $contactRow['name'];
+            } else {
+                // Search in crm_leads
+                $stmtLead = $db->prepare("SELECT contact_id, name, phone FROM crm_leads WHERE (phone = ? OR email = ?) AND user_id = ? LIMIT 1");
+                $stmtLead->execute([$phoneClean, $phoneClean, $userId]);
+                $leadRow = $stmtLead->fetch();
+                if ($leadRow) {
+                    $crmContactId = $leadRow['contact_id'] ?: null;
+                    $profileName = $leadRow['name'];
+                }
+            }
+            
+            // 3. Create new whatsapp_contacts row
+            $stmtIns = $db->prepare("INSERT INTO whatsapp_contacts (user_id, contact_id, wa_id, profile_name, last_message_at, unread_count) VALUES (?, ?, ?, ?, NOW(), 0)");
+            $stmtIns->execute([$userId, $crmContactId, $phoneClean, $profileName]);
+            $newId = $db->lastInsertId();
+            
+            sendJsonResponse('success', 'Contact thread created.', ['wa_contact_id' => (int)$newId]);
+        }
         
         $waContactId = (int)($input['wa_contact_id'] ?? 0);
         $bodyText = trim($input['body'] ?? '');

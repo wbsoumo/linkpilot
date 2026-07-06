@@ -148,27 +148,27 @@
             <!-- Right Header -->
             <div class="flex items-center space-x-5 text-slate-500">
                 <!-- Add icon button -->
-                <button class="h-8 w-8 rounded-full border border-slate-200 bg-[#f8fafc] hover:bg-slate-100 flex items-center justify-center text-slate-600 transition">
+                <button onclick="createNewLeadModal()" class="h-8 w-8 rounded-full border border-slate-200 bg-[#f8fafc] hover:bg-slate-100 flex items-center justify-center text-slate-600 transition" title="Create New Lead">
                     <i data-lucide="plus" class="h-4 w-4"></i>
                 </button>
 
                 <!-- Today's Tasks Badge in Header -->
                 <a href="#/tasks" class="relative h-8 w-8 flex items-center justify-center hover:text-slate-900 transition hover:bg-slate-100 rounded-full" title="Tasks Due Today">
-                    <i data-lucide="check-square" class="h-4.5 w-4.5 text-slate-650 text-indigo-600"></i>
-                    <span id="header-tasks-today-badge" class="absolute -top-0.5 -right-0.5 bg-indigo-650 text-white text-[7px] font-extrabold px-1.5 py-0.5 rounded-full hidden">0</span>
+                    <i data-lucide="check-square" class="h-4.5 w-4.5 text-indigo-600"></i>
+                    <span id="header-tasks-today-badge" class="absolute -top-0.5 -right-0.5 bg-indigo-600 text-white text-[7px] font-extrabold px-1.5 py-0.5 rounded-full hidden">0</span>
                 </a>
 
                 <!-- Notifications icon -->
-                <button class="relative h-8 w-8 flex items-center justify-center hover:text-slate-900 transition">
+                <a href="#/ai-insights" class="relative h-8 w-8 flex items-center justify-center hover:text-slate-900 transition hover:bg-slate-100 rounded-full" title="AI Alerts & Insights">
                     <i data-lucide="bell" class="h-4 w-4 text-slate-600"></i>
-                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-extrabold px-1 py-0.5 rounded-full">3</span>
-                </button>
+                    <span id="header-notifications-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-extrabold px-1 py-0.5 rounded-full hidden">0</span>
+                </a>
 
                 <!-- Envelope inbox icon -->
-                <button class="relative h-8 w-8 flex items-center justify-center hover:text-slate-900 transition">
+                <a href="#/inbox" class="relative h-8 w-8 flex items-center justify-center hover:text-slate-900 transition hover:bg-slate-100 rounded-full" title="Conversations Inbox">
                     <i data-lucide="mail" class="h-4 w-4 text-slate-600"></i>
-                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-extrabold px-1 py-0.5 rounded-full">12</span>
-                </button>
+                    <span id="header-inbox-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-extrabold px-1 py-0.5 rounded-full hidden">0</span>
+                </a>
 
                 <!-- Credits Wallet Badge -->
                 <a href="#/email-intelligence" id="nav-credit-balance-container" class="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-lg text-[10px] font-extrabold hover:bg-blue-600 hover:text-white transition duration-150">

@@ -811,8 +811,33 @@ async function updateGlobalTaskBadges() {
                 headerBadge.classList.add('hidden');
             }
         }
+        
+        // Trigger notification badge update
+        updateGlobalNotificationBadges();
     } catch (e) {
         console.error('Error updating task badges:', e);
+    }
+}
+
+// Update Top Header Notification Badge Dynamically
+async function updateGlobalNotificationBadges() {
+    try {
+        const notifyBadge = document.getElementById('header-notifications-badge');
+        if (!notifyBadge || !getAuthToken()) return;
+        
+        const res = await apiCall('crm/ai_insights.php');
+        if (res && res.status === 'success') {
+            // Count low confidence AI predictions + deals at risk as alerts
+            const count = (res.low_confidence ? res.low_confidence.length : 0) + (res.overview ? res.overview.deals_at_risk : 0);
+            notifyBadge.textContent = count;
+            if (count > 0) {
+                notifyBadge.classList.remove('hidden');
+            } else {
+                notifyBadge.classList.add('hidden');
+            }
+        }
+    } catch (e) {
+        console.error('Error updating notification badge:', e);
     }
 }
 

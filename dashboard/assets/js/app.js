@@ -121,16 +121,27 @@ function logout() {
 // Dynamic unread count badge loader
 function refreshUnreadBadgeCount() {
     const badge = document.getElementById('sidebar-conversations-unread-badge');
-    if (!badge || !getAuthToken()) return;
+    const headerBadge = document.getElementById('header-inbox-badge');
+    if ((!badge && !headerBadge) || !getAuthToken()) return;
     
     apiCall('crm/email_intelligence/emails.php?limit=1')
         .then(res => {
             if (res && res.status === 'success' && typeof res.unread_count !== 'undefined') {
-                badge.textContent = res.unread_count;
-                if (res.unread_count > 0) {
-                    badge.classList.remove('hidden');
-                } else {
-                    badge.classList.add('hidden');
+                if (badge) {
+                    badge.textContent = res.unread_count;
+                    if (res.unread_count > 0) {
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                }
+                if (headerBadge) {
+                    headerBadge.textContent = res.unread_count;
+                    if (res.unread_count > 0) {
+                        headerBadge.classList.remove('hidden');
+                    } else {
+                        headerBadge.classList.add('hidden');
+                    }
                 }
             }
         })

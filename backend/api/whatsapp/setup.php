@@ -1,6 +1,14 @@
 <?php
 // backend/api/whatsapp/setup.php
-ob_start();
+function clean_non_json_output_filter($buffer) {
+    $start = strpos($buffer, '{');
+    $end = strrpos($buffer, '}');
+    if ($start !== false && $end !== false && $end > $start) {
+        return substr($buffer, $start, $end - $start + 1);
+    }
+    return $buffer;
+}
+ob_start("clean_non_json_output_filter");
 ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
@@ -136,7 +144,7 @@ try {
                 'app_name' => $appName,
                 'user_name' => $userName
             ]);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             try {
                 $me = WhatsAppMetaService::executeRequest("me", "GET", null, $accessToken);
                 $userName = $me['name'] ?? 'Meta System User';
@@ -146,7 +154,7 @@ try {
                     'app_name' => 'LinkPilot App Client',
                     'user_name' => $userName
                 ]);
-            } catch (Exception $fallbackEx) {
+            } catch (Throwable $fallbackEx) {
                 sendJsonResponse('error', 'Token verification failed: ' . $e->getMessage(), [], 400);
             }
         }
@@ -590,7 +598,7 @@ try {
     else {
         sendJsonResponse('error', 'Method not allowed', [], 405);
     }
-} catch (Exception $e) {
+} catch (Throwable $e) {
     if (class_exists('WhatsAppMetaService')) {
         WhatsAppMetaService::logDebug("setup.php general exception caught: " . $e->getMessage() . " | Stack trace: " . $e->getTraceAsString());
     }

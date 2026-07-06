@@ -6,7 +6,6 @@ require_once __DIR__ . '/../config.php';
 class WhatsAppMetaService {
     
     private static $graphVersion = 'v20.0';
-
     /**
      * Log trace, error, or debug info to unified file.
      */
@@ -18,7 +17,7 @@ class WhatsAppMetaService {
             $dataStr = ' | DATA: ' . (is_string($data) ? $data : json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
         }
         @mkdir(dirname($logFile), 0777, true);
-        file_put_contents($logFile, "[{$timestamp}] {$message}{$dataStr}\n", FILE_APPEND);
+        @file_put_contents($logFile, "[{$timestamp}] {$message}{$dataStr}\n", FILE_APPEND);
     }
 
     /**

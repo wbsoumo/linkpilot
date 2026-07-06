@@ -31,7 +31,20 @@ try {
         $accounts = $stmtAcc->fetchAll();
         
         // 2. Fetch admin meta settings keys
-        $settingsKeys = ['whatsapp_meta_app_id', 'whatsapp_meta_app_secret', 'whatsapp_webhook_verify_token', 'whatsapp_global_max_campaign_size'];
+        $settingsKeys = [
+            'whatsapp_meta_app_id', 
+            'whatsapp_meta_app_secret', 
+            'whatsapp_webhook_verify_token', 
+            'whatsapp_global_max_campaign_size',
+            'whatsapp_meta_api_version',
+            'whatsapp_webhook_url',
+            'whatsapp_default_messaging_settings',
+            'whatsapp_mode',
+            'whatsapp_token_encryption_key',
+            'whatsapp_global_api_timeout',
+            'whatsapp_retry_attempts',
+            'whatsapp_logging_level'
+        ];
         $metaSettings = [];
         
         $stmtSet = $db->prepare("SELECT setting_value FROM admin_settings WHERE setting_key = ?");
@@ -82,7 +95,15 @@ try {
             'whatsapp_meta_app_id' => trim($input['whatsapp_meta_app_id'] ?? ''),
             'whatsapp_meta_app_secret' => trim($input['whatsapp_meta_app_secret'] ?? ''),
             'whatsapp_webhook_verify_token' => trim($input['whatsapp_webhook_verify_token'] ?? ''),
-            'whatsapp_global_max_campaign_size' => (int)($input['whatsapp_global_max_campaign_size'] ?? 1000)
+            'whatsapp_global_max_campaign_size' => (int)($input['whatsapp_global_max_campaign_size'] ?? 1000),
+            'whatsapp_meta_api_version' => trim($input['whatsapp_meta_api_version'] ?? 'v20.0'),
+            'whatsapp_webhook_url' => trim($input['whatsapp_webhook_url'] ?? ''),
+            'whatsapp_default_messaging_settings' => trim($input['whatsapp_default_messaging_settings'] ?? ''),
+            'whatsapp_mode' => trim($input['whatsapp_mode'] ?? 'live'),
+            'whatsapp_token_encryption_key' => trim($input['whatsapp_token_encryption_key'] ?? ''),
+            'whatsapp_global_api_timeout' => (int)($input['whatsapp_global_api_timeout'] ?? 15),
+            'whatsapp_retry_attempts' => (int)($input['whatsapp_retry_attempts'] ?? 3),
+            'whatsapp_logging_level' => trim($input['whatsapp_logging_level'] ?? 'debug')
         ];
         
         $stmtUpsert = $db->prepare("

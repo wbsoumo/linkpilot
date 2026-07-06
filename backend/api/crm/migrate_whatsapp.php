@@ -34,6 +34,18 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
     $wa_messages[] = "Table 'whatsapp_accounts' checked/created.";
 
+    // Schema upgrades to support guided connection indicators
+    try {
+        $db->exec("ALTER TABLE `whatsapp_accounts` ADD COLUMN `webhook_status` VARCHAR(50) DEFAULT 'unknown' AFTER `messaging_limit`");
+    } catch (Exception $e) {}
+    try {
+        $db->exec("ALTER TABLE `whatsapp_accounts` ADD COLUMN `token_status` VARCHAR(50) DEFAULT 'unknown' AFTER `webhook_status`");
+    } catch (Exception $e) {}
+    try {
+        $db->exec("ALTER TABLE `whatsapp_accounts` ADD COLUMN `last_verified_at` TIMESTAMP NULL DEFAULT NULL AFTER `token_status`");
+    } catch (Exception $e) {}
+
+
     // 2. whatsapp_contacts
     $db->exec("CREATE TABLE IF NOT EXISTS `whatsapp_contacts` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,

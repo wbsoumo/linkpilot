@@ -53,49 +53,59 @@ async function checkWaConnectionAndRender(viewName, container, renderFn) {
 // ----------------------------------------------------
 function renderWhatsAppSetup(container, settings) {
     let currentStep = 1;
-    let bizName = '';
-    let bizWebsite = '';
-    let bizCategory = '';
-    let connectedDetails = {
-        business_name: '',
-        phone_number: '',
-        display_name: '',
-        messaging_limit: '',
-        quality_rating: '',
-        status: ''
-    };
+    let accessToken = '';
     
+    // Discovered Assets
+    let businesses = [];
+    let wabas = [];
+    let phones = [];
+    
+    // Selections
+    let selectedBiz = null;
+    let selectedWaba = null;
+    let selectedPhone = null;
+    
+    // Status metrics
+    let tokenVerifiedInfo = null;
+    let verifyError = '';
+    let healthChecklist = null;
+    let healthError = '';
+    let connectedDetails = {};
+    
+    // Search filters
+    let businessSearch = '';
+
     function drawWizard() {
         let stepHtml = '';
         
         if (currentStep === 1) {
             stepHtml = `
                 <div class="space-y-4">
-                    <h3 class="text-sm font-bold text-slate-800">Step 1: Business Profile Info</h3>
-                    <p class="text-xs text-slate-500">Provide details about your business to associate with your WhatsApp Business profile.</p>
-                    <div class="space-y-3">
+                    <div class="text-center pb-2">
+                        <h3 class="text-sm font-bold text-slate-800">Connect WhatsApp Business</h3>
+                        <p class="text-xs text-slate-500 mt-1">Connect your Meta WhatsApp Cloud API in a few simple steps.</p>
+                    </div>
+                    
+                    <div class="space-y-3.5">
                         <div>
-                            <label class="block text-slate-600 font-semibold mb-1 text-[11px]">Business Display Name</label>
-                            <input type="text" id="wa-biz-name" value="${bizName}" placeholder="e.g. Acme Corp" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-slate-600 font-semibold mb-1 text-[11px]">Website URL</label>
-                            <input type="url" id="wa-biz-website" value="${bizWebsite}" placeholder="https://example.com" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-slate-600 font-semibold mb-1 text-[11px]">Business Category</label>
-                            <select id="wa-biz-category" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500">
-                                <option value="Professional Services" ${bizCategory === 'Professional Services' ? 'selected' : ''}>Professional Services</option>
-                                <option value="Retail & E-commerce" ${bizCategory === 'Retail & E-commerce' ? 'selected' : ''}>Retail & E-commerce</option>
-                                <option value="Technology & SaaS" ${bizCategory === 'Technology & SaaS' ? 'selected' : ''}>Technology & SaaS</option>
-                                <option value="Healthcare" ${bizCategory === 'Healthcare' ? 'selected' : ''}>Healthcare</option>
-                                <option value="Other" ${bizCategory === 'Other' ? 'selected' : ''}>Other</option>
-                            </select>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block text-slate-600 font-semibold text-[11px]">Permanent Meta System User Access Token</label>
+                                <button onclick="openMetaTokenHelpDialog()" class="text-[10px] text-blue-600 hover:text-blue-700 hover:underline font-bold">Where do I get this?</button>
+                            </div>
+                            <div class="relative rounded-lg shadow-sm">
+                                <input type="password" id="wa-access-token" value="${accessToken}" placeholder="EAA..." class="w-full pl-3 pr-28 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500 font-mono">
+                                <div class="absolute inset-y-0 right-0 pr-1.5 flex items-center space-x-1">
+                                    <button onclick="toggleTokenVisibility()" class="p-1 text-slate-400 hover:text-slate-600 text-[10px] font-bold" id="btn-toggle-visibility">Show</button>
+                                    <button onclick="pasteToken()" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded text-[9px] font-bold">Paste</button>
+                                    <button onclick="clearTokenInput()" class="p-1 text-slate-400 hover:text-slate-600 text-[10px] font-bold">Clear</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="pt-4 flex justify-end">
-                        <button onclick="processWizardStep1()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition">
-                            Next: Connect Meta →
+                    
+                    <div class="pt-4">
+                        <button onclick="verifyMetaToken()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">
+                            Verify Token
                         </button>
                     </div>
                 </div>
@@ -103,158 +113,273 @@ function renderWhatsAppSetup(container, settings) {
         } 
         
         else if (currentStep === 2) {
+            // Verification Results
+            if (verifyError) {
+                stepHtml = `
+                    <div class="space-y-4 py-2 text-center">
+                        <div class="h-10 w-10 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mx-auto text-base font-bold">✕</div>
+                        <div>
+                            <h3 class="text-xs font-bold text-slate-800">Token Verification Failed</h3>
+                            <p class="text-xs text-rose-500 mt-2 bg-rose-50 border border-rose-100 rounded-lg p-3 text-left font-semibold">${verifyError}</p>
+                        </div>
+                        <div class="pt-4 flex justify-between">
+                            <button onclick="goWizardStep(1)" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
+                            <button onclick="verifyMetaToken()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">Retry Verification</button>
+                        </div>
+                    </div>
+                `;
+            } else if (!tokenVerifiedInfo) {
+                stepHtml = `
+                    <div class="space-y-4 py-6 text-center">
+                        <div class="loader-spinner mx-auto"></div>
+                        <p class="text-xs font-bold text-slate-600">Verifying access token and scopes...</p>
+                    </div>
+                `;
+            } else {
+                stepHtml = `
+                    <div class="space-y-4 py-2">
+                        <div class="text-center">
+                            <div class="h-10 w-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto text-base font-bold">✓</div>
+                            <h3 class="text-xs font-bold text-emerald-600 mt-2">✓ Token Verified Successfully</h3>
+                        </div>
+                        
+                        <div class="bg-slate-50 border border-slate-100 rounded-xl p-4 text-xs space-y-2.5 max-w-xs mx-auto">
+                            <div class="flex justify-between border-b border-slate-200/50 pb-1.5">
+                                <span class="text-slate-500">Meta User Name</span>
+                                <span class="text-slate-800 font-bold">${tokenVerifiedInfo.meta_user_name}</span>
+                            </div>
+                            <div class="flex justify-between border-b border-slate-200/50 pb-1.5">
+                                <span class="text-slate-500">Businesses Discovered</span>
+                                <span class="text-slate-800 font-bold">${tokenVerifiedInfo.business_count}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Token Status</span>
+                                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[9px] uppercase">Active</span>
+                            </div>
+                        </div>
+                        
+                        <div class="pt-4 flex justify-between">
+                            <button onclick="goWizardStep(1)" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
+                            <button onclick="discoverBusinesses()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">Next: Choose Business →</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        else if (currentStep === 3) {
+            // Select Business
+            const filtered = businesses.filter(b => b.name.toLowerCase().includes(businessSearch.toLowerCase()));
+            
             stepHtml = `
-                <div class="space-y-4 py-2">
-                    <h3 class="text-xs font-bold text-slate-800 text-center">Step 2: Connect Meta Credentials</h3>
-                    
-                    <!-- Meta Embedded Signup Feature Card -->
-                    <div class="text-center py-2 space-y-4">
-                        <p class="text-xs text-slate-500 max-w-sm mx-auto">Securely connect your Meta Business account in under 2 minutes.</p>
-                        
-                        <div class="py-4 border border-dashed border-slate-200 rounded-xl bg-slate-50/50 space-y-3 p-4">
-                            <div class="flex items-start space-x-2 text-left text-[11px] text-slate-600">
-                                <span class="text-emerald-500 font-bold">✔</span>
-                                <span>Automatic setup & configuration</span>
-                            </div>
-                            <div class="flex items-start space-x-2 text-left text-[11px] text-slate-600">
-                                <span class="text-emerald-500 font-bold">✔</span>
-                                <span>Secure Meta authorization</span>
-                            </div>
-                            <div class="flex items-start space-x-2 text-left text-[11px] text-slate-600">
-                                <span class="text-emerald-500 font-bold">✔</span>
-                                <span>No API knowledge required</span>
-                            </div>
-                            <div class="flex items-start space-x-2 text-left text-[11px] text-slate-600">
-                                <span class="text-emerald-500 font-bold">✔</span>
-                                <span>Recommended pathway</span>
-                            </div>
-                        </div>
-                        
-                        <div class="pt-2 flex justify-center">
-                            <button onclick="triggerMetaEmbeddedSignup()" class="inline-flex items-center space-x-2.5 px-6 py-3 bg-[#1877F2] hover:bg-[#166FE5] text-white text-xs font-bold rounded-lg transition shadow-md w-full justify-center">
-                                <i data-lucide="facebook" class="h-4.5 w-4.5"></i>
-                                <span>Continue with Facebook</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Collapsible Advanced Manual Setup -->
-                    <div class="border-t border-slate-100 pt-4 mt-2">
-                        <button onclick="toggleManualCredentials()" class="flex items-center justify-between w-full text-left text-slate-500 hover:text-slate-800 transition text-[10px] font-bold uppercase tracking-wider">
-                            <span>Advanced Options: Use Manual API Credentials</span>
-                            <i id="manual-chevron" data-lucide="chevron-down" class="h-4 w-4 transform transition-transform duration-200"></i>
-                        </button>
-                        
-                        <div id="manual-credentials-form" class="hidden mt-4 space-y-3 text-left pt-1">
-                            <p class="text-[10px] text-slate-400">If you prefer to connect manually by supplying your own pre-generated credentials, enter them below:</p>
-                            <div>
-                                <label class="block text-slate-500 font-bold mb-1 text-[9px] uppercase">Meta System Access Token</label>
-                                <input type="password" id="manual-token" placeholder="EAA..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500">
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-slate-500 font-bold mb-1 text-[9px] uppercase">WABA ID</label>
-                                    <input type="text" id="manual-waba-id" placeholder="e.g. 1098..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500">
-                                </div>
-                                <div>
-                                    <label class="block text-slate-500 font-bold mb-1 text-[9px] uppercase">Phone Number ID</label>
-                                    <input type="text" id="manual-phone-id" placeholder="e.g. 1054..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500">
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-slate-500 font-bold mb-1 text-[9px] uppercase">Meta Business ID (Optional)</label>
-                                <input type="text" id="manual-biz-id" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500">
-                            </div>
-                            <div class="pt-2">
-                                <button onclick="triggerManualMetaSignup()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition">
-                                    Validate & Connect Credentials
-                                </button>
-                            </div>
-                        </div>
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="text-xs font-bold text-slate-800">Select Business Manager</h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Select the Meta Business Manager containing your WABA.</p>
                     </div>
                     
-                    <div class="pt-4 flex justify-between border-t border-slate-100">
-                        <button onclick="goWizardStep(1)" class="px-3.5 py-1.5 border border-slate-200 text-slate-600 text-xs font-semibold rounded-lg hover:bg-slate-50 transition">Back</button>
+                    ${businesses.length > 3 ? `
+                        <input type="text" placeholder="Search businesses..." value="${businessSearch}" oninput="filterBusinesses(this.value)" class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs mb-2 focus:outline-none">
+                    ` : ''}
+                    
+                    <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        ${filtered.map(b => `
+                            <label class="flex items-center space-x-3 p-2.5 rounded-xl border ${selectedBiz && selectedBiz.id === b.id ? 'border-blue-500 bg-blue-50/30' : 'border-slate-100 hover:bg-slate-50'} cursor-pointer transition">
+                                <input type="radio" name="select-biz" value="${b.id}" ${selectedBiz && selectedBiz.id === b.id ? 'checked' : ''} onchange="selectBusiness('${b.id}')" class="text-blue-600 focus:ring-blue-500 h-3.5 w-3.5 border-slate-300">
+                                <div class="text-xs text-slate-700 font-bold">${b.name} <span class="text-[10px] text-slate-400 font-semibold font-mono ml-1">(${b.id})</span></div>
+                            </label>
+                        `).join('')}
+                        ${filtered.length === 0 ? '<p class="text-xs text-slate-400 text-center py-4">No Business Manager found matching filters.</p>' : ''}
+                    </div>
+                    
+                    <div class="pt-4 flex justify-between">
+                        <button onclick="goWizardStep(1)" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
+                        <button onclick="discoverWabas()" ${!selectedBiz ? 'disabled' : ''} class="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-lg transition shadow-md">Next: Select WABA →</button>
                     </div>
                 </div>
             `;
-        } else if (currentStep === 3) {
-            stepHtml = `
-                <div class="space-y-5 py-4">
-                    <div class="flex flex-col items-center justify-center space-y-3 border-b border-slate-100 pb-4">
-                        <div class="loader-spinner"></div>
-                        <span class="text-xs text-slate-600 font-bold" id="conn-loading-title">Connecting to Meta...</span>
-                    </div>
-                    
-                    <div class="space-y-2.5 text-left max-w-xs mx-auto text-xs px-2" id="conn-loading-steps">
-                        <div class="flex items-center space-x-2 text-slate-400" id="step-auth">
-                            <span class="bullet shrink-0 h-4.5 w-4.5 rounded-full border border-slate-200 flex items-center justify-center text-[9px]">⌛</span>
-                            <span>Authorizing</span>
-                        </div>
-                        <div class="flex items-center space-x-2 text-slate-400" id="step-biz">
-                            <span class="bullet shrink-0 h-4.5 w-4.5 rounded-full border border-slate-200 flex items-center justify-center text-[9px]">⌛</span>
-                            <span>Discovering Business Manager WABAs</span>
-                        </div>
-                        <div class="flex items-center space-x-2 text-slate-400" id="step-phone">
-                            <span class="bullet shrink-0 h-4.5 w-4.5 rounded-full border border-slate-200 flex items-center justify-center text-[9px]">⌛</span>
-                            <span>Discovering Phone Numbers</span>
-                        </div>
-                        <div class="flex items-center space-x-2 text-slate-400" id="step-token">
-                            <span class="bullet shrink-0 h-4.5 w-4.5 rounded-full border border-slate-200 flex items-center justify-center text-[9px]">⌛</span>
-                            <span>Verifying Settings & Scopes</span>
-                        </div>
-                        <div class="flex items-center space-x-2 text-slate-400" id="step-webhook">
-                            <span class="bullet shrink-0 h-4.5 w-4.5 rounded-full border border-slate-200 flex items-center justify-center text-[9px]">⌛</span>
-                            <span>Validating Webhook Configuration</span>
-                        </div>
-                        <div class="flex items-center space-x-2 text-slate-400" id="step-final">
-                            <span class="bullet shrink-0 h-4.5 w-4.5 rounded-full border border-slate-200 flex items-center justify-center text-[9px]">⌛</span>
-                            <span>Establishing CRM Active Connection</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        } 
+        }
         
         else if (currentStep === 4) {
+            // Select WABA Account
             stepHtml = `
-                <div class="space-y-5 text-center py-4">
-                    <div class="h-12 w-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto text-xl font-bold">✓</div>
+                <div class="space-y-4">
                     <div>
-                        <h3 class="text-base font-extrabold text-slate-800">WhatsApp Connected Successfully</h3>
-                        <p class="text-xs text-slate-500 mt-1">Your business number is now active in LinkPilot CRM.</p>
+                        <h3 class="text-xs font-bold text-slate-800">Choose WhatsApp Business Account</h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Select the specific WhatsApp account you want to link.</p>
                     </div>
                     
-                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-4 text-left text-xs max-w-sm mx-auto space-y-2.5">
+                    <div class="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                        ${wabas.map(w => `
+                            <div onclick="selectWaba('${w.id}')" class="p-3 border rounded-xl cursor-pointer transition flex justify-between items-center ${selectedWaba && selectedWaba.id === w.id ? 'border-blue-500 bg-blue-50/20' : 'border-slate-200 hover:bg-slate-50/60'}">
+                                <div class="space-y-0.5 text-left">
+                                    <div class="text-xs text-slate-700 font-extrabold">${w.name}</div>
+                                    <div class="text-[10px] text-slate-400 font-semibold font-mono">WABA ID: ${w.id}</div>
+                                    <div class="text-[10px] text-slate-500 font-medium">Phones count: ${w.phone_count}</div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="px-2 py-0.5 text-[9px] font-bold rounded ${w.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${w.status}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                        ${wabas.length === 0 ? '<p class="text-xs text-slate-400 text-center py-4">No WhatsApp Business Accounts found in this Business Manager.</p>' : ''}
+                    </div>
+                    
+                    <div class="pt-4 flex justify-between">
+                        <button onclick="goWizardStep(3)" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
+                        <button onclick="discoverPhones()" ${!selectedWaba ? 'disabled' : ''} class="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-lg transition shadow-md">Next: Select Phone →</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        else if (currentStep === 5) {
+            // Select Phone Number
+            stepHtml = `
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="text-xs font-bold text-slate-800">Select Phone Number</h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Select the verified phone number to link to LinkPilot CRM.</p>
+                    </div>
+                    
+                    <div class="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                        ${phones.map(p => `
+                            <div onclick="selectPhone('${p.id}')" class="p-3 border rounded-xl cursor-pointer transition text-left space-y-2.5 ${selectedPhone && selectedPhone.id === p.id ? 'border-blue-500 bg-blue-50/20' : 'border-slate-200 hover:bg-slate-50/60'}">
+                                <div class="flex justify-between items-center">
+                                    <div class="text-xs text-slate-700 font-extrabold">${p.display_phone_number}</div>
+                                    <span class="px-2 py-0.5 text-[9px] font-bold rounded ${p.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${p.status}</span>
+                                </div>
+                                <div class="grid grid-cols-3 gap-1 text-[10px] text-slate-500 font-semibold">
+                                    <div>
+                                        <div class="text-slate-400 uppercase text-[8px] font-bold">Verified Name</div>
+                                        <div class="truncate text-slate-600">${p.verified_name || 'N/A'}</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-slate-400 uppercase text-[8px] font-bold">Quality</div>
+                                        <span class="font-extrabold ${p.quality_rating === 'GREEN' ? 'text-emerald-500' : p.quality_rating === 'YELLOW' ? 'text-amber-500' : 'text-red-500'}">${p.quality_rating}</span>
+                                    </div>
+                                    <div>
+                                        <div class="text-slate-400 uppercase text-[8px] font-bold">Limit</div>
+                                        <div class="text-slate-600">${p.messaging_limit_tier}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                        ${phones.length === 0 ? '<p class="text-xs text-slate-400 text-center py-4">No registered phone numbers found in this account.</p>' : ''}
+                    </div>
+                    
+                    <div class="pt-4 flex justify-between">
+                        <button onclick="goWizardStep(4)" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
+                        <button onclick="triggerHealthCheck()" ${!selectedPhone ? 'disabled' : ''} class="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-lg transition shadow-md">Next: Health Check →</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        else if (currentStep === 6) {
+            // Connection Health Check
+            if (healthError) {
+                stepHtml = `
+                    <div class="space-y-4 py-2 text-center">
+                        <div class="h-10 w-10 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mx-auto text-base font-bold">✕</div>
+                        <div>
+                            <h3 class="text-xs font-bold text-slate-800">Health Check Failed</h3>
+                            <p class="text-xs text-rose-500 mt-2 bg-rose-50 border border-rose-100 rounded-lg p-3 text-left font-semibold">${healthError}</p>
+                        </div>
+                        <div class="pt-4 flex justify-between">
+                            <button onclick="goWizardStep(5)" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
+                            <button onclick="triggerHealthCheck()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">Retry Diagnostics</button>
+                        </div>
+                    </div>
+                `;
+            } else if (!healthChecklist) {
+                stepHtml = `
+                    <div class="space-y-4 py-6 text-center">
+                        <div class="loader-spinner mx-auto"></div>
+                        <p class="text-xs font-bold text-slate-600">Running diagnostic health checklist...</p>
+                    </div>
+                `;
+            } else {
+                const renderCheck = (val, label) => `
+                    <div class="flex items-center space-x-2.5 text-xs">
+                        <span class="h-4.5 w-4.5 rounded-full flex items-center justify-center font-bold text-[10px] ${val ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}">
+                            ${val ? '✓' : '✕'}
+                        </span>
+                        <span class="${val ? 'text-slate-700' : 'text-rose-500 font-bold'}">${label}</span>
+                    </div>
+                `;
+                
+                const passes = Object.values(healthChecklist).every(v => v === true);
+                
+                stepHtml = `
+                    <div class="space-y-4 text-left">
+                        <div>
+                            <h3 class="text-xs font-bold text-slate-800">Connection Health Diagnostics</h3>
+                            <p class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">10-Point Health Checklist</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 bg-slate-50/50 border border-slate-100 p-4 rounded-2xl max-w-sm mx-auto">
+                            ${renderCheck(healthChecklist.token_valid, 'Access Token Valid')}
+                            ${renderCheck(healthChecklist.business_found, 'Business Found')}
+                            ${renderCheck(healthChecklist.waba_found, 'WABA Found')}
+                            ${renderCheck(healthChecklist.phone_found, 'Phone Number Found')}
+                            ${renderCheck(healthChecklist.cloud_api_enabled, 'Cloud API Enabled')}
+                            ${renderCheck(healthChecklist.messaging_permission, 'Messaging Permission')}
+                            ${renderCheck(healthChecklist.management_permission, 'Management Permission')}
+                            ${renderCheck(healthChecklist.business_verified, 'Business Verified')}
+                            ${renderCheck(healthChecklist.webhook_reachable, 'Webhook Reachable')}
+                            ${renderCheck(healthChecklist.ready_to_send, 'Ready to Send Messages')}
+                        </div>
+                        
+                        <div class="pt-4 flex justify-between">
+                            <button onclick="goWizardStep(5)" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
+                            <button onclick="saveConnection()" ${!passes ? 'disabled' : ''} class="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-lg transition shadow-md">Next: Save & Connect →</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        else if (currentStep === 7 || currentStep === 8) {
+            // Success & Test Connection Dashboard Overview
+            stepHtml = `
+                <div class="space-y-5 text-center py-4">
+                    <div class="h-12 w-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto text-xl font-bold">🎉</div>
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-800">WhatsApp Connected Successfully</h3>
+                        <p class="text-xs text-slate-500 mt-1">Your manual credential config is verified and live.</p>
+                    </div>
+                    
+                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-left text-xs max-w-sm mx-auto space-y-2.5 shadow-sm">
                         <div class="flex justify-between border-b border-slate-200/50 pb-1.5">
                             <span class="text-slate-500 font-medium">Business</span>
                             <span class="text-slate-800 font-bold">${connectedDetails.business_name || 'Taskbazi'}</span>
                         </div>
                         <div class="flex justify-between border-b border-slate-200/50 pb-1.5">
                             <span class="text-slate-500 font-medium">Phone</span>
-                            <span class="text-slate-800 font-bold">${connectedDetails.phone_number || '+91 80162 22991'}</span>
+                            <span class="text-slate-800 font-bold font-mono">${connectedDetails.phone_number || '+91 80162 22991'}</span>
                         </div>
                         <div class="flex justify-between border-b border-slate-200/50 pb-1.5">
-                            <span class="text-slate-500 font-medium">WABA Name</span>
-                            <span class="text-slate-800 font-bold">${connectedDetails.waba_name || 'Taskbazi Account'}</span>
-                        </div>
-                        <div class="flex justify-between border-b border-slate-200/50 pb-1.5">
-                            <span class="text-slate-500 font-medium">Messaging Limit</span>
+                            <span class="text-slate-500 font-medium">Messaging Tier</span>
                             <span class="text-slate-800 font-bold">${connectedDetails.messaging_limit || '1000/day'}</span>
                         </div>
                         <div class="flex justify-between border-b border-slate-200/50 pb-1.5">
                             <span class="text-slate-500 font-medium">Quality Rating</span>
                             <span class="text-emerald-600 font-extrabold">${connectedDetails.quality_rating || 'Green'}</span>
                         </div>
+                        <div class="flex justify-between border-b border-slate-200/50 pb-1.5">
+                            <span class="text-slate-500 font-medium">Webhook Status</span>
+                            <span class="text-emerald-600 font-bold">${connectedDetails.webhook_status || 'Verified'}</span>
+                        </div>
                         <div class="flex justify-between">
-                            <span class="text-slate-500 font-medium">Status</span>
+                            <span class="text-slate-500 font-medium">Connection Status</span>
                             <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md font-extrabold text-[9px] uppercase tracking-wide">${connectedDetails.status || 'Connected'}</span>
                         </div>
                     </div>
                     
                     <div class="pt-4">
-                        <button onclick="window.location.reload()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">
-                            Finish Setup
+                        <button onclick="window.location.reload()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">
+                            Go to WhatsApp Inbox
                         </button>
                     </div>
                 </div>
@@ -269,26 +394,25 @@ function renderWhatsAppSetup(container, settings) {
                     </div>
                     <div>
                         <h2 class="text-base font-extrabold text-slate-800">Connect WhatsApp Business</h2>
-                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Embedded Cloud API Setup Wizard</p>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Guided Manual Cloud API Wizard</p>
                     </div>
                 </div>
                 
-                <!-- Steps Progress dots -->
-                <div class="flex items-center justify-center space-x-6">
-                    <div class="flex items-center space-x-1.5">
-                        <span class="h-4.5 w-4.5 rounded-full flex items-center justify-center text-[10px] font-bold ${currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'}">1</span>
-                        <span class="text-[10px] font-semibold text-slate-500">Profile</span>
-                    </div>
-                    <div class="h-px w-8 bg-slate-200"></div>
-                    <div class="flex items-center space-x-1.5">
-                        <span class="h-4.5 w-4.5 rounded-full flex items-center justify-center text-[10px] font-bold ${currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'}">2</span>
-                        <span class="text-[10px] font-semibold text-slate-500">Meta</span>
-                    </div>
-                    <div class="h-px w-8 bg-slate-200"></div>
-                    <div class="flex items-center space-x-1.5">
-                        <span class="h-4.5 w-4.5 rounded-full flex items-center justify-center text-[10px] font-bold ${currentStep >= 3 ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'}">3</span>
-                        <span class="text-[10px] font-semibold text-slate-500">Verify</span>
-                    </div>
+                <!-- Stepper Wizard Progress tracker -->
+                <div class="flex items-center justify-center space-x-2 text-[10px] font-bold text-slate-400 border-b border-slate-100 pb-3">
+                    <span class="${currentStep === 1 ? 'text-blue-600 border-b-2 border-blue-600 pb-1.5' : ''}">1. Token</span>
+                    <span class="text-slate-300">•</span>
+                    <span class="${currentStep === 2 ? 'text-blue-600 border-b-2 border-blue-600 pb-1.5' : ''}">2. Verify</span>
+                    <span class="text-slate-300">•</span>
+                    <span class="${currentStep === 3 ? 'text-blue-600 border-b-2 border-blue-600 pb-1.5' : ''}">3. Business</span>
+                    <span class="text-slate-300">•</span>
+                    <span class="${currentStep === 4 ? 'text-blue-600 border-b-2 border-blue-600 pb-1.5' : ''}">4. WABA</span>
+                    <span class="text-slate-300">•</span>
+                    <span class="${currentStep === 5 ? 'text-blue-600 border-b-2 border-blue-600 pb-1.5' : ''}">5. Phone</span>
+                    <span class="text-slate-300">•</span>
+                    <span class="${currentStep === 6 ? 'text-blue-600 border-b-2 border-blue-600 pb-1.5' : ''}">6. Health</span>
+                    <span class="text-slate-300">•</span>
+                    <span class="${currentStep >= 7 ? 'text-blue-600 border-b-2 border-blue-600 pb-1.5' : ''}">7. Success</span>
                 </div>
                 
                 <div class="py-2">
@@ -298,28 +422,152 @@ function renderWhatsAppSetup(container, settings) {
         `;
         lucide.createIcons();
     }
-    
-    window.processWizardStep1 = function() {
-        bizName = document.getElementById('wa-biz-name').value.trim();
-        bizWebsite = document.getElementById('wa-biz-website').value.trim();
-        bizCategory = document.getElementById('wa-biz-category').value;
+
+    // Step-by-Step Help Dialog Trigger
+    window.openMetaTokenHelpDialog = function() {
+        const existing = document.getElementById('token-help-modal');
+        if (existing) existing.remove();
         
-        if (!bizName || !bizWebsite) {
-            showNotification('error', 'Please fill in both business name and website URL.');
+        const modal = document.createElement('div');
+        modal.id = 'token-help-modal';
+        modal.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4';
+        
+        modal.innerHTML = `
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 relative space-y-4 text-xs text-slate-300 shadow-2xl animate-fade-in animate-duration-200">
+                <button onclick="document.getElementById('token-help-modal').remove()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+                
+                <div class="border-b border-slate-800 pb-2 flex items-center space-x-2">
+                    <span class="text-emerald-500 font-extrabold text-base">🔑</span>
+                    <h3 class="text-sm font-bold text-white">How to Generate Permanent Meta Access Token</h3>
+                </div>
+                
+                <div class="space-y-3 max-h-[350px] overflow-y-auto pr-1 text-[11px] leading-relaxed">
+                    <div class="space-y-1">
+                        <div class="font-bold text-white">Step 1: Set up a Meta System User</div>
+                        <p class="text-slate-400">Log into your <a href="https://business.facebook.com/" target="_blank" class="text-blue-500 underline">Meta Business Suite</a>, open Settings -> Business Settings -> Users -> System Users.</p>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="font-bold text-white">Step 2: Add a System User</div>
+                        <p class="text-slate-400">Click <strong>Add</strong>, set a user role (choose <em>Admin System User</em>), and save.</p>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="font-bold text-white">Step 3: Assign Assets to User</div>
+                        <p class="text-slate-400">Select the newly created System User, click <strong>Assign Assets</strong>. Link your WhatsApp Business account and Business Manager, granting full access.</p>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="font-bold text-white">Step 4: Generate Access Token</div>
+                        <p class="text-slate-400">Click <strong>Generate New Token</strong>. Select your developer application from the dropdown.</p>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="font-bold text-white">Step 5: Select Required Scopes</div>
+                        <p class="text-slate-400">Ensure the following scopes are checkmarked:</p>
+                        <ul class="list-disc pl-4 space-y-0.5 font-mono text-[10px] text-slate-400">
+                            <li>whatsapp_business_management</li>
+                            <li>whatsapp_business_messaging</li>
+                            <li>business_management</li>
+                        </ul>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="font-bold text-white">Step 6: Copy and Paste</div>
+                        <p class="text-slate-400">Click Generate, copy the permanent token immediately, and paste it into the field here. This token does not expire.</p>
+                    </div>
+                </div>
+                
+                <div class="pt-2 text-right">
+                    <button onclick="document.getElementById('token-help-modal').remove()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-bold transition">Close Guide</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    };
+    
+    // Toggle Access Token Visibility
+    window.toggleTokenVisibility = function() {
+        const input = document.getElementById('wa-access-token');
+        const btn = document.getElementById('btn-toggle-visibility');
+        if (input && btn) {
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.innerText = 'Hide';
+            } else {
+                input.type = 'password';
+                btn.innerText = 'Show';
+            }
+        }
+    };
+    
+    // Clear field
+    window.clearTokenInput = function() {
+        const input = document.getElementById('wa-access-token');
+        if (input) {
+            input.value = '';
+            accessToken = '';
+        }
+    };
+    
+    // Clipboard Paste Handler
+    window.pasteToken = async function() {
+        const input = document.getElementById('wa-access-token');
+        if (!input) return;
+        
+        try {
+            const clipText = await navigator.clipboard.readText();
+            if (clipText) {
+                input.value = clipText.trim();
+                accessToken = clipText.trim();
+                showNotification('success', 'Token pasted from clipboard.');
+            }
+        } catch (err) {
+            showNotification('error', 'Clipboard access denied. Please paste manually (Ctrl+V/Cmd+V).');
+        }
+    };
+    
+    // Verify Access Token action
+    window.verifyMetaToken = function() {
+        const input = document.getElementById('wa-access-token');
+        const tokenVal = input ? input.value.trim() : accessToken;
+        
+        if (!tokenVal) {
+            showNotification('error', 'Please enter a Meta System User Access Token.');
             return;
         }
         
-        // Save Step 1 Info to API
-        apiCall('whatsapp/setup.php', 'POST', {
-            business_name: bizName,
-            website: bizWebsite,
-            category: bizCategory
+        accessToken = tokenVal;
+        currentStep = 2;
+        tokenVerifiedInfo = null;
+        verifyError = '';
+        drawWizard();
+        
+        apiCall('whatsapp/setup.php?action=verify_token', 'POST', {
+            access_token: accessToken
         }).then(res => {
-            currentStep = 2;
+            tokenVerifiedInfo = res;
             drawWizard();
         }).catch(err => {
-            showNotification('error', err.message);
+            verifyError = err.message || 'Verification failed.';
+            drawWizard();
         });
+    };
+    
+    // Searchable dropdown query filters
+    window.filterBusinesses = function(query) {
+        businessSearch = query;
+        drawWizard();
+    };
+    
+    window.selectBusiness = function(id) {
+        selectedBiz = businesses.find(b => b.id === id);
+        drawWizard();
+    };
+    
+    window.selectWaba = function(id) {
+        selectedWaba = wabas.find(w => w.id === id);
+        drawWizard();
+    };
+    
+    window.selectPhone = function(id) {
+        selectedPhone = phones.find(p => p.id === id);
+        drawWizard();
     };
     
     window.goWizardStep = function(step) {
@@ -327,201 +575,116 @@ function renderWhatsAppSetup(container, settings) {
         drawWizard();
     };
     
-    window.toggleManualCredentials = function() {
-        const form = document.getElementById('manual-credentials-form');
-        const chevron = document.getElementById('manual-chevron');
-        if (form && chevron) {
-            if (form.classList.contains('hidden')) {
-                form.classList.remove('hidden');
-                chevron.classList.add('rotate-180');
-            } else {
-                form.classList.add('hidden');
-                chevron.classList.remove('rotate-180');
-            }
-        }
-    };
-    
-    function markStepChecked(stepKey) {
-        const el = document.getElementById('step-' + stepKey);
-        if (el) {
-            el.classList.remove('text-slate-400');
-            el.classList.add('text-slate-800', 'font-semibold');
-            const bullet = el.querySelector('.bullet');
-            if (bullet) {
-                bullet.innerHTML = '✓';
-                bullet.className = "bullet shrink-0 h-4.5 w-4.5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[9px] font-bold border border-emerald-500";
-            }
-        }
-    }
-
-    function exchangeCodeAndConnect(code) {
-        markStepChecked('auth');
-        console.log("[LinkPilot Dev] Authorization code obtained:", code);
+    // 3. Discover Businesses
+    window.discoverBusinesses = function() {
+        currentStep = 3;
+        drawWizard();
         
-        apiCall('whatsapp/exchange_code.php', 'POST', {
-            code: code
+        apiCall('whatsapp/setup.php?action=discover_businesses', 'POST', {
+            access_token: accessToken
         }).then(res => {
-            console.log("[LinkPilot Dev] Token exchange & discovery response:", res);
-            connectedDetails = res;
-            
-            const steps = ['biz', 'phone', 'token', 'webhook', 'final'];
-            let idx = 0;
-            function tickNext() {
-                if (idx < steps.length) {
-                    markStepChecked(steps[idx]);
-                    idx++;
-                    setTimeout(tickNext, 450);
-                } else {
-                    currentStep = 4;
-                    drawWizard();
-                }
-            }
-            setTimeout(tickNext, 450);
-            
-        }).catch(err => {
-            console.error("[LinkPilot Dev] Token exchange failed error:", err);
-            
-            let userFriendlyMsg = 'Connection setup failed.';
-            if (err.message) {
-                if (err.message.includes('permission')) {
-                    userFriendlyMsg = 'Permission denied: Please ensure you grant all requested permissions (Business Management, WhatsApp Business Management, and WhatsApp Business Messaging).';
-                } else if (err.message.includes('Business Manager')) {
-                    userFriendlyMsg = 'No Business Manager found on this Facebook account. Please ensure your Business Manager is set up.';
-                } else if (err.message.includes('WhatsApp Business Account') || err.message.includes('WABA')) {
-                    userFriendlyMsg = 'No active WhatsApp Business Account found on your Business Manager. Please create one on Meta Business Suite.';
-                } else if (err.message.includes('phone number') || err.message.includes('Phone')) {
-                    userFriendlyMsg = 'No registered phone number found on Meta for this account. Please verify your phone number is registered.';
-                } else if (err.message.includes('exchange') || err.message.includes('code')) {
-                    userFriendlyMsg = 'Meta token exchange failed or authorization code has expired. Please try again.';
-                } else {
-                    userFriendlyMsg = err.message;
-                }
-            }
-            
-            showNotification('error', userFriendlyMsg);
-            goWizardStep(2);
-        });
-    }
-    
-    window.triggerMetaEmbeddedSignup = function() {
-        currentStep = 3;
-        drawWizard();
-        
-        apiCall('whatsapp/setup.php').then(res => {
-            const appId = res.meta_app_id || '';
-            const configId = '2427740481067572';
-            
-            if (appId) {
-                window.fbAsyncInit = function() {
-                    FB.init({
-                      appId      : appId,
-                      cookie     : true,
-                      xfbml      : false,
-                      version    : 'v25.0'
-                    });
-                    
-                    FB.AppEvents.logPageView();
-                    
-                    FB.login(function(response) {
-                        console.log("[LinkPilot Dev] FB.login response:", response);
-                        
-                        if (response.authResponse && response.authResponse.code) {
-                            const code = response.authResponse.code;
-                            exchangeCodeAndConnect(code);
-                        } else {
-                            showNotification('error', 'Facebook login cancelled or not authorized.');
-                            goWizardStep(2);
-                        }
-                    }, {
-                        config_id: configId,
-                        response_type: 'code',
-                        override_default_response_type: true,
-                        extras: {
-                            feature: 'whatsapp_embedded_signup',
-                            sessionInfoVersion: 3
-                        }
-                    });
-                };
-                
-                if (!document.getElementById('facebook-jssdk')) {
-                    var js, fjs = document.getElementsByTagName('script')[0];
-                    js = document.createElement('script');
-                    js.id = 'facebook-jssdk';
-                    js.src = "https://connect.facebook.net/en_US/sdk.js";
-                    fjs.parentNode.insertBefore(js, fjs);
-                } else {
-                    window.fbAsyncInit();
-                }
+            businesses = res.businesses || [];
+            if (businesses.length === 1) {
+                selectedBiz = businesses[0];
+                discoverWabas(); // Auto select and jump
             } else {
-                // Fallback simulation
-                setTimeout(() => {
-                    exchangeCodeAndConnect('EAAGeminiMockToken' + Date.now());
-                }, 1500);
+                drawWizard();
             }
         }).catch(err => {
-            setTimeout(() => {
-                exchangeCodeAndConnect('EAAGeminiMockToken' + Date.now());
-            }, 1500);
+            showNotification('error', 'Failed retrieving businesses: ' + err.message);
+            goWizardStep(1);
         });
     };
     
-    window.triggerManualMetaSignup = function() {
-        const accessToken = document.getElementById('manual-token').value.trim();
-        const wabaId = document.getElementById('manual-waba-id').value.trim();
-        const phoneNumberId = document.getElementById('manual-phone-id').value.trim();
-        const businessId = document.getElementById('manual-biz-id').value.trim();
-        
-        if (!accessToken || !wabaId || !phoneNumberId) {
-            showNotification('error', 'Token, WABA ID, and Phone Number ID are required.');
-            return;
-        }
-        
-        currentStep = 3;
-        selectedWaba = {
-            id: wabaId,
-            name: 'Manual Account',
-            business_id: businessId || 'ManualBiz',
-            business_name: 'Manual Business'
-        };
-        selectedPhone = {
-            id: phoneNumberId
-        };
-        discoveryToken = accessToken;
-        
+    // 4. Discover WABAs
+    window.discoverWabas = function() {
+        if (!selectedBiz) return;
+        currentStep = 4;
         drawWizard();
         
-        markStepChecked('auth');
-        markStepChecked('biz');
-        markStepChecked('phone');
-        
-        validateAndConnect();
+        apiCall('whatsapp/setup.php?action=discover_wabas', 'POST', {
+            access_token: accessToken,
+            business_id: selectedBiz.id
+        }).then(res => {
+            wabas = res.wabas || [];
+            if (wabas.length === 1) {
+                selectedWaba = wabas[0];
+                discoverPhones(); // Auto select and jump
+            } else {
+                drawWizard();
+            }
+        }).catch(err => {
+            showNotification('error', 'Failed retrieving WhatsApp accounts: ' + err.message);
+            goWizardStep(3);
+        });
     };
     
-    function validateAndConnect() {
-        markStepChecked('token');
+    // 5. Discover Phones
+    window.discoverPhones = function() {
+        if (!selectedWaba) return;
+        currentStep = 5;
+        drawWizard();
         
-        apiCall('whatsapp/setup.php?action=validate_and_save', 'POST', {
-            access_token: discoveryToken,
-            business_id: selectedWaba.business_id,
-            business_name: selectedWaba.business_name,
+        apiCall('whatsapp/setup.php?action=discover_phones', 'POST', {
+            access_token: accessToken,
+            waba_id: selectedWaba.id
+        }).then(res => {
+            phones = res.phones || [];
+            if (phones.length === 1) {
+                selectedPhone = phones[0];
+                triggerHealthCheck(); // Auto select and jump
+            } else {
+                drawWizard();
+            }
+        }).catch(err => {
+            showNotification('error', 'Failed retrieving phone numbers: ' + err.message);
+            goWizardStep(4);
+        });
+    };
+    
+    // 6. Diagnostics Checklist health check
+    window.triggerHealthCheck = function() {
+        currentStep = 6;
+        healthChecklist = null;
+        healthError = '';
+        drawWizard();
+        
+        apiCall('whatsapp/setup.php?action=health_check', 'POST', {
+            access_token: accessToken,
+            business_id: selectedBiz ? selectedBiz.id : '',
+            waba_id: selectedWaba.id,
+            phone_number_id: selectedPhone.id
+        }).then(res => {
+            healthChecklist = res.checklist;
+            drawWizard();
+        }).catch(err => {
+            healthError = err.message || 'Diagnostic checklist failed.';
+            drawWizard();
+        });
+    };
+    
+    // 7. Save connection details
+    window.saveConnection = function() {
+        currentStep = 7;
+        drawWizard();
+        
+        apiCall('whatsapp/setup.php?action=save_connection', 'POST', {
+            access_token: accessToken,
+            business_id: selectedBiz ? selectedBiz.id : 'BizManual',
+            business_name: selectedBiz ? selectedBiz.name : 'Manual Biz',
             waba_id: selectedWaba.id,
             waba_name: selectedWaba.name,
             phone_number_id: selectedPhone.id
         }).then(res => {
-            markStepChecked('webhook');
-            markStepChecked('final');
             connectedDetails = res;
-            
-            setTimeout(() => {
-                currentStep = 4;
-                drawWizard();
-            }, 800);
+            currentStep = 8;
+            drawWizard();
         }).catch(err => {
-            showNotification('error', err.message || 'Connection validation failed.');
-            goWizardStep(2);
+            showNotification('error', 'Failed saving connection: ' + err.message);
+            currentStep = 6;
         });
-    }
-    
+    };
+
     drawWizard();
 }
 
@@ -1620,12 +1783,90 @@ function renderWhatsAppSettings(container) {
             const res = await apiCall('whatsapp/settings.php');
             const set = res.settings;
             
+            const setupRes = await apiCall('whatsapp/setup.php');
+            const acc = setupRes.account || {};
+            const isConnected = setupRes.connected;
+            
             contentArea.innerHTML = `
                 <div class="space-y-6">
                     <div class="border-b border-slate-200 pb-4 bg-white p-5 rounded-2xl shadow-sm">
                         <h2 class="text-sm font-bold text-slate-800">WhatsApp Module Settings</h2>
                         <p class="text-[11px] text-slate-400 mt-0.5">Manage automated CRM creation, file upload limits, and AI generation parameters.</p>
                     </div>
+
+                    ${isConnected ? `
+                    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 max-w-xl">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                            <span class="font-bold text-slate-700 text-xs">Active Connection Status</span>
+                            <span class="px-2.5 py-0.5 text-[9px] font-bold rounded uppercase ${acc.status === 'connected' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-rose-100 text-rose-800 border border-rose-200'}">
+                                ${acc.status || 'Disconnected'}
+                            </span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                            <div class="space-y-2.5">
+                                <div class="flex justify-between border-b border-slate-100 pb-1.5">
+                                    <span class="text-slate-400 font-semibold">Business Name</span>
+                                    <span class="text-slate-800 font-bold">${acc.business_name || 'N/A'}</span>
+                                </div>
+                                <div class="flex justify-between border-b border-slate-100 pb-1.5">
+                                    <span class="text-slate-400 font-semibold">Business ID</span>
+                                    <span class="text-slate-800 font-mono font-bold">${acc.business_id || 'N/A'}</span>
+                                </div>
+                                <div class="flex justify-between border-b border-slate-100 pb-1.5">
+                                    <span class="text-slate-400 font-semibold">WABA ID</span>
+                                    <span class="text-slate-800 font-mono font-bold">${acc.waba_id || 'N/A'}</span>
+                                </div>
+                                <div class="flex justify-between pb-1.5">
+                                    <span class="text-slate-400 font-semibold">Phone Number ID</span>
+                                    <span class="text-slate-800 font-mono font-bold">${acc.phone_number_id || 'N/A'}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-2.5">
+                                <div class="flex justify-between border-b border-slate-100 pb-1.5">
+                                    <span class="text-slate-400 font-semibold">Display Phone Number</span>
+                                    <span class="text-slate-800 font-bold font-mono">${acc.display_phone_number || 'N/A'}</span>
+                                </div>
+                                <div class="flex justify-between border-b border-slate-100 pb-1.5">
+                                    <span class="text-slate-400 font-semibold">Token Status</span>
+                                    <span class="text-slate-800 font-bold uppercase ${acc.token_status === 'valid' ? 'text-emerald-600' : 'text-rose-500'}">${acc.token_status || 'Unknown'}</span>
+                                </div>
+                                <div class="flex justify-between border-b border-slate-100 pb-1.5">
+                                    <span class="text-slate-400 font-semibold">Webhook Status</span>
+                                    <span class="text-slate-800 font-bold uppercase ${acc.webhook_status === 'verified' ? 'text-emerald-600' : 'text-rose-500'}">${acc.webhook_status || 'Unknown'}</span>
+                                </div>
+                                <div class="flex justify-between pb-1.5">
+                                    <span class="text-slate-400 font-semibold">Limit & Quality</span>
+                                    <span class="text-slate-800 font-bold">${acc.messaging_limit || 'N/A'} • <span class="font-extrabold text-emerald-600">${acc.quality_rating || 'N/A'}</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px] text-slate-500 font-semibold bg-slate-50 border border-slate-100 p-3 rounded-xl mt-2">
+                            <div>
+                                <span class="text-slate-400">Connected On:</span>
+                                <div class="text-slate-600 mt-0.5">${acc.created_at ? new Date(acc.created_at).toLocaleString() : 'N/A'}</div>
+                            </div>
+                            <div>
+                                <span class="text-slate-400">Last Verified:</span>
+                                <div class="text-slate-600 mt-0.5">${acc.last_verified_at ? new Date(acc.last_verified_at).toLocaleString() : 'Never'}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="pt-3 border-t border-slate-100 flex flex-wrap gap-2 text-xs">
+                            <button onclick="reVerifyConnection()" class="px-3.5 py-1.5 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 text-indigo-600 font-bold rounded-lg transition">
+                                Re-Verify Connection
+                            </button>
+                            <button onclick="openUpdateTokenModal()" class="px-3.5 py-1.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold rounded-lg transition">
+                                Update Token
+                            </button>
+                            <button onclick="disconnectWhatsAppAccount()" class="px-3.5 py-1.5 bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-500 font-bold rounded-lg transition">
+                                Disconnect
+                            </button>
+                        </div>
+                    </div>
+                    ` : ''}
 
                     <div class="max-w-xl bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 text-xs">
                         <form onsubmit="saveWhatsAppSettingsForm(event)" class="space-y-5">
@@ -1673,10 +1914,7 @@ function renderWhatsAppSettings(container) {
                                 </div>
                             </div>
                             
-                            <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
-                                <button type="button" onclick="disconnectWhatsAppAccount()" class="px-3.5 py-2 border border-red-200 hover:bg-red-50 text-red-500 font-bold rounded-lg transition">
-                                    Disconnect Account
-                                </button>
+                            <div class="pt-4 border-t border-slate-100 flex items-center justify-end">
                                 <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition shadow-md">
                                     Save Configurations
                                 </button>
@@ -1686,6 +1924,69 @@ function renderWhatsAppSettings(container) {
                 </div>
             `;
             lucide.createIcons();
+            
+            // Re-Verify Connection
+            window.reVerifyConnection = function() {
+                showNotification('info', 'Re-verifying connection health with Meta...');
+                apiCall('whatsapp/setup.php?action=re_verify', 'POST')
+                    .then(res => {
+                        showNotification('success', `Connection status: Token is ${res.token_status}, Webhook is ${res.webhook_status}`);
+                        renderWhatsAppSettings(container); // Reload settings pane
+                    })
+                    .catch(err => {
+                        showNotification('error', 'Re-verification failed: ' + err.message);
+                    });
+            };
+            
+            // Update Token Modal UI
+            window.openUpdateTokenModal = function() {
+                const existing = document.getElementById('update-token-modal');
+                if (existing) existing.remove();
+                
+                const modal = document.createElement('div');
+                modal.id = 'update-token-modal';
+                modal.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4';
+                
+                modal.innerHTML = `
+                    <div class="bg-white border border-slate-200 w-full max-w-sm rounded-2xl p-6 relative space-y-4 text-xs shadow-2xl animate-fade-in animate-duration-200">
+                        <button onclick="document.getElementById('update-token-modal').remove()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 text-xl font-bold">&times;</button>
+                        
+                        <h3 class="text-sm font-bold text-slate-800">Update Meta Access Token</h3>
+                        <p class="text-[11px] text-slate-500">Provide your new Permanent Meta System User Access Token to restore connection.</p>
+                        
+                        <input type="password" id="new-meta-token" placeholder="EAA..." class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 font-mono text-xs">
+                        
+                        <div class="pt-2 flex justify-end space-x-2">
+                            <button onclick="document.getElementById('update-token-modal').remove()" class="px-4 py-2 border border-slate-200 rounded-lg font-bold hover:bg-slate-50 transition">Cancel</button>
+                            <button onclick="submitUpdatedToken()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition">Update Token</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            };
+            
+            // Submit Updated Token
+            window.submitUpdatedToken = function() {
+                const token = document.getElementById('new-meta-token').value.trim();
+                if (!token) {
+                    showNotification('error', 'Token is required.');
+                    return;
+                }
+                
+                apiCall('whatsapp/setup.php?action=save_connection', 'POST', {
+                    access_token: token,
+                    business_id: acc.business_id,
+                    business_name: acc.business_name,
+                    waba_id: acc.waba_id,
+                    phone_number_id: acc.phone_number_id
+                }).then(res => {
+                    showNotification('success', 'Token updated successfully.');
+                    document.getElementById('update-token-modal').remove();
+                    renderWhatsAppSettings(container); // Reload settings pane
+                }).catch(err => {
+                    showNotification('error', 'Failed updating token: ' + err.message);
+                });
+            };
             
             window.saveWhatsAppSettingsForm = function(e) {
                 e.preventDefault();

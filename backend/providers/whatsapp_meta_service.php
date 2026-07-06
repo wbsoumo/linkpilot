@@ -31,7 +31,33 @@ class WhatsAppMetaService {
     /**
      * Execute generic Meta Graph API Request.
      */
-    private static function executeRequest($endpoint, $method = 'GET', $payload = null, $token = null) {
+    public static function executeRequest($endpoint, $method = 'GET', $payload = null, $token = null) {
+        $db = Database::getConnection();
+        
+        // 1. Resolve custom Graph API version
+        try {
+            $stmtVer = $db->query("SELECT setting_value FROM admin_settings WHERE setting_key = 'whatsapp_meta_api_version' LIMIT 1");
+            $ver = $stmtVer->fetchColumn();
+            if (!empty($ver)) {
+                self::$graphVersion = trim($ver);
+            }
+        } catch (Exception $e) {}
+        
+        // 2. Resolve timeout and retries limits
+        $timeout = 15;
+        $maxRetries = 3;
+        try {
+            $stmtTimeout = $db->query("SELECT setting_value FROM admin_settings WHERE setting_key = 'whatsapp_global_api_timeout' LIMIT 1");
+            $tVal = $stmtTimeout->fetchColumn();
+            if (!empty($tVal)) $timeout = (int) $tVal;
+            
+            $stmtRetry = $db->query("SELECT setting_value FROM admin_settings WHERE setting_key = 'whatsapp_retry_attempts' LIMIT 1");
+            $rVal = $stmtRetry->fetchColumn();
+            if (!empty($rVal)) $maxRetries = (int) $rVal;
+        } catch (Exception $e) {}
+        if ($maxRetries < 1) $maxRetries = 1;
+        if ($timeout < 1) $timeout = 15;
+        
         $url = "https://graph.facebook.com/" . self::$graphVersion . "/" . $endpoint;
         
         $headers = [
@@ -41,24 +67,37 @@ class WhatsAppMetaService {
             $headers[] = "Authorization: Bearer " . $token;
         }
         
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $response = null;
+        $httpCode = 0;
+        $err = null;
         
-        if ($method === 'POST' && $payload) {
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-        }
-        
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $err = curl_error($ch);
-        curl_close($ch);
-        
-        if ($err) {
-            throw new Exception("Graph API cURL Error: " . $err);
+        for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+            
+            if ($method === 'POST' && $payload) {
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+            }
+            
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $err = curl_error($ch);
+            curl_close($ch);
+            
+            if (!$err) {
+                break;
+            }
+            
+            if ($attempt === $maxRetries) {
+                throw new Exception("Graph API cURL Error (After {$attempt} attempts): " . $err);
+            }
+            
+            usleep(150000 * $attempt); // Exponential backoff sleep
         }
         
         $data = json_decode($response, true);

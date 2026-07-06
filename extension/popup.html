@@ -2,149 +2,1142 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <title>LinkPilot AI</title>
     <style>
+        :root {
+            --bg-main: #0B0F19;
+            --bg-card: #131926;
+            --bg-card-hover: #1A2234;
+            --border-color: rgba(255, 255, 255, 0.06);
+            --border-hover: rgba(99, 102, 241, 0.25);
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+            --accent: #10B981;
+            --accent-hover: #0D9488;
+            --purple: #8B5CF6;
+            --purple-light: rgba(139, 92, 246, 0.1);
+            --yellow: #F59E0B;
+            --yellow-light: rgba(245, 158, 11, 0.1);
+            --green: #10B981;
+            --green-light: rgba(16, 185, 129, 0.1);
+            --blue: #3B82F6;
+            --blue-light: rgba(59, 130, 246, 0.1);
+            --orange: #F97316;
+            --orange-light: rgba(249, 115, 22, 0.1);
+            --red: #EF4444;
+            --red-light: rgba(239, 68, 68, 0.1);
+        }
+
         body {
-            width: 320px;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #0F172A;
-            color: #F8FAFC;
+            width: 680px;
+            height: 480px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
             margin: 0;
-            padding: 16px;
-        }
-        h2 {
-            font-size: 18px;
-            font-weight: 700;
-            margin-top: 0;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-        }
-        .teal-text {
-            color: #14B8A6;
-            margin-right: 4px;
-        }
-        p {
-            font-size: 12px;
-            color: #94A3B8;
-            margin-top: 0;
-            margin-bottom: 16px;
-        }
-        .form-group {
-            margin-bottom: 12px;
-        }
-        label {
-            display: block;
-            font-size: 10px;
-            font-weight: 600;
-            color: #94A3B8;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-        }
-        input {
-            width: 100%;
+            padding: 0;
+            overflow: hidden;
             box-sizing: border-box;
-            background-color: #1E293B;
-            border: 1px solid #334155;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            outline: none;
         }
-        input:focus {
-            border-color: #14B8A6;
+
+        * {
+            box-sizing: border-box;
         }
-        button {
-            width: 100%;
-            background-color: #14B8A6;
-            color: #0F172A;
-            border: none;
-            padding: 10px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        button:hover {
-            background-color: #0D9488;
-        }
-        .btn-secondary {
-            background-color: transparent;
-            color: #F8FAFC;
-            border: 1px solid #334155;
-            margin-top: 8px;
-        }
-        .btn-secondary:hover {
-            background-color: #1E293B;
-        }
+
         .hidden {
             display: none !important;
         }
-        .menu-link {
-            display: block;
-            padding: 10px 12px;
-            background-color: #1E293B;
-            border: 1px solid #334155;
-            color: #E2E8F0;
-            text-decoration: none;
-            font-size: 13px;
+
+        /* ---------------------------------------------------- */
+        /* LOGIN VIEW: SPLIT PANEL LAYOUT */
+        /* ---------------------------------------------------- */
+        .login-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Left brand panel (45%) */
+        .brand-panel {
+            width: 44%;
+            background: linear-gradient(135deg, #1A1F38 0%, #0A0D1A 100%);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-right: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .brand-logo-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .lp-logo-square {
+            width: 32px;
+            height: 32px;
+            background: #FFFFFF;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 16px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .lp-logo-square .logo-l {
+            color: #3B82F6;
+        }
+
+        .lp-logo-square .logo-p {
+            color: #8B5CF6;
+        }
+
+        .brand-logo-text {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #FFFFFF;
+        }
+
+        .brand-logo-text .accent-text {
+            color: var(--accent);
+        }
+
+        .brand-hero h1 {
+            font-size: 17px;
+            font-weight: 750;
+            line-height: 1.35;
+            margin: 0 0 6px 0;
+            color: #FFFFFF;
+        }
+
+        .brand-hero h1 .highlight-text {
+            color: var(--accent);
+        }
+
+        .brand-hero p {
+            font-size: 10.5px;
+            color: var(--text-muted);
+            line-height: 1.45;
+            margin: 0;
+        }
+
+        .feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .feature-icon-badge {
+            width: 26px;
+            height: 26px;
             border-radius: 6px;
-            margin-bottom: 8px;
-            text-align: center;
-            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .feature-icon-badge.purple { background: rgba(139, 92, 246, 0.12); color: #A78BFA; }
+        .feature-icon-badge.green { background: rgba(16, 185, 129, 0.12); color: #34D399; }
+        .feature-icon-badge.blue { background: rgba(59, 130, 246, 0.12); color: #60A5FA; }
+        .feature-icon-badge.orange { background: rgba(249, 115, 22, 0.12); color: #FDBA74; }
+
+        .feature-desc {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        .feature-desc strong {
+            font-size: 11px;
+            font-weight: 650;
+            color: #FFFFFF;
+        }
+
+        .feature-desc span {
+            font-size: 9px;
+            color: var(--text-muted);
+            line-height: 1.3;
+        }
+
+        .brand-security {
+            font-size: 9.5px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            opacity: 0.85;
+        }
+
+        /* Right form panel (56%) */
+        .form-panel {
+            width: 56%;
+            padding: 28px 32px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background-color: var(--bg-main);
+            position: relative;
+        }
+
+        .close-btn-top {
+            position: absolute;
+            top: 20px;
+            right: 24px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: all 0.2s;
         }
-        .menu-link:hover {
-            border-color: #14B8A6;
-            color: #14B8A6;
+
+        .close-btn-top:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #FFFFFF;
         }
+
+        .welcome-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0 0 4px 0;
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .welcome-header p {
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .form-body {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .input-group label {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-container input {
+            width: 100%;
+            background-color: #121824;
+            border: 1px solid #232C3F;
+            color: #FFFFFF;
+            padding: 8px 12px 8px 34px;
+            border-radius: 8px;
+            font-size: 12px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .input-container input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+        }
+
+        .field-icon {
+            position: absolute;
+            left: 12px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .eye-icon {
+            position: absolute;
+            right: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .eye-icon:hover {
+            color: #FFFFFF;
+        }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            margin-top: 2px;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding-left: 20px;
+            cursor: pointer;
+            user-select: none;
+            color: var(--text-muted);
+        }
+
+        .checkbox-container input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .checkmark {
+            position: absolute;
+            left: 0;
+            height: 14px;
+            width: 14px;
+            background-color: #121824;
+            border: 1px solid #232C3F;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .checkbox-container:hover input ~ .checkmark {
+            border-color: var(--accent);
+        }
+
+        .checkbox-container input:checked ~ .checkmark {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+
+        .checkbox-container input:checked ~ .checkmark:after {
+            display: block;
+        }
+
+        .checkbox-container .checkmark:after {
+            left: 4px;
+            top: 1px;
+            width: 4px;
+            height: 7px;
+            border: solid #0B0F19;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .forgot-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .forgot-link:hover {
+            color: var(--accent);
+        }
+
+        .action-btn {
+            background-color: var(--accent);
+            color: #052E16;
+            border: none;
+            padding: 9px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 12.5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+
+        .action-btn:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
         .error-message {
             color: #EF4444;
-            font-size: 11px;
-            margin-top: 6px;
-            text-align: center;
-        }
-        .footer {
-            margin-top: 16px;
-            text-align: center;
             font-size: 10px;
-            color: #475569;
+            text-align: center;
+            min-height: 12px;
+            margin-top: -4px;
+        }
+
+        .divider-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 2px 0;
+        }
+
+        .divider-line {
+            flex-grow: 1;
+            height: 1px;
+            background-color: var(--border-color);
+        }
+
+        .divider-row span {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .google-btn {
+            background-color: #121824;
+            color: var(--text-main);
+            border: 1px solid #232C3F;
+            padding: 9px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .google-btn:hover {
+            background-color: #1B2234;
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .form-footer {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .form-footer a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+            transition: text-decoration 0.2s;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+
+
+        /* ---------------------------------------------------- */
+        /* DASHBOARD VIEW LAYOUT */
+        /* ---------------------------------------------------- */
+        .dashboard-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px 24px 0 24px;
+        }
+
+        .dash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .dash-user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .dash-user-profile .lp-logo-square {
+            width: 38px;
+            height: 38px;
+            font-size: 18px;
+        }
+
+        .dash-user-info h2 {
+            font-size: 15px;
+            font-weight: 750;
+            line-height: 1.35;
+            margin: 0 0 2px 0;
+            color: #FFFFFF;
+        }
+
+        .dash-user-info h2 span.sparkle-icon {
+            color: var(--yellow);
+            margin-right: 2px;
+        }
+
+        .dash-user-info h2 span#user-name {
+            color: #FFFFFF;
+        }
+
+        .dash-status-indicator {
+            font-size: 10.5px;
+            color: var(--text-muted);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px var(--accent);
+        }
+
+        /* Sparkles design decoration in header */
+        .sparkles-decorator {
+            position: absolute;
+            right: 140px;
+            top: -2px;
+            color: #6366F1;
+            opacity: 0.35;
+            pointer-events: none;
+        }
+
+        .status-badge-block {
+            display: flex;
+            align-items: center;
+        }
+
+        .status-badge-inner {
+            background-color: #121824;
+            border: 1px solid #232C3F;
+            border-radius: 10px;
+            padding: 6px 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+            min-width: 100px;
+        }
+
+        .status-badge-title {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-badge-dot {
+            width: 5px;
+            height: 5px;
+            background-color: var(--accent);
+            border-radius: 50%;
+        }
+
+        .status-badge-val {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        /* 2-Columns Grid */
+        .dash-grid-menu {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 14px;
+            margin-bottom: 12px;
+        }
+
+        .grid-item {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .grid-item:hover {
+            background-color: var(--bg-card-hover);
+            border-color: var(--border-hover);
+            transform: translateY(-0.5px);
+        }
+
+        .grid-icon-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-right: 12px;
+        }
+
+        .grid-icon-circle.purple { background-color: var(--purple-light); color: #A78BFA; }
+        .grid-icon-circle.yellow { background-color: var(--yellow-light); color: #FBBF24; }
+        .grid-icon-circle.green { background-color: var(--green-light); color: #34D399; }
+        .grid-icon-circle.blue { background-color: var(--blue-light); color: #60A5FA; }
+        .grid-icon-circle.orange { background-color: var(--orange-light); color: #FDBA74; }
+        .grid-icon-circle.red { background-color: var(--red-light); color: #F87171; }
+
+        .grid-desc {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .grid-desc h3 {
+            font-size: 12px;
+            font-weight: 650;
+            color: #FFFFFF;
+            margin: 0;
+        }
+
+        .grid-desc span {
+            font-size: 9.5px;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .grid-arrow {
+            color: var(--text-muted);
+            opacity: 0.6;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .grid-item:hover .grid-arrow {
+            color: #FFFFFF;
+            opacity: 1;
+            transform: translateX(2px);
+        }
+
+        /* Plan Card */
+        .dash-plan-card {
+            background: linear-gradient(90deg, #191B35 0%, #111326 100%);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .dash-plan-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .dash-plan-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background-color: rgba(99, 102, 241, 0.15);
+            color: #818CF8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dash-plan-desc {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .dash-plan-desc h4 {
+            font-size: 12px;
+            font-weight: 650;
+            color: #FFFFFF;
+            margin: 0;
+        }
+
+        .dash-plan-desc span {
+            font-size: 9.5px;
+            color: #818CF8;
+            margin: 0;
+            opacity: 0.85;
+        }
+
+        .dash-plan-btn {
+            background-color: #1E1B4B;
+            border: 1px solid rgba(99, 102, 241, 0.35);
+            color: #FFFFFF;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+
+        .dash-plan-btn:hover {
+            background-color: #2E1065;
+            border-color: rgba(99, 102, 241, 0.6);
+            transform: translateY(-0.5px);
+        }
+
+        /* Bottom Footer Bar */
+        .dash-footer-bar {
+            border-top: 1px solid var(--border-color);
+            padding: 10px 24px;
+            margin-left: -24px;
+            margin-right: -24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #090D18;
+        }
+
+        .dash-footer-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11.5px;
+            color: var(--text-muted);
+            font-weight: 550;
+        }
+
+        .dark-mode-icon {
+            color: var(--text-muted);
+        }
+
+        /* Toggle switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 32px;
+            height: 18px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #1E293B;
+            transition: .3s;
+            border: 1px solid #334155;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 12px;
+            width: 12px;
+            left: 2px;
+            bottom: 2px;
+            background-color: #FFFFFF;
+            transition: .3s;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px var(--accent);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(14px);
+        }
+
+        .slider.round {
+            border-radius: 18px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+
+        .dash-footer-version {
+            font-size: 11px;
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        .dash-logout-btn {
+            background: none;
+            border: none;
+            color: #F43F5E;
+            font-size: 11.5px;
+            font-weight: 650;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .dash-logout-btn:hover {
+            background-color: rgba(244, 63, 94, 0.08);
+            color: #FF1E43;
         }
     </style>
 </head>
 <body>
-    <div id="login-view">
-        <h2><span class="teal-text">✨ LinkPilot</span> AI</h2>
-        <p>Log in to active your LinkedIn outreach assistant.</p>
-        
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" placeholder="you@example.com">
+    <!-- LOGIN VIEW -->
+    <div id="login-view" class="login-container">
+        <!-- Left Panel -->
+        <div class="brand-panel">
+            <div class="brand-logo-row">
+                <div class="lp-logo-square">
+                    <span class="logo-l">L</span><span class="logo-p">P</span>
+                </div>
+                <span class="brand-logo-text">LinkPilot <span class="accent-text">AI</span></span>
+            </div>
+            
+            <div class="brand-hero">
+                <h1>Your AI Assistant for<br>Smarter <span class="highlight-text">LinkedIn Outreach</span></h1>
+                <p>Log in to access all your outreach tools, templates, and analytics.</p>
+            </div>
+
+            <div class="feature-list">
+                <div class="feature-item">
+                    <div class="feature-icon-badge purple">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    </div>
+                    <div class="feature-desc">
+                        <strong>AI-Powered Outreach</strong>
+                        <span>Generate personalized messages that get responses.</span>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon-badge green">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                    </div>
+                    <div class="feature-desc">
+                        <strong>Track & Analyze</strong>
+                        <span>Monitor performance and improve your outreach.</span>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon-badge blue">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    </div>
+                    <div class="feature-desc">
+                        <strong>Secure & Private</strong>
+                        <span>Your data is encrypted and always protected.</span>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon-badge orange">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                    </div>
+                    <div class="feature-desc">
+                        <strong>Smart Templates</strong>
+                        <span>Save and reuse templates for faster outreach.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="brand-security">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: middle; margin-right: 4px; color: #10B981;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 11 11 13 15 9"></polyline></svg>
+                <span>Enterprise-grade security. SSL encrypted</span>
+            </div>
         </div>
-        
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" placeholder="••••••••">
-        </div>
-        
-        <button id="login-btn">Log In</button>
-        <div id="login-error" class="error-message"></div>
-        
-        <div class="footer">
-            Don't have an account? Register on the web dashboard.
+
+        <!-- Right Panel -->
+        <div class="form-panel">
+            <button class="close-btn-top" id="close-login-btn" title="Close">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+
+            <div class="welcome-header">
+                <h2>Welcome back 👋</h2>
+                <p>Log in to activate your outreach assistant directly on this page.</p>
+            </div>
+
+            <div class="form-body">
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <div class="input-container">
+                        <svg class="field-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                        <input type="email" id="email" placeholder="you@example.com">
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>Password</label>
+                    <div class="input-container">
+                        <svg class="field-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        <input type="password" id="password" placeholder="••••••••">
+                        <svg class="eye-icon" id="toggle-pw-visibility" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </div>
+                </div>
+
+                <div class="form-options">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="remember-me" checked>
+                        <span class="checkmark"></span>
+                        <span class="label-text">Remember me</span>
+                    </label>
+                    <a href="https://linkpilot.work/forgot-password" target="_blank" class="forgot-link">Forgot password?</a>
+                </div>
+
+                <button class="action-btn" id="login-btn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline><line x1="5" y1="12" x2="15" y2="12"></line></svg>
+                    <span>Log In</span>
+                </button>
+                
+                <div id="login-error" class="error-message"></div>
+
+                <div class="divider-row">
+                    <div class="divider-line"></div>
+                    <span>OR</span>
+                    <div class="divider-line"></div>
+                </div>
+
+                <button class="google-btn" id="google-login-btn">
+                    <svg width="12" height="12" viewBox="0 0 24 24"><path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.4-2.519 4.114-5.327 4.114-3.557 0-6.44-2.883-6.44-6.44s2.883-6.44 6.44-6.44c1.632 0 3.109.608 4.25 1.621l3.072-3.071C18.995 1.942 15.82 1 12.24 1 6.03 1 1 6.03 1 12.24s5.03 11.24 11.24 11.24c5.842 0 10.742-4.148 11.666-9.765H12.24z"/></svg>
+                    <span>Continue with Google</span>
+                </button>
+            </div>
+
+            <div class="form-footer">
+                Don't have an account? <a href="https://linkpilot.work/register" target="_blank">Create your account &gt;</a>
+            </div>
         </div>
     </div>
 
-    <div id="dashboard-view" class="hidden">
-        <h2><span class="teal-text">✨ Welcome back,</span> <span id="user-name">User</span></h2>
-        <p>Your LinkPilot Chrome assistant is active and running.</p>
-        
-        <a href="#" id="open-dashboard-btn" class="menu-link">Open Dashboard Overview</a>
-        <a href="#" id="open-smtp-btn" class="menu-link">SMTP Settings</a>
-        <a href="#" id="open-leads-btn" class="menu-link">Lead Vault</a>
-        
-        <button id="logout-btn" class="btn-secondary">Log Out</button>
+    <!-- DASHBOARD VIEW -->
+    <div id="dashboard-view" class="dashboard-container hidden">
+        <!-- Header -->
+        <div class="dash-header">
+            <!-- Sparkle decorative SVG -->
+            <svg class="sparkles-decorator" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5z"/>
+            </svg>
+            
+            <div class="dash-user-profile">
+                <div class="lp-logo-square">
+                    <span class="logo-l">L</span><span class="logo-p">P</span>
+                </div>
+                <div class="dash-user-info">
+                    <h2><span class="sparkle-icon">✨</span> Welcome back,<br><span id="user-name">Soumojit Saha</span></h2>
+                    <p class="dash-status-indicator">
+                        <span class="status-dot"></span> LinkPilot Chrome assistant is active and running.
+                    </p>
+                </div>
+            </div>
+
+            <div class="status-badge-block">
+                <div class="status-badge-inner">
+                    <span class="status-badge-title">
+                        <span class="status-badge-dot"></span> Status
+                    </span>
+                    <span class="status-badge-val">Active</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2-Columns Grid -->
+        <div class="dash-grid-menu">
+            <!-- Item 1: Overview -->
+            <div class="grid-item" id="open-dashboard-btn">
+                <div class="grid-icon-circle purple">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                </div>
+                <div class="grid-desc">
+                    <h3>Dashboard Overview</h3>
+                    <span>View analytics and activity</span>
+                </div>
+                <div class="grid-arrow">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+            </div>
+
+            <!-- Item 2: Credits & Usage -->
+            <div class="grid-item" id="open-credits-btn">
+                <div class="grid-icon-circle yellow">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"></path></svg>
+                </div>
+                <div class="grid-desc">
+                    <h3>Credits & Usage</h3>
+                    <span>View credits and plan details</span>
+                </div>
+                <div class="grid-arrow">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+            </div>
+
+            <!-- Item 3: SMTP Settings -->
+            <div class="grid-item" id="open-smtp-btn">
+                <div class="grid-icon-circle green">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                </div>
+                <div class="grid-desc">
+                    <h3>SMTP Settings</h3>
+                    <span>Manage email accounts</span>
+                </div>
+                <div class="grid-arrow">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+            </div>
+
+            <!-- Item 4: Integrations -->
+            <div class="grid-item" id="open-integrations-btn">
+                <div class="grid-icon-circle blue">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3-3.5-3-5.5a3 3 0 0 0-6 0c0 2-1 3.9-3 5.5S4 13 4 15a7 7 0 0 0 7 7z"></path></svg>
+                </div>
+                <div class="grid-desc">
+                    <h3>Integrations</h3>
+                    <span>Manage connected apps</span>
+                </div>
+                <div class="grid-arrow">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+            </div>
+
+            <!-- Item 5: Lead Vault -->
+            <div class="grid-item" id="open-leads-btn">
+                <div class="grid-icon-circle orange">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                </div>
+                <div class="grid-desc">
+                    <h3>Lead Vault</h3>
+                    <span>Access saved leads</span>
+                </div>
+                <div class="grid-arrow">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+            </div>
+
+            <!-- Item 6: Settings -->
+            <div class="grid-item" id="open-settings-btn">
+                <div class="grid-icon-circle purple">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                </div>
+                <div class="grid-desc">
+                    <h3>Settings</h3>
+                    <span>General preferences</span>
+                </div>
+                <div class="grid-arrow">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+            </div>
+
+            <!-- Item 7: Templates -->
+            <div class="grid-item" id="open-templates-btn">
+                <div class="grid-icon-circle blue">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                </div>
+                <div class="grid-desc">
+                    <h3>Templates</h3>
+                    <span>Manage outreach templates</span>
+                </div>
+                <div class="grid-arrow">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+            </div>
+
+            <!-- Item 8: Help & Support -->
+            <div class="grid-item" id="open-help-btn">
+                <div class="grid-icon-circle red">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                </div>
+                <div class="grid-desc">
+                    <h3>Help & Support</h3>
+                    <span>Docs, guides and support</span>
+                </div>
+                <div class="grid-arrow">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Plan Card -->
+        <div class="dash-plan-card">
+            <div class="dash-plan-left">
+                <div class="dash-plan-badge">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z"></path><path d="M3 20h18"></path></svg>
+                </div>
+                <div class="dash-plan-desc">
+                    <h4>You're on Pro Plan</h4>
+                    <span>Renews on 24 May 2025</span>
+                </div>
+            </div>
+            <button class="dash-plan-btn" id="manage-plan-btn">
+                <span>Manage Plan</span>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <div class="dash-footer-bar">
+            <div class="dash-footer-left">
+                <svg class="dark-mode-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                <span>Dark Mode</span>
+                <label class="switch">
+                    <input type="checkbox" id="dark-mode-toggle" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="dash-footer-version" id="extension-version">v1.1.9</div>
+            <button class="dash-logout-btn" id="logout-btn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                <span>Log Out</span>
+            </button>
+        </div>
     </div>
 
     <script src="popup.js"></script>

@@ -648,9 +648,9 @@ if (isset($_GET['action']) && $_GET['action'] === 'run') {
     <!-- FontAwesome for icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body {
-            background-color: #0f172a;
-            color: #cbd5e1;
+        body, html {
+            background-color: #090d16 !important;
+            color: #e2e8f0 !important;
             font-family: system-ui, -apple-system, sans-serif;
         }
         .navbar-brand {
@@ -659,32 +659,46 @@ if (isset($_GET['action']) && $_GET['action'] === 'run') {
             letter-spacing: -0.5px;
         }
         .card {
-            background-color: #1e293b;
-            border: 1px solid #334155;
+            background-color: #111827 !important;
+            border: 1px solid #1f2937 !important;
             border-radius: 12px;
         }
-        .form-label {
-            color: #94a3b8 !important;
-        }
-        .form-control::placeholder {
-            color: #475569 !important;
-            opacity: 1;
-        }
-        .card-header {
-            background-color: #1e293b;
-            border-bottom: 1px solid #334155;
+        label, .form-label {
+            color: #e2e8f0 !important;
+            font-size: 0.75rem !important;
+            font-weight: 600 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.05em !important;
+            display: inline-block !important;
+            margin-bottom: 0.5rem !important;
         }
         .form-control {
-            background-color: #0f172a;
-            border: 1px solid #334155;
-            color: #f1f5f9;
+            background-color: #1f2937 !important;
+            border: 1px solid #374151 !important;
+            color: #f9fafb !important;
+            font-size: 0.85rem !important;
+        }
+        .form-control::placeholder {
+            color: #6b7280 !important;
+            opacity: 1 !important;
         }
         .form-control:focus {
-            background-color: #0f172a;
-            border-color: #2dd4bf;
-            color: #f1f5f9;
-            box-shadow: 0 0 0 0.25rem rgba(45, 212, 191, 0.15);
+            background-color: #1f2937 !important;
+            border-color: #2dd4bf !important;
+            color: #f9fafb !important;
+            box-shadow: 0 0 0 0.25rem rgba(45, 212, 191, 0.15) !important;
         }
+        .card-header {
+            background-color: #111827 !important;
+            border-bottom: 1px solid #1f2937 !important;
+        }
+        .text-slate-100 { color: #f1f5f9 !important; }
+        .text-slate-300 { color: #cbd5e1 !important; }
+        .text-slate-400 { color: #94a3b8 !important; }
+        .text-slate-500 { color: #64748b !important; }
+        .text-slate-700 { color: #334155 !important; }
+        .text-teal-400 { color: #2dd4bf !important; }
+
         .btn-teal {
             background-color: #2dd4bf;
             color: #0f172a;

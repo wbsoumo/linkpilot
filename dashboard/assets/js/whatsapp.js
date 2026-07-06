@@ -355,7 +355,7 @@ function renderWhatsAppSetup(container, settings) {
         drawWizard();
         
         apiCall('whatsapp/setup.php').then(res => {
-            const appId = res.settings ? res.settings.whatsapp_meta_app_id : '';
+            const appId = res.meta_app_id || '';
             const configId = '2427740481067572';
             
             if (appId) {

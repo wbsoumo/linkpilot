@@ -31,6 +31,11 @@ try {
         $stmtSettings->execute([$userId]);
         $settings = $stmtSettings->fetch();
         
+        // Fetch global Meta App ID from admin_settings
+        $stmtAppId = $db->prepare("SELECT setting_value FROM admin_settings WHERE setting_key = 'whatsapp_meta_app_id' LIMIT 1");
+        $stmtAppId->execute();
+        $metaAppId = $stmtAppId->fetchColumn() ?: '';
+        
         // Diagnostics Log to backend/setup_debug.log
         $logInfo = [
             'timestamp' => date('Y-m-d H:i:s'),
@@ -44,7 +49,8 @@ try {
         sendJsonResponse('success', 'WhatsApp connection details loaded.', [
             'connected' => ($account && $account['status'] === 'connected'),
             'account' => $account ?: null,
-            'settings' => $settings ?: null
+            'settings' => $settings ?: null,
+            'meta_app_id' => $metaAppId
         ]);
     }
     

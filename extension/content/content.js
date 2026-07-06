@@ -864,6 +864,407 @@
                 transform: translate(-50%, 0) scale(1);
             }
         }
+
+        /* Login Split layout styles inside Shadow DOM */
+        .login-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .brand-panel {
+            width: 44%;
+            background: linear-gradient(135deg, #1A1F38 0%, #0A0D1A 100%);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-right: 1px solid var(--border);
+            position: relative;
+            text-align: left;
+        }
+
+        .brand-logo-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .lp-logo-square {
+            width: 32px;
+            height: 32px;
+            background: #FFFFFF;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 16px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .lp-logo-square .logo-l {
+            color: #3B82F6;
+        }
+
+        .lp-logo-square .logo-p {
+            color: #8B5CF6;
+        }
+
+        .brand-logo-text {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #FFFFFF;
+        }
+
+        .brand-logo-text .accent-text {
+            color: var(--accent);
+        }
+
+        .brand-hero h1 {
+            font-size: 17px;
+            font-weight: 750;
+            line-height: 1.35;
+            margin: 0 0 6px 0;
+            color: #FFFFFF;
+        }
+
+        .brand-hero h1 .highlight-text {
+            color: var(--accent);
+        }
+
+        .brand-hero p {
+            font-size: 10.5px;
+            color: var(--text-muted);
+            line-height: 1.45;
+            margin: 0;
+        }
+
+        .feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .feature-icon-badge {
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .feature-icon-badge.purple { background: rgba(139, 92, 246, 0.12); color: #A78BFA; }
+        .feature-icon-badge.green { background: rgba(16, 185, 129, 0.12); color: #34D399; }
+        .feature-icon-badge.blue { background: rgba(59, 130, 246, 0.12); color: #60A5FA; }
+        .feature-icon-badge.orange { background: rgba(249, 115, 22, 0.12); color: #FDBA74; }
+
+        .feature-desc {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        .feature-desc strong {
+            font-size: 11px;
+            font-weight: 650;
+            color: #FFFFFF;
+        }
+
+        .feature-desc span {
+            font-size: 9px;
+            color: var(--text-muted);
+            line-height: 1.3;
+        }
+
+        .brand-security {
+            font-size: 9.5px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            opacity: 0.85;
+        }
+
+        .form-panel {
+            width: 56%;
+            padding: 28px 32px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background-color: var(--primary);
+            position: relative;
+            text-align: left;
+        }
+
+        .close-btn-top {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .close-btn-top:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #FFFFFF;
+        }
+
+        .welcome-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0 0 4px 0;
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .welcome-header p {
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .form-body {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .input-group label {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+
+        .input-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-container input {
+            width: 100%;
+            background-color: var(--secondary);
+            border: 1px solid #334155;
+            color: #FFFFFF;
+            padding: 8px 12px 8px 34px !important;
+            border-radius: 8px;
+            font-size: 12px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .input-container input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+        }
+
+        .field-icon {
+            position: absolute;
+            left: 12px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .eye-icon {
+            position: absolute;
+            right: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .eye-icon:hover {
+            color: #FFFFFF;
+        }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            margin-top: 2px;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding-left: 20px;
+            cursor: pointer;
+            user-select: none;
+            color: var(--text-muted);
+        }
+
+        .checkbox-container input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .checkmark {
+            position: absolute;
+            left: 0;
+            height: 14px;
+            width: 14px;
+            background-color: var(--secondary);
+            border: 1px solid #334155;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .checkbox-container:hover input ~ .checkmark {
+            border-color: var(--accent);
+        }
+
+        .checkbox-container input:checked ~ .checkmark {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+
+        .checkbox-container input:checked ~ .checkmark:after {
+            display: block;
+        }
+
+        .checkbox-container .checkmark:after {
+            left: 4px;
+            top: 1px;
+            width: 4px;
+            height: 7px;
+            border: solid #0B0F19;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .forgot-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .forgot-link:hover {
+            color: var(--accent);
+        }
+
+        .action-btn {
+            background-color: var(--accent);
+            color: #052E16;
+            border: none;
+            padding: 9px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 12.5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+            width: 100%;
+        }
+
+        .action-btn:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .divider-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 2px 0;
+        }
+
+        .divider-line {
+            flex-grow: 1;
+            height: 1px;
+            background-color: var(--border);
+        }
+
+        .divider-row span {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .google-btn {
+            background-color: var(--secondary);
+            color: var(--text-main);
+            border: 1px solid #334155;
+            padding: 9px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .google-btn:hover {
+            background-color: var(--card-bg);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .form-footer {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .form-footer a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+            transition: text-decoration 0.2s;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
     `;
 
     /**
@@ -1406,86 +1807,186 @@
             shadow.appendChild(overlay);
 
             if (!isAuth) {
-                // Render Login Form
-                const emailInput = window.LinkPilotUtils.safeCreate('input', {
-                    type: 'email',
-                    placeholder: 'Enter your email...',
-                    style: 'width: 100%; padding: 10px 12px; background: #1E293B; border: 1px solid #334155; border-radius: 8px; color: white; outline: none; margin-bottom: 12px; box-sizing: border-box;'
-                });
+                modal.innerHTML = `
+                    <div class="login-container">
+                        <!-- Left Panel -->
+                        <div class="brand-panel">
+                            <div class="brand-logo-row">
+                                <div class="lp-logo-square">
+                                    <span class="logo-l">L</span><span class="logo-p">P</span>
+                                </div>
+                                <span class="brand-logo-text">LinkPilot <span class="accent-text">AI</span></span>
+                            </div>
+                            
+                            <div class="brand-hero">
+                                <h1>Your AI Assistant for<br>Smarter <span class="highlight-text">LinkedIn Outreach</span></h1>
+                                <p>Log in to access all your outreach tools, templates, and analytics.</p>
+                            </div>
 
-                const passwordInput = window.LinkPilotUtils.safeCreate('input', {
-                    type: 'password',
-                    placeholder: 'Enter your password...',
-                    style: 'width: 100%; padding: 10px 12px; background: #1E293B; border: 1px solid #334155; border-radius: 8px; color: white; outline: none; margin-bottom: 16px; box-sizing: border-box;'
-                });
+                            <div class="feature-list">
+                                <div class="feature-item">
+                                    <div class="feature-icon-badge purple">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                                    </div>
+                                    <div class="feature-desc">
+                                        <strong>AI-Powered Outreach</strong>
+                                        <span>Generate personalized messages that get responses.</span>
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon-badge green">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                                    </div>
+                                    <div class="feature-desc">
+                                        <strong>Track & Analyze</strong>
+                                        <span>Monitor performance and improve your outreach.</span>
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon-badge blue">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                    </div>
+                                    <div class="feature-desc">
+                                        <strong>Secure & Private</strong>
+                                        <span>Your data is encrypted and always protected.</span>
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon-badge orange">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                                    </div>
+                                    <div class="feature-desc">
+                                        <strong>Smart Templates</strong>
+                                        <span>Save and reuse templates for faster outreach.</span>
+                                    </div>
+                                </div>
+                            </div>
 
-                const loginErrorDiv = window.LinkPilotUtils.safeCreate('div', {
-                    style: 'color: #EF4444; font-size: 12px; margin-bottom: 12px; display: none; text-align: center; font-weight: 500;'
-                });
+                            <div class="brand-security">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: middle; margin-right: 4px; color: #10B981;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 11 11 13 15 9"></polyline></svg>
+                                <span>Enterprise-grade security. SSL encrypted</span>
+                            </div>
+                        </div>
 
-                const loginBtn = window.LinkPilotUtils.safeCreate('button', {
-                    class: 'btn btn-primary',
-                    style: 'width: 100%; justify-content: center; height: 38px; font-weight: 600;',
-                    onclick: (e) => {
-                        e.preventDefault();
-                        const email = emailInput.value.trim();
-                        const password = passwordInput.value;
+                        <!-- Right Panel -->
+                        <div class="form-panel">
+                            <button class="close-btn-top" id="close-login-btn" title="Close">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
 
-                        if (!email || !password) {
-                            loginErrorDiv.textContent = 'Please enter both email and password.';
-                            loginErrorDiv.style.display = 'block';
-                            return;
+                            <div class="welcome-header">
+                                <h2>Welcome back 👋</h2>
+                                <p>Log in to activate your outreach assistant directly on this page.</p>
+                            </div>
+
+                            <div class="form-body">
+                                <div class="input-group">
+                                    <label>Email Address</label>
+                                    <div class="input-container">
+                                        <svg class="field-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                                        <input type="email" id="email" placeholder="you@example.com">
+                                    </div>
+                                </div>
+                                
+                                <div class="input-group">
+                                    <label>Password</label>
+                                    <div class="input-container">
+                                        <svg class="field-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                        <input type="password" id="password" placeholder="••••••••">
+                                        <svg class="eye-icon" id="toggle-pw-visibility" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    </div>
+                                </div>
+
+                                <div class="form-options">
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" id="remember-me" checked>
+                                        <span class="checkmark"></span>
+                                        <span class="label-text">Remember me</span>
+                                    </label>
+                                    <a href="https://linkpilot.work/forgot-password" target="_blank" class="forgot-link">Forgot password?</a>
+                                </div>
+
+                                <button class="action-btn" id="login-btn">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline><line x1="5" y1="12" x2="15" y2="12"></line></svg>
+                                    <span>Log In</span>
+                                </button>
+                                
+                                <div id="login-error" class="error-message" style="display: none; color: #EF4444; font-size: 11px; text-align: center; margin-top: 4px;"></div>
+
+                                <div class="divider-row">
+                                    <div class="divider-line"></div>
+                                    <span>OR</span>
+                                    <div class="divider-line"></div>
+                                </div>
+
+                                <button class="google-btn" id="google-login-btn">
+                                    <svg width="12" height="12" viewBox="0 0 24 24"><path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.4-2.519 4.114-5.327 4.114-3.557 0-6.44-2.883-6.44-6.44s2.883-6.44 6.44-6.44c1.632 0 3.109.608 4.25 1.621l3.072-3.071C18.995 1.942 15.82 1 12.24 1 6.03 1 1 6.03 1 12.24s5.03 11.24 11.24 11.24c5.842 0 10.742-4.148 11.666-9.765H12.24z"/></svg>
+                                    <span>Continue with Google</span>
+                                </button>
+                            </div>
+
+                            <div class="form-footer">
+                                Don't have an account? <a href="https://linkpilot.work/register" target="_blank">Create your account &gt;</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                const emailField = modal.querySelector('#email');
+                const passwordField = modal.querySelector('#password');
+                const loginBtn = modal.querySelector('#login-btn');
+                const loginErrorDiv = modal.querySelector('#login-error');
+                const togglePw = modal.querySelector('#toggle-pw-visibility');
+                const closeBtn = modal.querySelector('#close-login-btn');
+
+                if (togglePw && passwordField) {
+                    togglePw.addEventListener('click', () => {
+                        if (passwordField.type === 'password') {
+                            passwordField.type = 'text';
+                            togglePw.style.color = '#10B981';
+                        } else {
+                            passwordField.type = 'password';
+                            togglePw.style.color = '#94A3B8';
                         }
+                    });
+                }
 
-                        loginErrorDiv.style.display = 'none';
-                        loginBtn.disabled = true;
-                        loginBtn.innerHTML = '<span class="spinner"></span> Logging in...';
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => container.remove());
+                }
 
-                        window.LinkPilotUtils.safeSendMessage({
-                            action: 'login',
-                            email: email,
-                            password: password
-                        }, (res) => {
-                            if (res && res.status === 'success') {
-                                container.remove();
-                                window.openActionModal(details);
-                            } else {
-                                loginBtn.disabled = false;
-                                loginBtn.textContent = 'Log In';
-                                loginErrorDiv.textContent = (res && res.message) ? res.message : 'Invalid credentials or connection error.';
-                                loginErrorDiv.style.display = 'block';
-                            }
-                        });
+                loginBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const email = emailField.value.trim();
+                    const password = passwordField.value;
+
+                    if (!email || !password) {
+                        loginErrorDiv.textContent = 'Please enter both email and password.';
+                        loginErrorDiv.style.display = 'block';
+                        return;
                     }
-                }, ['Log In']);
 
-                const loginForm = window.LinkPilotUtils.safeCreate('form', {
-                    style: 'width: 100%; text-align: left; margin-top: 8px; box-sizing: border-box;'
-                }, [
-                    window.LinkPilotUtils.safeCreate('label', {
-                        style: 'display: block; font-size: 10px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;'
-                    }, ['Email Address']),
-                    emailInput,
-                    window.LinkPilotUtils.safeCreate('label', {
-                        style: 'display: block; font-size: 10px; font-weight: 600; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;'
-                    }, ['Password']),
-                    passwordInput,
-                    loginErrorDiv,
-                    loginBtn
-                ]);
+                    loginErrorDiv.style.display = 'none';
+                    loginBtn.disabled = true;
+                    loginBtn.innerHTML = 'Logging in...';
 
-                const unauthBody = window.LinkPilotUtils.safeCreate('div', {
-                    class: 'unauth-container',
-                    style: 'max-width: 380px; margin: 0 auto; padding: 30px 20px;'
-                }, [
-                    window.LinkPilotUtils.safeCreate('div', { style: 'font-size: 36px; margin-bottom: 4px;' }, ['✨']),
-                    window.LinkPilotUtils.safeCreate('h3', { style: 'margin: 0; font-size: 18px; font-weight: 800; color: white;' }, ['LinkPilot AI Login']),
-                    window.LinkPilotUtils.safeCreate('p', { style: 'margin: 6px 0 16px 0; font-size: 13px; color: #94A3B8; text-align: center; line-height: 1.4;' }, [
-                        'Log in to activate your outreach assistant directly on this page.'
-                    ]),
-                    loginForm
-                ]);
-                modal.appendChild(unauthBody);
+                    window.LinkPilotUtils.safeSendMessage({
+                        action: 'login',
+                        email: email,
+                        password: password
+                    }, (res) => {
+                        if (res && res.status === 'success') {
+                            container.remove();
+                            window.openActionModal(details);
+                        } else {
+                            loginBtn.disabled = false;
+                            loginBtn.innerHTML = '<span>→</span> Log In';
+                            loginErrorDiv.textContent = (res && res.message) ? res.message : 'Invalid credentials or connection error.';
+                            loginErrorDiv.style.display = 'block';
+                        }
+                    });
+                });
+
                 document.body.appendChild(container);
                 return;
             }

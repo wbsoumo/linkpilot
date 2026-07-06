@@ -75,26 +75,20 @@ try {
         sendJsonResponse('success', 'Business configuration saved successfully.');
     }
     
-    elseif ($method === 'SAVE_TOKEN') {
-        // Save Facebook Meta tokens & credentials (Step 2 of Wizard)
+    elseif ($method === 'DISCOVER') {
         $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
-        
         $code = trim($input['code'] ?? '');
         $accessToken = trim($input['access_token'] ?? '');
         $wabaId = trim($input['waba_id'] ?? '');
-        $phoneNumberId = trim($input['phone_number_id'] ?? '');
-        $businessId = trim($input['business_id'] ?? '');
-        $displayName = trim($input['display_name'] ?? '');
         
         $isMock = false;
         
-        // 1. Resolve code exchange if present
+        // 1. Resolve Code Exchange if present
         if (!empty($code)) {
             if (strpos($code, 'Mock') !== false || strpos($code, 'EAAGemini') !== false) {
                 $accessToken = 'EAAGeminiMockToken' . time();
                 $isMock = true;
             } else {
-                // Live exchange
                 $stmtAppId = $db->prepare("SELECT setting_value FROM admin_settings WHERE setting_key = 'whatsapp_meta_app_id' LIMIT 1");
                 $stmtAppId->execute();
                 $appId = $stmtAppId->fetchColumn();
@@ -117,87 +111,199 @@ try {
                     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                     curl_setopt($ch, CURLOPT_TIMEOUT, 15);
                     $res = curl_exec($ch);
+                    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                     curl_close($ch);
                     
                     $tokenRes = json_decode($res, true);
-                    if (!empty($tokenRes['access_token'])) {
-                        $accessToken = $tokenRes['access_token'];
-                    } else {
-                        sendJsonResponse('error', 'Unable to fetch your WhatsApp Business Account. Please ensure: • You are an admin of the Business Manager. • Your phone number is registered. • WhatsApp Cloud API is enabled.', [], 400);
+                    if ($httpCode !== 200 || empty($tokenRes['access_token'])) {
+                        $msg = $tokenRes['error']['message'] ?? 'Unable to exchange Meta authorization code.';
+                        sendJsonResponse('error', "Meta Graph API returned: " . $msg, [], 400);
                     }
+                    $accessToken = $tokenRes['access_token'];
                 }
             }
         }
         
         if (empty($accessToken)) {
-            sendJsonResponse('error', 'Access Token or Authorization Code is required.', [], 400);
+            sendJsonResponse('error', 'Access token or code is required.', [], 400);
         }
         
         $isMock = $isMock || (strpos($accessToken, 'Mock') !== false || strpos($accessToken, 'EAAGemini') !== false);
         
+        if ($isMock) {
+            // Simulated Mock Discovery
+            $mockBusinesses = [
+                ['id' => 'BIZ112731', 'name' => 'Taskbazi Corp']
+            ];
+            $mockWabas = [
+                [
+                    'id' => 'WABA718557',
+                    'name' => 'Taskbazi Main Account',
+                    'business_id' => 'BIZ112731',
+                    'business_name' => 'Taskbazi Corp',
+                    'status' => 'APPROVED'
+                ]
+            ];
+            $mockPhones = [
+                [
+                    'id' => 'PHID441681',
+                    'display_phone_number' => '+1 (555) 019-2834',
+                    'verified_name' => 'taskbazi',
+                    'quality_rating' => 'GREEN',
+                    'messaging_limit_tier' => 'TIER_50',
+                    'status' => 'APPROVED',
+                    'code_verification_status' => 'VERIFIED'
+                ]
+            ];
+            
+            sendJsonResponse('success', 'Mock assets discovered.', [
+                'access_token' => $accessToken,
+                'businesses' => $mockBusinesses,
+                'wabas' => $mockWabas,
+                'phones' => empty($wabaId) ? [] : $mockPhones,
+                'is_mock' => true
+            ]);
+        }
+        
+        try {
+            // A. Validate permissions
+            $perms = WhatsAppMetaService::getTokenPermissions($accessToken);
+            $granted = [];
+            if (!empty($perms['data'])) {
+                foreach ($perms['data'] as $p) {
+                    if ($p['status'] === 'granted') {
+                        $granted[$p['permission']] = true;
+                    }
+                }
+            }
+            $required = ['business_management', 'whatsapp_business_management', 'whatsapp_business_messaging'];
+            foreach ($required as $r) {
+                if (empty($granted[$r])) {
+                    sendJsonResponse('error', "Missing required permission: {$r}.", [], 400);
+                }
+            }
+            
+            // B. Fetch Businesses
+            $meData = WhatsAppMetaService::getUserBusinesses($accessToken);
+            $businesses = $meData['businesses']['data'] ?? [];
+            if (empty($businesses)) {
+                sendJsonResponse('error', 'No Business Manager found on this Facebook account.', [], 400);
+            }
+            
+            // C. Fetch WABAs for all businesses
+            $wabas = [];
+            foreach ($businesses as $biz) {
+                $bizId = $biz['id'];
+                $bizName = $biz['name'];
+                try {
+                    $wabaData = WhatsAppMetaService::getOwnedWabas($bizId, $accessToken);
+                    if (!empty($wabaData['data'])) {
+                        foreach ($wabaData['data'] as $w) {
+                            $wabas[] = [
+                                'id' => $w['id'],
+                                'name' => $w['name'] ?? 'WhatsApp Business Account',
+                                'business_id' => $bizId,
+                                'business_name' => $bizName,
+                                'status' => $w['status'] ?? 'unknown'
+                            ];
+                        }
+                    }
+                } catch (Exception $wEx) {
+                    // Ignore single business errors
+                }
+            }
+            
+            if (empty($wabas)) {
+                sendJsonResponse('error', 'No WhatsApp Business Account attached to your Business Manager.', [], 400);
+            }
+            
+            // D. Fetch Phone Numbers if WABA ID is specified
+            $phones = [];
+            if (!empty($wabaId)) {
+                $phoneData = WhatsAppMetaService::getPhoneNumbers($wabaId, $accessToken);
+                if (!empty($phoneData['data'])) {
+                    foreach ($phoneData['data'] as $p) {
+                        $phones[] = [
+                            'id' => $p['id'],
+                            'display_phone_number' => $p['display_phone_number'] ?? '',
+                            'verified_name' => $p['verified_name'] ?? '',
+                            'quality_rating' => $p['quality_rating'] ?? 'unknown',
+                            'messaging_limit_tier' => $p['messaging_limit_tier'] ?? 'TIER_50',
+                            'status' => $p['status'] ?? 'unknown',
+                            'code_verification_status' => $p['code_verification_status'] ?? 'NOT_VERIFIED'
+                        ];
+                    }
+                }
+            }
+            
+            sendJsonResponse('success', 'Meta assets discovered successfully.', [
+                'access_token' => $accessToken,
+                'businesses' => $businesses,
+                'wabas' => $wabas,
+                'phones' => $phones,
+                'is_mock' => false
+            ]);
+            
+        } catch (Exception $e) {
+            sendJsonResponse('error', 'Meta Graph API returned: ' . $e->getMessage(), [], 400);
+        }
+    }
+    
+    elseif ($method === 'VALIDATE_AND_SAVE') {
+        $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+        
+        $accessToken = trim($input['access_token'] ?? '');
+        $businessId = trim($input['business_id'] ?? '');
+        $businessName = trim($input['business_name'] ?? '');
+        $wabaId = trim($input['waba_id'] ?? '');
+        $wabaName = trim($input['waba_name'] ?? '');
+        $phoneNumberId = trim($input['phone_number_id'] ?? '');
+        
+        if (empty($accessToken) || empty($wabaId) || empty($phoneNumberId)) {
+            sendJsonResponse('error', 'Missing access_token, waba_id, or phone_number_id parameters.', [], 400);
+        }
+        
+        $isMock = (strpos($accessToken, 'Mock') !== false || strpos($accessToken, 'EAAGemini') !== false);
+        
         $displayNo = '';
+        $displayName = '';
         $qualityRating = 'unknown';
         $limitTier = 'TIER_50';
         
-        // 2. Fetch properties automatically from Meta Graph API if not a mock token
         if (!$isMock) {
             try {
-                // A. Fetch WABA ID if not supplied
-                if (empty($wabaId)) {
-                    $urlWaba = "https://graph.facebook.com/v20.0/me/whatsapp_business_accounts?access_token=" . urlencode($accessToken);
-                    $ch = curl_init($urlWaba);
-                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-                    $resW = json_decode(curl_exec($ch), true);
-                    curl_close($ch);
-                    
-                    if (!empty($resW['data'][0]['id'])) {
-                        $wabaId = $resW['data'][0]['id'];
-                    } else {
-                        throw new Exception("WABA ID not found.");
-                    }
+                // 1. Detailed phone checks (Verification status & Cloud API check)
+                $phoneDetails = WhatsAppMetaService::getPhoneNumberDetails($phoneNumberId, $accessToken);
+                
+                $displayNo = $phoneDetails['display_phone_number'] ?? '';
+                $displayName = $phoneDetails['verified_name'] ?? $wabaName;
+                $qualityRating = $phoneDetails['quality_rating'] ?? 'unknown';
+                $limitTier = $phoneDetails['messaging_limit_tier'] ?? 'TIER_50';
+                $phoneStatus = $phoneDetails['status'] ?? '';
+                $codeStatus = $phoneDetails['code_verification_status'] ?? '';
+                
+                if ($phoneStatus === 'PENDING') {
+                    sendJsonResponse('error', 'Phone number registration is pending with Meta.', [], 400);
                 }
                 
-                // B. Fetch Phone Number ID & Display properties
-                if (empty($phoneNumberId)) {
-                    $urlPhone = "https://graph.facebook.com/v20.0/" . urlencode($wabaId) . "/phone_numbers?access_token=" . urlencode($accessToken);
-                    $ch = curl_init($urlPhone);
-                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-                    $resP = json_decode(curl_exec($ch), true);
-                    curl_close($ch);
-                    
-                    if (!empty($resP['data'][0]['id'])) {
-                        $phoneNumberId = $resP['data'][0]['id'];
-                        $displayName = $resP['data'][0]['verified_name'] ?? $displayName;
-                        $displayNo = $resP['data'][0]['display_phone_number'] ?? '';
-                        $qualityRating = $resP['data'][0]['quality_rating'] ?? 'unknown';
-                    } else {
-                        throw new Exception("Phone ID not found.");
-                    }
-                } else {
-                    $metaProfile = WhatsAppMetaService::getBusinessProfile($phoneNumberId, $accessToken);
-                    $displayName = $metaProfile['verified_name'] ?? ($displayName ?: 'WhatsApp Business Account');
-                    $qualityRating = $metaProfile['quality_rating'] ?? 'unknown';
-                    $displayNo = $metaProfile['display_phone_number'] ?? '';
+                if ($codeStatus !== 'VERIFIED') {
+                    sendJsonResponse('error', 'Phone number has not been verified or registered on Meta.', [], 400);
                 }
                 
-                // C. Fetch messaging limit tier details
-                $urlTier = "https://graph.facebook.com/v20.0/" . urlencode($phoneNumberId) . "?fields=messaging_limit_tier&access_token=" . urlencode($accessToken);
-                $ch = curl_init($urlTier);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-                $resT = json_decode(curl_exec($ch), true);
-                curl_close($ch);
-                $limitTier = $resT['messaging_limit_tier'] ?? 'TIER_50';
+                // 2. Subscribe Webhook dynamically
+                try {
+                    WhatsAppMetaService::subscribeWebhook($wabaId, $accessToken);
+                } catch (Exception $webEx) {
+                    // Ignore webhook config warnings
+                }
+                
+                // 3. Test Connection with a direct validation API request
+                WhatsAppMetaService::getBusinessProfile($phoneNumberId, $accessToken);
                 
             } catch (Exception $e) {
-                sendJsonResponse('error', 'Unable to fetch your WhatsApp Business Account. Please ensure: • You are an admin of the Business Manager. • Your phone number is registered. • WhatsApp Cloud API is enabled.', [], 400);
+                sendJsonResponse('error', 'Meta Graph API returned: ' . $e->getMessage(), [], 400);
             }
         } else {
-            $wabaId = $wabaId ?: 'WABA' . rand(100000, 999999);
-            $phoneNumberId = $phoneNumberId ?: 'PHID' . rand(100000, 999999);
-            $businessId = $businessId ?: 'BIZ' . rand(100000, 999999);
             $displayName = $displayName ?: 'Taskbazi';
             $displayNo = '+91 80162 22991';
             $qualityRating = 'GREEN';
@@ -246,21 +352,12 @@ try {
             ]);
         }
         
-        // Register Webhook Subscription dynamically
-        if (!$isMock) {
-            try {
-                WhatsAppMetaService::subscribeWebhook($wabaId, $accessToken);
-            } catch (Exception $e) {
-                // Log webhook subscription failure as warning, but don't fail setup
-            }
-        }
-        
         // Log Activity
         logActivity($userId, "Connected WhatsApp Business account: {$displayName}");
         
-        sendJsonResponse('success', 'WhatsApp connected successfully.', [
+        sendJsonResponse('success', 'WhatsApp connection established.', [
             'business_name' => $displayName,
-            'display_name' => $displayName,
+            'waba_name' => $wabaName,
             'phone_number' => $displayNo,
             'messaging_limit' => $messagingLimitText,
             'quality_rating' => ucfirst(strtolower($qualityRating)),

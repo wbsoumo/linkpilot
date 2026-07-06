@@ -237,4 +237,32 @@ class WhatsAppMetaService {
             "file_size" => strlen($fileData)
         ];
     }
+
+    /**
+     * Get user's businesses.
+     */
+    public static function getUserBusinesses($accessToken) {
+        return self::executeRequest("me?fields=businesses{id,name}", "GET", null, $accessToken);
+    }
+
+    /**
+     * Get owned WABA accounts for a business.
+     */
+    public static function getOwnedWabas($businessId, $accessToken) {
+        return self::executeRequest("{$businessId}/owned_whatsapp_business_accounts?fields=id,name,timezone_id,status", "GET", null, $accessToken);
+    }
+
+    /**
+     * Get token permissions.
+     */
+    public static function getTokenPermissions($accessToken) {
+        return self::executeRequest("me/permissions", "GET", null, $accessToken);
+    }
+
+    /**
+     * Get detailed phone number info.
+     */
+    public static function getPhoneNumberDetails($phoneNumberId, $accessToken) {
+        return self::executeRequest("{$phoneNumberId}?fields=id,display_phone_number,verified_name,quality_rating,messaging_limit_tier,status,code_verification_status", "GET", null, $accessToken);
+    }
 }

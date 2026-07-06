@@ -9,10 +9,10 @@
     // CSS styling for the modal, scoped inside Shadow DOM
     const MODAL_STYLES = `
         :host {
-            --primary: #0B0F19;
-            --secondary: #111827;
-            --card-bg: #1E293B;
-            --border: rgba(255, 255, 255, 0.08);
+            --primary: #1D222F;
+            --secondary: #161A24;
+            --card-bg: #282E3C;
+            --border: rgba(255, 255, 255, 0.12);
             --accent: #10B981;
             --accent-hover: #059669;
             --text-main: #F9FAFB;
@@ -46,14 +46,16 @@
         .modal {
             width: 960px;
             max-width: 95vw;
-            background: #0B0F19;
+            background: var(--primary);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: var(--radius-card);
             color: var(--text-main);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
-            max-height: 90vh;
+            height: 640px;
+            max-height: 92vh;
+            position: relative;
             animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         
@@ -63,7 +65,7 @@
         }
         
         .header {
-            padding: 20px 24px;
+            padding: 14px 24px;
             border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
@@ -77,8 +79,8 @@
         }
         
         .profile-avatar-circle {
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             background: rgba(16, 185, 129, 0.1);
             border: 1.5px solid rgba(16, 185, 129, 0.3);
@@ -89,8 +91,8 @@
         }
         
         .avatar-svg {
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
         }
         
         .profile-title-area {
@@ -99,7 +101,7 @@
         }
         
         .profile-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
             color: var(--text-main);
         }
@@ -109,19 +111,19 @@
         }
         
         .profile-subtitle {
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text-muted);
             display: flex;
             align-items: center;
             gap: 6px;
-            margin-top: 2px;
+            margin-top: 1px;
         }
         
         .li-in-logo {
             background: #0A66C2;
             color: white;
             font-weight: bold;
-            font-size: 10px;
+            font-size: 9px;
             padding: 1px 3px;
             border-radius: 2px;
             font-family: sans-serif;
@@ -131,8 +133,8 @@
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.08);
             color: var(--text-muted);
-            width: 32px;
-            height: 32px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -148,24 +150,24 @@
         }
         
         .close-svg {
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
         }
         
         .post-preview-card {
-            margin: 20px 24px 0 24px;
-            background: #111827;
+            margin: 12px 24px 0 24px;
+            background: var(--secondary);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 16px;
+            padding: 12px;
             display: flex;
-            gap: 12px;
+            gap: 8px;
             align-items: flex-start;
         }
         
         .spark-icon-wrapper {
             background: rgba(16, 185, 129, 0.1);
-            padding: 8px;
+            padding: 6px;
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -173,26 +175,28 @@
         }
         
         .spark-icon {
-            font-size: 14px;
+            font-size: 12px;
         }
         
         .post-preview-content {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 4px;
         }
         
         .post-preview-text {
             margin: 0;
-            font-size: 13px;
+            font-size: 12px;
             color: #D1D5DB;
-            line-height: 1.5;
+            line-height: 1.4;
+            max-height: 3.4em;
+            overflow-y: auto;
         }
         
         .view-post-link {
             align-self: flex-end;
-            font-size: 12px;
+            font-size: 11px;
             color: #10B981;
             text-decoration: none;
             font-weight: 600;
@@ -207,20 +211,20 @@
         }
         
         .ext-link-svg {
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
         }
         
         .tabs-bar {
             display: flex;
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.15);
             border-bottom: 1px solid var(--border);
             padding: 0 24px;
-            margin-top: 16px;
+            margin-top: 8px;
         }
         
         .tab-btn {
-            padding: 14px 20px;
+            padding: 10px 20px;
             background: transparent;
             border: none;
             color: var(--text-muted);
@@ -231,7 +235,7 @@
             transition: all 0.2s;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
         
         .tab-btn:hover {
@@ -242,9 +246,15 @@
             color: #10B981;
             border-bottom-color: #10B981;
         }
+
+        .tab-icon {
+            display: inline-block;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
         
         .content-body {
-            padding: 24px;
+            padding: 16px 24px;
             overflow-y: auto;
             flex-grow: 1;
         }
@@ -263,7 +273,7 @@
         .left-pane {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 12px;
             border-right: 1px solid var(--border);
             padding-right: 24px;
         }
@@ -271,19 +281,19 @@
         .right-pane {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 12px;
             padding-left: 8px;
         }
         
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
             position: relative;
         }
         
         .form-group label {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
             color: var(--text-muted);
             text-transform: uppercase;
@@ -299,7 +309,7 @@
         .input-icon {
             position: absolute;
             left: 12px;
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-muted);
             pointer-events: none;
         }
@@ -309,11 +319,11 @@
         }
         
         .form-group input, .form-group textarea, .form-group select {
-            background: #111827;
+            background: var(--secondary);
             border: 1px solid #334155;
             border-radius: var(--radius-input);
             color: white;
-            padding: 11px 12px;
+            padding: 8px 12px;
             font-size: 13px;
             outline: none;
             width: 100%;
@@ -327,7 +337,7 @@
         
         .char-counter {
             align-self: flex-end;
-            font-size: 10px;
+            font-size: 9px;
             color: #6B7280;
             margin-top: -2px;
         }
@@ -336,19 +346,19 @@
             background: rgba(16, 185, 129, 0.04);
             border: 1px dashed rgba(16, 185, 129, 0.2);
             border-radius: 10px;
-            padding: 12px;
+            padding: 10px;
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: flex-start;
             margin-top: auto;
         }
         
         .pro-tip-icon {
-            font-size: 16px;
+            font-size: 14px;
         }
         
         .pro-tip-text strong {
-            font-size: 12px;
+            font-size: 11px;
             color: #10B981;
             display: block;
             margin-bottom: 2px;
@@ -356,7 +366,7 @@
         
         .pro-tip-text p {
             margin: 0;
-            font-size: 11px;
+            font-size: 10px;
             color: var(--text-muted);
             line-height: 1.4;
         }
@@ -369,7 +379,7 @@
         }
         
         .preview-title {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 700;
             color: var(--text-main);
             display: flex;
@@ -396,14 +406,14 @@
         }
         
         .output-box-wrapper {
-            background: #111827;
+            background: var(--secondary);
             border: 1px solid var(--border);
             border-radius: 12px;
             display: flex;
             flex-direction: column;
             flex-grow: 1;
             overflow: hidden;
-            min-height: 280px;
+            min-height: 200px;
         }
         
         .output-textarea {
@@ -412,9 +422,9 @@
             border-radius: 0 !important;
             resize: none;
             flex-grow: 1;
-            padding: 16px !important;
+            padding: 12px !important;
             font-size: 13px !important;
-            line-height: 1.6;
+            line-height: 1.5;
             color: #E5E7EB !important;
             outline: none !important;
             box-shadow: none !important;
@@ -422,7 +432,7 @@
         }
         
         .output-box-footer {
-            padding: 10px 16px;
+            padding: 8px 12px;
             border-top: 1px solid var(--border);
             background: rgba(0, 0, 0, 0.1);
             display: flex;
@@ -441,7 +451,7 @@
             justify-content: space-between;
             align-items: center;
             border-top: 1px solid var(--border);
-            padding: 16px 24px;
+            padding: 12px 24px;
             background: rgba(0, 0, 0, 0.15);
             margin-top: auto;
         }
@@ -452,7 +462,7 @@
         }
         
         .btn {
-            padding: 11px 18px;
+            padding: 9px 16px;
             border-radius: 8px;
             font-size: 13px;
             font-weight: 700;
@@ -495,23 +505,23 @@
         
         /* WhatsApp Theme Styles */
         .whatsapp-bubble-wrapper {
-            background: #0b141a;
+            background: var(--secondary);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 20px;
+            padding: 16px;
             flex-grow: 1;
             display: flex;
             align-items: flex-start;
             justify-content: flex-start;
-            min-height: 280px;
+            min-height: 200px;
         }
         
         .whatsapp-bubble {
             background: #005c4b;
             border-radius: 12px;
             border-top-left-radius: 0;
-            padding: 12px 14px;
-            max-width: 85%;
+            padding: 10px 12px;
+            max-width: 90%;
             color: #e9edef;
             display: flex;
             flex-direction: column;
@@ -524,7 +534,7 @@
             border: none !important;
             resize: none;
             width: 100%;
-            height: 180px;
+            height: 110px;
             outline: none !important;
             color: #e9edef !important;
             font-size: 13px !important;
@@ -553,7 +563,7 @@
         
         .phone-input-wrapper {
             display: flex;
-            background: #111827;
+            background: var(--secondary);
             border: 1px solid #334155;
             border-radius: var(--radius-input);
             overflow: hidden;
@@ -569,10 +579,10 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            padding: 0 12px;
+            padding: 0 10px;
             border-right: 1px solid #334155;
             background: rgba(255, 255, 255, 0.02);
-            font-size: 13px;
+            font-size: 12px;
         }
         
         .code-val {
@@ -588,7 +598,7 @@
             background: transparent;
             border: none;
             color: var(--text-muted);
-            padding: 0 12px;
+            padding: 0 10px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -602,23 +612,23 @@
         }
         
         .contact-search-btn svg {
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
         }
         
         /* Comment Tab Theme Styles */
         .comment-style-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
+            gap: 8px;
             margin-top: 4px;
         }
         
         .style-card {
-            background: #111827;
+            background: var(--secondary);
             border: 1px solid #334155;
             border-radius: 8px;
-            padding: 10px;
+            padding: 8px;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
@@ -638,8 +648,8 @@
         }
         
         .style-card-icon {
-            font-size: 16px;
-            margin-bottom: 6px;
+            font-size: 14px;
+            margin-bottom: 2px;
         }
         
         .style-card-title {
@@ -651,13 +661,13 @@
         .style-card-desc {
             font-size: 9px;
             color: var(--text-muted);
-            margin-top: 2px;
+            margin-top: 1px;
             text-align: left;
         }
         
         .segmented-control {
             display: flex;
-            background: #111827;
+            background: var(--secondary);
             border: 1px solid #334155;
             border-radius: 8px;
             padding: 2px;
@@ -669,7 +679,7 @@
             background: transparent;
             border: none;
             color: var(--text-muted);
-            padding: 6px 10px;
+            padding: 4px 8px;
             border-radius: 6px;
             cursor: pointer;
             display: flex;
@@ -700,15 +710,15 @@
         }
         
         .linkedin-comment-wrapper {
-            background: #111827;
+            background: var(--secondary);
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 16px;
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            min-height: 280px;
+            gap: 12px;
+            min-height: 200px;
         }
         
         .comment-feed-item {
@@ -734,7 +744,7 @@
         .comment-bubble {
             background: #1E293B;
             border-radius: 8px;
-            padding: 10px 12px;
+            padding: 8px 12px;
             flex-grow: 1;
             display: flex;
             flex-direction: column;
@@ -743,7 +753,7 @@
         .comment-author-meta {
             display: flex;
             flex-direction: column;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         
         .comment-author-name {
@@ -762,7 +772,7 @@
             border: none !important;
             resize: none;
             width: 100%;
-            height: 110px;
+            height: 80px;
             outline: none !important;
             color: #e9edef !important;
             font-size: 12px !important;
@@ -780,7 +790,7 @@
         }
         
         .accordion-header {
-            padding: 10px 12px;
+            padding: 8px 12px;
             font-size: 11px;
             font-weight: 700;
             color: #10B981;
@@ -792,7 +802,7 @@
         }
         
         .accordion-body {
-            padding: 10px 12px;
+            padding: 8px 12px;
             font-size: 11px;
             color: var(--text-muted);
             line-height: 1.4;
@@ -1367,8 +1377,10 @@
             styleBlock.textContent = MODAL_STYLES;
             shadow.appendChild(styleBlock);
 
+            const modal = window.LinkPilotUtils.safeCreate('div', { class: 'modal' });
+
             const showSuccessNotification = (msg) => {
-                let notification = shadow.getElementById('linkpilot-success-banner');
+                let notification = modal.querySelector('#linkpilot-success-banner');
                 if (notification) notification.remove();
 
                 notification = window.LinkPilotUtils.safeCreate('div', {
@@ -1379,15 +1391,13 @@
                     window.LinkPilotUtils.safeCreate('span', { class: 'banner-text' }, [msg])
                 ]);
 
-                shadow.appendChild(notification);
+                modal.appendChild(notification);
 
                 setTimeout(() => {
                     notification.classList.add('hide');
                     setTimeout(() => notification.remove(), 400);
                 }, 3000);
             };
-
-            const modal = window.LinkPilotUtils.safeCreate('div', { class: 'modal' });
             const overlay = window.LinkPilotUtils.safeCreate('div', {
                 class: 'overlay',
                 onclick: (e) => { if (e.target === overlay) container.remove(); }
@@ -1534,13 +1544,23 @@
                 <!-- Tabs Bar -->
                 <div class="tabs-bar">
                     <button class="tab-btn active" data-tab="email">
-                        <span class="tab-icon">✉️</span> Outreach Email
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="tab-icon" style="color: #3B82F6;">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                        <span>Outreach Email</span>
                     </button>
                     <button class="tab-btn" data-tab="whatsapp">
-                        <span class="tab-icon">💬</span> WhatsApp Message
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="tab-icon" style="color: #25D366;">
+                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.5-5.739-1.453L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.42 9.864-9.858.002-2.635-1.023-5.11-2.885-6.974C16.526 1.909 14.058.882 11.43.882c-5.449 0-9.873 4.42-9.877 9.861-.001 1.772.475 3.502 1.374 5.027L1.81 20.625l5.09-1.334z"/>
+                        </svg>
+                        <span>WhatsApp Message</span>
                     </button>
                     <button class="tab-btn" data-tab="comment">
-                        <span class="tab-icon">📝</span> LinkedIn Comment
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="tab-icon" style="color: #0A66C2;">
+                            <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                        </svg>
+                        <span>LinkedIn Comment</span>
                     </button>
                 </div>
 
@@ -1586,7 +1606,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Additional Notes (Optional)</label>
-                                <textarea id="email-notes" placeholder="Add any specific details you'd like to include..." maxlength="300" style="height: 70px; resize: none;"></textarea>
+                                <textarea id="email-notes" placeholder="Add any specific details you'd like to include..." maxlength="300" style="height: 45px; resize: none;"></textarea>
                                 <span class="char-counter" id="email-notes-counter">0/300</span>
                             </div>
                             <div class="pro-tip-box">
@@ -1659,7 +1679,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Additional Notes (Optional)</label>
-                                <textarea id="whatsapp-notes" placeholder="Add any specific details you'd like to include..." maxlength="200" style="height: 100px; resize: none;"></textarea>
+                                <textarea id="whatsapp-notes" placeholder="Add any specific details you'd like to include..." maxlength="200" style="height: 45px; resize: none;"></textarea>
                                 <span class="char-counter" id="whatsapp-notes-counter">0/200</span>
                             </div>
                         </div>
@@ -1741,7 +1761,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Additional Notes (Optional)</label>
-                                <textarea id="comment-notes" placeholder="Add any specific details you'd like to include..." maxlength="200" style="height: 60px; resize: none;"></textarea>
+                                <textarea id="comment-notes" placeholder="Add any specific details you'd like to include..." maxlength="200" style="height: 45px; resize: none;"></textarea>
                                 <span class="char-counter" id="comment-notes-counter">0/200</span>
                             </div>
                         </div>

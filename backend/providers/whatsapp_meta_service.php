@@ -6,7 +6,21 @@ require_once __DIR__ . '/../config.php';
 class WhatsAppMetaService {
     
     private static $graphVersion = 'v20.0';
-    
+
+    /**
+     * Log trace, error, or debug info to unified file.
+     */
+    public static function logDebug($message, $data = null) {
+        $logFile = __DIR__ . '/../api/whatsapp/whatsapp_debug.log';
+        $timestamp = date('Y-m-d H:i:s');
+        $dataStr = '';
+        if ($data !== null) {
+            $dataStr = ' | DATA: ' . (is_string($data) ? $data : json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+        }
+        @mkdir(dirname($logFile), 0777, true);
+        file_put_contents($logFile, "[{$timestamp}] {$message}{$dataStr}\n", FILE_APPEND);
+    }
+
     /**
      * Get decrypted access token for a user.
      */
@@ -71,6 +85,8 @@ class WhatsAppMetaService {
         $httpCode = 0;
         $err = null;
         
+        self::logDebug("Meta Graph API Request: {$method} {$url}" . ($payload ? " | Payload: " . json_encode($payload) : ""));
+        
         for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -93,16 +109,22 @@ class WhatsAppMetaService {
                 break;
             }
             
+            self::logDebug("Meta API cURL error on attempt {$attempt}: {$err}");
+            
             if ($attempt === $maxRetries) {
+                self::logDebug("Meta API cURL failed completely: {$err}");
                 throw new Exception("Graph API cURL Error (After {$attempt} attempts): " . $err);
             }
             
             usleep(150000 * $attempt); // Exponential backoff sleep
         }
         
+        self::logDebug("Meta Graph API Response: HTTP {$httpCode} | Response: {$response}");
+        
         $data = json_decode($response, true);
         if ($httpCode < 200 || $httpCode >= 300) {
             $msg = $data['error']['message'] ?? "Unknown Meta Graph API Error (HTTP {$httpCode})";
+            self::logDebug("Meta Graph API error details: {$msg}");
             throw new Exception("Meta API Error: " . $msg);
         }
         

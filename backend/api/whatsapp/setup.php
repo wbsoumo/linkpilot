@@ -1,5 +1,8 @@
 <?php
 // backend/api/whatsapp/setup.php
+ob_start();
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
 
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../jwt_helper.php';
@@ -79,13 +82,17 @@ try {
         $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
         $accessToken = trim($input['access_token'] ?? '');
         
+        WhatsAppMetaService::logDebug("VERIFY_TOKEN action requested. Token prefix: " . substr($accessToken, 0, 8) . " | Token length: " . strlen($accessToken));
+        
         if (empty($accessToken)) {
+            WhatsAppMetaService::logDebug("VERIFY_TOKEN failed: Access token is empty.");
             sendJsonResponse('error', 'Access token is required.', [], 400);
         }
         
         $isMock = (strpos($accessToken, 'Mock') !== false || strpos($accessToken, 'EAAGemini') !== false);
         
         if ($isMock) {
+            WhatsAppMetaService::logDebug("VERIFY_TOKEN succeeded via simulated Mock flow.");
             sendJsonResponse('success', 'Token verified successfully.', [
                 'meta_user_name' => 'Taskbazi Admin',
                 'business_count' => 2,
@@ -95,10 +102,13 @@ try {
         
         try {
             // 1. Verify token by calling /me
+            WhatsAppMetaService::logDebug("VERIFY_TOKEN calling GET /me...");
             $me = WhatsAppMetaService::executeRequest("me", "GET", null, $accessToken);
             $userName = $me['name'] ?? 'Meta System User';
+            WhatsAppMetaService::logDebug("VERIFY_TOKEN GET /me success. Name: {$userName}");
             
             // 2. Verify permissions
+            WhatsAppMetaService::logDebug("VERIFY_TOKEN calling GET me/permissions...");
             $perms = WhatsAppMetaService::getTokenPermissions($accessToken);
             $granted = [];
             if (!empty($perms['data'])) {
@@ -108,11 +118,13 @@ try {
                     }
                 }
             }
+            WhatsAppMetaService::logDebug("VERIFY_TOKEN permissions found: " . json_encode(array_keys($granted)));
             
             // Allow token verification to succeed if basic scopes are met without business_management
             $required = ['whatsapp_business_management', 'whatsapp_business_messaging'];
             foreach ($required as $r) {
                 if (empty($granted[$r])) {
+                    WhatsAppMetaService::logDebug("VERIFY_TOKEN failed due to missing scope: {$r}");
                     sendJsonResponse('error', "Missing required permission: {$r}. Please ensure this scope is assigned to the System User.", [], 400);
                 }
             }
@@ -120,16 +132,23 @@ try {
             // 3. Count businesses (fallback gracefully to WABAs count if business listing fails)
             $bizCount = 0;
             try {
+                WhatsAppMetaService::logDebug("VERIFY_TOKEN listing businesses...");
                 $meData = WhatsAppMetaService::getUserBusinesses($accessToken);
                 $businesses = $meData['businesses']['data'] ?? [];
                 $bizCount = count($businesses);
+                WhatsAppMetaService::logDebug("VERIFY_TOKEN businesses listed. Count: {$bizCount}");
             } catch (Exception $e) {
+                WhatsAppMetaService::logDebug("VERIFY_TOKEN getUserBusinesses exception caught: " . $e->getMessage() . ". Falling back to direct WABAs query...");
                 try {
                     $wabaData = WhatsAppMetaService::getWabasDirectly($accessToken);
                     $bizCount = count($wabaData['data'] ?? []);
-                } catch (Exception $wEx) {}
+                    WhatsAppMetaService::logDebug("VERIFY_TOKEN direct WABAs list fallback success. Count: {$bizCount}");
+                } catch (Exception $wEx) {
+                    WhatsAppMetaService::logDebug("VERIFY_TOKEN direct WABAs list fallback failed: " . $wEx->getMessage());
+                }
             }
             
+            WhatsAppMetaService::logDebug("VERIFY_TOKEN verification complete. Sending response...");
             sendJsonResponse('success', 'Token verified successfully.', [
                 'meta_user_name' => $userName,
                 'business_count' => $bizCount,
@@ -137,6 +156,7 @@ try {
             ]);
             
         } catch (Exception $e) {
+            WhatsAppMetaService::logDebug("VERIFY_TOKEN failed with exception: " . $e->getMessage());
             sendJsonResponse('error', 'Token verification failed: ' . $e->getMessage(), [], 400);
         }
     }
@@ -516,10 +536,15 @@ try {
         logActivity($userId, "Disconnected WhatsApp Business account");
         sendJsonResponse('success', 'WhatsApp account disconnected.');
     }
-    
     else {
         sendJsonResponse('error', 'Method not allowed', [], 405);
     }
 } catch (Exception $e) {
+    if (class_exists('WhatsAppMetaService')) {
+        WhatsAppMetaService::logDebug("setup.php general exception caught: " . $e->getMessage() . " | Stack trace: " . $e->getTraceAsString());
+    }
     sendJsonResponse('error', 'Connection setup failed: ' . $e->getMessage(), [], 500);
 }
+    
+
+

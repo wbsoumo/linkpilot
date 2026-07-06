@@ -225,8 +225,9 @@ function setupNavigation() {
     }
 
     // Programmatically inject "Install Extension" button in navigation links bar
-    if (updatedNavLinks.length > 0) {
-        const navContainer = updatedNavLinks[0].parentNode;
+    const navLinksForExt = document.querySelectorAll('.sidebar-nav-link');
+    if (navLinksForExt.length > 0) {
+        const navContainer = navLinksForExt[0].parentNode;
         if (navContainer && !document.getElementById('download-ext-nav-btn')) {
             const extBtn = document.createElement('button');
             extBtn.id = 'download-ext-nav-btn';

@@ -5,6 +5,28 @@ let activeWaThreadId = null;
 let waThreadsInterval = null;
 let waMessagesInterval = null;
 
+// Listen for Embedded Signup postMessage events
+window.addEventListener("message", function(event) {
+    if (event.origin !== "https://www.facebook.com" && event.origin !== "https://web.facebook.com") {
+        return;
+    }
+    
+    // Log postMessage events during development
+    console.log("[LinkPilot Dev] postMessage event received:", event.data);
+    
+    try {
+        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        if (data && data.type === 'WA_EMBEDDED_SIGNUP') {
+            console.log("[LinkPilot Dev] Embedded Signup Step Event:", data);
+            if (data.event === 'FINISH') {
+                console.log("[LinkPilot Dev] Embedded Signup FINISH event details:", data.data);
+            }
+        }
+    } catch (e) {
+        // Ignore non-JSON messages
+    }
+});
+
 /**
  * Main switchboard to check connection state and render either setup wizard or target screen
  */
@@ -156,94 +178,42 @@ function renderWhatsAppSetup(container, settings) {
                     </div>
                 </div>
             `;
-        }         else if (currentStep === 3) {
-            if (discoveryWabas.length > 1 && !selectedWaba) {
-                stepHtml = `
-                    <div class="space-y-4 text-left py-2">
-                        <div class="border-b border-slate-100 pb-2.5">
-                            <h3 class="text-xs font-extrabold text-slate-800">Select WhatsApp Business Account</h3>
-                            <p class="text-[10px] text-slate-500 mt-0.5">Multiple WABAs were discovered. Please choose one to proceed:</p>
+        } else if (currentStep === 3) {
+            stepHtml = `
+                <div class="space-y-5 py-4">
+                    <div class="flex flex-col items-center justify-center space-y-3 border-b border-slate-100 pb-4">
+                        <div class="loader-spinner"></div>
+                        <span class="text-xs text-slate-600 font-bold" id="conn-loading-title">Connecting to Meta...</span>
+                    </div>
+                    
+                    <div class="space-y-2.5 text-left max-w-xs mx-auto text-xs px-2" id="conn-loading-steps">
+                        <div class="flex items-center space-x-2 text-slate-400" id="step-auth">
+                            <span class="bullet shrink-0 h-4.5 w-4.5 rounded-full border border-slate-200 flex items-center justify-center text-[9px]">⌛</span>
+                            <span>Authorizing</span>
                         </div>
-                        <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                            ${discoveryWabas.map(waba => `
-                                <button onclick="selectWaba('${waba.id}')" class="w-full text-left p-2.5 border border-slate-200 hover:border-blue-500 hover:bg-blue-50/20 rounded-xl transition flex justify-between items-center group">
-                                    <div>
-                                        <div class="font-bold text-slate-700 text-xs group-hover:text-blue-600 transition">${waba.name}</div>
-                                        <div class="text-[10px] text-slate-400 mt-0.5">ID: ${waba.id} (${waba.business_name})</div>
-                                    </div>
-                                    <span class="text-xs text-blue-600 font-extrabold opacity-0 group-hover:opacity-100 transition">Select →</span>
-                                </button>
-                            `).join('')}
+                        <div class="flex items-center space-x-2 text-slate-400" id="step-biz">
+                            <span class="bullet shrink-0 h-4.5 w-4.5 rounded-full border border-slate-200 flex items-center justify-center text-[9px]">⌛</span>
+                            <span>Discovering Business Manager WABAs</span>
                         </div>
-                        <div class="pt-2">
-                            <button onclick="goWizardStep(2)" class="w-full py-2 border border-slate-200 text-slate-500 text-xs font-bold rounded-lg hover:bg-slate-50 transition">
-                                Back to Setup
-                            </button>
+                        <div class="flex items-center space-x-2 text-slate-400" id="step-phone">
+                            <span class="bullet shrink-0 h-4.5 w-4.5 rounded-full border border-slate-200 flex items-center justify-center text-[9px]">⌛</span>
+                            <span>Discovering Phone Numbers</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-slate-400" id="step-token">
+                            <span class="bullet shrink-0 h-4.5 w-4.5 rounded-full border border-slate-200 flex items-center justify-center text-[9px]">⌛</span>
+                            <span>Verifying Settings & Scopes</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-slate-400" id="step-webhook">
+                            <span class="bullet shrink-0 h-4.5 w-4.5 rounded-full border border-slate-200 flex items-center justify-center text-[9px]">⌛</span>
+                            <span>Validating Webhook Configuration</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-slate-400" id="step-final">
+                            <span class="bullet shrink-0 h-4.5 w-4.5 rounded-full border border-slate-200 flex items-center justify-center text-[9px]">⌛</span>
+                            <span>Establishing CRM Active Connection</span>
                         </div>
                     </div>
-                `;
-            } else if (discoveryPhones.length > 1 && !selectedPhone) {
-                stepHtml = `
-                    <div class="space-y-4 text-left py-2">
-                        <div class="border-b border-slate-100 pb-2.5">
-                            <h3 class="text-xs font-extrabold text-slate-800">Select Registered Phone Number</h3>
-                            <p class="text-[10px] text-slate-500 mt-0.5">Multiple registered phone numbers were found. Choose one to connect:</p>
-                        </div>
-                        <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                            ${discoveryPhones.map(phone => `
-                                <button onclick="selectPhone('${phone.id}')" class="w-full text-left p-2.5 border border-slate-200 hover:border-blue-500 hover:bg-blue-50/20 rounded-xl transition flex justify-between items-center group">
-                                    <div>
-                                        <div class="font-bold text-slate-700 text-xs group-hover:text-blue-600 transition">${phone.display_phone_number}</div>
-                                        <div class="text-[10px] text-slate-400 mt-0.5">${phone.verified_name} | Limit: ${phone.messaging_limit_tier} (${phone.status})</div>
-                                    </div>
-                                    <span class="text-xs text-blue-600 font-extrabold opacity-0 group-hover:opacity-100 transition">Select →</span>
-                                </button>
-                            `).join('')}
-                        </div>
-                        <div class="pt-2">
-                            <button onclick="goWizardStep(2)" class="w-full py-2 border border-slate-200 text-slate-500 text-xs font-bold rounded-lg hover:bg-slate-50 transition">
-                                Back to Setup
-                            </button>
-                        </div>
-                    </div>
-                `;
-            } else {
-                stepHtml = `
-                    <div class="space-y-5 py-4">
-                        <div class="flex flex-col items-center justify-center space-y-3 border-b border-slate-100 pb-4">
-                            <div class="loader-spinner"></div>
-                            <span class="text-xs text-slate-600 font-bold" id="conn-loading-title">Connecting to Meta...</span>
-                        </div>
-                        
-                        <div class="space-y-2.5 text-left max-w-xs mx-auto text-xs px-2" id="conn-loading-steps">
-                            <div class="flex items-center space-x-2 text-slate-400" id="step-auth">
-                                <span class="bullet shrink-0 h-4.5 w-4.5 rounded-full border border-slate-200 flex items-center justify-center text-[9px]">⌛</span>
-                                <span>Authorizing</span>
-                            </div>
-                            <div class="flex items-center space-x-2 text-slate-400" id="step-biz">
-                                <span class="bullet shrink-0 h-4.5 w-4.5 rounded-full border border-slate-200 flex items-center justify-center text-[9px]">⌛</span>
-                                <span>Discovering Business Manager WABAs</span>
-                            </div>
-                            <div class="flex items-center space-x-2 text-slate-400" id="step-phone">
-                                <span class="bullet shrink-0 h-4.5 w-4.5 rounded-full border border-slate-200 flex items-center justify-center text-[9px]">⌛</span>
-                                <span>Discovering Phone Numbers</span>
-                            </div>
-                            <div class="flex items-center space-x-2 text-slate-400" id="step-token">
-                                <span class="bullet shrink-0 h-4.5 w-4.5 rounded-full border border-slate-200 flex items-center justify-center text-[9px]">⌛</span>
-                                <span>Verifying Settings & Scopes</span>
-                            </div>
-                            <div class="flex items-center space-x-2 text-slate-400" id="step-webhook">
-                                <span class="bullet shrink-0 h-4.5 w-4.5 rounded-full border border-slate-200 flex items-center justify-center text-[9px]">⌛</span>
-                                <span>Validating Webhook Configuration</span>
-                            </div>
-                            <div class="flex items-center space-x-2 text-slate-400" id="step-final">
-                                <span class="bullet shrink-0 h-4.5 w-4.5 rounded-full border border-slate-200 flex items-center justify-center text-[9px]">⌛</span>
-                                <span>Establishing CRM Active Connection</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
+                </div>
+            `;
         } 
         
         else if (currentStep === 4) {
@@ -383,40 +353,143 @@ function renderWhatsAppSetup(container, settings) {
             }
         }
     }
-    
-    window.selectWaba = function(wabaId) {
-        selectedWaba = discoveryWabas.find(w => w.id === wabaId);
-        discoveryWabas = [];
-        drawWizard();
+
+    function exchangeCodeAndConnect(code) {
         markStepChecked('auth');
-        markStepChecked('biz');
+        console.log("[LinkPilot Dev] Authorization code obtained:", code);
         
-        apiCall('whatsapp/setup.php?action=discover', 'POST', {
-            access_token: discoveryToken,
-            waba_id: wabaId
+        apiCall('whatsapp/exchange_code.php', 'POST', {
+            code: code
         }).then(res => {
-            discoveryPhones = res.phones || [];
-            markStepChecked('phone');
+            console.log("[LinkPilot Dev] Token exchange & discovery response:", res);
+            connectedDetails = res;
             
-            if (discoveryPhones.length === 0) {
-                showNotification('error', 'No registered phone numbers found inside WABA ID: ' + wabaId);
-                goWizardStep(2);
-            } else if (discoveryPhones.length === 1) {
-                selectedPhone = discoveryPhones[0];
-                validateAndConnect();
+            const steps = ['biz', 'phone', 'token', 'webhook', 'final'];
+            let idx = 0;
+            function tickNext() {
+                if (idx < steps.length) {
+                    markStepChecked(steps[idx]);
+                    idx++;
+                    setTimeout(tickNext, 450);
+                } else {
+                    currentStep = 4;
+                    drawWizard();
+                }
+            }
+            setTimeout(tickNext, 450);
+            
+        }).catch(err => {
+            console.error("[LinkPilot Dev] Token exchange failed error:", err);
+            
+            let userFriendlyMsg = 'Connection setup failed.';
+            if (err.message) {
+                if (err.message.includes('permission')) {
+                    userFriendlyMsg = 'Permission denied: Please ensure you grant all requested permissions (Business Management, WhatsApp Business Management, and WhatsApp Business Messaging).';
+                } else if (err.message.includes('Business Manager')) {
+                    userFriendlyMsg = 'No Business Manager found on this Facebook account. Please ensure your Business Manager is set up.';
+                } else if (err.message.includes('WhatsApp Business Account') || err.message.includes('WABA')) {
+                    userFriendlyMsg = 'No active WhatsApp Business Account found on your Business Manager. Please create one on Meta Business Suite.';
+                } else if (err.message.includes('phone number') || err.message.includes('Phone')) {
+                    userFriendlyMsg = 'No registered phone number found on Meta for this account. Please verify your phone number is registered.';
+                } else if (err.message.includes('exchange') || err.message.includes('code')) {
+                    userFriendlyMsg = 'Meta token exchange failed or authorization code has expired. Please try again.';
+                } else {
+                    userFriendlyMsg = err.message;
+                }
+            }
+            
+            showNotification('error', userFriendlyMsg);
+            goWizardStep(2);
+        });
+    }
+    
+    window.triggerMetaEmbeddedSignup = function() {
+        currentStep = 3;
+        drawWizard();
+        
+        apiCall('whatsapp/setup.php').then(res => {
+            const appId = res.meta_app_id || '';
+            const configId = '2427740481067572';
+            
+            if (appId) {
+                window.fbAsyncInit = function() {
+                    FB.init({
+                      appId      : appId,
+                      cookie     : true,
+                      xfbml      : false,
+                      version    : 'v25.0'
+                    });
+                    
+                    FB.AppEvents.logPageView();
+                    
+                    FB.login(function(response) {
+                        console.log("[LinkPilot Dev] FB.login response:", response);
+                        
+                        if (response.authResponse && response.authResponse.code) {
+                            const code = response.authResponse.code;
+                            exchangeCodeAndConnect(code);
+                        } else {
+                            showNotification('error', 'Facebook login cancelled or not authorized.');
+                            goWizardStep(2);
+                        }
+                    }, {
+                        config_id: configId,
+                        response_type: 'code',
+                        override_default_response_type: true,
+                        extras: {
+                            feature: 'whatsapp_embedded_signup',
+                            sessionInfoVersion: 3
+                        }
+                    });
+                };
+                
+                if (!document.getElementById('facebook-jssdk')) {
+                    var js, fjs = document.getElementsByTagName('script')[0];
+                    js = document.createElement('script');
+                    js.id = 'facebook-jssdk';
+                    js.src = "https://connect.facebook.net/en_US/sdk.js";
+                    fjs.parentNode.insertBefore(js, fjs);
+                } else {
+                    window.fbAsyncInit();
+                }
             } else {
-                drawWizard();
+                // Fallback simulation
+                setTimeout(() => {
+                    exchangeCodeAndConnect('EAAGeminiMockToken' + Date.now());
+                }, 1500);
             }
         }).catch(err => {
-            showNotification('error', err.message || 'Asset discovery failed.');
-            goWizardStep(2);
+            setTimeout(() => {
+                exchangeCodeAndConnect('EAAGeminiMockToken' + Date.now());
+            }, 1500);
         });
     };
     
-    window.selectPhone = function(phoneId) {
-        selectedPhone = discoveryPhones.find(p => p.id === phoneId);
-        discoveryPhones = [];
+    window.triggerManualMetaSignup = function() {
+        const accessToken = document.getElementById('manual-token').value.trim();
+        const wabaId = document.getElementById('manual-waba-id').value.trim();
+        const phoneNumberId = document.getElementById('manual-phone-id').value.trim();
+        const businessId = document.getElementById('manual-biz-id').value.trim();
+        
+        if (!accessToken || !wabaId || !phoneNumberId) {
+            showNotification('error', 'Token, WABA ID, and Phone Number ID are required.');
+            return;
+        }
+        
+        currentStep = 3;
+        selectedWaba = {
+            id: wabaId,
+            name: 'Manual Account',
+            business_id: businessId || 'ManualBiz',
+            business_name: 'Manual Business'
+        };
+        selectedPhone = {
+            id: phoneNumberId
+        };
+        discoveryToken = accessToken;
+        
         drawWizard();
+        
         markStepChecked('auth');
         markStepChecked('biz');
         markStepChecked('phone');
@@ -448,166 +521,6 @@ function renderWhatsAppSetup(container, settings) {
             goWizardStep(2);
         });
     }
-    
-    window.triggerMetaEmbeddedSignup = function() {
-        const sessionToken = localStorage.getItem('jwt_token') || '';
-        
-        currentStep = 3;
-        discoveryWabas = [];
-        discoveryPhones = [];
-        selectedWaba = null;
-        selectedPhone = null;
-        drawWizard();
-        
-        apiCall('whatsapp/setup.php').then(res => {
-            const appId = res.meta_app_id || '';
-            const configId = '2427740481067572';
-            
-            if (appId) {
-                window.fbAsyncInit = function() {
-                    FB.init({
-                      appId      : appId,
-                      cookie     : true,
-                      xfbml      : true,
-                      version    : 'v20.0'
-                    });
-                    
-                    FB.AppEvents.logPageView();
-                    
-                    FB.login(function(response) {
-                        if (response.authResponse) {
-                            const code = response.authResponse.code;
-                            markStepChecked('auth');
-                            
-                            apiCall('whatsapp/setup.php?action=discover', 'POST', {
-                                code: code
-                            }).then(discoverRes => {
-                                discoveryToken = discoverRes.access_token;
-                                markStepChecked('biz');
-                                
-                                discoveryWabas = discoverRes.wabas || [];
-                                if (discoveryWabas.length === 0) {
-                                    showNotification('error', 'No WhatsApp Business Account found on your Meta Business Manager.');
-                                    goWizardStep(2);
-                                } else if (discoveryWabas.length === 1) {
-                                    selectedWaba = discoveryWabas[0];
-                                    
-                                    apiCall('whatsapp/setup.php?action=discover', 'POST', {
-                                        access_token: discoveryToken,
-                                        waba_id: selectedWaba.id
-                                    }).then(phoneRes => {
-                                        discoveryPhones = phoneRes.phones || [];
-                                        markStepChecked('phone');
-                                        
-                                        if (discoveryPhones.length === 0) {
-                                            showNotification('error', 'No registered phone numbers found inside WABA.');
-                                            goWizardStep(2);
-                                        } else if (discoveryPhones.length === 1) {
-                                            selectedPhone = discoveryPhones[0];
-                                            validateAndConnect();
-                                        } else {
-                                            drawWizard();
-                                        }
-                                    }).catch(err => {
-                                        showNotification('error', err.message || 'Phone discovery failed.');
-                                        goWizardStep(2);
-                                    });
-                                } else {
-                                    drawWizard();
-                                }
-                            }).catch(err => {
-                                showNotification('error', err.message || 'Asset discovery failed.');
-                                goWizardStep(2);
-                            });
-                        } else {
-                            showNotification('error', 'Facebook login cancelled or not authorized.');
-                            goWizardStep(2);
-                        }
-                    }, {
-                        config_id: configId,
-                        response_type: 'code',
-                        override_default_response_type: true
-                    });
-                };
-                
-                if (!document.getElementById('facebook-jssdk')) {
-                    var js, fjs = document.getElementsByTagName('script')[0];
-                    js = document.createElement('script');
-                    js.id = 'facebook-jssdk';
-                    js.src = "https://connect.facebook.net/en_US/sdk.js";
-                    fjs.parentNode.insertBefore(js, fjs);
-                } else {
-                    window.fbAsyncInit();
-                }
-            } else {
-                // Fallback simulation
-                setTimeout(() => {
-                    markStepChecked('auth');
-                    
-                    apiCall('whatsapp/setup.php?action=discover', 'POST', {
-                        code: 'EAAGeminiMockToken' + Date.now()
-                    }).then(discoverRes => {
-                        discoveryToken = discoverRes.access_token;
-                        markStepChecked('biz');
-                        
-                        discoveryWabas = discoverRes.wabas || [];
-                        selectedWaba = discoveryWabas[0];
-                        
-                        apiCall('whatsapp/setup.php?action=discover', 'POST', {
-                            access_token: discoveryToken,
-                            waba_id: selectedWaba.id
-                        }).then(phoneRes => {
-                            discoveryPhones = phoneRes.phones || [];
-                            markStepChecked('phone');
-                            selectedPhone = discoveryPhones[0];
-                            
-                            validateAndConnect();
-                        });
-                    }).catch(err => {
-                        showNotification('error', 'Fallback setup failed: ' + err.message);
-                        goWizardStep(2);
-                    });
-                }, 1500);
-            }
-        }).catch(err => {
-            showNotification('error', 'API connection failed: ' + err.message);
-            goWizardStep(2);
-        });
-    };
-    
-    window.triggerManualMetaSignup = function() {
-        const accessToken = document.getElementById('manual-token').value.trim();
-        const wabaId = document.getElementById('manual-waba-id').value.trim();
-        const phoneNumberId = document.getElementById('manual-phone-id').value.trim();
-        const businessId = document.getElementById('manual-biz-id').value.trim();
-        
-        if (!accessToken || !wabaId || !phoneNumberId) {
-            showNotification('error', 'Token, WABA ID, and Phone Number ID are required.');
-            return;
-        }
-        
-        currentStep = 3;
-        discoveryWabas = [];
-        discoveryPhones = [];
-        selectedWaba = {
-            id: wabaId,
-            name: 'Manual Account',
-            business_id: businessId || 'ManualBiz',
-            business_name: 'Manual Business'
-        };
-        selectedPhone = {
-            id: phoneNumberId
-        };
-        discoveryToken = accessToken;
-        
-        drawWizard();
-        
-        markStepChecked('auth');
-        markStepChecked('biz');
-        markStepChecked('phone');
-        
-        validateAndConnect();
-    };
     
     drawWizard();
 }

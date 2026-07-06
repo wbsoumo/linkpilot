@@ -10,27 +10,44 @@ error_reporting(E_ALL);
 
 $db = Database::getConnection();
 
-// --- 1. HANDLE WEBHOOK VERIFICATION (GET) ---
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    $mode = $_GET['hub_mode'] ?? '';
-    $verifyToken = $_GET['hub_verify_token'] ?? '';
-    $challenge = $_GET['hub_challenge'] ?? '';
-    
-    // Fetch Verify Token from admin_settings
-    $stmtToken = $db->prepare("SELECT setting_value FROM admin_settings WHERE setting_key = 'whatsapp_webhook_verify_token'");
+
+    $mode =
+        $_GET['hub.mode'] ??
+        $_GET['hub_mode'] ??
+        '';
+
+    $verifyToken =
+        $_GET['hub.verify_token'] ??
+        $_GET['hub_verify_token'] ??
+        '';
+
+    $challenge =
+        $_GET['hub.challenge'] ??
+        $_GET['hub_challenge'] ??
+        '';
+
+    // Fetch Verify Token from DB
+    $stmtToken = $db->prepare("
+        SELECT setting_value
+        FROM admin_settings
+        WHERE setting_key='whatsapp_webhook_verify_token'
+        LIMIT 1
+    ");
     $stmtToken->execute();
-    $dbToken = $stmtToken->fetchColumn();
+    $dbToken = trim($stmtToken->fetchColumn() ?: '');
+
     $expectedToken = $dbToken ?: 'LINKPILOT_VERIFY_2026';
-    
-    if ($mode === 'subscribe' && $verifyToken === $expectedToken) {
+
+    if ($mode === 'subscribe' && trim($verifyToken) === trim($expectedToken)) {
         http_response_code(200);
         echo $challenge;
         exit;
-    } else {
-        http_response_code(403);
-        echo "Verification failed. Invalid verify token.";
-        exit;
     }
+
+    http_response_code(403);
+    echo "Verification failed. Invalid verify token.";
+    exit;
 }
 
 // --- 2. HANDLE INCOMING PAYLOAD (POST) ---

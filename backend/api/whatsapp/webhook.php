@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $stmtToken = $db->prepare("SELECT setting_value FROM admin_settings WHERE setting_key = 'whatsapp_webhook_verify_token'");
     $stmtToken->execute();
     $dbToken = $stmtToken->fetchColumn();
-    $expectedToken = $dbToken ?: 'linkpilot_wa_webhook_verify_token';
+    $expectedToken = $dbToken ?: 'LINKPILOT_VERIFY_2026';
     
     if ($mode === 'subscribe' && $verifyToken === $expectedToken) {
         http_response_code(200);

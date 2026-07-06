@@ -72,8 +72,28 @@ try {
     $stmtEmails->execute([$userId]);
     $emails = $stmtEmails->fetchAll(PDO::FETCH_ASSOC);
 
+    // 5. Fetch Recent Invoices
+    $stmtInvoices = $db->prepare("
+        SELECT sender_name, sender_email, subject, received_date, extracted_data_json 
+        FROM received_emails 
+        WHERE user_id = ? AND category = 'Invoice' 
+        ORDER BY received_date DESC 
+        LIMIT 15
+    ");
+    $stmtInvoices->execute([$userId]);
+    $invoices = $stmtInvoices->fetchAll(PDO::FETCH_ASSOC);
+
+    $invoicesCtx = [];
+    foreach ($invoices as $inv) {
+        $meta = json_decode($inv['extracted_data_json'], true) ?: [];
+        $amount = (float)($meta['budget'] ?? 0.00);
+        $dueDate = !empty($meta['deadline']) ? $meta['deadline'] : 'Not specified';
+        $company = !empty($meta['company_name']) ? $meta['company_name'] : $inv['sender_name'];
+        $invoicesCtx[] = "- *Company*: " . $company . " | *Amount*: ₹" . number_format($amount, 2) . " | *Due Date*: " . $dueDate . " | *Subject*: " . $inv['subject'] . " | *Received*: " . $inv['received_date'] . " | *Summary*: " . ($meta['requirement'] ?? 'None');
+    }
+
     // Construct Context Prompt
-    $systemPrompt = "You are the LinkPilot AI CRM Chat Assistant. You are here to help the user manage their CRM account, meetings, tasks, and cold outreach.
+    $systemPrompt = "You are the LinkPilot AI CRM Chat Assistant. You are here to help the user manage their CRM account, meetings, tasks, invoices, and cold outreach.
 Below is the real-time context of the user's LinkPilot CRM account (User Name: " . $user['name'] . ", User Email: " . $user['email'] . "):
 
 ---
@@ -101,7 +121,19 @@ Below is the real-time context of the user's LinkPilot CRM account (User Name: "
 }, $emails))) . "
 
 ---
-Based on this context, answer the user's question point-by-point. Be concise, extremely accurate, and professional. Use markdown formatting (bolding, bullet points, headers) to make answers easy to read. If the user asks something outside this data (e.g. general knowledge or personal info not in CRM), answer politely that you only have access to their CRM workspace context.";
+## INVOICES RECEIVED:
+" . (count($invoicesCtx) === 0 ? "No invoices found in database." : implode("\n", $invoicesCtx)) . "
+
+---
+Based on this context, answer the user's question point-by-point. Be concise, extremely accurate, and professional. 
+
+Formatting instructions:
+1. Use markdown formatting (bolding, bullet points, headers, or tables) to make answers clean.
+2. If the user asks about invoices, check the invoices list above and format the details in a markdown table with headers:
+   | Sender/Company | Subject | Amount | Due Date | Summary/Details |
+   |---|---|---|---|---|
+3. Always present currency values using Rupee sign (₹) or the currency of the invoice.
+4. If the user asks something outside this data (e.g. general knowledge or personal info not in CRM), answer politely that you only have access to their CRM workspace context.";
 
     // Compile Conversation History into the Prompt
     $promptBody = "";

@@ -43,9 +43,44 @@ try {
         $decrypted = decryptData($encryptedToken);
         $accessToken = ($decrypted !== false) ? $decrypted : $encryptedToken;
         
+        $isMock = (strpos($accessToken, 'MockToken') !== false);
+        
         try {
-            $metaTemplates = WhatsAppMetaService::getTemplates($userId, $wabaId, $accessToken);
-            $tplData = $metaTemplates['data'] ?? [];
+            $tplData = [];
+            if (!$isMock) {
+                $metaTemplates = WhatsAppMetaService::getTemplates($userId, $wabaId, $accessToken);
+                $tplData = $metaTemplates['data'] ?? [];
+            } else {
+                $tplData = [
+                    [
+                        'name' => 'welcome_message',
+                        'category' => 'UTILITY',
+                        'language' => 'en',
+                        'status' => 'APPROVED',
+                        'components' => [
+                            ['type' => 'BODY', 'text' => 'Hello {{1}}, thank you for connecting with us! We have received your inquiry regarding our CRM services and will get back to you shortly.']
+                        ]
+                    ],
+                    [
+                        'name' => 'discount_promo',
+                        'category' => 'MARKETING',
+                        'language' => 'en',
+                        'status' => 'APPROVED',
+                        'components' => [
+                            ['type' => 'BODY', 'text' => 'Hey {{1}}, check out this exclusive offer! Get 20% off all LinkPilot CRM plans this month. Use code: OUTREACH20.']
+                        ]
+                    ],
+                    [
+                        'name' => 'followup_reminder',
+                        'category' => 'UTILITY',
+                        'language' => 'en',
+                        'status' => 'APPROVED',
+                        'components' => [
+                            ['type' => 'BODY', 'text' => 'Hi {{1}}, just following up on our chat. Let us know if you have any questions about the proposal we sent. Have a great day!']
+                        ]
+                    ]
+                ];
+            }
             
             $db->beginTransaction();
             try {

@@ -26,6 +26,8 @@ $companyName = trim($input['company_name'] ?? '');
 $recipientEmail = trim($input['email'] ?? '');
 $recipientPhone = trim($input['phone'] ?? '');
 $authorProfileUrl = trim($input['author_profile_url'] ?? '');
+$tone = trim($input['tone'] ?? 'Professional');
+$notes = trim($input['notes'] ?? '');
 
 if (empty($postContent)) {
     sendJsonResponse('error', 'Post content is required for AI generation.', [], 400);
@@ -62,10 +64,11 @@ try {
     
     // 2. Build Prompts
     $systemPrompt = "You are LinkPilot AI, a premium outreach generator.
-Your goal is to write a highly personalized, human-sounding, professional outreach email based on a LinkedIn post.
+Your goal is to write a highly personalized, human-sounding outreach email based on a LinkedIn post.
 Ensure it is NOT robotic, uses natural transition sentences, and focuses on building a relationship.
 Do NOT use clichés (like 'I hope this email finds you well', 'deep dive', 'game changer', 'synergy').
 Maintain a maximum word count of 250 words.
+Write the email in the specified tone: '{$tone}'.
 Structure the response strictly in JSON format with two keys:
 'subject': A catchy, personalized email subject line.
 'body': The HTML formatted email body (using <p> and <br> tags, no outer markdown blocks).
@@ -93,7 +96,7 @@ Post Details:
 Author Name: {$authorName}
 Author Company: {$companyName}
 Recipient Email Address (if available): {$recipientEmail}
-
+" . (!empty($notes) ? "\nAdditional Context/Notes to incorporate:\n\"\"\"\n{$notes}\n\"\"\"\n" : "") . "
 Generate a personalized outreach email to {$authorName} referencing their post. Build a bridge between their post and the sender's professional background where natural. Do not make up fake accomplishments. Keep it polite, clear, and focused. Return ONLY the JSON object.";
 
     // 3. Call OpenRouter

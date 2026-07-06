@@ -24,6 +24,9 @@ $postUrl = trim($input['post_url'] ?? '');
 $authorName = trim($input['author_name'] ?? '');
 $companyName = trim($input['company_name'] ?? '');
 $phone = trim($input['phone'] ?? '');
+$tone = trim($input['tone'] ?? 'Professional');
+$length = trim($input['length'] ?? 'Medium');
+$notes = trim($input['notes'] ?? '');
 
 if (empty($postContent)) {
     sendJsonResponse('error', 'Post content is required for AI generation.', [], 400);
@@ -47,10 +50,12 @@ try {
     
     // 2. Build Prompts
     $systemPrompt = "You are LinkPilot AI.
-Write a short, friendly, yet professional WhatsApp outreach message (maximum 60 words).
+Write a short, conversational WhatsApp outreach message.
 Ensure it is conversational, highly personalized, and refers to their recent LinkedIn post.
 Avoid robotic intros. Include a clear call to action.
 Include emojis where appropriate to keep it engaging.
+Write the message in the specified tone: '{$tone}'.
+Match the message length: '{$length}' (Short: max 30 words, Medium: max 60 words, Long: max 120 words).
 
 SENDER:
 Name: {$senderName}
@@ -64,7 +69,7 @@ Company: {$senderCompany}
 \"\"\"
 
 Recipient Name: {$authorName}
-
+" . (!empty($notes) ? "\nAdditional Context/Notes to incorporate:\n\"\"\"\n{$notes}\n\"\"\"\n" : "") . "
 Generate the WhatsApp outreach message. Return ONLY the message content.";
 
     // 3. Call OpenRouter

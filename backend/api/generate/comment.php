@@ -21,6 +21,10 @@ if (!$input) {
 
 $postContent = trim($input['post_content'] ?? '');
 $authorName = trim($input['author_name'] ?? '');
+$style = trim($input['style'] ?? 'Professional');
+$tone = trim($input['tone'] ?? 'Professional');
+$length = trim($input['length'] ?? 'Medium');
+$notes = trim($input['notes'] ?? '');
 
 if (empty($postContent)) {
     sendJsonResponse('error', 'Post content is required for AI generation.', [], 400);
@@ -43,10 +47,12 @@ try {
     
     // 2. Build Prompts
     $systemPrompt = "You are LinkPilot AI.
-Generate a natural, insightful, human-sounding LinkedIn comment (maximum 40 words) for a given post.
+Generate a natural, insightful, human-sounding LinkedIn comment for a given post.
 Avoid generic compliments like 'Great post!', 'Thanks for sharing!', or robotic language.
 Add value, ask a question, or highlight a specific insight from the post content.
 Make it sound like a real person engaging in the industry.
+Write the comment in the style: '{$style}' and tone: '{$tone}'.
+Match the comment length: '{$length}' (Short: 1-2 lines, Medium: 3-4 lines, Long: 5+ lines).
 
 SENDER:
 Name: {$senderName}
@@ -59,7 +65,7 @@ Title: {$senderTitle}
 \"\"\"
 
 Post Author: {$authorName}
-
+" . (!empty($notes) ? "\nAdditional Context/Notes to incorporate:\n\"\"\"\n{$notes}\n\"\"\"\n" : "") . "
 Generate the LinkedIn comment. Return ONLY the comment content.";
 
     // 3. Call OpenRouter

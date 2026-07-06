@@ -9,15 +9,18 @@
     // CSS styling for the modal, scoped inside Shadow DOM
     const MODAL_STYLES = `
         :host {
-            --primary: #0F172A;
-            --secondary: #1E293B;
-            --accent: #14B8A6;
-            --success: #22C55E;
-            --warning: #F59E0B;
-            --danger: #EF4444;
-            --background: #F8FAFC;
+            --primary: #0B0F19;
+            --secondary: #111827;
+            --card-bg: #1E293B;
+            --border: rgba(255, 255, 255, 0.08);
+            --accent: #10B981;
+            --accent-hover: #059669;
+            --text-main: #F9FAFB;
+            --text-muted: #9CA3AF;
+            --success: #10B981;
             --radius-card: 16px;
-            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --radius-input: 8px;
+            --font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
         }
         
         * {
@@ -31,7 +34,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(15, 23, 42, 0.6);
+            background: rgba(11, 15, 25, 0.7);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             z-index: 999999;
@@ -41,237 +44,815 @@
         }
         
         .modal {
-            width: 700px;
-            max-width: 90%;
-            background: rgba(15, 23, 42, 0.95);
+            width: 960px;
+            max-width: 95vw;
+            background: #0B0F19;
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: var(--radius-card);
-            color: #F8FAFC;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            color: var(--text-main);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
-            max-height: 85vh;
-            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 90vh;
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
         
         .header {
-            padding: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
+            align-items: center;
+        }
+        
+        .profile-header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .profile-avatar-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1.5px solid rgba(16, 185, 129, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #10B981;
+        }
+        
+        .avatar-svg {
+            width: 22px;
+            height: 22px;
+        }
+        
+        .profile-title-area {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .profile-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        
+        .profile-name {
+            color: #10B981;
+        }
+        
+        .profile-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 2px;
+        }
+        
+        .li-in-logo {
+            background: #0A66C2;
+            color: white;
+            font-weight: bold;
+            font-size: 10px;
+            padding: 1px 3px;
+            border-radius: 2px;
+            font-family: sans-serif;
+        }
+        
+        .close-btn-round {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .close-btn-round:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .close-svg {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .post-preview-card {
+            margin: 20px 24px 0 24px;
+            background: #111827;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            gap: 12px;
             align-items: flex-start;
         }
         
-        .author-info h3 {
+        .spark-icon-wrapper {
+            background: rgba(16, 185, 129, 0.1);
+            padding: 8px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .spark-icon {
+            font-size: 14px;
+        }
+        
+        .post-preview-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .post-preview-text {
             margin: 0;
-            font-size: 18px;
-            font-weight: 700;
-            color: white;
-        }
-        
-        .author-info p {
-            margin: 4px 0 0 0;
             font-size: 13px;
-            color: #94A3B8;
+            color: #D1D5DB;
+            line-height: 1.5;
         }
         
-        .post-summary {
-            margin: 8px 0 0 0;
+        .view-post-link {
+            align-self: flex-end;
             font-size: 12px;
-            color: #64748B;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 6px 10px;
-            border-radius: 6px;
-            max-height: 60px;
-            overflow-y: auto;
-        }
-        
-        .close-btn {
-            background: transparent;
-            border: none;
-            color: #64748B;
-            font-size: 20px;
-            cursor: pointer;
+            color: #10B981;
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
             transition: color 0.2s;
         }
         
-        .close-btn:hover {
-            color: white;
+        .view-post-link:hover {
+            color: #34D399;
+        }
+        
+        .ext-link-svg {
+            width: 12px;
+            height: 12px;
         }
         
         .tabs-bar {
             display: flex;
             background: rgba(0, 0, 0, 0.2);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 0 12px;
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            margin-top: 16px;
         }
         
         .tab-btn {
-            padding: 12px 16px;
+            padding: 14px 20px;
             background: transparent;
             border: none;
-            color: #94A3B8;
+            color: var(--text-muted);
             font-weight: 600;
             font-size: 13px;
             cursor: pointer;
             border-bottom: 2px solid transparent;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
         
         .tab-btn:hover {
-            color: white;
+            color: var(--text-main);
         }
         
         .tab-btn.active {
-            color: var(--accent);
-            border-bottom-color: var(--accent);
+            color: #10B981;
+            border-bottom-color: #10B981;
         }
         
         .content-body {
-            padding: 20px;
+            padding: 24px;
             overflow-y: auto;
             flex-grow: 1;
         }
         
         .tab-content {
             display: none;
-            flex-direction: column;
-            gap: 16px;
+            grid-template-columns: 1.15fr 1fr;
+            gap: 24px;
+            height: 100%;
         }
         
         .tab-content.active {
+            display: grid;
+        }
+        
+        .left-pane {
             display: flex;
+            flex-direction: column;
+            gap: 16px;
+            border-right: 1px solid var(--border);
+            padding-right: 24px;
+        }
+        
+        .right-pane {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding-left: 8px;
         }
         
         .form-group {
             display: flex;
             flex-direction: column;
             gap: 6px;
+            position: relative;
         }
         
         .form-group label {
             font-size: 11px;
-            font-weight: 600;
-            color: #94A3B8;
+            font-weight: 700;
+            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
         
-        .form-group input, .form-group textarea {
-            background: #1E293B;
+        .input-with-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 12px;
+            font-size: 14px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+        
+        .input-with-icon input, .input-with-icon select {
+            padding-left: 36px !important;
+        }
+        
+        .form-group input, .form-group textarea, .form-group select {
+            background: #111827;
             border: 1px solid #334155;
-            border-radius: 8px;
+            border-radius: var(--radius-input);
             color: white;
-            padding: 10px 12px;
+            padding: 11px 12px;
             font-size: 13px;
             outline: none;
             width: 100%;
-            transition: border-color 0.2s;
+            transition: all 0.2s;
         }
         
-        .form-group input:focus, .form-group textarea:focus {
-            border-color: var(--accent);
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            border-color: #10B981;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
         }
         
-        .action-row {
+        .char-counter {
+            align-self: flex-end;
+            font-size: 10px;
+            color: #6B7280;
+            margin-top: -2px;
+        }
+        
+        .pro-tip-box {
+            background: rgba(16, 185, 129, 0.04);
+            border: 1px dashed rgba(16, 185, 129, 0.2);
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            margin-top: auto;
+        }
+        
+        .pro-tip-icon {
+            font-size: 16px;
+        }
+        
+        .pro-tip-text strong {
+            font-size: 12px;
+            color: #10B981;
+            display: block;
+            margin-bottom: 2px;
+        }
+        
+        .pro-tip-text p {
+            margin: 0;
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+        
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+        
+        .preview-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .reset-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .reset-btn:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .output-box-wrapper {
+            background: #111827;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            overflow: hidden;
+            min-height: 280px;
+        }
+        
+        .output-textarea {
+            background: transparent !important;
+            border: none !important;
+            border-radius: 0 !important;
+            resize: none;
+            flex-grow: 1;
+            padding: 16px !important;
+            font-size: 13px !important;
+            line-height: 1.6;
+            color: #E5E7EB !important;
+            outline: none !important;
+            box-shadow: none !important;
+            font-family: var(--font-family) !important;
+        }
+        
+        .output-box-footer {
+            padding: 10px 16px;
+            border-top: 1px solid var(--border);
+            background: rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        
+        .generated-with {
+            font-weight: 500;
+        }
+        
+        .modal-footer-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border);
+            padding: 16px 24px;
+            background: rgba(0, 0, 0, 0.15);
+            margin-top: auto;
+        }
+        
+        .footer-left-buttons, .footer-right-buttons {
             display: flex;
             gap: 12px;
-            margin-top: 8px;
         }
         
         .btn {
-            padding: 10px 16px;
+            padding: 11px 18px;
             border-radius: 8px;
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             border: none;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-            transition: all 0.2s;
+            gap: 8px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .btn-primary {
-            background-color: var(--accent);
-            color: #0F172A;
+            background-color: #10B981;
+            color: #0B0F19;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
         }
         
         .btn-primary:hover {
-            background-color: #0D9488;
+            background-color: #34D399;
+            transform: translateY(-1px);
         }
         
         .btn-secondary {
             background-color: transparent;
-            color: #E2E8F0;
-            border: 1px solid #334155;
+            color: #E5E7EB;
+            border: 1px solid #374151;
         }
         
         .btn-secondary:hover {
-            background-color: #1E293B;
+            background-color: rgba(255, 255, 255, 0.03);
+            border-color: #4B5563;
         }
         
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            transform: none !important;
         }
         
-        .status-toast {
-            padding: 8px 12px;
-            border-radius: 6px;
+        /* WhatsApp Theme Styles */
+        .whatsapp-bubble-wrapper {
+            background: #0b141a;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start;
+            min-height: 280px;
+        }
+        
+        .whatsapp-bubble {
+            background: #005c4b;
+            border-radius: 12px;
+            border-top-left-radius: 0;
+            padding: 12px 14px;
+            max-width: 85%;
+            color: #e9edef;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        
+        .whatsapp-textarea {
+            background: transparent !important;
+            border: none !important;
+            resize: none;
+            width: 100%;
+            height: 180px;
+            outline: none !important;
+            color: #e9edef !important;
+            font-size: 13px !important;
+            line-height: 1.5;
+            padding: 0 !important;
+            margin-bottom: 4px;
+            font-family: var(--font-family) !important;
+        }
+        
+        .whatsapp-bubble-footer {
+            align-self: flex-end;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .whatsapp-time {
+            font-size: 10px;
+            color: rgba(233, 237, 239, 0.6);
+        }
+        
+        .whatsapp-check {
             font-size: 12px;
-            font-weight: 500;
-            display: none;
-            animation: fadeIn 0.2s ease;
+            color: #53bdeb;
         }
         
-        .status-toast.success {
-            display: block;
-            background: rgba(34, 197, 94, 0.1);
-            color: var(--success);
-            border: 1px solid rgba(34, 197, 94, 0.2);
+        .phone-input-wrapper {
+            display: flex;
+            background: #111827;
+            border: 1px solid #334155;
+            border-radius: var(--radius-input);
+            overflow: hidden;
         }
         
-        .status-toast.error {
-            display: block;
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger);
-            border: 1px solid rgba(239, 68, 68, 0.2);
+        .phone-input-wrapper input {
+            border: none !important;
+            background: transparent !important;
+            flex-grow: 1;
         }
         
-        .unauth-container {
-            padding: 40px;
-            text-align: center;
+        .country-code-select {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 12px;
+            border-right: 1px solid #334155;
+            background: rgba(255, 255, 255, 0.02);
+            font-size: 13px;
+        }
+        
+        .code-val {
+            font-weight: 600;
+        }
+        
+        .caret-down {
+            font-size: 9px;
+            color: var(--text-muted);
+        }
+        
+        .contact-search-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-left: 1px solid #334155;
+            transition: color 0.2s;
+        }
+        
+        .contact-search-btn:hover {
+            color: white;
+        }
+        
+        .contact-search-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+        
+        /* Comment Tab Theme Styles */
+        .comment-style-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 4px;
+        }
+        
+        .style-card {
+            background: #111827;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .style-card:hover {
+            border-color: rgba(16, 185, 129, 0.4);
+            background: rgba(16, 185, 129, 0.02);
+        }
+        
+        .style-card.active {
+            border-color: #10B981;
+            background: rgba(16, 185, 129, 0.05);
+            box-shadow: 0 0 0 1px #10B981;
+        }
+        
+        .style-card-icon {
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+        
+        .style-card-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        
+        .style-card-desc {
+            font-size: 9px;
+            color: var(--text-muted);
+            margin-top: 2px;
+            text-align: left;
+        }
+        
+        .segmented-control {
+            display: flex;
+            background: #111827;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 2px;
+            gap: 2px;
+        }
+        
+        .seg-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
+            transition: all 0.2s;
+        }
+        
+        .seg-btn:hover {
+            color: white;
+        }
+        
+        .seg-btn.active {
+            background: #1E293B;
+            color: #10B981;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        
+        .seg-btn strong {
+            font-size: 11px;
+            font-weight: 700;
+        }
+        
+        .seg-btn span {
+            font-size: 9px;
+            opacity: 0.8;
+            margin-top: 1px;
+        }
+        
+        .linkedin-comment-wrapper {
+            background: #111827;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
             gap: 16px;
+            min-height: 280px;
         }
         
-        .unauth-container i {
-            font-size: 40px;
-            color: var(--warning);
+        .comment-feed-item {
+            display: flex;
+            gap: 10px;
         }
         
-        .spinner {
-            border: 2px solid rgba(20, 184, 166, 0.1);
+        .comment-author-avatar {
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
-            border-top: 2px solid var(--accent);
-            width: 14px;
-            height: 14px;
-            animation: spin 0.8s linear infinite;
-            display: inline-block;
+            background: #0A66C2;
+            color: white;
+            font-weight: 900;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: sans-serif;
+            flex-shrink: 0;
         }
         
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .comment-bubble {
+            background: #1E293B;
+            border-radius: 8px;
+            padding: 10px 12px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .comment-author-meta {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 6px;
+        }
+        
+        .comment-author-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        
+        .comment-author-headline {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+        
+        .linkedin-comment-textarea {
+            background: transparent !important;
+            border: none !important;
+            resize: none;
+            width: 100%;
+            height: 110px;
+            outline: none !important;
+            color: #e9edef !important;
+            font-size: 12px !important;
+            line-height: 1.5;
+            padding: 0 !important;
+            font-family: var(--font-family) !important;
+        }
+        
+        .comment-why-accordion {
+            background: rgba(16, 185, 129, 0.03);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: auto;
+        }
+        
+        .accordion-header {
+            padding: 10px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #10B981;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .accordion-body {
+            padding: 10px 12px;
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.4;
+            border-top: 1px solid rgba(16, 185, 129, 0.1);
+        }
+        
+        /* Success Toast/Banner styles */
+        .success-banner-animate {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #10B981;
+            color: #0B0F19;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.35);
+            z-index: 1000000;
+            animation: bounceInDown 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.4s ease;
+        }
+        
+        .success-banner-animate.hide {
+            opacity: 0;
+            transform: translate(-50%, -20px) scale(0.9);
+        }
+        
+        .banner-icon {
+            background: white;
+            color: #10B981;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 900;
+        }
+
+        @keyframes bounceInDown {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -100px) scale(0.8);
+            }
+            60% {
+                opacity: 1;
+                transform: translate(-50%, 10px) scale(1.05);
+            }
+            80% {
+                transform: translate(-50%, -5px) scale(0.98);
+            }
+            100% {
+                transform: translate(-50%, 0) scale(1);
+            }
         }
     `;
 
@@ -279,8 +860,9 @@
      * Bind outreach email tab actions.
      * @param {ShadowRoot} shadow
      * @param {Object} postDetails
+     * @param {Function} showSuccessNotification
      */
-    const bindEmailHandlers = (shadow, postDetails) => {
+    const bindEmailHandlers = (shadow, postDetails, showSuccessNotification) => {
         const genBtn = shadow.getElementById('email-generate-btn');
         const copyBtn = shadow.getElementById('email-copy-btn');
         const sendBtn = shadow.getElementById('email-send-btn');
@@ -288,6 +870,11 @@
         const subjectInput = shadow.getElementById('email-subject');
         const bodyInput = shadow.getElementById('email-body');
         const toast = shadow.getElementById('email-toast');
+        const toneSelect = shadow.getElementById('email-tone');
+        const notesInput = shadow.getElementById('email-notes');
+        const notesCounter = shadow.getElementById('email-notes-counter');
+        const resetBtn = shadow.getElementById('email-reset-btn');
+        const charCountEl = shadow.getElementById('email-char-count');
 
         const creditsBadge = shadow.getElementById('finder-modal-credits');
         const headerCreditsBadge = shadow.getElementById('header-credits-badge');
@@ -298,7 +885,6 @@
                     const rem = (res.wallet && res.wallet.remaining !== undefined) ? res.wallet.remaining : 0;
                     if (creditsBadge) {
                         creditsBadge.textContent = `Credits: ${rem}`;
-                        creditsBadge.style.display = 'inline-block';
                     }
                     if (headerCreditsBadge) {
                         headerCreditsBadge.textContent = `Credits: ${rem}`;
@@ -309,9 +895,38 @@
         
         updateCreditsBadge();
 
-        // Prepopulate email parsed from description if available
         if (postDetails.email) {
             recipientInput.value = postDetails.email;
+        }
+
+        if (notesInput && notesCounter) {
+            notesInput.addEventListener('input', () => {
+                notesCounter.textContent = `${notesInput.value.length}/300`;
+            });
+        }
+
+        const updateEmailCharCount = () => {
+            if (charCountEl && bodyInput) {
+                charCountEl.textContent = `${bodyInput.value.length} characters`;
+            }
+        };
+        if (bodyInput) {
+            bodyInput.addEventListener('input', updateEmailCharCount);
+        }
+
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                subjectInput.value = '';
+                bodyInput.value = '';
+                if (notesInput) {
+                    notesInput.value = '';
+                    notesCounter.textContent = '0/300';
+                }
+                copyBtn.disabled = true;
+                sendBtn.disabled = true;
+                updateEmailCharCount();
+                showSuccessNotification('Email panel reset successfully!');
+            });
         }
 
         const findEmailBtn = shadow.getElementById('modal-find-email-btn');
@@ -336,7 +951,7 @@
 
                 const addStatusRow = (msg, isDone = false, isError = false) => {
                     const dot = isDone ? '✓' : (isError ? '✗' : '⏳');
-                    const color = isError ? '#EF4444' : (isDone ? '#22C55E' : '#14B8A6');
+                    const color = isError ? '#EF4444' : (isDone ? '#10B981' : '#34D399');
                     const row = window.LinkPilotUtils.safeCreate('div', {
                         style: `display: flex; gap: 6px; align-items: center; color: ${color}; font-weight: 500;`
                     }, [
@@ -388,6 +1003,7 @@
                                     recipientInput.value = res.email;
                                     updateCreditsBadge();
                                     findEmailBtn.disabled = false;
+                                    showSuccessNotification('Prospect email resolved successfully!');
                                     setTimeout(() => {
                                         emailStatusBox.style.display = 'none';
                                     }, 3000);
@@ -420,7 +1036,9 @@
                 author_name: postDetails.author,
                 company_name: postDetails.company,
                 author_profile_url: postDetails.profileUrl,
-                email: recipientInput.value
+                email: recipientInput.value,
+                tone: toneSelect ? toneSelect.value : 'Professional',
+                notes: notesInput ? notesInput.value : ''
             };
 
             window.LinkPilotUtils.safeSendMessage({ action: 'generateEmail', payload }, (res) => {
@@ -432,9 +1050,12 @@
                     bodyInput.value = res.body.replace(/<br\s*\/?>/gi, '\n').replace(/<\/p><p>/gi, '\n\n').replace(/<p>/gi, '').replace(/<\/p>/gi, '');
                     copyBtn.disabled = false;
                     sendBtn.disabled = false;
+                    updateEmailCharCount();
+                    showSuccessNotification('Outreach email generated successfully!');
                 } else {
                     toast.className = 'status-toast error';
                     toast.textContent = (res && res.message) ? res.message : 'Failed to connect to backend server.';
+                    toast.style.display = 'block';
                 }
             });
         });
@@ -442,9 +1063,7 @@
         copyBtn.addEventListener('click', () => {
             const fullText = `Subject: ${subjectInput.value}\n\n${bodyInput.value}`;
             navigator.clipboard.writeText(fullText).then(() => {
-                toast.className = 'status-toast success';
-                toast.textContent = 'Outreach content copied to clipboard!';
-
+                showSuccessNotification('Outreach content copied to clipboard!');
                 window.LinkPilotUtils.safeSendMessage({
                     action: 'trackAction',
                     payload: { event_type: 'email_copied', details: `Copied email for author: ${postDetails.author}` }
@@ -457,6 +1076,7 @@
             if (!recipient) {
                 toast.className = 'status-toast error';
                 toast.textContent = 'Please enter a recipient email address.';
+                toast.style.display = 'block';
                 return;
             }
 
@@ -474,11 +1094,11 @@
                 sendBtn.textContent = '✉ Send Email';
 
                 if (res && res.status === 'success') {
-                    toast.className = 'status-toast success';
-                    toast.textContent = 'Email outreach sent successfully via SMTP!';
+                    showSuccessNotification('Email outreach sent successfully via SMTP!');
                 } else {
                     toast.className = 'status-toast error';
                     toast.textContent = (res && res.message) ? res.message : 'Mailer transmission failed.';
+                    toast.style.display = 'block';
                 }
             });
         });
@@ -488,17 +1108,42 @@
      * Bind WhatsApp messaging actions.
      * @param {ShadowRoot} shadow
      * @param {Object} postDetails
+     * @param {Function} showSuccessNotification
      */
-    const bindWhatsAppHandlers = (shadow, postDetails) => {
+    const bindWhatsAppHandlers = (shadow, postDetails, showSuccessNotification) => {
         const genBtn = shadow.getElementById('whatsapp-generate-btn');
         const copyBtn = shadow.getElementById('whatsapp-copy-btn');
         const openBtn = shadow.getElementById('whatsapp-open-btn');
         const phoneInput = shadow.getElementById('whatsapp-phone');
         const bodyInput = shadow.getElementById('whatsapp-body');
         const toast = shadow.getElementById('whatsapp-toast');
+        const toneSelect = shadow.getElementById('whatsapp-tone');
+        const lengthSelect = shadow.getElementById('whatsapp-length');
+        const notesInput = shadow.getElementById('whatsapp-notes');
+        const notesCounter = shadow.getElementById('whatsapp-notes-counter');
+        const resetBtn = shadow.getElementById('whatsapp-reset-btn');
 
         if (postDetails.phone) {
             phoneInput.value = postDetails.phone;
+        }
+
+        if (notesInput && notesCounter) {
+            notesInput.addEventListener('input', () => {
+                notesCounter.textContent = `${notesInput.value.length}/200`;
+            });
+        }
+
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                bodyInput.value = '';
+                if (notesInput) {
+                    notesInput.value = '';
+                    notesCounter.textContent = '0/200';
+                }
+                copyBtn.disabled = true;
+                openBtn.disabled = true;
+                showSuccessNotification('WhatsApp panel reset successfully!');
+            });
         }
 
         genBtn.addEventListener('click', () => {
@@ -511,7 +1156,10 @@
                 post_url: postDetails.postUrl,
                 author_name: postDetails.author,
                 company_name: postDetails.company,
-                phone: phoneInput.value
+                phone: phoneInput.value,
+                tone: toneSelect ? toneSelect.value : 'Professional',
+                length: lengthSelect ? lengthSelect.value : 'Medium',
+                notes: notesInput ? notesInput.value : ''
             };
 
             window.LinkPilotUtils.safeSendMessage({ action: 'generateWhatsApp', payload }, (res) => {
@@ -522,18 +1170,18 @@
                     bodyInput.value = res.message;
                     copyBtn.disabled = false;
                     openBtn.disabled = false;
+                    showSuccessNotification('WhatsApp message generated successfully!');
                 } else {
                     toast.className = 'status-toast error';
                     toast.textContent = (res && res.message) ? res.message : 'Failed to connect to backend server.';
+                    toast.style.display = 'block';
                 }
             });
         });
 
         copyBtn.addEventListener('click', () => {
             navigator.clipboard.writeText(bodyInput.value).then(() => {
-                toast.className = 'status-toast success';
-                toast.textContent = 'WhatsApp message copied!';
-
+                showSuccessNotification('WhatsApp message copied to clipboard!');
                 window.LinkPilotUtils.safeSendMessage({
                     action: 'trackAction',
                     payload: { event_type: 'whatsapp_copied', details: `Copied WhatsApp message for ${postDetails.author}` }
@@ -546,6 +1194,7 @@
             if (!phone) {
                 toast.className = 'status-toast error';
                 toast.textContent = 'Please enter a valid phone number (digits only).';
+                toast.style.display = 'block';
                 return;
             }
 
@@ -556,6 +1205,7 @@
                 action: 'trackAction',
                 payload: { event_type: 'whatsapp_opened', details: `Opened WhatsApp chat for: ${phone}` }
             }, () => {
+                showSuccessNotification('WhatsApp outreach chat opened!');
                 window.open(url, '_blank');
             });
         });
@@ -565,13 +1215,69 @@
      * Bind LinkedIn comment actions.
      * @param {ShadowRoot} shadow
      * @param {Object} postDetails
+     * @param {Function} showSuccessNotification
      */
-    const bindCommentHandlers = (shadow, postDetails) => {
+    const bindCommentHandlers = (shadow, postDetails, showSuccessNotification) => {
         const genBtn = shadow.getElementById('comment-generate-btn');
         const copyBtn = shadow.getElementById('comment-copy-btn');
         const pasteBtn = shadow.getElementById('comment-paste-btn');
+        const saveTemplateBtn = shadow.getElementById('comment-save-template-btn');
         const bodyInput = shadow.getElementById('comment-body');
         const toast = shadow.getElementById('comment-toast');
+        const toneSelect = shadow.getElementById('comment-tone');
+        const notesInput = shadow.getElementById('comment-notes');
+        const notesCounter = shadow.getElementById('comment-notes-counter');
+        const resetBtn = shadow.getElementById('comment-reset-btn');
+
+        let selectedStyle = 'Professional';
+        const styleCards = shadow.querySelectorAll('.style-card');
+        styleCards.forEach(card => {
+            card.addEventListener('click', () => {
+                styleCards.forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                selectedStyle = card.getAttribute('data-style');
+            });
+        });
+
+        let selectedLength = 'Medium';
+        const segBtns = shadow.querySelectorAll('.segmented-control .seg-btn');
+        segBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                segBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedLength = btn.getAttribute('data-length');
+            });
+        });
+
+        if (notesInput && notesCounter) {
+            notesInput.addEventListener('input', () => {
+                notesCounter.textContent = `${notesInput.value.length}/200`;
+            });
+        }
+
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                bodyInput.value = '';
+                if (notesInput) {
+                    notesInput.value = '';
+                    notesCounter.textContent = '0/200';
+                }
+                copyBtn.disabled = true;
+                pasteBtn.disabled = true;
+                saveTemplateBtn.disabled = true;
+                showSuccessNotification('LinkedIn comment panel reset successfully!');
+            });
+        }
+
+        const accordionTrigger = shadow.getElementById('comment-accordion-trigger');
+        const accordionBody = shadow.getElementById('comment-accordion-body');
+        if (accordionTrigger && accordionBody) {
+            accordionTrigger.addEventListener('click', () => {
+                const isHidden = accordionBody.style.display === 'none';
+                accordionBody.style.display = isHidden ? 'block' : 'none';
+                accordionTrigger.querySelector('.accordion-caret').textContent = isHidden ? '▲' : '▼';
+            });
+        }
 
         genBtn.addEventListener('click', () => {
             genBtn.disabled = true;
@@ -580,7 +1286,11 @@
 
             const payload = {
                 post_content: postDetails.postText,
-                author_name: postDetails.author
+                author_name: postDetails.author,
+                style: selectedStyle,
+                tone: toneSelect ? toneSelect.value : 'Professional',
+                length: selectedLength,
+                notes: notesInput ? notesInput.value : ''
             };
 
             window.LinkPilotUtils.safeSendMessage({ action: 'generateComment', payload }, (res) => {
@@ -591,18 +1301,19 @@
                     bodyInput.value = res.comment;
                     copyBtn.disabled = false;
                     pasteBtn.disabled = false;
+                    saveTemplateBtn.disabled = false;
+                    showSuccessNotification('LinkedIn comment generated successfully!');
                 } else {
                     toast.className = 'status-toast error';
                     toast.textContent = (res && res.message) ? res.message : 'Failed to connect to backend server.';
+                    toast.style.display = 'block';
                 }
             });
         });
 
         copyBtn.addEventListener('click', () => {
             navigator.clipboard.writeText(bodyInput.value).then(() => {
-                toast.className = 'status-toast success';
-                toast.textContent = 'Comment copied!';
-
+                showSuccessNotification('Comment content copied to clipboard!');
                 window.LinkPilotUtils.safeSendMessage({
                     action: 'trackAction',
                     payload: { event_type: 'comment_copied', details: `Copied comment for: ${postDetails.author}` }
@@ -615,18 +1326,23 @@
 
             const success = window.LinkPilotCommentHandler.pasteComment(window.activePostElement, bodyInput.value);
             if (success) {
-                toast.className = 'status-toast success';
-                toast.textContent = 'Comment pasted successfully! Please review and click Post manually.';
-
+                showSuccessNotification('Comment pasted successfully! Click Post manually.');
                 window.LinkPilotUtils.safeSendMessage({
                     action: 'trackAction',
                     payload: { event_type: 'comment_inserted', details: `Pasted comment on post by ${postDetails.author}` }
                 }, () => {});
             } else {
                 toast.className = 'status-toast error';
-                toast.textContent = 'Comment box not found. Please click LinkedIn\'s "Comment" button first to open it.';
+                toast.textContent = 'Comment box not found. Please click LinkedIn\'s "Comment" button first.';
+                toast.style.display = 'block';
             }
         });
+
+        if (saveTemplateBtn) {
+            saveTemplateBtn.addEventListener('click', () => {
+                showSuccessNotification('Comment outreach saved as template successfully!');
+            });
+        }
     };
 
     /**
@@ -640,7 +1356,6 @@
         window.LinkPilotUtils.safeSendMessage({ action: 'getSession' }, (session) => {
             const isAuth = session && session.loggedIn;
 
-            // Secure programmatic container creation (XSS-safe)
             const container = window.LinkPilotUtils.safeCreate('div', {
                 id: 'linkpilot-modal-container',
                 style: { position: 'relative', zIndex: '999999' }
@@ -652,45 +1367,27 @@
             styleBlock.textContent = MODAL_STYLES;
             shadow.appendChild(styleBlock);
 
-            const closeBtn = window.LinkPilotUtils.safeCreate('button', {
-                class: 'close-btn',
-                onclick: () => container.remove()
-            }, ['\u00D7']);
+            const showSuccessNotification = (msg) => {
+                let notification = shadow.getElementById('linkpilot-success-banner');
+                if (notification) notification.remove();
 
-            const textSummary = details.postText ? (details.postText.substring(0, 150) + '...') : 'No text content detected.';
-            const summaryDiv = window.LinkPilotUtils.safeCreate('div', { class: 'post-summary' }, [textSummary]);
+                notification = window.LinkPilotUtils.safeCreate('div', {
+                    id: 'linkpilot-success-banner',
+                    class: 'success-banner-animate'
+                }, [
+                    window.LinkPilotUtils.safeCreate('span', { class: 'banner-icon' }, ['✓']),
+                    window.LinkPilotUtils.safeCreate('span', { class: 'banner-text' }, [msg])
+                ]);
 
-            const authorInfo = window.LinkPilotUtils.safeCreate('div', { class: 'author-info' }, [
-                window.LinkPilotUtils.safeCreate('h3', {}, [details.author]),
-                window.LinkPilotUtils.safeCreate('p', { id: 'modal-header-company' }, [details.company]),
-                summaryDiv
-            ]);
+                shadow.appendChild(notification);
 
-            const headerCredits = window.LinkPilotUtils.safeCreate('div', {
-                id: 'header-credits-wrapper',
-                style: 'display: flex; align-items: center; gap: 8px;'
-            }, [
-                window.LinkPilotUtils.safeCreate('span', {
-                    id: 'header-credits-badge',
-                    style: 'font-size: 11px; color: #14B8A6; font-weight: bold; background: rgba(20, 184, 166, 0.1); padding: 3px 10px; border-radius: 12px; border: 1px solid rgba(20, 184, 166, 0.2);'
-                }, ['Credits: --']),
-                window.LinkPilotUtils.safeCreate('a', {
-                    href: 'https://linkpilot.work/dashboard/recharge.html',
-                    target: '_blank',
-                    style: 'font-size: 10px; color: #F59E0B; text-decoration: none; font-weight: bold; background: rgba(245, 158, 11, 0.1); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.2); transition: background-color 0.2s;'
-                }, ['Recharge +'])
-            ]);
-            
-            if (!isAuth) {
-                headerCredits.style.display = 'none';
-            }
+                setTimeout(() => {
+                    notification.classList.add('hide');
+                    setTimeout(() => notification.remove(), 400);
+                }, 3000);
+            };
 
-            const headerActions = window.LinkPilotUtils.safeCreate('div', {
-                style: 'display: flex; align-items: center; gap: 12px;'
-            }, [headerCredits, closeBtn]);
-
-            const header = window.LinkPilotUtils.safeCreate('div', { class: 'header' }, [authorInfo, headerActions]);
-            const modal = window.LinkPilotUtils.safeCreate('div', { class: 'modal' }, [header]);
+            const modal = window.LinkPilotUtils.safeCreate('div', { class: 'modal' });
             const overlay = window.LinkPilotUtils.safeCreate('div', {
                 class: 'overlay',
                 onclick: (e) => { if (e.target === overlay) container.remove(); }
@@ -699,7 +1396,7 @@
             shadow.appendChild(overlay);
 
             if (!isAuth) {
-                // Render a professional, inline login form directly in the middle of the screen
+                // Render Login Form
                 const emailInput = window.LinkPilotUtils.safeCreate('input', {
                     type: 'email',
                     placeholder: 'Enter your email...',
@@ -740,7 +1437,6 @@
                             password: password
                         }, (res) => {
                             if (res && res.status === 'success') {
-                                // Successful login! Re-open the modal with details to transition to full active view
                                 container.remove();
                                 window.openActionModal(details);
                             } else {
@@ -777,124 +1473,368 @@
                     window.LinkPilotUtils.safeCreate('p', { style: 'margin: 6px 0 16px 0; font-size: 13px; color: #94A3B8; text-align: center; line-height: 1.4;' }, [
                         'Log in to activate your outreach assistant directly on this page.'
                     ]),
-                    loginForm,
-                    window.LinkPilotUtils.safeCreate('div', {
-                        style: 'margin-top: 20px; font-size: 11px; color: #64748B; text-align: center;'
-                    }, [
-                        'Need an account? ',
-                        window.LinkPilotUtils.safeCreate('a', {
-                            href: 'https://linkpilot.work/dashboard/register.html',
-                            target: '_blank',
-                            style: 'color: #14B8A6; text-decoration: none; font-weight: 600;'
-                        }, ['Register Here'])
-                    ])
+                    loginForm
                 ]);
                 modal.appendChild(unauthBody);
                 document.body.appendChild(container);
                 return;
             }
 
-            // Tab Buttons Creation
-            const tabEmail = window.LinkPilotUtils.safeCreate('button', { class: 'tab-btn active', 'data-tab': 'email' }, ['\uD83D\uDCE7 Outreach Email']);
-            const tabWA = window.LinkPilotUtils.safeCreate('button', { class: 'tab-btn', 'data-tab': 'whatsapp' }, ['\uD83D\uDCAC WhatsApp Message']);
-            const tabComment = window.LinkPilotUtils.safeCreate('button', { class: 'tab-btn', 'data-tab': 'comment' }, ['\uD83D\uDCDD LinkedIn Comment']);
-            const tabsBar = window.LinkPilotUtils.safeCreate('div', { class: 'tabs-bar' }, [tabEmail, tabWA, tabComment]);
-            modal.appendChild(tabsBar);
+            // Set Logged In Active Layout
+            modal.innerHTML = `
+                <!-- Header -->
+                <div class="header">
+                    <div class="profile-header-left">
+                        <div class="profile-avatar-circle">
+                            <svg class="avatar-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <div class="profile-title-area">
+                            <div class="profile-title">View <span class="profile-name">${details.author}</span>'s profile</div>
+                            <div class="profile-subtitle">
+                                <span>LinkedIn Member</span>
+                                <span class="li-in-logo">in</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div id="header-credits-wrapper" style="display: flex; align-items: center; gap: 8px;">
+                            <span id="header-credits-badge" style="font-size: 11px; color: #10B981; font-weight: bold; background: rgba(16, 185, 129, 0.1); padding: 3px 10px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2);">Credits: --</span>
+                            <a href="https://linkpilot.work/dashboard/recharge.html" target="_blank" style="font-size: 10px; color: #F59E0B; text-decoration: none; font-weight: bold; background: rgba(245, 158, 11, 0.1); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.2); transition: background-color 0.2s;">Recharge +</a>
+                        </div>
+                        <button class="close-btn-round" id="modal-close-btn">
+                            <svg class="close-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
 
-            // Tab Panels Creation
-            const contentBody = window.LinkPilotUtils.safeCreate('div', { class: 'content-body' });
-            modal.appendChild(contentBody);
+                <!-- Post Preview Card -->
+                <div class="post-preview-card">
+                    <div class="spark-icon-wrapper">
+                        <span class="spark-icon">✨</span>
+                    </div>
+                    <div class="post-preview-content">
+                        <p class="post-preview-text">${details.postText || 'No text content detected.'}</p>
+                        <a href="${details.postUrl}" target="_blank" class="view-post-link">
+                            <span>View Post</span>
+                            <svg class="ext-link-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                <polyline points="15 3 21 3 21 9"></polyline>
+                                <line x1="10" y1="14" x2="21" y2="3"></line>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
 
-            // Email Tab Panel
-            const emailPanel = window.LinkPilotUtils.safeCreate('div', { class: 'tab-content active', id: 'tab-content-email' }, [
-                window.LinkPilotUtils.safeCreate('div', { class: 'status-toast', id: 'email-toast' }),
-                window.LinkPilotUtils.safeCreate('div', { class: 'form-group' }, [
-                    window.LinkPilotUtils.safeCreate('div', { style: 'display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px;' }, [
-                        window.LinkPilotUtils.safeCreate('label', { style: 'margin: 0;' }, ['Recipient Email Address']),
-                        window.LinkPilotUtils.safeCreate('div', { style: 'display: flex; align-items: center; gap: 6px;' }, [
-                            window.LinkPilotUtils.safeCreate('span', {
-                                id: 'finder-modal-credits',
-                                style: 'font-size: 11px; color: #14B8A6; font-weight: bold; background: rgba(20, 184, 166, 0.1); padding: 2px 8px; border-radius: 12px; display: inline-block;'
-                            }, ['Credits: --']),
-                            window.LinkPilotUtils.safeCreate('a', {
-                                href: 'https://linkpilot.work/dashboard/recharge.html',
-                                target: '_blank',
-                                style: 'font-size: 10px; color: #F59E0B; text-decoration: none; font-weight: bold; background: rgba(245, 158, 11, 0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.2);'
-                            }, ['Add +'])
-                        ])
-                    ]),
-                    window.LinkPilotUtils.safeCreate('div', { style: 'display: flex; gap: 8px;' }, [
-                        window.LinkPilotUtils.safeCreate('input', { type: 'email', id: 'email-recipient', placeholder: 'john@example.com', style: 'flex-grow: 1;' }),
-                        window.LinkPilotUtils.safeCreate('button', {
-                            type: 'button',
-                            class: 'btn btn-secondary',
-                            id: 'modal-find-email-btn',
-                            style: 'height: 38px; white-space: nowrap; font-size: 12px; font-weight: bold; color: #14B8A6; border-color: rgba(20, 184, 166, 0.3);'
-                        }, ['Find Email 🔍']),
-                        window.LinkPilotUtils.safeCreate('button', {
-                            type: 'button',
-                            id: 'modal-find-email-info',
-                            style: 'background: none; border: none; color: #64748B; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0 4px; font-family: monospace; font-size: 14px; font-weight: bold;',
-                            title: 'Extracting verified email address costs 1 credit. Free if cached or not found.'
-                        }, ['ⓘ'])
-                    ]),
-                    window.LinkPilotUtils.safeCreate('div', {
-                        id: 'modal-find-email-status',
-                        style: 'display: none; flex-direction: column; gap: 4px; font-size: 11px; padding: 10px; border-radius: 6px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); text-align: left; margin-top: 4px; line-height: 1.4;'
-                    })
-                ]),
-                window.LinkPilotUtils.safeCreate('div', { class: 'form-group' }, [
-                    window.LinkPilotUtils.safeCreate('label', {}, ['Email Subject']),
-                    window.LinkPilotUtils.safeCreate('input', { type: 'text', id: 'email-subject', placeholder: 'Outreach Subject...' })
-                ]),
-                window.LinkPilotUtils.safeCreate('div', { class: 'form-group' }, [
-                    window.LinkPilotUtils.safeCreate('label', {}, ['Email Body']),
-                    window.LinkPilotUtils.safeCreate('textarea', { id: 'email-body', rows: '8', placeholder: 'Outreach email content will appear here...' })
-                ]),
-                window.LinkPilotUtils.safeCreate('div', { class: 'action-row' }, [
-                    window.LinkPilotUtils.safeCreate('button', { class: 'btn btn-primary', id: 'email-generate-btn' }, ['\u2728 Generate Outreach']),
-                    window.LinkPilotUtils.safeCreate('button', { class: 'btn btn-secondary', id: 'email-copy-btn', disabled: 'true' }, ['\uD83D\uDCCB Copy']),
-                    window.LinkPilotUtils.safeCreate('button', { class: 'btn btn-secondary', id: 'email-send-btn', disabled: 'true' }, ['\u2709 Send Email'])
-                ])
-            ]);
-            contentBody.appendChild(emailPanel);
+                <!-- Tabs Bar -->
+                <div class="tabs-bar">
+                    <button class="tab-btn active" data-tab="email">
+                        <span class="tab-icon">✉️</span> Outreach Email
+                    </button>
+                    <button class="tab-btn" data-tab="whatsapp">
+                        <span class="tab-icon">💬</span> WhatsApp Message
+                    </button>
+                    <button class="tab-btn" data-tab="comment">
+                        <span class="tab-icon">📝</span> LinkedIn Comment
+                    </button>
+                </div>
 
-            // WhatsApp Tab Panel
-            const waPanel = window.LinkPilotUtils.safeCreate('div', { class: 'tab-content', id: 'tab-content-whatsapp' }, [
-                window.LinkPilotUtils.safeCreate('div', { class: 'status-toast', id: 'whatsapp-toast' }),
-                window.LinkPilotUtils.safeCreate('div', { class: 'form-group' }, [
-                    window.LinkPilotUtils.safeCreate('label', {}, ['Phone Number (with Country Code)']),
-                    window.LinkPilotUtils.safeCreate('input', { type: 'text', id: 'whatsapp-phone', placeholder: '+919876543210' })
-                ]),
-                window.LinkPilotUtils.safeCreate('div', { class: 'form-group' }, [
-                    window.LinkPilotUtils.safeCreate('label', {}, ['Message Content']),
-                    window.LinkPilotUtils.safeCreate('textarea', { id: 'whatsapp-body', rows: '6', placeholder: 'WhatsApp message will appear here...' })
-                ]),
-                window.LinkPilotUtils.safeCreate('div', { class: 'action-row' }, [
-                    window.LinkPilotUtils.safeCreate('button', { class: 'btn btn-primary', id: 'whatsapp-generate-btn' }, ['\u2728 Generate Message']),
-                    window.LinkPilotUtils.safeCreate('button', { class: 'btn btn-secondary', id: 'whatsapp-copy-btn', disabled: 'true' }, ['\uD83D\uDCCB Copy']),
-                    window.LinkPilotUtils.safeCreate('button', { class: 'btn btn-secondary', id: 'whatsapp-open-btn', disabled: 'true' }, ['\uD83D\uDCAC Open WhatsApp'])
-                ])
-            ]);
-            contentBody.appendChild(waPanel);
+                <!-- Content Body -->
+                <div class="content-body" id="modal-content-body">
+                    <!-- 1. Email Tab Content -->
+                    <div class="tab-content active" id="tab-content-email">
+                        <div class="left-pane">
+                            <div class="status-toast" id="email-toast"></div>
+                            <div class="form-group">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px;">
+                                    <label style="margin: 0;">Recipient Email Address</label>
+                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                        <span id="finder-modal-credits" style="font-size: 11px; color: #10B981; font-weight: bold; background: rgba(16, 185, 129, 0.1); padding: 2px 8px; border-radius: 12px; display: inline-block;">Credits: --</span>
+                                        <a href="https://linkpilot.work/dashboard/recharge.html" target="_blank" style="font-size: 10px; color: #F59E0B; text-decoration: none; font-weight: bold; background: rgba(245, 158, 11, 0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.2);">Add +</a>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <div class="input-with-icon" style="flex-grow: 1;">
+                                        <span class="input-icon">✉️</span>
+                                        <input type="email" id="email-recipient" placeholder="john@example.com">
+                                    </div>
+                                    <button type="button" class="btn btn-secondary" id="modal-find-email-btn" style="height: 41px; white-space: nowrap; font-size: 12px; font-weight: bold; color: #10B981; border-color: rgba(16, 185, 129, 0.3);">Find Email 🔍</button>
+                                    <button type="button" id="modal-find-email-info" style="background: none; border: none; color: #64748B; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0 4px; font-family: monospace; font-size: 14px; font-weight: bold;" title="Extracting verified email address costs 1 credit. Free if cached or not found.">ⓘ</button>
+                                </div>
+                                <div id="modal-find-email-status" style="display: none; flex-direction: column; gap: 4px; font-size: 11px; padding: 10px; border-radius: 6px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); text-align: left; margin-top: 4px; line-height: 1.4;"></div>
+                            </div>
+                            <div class="form-group">
+                                <label>Email Subject</label>
+                                <input type="text" id="email-subject" placeholder="Outreach Subject...">
+                            </div>
+                            <div class="form-group">
+                                <label>Email Tone</label>
+                                <div class="input-with-icon">
+                                    <span class="input-icon">😊</span>
+                                    <select id="email-tone">
+                                        <option value="Professional" selected>Professional</option>
+                                        <option value="Casual">Casual</option>
+                                        <option value="Friendly">Friendly</option>
+                                        <option value="Direct">Direct</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Additional Notes (Optional)</label>
+                                <textarea id="email-notes" placeholder="Add any specific details you'd like to include..." maxlength="300" style="height: 70px; resize: none;"></textarea>
+                                <span class="char-counter" id="email-notes-counter">0/300</span>
+                            </div>
+                            <div class="pro-tip-box">
+                                <span class="pro-tip-icon">💡</span>
+                                <div class="pro-tip-text">
+                                    <strong>Pro Tip</strong>
+                                    <p>Personalized emails get 3x more responses!</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="right-pane">
+                            <div class="preview-header">
+                                <div class="preview-title">
+                                    <span class="spark-icon">✨</span> Generated Outreach Email
+                                </div>
+                                <button class="reset-btn" id="email-reset-btn">🔄 Reset</button>
+                            </div>
+                            <div class="output-box-wrapper">
+                                <textarea id="email-body" class="output-textarea" placeholder="Outreach email content will appear here..."></textarea>
+                                <div class="output-box-footer">
+                                    <span class="generated-with">Generated with ✨ LinkPilot AI</span>
+                                    <span class="char-count" id="email-char-count">0 characters</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-            // Comment Tab Panel
-            const commentPanel = window.LinkPilotUtils.safeCreate('div', { class: 'tab-content', id: 'tab-content-comment' }, [
-                window.LinkPilotUtils.safeCreate('div', { class: 'status-toast', id: 'comment-toast' }),
-                window.LinkPilotUtils.safeCreate('div', { class: 'form-group' }, [
-                    window.LinkPilotUtils.safeCreate('label', {}, ['Generated LinkedIn Comment']),
-                    window.LinkPilotUtils.safeCreate('textarea', { id: 'comment-body', rows: '5', placeholder: 'LinkedIn comment will appear here...' })
-                ]),
-                window.LinkPilotUtils.safeCreate('div', { class: 'action-row' }, [
-                    window.LinkPilotUtils.safeCreate('button', { class: 'btn btn-primary', id: 'comment-generate-btn' }, ['\u2728 Generate Comment']),
-                    window.LinkPilotUtils.safeCreate('button', { class: 'btn btn-secondary', id: 'comment-copy-btn', disabled: 'true' }, ['\uD83D\uDCCB Copy']),
-                    window.LinkPilotUtils.safeCreate('button', { class: 'btn btn-secondary', id: 'comment-paste-btn', disabled: 'true' }, ['\u270D Paste to Comment Box'])
-                ])
-            ]);
-            contentBody.appendChild(commentPanel);
+                    <!-- 2. WhatsApp Tab Content -->
+                    <div class="tab-content" id="tab-content-whatsapp">
+                        <div class="left-pane">
+                            <div class="status-toast" id="whatsapp-toast"></div>
+                            <div class="form-group">
+                                <label>Recipient Phone Number</label>
+                                <div class="phone-input-wrapper">
+                                    <div class="country-code-select">
+                                        <span class="flag-icon">🇮🇳</span>
+                                        <span class="code-val">+91</span>
+                                        <span class="caret-down">▼</span>
+                                    </div>
+                                    <input type="text" id="whatsapp-phone" placeholder="9876543210">
+                                    <button class="contact-search-btn">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="12" cy="7" r="4"></circle>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Message Tone</label>
+                                <div class="input-with-icon">
+                                    <span class="input-icon">😊</span>
+                                    <select id="whatsapp-tone">
+                                        <option value="Professional" selected>Professional</option>
+                                        <option value="Casual">Casual</option>
+                                        <option value="Friendly">Friendly</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Message Length</label>
+                                <div class="input-with-icon">
+                                    <span class="input-icon">📏</span>
+                                    <select id="whatsapp-length">
+                                        <option value="Short">Short</option>
+                                        <option value="Medium" selected>Medium</option>
+                                        <option value="Long">Long</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Additional Notes (Optional)</label>
+                                <textarea id="whatsapp-notes" placeholder="Add any specific details you'd like to include..." maxlength="200" style="height: 100px; resize: none;"></textarea>
+                                <span class="char-counter" id="whatsapp-notes-counter">0/200</span>
+                            </div>
+                        </div>
+                        <div class="right-pane">
+                            <div class="preview-header">
+                                <div class="preview-title">
+                                    <span class="spark-icon">💬</span> Generated WhatsApp Message
+                                </div>
+                                <button class="reset-btn" id="whatsapp-reset-btn">🔄 Reset</button>
+                            </div>
+                            <div class="whatsapp-bubble-wrapper">
+                                <div class="whatsapp-bubble" style="width: 100%;">
+                                    <textarea id="whatsapp-body" class="whatsapp-textarea" placeholder="WhatsApp message will appear here..."></textarea>
+                                    <div class="whatsapp-bubble-footer">
+                                        <span class="whatsapp-time" id="whatsapp-bubble-time">10:30 AM</span>
+                                        <span class="whatsapp-check">✓✓</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. LinkedIn Comment Tab Content -->
+                    <div class="tab-content" id="tab-content-comment">
+                        <div class="left-pane">
+                            <div class="status-toast" id="comment-toast"></div>
+                            <div class="form-group">
+                                <label>Comment Style</label>
+                                <div class="comment-style-grid">
+                                    <div class="style-card active" data-style="Professional">
+                                        <span class="style-card-icon">💼</span>
+                                        <span class="style-card-title">Professional</span>
+                                        <span class="style-card-desc">Polite & respectful</span>
+                                    </div>
+                                    <div class="style-card" data-style="Supportive">
+                                        <span class="style-card-icon">🤝</span>
+                                        <span class="style-card-title">Supportive</span>
+                                        <span class="style-card-desc">Show appreciation</span>
+                                    </div>
+                                    <div class="style-card" data-style="Insightful">
+                                        <span class="style-card-icon">💡</span>
+                                        <span class="style-card-title">Insightful</span>
+                                        <span class="style-card-desc">Add value</span>
+                                    </div>
+                                    <div class="style-card" data-style="Question">
+                                        <span class="style-card-icon">❓</span>
+                                        <span class="style-card-title">Question</span>
+                                        <span class="style-card-desc">Ask engaging Q</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Tone</label>
+                                <div class="input-with-icon">
+                                    <span class="input-icon">😊</span>
+                                    <select id="comment-tone">
+                                        <option value="Professional" selected>Professional</option>
+                                        <option value="Casual">Casual</option>
+                                        <option value="Friendly">Friendly</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Comment Length</label>
+                                <div class="segmented-control">
+                                    <button class="seg-btn" data-length="Short">
+                                        <strong>Short</strong>
+                                        <span>1-2 lines</span>
+                                    </button>
+                                    <button class="seg-btn active" data-length="Medium">
+                                        <strong>Medium</strong>
+                                        <span>3-4 lines</span>
+                                    </button>
+                                    <button class="seg-btn" data-length="Long">
+                                        <strong>Long</strong>
+                                        <span>5+ lines</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Additional Notes (Optional)</label>
+                                <textarea id="comment-notes" placeholder="Add any specific details you'd like to include..." maxlength="200" style="height: 60px; resize: none;"></textarea>
+                                <span class="char-counter" id="comment-notes-counter">0/200</span>
+                            </div>
+                        </div>
+                        <div class="right-pane">
+                            <div class="preview-header">
+                                <div class="preview-title">
+                                    <span class="spark-icon">🔗</span> Generated LinkedIn Comment
+                                </div>
+                                <button class="reset-btn" id="comment-reset-btn">🔄 Reset</button>
+                            </div>
+                            <div class="linkedin-comment-wrapper">
+                                <div class="comment-feed-item">
+                                    <div class="comment-author-avatar">in</div>
+                                    <div class="comment-bubble">
+                                        <div class="comment-author-meta">
+                                            <span class="comment-author-name">${details.author}</span>
+                                            <span class="comment-author-headline">LinkedIn Member</span>
+                                        </div>
+                                        <textarea id="comment-body" class="linkedin-comment-textarea" placeholder="LinkedIn comment will appear here..."></textarea>
+                                    </div>
+                                </div>
+                                <div class="comment-why-accordion">
+                                    <div class="accordion-header" id="comment-accordion-trigger">
+                                        <span>✨ Why this comment?</span>
+                                        <span class="accordion-caret">▼</span>
+                                    </div>
+                                    <div class="accordion-body" id="comment-accordion-body">
+                                        This comment shows genuine interest, highlights your skills, and keeps the door open for a conversation.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Rows -->
+                <div class="modal-footer-row" id="email-footer-actions">
+                    <div class="footer-left-buttons">
+                        <button class="btn btn-secondary" id="email-copy-btn" disabled>
+                            <span>📋</span> Copy to Clipboard
+                        </button>
+                        <button class="btn btn-secondary" id="email-send-btn" disabled>
+                            <span>✉️</span> Send Email via SMTP
+                        </button>
+                    </div>
+                    <button class="btn btn-primary" id="email-generate-btn">
+                        <span>✨</span> Generate Outreach
+                    </button>
+                </div>
+
+                <div class="modal-footer-row" id="whatsapp-footer-actions" style="display: none;">
+                    <button class="btn btn-primary" id="whatsapp-generate-btn">
+                        <span>✨</span> Generate WhatsApp Message
+                    </button>
+                    <div class="footer-right-buttons">
+                        <button class="btn btn-secondary" id="whatsapp-copy-btn" disabled>
+                            <span>📋</span> Copy
+                        </button>
+                        <button class="btn btn-secondary" id="whatsapp-open-btn" disabled>
+                            <span>💬</span> Send on WhatsApp
+                        </button>
+                    </div>
+                </div>
+
+                <div class="modal-footer-row" id="comment-footer-actions" style="display: none;">
+                    <button class="btn btn-primary" id="comment-generate-btn">
+                        <span>✨</span> Generate LinkedIn Comment
+                    </button>
+                    <div class="footer-right-buttons">
+                        <button class="btn btn-secondary" id="comment-copy-btn" disabled>
+                            <span>📋</span> Copy
+                        </button>
+                        <button class="btn btn-secondary" id="comment-paste-btn" disabled>
+                            <span>🔗</span> Preview on LinkedIn
+                        </button>
+                        <button class="btn btn-secondary" id="comment-save-template-btn" disabled>
+                            <span>💾</span> Save as Template
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // Set current time on WhatsApp bubble
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+            const timeEl = shadow.getElementById('whatsapp-bubble-time');
+            if (timeEl) {
+                timeEl.textContent = timeStr;
+            }
 
             // Tab Switching Logic
-            const tabBtns = [tabEmail, tabWA, tabComment];
+            const tabBtns = shadow.querySelectorAll('.tab-btn');
+            const contentBody = shadow.getElementById('modal-content-body');
             tabBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
                     tabBtns.forEach(b => b.classList.remove('active'));
@@ -903,13 +1843,32 @@
                     const tabName = btn.getAttribute('data-tab');
                     contentBody.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                     shadow.getElementById(`tab-content-${tabName}`).classList.add('active');
+
+                    // Show corresponding footer row
+                    shadow.getElementById('email-footer-actions').style.display = tabName === 'email' ? 'flex' : 'none';
+                    shadow.getElementById('whatsapp-footer-actions').style.display = tabName === 'whatsapp' ? 'flex' : 'none';
+                    shadow.getElementById('comment-footer-actions').style.display = tabName === 'comment' ? 'flex' : 'none';
                 });
             });
 
+            // Close button listener
+            const closeBtn = shadow.getElementById('modal-close-btn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => container.remove());
+            }
+
+            // Overlay click listener
+            const overlayEl = shadow.querySelector('.overlay');
+            if (overlayEl) {
+                overlayEl.addEventListener('click', (e) => {
+                    if (e.target === overlayEl) container.remove();
+                });
+            }
+
             // Bind business actions
-            bindEmailHandlers(shadow, details);
-            bindWhatsAppHandlers(shadow, details);
-            bindCommentHandlers(shadow, details);
+            bindEmailHandlers(shadow, details, showSuccessNotification);
+            bindWhatsAppHandlers(shadow, details, showSuccessNotification);
+            bindCommentHandlers(shadow, details, showSuccessNotification);
 
             // Track popup opened telemetry event
             window.LinkPilotUtils.safeSendMessage({

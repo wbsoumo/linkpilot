@@ -219,6 +219,57 @@ You MUST return your response as a valid, parsable JSON block with the following
                        ->execute([$userId, $leadId, $companyId, $contactId, "Lead '$leadName' created automatically from incoming email."]);
                 }
                 
+                // Create Task automatically if email is an Invoice or subject contains invoice keywords (and not spam)
+                if ($isSpam === 0 && ($category === 'Invoice' || stripos($subject, 'invoice') !== false || stripos($subject, 'bill due') !== false)) {
+                    $invoiceComp = !empty($extCompName) ? $extCompName : $senderName;
+                    $invoiceAmount = (float)($aiResponse['budget'] ?? 0.00);
+                    
+                    $taskTitle = "Pay Invoice from " . $invoiceComp;
+                    if ($invoiceAmount > 0) {
+                        $taskTitle .= " - ₹" . number_format($invoiceAmount, 2);
+                    }
+                    
+                    $taskDesc = "Invoice Details:\n";
+                    $taskDesc .= "Sender: " . $senderName . " <" . $sender . ">\n";
+                    $taskDesc .= "Subject: " . $subject . "\n";
+                    if ($invoiceAmount > 0) {
+                        $taskDesc .= "Amount: ₹" . number_format($invoiceAmount, 2) . "\n";
+                    }
+                    $taskDesc .= "Summary: " . ($aiResponse['short_summary'] ?? 'Invoice received via email.') . "\n";
+                    if (!empty($aiResponse['requirement'])) {
+                        $taskDesc .= "Details: " . $aiResponse['requirement'] . "\n";
+                    }
+                    
+                    $rawDeadline = trim($aiResponse['deadline'] ?? '');
+                    $dueDate = null;
+                    if (!empty($rawDeadline)) {
+                        $time = strtotime($rawDeadline);
+                        if ($time !== false) {
+                            $dueDate = date('Y-m-d', $time);
+                        }
+                    }
+                    if (!$dueDate) {
+                        // Default to 7 days from now
+                        $dueDate = date('Y-m-d', strtotime('+7 days'));
+                    }
+                    
+                    $stmtTask = $db->prepare("INSERT INTO crm_tasks (user_id, company_id, contact_id, lead_id, title, description, due_date, status, priority, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 'high', ?)");
+                    $stmtTask->execute([
+                        $userId,
+                        $companyId,
+                        $contactId,
+                        $leadId,
+                        $taskTitle,
+                        $taskDesc,
+                        $dueDate,
+                        "Automatically created from incoming invoice email."
+                    ]);
+                    
+                    $newTaskId = $db->lastInsertId();
+                    $db->prepare("INSERT INTO crm_timeline (user_id, company_id, contact_id, activity_type, description) VALUES (?, ?, ?, 'Task Created', ?)")
+                       ->execute([$userId, $companyId, $contactId, "Automated invoice payment task created: '$taskTitle' due on $dueDate."]);
+                }
+                
                 // 3. Automation workflow triggers
                 $stmtWf = $db->prepare("SELECT * FROM automation_workflows WHERE user_id = ? AND trigger_type = 'email_category_detected' AND trigger_value = ? AND is_active = 1");
                 $stmtWf->execute([$userId, $category]);

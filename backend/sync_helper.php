@@ -105,7 +105,7 @@ class SyncHelper {
                     $matchedCategory = 'Newsletter';
                 } elseif (str_contains($lowerSubject, 'otp') || str_contains($lowerSubject, 'verification code') || str_contains($lowerSubject, 'verify your') || str_contains($lowerSubject, 'security alert') || str_contains($lowerSubject, 'login alert') || str_contains($lowerSubject, 'password reset')) {
                     $matchedCategory = 'Security Alerts';
-                } elseif (str_contains($lowerSubject, 'invoice') || str_contains($lowerSubject, 'receipt') || str_contains($lowerSubject, 'statement') || str_contains($lowerSubject, 'payment confirmation') || str_contains($lowerSubject, 'transaction alert') || str_contains($lowerSubject, 'bank statement') || str_contains($lowerSubject, 'debit alert') || str_contains($lowerSubject, 'credit alert') || str_contains($lowerSubject, 'otp code')) {
+                } elseif (str_contains($lowerSubject, 'statement') || str_contains($lowerSubject, 'payment confirmation') || str_contains($lowerSubject, 'transaction alert') || str_contains($lowerSubject, 'bank statement') || str_contains($lowerSubject, 'debit alert') || str_contains($lowerSubject, 'credit alert') || str_contains($lowerSubject, 'otp code')) {
                     $matchedCategory = 'Updates';
                 }
             }

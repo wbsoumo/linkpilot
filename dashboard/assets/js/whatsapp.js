@@ -805,7 +805,7 @@ window.sendWaMessage = function(e) {
     
     const input = document.getElementById('wa-chat-input');
     const msg = input.value.trim();
-    if (empty(msg)) return;
+    if (!msg) return;
     
     input.value = '';
     

@@ -1594,6 +1594,12 @@ async function syncNowFromDashboard(btn) {
 // ----------------------------------------------------
 async function renderInbox(container, targetEmailId = null) {
     try {
+        window.inboxFilters = {
+            is_spam: 0,
+            is_archived: 0,
+            is_starred: null,
+            category: ''
+        };
         const listData = await apiCall('crm/email_intelligence/emails.php');
         const emails = listData.emails || [];
         if (typeof refreshUnreadBadgeCount === 'function') {
@@ -6627,6 +6633,128 @@ async function syncInboxFromInboxView(btn) {
     }
 }
 
+window.inboxFilters = {
+    is_spam: 0,
+    is_archived: 0,
+    is_starred: null,
+    category: ''
+};
+
+async function filterInbox(type, btn) {
+    window.inboxFilters.category = '';
+    window.inboxFilters.is_starred = null;
+    
+    if (type === 'inbox') {
+        window.inboxFilters.is_spam = 0;
+        window.inboxFilters.is_archived = 0;
+    } else if (type === 'starred') {
+        window.inboxFilters.is_spam = 0;
+        window.inboxFilters.is_archived = 0;
+        window.inboxFilters.is_starred = 1;
+    } else if (type === 'archived') {
+        window.inboxFilters.is_spam = 0;
+        window.inboxFilters.is_archived = 1;
+    } else if (type === 'spam') {
+        window.inboxFilters.is_spam = 1;
+        window.inboxFilters.is_archived = 0;
+    }
+    
+    document.querySelectorAll('.lg\\:col-span-3 button').forEach(el => {
+        el.classList.remove('text-indigo-400', 'bg-indigo-500/10', 'font-bold');
+        el.classList.add('text-slate-400', 'font-medium');
+    });
+    
+    if (btn) {
+        btn.classList.add('text-indigo-400', 'bg-indigo-500/10', 'font-bold');
+        btn.classList.remove('text-slate-400', 'font-medium');
+    }
+    
+    await refreshInboxList();
+}
+
+async function filterInboxByCat(catName, btn) {
+    window.inboxFilters.is_spam = 0;
+    window.inboxFilters.is_archived = 0;
+    window.inboxFilters.is_starred = null;
+    window.inboxFilters.category = catName;
+    
+    document.querySelectorAll('.lg\\:col-span-3 button').forEach(el => {
+        el.classList.remove('text-indigo-400', 'bg-indigo-500/10', 'font-bold');
+        el.classList.add('text-slate-400', 'font-medium');
+    });
+    
+    if (btn) {
+        btn.classList.add('text-indigo-400', 'bg-indigo-500/10', 'font-bold');
+        btn.classList.remove('text-slate-400', 'font-medium');
+    }
+    
+    await refreshInboxList();
+}
+
+async function refreshInboxList() {
+    const container = document.getElementById('inbox-emails-list-container');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="flex items-center justify-center py-10">
+            <div class="loader-spinner !w-6 !h-6 !border-2"></div>
+        </div>
+    `;
+    
+    try {
+        let url = `crm/email_intelligence/emails.php?is_spam=${window.inboxFilters.is_spam}&is_archived=${window.inboxFilters.is_archived}`;
+        if (window.inboxFilters.is_starred !== null) {
+            url += `&is_starred=${window.inboxFilters.is_starred}`;
+        }
+        if (window.inboxFilters.category !== '') {
+            url += `&category=${encodeURIComponent(window.inboxFilters.category)}`;
+        }
+        
+        const listData = await apiCall(url);
+        const emails = listData.emails || [];
+        
+        let initialEmailId = emails.length > 0 ? emails[0].id : null;
+        activeEmailId = initialEmailId;
+        
+        container.innerHTML = emails.length > 0 ? emails.map(m => {
+            const date = new Date(m.received_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+            const isUnread = !m.is_read;
+            const priorityColor = m.priority === 'high' ? 'bg-red-500/10 text-red-400 border-red-500/20' : m.priority === 'medium' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+            
+            return `
+                <div onclick="selectInboxEmail(${m.id})" id="inbox-mail-card-${m.id}" class="p-4 border-b border-slate-800/60 hover:bg-slate-900/30 cursor-pointer transition flex flex-col justify-between ${isUnread ? 'border-l-4 border-l-indigo-500 bg-slate-900/10' : ''} ${m.id === activeEmailId ? 'bg-slate-900/40 card-active-glow' : ''}">
+                    <div class="flex justify-between items-start">
+                        <span class="font-bold text-xs truncate max-w-[140px] text-white">${m.sender_name || m.sender_email}</span>
+                        <span class="text-[10px] text-slate-500">${date}</span>
+                    </div>
+                    <div class="text-xs font-semibold text-slate-200 mt-1 truncate" title="${m.subject}">${m.subject}</div>
+                    ${m.ai_status === 'pending' ? 
+                      `<p class="text-[11px] text-teal-400 animate-pulse flex items-center mt-1"><i data-lucide="sparkles" class="h-3.5 w-3.5 mr-1 text-teal-400 animate-pulse"></i>AI Analyst is analyzing...</p>` : 
+                      `<p class="text-[11px] text-slate-500 truncate mt-1">${m.ai_summary || 'Click to read summary...'}</p>`}
+                    <div class="flex space-x-2 mt-2">
+                        <span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${priorityColor}">${m.priority}</span>
+                        ${m.ai_status === 'pending' ? 
+                          `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase bg-teal-500/10 text-teal-400 border border-teal-500/20 animate-pulse">Processing...</span>` : 
+                          `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">${m.category}</span>`}
+                    </div>
+                </div>
+            `;
+        }).join('') : `<div class="p-6 text-center text-slate-500 text-xs">Folder/Category is empty.</div>`;
+        
+        lucide.createIcons();
+        if (activeEmailId) {
+            selectInboxEmail(activeEmailId);
+        } else {
+            const detailContainer = document.getElementById('inbox-email-detail-container');
+            if (detailContainer) {
+                detailContainer.innerHTML = `<p class="text-xs text-slate-500 text-center py-20">Select an email from the list to display details and generate suggested AI replies.</p>`;
+            }
+        }
+    } catch (err) {
+        showNotification('error', 'Failed to refresh list: ' + err.message);
+    }
+}
+
 let inboxInlineSearchTimeout = null;
 function handleInboxInlineSearch(value) {
     if (inboxInlineSearchTimeout) {
@@ -6815,7 +6943,14 @@ async function checkInboxPendingStatus() {
         inboxPollTimeout = setTimeout(async () => {
             if (currentView !== 'inbox') return;
             try {
-                const listData = await apiCall('crm/email_intelligence/emails.php');
+                let url = `crm/email_intelligence/emails.php?is_spam=${window.inboxFilters.is_spam}&is_archived=${window.inboxFilters.is_archived}`;
+                if (window.inboxFilters.is_starred !== null) {
+                    url += `&is_starred=${window.inboxFilters.is_starred}`;
+                }
+                if (window.inboxFilters.category !== '') {
+                    url += `&category=${encodeURIComponent(window.inboxFilters.category)}`;
+                }
+                const listData = await apiCall(url);
                 const emails = listData.emails || [];
                 
                 const listContainer = document.getElementById('inbox-emails-list-container');

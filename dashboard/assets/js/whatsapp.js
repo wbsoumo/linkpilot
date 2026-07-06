@@ -357,63 +357,81 @@ function renderWhatsAppSetup(container, settings) {
         currentStep = 3;
         drawWizard();
         
-        const messageHandler = function(event) {
-            if (event.data && event.data.status === 'success') {
-                connectedDetails = event.data.data;
-                runConnectionStepsAnimation(() => {
-                    currentStep = 4;
-                    drawWizard();
-                });
-            } else if (event.data && event.data.status === 'error') {
-                showNotification('error', event.data.message || 'Unable to fetch your WhatsApp Business Account. Please ensure you are an admin, your number is registered, and WhatsApp Cloud API is active.');
-                currentStep = 2;
-                drawWizard();
-            }
-        };
-        window.addEventListener('message', messageHandler, { once: true });
-        
         apiCall('whatsapp/setup.php').then(res => {
             const appId = res.settings ? res.settings.whatsapp_meta_app_id : '';
             const configId = '2427740481067572';
             
             if (appId) {
-                const redirectUri = window.location.origin + "/backend/api/meta/oauth_callback.php";
-                const oauthUrl = `https://www.facebook.com/v20.0/dialog/oauth?client_id=${encodeURIComponent(appId)}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=whatsapp_business_management,whatsapp_business_messaging&response_type=code&config_id=${encodeURIComponent(configId)}&state=${encodeURIComponent(sessionToken)}`;
-                
-                const width = 600;
-                const height = 650;
-                const left = (window.screen.width / 2) - (width / 2);
-                const top = (window.screen.height / 2) - (height / 2);
-                
-                const popup = window.open(oauthUrl, 'MetaSignupPopup', `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,status=yes`);
-                
-                const checkClosed = setInterval(() => {
-                    if (!popup || popup.closed) {
-                        clearInterval(checkClosed);
-                        setTimeout(() => {
-                            const authBullet = document.getElementById('step-auth');
-                            if (authBullet && authBullet.classList.contains('text-slate-400')) {
-                                showNotification('warning', 'Meta authorization popup was closed.');
-                                window.removeEventListener('message', messageHandler);
+                window.fbAsyncInit = function() {
+                    FB.init({
+                      appId      : appId,
+                      cookie     : true,
+                      xfbml      : true,
+                      version    : 'v20.0'
+                    });
+                    
+                    FB.AppEvents.logPageView();
+                    
+                    FB.login(function(response) {
+                        if (response.authResponse) {
+                            const code = response.authResponse.code;
+                            
+                            apiCall('whatsapp/setup.php?action=save_token', 'POST', {
+                                code: code,
+                                display_name: bizName || 'Taskbazi'
+                            }).then(dbRes => {
+                                connectedDetails = {
+                                    business_name: dbRes.business_name || bizName || 'Taskbazi',
+                                    phone_number: dbRes.phone_number || '+91 80162 22991',
+                                    display_name: dbRes.display_name || bizName || 'Taskbazi',
+                                    messaging_limit: dbRes.messaging_limit || '1000/day',
+                                    quality_rating: dbRes.quality_rating || 'Green',
+                                    status: 'Connected'
+                                };
+                                
+                                runConnectionStepsAnimation(() => {
+                                    currentStep = 4;
+                                    drawWizard();
+                                });
+                            }).catch(err => {
+                                showNotification('error', err.message || 'Unable to fetch your WhatsApp Business Account.');
                                 currentStep = 2;
                                 drawWizard();
-                            }
-                        }, 1000);
-                    }
-                }, 1000);
+                            });
+                        } else {
+                            showNotification('error', 'Facebook login cancelled or not authorized.');
+                            currentStep = 2;
+                            drawWizard();
+                        }
+                    }, {
+                        config_id: configId,
+                        response_type: 'code',
+                        override_default_response_type: true
+                    });
+                };
+                
+                if (!document.getElementById('facebook-jssdk')) {
+                    var js, fjs = document.getElementsByTagName('script')[0];
+                    js = document.createElement('script');
+                    js.id = 'facebook-jssdk';
+                    js.src = "https://connect.facebook.net/en_US/sdk.js";
+                    fjs.parentNode.insertBefore(js, fjs);
+                } else {
+                    window.fbAsyncInit();
+                }
             } else {
                 // Fallback simulation
                 setTimeout(() => {
                     apiCall('whatsapp/setup.php?action=save_token', 'POST', {
                         code: 'EAAGeminiMockToken' + Date.now(),
                         display_name: bizName || 'Taskbazi'
-                    }).then(res => {
+                    }).then(dbRes => {
                         connectedDetails = {
-                            business_name: res.business_name || bizName || 'Taskbazi',
-                            phone_number: res.phone_number || '+91 80162 22991',
-                            display_name: res.display_name || bizName || 'Taskbazi',
-                            messaging_limit: res.messaging_limit || '1000/day',
-                            quality_rating: res.quality_rating || 'Green',
+                            business_name: dbRes.business_name || bizName || 'Taskbazi',
+                            phone_number: dbRes.phone_number || '+91 80162 22991',
+                            display_name: dbRes.display_name || bizName || 'Taskbazi',
+                            messaging_limit: dbRes.messaging_limit || '1000/day',
+                            quality_rating: dbRes.quality_rating || 'Green',
                             status: 'Connected'
                         };
                         
@@ -434,13 +452,13 @@ function renderWhatsAppSetup(container, settings) {
                 apiCall('whatsapp/setup.php?action=save_token', 'POST', {
                     code: 'EAAGeminiMockToken' + Date.now(),
                     display_name: bizName || 'Taskbazi'
-                }).then(res => {
+                }).then(dbRes => {
                     connectedDetails = {
-                        business_name: res.business_name || bizName || 'Taskbazi',
-                        phone_number: res.phone_number || '+91 80162 22991',
-                        display_name: res.display_name || bizName || 'Taskbazi',
-                        messaging_limit: res.messaging_limit || '1000/day',
-                        quality_rating: res.quality_rating || 'Green',
+                        business_name: dbRes.business_name || bizName || 'Taskbazi',
+                        phone_number: dbRes.phone_number || '+91 80162 22991',
+                        display_name: dbRes.display_name || bizName || 'Taskbazi',
+                        messaging_limit: dbRes.messaging_limit || '1000/day',
+                        quality_rating: dbRes.quality_rating || 'Green',
                         status: 'Connected'
                     };
                     

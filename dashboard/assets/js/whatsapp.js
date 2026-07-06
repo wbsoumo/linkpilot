@@ -72,19 +72,55 @@ function renderWhatsAppSetup(container, settings) {
         
         else if (currentStep === 2) {
             stepHtml = `
-                <div class="space-y-5 text-center py-4">
-                    <h3 class="text-sm font-bold text-slate-800">Step 2: Connect with Facebook</h3>
-                    <p class="text-xs text-slate-500 max-w-sm mx-auto">Authorize LinkPilot to manage your WhatsApp Business messages. You will be redirected to Meta Embedded Onboarding Signup.</p>
+                <div class="space-y-4 py-2">
+                    <h3 class="text-xs font-bold text-slate-800 text-center">Step 2: Connect Meta Credentials</h3>
                     
-                    <div class="py-6 flex justify-center">
-                        <button onclick="triggerSimulatedMetaSignup()" class="inline-flex items-center space-x-2 px-5 py-3 bg-[#1877F2] hover:bg-[#166FE5] text-white text-xs font-bold rounded-lg transition shadow-md">
-                            <i data-lucide="facebook" class="h-4 w-4"></i>
-                            <span>Connect with Facebook</span>
-                        </button>
+                    <!-- Tabs for Connection Method -->
+                    <div class="flex border-b border-slate-100 text-[10px] mb-3">
+                        <button onclick="setConnectMethod('sandbox')" id="tab-conn-sandbox" class="flex-grow py-2 text-center border-b-2 border-blue-500 font-bold text-blue-600">Simulated Sandbox</button>
+                        <button onclick="setConnectMethod('manual')" id="tab-conn-manual" class="flex-grow py-2 text-center border-b-2 border-transparent text-slate-400 font-semibold">Manual Setup</button>
                     </div>
-                    
-                    <div class="text-[10px] text-slate-400">
-                        🔒 LinkPilot securely encrypts all authentication credentials.
+
+                    <!-- Sandbox Flow -->
+                    <div id="conn-flow-sandbox" class="text-center py-4 space-y-4">
+                        <p class="text-[11px] text-slate-400 max-w-sm mx-auto">Click below to spawn a simulated Meta Sandbox with pre-configured mock numbers and templates catalog.</p>
+                        <div class="py-2 flex justify-center">
+                            <button onclick="triggerSimulatedMetaSignup()" class="inline-flex items-center space-x-2 px-5 py-3 bg-[#1877F2] hover:bg-[#166FE5] text-white text-xs font-bold rounded-lg transition shadow-md">
+                                <i data-lucide="facebook" class="h-4 w-4"></i>
+                                <span>Connect with Facebook</span>
+                            </button>
+                        </div>
+                        <div class="text-[9px] text-slate-400">
+                            🔒 LinkPilot securely encrypts all authentication credentials.
+                        </div>
+                    </div>
+
+                    <!-- Manual Flow -->
+                    <div id="conn-flow-manual" class="space-y-3 hidden text-left">
+                        <p class="text-[10px] text-slate-400">Enter your live Meta Graph credentials to send real messages to active WhatsApp numbers.</p>
+                        <div>
+                            <label class="block text-slate-500 font-bold mb-1 text-[9px] uppercase">Meta System Access Token</label>
+                            <input type="password" id="manual-token" placeholder="EAA..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-slate-500 font-bold mb-1 text-[9px] uppercase">WABA ID</label>
+                                <input type="text" id="manual-waba-id" placeholder="e.g. 1098..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-slate-500 font-bold mb-1 text-[9px] uppercase">Phone Number ID</label>
+                                <input type="text" id="manual-phone-id" placeholder="e.g. 1054..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-slate-500 font-bold mb-1 text-[9px] uppercase">Meta Business ID (Optional)</label>
+                            <input type="text" id="manual-biz-id" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div class="pt-2">
+                            <button onclick="triggerManualMetaSignup()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition">
+                                Validate & Connect Credentials
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="pt-4 flex justify-between border-t border-slate-100">
@@ -222,7 +258,55 @@ function renderWhatsAppSetup(container, settings) {
                 currentStep = 2;
                 drawWizard();
             });
-        }, 2500);
+    };
+    
+    window.setConnectMethod = function(method) {
+        const sandboxTab = document.getElementById('tab-conn-sandbox');
+        const manualTab = document.getElementById('tab-conn-manual');
+        const sandboxFlow = document.getElementById('conn-flow-sandbox');
+        const manualFlow = document.getElementById('conn-flow-manual');
+        
+        if (method === 'sandbox') {
+            sandboxTab.className = "flex-grow py-2 text-center border-b-2 border-blue-500 font-bold text-blue-600";
+            manualTab.className = "flex-grow py-2 text-center border-b-2 border-transparent text-slate-400 font-semibold";
+            sandboxFlow.classList.remove('hidden');
+            manualFlow.classList.add('hidden');
+        } else {
+            sandboxTab.className = "flex-grow py-2 text-center border-b-2 border-transparent text-slate-400 font-semibold";
+            manualTab.className = "flex-grow py-2 text-center border-b-2 border-blue-500 font-bold text-blue-600";
+            sandboxFlow.classList.add('hidden');
+            manualFlow.classList.remove('hidden');
+        }
+    };
+    
+    window.triggerManualMetaSignup = function() {
+        const accessToken = document.getElementById('manual-token').value.trim();
+        const wabaId = document.getElementById('manual-waba-id').value.trim();
+        const phoneNumberId = document.getElementById('manual-phone-id').value.trim();
+        const businessId = document.getElementById('manual-biz-id').value.trim();
+        
+        if (!accessToken || !wabaId || !phoneNumberId) {
+            showNotification('error', 'Token, WABA ID, and Phone Number ID are required.');
+            return;
+        }
+        
+        currentStep = 3;
+        drawWizard();
+        
+        apiCall('whatsapp/setup.php?action=save_token', 'POST', {
+            access_token: accessToken,
+            waba_id: wabaId,
+            phone_number_id: phoneNumberId,
+            business_id: businessId,
+            display_name: bizName
+        }).then(res => {
+            currentStep = 4;
+            drawWizard();
+        }).catch(err => {
+            showNotification('error', err.message);
+            currentStep = 2;
+            drawWizard();
+        });
     };
     
     drawWizard();

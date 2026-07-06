@@ -7157,6 +7157,86 @@ function formatAIChatReply(text) {
         `;
     }
 
+    // Parse markdown tables and render them as beautiful HTML cards
+    if (text.includes('|') && text.includes('---')) {
+        const lines = text.split('\n');
+        let tableHeaders = [];
+        let tableRows = [];
+        let otherTextBefore = [];
+        let otherTextAfter = [];
+        
+        for (let line of lines) {
+            const trimmed = line.trim();
+            if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+                if (trimmed.includes('---') || trimmed.includes('-|-')) {
+                    continue; // Skip separator line
+                }
+                const cells = trimmed.split('|').map(c => c.trim()).filter((c, i, arr) => i > 0 && i < arr.length - 1);
+                if (tableHeaders.length === 0) {
+                    tableHeaders = cells;
+                } else {
+                    tableRows.push(cells);
+                }
+            } else {
+                if (tableRows.length === 0) {
+                    if (trimmed !== '') otherTextBefore.push(line);
+                } else {
+                    if (trimmed !== '') otherTextAfter.push(line);
+                }
+            }
+        }
+        
+        if (tableRows.length > 0) {
+            const cardsHTML = tableRows.map(row => {
+                const company = row[0] || 'Unknown';
+                const subject = row[1] || '';
+                const amount = row[2] || '₹0.00';
+                const dueDate = row[3] || 'Not specified';
+                const details = row[4] || '';
+                
+                return `
+                    <div class="bg-white border border-slate-100 rounded-xl p-3.5 shadow-[0_2px_4px_rgba(0,0,0,0.02)] flex flex-col space-y-2">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-extrabold text-slate-800 text-xs">${company}</h4>
+                                <p class="text-[10px] text-slate-450 font-medium mt-0.5">${subject}</p>
+                            </div>
+                            <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase bg-rose-50 text-rose-600 border border-rose-100 shrink-0">UNPAID</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-2 border-t border-slate-50 text-[11px] font-medium text-slate-500">
+                            <div>Amount: <span class="font-extrabold text-slate-800">${amount}</span></div>
+                            <div>Due: <span class="font-extrabold text-indigo-600">${dueDate}</span></div>
+                        </div>
+                        ${details && details !== 'None' && details !== '-' ? `<p class="text-[10px] text-slate-450 bg-slate-50 p-2 rounded-lg leading-relaxed mt-1">${details}</p>` : ''}
+                    </div>
+                `;
+            }).join('');
+            
+            const beforeHTML = otherTextBefore.map(t => {
+                return t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            }).join('<br/>');
+            const afterHTML = otherTextAfter.map(t => {
+                return t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            }).join('<br/>');
+            
+            return `
+                <div class="space-y-2 w-full">
+                    ${beforeHTML ? `<div class="mb-2">${beforeHTML}</div>` : ''}
+                    <div class="bg-white rounded-2xl overflow-hidden flex flex-col border border-slate-100 shadow-sm my-3">
+                        <div class="px-4 py-2.5 bg-indigo-50/50 text-indigo-600 flex items-center space-x-2 border-b border-slate-100">
+                            <i data-lucide="receipt" class="h-4 w-4 text-indigo-600"></i>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-600">Pending Invoices</span>
+                        </div>
+                        <div class="p-3.5 space-y-2.5 bg-slate-50/20">
+                            ${cardsHTML}
+                        </div>
+                    </div>
+                    ${afterHTML ? `<div class="mt-2">${afterHTML}</div>` : ''}
+                </div>
+            `;
+        }
+    }
+
     // 1. Escape HTML
     let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     

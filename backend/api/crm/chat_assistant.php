@@ -74,7 +74,7 @@ try {
 
     // 5. Fetch Recent Invoices (matching category or keywords, excluding spam)
     $stmtInvoices = $db->prepare("
-        SELECT sender_name, sender_email, subject, received_date, extracted_data_json 
+        SELECT sender_name, sender_email, subject, received_date, body_text, extracted_data_json 
         FROM received_emails 
         WHERE user_id = ? 
           AND is_spam = 0 
@@ -88,10 +88,32 @@ try {
     $invoicesCtx = [];
     foreach ($invoices as $inv) {
         $meta = json_decode($inv['extracted_data_json'], true) ?: [];
+        
+        $body = $inv['body_text'] ?: '';
         $amount = (float)($meta['budget'] ?? 0.00);
-        $dueDate = !empty($meta['deadline']) ? $meta['deadline'] : 'Not specified';
+        if ($amount === 0.0) {
+            // Regex match for balance due / amount / INR
+            if (preg_match('/Balance\s+Due:\s*[^0-9]*([0-9.,]+)/i', $body, $m)) {
+                $amount = (float)str_replace(',', '', $m[1]);
+            } elseif (preg_match('/Amount(?:\s+Due)?:\s*[^0-9]*([0-9.,]+)/i', $body, $m)) {
+                $amount = (float)str_replace(',', '', $m[1]);
+            }
+        }
+        
+        $dueDate = !empty($meta['deadline']) ? $meta['deadline'] : '';
+        if (empty($dueDate) || $dueDate === 'Not specified') {
+            if (preg_match('/Due\s+Date:\s*([^\r\n]+)/i', $body, $m)) {
+                $dueDate = trim($m[1]);
+            }
+        }
+        if (empty($dueDate)) {
+            $dueDate = 'Not specified';
+        }
+        
         $company = !empty($meta['company_name']) ? $meta['company_name'] : $inv['sender_name'];
-        $invoicesCtx[] = "- *Company*: " . $company . " | *Amount*: ₹" . number_format($amount, 2) . " | *Due Date*: " . $dueDate . " | *Subject*: " . $inv['subject'] . " | *Received*: " . $inv['received_date'] . " | *Summary*: " . ($meta['requirement'] ?? 'None');
+        $bodySnippet = cleanEmailTextForAI($body, 350);
+        
+        $invoicesCtx[] = "- *Company*: " . $company . " | *Amount*: ₹" . number_format($amount, 2) . " | *Due Date*: " . $dueDate . " | *Subject*: " . $inv['subject'] . " | *Received*: " . $inv['received_date'] . " | *Raw Snippet*: " . $bodySnippet;
     }
 
     // Construct Context Prompt
@@ -158,4 +180,13 @@ Formatting instructions:
 
 } catch (Throwable $e) {
     sendJsonResponse('error', 'AI Assistant failed: ' . $e->getMessage(), [], 200);
+}
+
+function cleanEmailTextForAI($text, $maxLength = 300) {
+    $text = preg_replace('/\s+/', ' ', $text);
+    $text = trim($text);
+    if (strlen($text) > $maxLength) {
+        return substr($text, 0, $maxLength) . '...';
+    }
+    return $text;
 }

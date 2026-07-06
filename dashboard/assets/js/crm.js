@@ -1663,8 +1663,11 @@ async function renderInbox(container, targetEmailId = null) {
 
                 <!-- Inbox List pane -->
                 <div class="lg:col-span-4 glass-panel bg-slate-900/40 overflow-hidden flex flex-col h-full max-h-[75vh]">
-                    <div class="p-3 border-b border-slate-800/80">
-                        <input type="text" oninput="handleInboxInlineSearch(this.value)" placeholder="Search emails..." class="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white">
+                    <div class="p-3 border-b border-slate-800/80 flex items-center space-x-2">
+                        <input type="text" oninput="handleInboxInlineSearch(this.value)" placeholder="Search emails..." class="flex-grow px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white">
+                        <button onclick="syncInboxFromInboxView(this)" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition border border-slate-750 flex items-center justify-center" title="Sync Inbox">
+                            <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                        </button>
                     </div>
                     <div class="flex-grow overflow-y-auto divide-y divide-slate-800/40" id="inbox-emails-list-container">
                         ${listItems}
@@ -6594,6 +6597,34 @@ function handleGlobalSearch(value) {
     globalSearchTimeout = setTimeout(() => {
         fetchGlobalSearchResults(value);
     }, 2000); // 2 second delay
+}
+
+async function syncInboxFromInboxView(btn) {
+    const icon = btn.querySelector('i');
+    if (icon) icon.classList.add('animate-spin-slow');
+    btn.disabled = true;
+    
+    try {
+        const data = await apiCall('crm/email_intelligence/sync.php?action=sync', 'POST');
+        if (data.status === 'success') {
+            const added = data.emails_synced || 0;
+            const processed = data.emails_processed || 0;
+            showNotification('success', `Sync finished! Pulled ${added} new emails. AI processed ${processed} emails.`);
+            
+            // Reload the inbox view
+            const mainViewport = document.getElementById('main-content-viewport');
+            if (mainViewport) {
+                renderInbox(mainViewport, activeEmailId);
+            }
+        } else {
+            showNotification('error', data.message);
+        }
+    } catch (err) {
+        showNotification('error', 'Sync Failed: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        if (icon) icon.classList.remove('animate-spin-slow');
+    }
 }
 
 let inboxInlineSearchTimeout = null;

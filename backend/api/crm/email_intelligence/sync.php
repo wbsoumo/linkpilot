@@ -83,8 +83,12 @@ try {
         } elseif ($action === 'sync' || empty($action)) {
             // Manual sync trigger
             require_once __DIR__ . '/../../../sync_helper.php';
+            require_once __DIR__ . '/../../../queue_worker.php';
             try {
                 $result = SyncHelper::syncUserEmails($userId);
+                // Run the AI analysis immediately on any pending emails
+                $processedCount = QueueWorker::processPendingEmails();
+                $result['emails_processed'] = $processedCount;
                 sendJsonResponse('success', 'Synchronization completed.', $result);
             } catch (Throwable $e) {
                 sendJsonResponse('error', 'Sync operation failed: ' . $e->getMessage(), [], 200);

@@ -8,6 +8,10 @@ $user = JWTHelper::requireAuth();
 $userId = $user['id'];
 $db = Database::getConnection();
 
+// Auto-sync Lead Vault data from LinkedIn extension into CRM Contacts & Companies
+require_once __DIR__ . '/../../crm_sync_helper.php';
+CRMSyncHelper::syncLeadVaultToCRM($userId, $db);
+
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 

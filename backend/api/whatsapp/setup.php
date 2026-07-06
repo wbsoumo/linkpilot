@@ -397,28 +397,48 @@ try {
         
         $encryptedToken = encryptData($accessToken);
         
-        $stmtCheck = $db->prepare("SELECT id FROM whatsapp_accounts WHERE user_id = ? ORDER BY id DESC LIMIT 1");
-        $stmtCheck->execute([$userId]);
-        $existingId = $stmtCheck->fetchColumn();
-        
-        if ($existingId) {
-            $db->prepare("DELETE FROM whatsapp_accounts WHERE user_id = ? AND id != ?")->execute([$userId, $existingId]);
-            $stmtUpsert = $db->prepare("
-                UPDATE whatsapp_accounts 
-                SET business_name = ?, business_id = ?, waba_id = ?, waba_name = ?, phone_number_id = ?, display_phone_number = ?, access_token = ?, status = 'connected', quality_rating = ?, messaging_limit = ?, webhook_status = 'verified', token_status = 'valid', last_verified_at = CURRENT_TIMESTAMP
-                WHERE id = ?
-            ");
-            $stmtUpsert->execute([
-                $businessName, $businessId, $wabaId, $wabaName, $phoneNumberId, $phoneNumber, $encryptedToken, $qualityRating, $messagingLimitText, $existingId
-            ]);
-        } else {
-            $stmtUpsert = $db->prepare("
-                INSERT INTO whatsapp_accounts (user_id, business_name, business_id, waba_id, waba_name, phone_number_id, display_phone_number, access_token, status, quality_rating, messaging_limit, webhook_status, token_status, last_verified_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'connected', ?, ?, 'verified', 'valid', CURRENT_TIMESTAMP)
-            ");
-            $stmtUpsert->execute([
-                $userId, $businessName, $businessId, $wabaId, $wabaName, $phoneNumberId, $phoneNumber, $encryptedToken, $qualityRating, $messagingLimitText
-            ]);
+        $executeUpsert = function() use ($db, $userId, $businessName, $businessId, $wabaId, $wabaName, $phoneNumberId, $phoneNumber, $encryptedToken, $qualityRating, $messagingLimitText) {
+            $stmtCheck = $db->prepare("SELECT id FROM whatsapp_accounts WHERE user_id = ? ORDER BY id DESC LIMIT 1");
+            $stmtCheck->execute([$userId]);
+            $existingId = $stmtCheck->fetchColumn();
+            
+            if ($existingId) {
+                $db->prepare("DELETE FROM whatsapp_accounts WHERE user_id = ? AND id != ?")->execute([$userId, $existingId]);
+                $stmtUpsert = $db->prepare("
+                    UPDATE whatsapp_accounts 
+                    SET business_name = ?, business_id = ?, waba_id = ?, waba_name = ?, phone_number_id = ?, display_phone_number = ?, access_token = ?, status = 'connected', quality_rating = ?, messaging_limit = ?, webhook_status = 'verified', token_status = 'valid', last_verified_at = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                ");
+                $stmtUpsert->execute([
+                    $businessName, $businessId, $wabaId, $wabaName, $phoneNumberId, $phoneNumber, $encryptedToken, $qualityRating, $messagingLimitText, $existingId
+                ]);
+            } else {
+                $stmtUpsert = $db->prepare("
+                    INSERT INTO whatsapp_accounts (user_id, business_name, business_id, waba_id, waba_name, phone_number_id, display_phone_number, access_token, status, quality_rating, messaging_limit, webhook_status, token_status, last_verified_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'connected', ?, ?, 'verified', 'valid', CURRENT_TIMESTAMP)
+                ");
+                $stmtUpsert->execute([
+                    $userId, $businessName, $businessId, $wabaId, $wabaName, $phoneNumberId, $phoneNumber, $encryptedToken, $qualityRating, $messagingLimitText
+                ]);
+            }
+        };
+
+        try {
+            $executeUpsert();
+        } catch (PDOException $e) {
+            if ($e->getCode() == '42S22' || strpos($e->getMessage(), 'Unknown column') !== false) {
+                try {
+                    try { $db->exec("ALTER TABLE `whatsapp_accounts` ADD COLUMN `webhook_status` VARCHAR(50) DEFAULT 'unknown' AFTER `messaging_limit`"); } catch (Throwable $x) {}
+                    try { $db->exec("ALTER TABLE `whatsapp_accounts` ADD COLUMN `token_status` VARCHAR(50) DEFAULT 'unknown' AFTER `webhook_status`"); } catch (Throwable $x) {}
+                    try { $db->exec("ALTER TABLE `whatsapp_accounts` ADD COLUMN `last_verified_at` TIMESTAMP NULL DEFAULT NULL AFTER `token_status`"); } catch (Throwable $x) {}
+                    try { $db->exec("ALTER TABLE `whatsapp_accounts` ADD COLUMN `waba_name` VARCHAR(255) DEFAULT NULL AFTER `waba_id`"); } catch (Throwable $x) {}
+                    $executeUpsert();
+                } catch (Throwable $retryEx) {
+                    throw $e;
+                }
+            } else {
+                throw $e;
+            }
         }
         
         logActivity($userId, "Connected WhatsApp Business account manually: {$displayName}");

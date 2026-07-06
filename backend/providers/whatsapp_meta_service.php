@@ -139,10 +139,10 @@ class WhatsAppMetaService {
     }
     
     /**
-     * Retrieve phone numbers for a WABA.
+     * Retrieve phone numbers for a WABA with specific profile fields.
      */
     public static function getPhoneNumbers($wabaId, $accessToken) {
-        return self::executeRequest("{$wabaId}/phone_numbers", "GET", null, $accessToken);
+        return self::executeRequest("{$wabaId}/phone_numbers?fields=id,display_phone_number,verified_name,quality_rating,status,code_verification_status", "GET", null, $accessToken);
     }
     
     /**
@@ -300,10 +300,10 @@ class WhatsAppMetaService {
     }
 
     /**
-     * Get user's businesses.
+     * Get business details by ID.
      */
-    public static function getUserBusinesses($accessToken) {
-        return self::executeRequest("me?fields=businesses{id,name}", "GET", null, $accessToken);
+    public static function getBusinessDetails($businessId, $accessToken) {
+        return self::executeRequest("{$businessId}?fields=id,name", "GET", null, $accessToken);
     }
 
     /**
@@ -311,6 +311,13 @@ class WhatsAppMetaService {
      */
     public static function getOwnedWabas($businessId, $accessToken) {
         return self::executeRequest("{$businessId}/owned_whatsapp_business_accounts?fields=id,name,timezone_id,status", "GET", null, $accessToken);
+    }
+
+    /**
+     * Get client WABA accounts for a business.
+     */
+    public static function getClientWabas($businessId, $accessToken) {
+        return self::executeRequest("{$businessId}/client_whatsapp_business_accounts?fields=id,name,timezone_id,status", "GET", null, $accessToken);
     }
 
     /**
@@ -332,5 +339,12 @@ class WhatsAppMetaService {
      */
     public static function getWabasDirectly($accessToken) {
         return self::executeRequest("me/whatsapp_business_accounts?fields=id,name,status", "GET", null, $accessToken);
+    }
+
+    /**
+     * Debug user access token using the global App access token.
+     */
+    public static function debugToken($accessToken, $appAccessToken) {
+        return self::executeRequest("debug_token?input_token={$accessToken}", "GET", null, $appAccessToken);
     }
 }

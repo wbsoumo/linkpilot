@@ -44,6 +44,9 @@ try {
     try {
         $db->exec("ALTER TABLE `whatsapp_accounts` ADD COLUMN `last_verified_at` TIMESTAMP NULL DEFAULT NULL AFTER `token_status`");
     } catch (Exception $e) {}
+    try {
+        $db->exec("ALTER TABLE `whatsapp_accounts` ADD COLUMN `waba_name` VARCHAR(255) DEFAULT NULL AFTER `waba_id`");
+    } catch (Exception $e) {}
 
 
     // 2. whatsapp_contacts

@@ -2815,7 +2815,11 @@ async function renderContacts(container) {
                                 ${contRows || `<tr><td colspan="6" class="text-center py-10 text-slate-500">No contact profiles found.</td></tr>`}
                             </tbody>
                         </table>
-                      lucide.createIcons();
+                    </div>
+                </div>
+            </div>
+        `;
+        lucide.createIcons();
     } catch (err) {
         showNotification('error', err.message);
     }

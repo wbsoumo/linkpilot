@@ -72,11 +72,13 @@ try {
     $stmtEmails->execute([$userId]);
     $emails = $stmtEmails->fetchAll(PDO::FETCH_ASSOC);
 
-    // 5. Fetch Recent Invoices
+    // 5. Fetch Recent Invoices (matching category or keywords, excluding spam)
     $stmtInvoices = $db->prepare("
         SELECT sender_name, sender_email, subject, received_date, extracted_data_json 
         FROM received_emails 
-        WHERE user_id = ? AND category = 'Invoice' 
+        WHERE user_id = ? 
+          AND is_spam = 0 
+          AND (category = 'Invoice' OR subject LIKE '%invoice%' OR subject LIKE '%receipt%') 
         ORDER BY received_date DESC 
         LIMIT 15
     ");

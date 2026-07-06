@@ -584,7 +584,10 @@ function renderWhatsAppSetup(container, settings) {
             access_token: accessToken
         }).then(res => {
             businesses = res.businesses || [];
-            if (businesses.length === 1) {
+            if (businesses.length === 0) {
+                selectedBiz = null;
+                discoverWabas(); // Direct query fallback
+            } else if (businesses.length === 1) {
                 selectedBiz = businesses[0];
                 discoverWabas(); // Auto select and jump
             } else {
@@ -598,13 +601,12 @@ function renderWhatsAppSetup(container, settings) {
     
     // 4. Discover WABAs
     window.discoverWabas = function() {
-        if (!selectedBiz) return;
         currentStep = 4;
         drawWizard();
         
         apiCall('whatsapp/setup.php?action=discover_wabas', 'POST', {
             access_token: accessToken,
-            business_id: selectedBiz.id
+            business_id: selectedBiz ? selectedBiz.id : ''
         }).then(res => {
             wabas = res.wabas || [];
             if (wabas.length === 1) {
@@ -615,7 +617,7 @@ function renderWhatsAppSetup(container, settings) {
             }
         }).catch(err => {
             showNotification('error', 'Failed retrieving WhatsApp accounts: ' + err.message);
-            goWizardStep(3);
+            goWizardStep(selectedBiz ? 3 : 1);
         });
     };
     

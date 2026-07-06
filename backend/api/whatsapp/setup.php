@@ -109,20 +109,30 @@ try {
                 }
             }
             
-            $required = ['whatsapp_business_management', 'whatsapp_business_messaging', 'business_management'];
+            // Allow token verification to succeed if basic scopes are met without business_management
+            $required = ['whatsapp_business_management', 'whatsapp_business_messaging'];
             foreach ($required as $r) {
                 if (empty($granted[$r])) {
                     sendJsonResponse('error', "Missing required permission: {$r}. Please ensure this scope is assigned to the System User.", [], 400);
                 }
             }
             
-            // 3. Count businesses
-            $meData = WhatsAppMetaService::getUserBusinesses($accessToken);
-            $businesses = $meData['businesses']['data'] ?? [];
+            // 3. Count businesses (fallback gracefully to WABAs count if business listing fails)
+            $bizCount = 0;
+            try {
+                $meData = WhatsAppMetaService::getUserBusinesses($accessToken);
+                $businesses = $meData['businesses']['data'] ?? [];
+                $bizCount = count($businesses);
+            } catch (Exception $e) {
+                try {
+                    $wabaData = WhatsAppMetaService::getWabasDirectly($accessToken);
+                    $bizCount = count($wabaData['data'] ?? []);
+                } catch (Exception $wEx) {}
+            }
             
             sendJsonResponse('success', 'Token verified successfully.', [
                 'meta_user_name' => $userName,
-                'business_count' => count($businesses),
+                'business_count' => $bizCount,
                 'token_status' => 'valid'
             ]);
             
@@ -153,7 +163,10 @@ try {
                 'businesses' => $businesses
             ]);
         } catch (Exception $e) {
-            sendJsonResponse('error', 'Failed to retrieve businesses: ' . $e->getMessage(), [], 400);
+            // Return empty instead of throwing error if business manager is restricted
+            sendJsonResponse('success', 'Businesses retrieved.', [
+                'businesses' => []
+            ]);
         }
     }
     
@@ -161,10 +174,6 @@ try {
         $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
         $accessToken = trim($input['access_token'] ?? '');
         $businessId = trim($input['business_id'] ?? '');
-        
-        if (empty($businessId)) {
-            sendJsonResponse('error', 'Business ID is required.', [], 400);
-        }
         
         $isMock = (strpos($accessToken, 'Mock') !== false || strpos($accessToken, 'EAAGemini') !== false);
         
@@ -182,7 +191,11 @@ try {
         }
         
         try {
-            $wabaData = WhatsAppMetaService::getOwnedWabas($businessId, $accessToken);
+            if (!empty($businessId)) {
+                $wabaData = WhatsAppMetaService::getOwnedWabas($businessId, $accessToken);
+            } else {
+                $wabaData = WhatsAppMetaService::getWabasDirectly($accessToken);
+            }
             $wabas = [];
             if (!empty($wabaData['data'])) {
                 foreach ($wabaData['data'] as $w) {

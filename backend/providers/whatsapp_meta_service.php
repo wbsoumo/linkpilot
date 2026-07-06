@@ -304,4 +304,11 @@ class WhatsAppMetaService {
     public static function getPhoneNumberDetails($phoneNumberId, $accessToken) {
         return self::executeRequest("{$phoneNumberId}?fields=id,display_phone_number,verified_name,quality_rating,messaging_limit_tier,status,code_verification_status", "GET", null, $accessToken);
     }
+
+    /**
+     * Get owned WABA accounts directly from user token.
+     */
+    public static function getWabasDirectly($accessToken) {
+        return self::executeRequest("me/whatsapp_business_accounts?fields=id,name,status", "GET", null, $accessToken);
+    }
 }

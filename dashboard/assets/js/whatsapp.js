@@ -2378,20 +2378,8 @@ function renderWhatsAppTemplates(container) {
             // Link active template to use modal/redirect
             window.useActiveTemplate = function() {
                 if (!selectedTemplate) return;
-                showNotification('info', `Selected template: ${selectedTemplate.name}. Redirecting to Broadcast Campaigns...`);
-                // Simulate click on Broadcast navigation link
-                const broadcastSidebarLink = document.querySelector('[onclick*="broadcast"]');
-                if (broadcastSidebarLink) {
-                    broadcastSidebarLink.click();
-                    setTimeout(() => {
-                        // Prepopulate template select field in broadcast setup
-                        const selectEl = document.getElementById('broadcast-template-select');
-                        if (selectEl) {
-                            selectEl.value = selectedTemplate.id;
-                            selectEl.dispatchEvent(new Event('change'));
-                        }
-                    }, 500);
-                }
+                showNotification('info', `Selected template: ${selectedTemplate.name}. Redirecting to Sender Panel...`);
+                navigateTo('whatsapp-send-template', { templateId: selectedTemplate.id });
             };
             
         } catch (err) {

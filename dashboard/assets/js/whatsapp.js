@@ -2182,142 +2182,244 @@ function renderWhatsAppSettings(container) {
             const isConnected = setupRes.connected;
             
             contentArea.innerHTML = `
-                <div class="space-y-6">
-                    <div class="border-b border-slate-200 pb-4 bg-white p-5 rounded-2xl shadow-sm">
-                        <h2 class="text-sm font-bold text-slate-800">WhatsApp Module Settings</h2>
-                        <p class="text-[11px] text-slate-400 mt-0.5">Manage automated CRM creation, file upload limits, and AI generation parameters.</p>
-                    </div>
-
-                    ${isConnected ? `
-                    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 max-w-xl">
+                <div class="space-y-6 animate-fade-in text-xs">
+                    <!-- Card 1: Active Connection Status -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
                         <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                            <span class="font-bold text-slate-700 text-xs">Active Connection Status</span>
-                            <span class="px-2.5 py-0.5 text-[9px] font-bold rounded uppercase ${acc.status === 'connected' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-rose-100 text-rose-800 border border-rose-200'}">
-                                ${acc.status || 'Disconnected'}
+                            <span class="font-bold text-slate-800 text-sm">Active Connection Status</span>
+                            <span class="px-2.5 py-1 text-[9px] font-extrabold rounded-lg uppercase bg-emerald-500 text-white flex items-center space-x-1.5 shadow-sm">
+                                <span class="h-1.5 w-1.5 rounded-full bg-white animate-pulse"></span>
+                                <span>CONNECTED</span>
                             </span>
                         </div>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                            <div class="space-y-2.5">
-                                <div class="flex justify-between border-b border-slate-100 pb-1.5">
-                                    <span class="text-slate-400 font-semibold">Business Name</span>
-                                    <span class="text-slate-800 font-bold">${acc.business_name || 'N/A'}</span>
-                                </div>
-                                <div class="flex justify-between border-b border-slate-100 pb-1.5">
-                                    <span class="text-slate-400 font-semibold">Business ID</span>
-                                    <span class="text-slate-800 font-mono font-bold">${acc.business_id || 'N/A'}</span>
-                                </div>
-                                <div class="flex justify-between border-b border-slate-100 pb-1.5">
-                                    <span class="text-slate-400 font-semibold">WABA ID</span>
-                                    <span class="text-slate-800 font-mono font-bold">${acc.waba_id || 'N/A'}</span>
-                                </div>
-                                <div class="flex justify-between pb-1.5">
-                                    <span class="text-slate-400 font-semibold">Phone Number ID</span>
-                                    <span class="text-slate-800 font-mono font-bold">${acc.phone_number_id || 'N/A'}</span>
+                        <div class="flex flex-col lg:flex-row items-center lg:items-start space-y-6 lg:space-y-0 lg:space-x-8">
+                            <!-- Circular WhatsApp Logo -->
+                            <div class="h-20 w-20 rounded-full bg-emerald-50 flex items-center justify-center shrink-0 shadow-inner border border-emerald-100">
+                                <div class="h-14 w-14 rounded-full bg-gradient-to-tr from-emerald-500 to-emerald-400 flex items-center justify-center shadow-md">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white fill-current" viewBox="0 0 24 24">
+                                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.588 1.485 5.41 1.486 5.454 0 9.9-4.426 9.902-9.852.001-2.631-1.019-5.101-2.871-6.956C17.228 1.977 14.77 1.955 12 1.955c-5.46 0-9.911 4.427-9.913 9.855-.001 1.939.508 3.83 1.472 5.502l-.965 3.525 3.653-.943zm12.355-6.845c-.328-.164-1.94-.959-2.241-1.07-.301-.11-.521-.164-.741.164-.221.328-.854 1.07-1.047 1.29-.193.221-.386.248-.713.084-.328-.164-1.385-.51-2.637-1.627-.975-.87-1.633-1.945-1.825-2.274-.193-.328-.02-.505.144-.668.148-.147.328-.384.493-.575.164-.192.22-.328.329-.548.11-.22.055-.411-.027-.575-.082-.164-.741-1.785-1.015-2.443-.267-.642-.56-.554-.74-.564-.176-.01-.377-.014-.578-.014-.201 0-.528.075-.804.377-.276.3-.146.904-.082 1.259.108.591.312 1.127.636 1.639 1.42 2.247 3.328 3.992 5.642 4.795.539.187 1.078.298 1.611.332 1.341.085 2.563-.12 3.523-.39.816-.23 1.666-.81 1.942-1.543.276-.733.276-1.36.193-1.493-.083-.133-.301-.22-.63-.384z"/>
+                                    </svg>
                                 </div>
                             </div>
                             
-                            <div class="space-y-2.5">
-                                <div class="flex justify-between border-b border-slate-100 pb-1.5">
-                                    <span class="text-slate-400 font-semibold">Display Phone Number</span>
-                                    <span class="text-slate-800 font-bold font-mono">${acc.display_phone_number || 'N/A'}</span>
+                            <!-- Table details grid (Middle) -->
+                            <div class="flex-grow grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-[11px] w-full">
+                                <div class="space-y-2.5">
+                                    <div class="flex justify-between border-b border-slate-100 pb-1.5">
+                                        <span class="text-slate-400 font-semibold">Business Name</span>
+                                        <span class="text-slate-800 font-bold">${acc.business_name || 'N/A'}</span>
+                                    </div>
+                                    <div class="flex justify-between border-b border-slate-100 pb-1.5">
+                                        <span class="text-slate-400 font-semibold">Business ID</span>
+                                        <span class="text-slate-800 font-mono font-bold">${acc.business_id || 'N/A'}</span>
+                                    </div>
+                                    <div class="flex justify-between border-b border-slate-100 pb-1.5">
+                                        <span class="text-slate-400 font-semibold">WABA ID</span>
+                                        <span class="text-slate-800 font-mono font-bold">${acc.waba_id || 'N/A'}</span>
+                                    </div>
+                                    <div class="flex justify-between pb-1.5">
+                                        <span class="text-slate-400 font-semibold">Phone Number ID</span>
+                                        <span class="text-slate-800 font-mono font-bold">${acc.phone_number_id || 'N/A'}</span>
+                                    </div>
                                 </div>
-                                <div class="flex justify-between border-b border-slate-100 pb-1.5">
-                                    <span class="text-slate-400 font-semibold">Token Status</span>
-                                    <span class="text-slate-800 font-bold uppercase ${acc.token_status === 'valid' ? 'text-emerald-600' : 'text-rose-500'}">${acc.token_status || 'Unknown'}</span>
-                                </div>
-                                <div class="flex justify-between border-b border-slate-100 pb-1.5">
-                                    <span class="text-slate-400 font-semibold">Webhook Status</span>
-                                    <span class="text-slate-800 font-bold uppercase ${acc.webhook_status === 'verified' ? 'text-emerald-600' : 'text-rose-500'}">${acc.webhook_status || 'Unknown'}</span>
-                                </div>
-                                <div class="flex justify-between pb-1.5">
-                                    <span class="text-slate-400 font-semibold">Limit & Quality</span>
-                                    <span class="text-slate-800 font-bold">${acc.messaging_limit || 'N/A'} • <span class="font-extrabold text-emerald-600">${acc.quality_rating || 'N/A'}</span></span>
+                                
+                                <div class="space-y-2.5">
+                                    <div class="flex justify-between border-b border-slate-100 pb-1.5">
+                                        <span class="text-slate-400 font-semibold">Display Phone Number</span>
+                                        <span class="text-slate-800 font-bold font-mono">${acc.display_phone_number || 'N/A'}</span>
+                                    </div>
+                                    <div class="flex justify-between border-b border-slate-100 pb-1.5">
+                                        <span class="text-slate-400 font-semibold">Token Status</span>
+                                        <span class="px-2 py-0.5 text-[9px] font-bold rounded uppercase ${acc.token_status === 'valid' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}">
+                                            ${acc.token_status || 'Unknown'}
+                                        </span>
+                                    </div>
+                                    <div class="flex justify-between border-b border-slate-100 pb-1.5">
+                                        <span class="text-slate-400 font-semibold">Webhook Status</span>
+                                        <span class="px-2 py-0.5 text-[9px] font-bold rounded uppercase ${acc.webhook_status === 'verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}">
+                                            ${acc.webhook_status || 'Unknown'}
+                                        </span>
+                                    </div>
+                                    <div class="flex justify-between pb-1.5">
+                                        <span class="text-slate-400 font-semibold">Limit & Quality</span>
+                                        <span class="text-slate-800 font-bold">${acc.messaging_limit || 'N/A'} • <span class="font-extrabold text-emerald-600">${acc.quality_rating || 'N/A'}</span></span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px] text-slate-500 font-semibold bg-slate-50 border border-slate-100 p-3 rounded-xl mt-2">
-                            <div>
-                                <span class="text-slate-400">Connected On:</span>
-                                <div class="text-slate-600 mt-0.5">${acc.created_at ? new Date(acc.created_at).toLocaleString() : 'N/A'}</div>
-                            </div>
-                            <div>
-                                <span class="text-slate-400">Last Verified:</span>
-                                <div class="text-slate-600 mt-0.5">${acc.last_verified_at ? new Date(acc.last_verified_at).toLocaleString() : 'Never'}</div>
+                            
+                            <!-- Connected On right box -->
+                            <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-4 shadow-sm shrink-0 w-full lg:w-64">
+                                <div class="flex items-start space-x-3">
+                                    <div class="h-8 w-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+                                        <i data-lucide="calendar" class="h-4 w-4"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Connected On</div>
+                                        <div class="text-[11px] text-slate-700 font-bold mt-0.5">${acc.created_at ? new Date(acc.created_at).toLocaleString() : 'N/A'}</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <div class="h-8 w-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+                                        <i data-lucide="shield-check" class="h-4 w-4"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Last Verified</div>
+                                        <div class="text-[11px] text-slate-700 font-bold mt-0.5">${acc.last_verified_at ? new Date(acc.last_verified_at).toLocaleString() : 'Never'}</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="pt-3 border-t border-slate-100 flex flex-wrap gap-2 text-xs">
-                            <button onclick="reVerifyConnection()" class="px-3.5 py-1.5 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 text-indigo-600 font-bold rounded-lg transition">
-                                Re-Verify Connection
+                        <!-- Actions bottom bar -->
+                        <div class="pt-4 border-t border-slate-100 flex flex-wrap gap-3 text-xs">
+                            <button onclick="reVerifyConnection()" class="px-4 py-2 border border-blue-200 hover:bg-blue-50 text-blue-600 font-bold rounded-xl transition flex items-center space-x-2">
+                                <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                                <span>Re-Verify Connection</span>
                             </button>
-                            <button onclick="openUpdateTokenModal()" class="px-3.5 py-1.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold rounded-lg transition">
-                                Update Token
+                            <button onclick="openUpdateTokenModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold rounded-xl transition flex items-center space-x-2">
+                                <i data-lucide="key" class="h-4 w-4"></i>
+                                <span>Update Token</span>
                             </button>
-                            <button onclick="disconnectWhatsAppAccount()" class="px-3.5 py-1.5 bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-500 font-bold rounded-lg transition">
-                                Disconnect
+                            <button onclick="disconnectWhatsAppAccount()" class="px-4 py-2 border border-rose-200 hover:bg-rose-50 text-rose-655 font-bold rounded-xl transition flex items-center space-x-2">
+                                <i data-lucide="power" class="h-4 w-4 text-rose-600"></i>
+                                <span class="text-rose-600">Disconnect</span>
                             </button>
                         </div>
                     </div>
-                    ` : ''}
 
-                    <div class="max-w-xl bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 text-xs">
-                        <form onsubmit="saveWhatsAppSettingsForm(event)" class="space-y-5">
-                            <!-- Toggle Grid -->
+                    <!-- Card 2 & 3 row -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Automation Rules Card (2/3 width) -->
+                        <div class="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+                            <h3 class="text-xs font-bold text-slate-800 border-b border-slate-100 pb-2 uppercase tracking-wider">Automation Rules</h3>
                             <div class="space-y-4">
-                                <span class="font-bold text-slate-700 block border-b border-slate-100 pb-2">Automation Rules</span>
-                                
-                                <label class="flex items-center justify-between cursor-pointer">
-                                    <div>
-                                        <div class="font-bold text-slate-700">AI Processing Enabled</div>
-                                        <div class="text-[10px] text-slate-400 mt-0.5">Use AI to automatically draft suggested replies for inbound chats.</div>
+                                <!-- AI Processing Enabled -->
+                                <div class="bg-slate-50/50 border border-slate-100 p-4 rounded-2xl flex items-center justify-between">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="h-10 w-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100">
+                                            <i data-lucide="sparkles" class="h-5 w-5"></i>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-slate-700 text-xs">AI Processing Enabled</div>
+                                            <div class="text-[10px] text-slate-400 mt-0.5">Use AI to automatically draft suggested replies for inbound chats.</div>
+                                        </div>
                                     </div>
-                                    <input type="checkbox" id="set-ai" ${set.ai_enabled ? 'checked' : ''} class="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500">
-                                </label>
-                                
-                                <label class="flex items-center justify-between cursor-pointer">
-                                    <div>
-                                        <div class="font-bold text-slate-700">Auto CRM Ingestion</div>
-                                        <div class="text-[10px] text-slate-400 mt-0.5">Automatically create profile records when new numbers text you.</div>
-                                    </div>
-                                    <input type="checkbox" id="set-auto-crm" ${set.auto_crm_creation ? 'checked' : ''} class="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500">
-                                </label>
-                                
-                                <label class="flex items-center justify-between cursor-pointer">
-                                    <div>
-                                        <div class="font-bold text-slate-700">Lead Score & Urgency Detection</div>
-                                        <div class="text-[10px] text-slate-400 mt-0.5">Let AI rate budgets and score priority based on message urgency.</div>
-                                    </div>
-                                    <input type="checkbox" id="set-auto-lead" ${set.auto_lead_detection ? 'checked' : ''} class="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500">
-                                </label>
-                            </div>
+                                    <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                                        <input type="checkbox" id="set-ai" ${set.ai_enabled ? 'checked' : ''} onchange="autoSaveWaSettings()" class="sr-only peer">
+                                        <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-350 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                                    </label>
+                                </div>
 
-                            <!-- Input details -->
-                            <div class="space-y-4 border-t border-slate-100 pt-4">
-                                <span class="font-bold text-slate-700 block">Media Upload Configurations</span>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-slate-500 font-semibold mb-1">Max Media Size (MB)</label>
-                                        <input type="number" id="set-media-limit" value="${set.media_upload_limit_mb}" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
+                                <!-- Auto CRM Ingestion -->
+                                <div class="bg-slate-50/50 border border-slate-100 p-4 rounded-2xl flex items-center justify-between">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+                                            <i data-lucide="user-plus" class="h-5 w-5"></i>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-slate-700 text-xs">Auto CRM Ingestion</div>
+                                            <div class="text-[10px] text-slate-400 mt-0.5">Automatically create profile records when new numbers text you.</div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label class="block text-slate-500 font-semibold mb-1">Allowed File Types</label>
-                                        <input type="text" id="set-file-types" value="${set.allowed_file_types}" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
+                                    <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                                        <input type="checkbox" id="set-auto-crm" ${set.auto_crm_creation ? 'checked' : ''} onchange="autoSaveWaSettings()" class="sr-only peer">
+                                        <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-350 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                                    </label>
+                                </div>
+
+                                <!-- Lead Score & Urgency Detection -->
+                                <div class="bg-slate-50/50 border border-slate-100 p-4 rounded-2xl flex items-center justify-between">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="h-10 w-10 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center shrink-0 border border-violet-100">
+                                            <i data-lucide="target" class="h-5 w-5"></i>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-slate-700 text-xs">Lead Score & Urgency Detection</div>
+                                            <div class="text-[10px] text-slate-400 mt-0.5">Let AI rate budgets and score priority based on message urgency.</div>
+                                        </div>
                                     </div>
+                                    <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                                        <input type="checkbox" id="set-auto-lead" ${set.auto_lead_detection ? 'checked' : ''} onchange="autoSaveWaSettings()" class="sr-only peer">
+                                        <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-350 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                                    </label>
                                 </div>
                             </div>
-                            
-                            <div class="pt-4 border-t border-slate-100 flex items-center justify-end">
-                                <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition shadow-md">
-                                    Save Configurations
-                                </button>
+                        </div>
+
+                        <!-- Media Upload Configurations Card (1/3 width) -->
+                        <div class="lg:col-span-1 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+                            <h3 class="text-xs font-bold text-slate-800 border-b border-slate-100 pb-2 uppercase tracking-wider">Media Upload Configurations</h3>
+                            <div class="space-y-4 text-xs">
+                                <!-- Max Media Size (MB) -->
+                                <div>
+                                    <label class="block text-slate-400 font-semibold mb-1 text-[10px] uppercase tracking-wider">Max Media Size (MB)</label>
+                                    <select id="set-media-limit" onchange="autoSaveWaSettings()" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:border-blue-500">
+                                        <option value="16" ${set.media_upload_limit_mb == 16 ? 'selected' : ''}>16 MB</option>
+                                        <option value="32" ${set.media_upload_limit_mb == 32 ? 'selected' : ''}>32 MB</option>
+                                        <option value="64" ${set.media_upload_limit_mb == 64 ? 'selected' : ''}>64 MB</option>
+                                        <option value="128" ${set.media_upload_limit_mb == 128 ? 'selected' : ''}>128 MB</option>
+                                    </select>
+                                </div>
+
+                                <!-- Allowed File Types -->
+                                <div>
+                                    <label class="block text-slate-400 font-semibold mb-1 text-[10px] uppercase tracking-wider">Allowed File Types</label>
+                                    <select id="set-file-types" onchange="autoSaveWaSettings()" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:border-blue-500">
+                                        <option value="jpg,png,gif,pdf,doc,docx,mp4,mp3" ${['jpg,png,gif,pdf,doc,docx,mp4,mp3', 'jpg,png,gif,pdf,doc,docx'].includes(set.allowed_file_types) ? 'selected' : ''}>Images, Videos, Documents</option>
+                                        <option value="jpg,png,gif,mp4" ${set.allowed_file_types == 'jpg,png,gif,mp4' ? 'selected' : ''}>Images & Videos</option>
+                                        <option value="pdf,doc,docx" ${set.allowed_file_types == 'pdf,doc,docx' ? 'selected' : ''}>Documents Only</option>
+                                        <option value="jpg,png,pdf,mp4,mp3,docx" ${set.allowed_file_types == 'jpg,png,pdf,mp4,mp3,docx' ? 'selected' : ''}>Images, Videos, Documents (Default)</option>
+                                    </select>
+                                </div>
+
+                                <!-- Channel Quality -->
+                                <div>
+                                    <label class="block text-slate-400 font-semibold mb-1 text-[10px] uppercase tracking-wider">Channel Quality</label>
+                                    <div class="relative flex items-center">
+                                        <select id="set-channel-quality" onchange="autoSaveWaSettings()" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:border-blue-500 pr-24">
+                                            <option value="High Quality" ${localStorage.getItem('wa_channel_quality') === 'High Quality' || !localStorage.getItem('wa_channel_quality') ? 'selected' : ''}>High Quality</option>
+                                            <option value="Standard Quality" ${localStorage.getItem('wa_channel_quality') === 'Standard Quality' ? 'selected' : ''}>Standard Quality</option>
+                                            <option value="Low Quality" ${localStorage.getItem('wa_channel_quality') === 'Low Quality' ? 'selected' : ''}>Low Quality</option>
+                                        </select>
+                                        <span class="absolute right-2.5 px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-emerald-100 text-emerald-750 border border-emerald-200 uppercase pointer-events-none">Recommended</span>
+                                    </div>
+                                </div>
+
+                                <!-- Blue Alert Box -->
+                                <div class="p-3 bg-blue-50/60 border border-blue-100/80 rounded-xl flex items-start space-x-2.5 text-blue-600 text-[10px] font-semibold mt-4">
+                                    <i data-lucide="shield-check" class="h-4 w-4 shrink-0 mt-0.5 text-blue-500"></i>
+                                    <span>We recommend High Quality for better delivery and engagement.</span>
+                                </div>
                             </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
             `;
             lucide.createIcons();
+            
+            // Auto Save Handler
+            window.autoSaveWaSettings = function() {
+                const payload = {
+                    ai_enabled: document.getElementById('set-ai').checked ? 1 : 0,
+                    auto_crm_creation: document.getElementById('set-auto-crm').checked ? 1 : 0,
+                    auto_lead_detection: document.getElementById('set-auto-lead').checked ? 1 : 0,
+                    media_upload_limit_mb: parseInt(document.getElementById('set-media-limit').value),
+                    allowed_file_types: document.getElementById('set-file-types').value.trim()
+                };
+                
+                // Save channel quality mockup field to localStorage
+                const quality = document.getElementById('set-channel-quality').value;
+                localStorage.setItem('wa_channel_quality', quality);
+                
+                apiCall('whatsapp/settings.php', 'POST', payload)
+                    .then(res => {
+                        showNotification('success', 'Configurations auto-saved successfully.');
+                    })
+                    .catch(err => {
+                        showNotification('error', 'Auto-save failed: ' + err.message);
+                    });
+            };
             
             // Re-Verify Connection
             window.reVerifyConnection = function() {

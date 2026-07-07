@@ -363,6 +363,7 @@ TODAY'S DATE AND TIME: $currentDate $currentTime (relative offsets like 'tomorro
 
                             $ai = callAI($systemPrompt, $userPrompt, $userId);
                              $aiRes = json_decode($ai['text'], true);
+                             WhatsAppMetaService::logDebug("AI text parsed.", $aiRes);
                              if ($aiRes) {
                                  $aiSummary = $aiRes['summary'] ?? null;
                                  $aiSuggestedReply = $aiRes['suggested_reply'] ?? null;

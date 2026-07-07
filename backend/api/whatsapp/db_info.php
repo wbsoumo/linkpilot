@@ -6,13 +6,15 @@ $output = [];
 try {
     $db = Database::getConnection();
 
-    $settings = $db->query("SELECT * FROM whatsapp_settings")->fetchAll(PDO::FETCH_ASSOC);
-    $output['settings'] = $settings;
+    $contact = $db->query("SELECT * FROM whatsapp_contacts WHERE id = 7")->fetch(PDO::FETCH_ASSOC);
+    $output['contact'] = $contact;
 
-    $msgs = $db->query("SELECT id, wa_contact_id, direction, body, status, error_message, created_at FROM whatsapp_messages ORDER BY id DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
-    $output['messages'] = $msgs;
+    if ($contact) {
+        $settings = $db->query("SELECT * FROM whatsapp_settings WHERE user_id = " . (int)$contact['user_id'])->fetchAll(PDO::FETCH_ASSOC);
+        $output['settings'] = $settings;
+    }
 } catch (Throwable $e) {
-    $output['error'] = $e->getMessage() . "\n" . $e->getTraceAsString();
+    $output['error'] = $e->getMessage();
 }
 
 echo json_encode($output, JSON_PRETTY_PRINT);

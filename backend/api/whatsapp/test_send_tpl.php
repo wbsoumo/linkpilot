@@ -8,7 +8,7 @@ header('Content-Type: text/plain; charset=utf-8');
 $userId = 1; // Default user ID
 $db = Database::getConnection();
 
-echo "--- WHATSAPP DIRECT SEND DIAGNOSTICS ---\n";
+echo "--- WHATSAPP DIRECT SEND DIAGNOSTICS [VER 1003] ---\n";
 
 try {
     // 1. Fetch connected account

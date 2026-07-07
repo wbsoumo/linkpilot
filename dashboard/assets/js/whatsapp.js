@@ -139,7 +139,7 @@ function renderWhatsAppSetup(container, settings) {
                         </div>
                         <div class="pt-4 flex justify-between">
                             <button onclick="clearTokenError()" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
-                            <button onclick="verifyMetaToken()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">Retry Verification</button>
+                            <button onclick="verifyMetaToken()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md" style="color: #ffffff !important;">Retry Verification</button>
                         </div>
                     </div>
                 `;
@@ -211,9 +211,9 @@ function renderWhatsAppSetup(container, settings) {
                             </div>
                             
                             <div class="pt-2">
-                                <button id="btn-verify-token" onclick="verifyMetaToken()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition shadow-md flex items-center justify-center space-x-1.5">
-                                    <i data-lucide="shield-check" class="h-4.5 w-4.5"></i>
-                                    <span>Verify Token</span>
+                                <button id="btn-verify-token" onclick="verifyMetaToken()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition shadow-md flex items-center justify-center space-x-1.5" style="color: #ffffff !important;">
+                                    <i data-lucide="shield-check" class="h-4.5 w-4.5" style="color: #ffffff !important;"></i>
+                                    <span style="color: #ffffff !important;">Verify Token</span>
                                 </button>
                             </div>
                         </div>
@@ -233,7 +233,7 @@ function renderWhatsAppSetup(container, settings) {
                         </div>
                         <div class="pt-4 flex justify-between">
                             <button onclick="clearWabaError()" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
-                            <button onclick="verifyWabaId()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">Retry Verification</button>
+                            <button onclick="verifyWabaId()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md" style="color: #ffffff !important;">Retry Verification</button>
                         </div>
                     </div>
                 `;
@@ -282,9 +282,9 @@ function renderWhatsAppSetup(container, settings) {
                             
                             <div class="pt-2 flex justify-between space-x-3">
                                 <button onclick="goWizardStep(1)" class="px-5 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl transition hover:bg-slate-50">Back</button>
-                                <button id="btn-verify-waba" onclick="verifyWabaId()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition shadow-md flex items-center justify-center space-x-1.5">
-                                    <i data-lucide="check" class="h-4.5 w-4.5"></i>
-                                    <span>Verify WABA Account</span>
+                                <button id="btn-verify-waba" onclick="verifyWabaId()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition shadow-md flex items-center justify-center space-x-1.5" style="color: #ffffff !important;">
+                                    <i data-lucide="check" class="h-4.5 w-4.5" style="color: #ffffff !important;"></i>
+                                    <span style="color: #ffffff !important;">Verify WABA Account</span>
                                 </button>
                             </div>
                         </div>
@@ -326,7 +326,7 @@ function renderWhatsAppSetup(container, settings) {
                     
                     <div class="pt-2 flex justify-between space-x-3">
                         <button onclick="goWizardStep(2)" class="px-5 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl transition hover:bg-slate-50">Back</button>
-                        <button onclick="triggerHealthCheck()" ${!selectedPhone ? 'disabled' : ''} class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition shadow-md">Next: Health Check →</button>
+                        <button onclick="triggerHealthCheck()" ${!selectedPhone ? 'disabled' : ''} class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition shadow-md" style="color: #ffffff !important;">Next: Health Check →</button>
                     </div>
                 </div>
             `;
@@ -344,7 +344,7 @@ function renderWhatsAppSetup(container, settings) {
                         </div>
                         <div class="pt-4 flex justify-between space-x-3">
                             <button onclick="goWizardStep(3)" class="px-5 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl transition hover:bg-slate-50">Back</button>
-                            <button onclick="triggerHealthCheck()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition shadow-md">Retry Diagnostics</button>
+                            <button onclick="triggerHealthCheck()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition shadow-md" style="color: #ffffff !important;">Retry Diagnostics</button>
                         </div>
                     </div>
                 `;
@@ -413,7 +413,7 @@ function renderWhatsAppSetup(container, settings) {
                         
                         <div class="pt-4 flex justify-between space-x-3">
                             <button onclick="goWizardStep(3)" class="px-5 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl transition hover:bg-slate-50">Back</button>
-                            <button onclick="saveConnection()" ${!passes ? 'disabled' : ''} class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition shadow-md">Next: Save & Connect →</button>
+                            <button onclick="saveConnection()" ${!passes ? 'disabled' : ''} class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition shadow-md" style="color: #ffffff !important;">Next: Save & Connect →</button>
                         </div>
                     </div>
                 `;
@@ -458,7 +458,7 @@ function renderWhatsAppSetup(container, settings) {
                     </div>
                     
                     <div class="pt-4">
-                        <button onclick="window.location.reload()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition shadow-md">
+                        <button onclick="window.location.reload()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition shadow-md" style="color: #ffffff !important;">
                             Go to WhatsApp Inbox
                         </button>
                     </div>
@@ -485,7 +485,7 @@ function renderWhatsAppSetup(container, settings) {
                 <!-- Content Split Row -->
                 <div class="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
                     <!-- Left Column: Visual Illustration -->
-                    <div class="lg:col-span-2 hidden lg:flex flex-col items-center justify-center p-6 bg-slate-50/50 rounded-2xl border border-slate-100 relative">
+                    <div class="lg:col-span-2 hidden lg:flex flex-col items-center justify-center p-6 bg-gradient-to-tr from-emerald-50/80 via-white to-blue-50/80 rounded-3xl border border-slate-200/60 shadow-sm relative overflow-hidden">
                         <div class="relative w-48 h-48 flex items-center justify-center">
                             <!-- Outer glow circles -->
                             <div class="absolute inset-0 rounded-full border border-emerald-500/10 bg-emerald-500/[0.02] animate-pulse"></div>

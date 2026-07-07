@@ -423,5 +423,6 @@ try {
         sendJsonResponse('error', 'Method not allowed', [], 405);
     }
 } catch (Exception $e) {
+    WhatsAppMetaService::logDebug("Inbox operation exception: " . $e->getMessage() . "\n" . $e->getTraceAsString());
     sendJsonResponse('error', 'Inbox operation failed: ' . $e->getMessage(), [], 500);
 }

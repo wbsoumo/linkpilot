@@ -335,7 +335,7 @@ CRITICAL IDENTITY & CONVERSATIONAL RULES:
 }
 
 NOTE:
-- Only return \"extracted_task\" if the customer explicitly mentions or asks for a meeting, follow-up, call, task, or action item. If no task or meeting is requested or mentioned, do NOT include the \"extracted_task\" field in the JSON (set it to null or omit it).
+- Return \"extracted_task\" if the customer mentions a task/meeting, OR if they are currently providing scheduling details (such as date, time, or email address) in an ongoing scheduling discussion. If the customer is providing their email address to finalize a meeting, you MUST include the \"extracted_task\" block with 'meeting_flow_stage' set to 'finalize' and fill in the \"contact_gmail\" field. If no task/meeting is mentioned or being scheduled, set \"extracted_task\" to null.
 
 TODAY'S DATE AND TIME: $currentDate $currentTime (relative offsets like 'tomorrow', 'next week', 'Friday at 2pm' must be calculated relative to this timestamp).
 

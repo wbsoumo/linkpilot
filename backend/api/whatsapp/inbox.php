@@ -290,10 +290,28 @@ try {
                         ];
                     }
                     if (!empty($params)) {
-                        $components = [
-                            [
-                                "type" => "body",
-                                "parameters" => $params
+                        $components[] = [
+                            "type" => "body",
+                            "parameters" => $params
+                        ];
+                    }
+                    
+                    // Retrieve category from local database to detect AUTHENTICATION templates
+                    $stmtTplCat = $db->prepare("SELECT category FROM whatsapp_templates WHERE name = ? AND user_id = ? LIMIT 1");
+                    $stmtTplCat->execute([$templateName, $userId]);
+                    $tplCategory = $stmtTplCat->fetchColumn();
+                    
+                    $isAuth = ($tplCategory === 'AUTHENTICATION' || stripos($templateName, 'otp') !== false || stripos($templateName, 'auth') !== false || stripos($templateName, 'login') !== false);
+                    if ($isAuth) {
+                        $components[] = [
+                            "type" => "button",
+                            "sub_type" => "otp",
+                            "index" => 0,
+                            "parameters" => [
+                                [
+                                    "type" => "text",
+                                    "text" => (string)$input['variables'][0]
+                                ]
                             ]
                         ];
                     }

@@ -40,6 +40,10 @@ $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https"
 $host = $_SERVER['HTTP_HOST'];
 $redirectUri = $protocol . '://' . $host . '/backend/api/external_apps/callback.php';
 
+if (!class_exists('Google\Client')) {
+    die("Authorization callback error: Google API Client library is not installed on your server. Please run 'composer install' in the 'backend' directory on your server to install dependencies.");
+}
+
 try {
     // 2. Initialize official Google client
     $client = new Google\Client();

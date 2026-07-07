@@ -232,6 +232,11 @@ class ExternalAppsHelper {
      * Gets and auto-refreshes Google access token
      */
     public static function getGoogleAccessToken($userId) {
+        if (!class_exists('Google\Client')) {
+            error_log("Google API Client class not found. Please run 'composer install' in backend directory.");
+            return false;
+        }
+
         $db = Database::getConnection();
         $stmt = $db->prepare("SELECT * FROM external_app_connections WHERE user_id = ? AND provider = 'google' LIMIT 1");
         $stmt->execute([$userId]);

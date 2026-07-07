@@ -41,6 +41,10 @@ if (empty($scopes)) {
 $hash = md5($userId . ENCRYPTION_KEY);
 $stateEncoded = $userId . '-' . $hash . '-' . $type;
 
+if (!class_exists('Google\Client')) {
+    sendJsonResponse('error', 'Google API Client library is not installed on your server. Please run "composer install" in the "backend" directory on your server to install dependencies.', [], 500);
+}
+
 try {
     $client = new Google\Client();
     $client->setClientId($creds['client_id']);

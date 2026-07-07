@@ -30,6 +30,10 @@ try {
                 sendJsonResponse('error', 'Google Client ID and Client Secret are required for verification.', [], 400);
             }
 
+            if (!class_exists('Google\Client')) {
+                sendJsonResponse('error', 'Google API Client library is not installed on your server. Please run "composer install" in the "backend" directory on your server to install dependencies.', [], 500);
+            }
+
             $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
             $host = $_SERVER['HTTP_HOST'];
             $redirectUri = $protocol . '://' . $host . '/backend/api/external_apps/callback.php';

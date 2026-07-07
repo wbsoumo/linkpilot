@@ -85,7 +85,7 @@ try {
     if ($isAuth) {
         $components[] = [
             "type" => "button",
-            "sub_type" => "otp",
+            "sub_type" => "copy_code",
             "index" => 0,
             "parameters" => [
                 [

@@ -218,12 +218,12 @@ try {
                     if ($settings['ai_enabled'] && $msgType === 'text' && !empty($bodyText)) {
                         try {
                             // 1. Fetch Today's & Upcoming Meetings
-                            $stmtMeetings = $db->prepare("SELECT title, description, start_time, location FROM crm_meetings WHERE user_id = ? AND start_time >= NOW() ORDER BY start_time ASC LIMIT 5");
+                            $stmtMeetings = $db->prepare("SELECT title, description, start_time, location, meet_link FROM crm_meetings WHERE user_id = ? AND start_time >= NOW() ORDER BY start_time ASC LIMIT 5");
                             $stmtMeetings->execute([$userId]);
                             $meetings = $stmtMeetings->fetchAll(PDO::FETCH_ASSOC);
 
                             // 2. Fetch Pending/Active Tasks
-                            $stmtTasks = $db->prepare("SELECT title, description, status, due_date, priority FROM crm_tasks WHERE user_id = ? AND status != 'Completed' ORDER BY due_date ASC LIMIT 8");
+                            $stmtTasks = $db->prepare("SELECT title, description, status, due_date, due_time, priority, meet_link FROM crm_tasks WHERE user_id = ? AND status != 'Completed' ORDER BY due_date ASC LIMIT 8");
                             $stmtTasks->execute([$userId]);
                             $tasks = $stmtTasks->fetchAll(PDO::FETCH_ASSOC);
 
@@ -258,12 +258,12 @@ try {
                             
                             $tasksCtx = "";
                             foreach ($tasks as $t) {
-                                $tasksCtx .= "- Task: {$t['title']} | Due: {$t['due_date']} | Status: {$t['status']} | Priority: {$t['priority']}\n";
+                                $tasksCtx .= "- Task: {$t['title']} | Due: {$t['due_date']} @ " . ($t['due_time'] ?: 'N/A') . " | Status: {$t['status']} | Priority: {$t['priority']}" . (!empty($t['meet_link']) ? " | Meet Link: {$t['meet_link']}" : "") . "\n";
                             }
                             
                             $meetingsCtx = "";
                             foreach ($meetings as $m) {
-                                $meetingsCtx .= "- Meeting: {$m['title']} | Time: {$m['start_time']} | Location: {$m['location']}\n";
+                                $meetingsCtx .= "- Meeting: {$m['title']} | Time: {$m['start_time']} | Location: {$m['location']}" . (!empty($m['meet_link']) ? " | Meet Link: {$m['meet_link']}" : "") . "\n";
                             }
                             
                             $emailsCtx = "";
@@ -299,6 +299,9 @@ CRITICAL IDENTITY & CONVERSATIONAL RULES:
 5. Stay strictly on-topic. Focus entirely on the customer's business relationship, leads, bookings, invoices, and sales inquiries. Do not discuss general knowledge or unrelated subjects.
 6. If you need to schedule a meeting, check the meetings/availability list below. Propose slot options that do not conflict with existing meetings.
 7. If you do not have enough information to close a deal or answer a technical question, ask polite clarifying questions.
+7.5 If the customer asks for the link or details of an upcoming scheduled meeting/task in the context:
+    - Check if there is a 'Meet Link' or location provided for that task/meeting in the context.
+    - If present, you MUST write the link directly in your 'suggested_reply' so they can join.
 8. CRITICAL MEETING SCHEDULING FLOW:
    - If the customer mentions scheduling a meeting, call, or appointment, OR is currently replying to your scheduling request with a datetime or their Gmail/email address:
       - Even if the latest message is just their email address (e.g. 'myemail@gmail.com') or a date/time, you MUST treat this as part of the ongoing scheduling flow and extract the task info.

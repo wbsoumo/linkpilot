@@ -212,6 +212,7 @@ try {
                     // c. Run AI Intelligence (Summarization, Replies, Sentiment, CRM Extraction)
                     $aiSummary = null;
                     $aiSuggestedReply = null;
+                    $secondWaMessageText = null;
                     $sentiment = 'neutral';
                     
                     if ($settings['ai_enabled'] && $msgType === 'text' && !empty($bodyText)) {
@@ -449,21 +450,19 @@ TODAY'S DATE AND TIME: $currentDate $currentTime (relative offsets like 'tomorro
                                         // Format timing
                                         $timingFormatted = date('jS F Y', strtotime($taskDueDate)) . ' at ' . ($taskDueTime ? substr($taskDueTime, 0, 5) : '09:00');
                                         
-                                        // Build custom response update with timing, agenda and meet link
-                                        $additionalText = "\n\n📅 *Meeting Scheduled Details*:\n";
-                                        $additionalText .= "• *Subject*: " . str_replace('[Meeting] ', '', $taskTitle) . "\n";
-                                        $additionalText .= "• *Time*: " . $timingFormatted . "\n";
+                                        // Build second message with timing, agenda and meet link
+                                        $secondWaMessageText = "📅 *Meeting Scheduled Details*:\n";
+                                        $secondWaMessageText .= "• *Subject*: " . str_replace('[Meeting] ', '', $taskTitle) . "\n";
+                                        $secondWaMessageText .= "• *Time*: " . $timingFormatted . "\n";
                                         if (!empty($taskDesc)) {
-                                            $additionalText .= "• *Agenda*: " . $taskDesc . "\n";
+                                            $secondWaMessageText .= "• *Agenda*: " . $taskDesc . "\n";
                                         }
                                         if ($meetLink) {
-                                            $additionalText .= "• *Google Meet Link*: " . $meetLink . "\n";
+                                            $secondWaMessageText .= "• *Google Meet Link*: " . $meetLink . "\n";
                                         }
                                         if ($contactGmail) {
-                                            $additionalText .= "\nI have sent a calendar invitation email to your email: *" . $contactGmail . "* containing the invite attachment. Looking forward to our call!";
+                                            $secondWaMessageText .= "\nI have sent a calendar invitation email to your email: *" . $contactGmail . "* containing the invite attachment. Looking forward to our call!";
                                         }
-                                        
-                                        $aiSuggestedReply .= $additionalText;
                                         
                                         // Log to timeline
                                         $db->prepare("INSERT INTO crm_timeline (user_id, lead_id, contact_id, company_id, activity_type, description) VALUES (?, ?, ?, ?, 'Task Created', ?)")
@@ -521,6 +520,26 @@ TODAY'S DATE AND TIME: $currentDate $currentTime (relative offsets like 'tomorro
                             // Save outbound auto reply to database
                             $stmtInsAutoMsg = $db->prepare("INSERT INTO whatsapp_messages (user_id, wa_contact_id, message_id, direction, type, body, status) VALUES (?, ?, ?, 'outbound', 'text', ?, 'sent')");
                             $stmtInsAutoMsg->execute([$userId, $waContactId, $replyMsgId, $aiSuggestedReply]);
+                            
+                            // If there is a second message (e.g. meeting details) to send
+                            if (!empty($secondWaMessageText)) {
+                                usleep(500000); // 0.5s short delay to make it feel natural
+                                $secondReplyMsgId = '';
+                                try {
+                                    if (!$isMock) {
+                                        $sendRes2 = WhatsAppMetaService::sendTextMessage($userId, $phoneNumberId, $fromWaId, $secondWaMessageText, $accessToken);
+                                        $secondReplyMsgId = $sendRes2['messages'][0]['id'] ?? 'wamid.auto.sec.' . uniqid();
+                                    } else {
+                                        $secondReplyMsgId = 'wamid.MockAuto.sec.' . uniqid();
+                                    }
+                                    
+                                    // Save second outbound message to database
+                                    $stmtInsAutoMsg2 = $db->prepare("INSERT INTO whatsapp_messages (user_id, wa_contact_id, message_id, direction, type, body, status) VALUES (?, ?, ?, 'outbound', 'text', ?, 'sent')");
+                                    $stmtInsAutoMsg2->execute([$userId, $waContactId, $secondReplyMsgId, $secondWaMessageText]);
+                                } catch (Exception $sendEx2) {
+                                    error_log("Failed sending second scheduling message: " . $sendEx2->getMessage());
+                                }
+                            }
                             
                             // Update last active activity
                             $db->prepare("UPDATE whatsapp_contacts SET last_message_at = NOW() WHERE id = ?")->execute([$waContactId]);

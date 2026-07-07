@@ -3,10 +3,14 @@
 
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../jwt_helper.php';
+require_once __DIR__ . '/../../external_apps_helper.php';
 
 // Require Auth
 $user = JWTHelper::requireAuth();
 $userId = $user['id'];
+
+// Trigger self-healing database migration
+ExternalAppsHelper::checkDatabaseSchema();
 
 $db = Database::getConnection();
 

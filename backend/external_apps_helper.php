@@ -6,9 +6,72 @@ require_once __DIR__ . '/config.php';
 class ExternalAppsHelper {
 
     /**
+     * Self-healing database check. Automatically creates connection table and adds missing columns.
+     */
+    public static function checkDatabaseSchema() {
+        $db = Database::getConnection();
+        try {
+            // 1. Create external_app_connections table if missing
+            $stmt = $db->query("SHOW TABLES LIKE 'external_app_connections'");
+            if ($stmt->rowCount() === 0) {
+                $db->exec("
+                    CREATE TABLE IF NOT EXISTS `external_app_connections` (
+                        `id` INT AUTO_INCREMENT PRIMARY KEY,
+                        `user_id` INT NOT NULL,
+                        `provider` VARCHAR(50) NOT NULL,
+                        `email` VARCHAR(255) DEFAULT NULL,
+                        `access_token` TEXT DEFAULT NULL,
+                        `refresh_token` TEXT DEFAULT NULL,
+                        `expires_at` TIMESTAMP NULL DEFAULT NULL,
+                        `status` VARCHAR(50) DEFAULT 'connected',
+                        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                        CONSTRAINT `fk_external_app_user_helper` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+                        UNIQUE KEY `idx_user_provider` (`user_id`, `provider`)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+                ");
+            }
+
+            // 2. Append missing CRM fields to crm_meetings
+            try {
+                $stmt = $db->query("SHOW COLUMNS FROM `crm_meetings` LIKE 'google_event_id'");
+                if ($stmt->rowCount() === 0) {
+                    $db->exec("ALTER TABLE `crm_meetings` ADD COLUMN `google_event_id` VARCHAR(255) DEFAULT NULL AFTER `status`");
+                }
+            } catch (Exception $e) {}
+
+            try {
+                $stmt = $db->query("SHOW COLUMNS FROM `crm_meetings` LIKE 'meet_link'");
+                if ($stmt->rowCount() === 0) {
+                    $db->exec("ALTER TABLE `crm_meetings` ADD COLUMN `meet_link` VARCHAR(500) DEFAULT NULL AFTER `google_event_id`");
+                }
+            } catch (Exception $e) {}
+
+            // 3. Append missing CRM fields to crm_tasks
+            try {
+                $stmt = $db->query("SHOW COLUMNS FROM `crm_tasks` LIKE 'sync_to_calendar'");
+                if ($stmt->rowCount() === 0) {
+                    $db->exec("ALTER TABLE `crm_tasks` ADD COLUMN `sync_to_calendar` TINYINT(1) DEFAULT 0 AFTER `status`");
+                }
+            } catch (Exception $e) {}
+
+            try {
+                $stmt = $db->query("SHOW COLUMNS FROM `crm_tasks` LIKE 'google_event_id'");
+                if ($stmt->rowCount() === 0) {
+                    $db->exec("ALTER TABLE `crm_tasks` ADD COLUMN `google_event_id` VARCHAR(255) DEFAULT NULL AFTER `sync_to_calendar`");
+                }
+            } catch (Exception $e) {}
+
+        } catch (Exception $e) {
+            error_log("ExternalAppsHelper Database Setup Error: " . $e->getMessage());
+        }
+    }
+
+    /**
      * Fetch Google Client ID and Secret from admin_settings, fallback to config constants
      */
     public static function getGoogleCredentials() {
+        self::checkDatabaseSchema();
         $db = Database::getConnection();
         
         $stmt = $db->query("SELECT setting_key, setting_value FROM admin_settings WHERE setting_key IN ('google_external_enabled', 'google_external_client_id', 'google_external_client_secret', 'google_external_scopes')");
@@ -35,6 +98,7 @@ class ExternalAppsHelper {
      * Checks if user has a connected Google account
      */
     public static function isGoogleConnected($userId) {
+        self::checkDatabaseSchema();
         $db = Database::getConnection();
         $stmt = $db->prepare("SELECT status FROM external_app_connections WHERE user_id = ? AND provider = 'google' LIMIT 1");
         $stmt->execute([$userId]);

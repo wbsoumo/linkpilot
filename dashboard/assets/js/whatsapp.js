@@ -1346,47 +1346,53 @@ async function loadWaThreadMessages() {
         if (footer) {
             footer.classList.remove('hidden');
             if (!isWindowActive) {
-                footer.innerHTML = `
-                    <div class="p-3.5 bg-amber-50/70 border border-amber-200/80 rounded-xl flex flex-col items-center text-center space-y-2 animate-fade-in">
-                        <div class="flex items-center space-x-2 text-amber-700 font-bold text-[10px] uppercase tracking-wider">
-                            <i data-lucide="alert-triangle" class="h-4 w-4"></i>
-                            <span>24-Hour Customer Care Window Expired</span>
+                // Only render if warning is not already showing
+                if (!footer.querySelector('.bg-amber-600')) {
+                    footer.innerHTML = `
+                        <div class="p-3.5 bg-amber-50/70 border border-amber-200/80 rounded-xl flex flex-col items-center text-center space-y-2 animate-fade-in">
+                            <div class="flex items-center space-x-2 text-amber-700 font-bold text-[10px] uppercase tracking-wider">
+                                <i data-lucide="alert-triangle" class="h-4 w-4"></i>
+                                <span>24-Hour Customer Care Window Expired</span>
+                            </div>
+                            <p class="text-slate-600 text-[10px] max-w-sm">
+                                You can only send template messages to reactivate this chat. Standard text input is locked by Meta until the customer messages you again.
+                            </p>
+                            <button onclick="openTemplateSelectorModal('${thread.wa_id}')" class="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-xs shadow-sm transition flex items-center space-x-1.5">
+                                <i data-lucide="layout-template" class="h-3.5 w-3.5"></i>
+                                <span>Send Template Message</span>
+                            </button>
                         </div>
-                        <p class="text-slate-600 text-[10px] max-w-sm">
-                            You can only send template messages to reactivate this chat. Standard text input is locked by Meta until the customer messages you again.
-                        </p>
-                        <button onclick="openTemplateSelectorModal('${thread.wa_id}')" class="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-xs shadow-sm transition flex items-center space-x-1.5">
-                            <i data-lucide="layout-template" class="h-3.5 w-3.5"></i>
-                            <span>Send Template Message</span>
-                        </button>
-                    </div>
-                `;
+                    `;
+                }
             } else {
-                footer.innerHTML = `
-                    <!-- AI Suggestion overlay bar -->
-                    <div id="wa-ai-suggestion-bar" class="hidden mb-3 p-3 bg-indigo-50 border border-indigo-100 rounded-xl space-y-2 relative animate-fade-in text-[11px]">
-                        <button onclick="dismissAISuggestion()" class="absolute top-2 right-2 text-slate-400 hover:text-slate-600">&times;</button>
-                        <div class="flex items-center space-x-1.5 text-indigo-600 font-bold">
-                            <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
-                            <span>AI Response draft suggestion:</span>
+                // Only render normal form if input box is not already showing
+                if (!document.getElementById('wa-chat-input')) {
+                    footer.innerHTML = `
+                        <!-- AI Suggestion overlay bar -->
+                        <div id="wa-ai-suggestion-bar" class="hidden mb-3 p-3 bg-indigo-50 border border-indigo-100 rounded-xl space-y-2 relative animate-fade-in text-[11px]">
+                            <button onclick="dismissAISuggestion()" class="absolute top-2 right-2 text-slate-400 hover:text-slate-600">&times;</button>
+                            <div class="flex items-center space-x-1.5 text-indigo-600 font-bold">
+                                <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
+                                <span>AI Response draft suggestion:</span>
+                            </div>
+                            <p class="text-slate-700 italic" id="wa-ai-suggestion-text"></p>
+                            <div class="flex space-x-2">
+                                <button onclick="applyAISuggestion()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold transition">Use Draft</button>
+                                <button onclick="regenerateAISuggestion()" class="px-2.5 py-1 border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 rounded font-semibold transition">Regenerate ↻</button>
+                            </div>
                         </div>
-                        <p class="text-slate-700 italic" id="wa-ai-suggestion-text"></p>
-                        <div class="flex space-x-2">
-                            <button onclick="applyAISuggestion()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold transition">Use Draft</button>
-                            <button onclick="regenerateAISuggestion()" class="px-2.5 py-1 border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 rounded font-semibold transition">Regenerate ↻</button>
-                        </div>
-                    </div>
 
-                    <form onsubmit="sendWaMessage(event)" class="flex items-center space-x-2 relative">
-                        <button type="button" onclick="triggerWaAIChatAnalysis()" class="h-8 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200/50 rounded-lg flex items-center justify-center shrink-0 transition" title="Ask AI reply draft suggestion">
-                            <i data-lucide="sparkles" class="h-4 w-4"></i>
-                        </button>
-                        <input type="text" id="wa-chat-input" placeholder="Type a message..." class="flex-grow px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500">
-                        <button type="submit" class="h-8 w-8 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg flex items-center justify-center shrink-0 transition shadow-sm">
-                            <i data-lucide="send" class="h-4 w-4"></i>
-                        </button>
-                    </form>
-                `;
+                        <form onsubmit="sendWaMessage(event)" class="flex items-center space-x-2 relative">
+                            <button type="button" onclick="triggerWaAIChatAnalysis()" class="h-8 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200/50 rounded-lg flex items-center justify-center shrink-0 transition" title="Ask AI reply draft suggestion">
+                                <i data-lucide="sparkles" class="h-4 w-4"></i>
+                            </button>
+                            <input type="text" id="wa-chat-input" placeholder="Type a message..." class="flex-grow px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500">
+                            <button type="submit" class="h-8 w-8 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg flex items-center justify-center shrink-0 transition shadow-sm">
+                                <i data-lucide="send" class="h-4 w-4"></i>
+                            </button>
+                        </form>
+                    `;
+                }
             }
         }
         

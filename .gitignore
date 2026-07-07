@@ -10,3 +10,9 @@ backend/config.php
 
 # Vendor libraries
 backend/vendor/
+
+# Local log files
+backend/api/whatsapp/whatsapp_debug.log
+backend/api/whatsapp/request_log.txt
+ai_debug.log
+db_log_out.txt

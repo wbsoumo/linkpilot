@@ -37,10 +37,10 @@ try {
                 sendJsonResponse('error', 'Conversation thread not found.', [], 404);
             }
             
-            // 2. Load message history
-            $stmtMsgs = $db->prepare("SELECT * FROM whatsapp_messages WHERE wa_contact_id = ? ORDER BY created_at ASC LIMIT 100");
+            // 2. Load message history (latest 100 messages chronologically)
+            $stmtMsgs = $db->prepare("SELECT * FROM whatsapp_messages WHERE wa_contact_id = ? ORDER BY created_at DESC LIMIT 100");
             $stmtMsgs->execute([$waContactId]);
-            $messages = $stmtMsgs->fetchAll();
+            $messages = array_reverse($stmtMsgs->fetchAll());
             
             // 3. Clear unread badge
             $db->prepare("UPDATE whatsapp_contacts SET unread_count = 0 WHERE id = ?")->execute([$waContactId]);

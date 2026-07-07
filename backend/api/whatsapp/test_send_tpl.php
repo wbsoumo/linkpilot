@@ -89,8 +89,8 @@ try {
             "index" => 0,
             "parameters" => [
                 [
-                    "type" => "text",
-                    "text" => "123456"
+                    "type" => "coupon_code",
+                    "coupon_code" => "123456"
                 ]
             ]
         ];

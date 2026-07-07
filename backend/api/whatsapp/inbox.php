@@ -309,8 +309,8 @@ try {
                             "index" => 0,
                             "parameters" => [
                                 [
-                                    "type" => "text",
-                                    "text" => (string)$input['variables'][0]
+                                    "type" => "coupon_code",
+                                    "coupon_code" => (string)$input['variables'][0]
                                 ]
                             ]
                         ];

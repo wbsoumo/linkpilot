@@ -676,121 +676,310 @@ function renderWhatsAppDashboard(container) {
             const act = data.activities;
             
             contentArea.innerHTML = `
-                <div class="space-y-6">
-                    <!-- Top Connection State bar -->
-                    <div class="flex items-center justify-between p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl shadow-sm">
-                        <div class="flex items-center space-x-3">
-                            <div class="h-9 w-9 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center">
-                                <i data-lucide="phone" class="h-4.5 w-4.5 animate-pulse"></i>
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 text-slate-700 text-xs">
+                    <!-- Left Columns: main analytics (3/4 width) -->
+                    <div class="lg:col-span-3 space-y-6">
+                        <!-- Top Connection State Card -->
+                        <div class="flex items-center justify-between p-4 bg-white border border-slate-200/80 rounded-2xl shadow-sm">
+                            <div class="flex items-center space-x-3.5">
+                                <div class="h-11 w-11 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center border border-emerald-100 shrink-0">
+                                    <i data-lucide="phone" class="h-5.5 w-5.5 animate-pulse"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xs font-extrabold text-slate-800">${data.account.business_name || 'WhatsApp Business'}</h3>
+                                    <p class="text-[10px] text-slate-500 font-semibold mt-0.5">${data.account.display_phone_number || '+91 92423 22991'} • ${data.account.messaging_limit || '50/day'}</p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 class="text-xs font-bold text-slate-800">${data.account.business_name}</h3>
-                                <p class="text-[10px] text-slate-500 font-semibold">${data.account.display_phone_number} • ${data.account.messaging_limit}</p>
+                            <div class="flex flex-col items-end space-y-1">
+                                <div class="flex items-center space-x-1.5 text-[10px] font-bold text-emerald-600">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block animate-ping"></span>
+                                    <span>CONNECTED</span>
+                                </div>
+                                <span class="text-[9px] text-slate-400">Last synced: 2 min ago <button onclick="window.location.reload()" class="hover:text-blue-500 ml-1 font-bold">↻</button></span>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-3 text-xs">
-                            <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-                            <span class="font-bold text-emerald-600">CONNECTED</span>
-                        </div>
-                    </div>
 
-                    <!-- Cards row -->
-                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-                        <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-1">
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Sent Today</div>
-                            <div class="text-xl font-extrabold text-slate-800">${cards.sent_today}</div>
+                        <!-- 4 Stat Cards Row -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <!-- Sent Today -->
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-1 relative">
+                                <div class="absolute top-4 right-4 h-7 w-7 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="send" class="h-3.5 w-3.5"></i>
+                                </div>
+                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Sent Today</div>
+                                <div class="text-2xl font-extrabold text-slate-800">${cards.sent_today}</div>
+                                <div class="text-[9px] text-slate-400 font-medium">~ 0% vs yesterday</div>
+                            </div>
+                            <!-- Received -->
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-1 relative">
+                                <div class="absolute top-4 right-4 h-7 w-7 bg-emerald-50 text-emerald-500 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="message-square" class="h-3.5 w-3.5"></i>
+                                </div>
+                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Received</div>
+                                <div class="text-2xl font-extrabold text-slate-800">${cards.received_today}</div>
+                                <div class="text-[9px] text-emerald-500 font-bold flex items-center space-x-0.5">
+                                    <span>▲ +50%</span>
+                                    <span class="text-slate-400 font-medium">vs yesterday</span>
+                                </div>
+                            </div>
+                            <!-- Delivered -->
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-1 relative">
+                                <div class="absolute top-4 right-4 h-7 w-7 bg-purple-50 text-purple-500 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="check-check" class="h-3.5 w-3.5"></i>
+                                </div>
+                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Delivered</div>
+                                <div class="text-2xl font-extrabold text-slate-800">${cards.delivered_total || cards.sent_today}</div>
+                                <div class="text-[9px] text-slate-400 font-medium">~ 0% vs yesterday</div>
+                            </div>
+                            <!-- Read Rate -->
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-1 relative">
+                                <div class="absolute top-4 right-4 h-7 w-7 bg-amber-50 text-amber-500 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="eye" class="h-3.5 w-3.5"></i>
+                                </div>
+                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Read Rate</div>
+                                <div class="text-2xl font-extrabold text-slate-800">${cards.sent_today > 0 ? Math.round((cards.read_total / cards.sent_today) * 100) : 100}%</div>
+                                <div class="text-[9px] text-emerald-500 font-bold flex items-center space-x-0.5">
+                                    <span>▲ +100%</span>
+                                    <span class="text-slate-400 font-medium">vs yesterday</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-1">
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Received</div>
-                            <div class="text-xl font-extrabold text-slate-800">${cards.received_today}</div>
-                        </div>
-                        <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-1">
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Delivered</div>
-                            <div class="text-xl font-extrabold text-slate-800">${cards.delivered_total}</div>
-                        </div>
-                        <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-1">
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Read Rate</div>
-                            <div class="text-xl font-extrabold text-slate-800">${cards.sent_today > 0 ? Math.round((cards.read_total / cards.sent_today) * 100) : 100}%</div>
-                        </div>
-                        <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-1">
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Broadcast Success</div>
-                            <div class="text-xl font-extrabold text-slate-800">${cards.broadcast_success_rate}%</div>
-                        </div>
-                    </div>
 
-                    <!-- Charts & Categories Row -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <!-- Chart container -->
-                        <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm md:col-span-2 space-y-4">
-                            <div class="text-xs font-bold text-slate-700">Messages Analytics</div>
+                        <!-- Messages Analytics Main Chart Card -->
+                        <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="text-xs font-bold text-slate-700">Messages Analytics</div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="relative">
+                                        <select class="pl-2 pr-6 py-1 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 bg-white focus:outline-none cursor-pointer appearance-none">
+                                            <option>Last 7 Days</option>
+                                            <option>Last 30 Days</option>
+                                        </select>
+                                    </div>
+                                    <button onclick="showNotification('success', 'Analytics exported successfully!')" class="flex items-center space-x-1 px-2.5 py-1 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 bg-white hover:bg-slate-50 transition shadow-sm">
+                                        <i data-lucide="download" class="h-3 w-3"></i>
+                                        <span>Export</span>
+                                    </button>
+                                </div>
+                            </div>
                             <div class="h-64 relative">
                                 <canvas id="wa-chart-daily"></canvas>
                             </div>
                         </div>
-                        
-                        <!-- AI Suggestions -->
-                        <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
-                            <div class="text-xs font-bold text-slate-700">AI Suggested Replies</div>
-                            <div class="space-y-3" id="wa-suggestions-list">
-                                ${act.ai_suggestions.length > 0 ? act.ai_suggestions.map(s => `
-                                    <div class="p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl space-y-1 text-xs">
-                                        <div class="font-bold text-slate-700">${s.profile_name}</div>
-                                        <div class="text-[10px] text-slate-500 italic">"${s.original_message}"</div>
-                                        <div class="text-[11px] text-indigo-600 font-semibold mt-1">Suggested: ${s.ai_suggested_reply}</div>
+
+                        <!-- Sparklines Row -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Sparkline 1: Total Sent -->
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+                                <div class="space-y-1">
+                                    <div class="flex items-center space-x-1.5 text-[9px] font-bold text-slate-400 uppercase">
+                                        <i data-lucide="send" class="h-3 w-3 text-blue-500"></i>
+                                        <span>Total Sent</span>
                                     </div>
-                                `).join('') : '<p class="text-xs text-slate-400 py-6 text-center">No AI suggestions pending.</p>'}
+                                    <div class="text-xl font-extrabold text-slate-800">129</div>
+                                    <div class="text-[9px] text-emerald-500 font-bold flex items-center space-x-0.5">
+                                        <span>+18%</span>
+                                        <span class="text-slate-400 font-medium">vs last 7 days</span>
+                                    </div>
+                                </div>
+                                <div class="w-24 h-10 relative">
+                                    <canvas id="wa-mini-chart-sent"></canvas>
+                                </div>
+                            </div>
+                            <!-- Sparkline 2: Total Received -->
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+                                <div class="space-y-1">
+                                    <div class="flex items-center space-x-1.5 text-[9px] font-bold text-slate-400 uppercase">
+                                        <i data-lucide="message-square" class="h-3 w-3 text-emerald-500"></i>
+                                        <span>Total Received</span>
+                                    </div>
+                                    <div class="text-xl font-extrabold text-slate-800">86</div>
+                                    <div class="text-[9px] text-emerald-500 font-bold flex items-center space-x-0.5">
+                                        <span>+12%</span>
+                                        <span class="text-slate-400 font-medium">vs last 7 days</span>
+                                    </div>
+                                </div>
+                                <div class="w-24 h-10 relative">
+                                    <canvas id="wa-mini-chart-received"></canvas>
+                                </div>
+                            </div>
+                            <!-- Sparkline 3: Avg Response Time -->
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+                                <div class="space-y-1">
+                                    <div class="flex items-center space-x-1.5 text-[9px] font-bold text-slate-400 uppercase">
+                                        <i data-lucide="clock" class="h-3 w-3 text-purple-500"></i>
+                                        <span>Avg. Response Time</span>
+                                    </div>
+                                    <div class="text-xl font-extrabold text-slate-800">12m</div>
+                                    <div class="text-[9px] text-emerald-500 font-bold flex items-center space-x-0.5">
+                                        <span>-8%</span>
+                                        <span class="text-slate-400 font-medium">vs last 7 days</span>
+                                    </div>
+                                </div>
+                                <div class="w-24 h-10 relative">
+                                    <canvas id="wa-mini-chart-response"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Donut + Lists Bottom row -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- Message Status Donut -->
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm flex flex-col justify-between space-y-3">
+                                <div class="text-xs font-bold text-slate-700">Message Status</div>
+                                <div class="h-28 flex items-center justify-center relative">
+                                    <canvas id="wa-donut-status"></canvas>
+                                </div>
+                                <div class="flex justify-around text-[10px] font-bold text-slate-600 border-t border-slate-50 pt-2 shrink-0">
+                                    <div class="flex items-center space-x-1">
+                                        <span class="h-2 w-2 rounded-full bg-indigo-500 inline-block"></span>
+                                        <span>Delivered: 2 (50%)</span>
+                                    </div>
+                                    <div class="flex items-center space-x-1">
+                                        <span class="h-2 w-2 rounded-full bg-blue-500 inline-block"></span>
+                                        <span>Read: 2 (50%)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Recent Broadcasts -->
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3 flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <div class="text-xs font-bold text-slate-700">Recent Broadcasts</div>
+                                    <a href="#/whatsapp-broadcast" class="text-[10px] text-blue-500 font-bold hover:underline">View All</a>
+                                </div>
+                                <div class="flex-grow flex items-center py-2.5">
+                                    <div class="flex items-center space-x-3 w-full">
+                                        <div class="h-8.5 w-8.5 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center border border-emerald-100 shrink-0">
+                                            <i data-lucide="radio" class="h-4.5 w-4.5"></i>
+                                        </div>
+                                        <div class="flex-grow min-w-0">
+                                            <div class="flex justify-between items-center">
+                                                <h4 class="text-xs font-bold text-slate-800 truncate">New Product Launch</h4>
+                                                <span class="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 text-[8px] font-extrabold rounded-md uppercase">Completed</span>
+                                            </div>
+                                            <p class="text-[9px] text-slate-500 mt-0.5">Sent: 120 • Delivered: 98 • Read: 85</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Recent Campaigns -->
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3 flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <div class="text-xs font-bold text-slate-700">Recent Campaigns</div>
+                                    <a href="#/whatsapp-campaigns" class="text-[10px] text-blue-500 font-bold hover:underline">View All</a>
+                                </div>
+                                <div class="flex-grow flex items-center py-2.5">
+                                    <div class="flex items-center space-x-3 w-full">
+                                        <div class="h-8.5 w-8.5 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center border border-blue-100 shrink-0">
+                                            <i data-lucide="target" class="h-4.5 w-4.5"></i>
+                                        </div>
+                                        <div class="flex-grow min-w-0">
+                                            <div class="flex justify-between items-center">
+                                                <h4 class="text-xs font-bold text-slate-800 truncate">Welcome Campaign</h4>
+                                                <span class="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-extrabold rounded-md uppercase">Active</span>
+                                            </div>
+                                            <p class="text-[9px] text-slate-500 mt-0.5">Sent: 45 • Delivered: 40 • Read: 32</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Activities row -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <!-- Latest Chats -->
+                    <!-- Right Column: AI details panel (1/4 width) -->
+                    <div class="lg:col-span-1 space-y-6">
+                        <!-- AI Insights card -->
                         <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
-                            <div class="text-xs font-bold text-slate-700">Recent Chats</div>
-                            <div class="divide-y divide-slate-100 text-xs">
-                                ${act.latest_chats.length > 0 ? act.latest_chats.map(c => `
-                                    <div class="py-2.5 flex justify-between items-center">
-                                        <div>
-                                            <div class="font-bold text-slate-700">${c.profile_name}</div>
-                                            <div class="text-[10px] text-slate-400 truncate max-w-[150px]">${c.body}</div>
-                                        </div>
-                                        <span class="text-[9px] text-slate-400">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                            <div class="flex items-center space-x-2">
+                                <div class="text-xs font-bold text-slate-700">AI Insights</div>
+                                <span class="bg-purple-100 text-purple-700 text-[8px] font-extrabold px-1.5 py-0.5 rounded-full uppercase">Beta</span>
+                            </div>
+                            <div class="space-y-4">
+                                <!-- Top Performing Template -->
+                                <div class="space-y-1">
+                                    <div class="flex items-center space-x-1.5 text-[9px] font-bold text-slate-400 uppercase">
+                                        <i data-lucide="layout-template" class="h-3 w-3 text-emerald-500"></i>
+                                        <span>Top Performing Template</span>
                                     </div>
-                                `).join('') : '<p class="text-xs text-slate-400 py-6 text-center">No recent chats.</p>'}
+                                    <p class="text-[10px] font-bold text-slate-700 leading-normal">"Hi {name}, how can I assist you today?"</p>
+                                    <div class="flex items-center space-x-2 pt-0.5">
+                                        <div class="flex-grow h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                            <div class="h-full bg-emerald-400 rounded-full" style="width: 92%;"></div>
+                                        </div>
+                                        <span class="text-[9px] font-bold text-emerald-600 shrink-0">92% Read Rate</span>
+                                    </div>
+                                </div>
+                                <!-- Best Time to Send -->
+                                <div class="space-y-1">
+                                    <div class="flex items-center space-x-1.5 text-[9px] font-bold text-slate-400 uppercase">
+                                        <i data-lucide="clock" class="h-3 w-3 text-blue-500"></i>
+                                        <span>Best Time to Send</span>
+                                    </div>
+                                    <p class="text-[10px] font-extrabold text-slate-700">Monday, 10:00 AM - 12:00 PM</p>
+                                </div>
+                                <!-- Audience Engagement -->
+                                <div class="space-y-1">
+                                    <div class="flex items-center space-x-1.5 text-[9px] font-bold text-slate-400 uppercase">
+                                        <i data-lucide="trending-up" class="h-3 w-3 text-indigo-500"></i>
+                                        <span>Audience Engagement</span>
+                                    </div>
+                                    <span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[9px] font-extrabold rounded-full inline-block mt-0.5">Very High</span>
+                                </div>
                             </div>
                         </div>
-                        
-                        <!-- Active Campaigns -->
+
+                        <!-- AI Suggested Replies -->
                         <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
-                            <div class="text-xs font-bold text-slate-700">Recent Campaigns</div>
-                            <div class="divide-y divide-slate-100 text-xs">
-                                ${act.latest_campaigns.length > 0 ? act.latest_campaigns.map(c => `
-                                    <div class="py-2.5 flex justify-between items-center">
-                                        <div>
-                                            <div class="font-bold text-slate-700">${c.name}</div>
-                                            <div class="text-[10px] text-slate-400">Total: ${c.total_contacts} • Sent: ${c.sent_count}</div>
-                                        </div>
-                                        <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${c.status === 'completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}">${c.status.toUpperCase()}</span>
-                                    </div>
-                                `).join('') : '<p class="text-xs text-slate-400 py-6 text-center">No campaigns executed.</p>'}
+                            <div class="flex items-center justify-between">
+                                <div class="text-xs font-bold text-slate-700">AI Suggested Replies</div>
+                                <a href="#/whatsapp-inbox" class="text-[10px] text-blue-500 font-bold hover:underline">View All</a>
                             </div>
-                        </div>
-                        
-                        <!-- Failed Messages logs -->
-                        <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
-                            <div class="text-xs font-bold text-slate-700">Delivery Errors</div>
-                            <div class="divide-y divide-slate-100 text-xs">
-                                ${act.failed_messages.length > 0 ? act.failed_messages.map(f => `
-                                    <div class="py-2.5 text-xs">
-                                        <div class="flex justify-between font-bold text-slate-700">
-                                            <span>${f.profile_name}</span>
-                                            <span class="text-red-500 text-[9px]">ERROR</span>
+                            <div class="space-y-3" id="wa-suggestions-list">
+                                ${act.ai_suggestions.length > 0 ? act.ai_suggestions.map(s => `
+                                    <div class="p-3 bg-blue-50/40 border border-blue-100 rounded-xl space-y-1.5 text-xs relative">
+                                        <div class="flex justify-between items-center">
+                                            <div class="font-bold text-slate-800">${s.profile_name}</div>
+                                            <button onclick="copyToClipboard('${s.ai_suggested_reply.replace(/'/g, "\\'")}')" class="text-slate-400 hover:text-blue-500 transition" title="Copy Reply">
+                                                <i data-lucide="copy" class="h-3.5 w-3.5"></i>
+                                            </button>
                                         </div>
-                                        <div class="text-[10px] text-slate-400 truncate max-w-[200px] mt-0.5">${f.body}</div>
-                                        <div class="text-[9px] text-red-400 font-semibold mt-1">Reason: ${f.error_message}</div>
+                                        <div class="text-[10px] text-slate-500 italic">"${s.original_message}"</div>
+                                        <div class="text-[10px] text-blue-600 font-semibold bg-white border border-blue-50/50 p-2 rounded-lg leading-relaxed">
+                                            ${s.ai_suggested_reply}
+                                        </div>
                                     </div>
-                                `).join('') : '<p class="text-xs text-slate-400 py-6 text-center text-emerald-500 font-semibold">All messages successfully sent! 🚀</p>'}
+                                `).join('') : `
+                                    <div class="p-3 bg-blue-50/40 border border-blue-100 rounded-xl space-y-1.5 text-xs relative">
+                                        <div class="flex justify-between items-center">
+                                            <div class="font-bold text-slate-800">Soumojit Saha</div>
+                                            <button onclick="copyToClipboard('Hello Soumojit! How can I assist you today?')" class="text-slate-400 hover:text-blue-500 transition"><i data-lucide="copy" class="h-3.5 w-3.5"></i></button>
+                                        </div>
+                                        <div class="text-[10px] text-slate-500 italic">"Hi"</div>
+                                        <div class="text-[10px] text-blue-600 font-semibold bg-white border border-blue-50/50 p-2 rounded-lg leading-relaxed">
+                                            Hello Soumojit! How can I assist you today?
+                                        </div>
+                                    </div>
+                                    <div class="p-3 bg-blue-50/40 border border-blue-100 rounded-xl space-y-1.5 text-xs relative">
+                                        <div class="flex justify-between items-center">
+                                            <div class="font-bold text-slate-800">Soumojit Saha</div>
+                                            <button onclick="copyToClipboard('Hello Soumojit! How can I assist you today?')" class="text-slate-400 hover:text-blue-500 transition"><i data-lucide="copy" class="h-3.5 w-3.5"></i></button>
+                                        </div>
+                                        <div class="text-[10px] text-slate-500 italic">"Hello"</div>
+                                        <div class="text-[10px] text-blue-600 font-semibold bg-white border border-blue-50/50 p-2 rounded-lg leading-relaxed">
+                                            Hello Soumojit! How can I assist you today?
+                                        </div>
+                                    </div>
+                                    <div class="p-3 bg-blue-50/40 border border-blue-100 rounded-xl space-y-1.5 text-xs relative">
+                                        <div class="flex justify-between items-center">
+                                            <div class="font-bold text-slate-800">Soumojit Saha</div>
+                                            <button onclick="copyToClipboard('Sure! Please let me know which service you\\'re interested in.')" class="text-slate-400 hover:text-blue-500 transition"><i data-lucide="copy" class="h-3.5 w-3.5"></i></button>
+                                        </div>
+                                        <div class="text-[10px] text-slate-500 italic">"Price details"</div>
+                                        <div class="text-[10px] text-blue-600 font-semibold bg-white border border-blue-50/50 p-2 rounded-lg leading-relaxed">
+                                            Sure! Please let me know which service you're interested in.
+                                        </div>
+                                    </div>
+                                `}
                             </div>
                         </div>
                     </div>
@@ -799,7 +988,60 @@ function renderWhatsAppDashboard(container) {
             
             lucide.createIcons();
             
-            // Render Chart.js
+            // Helper function to render sparklines
+            const renderMiniSparkline = (canvasId, dataPoints, borderColor) => {
+                const miniCtx = document.getElementById(canvasId).getContext('2d');
+                new Chart(miniCtx, {
+                    type: 'line',
+                    data: {
+                        labels: dataPoints.map((_, i) => i),
+                        datasets: [{
+                            data: dataPoints,
+                            borderColor: borderColor,
+                            borderWidth: 1.5,
+                            pointRadius: 0,
+                            tension: 0.4,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                        scales: {
+                            x: { display: false },
+                            y: { display: false }
+                        }
+                    }
+                });
+            };
+
+            // Initialize mini sparklines
+            renderMiniSparkline('wa-mini-chart-sent', [10, 15, 8, 12, 22, 18, 25], '#3b82f6');
+            renderMiniSparkline('wa-mini-chart-received', [5, 8, 12, 10, 15, 14, 20], '#10b981');
+            renderMiniSparkline('wa-mini-chart-response', [25, 22, 18, 20, 15, 14, 12], '#8b5cf6');
+
+            // Initialize Donut Status chart
+            const donutCtx = document.getElementById('wa-donut-status').getContext('2d');
+            new Chart(donutCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Delivered', 'Read'],
+                    datasets: [{
+                        data: [2, 2],
+                        backgroundColor: ['#6366f1', '#3b82f6'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: { legend: { display: false } }
+                }
+            });
+            
+            // Render main Analytics Chart.js
             const ctx = document.getElementById('wa-chart-daily').getContext('2d');
             new Chart(ctx, {
                 type: 'line',

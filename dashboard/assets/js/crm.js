@@ -6604,45 +6604,6 @@ function renderReports(container) {
     container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs animate-fade-in">Aggregated reports database compiled successfully. Explore statistics on the main Hub.</div>`;
 }
 
-function getKeyManagerHtml(provider, providerKeys) {
-    const listHtml = providerKeys.length > 0 ? providerKeys.map(k => {
-        let badgeColor = 'bg-emerald-50 text-emerald-600 border border-emerald-200';
-        if (k.status === 'limit_exceeded') {
-            badgeColor = 'bg-amber-50 text-amber-600 border border-amber-200';
-        } else if (k.status === 'invalid') {
-            badgeColor = 'bg-red-50 text-red-600 border border-red-200';
-        }
-        
-        return `
-            <div class="flex items-center justify-between p-2 bg-slate-50 border border-slate-200 rounded-lg">
-                <span class="font-mono text-slate-700 text-[10px]">${k.masked_key}</span>
-                <div class="flex items-center space-x-2">
-                    <span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${badgeColor}">${k.status.replace('_', ' ')}</span>
-                    <button onclick="deleteAIKey(${k.id})" class="text-red-500 hover:text-red-700 transition" title="Delete Key">
-                        <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-    }).join('') : `<p class="text-slate-400 italic text-[10px] text-center py-2">No API keys saved for this provider.</p>`;
-
-    return `
-        <div class="space-y-2 mt-2">
-            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Saved API Keys</span>
-            <div class="space-y-1.5 max-h-[150px] overflow-y-auto pr-1">
-                ${listHtml}
-            </div>
-            <div class="pt-2 border-t border-slate-100 flex space-x-2">
-                <input type="password" id="add-key-input-${provider}" placeholder="Enter new API key" class="flex-grow px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-[10px] text-slate-800 focus:outline-none focus:border-indigo-500">
-                <button onclick="addAIKey('${provider}')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition shrink-0 flex items-center space-x-1">
-                    <i data-lucide="plus" class="h-3 w-3"></i>
-                    <span>Add</span>
-                </button>
-            </div>
-        </div>
-    `;
-}
-
 async function renderIntegrations(container) {
     container.innerHTML = `
         <div class="flex items-center justify-center py-12">
@@ -6665,10 +6626,6 @@ async function renderIntegrations(container) {
         const todayUsage = creditData.today_usage || 0;
         const keysList = keysData.keys || [];
 
-        const openrouterKeys = keysList.filter(k => k.provider === 'openrouter');
-        const githubKeys = keysList.filter(k => k.provider === 'github_models');
-        const googleKeys = keysList.filter(k => k.provider === 'google_ai_studio');
-
         // Determine SMTP configuration status
         const isMailConfigured = !!(connection.smtp_host && connection.imap_host);
         
@@ -6684,6 +6641,60 @@ async function renderIntegrations(container) {
         }
 
         const activeKeysCount = keysList.filter(k => k.provider === user.active_ai_provider && k.status === 'active').length;
+
+        // Render AI API keys table rows
+        let tableRowsHtml = '';
+        if (keysList.length > 0) {
+            tableRowsHtml = keysList.map(k => {
+                let badgeColor = 'bg-emerald-50 text-emerald-600 border border-emerald-250';
+                if (k.status === 'limit_exceeded') {
+                    badgeColor = 'bg-amber-50 text-amber-600 border border-amber-250';
+                } else if (k.status === 'invalid') {
+                    badgeColor = 'bg-red-50 text-red-550 border border-red-250';
+                } else if (k.status === 'paused') {
+                    badgeColor = 'bg-slate-100 text-slate-500 border border-slate-200';
+                }
+                
+                let providerLabel = k.provider === 'openrouter' ? 'OpenRouter' : 
+                                    k.provider === 'github_models' ? 'GitHub Models' : 'Google Gemini';
+
+                let pausePlayIcon = k.status === 'paused' ? 'play' : 'pause';
+                let pausePlayTitle = k.status === 'paused' ? 'Resume Key' : 'Pause Key';
+
+                return `
+                    <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition">
+                        <td class="py-3 px-3 font-semibold text-slate-700">${providerLabel}</td>
+                        <td class="py-3 px-3 font-mono text-slate-600 text-[10px]">${k.masked_key}</td>
+                        <td class="py-3 px-3">
+                            <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${badgeColor}">${k.status.replace('_', ' ')}</span>
+                        </td>
+                        <td class="py-3 px-3 font-semibold text-slate-600">${k.total_calls.toLocaleString()}</td>
+                        <td class="py-3 px-3 font-semibold text-slate-600">${k.calls_24h.toLocaleString()}</td>
+                        <td class="py-3 px-3 text-right">
+                            <div class="flex items-center justify-end space-x-2">
+                                <button onclick="toggleAIKeyStatus(${k.id}, '${k.status}')" class="p-1 text-slate-500 hover:text-indigo-600 transition" title="${pausePlayTitle}">
+                                    <i data-lucide="${pausePlayIcon}" class="h-3.5 w-3.5"></i>
+                                </button>
+                                <button onclick="editAIKeyValue(${k.id}, '${providerLabel}')" class="p-1 text-slate-500 hover:text-emerald-600 transition" title="Edit Key Value">
+                                    <i data-lucide="edit-3" class="h-3.5 w-3.5"></i>
+                                </button>
+                                <button onclick="deleteAIKey(${k.id})" class="p-1 text-slate-500 hover:text-red-650 transition" title="Delete Key">
+                                    <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        } else {
+            tableRowsHtml = `
+                <tr>
+                    <td colspan="6" class="py-8 text-center text-slate-400 italic">
+                        No AI API Keys configured. Click "Add API Key" above to connect one!
+                    </td>
+                </tr>
+            `;
+        }
 
         container.innerHTML = `
             <div class="space-y-6 pt-4 animate-fade-in text-xs max-w-4xl mx-auto">
@@ -6726,7 +6737,7 @@ async function renderIntegrations(container) {
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Column 1: AI Provider & API Keys -->
+                    <!-- Column 1: AI Provider & API Settings Override -->
                     <div class="glass-panel p-5 bg-white space-y-4 shadow-sm border border-slate-200 rounded-2xl">
                         <div class="pb-2 border-b border-slate-100 flex justify-between items-center">
                             <div class="flex items-center space-x-2 text-slate-800 font-bold text-sm">
@@ -6761,8 +6772,8 @@ async function renderIntegrations(container) {
                         <!-- Add/Edit Trigger Button -->
                         <div>
                             <button onclick="toggleAIForm()" class="flex items-center justify-center space-x-1 px-3 py-1.5 border border-indigo-200 hover:bg-indigo-50 text-indigo-650 rounded-lg text-[10px] font-bold transition shadow-sm" id="toggle-ai-form-btn">
-                                <i data-lucide="pencil" class="h-3 w-3"></i>
-                                <span>Add / Edit API Keys</span>
+                                <i data-lucide="settings" class="h-3 w-3"></i>
+                                <span>Adjust Provider & Model Override</span>
                             </button>
                         </div>
 
@@ -6770,26 +6781,11 @@ async function renderIntegrations(container) {
                         <div id="ai-credentials-form-container" class="space-y-3 pt-3 border-t border-slate-100 hidden">
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Active AI Provider</label>
-                                <select id="active-ai-provider-select" onchange="toggleAIProviderFields(this.value)" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-indigo-500">
+                                <select id="active-ai-provider-select" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-indigo-500">
                                     <option value="openrouter" ${user.active_ai_provider === 'openrouter' ? 'selected' : ''}>OpenRouter (Vibrant Free & Premium Models)</option>
                                     <option value="github_models" ${user.active_ai_provider === 'github_models' ? 'selected' : ''}>GitHub Models API</option>
                                     <option value="google_ai_studio" ${user.active_ai_provider === 'google_ai_studio' ? 'selected' : ''}>Google Gemini AI Studio</option>
                                 </select>
-                            </div>
-                            
-                            <!-- OpenRouter Fields -->
-                            <div id="ai-provider-openrouter-fields" class="space-y-3 ${user.active_ai_provider === 'openrouter' ? '' : 'hidden'}">
-                                ${getKeyManagerHtml('openrouter', openrouterKeys)}
-                            </div>
-                            
-                            <!-- GitHub Models Fields -->
-                            <div id="ai-provider-github-fields" class="space-y-3 ${user.active_ai_provider === 'github_models' ? '' : 'hidden'}">
-                                ${getKeyManagerHtml('github_models', githubKeys)}
-                            </div>
-                            
-                            <!-- Google Gemini Fields -->
-                            <div id="ai-provider-google-fields" class="space-y-3 ${user.active_ai_provider === 'google_ai_studio' ? '' : 'hidden'}">
-                                ${getKeyManagerHtml('google_ai_studio', googleKeys)}
                             </div>
                             
                             <div>
@@ -6929,6 +6925,63 @@ async function renderIntegrations(container) {
                         </div>
                     </div>
                 </div>
+
+                <!-- AI API Keys Control Board Card -->
+                <div class="glass-panel p-5 bg-white space-y-4 shadow-sm border border-slate-200 rounded-2xl">
+                    <div class="pb-2 border-b border-slate-100 flex justify-between items-center">
+                        <div class="flex items-center space-x-2 text-slate-800 font-bold text-sm">
+                            <i data-lucide="key-round" class="h-4 w-4 text-indigo-600"></i>
+                            <span>AI API Keys Control Board</span>
+                        </div>
+                        <button onclick="toggleAddKeyForm()" class="flex items-center justify-center space-x-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition shadow-sm" id="add-key-toggle-btn">
+                            <i data-lucide="plus" class="h-3 w-3"></i>
+                            <span>Add API Key</span>
+                        </button>
+                    </div>
+
+                    <!-- Inline Add Key Form -->
+                    <div id="add-key-form-container" class="p-4 bg-slate-50 border border-slate-150 rounded-xl space-y-3 hidden">
+                        <span class="block text-slate-700 font-bold text-[10px] uppercase tracking-wider">Connect New API Key</span>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">AI Provider</label>
+                                <select id="new-key-provider-select" class="w-full px-2.5 py-1.5 bg-white border border-slate-250 rounded-lg text-[11px] text-slate-750 focus:outline-none">
+                                    <option value="openrouter">OpenRouter (Vibrant Free & Premium)</option>
+                                    <option value="github_models">GitHub Models API</option>
+                                    <option value="google_ai_studio">Google Gemini AI Studio</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">API Key Value / Token</label>
+                                <div class="flex space-x-2">
+                                    <input type="password" id="new-key-value-input" placeholder="Enter API Key value" class="flex-grow px-2.5 py-1.5 bg-white border border-slate-250 rounded-lg text-[11px] text-slate-850 focus:outline-none focus:border-indigo-500">
+                                    <button onclick="submitNewAIKey()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[11px] font-bold transition shrink-0">
+                                        Save Key
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- API Keys Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-[11px]">
+                            <thead>
+                                <tr class="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                                    <th class="py-2 px-3">Provider</th>
+                                    <th class="py-2 px-3">API Key (Masked)</th>
+                                    <th class="py-2 px-3">Status</th>
+                                    <th class="py-2 px-3">Total Calls</th>
+                                    <th class="py-2 px-3">Last 24h</th>
+                                    <th class="py-2 px-3 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tableRowsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         `;
         lucide.createIcons();
@@ -7045,18 +7098,31 @@ async function saveAICredentials() {
     }
 }
 
-window.addAIKey = async function(provider) {
-    const inputEl = document.getElementById(`add-key-input-${provider}`);
-    const key = inputEl.value.trim();
-    if (!key) {
-        showNotification('error', 'Please enter an API Key first.');
+window.toggleAddKeyForm = function() {
+    const el = document.getElementById('add-key-form-container');
+    const btn = document.getElementById('add-key-toggle-btn');
+    if (el.classList.contains('hidden')) {
+        el.classList.remove('hidden');
+        btn.innerHTML = `<i data-lucide="eye-off" class="h-3 w-3"></i><span>Cancel</span>`;
+    } else {
+        el.classList.add('hidden');
+        btn.innerHTML = `<i data-lucide="plus" class="h-3 w-3"></i><span>Add API Key</span>`;
+    }
+    lucide.createIcons();
+};
+
+window.submitNewAIKey = async function() {
+    const provider = document.getElementById('new-key-provider-select').value;
+    const apiKey = document.getElementById('new-key-value-input').value.trim();
+    if (!apiKey) {
+        showNotification('error', 'Please enter an API Key value.');
         return;
     }
-    
+
     try {
         const res = await apiCall('profile/manage_ai_keys.php', 'POST', {
             provider: provider,
-            api_key: key
+            api_key: apiKey
         });
         
         if (res.status === 'success') {
@@ -7067,6 +7133,58 @@ window.addAIKey = async function(provider) {
             }
         } else {
             showNotification('error', res.message || 'Failed to add key.');
+        }
+    } catch (err) {
+        showNotification('error', 'Connection error: ' + err.message);
+    }
+};
+
+window.toggleAIKeyStatus = async function(keyId, currentStatus) {
+    const newStatus = currentStatus === 'paused' ? 'active' : 'paused';
+    try {
+        const res = await apiCall('profile/manage_ai_keys.php', 'PUT', {
+            id: keyId,
+            status: newStatus
+        });
+        
+        if (res.status === 'success') {
+            showNotification('success', `API Key ${newStatus === 'paused' ? 'paused' : 'resumed'} successfully.`);
+            const activeTabContainer = document.getElementById('tab-content-container');
+            if (activeTabContainer) {
+                renderIntegrations(activeTabContainer);
+            }
+        } else {
+            showNotification('error', res.message || 'Failed to update key status.');
+        }
+    } catch (err) {
+        showNotification('error', 'Connection error: ' + err.message);
+    }
+};
+
+window.editAIKeyValue = async function(keyId, providerLabel) {
+    const newVal = prompt(`Enter new API Key / Token value for ${providerLabel}:`);
+    if (newVal === null) return; // User cancelled
+    
+    const trimmed = newVal.trim();
+    if (!trimmed) {
+        showNotification('error', 'API Key value cannot be empty.');
+        return;
+    }
+
+    try {
+        const res = await apiCall('profile/manage_ai_keys.php', 'PUT', {
+            id: keyId,
+            api_key: trimmed
+        });
+        
+        if (res.status === 'success') {
+            showNotification('success', 'API Key value updated successfully.');
+            const activeTabContainer = document.getElementById('tab-content-container');
+            if (activeTabContainer) {
+                renderIntegrations(activeTabContainer);
+            }
+        } else {
+            showNotification('error', res.message || 'Failed to update key.');
         }
     } catch (err) {
         showNotification('error', 'Connection error: ' + err.message);

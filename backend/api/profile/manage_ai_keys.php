@@ -13,8 +13,15 @@ $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
 try {
     if ($method === 'GET') {
-        // Retrieve keys
-        $stmt = $db->prepare("SELECT id, provider, api_key, status, error_message, created_at, updated_at FROM user_ai_keys WHERE user_id = ? ORDER BY id ASC");
+        // Retrieve keys with call logs counts
+        $stmt = $db->prepare("
+            SELECT k.id, k.provider, k.api_key, k.status, k.error_message, k.created_at, k.updated_at,
+                   (SELECT COUNT(*) FROM user_ai_key_logs l WHERE l.key_id = k.id) as total_calls,
+                   (SELECT COUNT(*) FROM user_ai_key_logs l WHERE l.key_id = k.id AND l.created_at >= NOW() - INTERVAL 1 DAY) as calls_24h
+            FROM user_ai_keys k
+            WHERE k.user_id = ?
+            ORDER BY k.id ASC
+        ");
         $stmt->execute([$userId]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -34,6 +41,8 @@ try {
                 'masked_key' => $masked,
                 'status' => $row['status'],
                 'error_message' => $row['error_message'],
+                'total_calls' => (int)$row['total_calls'],
+                'calls_24h' => (int)$row['calls_24h'],
                 'created_at' => $row['created_at'],
                 'updated_at' => $row['updated_at']
             ];
@@ -66,6 +75,64 @@ try {
 
         logActivity($userId, "Added new API key for provider: {$provider}");
         sendJsonResponse('success', 'API Key added successfully.');
+
+    } elseif ($method === 'PUT') {
+        // Edit key or toggle status
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!$input || empty($input['id'])) {
+            sendJsonResponse('error', 'Invalid input parameters.', [], 400);
+        }
+
+        $keyId = (int)$input['id'];
+
+        // Verify key ownership
+        $stmtCheck = $db->prepare("SELECT provider FROM user_ai_keys WHERE id = ? AND user_id = ?");
+        $stmtCheck->execute([$keyId, $userId]);
+        $keyRow = $stmtCheck->fetch();
+        if (!$keyRow) {
+            sendJsonResponse('error', 'Key not found or access denied.', [], 404);
+        }
+
+        $updates = [];
+        $params = [];
+
+        // Toggle status (Pause/Play)
+        if (isset($input['status'])) {
+            $status = trim($input['status']);
+            if (in_array($status, ['active', 'paused', 'limit_exceeded', 'invalid'])) {
+                $updates[] = "status = ?";
+                $params[] = $status;
+            } else {
+                sendJsonResponse('error', 'Invalid status specified.', [], 400);
+            }
+        }
+
+        // Edit key value
+        if (isset($input['api_key'])) {
+            $apiKey = trim($input['api_key']);
+            if (!empty($apiKey)) {
+                $updates[] = "api_key = ?";
+                $params[] = encryptData($apiKey);
+                $updates[] = "status = 'active'";
+                $updates[] = "error_message = NULL";
+            } else {
+                sendJsonResponse('error', 'API key value cannot be empty.', [], 400);
+            }
+        }
+
+        if (count($updates) > 0) {
+            $sql = "UPDATE user_ai_keys SET " . implode(", ", $updates) . " WHERE id = ? AND user_id = ?";
+            $params[] = $keyId;
+            $params[] = $userId;
+
+            $stmtUpdate = $db->prepare($sql);
+            $stmtUpdate->execute($params);
+
+            logActivity($userId, "Updated API key details for key ID: {$keyId}");
+            sendJsonResponse('success', 'API Key updated successfully.');
+        } else {
+            sendJsonResponse('error', 'No updates specified.', [], 400);
+        }
 
     } elseif ($method === 'DELETE') {
         // Delete key

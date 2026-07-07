@@ -9688,6 +9688,10 @@ async function renderExternalApps(container) {
         const res = await apiCall('external_apps/status.php');
         const conn = res.data || { connected: false };
 
+        if (conn.error) {
+            showNotification('warning', 'Integrations warning: ' + conn.error);
+        }
+
         const statusBadge = conn.connected
             ? `<span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center space-x-1 shrink-0">
                  <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>

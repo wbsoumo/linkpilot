@@ -12,22 +12,31 @@ $userId = $user['id'];
 // Trigger self-healing database migration
 ExternalAppsHelper::checkDatabaseSchema();
 
-$db = Database::getConnection();
+try {
+    $db = Database::getConnection();
 
-$stmt = $db->prepare("SELECT email, status, updated_at FROM external_app_connections WHERE user_id = ? AND provider = 'google' LIMIT 1");
-$stmt->execute([$userId]);
-$conn = $stmt->fetch();
+    $stmt = $db->prepare("SELECT email, status, updated_at FROM external_app_connections WHERE user_id = ? AND provider = 'google' LIMIT 1");
+    $stmt->execute([$userId]);
+    $conn = $stmt->fetch();
 
-if ($conn && $conn['status'] === 'connected') {
-    sendJsonResponse('success', 'Connection retrieved successfully.', [
-        'connected' => true,
-        'email' => $conn['email'],
-        'last_sync' => $conn['updated_at']
-    ]);
-} else {
-    sendJsonResponse('success', 'No active Google connection found.', [
+    if ($conn && $conn['status'] === 'connected') {
+        sendJsonResponse('success', 'Connection retrieved successfully.', [
+            'connected' => true,
+            'email' => $conn['email'],
+            'last_sync' => $conn['updated_at']
+        ]);
+    } else {
+        sendJsonResponse('success', 'No active Google connection found.', [
+            'connected' => false,
+            'email' => null,
+            'last_sync' => null
+        ]);
+    }
+} catch (Exception $e) {
+    sendJsonResponse('success', 'Database access failed: ' . $e->getMessage(), [
         'connected' => false,
         'email' => null,
-        'last_sync' => null
+        'last_sync' => null,
+        'error' => $e->getMessage()
     ]);
 }

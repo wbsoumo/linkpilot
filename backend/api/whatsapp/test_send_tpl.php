@@ -79,10 +79,19 @@ try {
                     "text" => "123456"
                 ]
             ]
+        ],
+        [
+            "type" => "button",
+            "sub_type" => "url",
+            "index" => 0,
+            "parameters" => [
+                [
+                    "type" => "text",
+                    "text" => "123456"
+                ]
+            ]
         ]
     ];
-    
-    $isAuth = false; // Bypass button component parameter injection
     
     echo "Sending payload components: " . json_encode($components) . "\n";
     

@@ -296,24 +296,41 @@ try {
                         ];
                     }
                     
-                    // Retrieve category from local database to detect AUTHENTICATION templates
-                    $stmtTplCat = $db->prepare("SELECT category FROM whatsapp_templates WHERE name = ? AND user_id = ? LIMIT 1");
-                    $stmtTplCat->execute([$templateName, $userId]);
-                    $tplCategory = $stmtTplCat->fetchColumn();
+                    // Retrieve template details from local database to parse parameters
+                    $stmtTpl = $db->prepare("SELECT category, components_json FROM whatsapp_templates WHERE name = ? AND user_id = ? LIMIT 1");
+                    $stmtTpl->execute([$templateName, $userId]);
+                    $tplData = $stmtTpl->fetch(PDO::FETCH_ASSOC);
                     
-                    $isAuth = ($tplCategory === 'AUTHENTICATION' || stripos($templateName, 'otp') !== false || stripos($templateName, 'auth') !== false || stripos($templateName, 'login') !== false);
-                    if ($isAuth) {
-                        $components[] = [
-                            "type" => "button",
-                            "sub_type" => "copy_code",
-                            "index" => 0,
-                            "parameters" => [
-                                [
-                                    "type" => "coupon_code",
-                                    "coupon_code" => (string)$input['variables'][0]
-                                ]
-                            ]
-                        ];
+                    if ($tplData) {
+                        $componentsList = json_decode($tplData['components_json'] ?? '[]', true) ?: [];
+                        
+                        // Parse buttons to dynamically inject URL button variables if they exist
+                        $buttonIndex = 0;
+                        foreach ($componentsList as $comp) {
+                            if (strtoupper($comp['type'] ?? '') === 'BUTTONS') {
+                                $buttons = $comp['buttons'] ?? [];
+                                foreach ($buttons as $btn) {
+                                    $btnType = strtoupper($btn['type'] ?? '');
+                                    
+                                    // If URL button has dynamic parameter
+                                    if ($btnType === 'URL' && strpos($btn['url'] ?? '', '{{1}}') !== false) {
+                                        $components[] = [
+                                            "type" => "button",
+                                            "sub_type" => "url",
+                                            "index" => $buttonIndex,
+                                            "parameters" => [
+                                                [
+                                                    "type" => "text",
+                                                    "text" => (string)$input['variables'][0]
+                                                ]
+                                            ]
+                                        ];
+                                    }
+                                    
+                                    $buttonIndex++;
+                                }
+                            }
+                        }
                     }
                 }
                 

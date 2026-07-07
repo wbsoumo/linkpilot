@@ -859,16 +859,21 @@ function renderWhatsAppInbox(container) {
                     <div class="p-3 border-b border-slate-100 space-y-3 bg-white">
                         <div class="flex items-center justify-between">
                             <h3 class="text-xs font-bold text-slate-800">WhatsApp Chats</h3>
-                            <button onclick="openNewChatModal()" class="flex items-center space-x-1 py-1 px-2 border border-blue-500/20 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-[10px] font-bold transition">
+                            <button onclick="openNewChatModal()" class="border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-[10px] font-bold px-2.5 py-1 bg-white shadow-sm flex items-center space-x-1.5 transition">
                                 <i data-lucide="plus" class="h-3 w-3"></i>
                                 <span>New Chat</span>
                             </button>
                         </div>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-2.5 flex items-center text-slate-400">
-                                <i data-lucide="search" class="h-3.5 w-3.5"></i>
-                            </span>
-                            <input type="text" id="wa-search-threads" oninput="loadWaThreads(this.value)" placeholder="Search chats..." class="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-[11px] focus:outline-none focus:border-blue-500">
+                        <div class="flex items-center space-x-2">
+                            <div class="relative flex-grow">
+                                <span class="absolute inset-y-0 left-2.5 flex items-center text-slate-400">
+                                    <i data-lucide="search" class="h-3.5 w-3.5"></i>
+                                </span>
+                                <input type="text" id="wa-search-threads" oninput="loadWaThreads(this.value)" placeholder="Search chats..." class="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-[11px] focus:outline-none focus:border-blue-500">
+                            </div>
+                            <button class="p-1.5 border border-slate-200 rounded-lg bg-white text-slate-500 hover:bg-slate-50 transition shrink-0">
+                                <i data-lucide="filter" class="h-3.5 w-3.5"></i>
+                            </button>
                         </div>
                     </div>
                     
@@ -937,6 +942,23 @@ function renderWhatsAppInbox(container) {
     });
 }
 
+// Get a unique background and text color class for user avatars based on their initials
+function getAvatarColorClass(name) {
+    if (!name) return 'bg-slate-100 text-slate-700';
+    const colors = [
+        'bg-emerald-100 text-emerald-700',
+        'bg-orange-100 text-orange-700',
+        'bg-blue-100 text-blue-700',
+        'bg-purple-100 text-purple-700',
+        'bg-pink-100 text-pink-700',
+        'bg-teal-100 text-teal-700',
+        'bg-indigo-100 text-indigo-700',
+        'bg-amber-100 text-amber-700'
+    ];
+    const index = (name.charCodeAt(0) || 0) % colors.length;
+    return colors[index];
+}
+
 // Fetch WhatsApp threads list
 async function loadWaThreads(search = '') {
     try {
@@ -956,7 +978,7 @@ async function loadWaThreads(search = '') {
             return `
                 <div onclick="selectWaThread(${t.id})" class="p-3 flex items-start justify-between cursor-pointer transition ${isActive ? 'bg-blue-50/80 border-l-4 border-blue-500' : 'bg-white hover:bg-slate-50'}">
                     <div class="flex items-start space-x-2.5 truncate">
-                        <div class="h-8 w-8 rounded-full bg-slate-200 text-slate-600 font-bold flex items-center justify-center shrink-0">
+                        <div class="h-8 w-8 rounded-full ${getAvatarColorClass(t.profile_name)} font-bold flex items-center justify-center shrink-0">
                             ${t.profile_name.charAt(0).toUpperCase()}
                         </div>
                         <div class="truncate">
@@ -1005,24 +1027,101 @@ async function loadWaThreadMessages() {
         if (header) {
             header.innerHTML = `
                 <div class="flex items-center space-x-2.5">
-                    <div class="h-8.5 w-8.5 rounded-full bg-slate-200 text-slate-600 font-bold flex items-center justify-center">
+                    <div class="h-8.5 w-8.5 rounded-full ${getAvatarColorClass(thread.profile_name)} font-bold flex items-center justify-center shrink-0">
                         ${thread.profile_name.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                        <h4 class="text-xs font-bold text-slate-800">${thread.profile_name}</h4>
-                        <p class="text-[10px] text-emerald-500 font-bold flex items-center space-x-1">
-                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block"></span>
-                            <span>Active Cloud API Thread</span>
+                        <div class="flex items-center space-x-1">
+                            <h4 class="text-xs font-bold text-slate-800">${thread.profile_name}</h4>
+                            <i data-lucide="check-circle-2" class="h-3.5 w-3.5 text-emerald-500 fill-emerald-100"></i>
+                        </div>
+                        <p class="text-[10px] text-slate-500 flex items-center space-x-1.5 mt-0.5">
+                            <span class="font-mono">+${thread.wa_id}</span>
+                            <span class="h-1 w-1 rounded-full bg-slate-300"></span>
+                            <span class="text-emerald-500 font-bold flex items-center space-x-1">
+                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                                <span>Active Cloud API Thread</span>
+                            </span>
                         </p>
                     </div>
                 </div>
-                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider pl-2 pr-1">+${thread.wa_id}</div>
+                <div class="flex items-center space-x-2">
+                    <button class="p-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500 transition shadow-sm">
+                        <i data-lucide="phone" class="h-3.5 w-3.5"></i>
+                    </button>
+                    <button class="p-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500 transition shadow-sm">
+                        <i data-lucide="tag" class="h-3.5 w-3.5"></i>
+                    </button>
+                    <button class="p-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500 transition shadow-sm">
+                        <i data-lucide="more-horizontal" class="h-3.5 w-3.5"></i>
+                    </button>
+                </div>
             `;
         }
         
-        // Show Input Footer
+        // 24-Hour window calculations
+        const inboundMessages = messages.filter(m => m.direction === 'inbound');
+        let isWindowActive = true;
+        if (inboundMessages.length === 0) {
+            isWindowActive = false; // No incoming customer message yet
+        } else {
+            const lastInbound = inboundMessages[inboundMessages.length - 1];
+            const lastInboundTime = new Date(lastInbound.created_at);
+            const now = new Date();
+            const diffHours = (now - lastInboundTime) / (1000 * 60 * 60);
+            if (diffHours >= 24) {
+                isWindowActive = false;
+            }
+        }
+        
+        // Show/Hide Input Footer or Warning alert
         const footer = document.getElementById('wa-chat-footer');
-        if (footer) footer.classList.remove('hidden');
+        if (footer) {
+            footer.classList.remove('hidden');
+            if (!isWindowActive) {
+                footer.innerHTML = `
+                    <div class="p-3.5 bg-amber-50/70 border border-amber-200/80 rounded-xl flex flex-col items-center text-center space-y-2 animate-fade-in">
+                        <div class="flex items-center space-x-2 text-amber-700 font-bold text-[10px] uppercase tracking-wider">
+                            <i data-lucide="alert-triangle" class="h-4 w-4"></i>
+                            <span>24-Hour Customer Care Window Expired</span>
+                        </div>
+                        <p class="text-slate-600 text-[10px] max-w-sm">
+                            You can only send template messages to reactivate this chat. Standard text input is locked by Meta until the customer messages you again.
+                        </p>
+                        <button onclick="openTemplateSelectorModal('${thread.wa_id}')" class="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-xs shadow-sm transition flex items-center space-x-1.5">
+                            <i data-lucide="layout-template" class="h-3.5 w-3.5"></i>
+                            <span>Send Template Message</span>
+                        </button>
+                    </div>
+                `;
+            } else {
+                footer.innerHTML = `
+                    <!-- AI Suggestion overlay bar -->
+                    <div id="wa-ai-suggestion-bar" class="hidden mb-3 p-3 bg-indigo-50 border border-indigo-100 rounded-xl space-y-2 relative animate-fade-in text-[11px]">
+                        <button onclick="dismissAISuggestion()" class="absolute top-2 right-2 text-slate-400 hover:text-slate-600">&times;</button>
+                        <div class="flex items-center space-x-1.5 text-indigo-600 font-bold">
+                            <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
+                            <span>AI Response draft suggestion:</span>
+                        </div>
+                        <p class="text-slate-700 italic" id="wa-ai-suggestion-text"></p>
+                        <div class="flex space-x-2">
+                            <button onclick="applyAISuggestion()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold transition">Use Draft</button>
+                            <button onclick="regenerateAISuggestion()" class="px-2.5 py-1 border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 rounded font-semibold transition">Regenerate ↻</button>
+                        </div>
+                    </div>
+
+                    <form onsubmit="sendWaMessage(event)" class="flex items-center space-x-2 relative">
+                        <button type="button" onclick="triggerWaAIChatAnalysis()" class="h-8 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200/50 rounded-lg flex items-center justify-center shrink-0 transition" title="Ask AI reply draft suggestion">
+                            <i data-lucide="sparkles" class="h-4 w-4"></i>
+                        </button>
+                        <input type="text" id="wa-chat-input" placeholder="Type a message..." class="flex-grow px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500">
+                        <button type="submit" class="h-8 w-8 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg flex items-center justify-center shrink-0 transition shadow-sm">
+                            <i data-lucide="send" class="h-4 w-4"></i>
+                        </button>
+                    </form>
+                `;
+            }
+        }
         
         // 2. Render Messages list
         const msgList = document.getElementById('wa-messages-container-list');
@@ -1030,7 +1129,23 @@ async function loadWaThreadMessages() {
             if (messages.length === 0) {
                 msgList.innerHTML = `<div class="text-slate-400 text-center py-20">No messages in this chat. Send a template message to start!</div>`;
             } else {
-                msgList.innerHTML = messages.map(m => {
+                let currentGroupDate = '';
+                let messagesHtml = '';
+                
+                messages.forEach(m => {
+                    const msgDate = new Date(m.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+                    const todayDate = new Date().toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+                    const displayDate = (msgDate === todayDate) ? 'Today' : msgDate;
+                    
+                    if (msgDate !== currentGroupDate) {
+                        currentGroupDate = msgDate;
+                        messagesHtml += `
+                            <div class="flex justify-center my-3">
+                                <span class="bg-white px-3 py-1 border border-slate-100 rounded-full text-[10px] text-slate-500 font-semibold shadow-sm">${displayDate}</span>
+                            </div>
+                        `;
+                    }
+                    
                     const isInbound = (m.direction === 'inbound');
                     const time = new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                     
@@ -1053,15 +1168,24 @@ async function loadWaThreadMessages() {
                         }
                     }
                     
-                    return `
+                    const timeHtml = isInbound ? 
+                        `<span class="text-[9px] text-slate-400">${time}</span>` : 
+                        `<span class="text-[9px] text-slate-500 flex items-center justify-end space-x-1">
+                            <span>${time}</span>
+                            <span class="text-blue-500 font-semibold text-[10px]">✔✔</span>
+                         </span>`;
+                    
+                    messagesHtml += `
                         <div class="flex ${isInbound ? 'justify-start' : 'justify-end'}">
-                            <div class="max-w-[70%] p-3 rounded-2xl shadow-sm text-xs ${isInbound ? 'bg-white text-slate-800 rounded-tl-none' : 'bg-emerald-500 text-white rounded-tr-none'}">
+                            <div class="max-w-[70%] p-3 rounded-2xl shadow-sm text-xs ${isInbound ? 'bg-white text-slate-800 rounded-tl-none border border-slate-100' : 'bg-[#d9fdd3] text-slate-800 rounded-tr-none border border-emerald-100/50'}">
                                 <div>${bubbleHtml}</div>
-                                <div class="text-[9px] text-right mt-1.5 ${isInbound ? 'text-slate-400' : 'text-emerald-100'}">${time}</div>
+                                <div class="mt-1.5 flex justify-end">${timeHtml}</div>
                             </div>
                         </div>
                     `;
-                }).join('');
+                });
+                
+                msgList.innerHTML = messagesHtml;
                 
                 // Auto scroll to bottom
                 msgList.scrollTop = msgList.scrollHeight;
@@ -2173,3 +2297,140 @@ async function resolveAndOpenNewChat(phone) {
         alert('Error starting chat thread: ' + err.message);
     }
 }
+
+// -------------------------------------------------------------
+// WHATSAPP TEMPLATE SELECTOR MODAL FOR EXPIRED WINDOWS
+// -------------------------------------------------------------
+window.openTemplateSelectorModal = async function(phone) {
+    let modal = document.getElementById('wa-template-modal');
+    if (modal) modal.remove();
+    
+    modal = document.createElement('div');
+    modal.id = 'wa-template-modal';
+    modal.className = 'fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4';
+    
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl w-full max-w-md overflow-hidden animate-fade-in text-xs text-slate-700 flex flex-col max-h-[500px]">
+            <!-- Header -->
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 class="text-xs font-bold text-slate-800 flex items-center space-x-1.5">
+                    <i data-lucide="layout-template" class="h-4 w-4 text-blue-600"></i>
+                    <span>Send Message Template</span>
+                </h3>
+                <button onclick="document.getElementById('wa-template-modal').remove()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">&times;</button>
+            </div>
+            
+            <!-- Content -->
+            <div class="p-4 space-y-4 flex-grow overflow-y-auto">
+                <div class="space-y-1.5">
+                    <label class="font-bold text-[10px] text-slate-500 uppercase tracking-wider">Choose Approved Template</label>
+                    <select id="wa-tpl-select" onchange="previewSelectedTemplate(this.value)" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500">
+                        <option value="">Loading templates...</option>
+                    </select>
+                </div>
+                
+                <div class="space-y-1.5">
+                    <label class="font-bold text-[10px] text-slate-500 uppercase tracking-wider">Language</label>
+                    <input type="text" id="wa-tpl-lang" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-500" readonly value="en_US">
+                </div>
+                
+                <div class="space-y-1.5">
+                    <label class="font-bold text-[10px] text-slate-500 uppercase tracking-wider">Template Preview</label>
+                    <div id="wa-tpl-preview-box" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-600 italic text-[11px]">
+                        Select a template to view details.
+                    </div>
+                </div>
+                
+                <button onclick="submitTemplateMsg('${phone}')" id="wa-btn-send-template" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition flex items-center justify-center space-x-1.5 shadow-sm">
+                    <i data-lucide="send" class="h-3.5 w-3.5"></i>
+                    <span>Send Template</span>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    lucide.createIcons();
+    
+    // Fetch and populate templates list
+    try {
+        const res = await apiCall('whatsapp/templates.php');
+        const templates = res.templates || [];
+        const select = document.getElementById('wa-tpl-select');
+        
+        if (templates.length === 0) {
+            select.innerHTML = '<option value="">No approved templates found. Please sync first.</option>';
+            return;
+        }
+        
+        window.activeTemplatesList = templates; // Keep global reference inside modal
+        select.innerHTML = '<option value="">-- Select Template --</option>' + templates.map(t => `<option value="${t.name}">${t.name} (${t.language})</option>`).join('');
+    } catch(err) {
+        console.error(err);
+        document.getElementById('wa-tpl-select').innerHTML = '<option value="">Failed to load templates.</option>';
+    }
+};
+
+window.previewSelectedTemplate = function(tplName) {
+    const previewBox = document.getElementById('wa-tpl-preview-box');
+    const langInput = document.getElementById('wa-tpl-lang');
+    if (!previewBox || !activeTemplatesList) return;
+    
+    const tpl = activeTemplatesList.find(t => t.name === tplName);
+    if (!tpl) {
+        previewBox.textContent = 'Select a template to view details.';
+        langInput.value = 'en_US';
+        return;
+    }
+    
+    langInput.value = tpl.language;
+    previewBox.innerHTML = `
+        <div class="space-y-1 text-slate-700 not-italic">
+            <div class="font-bold text-[10px] text-blue-600 uppercase mb-1">Body Text:</div>
+            <p>${tpl.body_text || 'No preview body text.'}</p>
+        </div>
+    `;
+};
+
+window.submitTemplateMsg = async function(phone) {
+    const select = document.getElementById('wa-tpl-select');
+    const langInput = document.getElementById('wa-tpl-lang');
+    const btn = document.getElementById('wa-btn-send-template');
+    
+    if (!select || select.value === '') {
+        alert('Please choose a message template first.');
+        return;
+    }
+    
+    const tplName = select.value;
+    const lang = langInput.value;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm text-white me-2"></span>Sending...';
+    
+    try {
+        const payload = {
+            wa_contact_id: activeWaThreadId,
+            type: 'template',
+            template_name: tplName,
+            template_lang: lang
+        };
+        const res = await apiCall('whatsapp/inbox.php', 'POST', payload);
+        if (res.success) {
+            document.getElementById('wa-template-modal').remove();
+            showNotification('success', 'Template message sent successfully!');
+            // Reload chats
+            await loadWaThreads();
+            selectWaThread(activeWaThreadId);
+        } else {
+            alert('Failed to send template: ' + (res.message || 'Unknown error'));
+            btn.disabled = false;
+            btn.innerHTML = '<span>Send Template</span>';
+        }
+    } catch(err) {
+        console.error(err);
+        alert('Error sending template message: ' + err.message);
+        btn.disabled = false;
+        btn.innerHTML = '<span>Send Template</span>';
+    }
+};

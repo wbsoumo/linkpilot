@@ -263,13 +263,23 @@ try {
                 }
                 $response = WhatsAppMetaService::sendMediaMessage($userId, $phoneNumberId, $recipient, $type, $mediaId, $filename, $accessToken);
                 $bodyText = $filename ?: "Sent " . ucfirst($type);
+            } elseif ($type === 'template') {
+                $templateName = trim($input['template_name'] ?? '');
+                $lang = trim($input['template_lang'] ?? 'en_US');
+                if (empty($templateName)) {
+                    sendJsonResponse('error', 'Template name is required.', [], 400);
+                }
+                $response = WhatsAppMetaService::sendTemplateMessage($userId, $phoneNumberId, $recipient, $templateName, $lang, [], $accessToken);
+                $bodyText = "[Template: {$templateName}]";
             } else {
                 sendJsonResponse('error', 'Unsupported message type: ' . $type, [], 400);
             }
             $metaMsgId = $response['messages'][0]['id'] ?? '';
         } else {
             $metaMsgId = 'wamid.HBgLOTE5OTk5OTk5OTk5FQIAERg5M0RCMDZFQzg2Q0I4OEFEOAA=' . uniqid();
-            if ($type !== 'text') {
+            if ($type === 'template') {
+                $bodyText = "[Template: " . ($input['template_name'] ?? 'hello_world') . "]";
+            } elseif ($type !== 'text') {
                 $bodyText = $input['filename'] ?? "Sent " . ucfirst($type);
             }
         }

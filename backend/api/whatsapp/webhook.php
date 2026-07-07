@@ -3,6 +3,7 @@
 
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../providers/whatsapp_meta_service.php';
+require_once __DIR__ . '/../../external_apps_helper.php';
 
 // Disable error display to avoid output pollution on Webhook responses
 ini_set('display_errors', 0);

@@ -1,20 +1,20 @@
 <?php
 require_once __DIR__ . '/../../config.php';
-header('Content-Type: application/json');
+header('Content-Type: text/plain');
 
-$output = [];
-try {
-    $db = Database::getConnection();
-
-    $contact = $db->query("SELECT * FROM whatsapp_contacts WHERE id = 7")->fetch(PDO::FETCH_ASSOC);
-    $output['contact'] = $contact;
-
-    if ($contact) {
-        $settings = $db->query("SELECT * FROM whatsapp_settings WHERE user_id = " . (int)$contact['user_id'])->fetchAll(PDO::FETCH_ASSOC);
-        $output['settings'] = $settings;
+$logFile = __DIR__ . '/whatsapp_debug.log';
+if (file_exists($logFile)) {
+    $content = file_get_contents($logFile);
+    // Find all lines containing "919593501403" or "23:54" or "23:55"
+    $lines = explode("\n", $content);
+    $filtered = [];
+    foreach ($lines as $line) {
+        if (strpos($line, '919593501403') !== false || strpos($line, '23:54') !== false || strpos($line, '23:55') !== false || strpos($line, '23:50') !== false) {
+            $filtered[] = $line;
+        }
     }
-} catch (Throwable $e) {
-    $output['error'] = $e->getMessage();
+    echo "=== FILTERED WHATSAPP DEBUG LOG ===\n";
+    print_r(array_slice($filtered, -20));
+} else {
+    echo "Log file not found.\n";
 }
-
-echo json_encode($output, JSON_PRETTY_PRINT);

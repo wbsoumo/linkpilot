@@ -298,7 +298,13 @@ CRITICAL IDENTITY & CONVERSATIONAL RULES:
 5. Stay strictly on-topic. Focus entirely on the customer's business relationship, leads, bookings, invoices, and sales inquiries. Do not discuss general knowledge or unrelated subjects.
 6. If you need to schedule a meeting, check the meetings/availability list below. Propose slot options that do not conflict with existing meetings.
 7. If you do not have enough information to close a deal or answer a technical question, ask polite clarifying questions.
-8. You MUST return your response as a valid, parsable JSON block with the following keys, and nothing else (no extra markdown blocks outside JSON):
+8. CRITICAL MEETING SCHEDULING FLOW:
+   - If the customer mentions scheduling a meeting, call, or appointment:
+      - Check the conversation history to see if a date and time are finalized. If not, set 'meeting_flow_stage' to 'ask_datetime' and ask them to select a date and time in your 'suggested_reply'.
+      - If a date and time are finalized but we do not have their Gmail/email address, set 'meeting_flow_stage' to 'ask_gmail' and ask them to provide their Gmail address in your 'suggested_reply' so you can send them a calendar invite.
+      - If both date/time and Gmail are provided, set 'meeting_flow_stage' to 'finalize' (and specify the finalized due_date, due_time, and contact_gmail).
+      - If they refuse or cannot provide an email, set 'meeting_flow_stage' to 'finalize' and do not ask again.
+9. You MUST return your response as a valid, parsable JSON block with the following keys, and nothing else (no extra markdown blocks outside JSON):
 {
   \"summary\": \"Brief 1-sentence summary of the user message\",
   \"suggested_reply\": \"The message text that you will automatically write back to the customer on WhatsApp. Write it in a natural, friendly, human-like professional tone representing $userProfileName. Do not use generic placeholders.\",
@@ -317,7 +323,9 @@ CRITICAL IDENTITY & CONVERSATIONAL RULES:
     \"category\": \"Meeting|Follow-up|Reply|Arrange|General\",
     \"due_date\": \"YYYY-MM-DD\",
     \"due_time\": \"HH:MM:SS\" or null,
-    \"priority\": \"high|medium|low\"
+    \"priority\": \"high|medium|low\",
+    \"contact_gmail\": \"Gmail address if provided, else null\",
+    \"meeting_flow_stage\": \"ask_datetime|ask_gmail|finalize|none\"
   }
 }
 
@@ -387,37 +395,95 @@ TODAY'S DATE AND TIME: $currentDate $currentTime (relative offsets like 'tomorro
                                     $taskDueDate = !empty($taskInfo['due_date']) ? trim($taskInfo['due_date']) : date('Y-m-d');
                                     $taskDueTime = !empty($taskInfo['due_time']) ? trim($taskInfo['due_time']) : null;
                                     $taskPriority = trim($taskInfo['priority'] ?? 'medium');
+                                    $contactGmail = !empty($taskInfo['contact_gmail']) ? trim($taskInfo['contact_gmail']) : null;
+                                    $meetingFlowStage = trim($taskInfo['meeting_flow_stage'] ?? 'none');
                                     
-                                    // Prefix title if categorized and not already prefixed
-                                    if ($taskCategory !== 'General' && strpos($taskTitle, "[$taskCategory]") === false) {
-                                        $taskTitle = "[$taskCategory] " . $taskTitle;
+                                    // If we are in "finalize" stage and the category is "Meeting"
+                                    if ($meetingFlowStage === 'finalize' && ($taskCategory === 'Meeting' || strpos($taskTitle, '[Meeting]') !== false)) {
+                                        // Resolve company_id and lead_id
+                                        $companyId = null;
+                                        if ($crmContactId) {
+                                            $stmtComp = $db->prepare("SELECT company_id FROM crm_contacts WHERE id = ? LIMIT 1");
+                                            $stmtComp->execute([$crmContactId]);
+                                            $companyId = $stmtComp->fetchColumn() ?: null;
+                                        }
+                                        $leadId = null;
+                                        if ($crmContactId) {
+                                            $stmtLead = $db->prepare("SELECT id FROM crm_leads WHERE contact_id = ? AND user_id = ? ORDER BY id DESC LIMIT 1");
+                                            $stmtLead->execute([$crmContactId, $userId]);
+                                            $leadId = $stmtLead->fetchColumn() ?: null;
+                                        }
+
+                                        // Ensure title has [Meeting] prefix
+                                        if (strpos($taskTitle, '[Meeting]') === false) {
+                                            $taskTitle = "[Meeting] " . $taskTitle;
+                                        }
+
+                                        // Insert the task
+                                        $stmtTaskIns = $db->prepare("INSERT INTO crm_tasks (user_id, company_id, contact_id, lead_id, title, description, due_date, due_time, priority, status, sync_to_calendar) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 1)");
+                                        $stmtTaskIns->execute([
+                                            $userId, $companyId, $crmContactId, $leadId, $taskTitle, $taskDesc, $taskDueDate, $taskDueTime, $taskPriority
+                                        ]);
+                                        $newTaskId = $db->lastInsertId();
+
+                                        // Generate Google Meet link automatically
+                                        $meetLink = null;
+                                        try {
+                                            if (ExternalAppsHelper::isGoogleConnected($userId)) {
+                                                $meetLink = ExternalAppsHelper::generateGoogleMeetForTask($userId, $newTaskId);
+                                            }
+                                        } catch (Exception $meetEx) {
+                                            error_log("Google Meet generation via AI autopilot failed: " . $meetEx->getMessage());
+                                        }
+
+                                        // Send calendar invite email if gmail is provided
+                                        if ($contactGmail && $meetLink) {
+                                            try {
+                                                ExternalAppsHelper::sendTaskMeetingInviteEmail($userId, $newTaskId, $meetLink, $contactGmail);
+                                            } catch (Exception $emailEx) {
+                                                error_log("Auto calendar email invite failed: " . $emailEx->getMessage());
+                                            }
+                                        }
+
+                                        // Append Meet link and timing details to the AI's suggested reply
+                                        $timingFormatted = date('jS F Y', strtotime($taskDueDate)) . ' at ' . ($taskDueTime ? substr($taskDueTime, 0, 5) : '09:00');
+                                        if ($meetLink) {
+                                            $aiSuggestedReply .= "\n\nI have scheduled our meeting for " . $timingFormatted . ".\nHere is the Google Meet link to join: " . $meetLink;
+                                            if ($contactGmail) {
+                                                $aiSuggestedReply .= "\n\nI've also sent the calendar invitation to your email (" . $contactGmail . ") with the event attachment. See you then!";
+                                            }
+                                        } else {
+                                            $aiSuggestedReply .= "\n\nI have scheduled our meeting for " . $timingFormatted . ". I will send you the meeting details shortly!";
+                                        }
+                                        
+                                        // Log to timeline
+                                        $db->prepare("INSERT INTO crm_timeline (user_id, lead_id, contact_id, company_id, activity_type, description) VALUES (?, ?, ?, ?, 'Task Created', ?)")
+                                           ->execute([$userId, $leadId, $crmContactId, $companyId, "Meeting task '$taskTitle' was automatically scheduled and Google Meet link generated via WhatsApp AI agent."]);
+                                    } else {
+                                        // Standard task creation (for non-meeting tasks or general follow-ups)
+                                        if ($taskCategory !== 'Meeting' && strpos($taskTitle, '[Meeting]') === false) {
+                                            $companyId = null;
+                                            if ($crmContactId) {
+                                                $stmtComp = $db->prepare("SELECT company_id FROM crm_contacts WHERE id = ? LIMIT 1");
+                                                $stmtComp->execute([$crmContactId]);
+                                                $companyId = $stmtComp->fetchColumn() ?: null;
+                                            }
+                                            $leadId = null;
+                                            if ($crmContactId) {
+                                                $stmtLead = $db->prepare("SELECT id FROM crm_leads WHERE contact_id = ? AND user_id = ? ORDER BY id DESC LIMIT 1");
+                                                $stmtLead->execute([$crmContactId, $userId]);
+                                                $leadId = $stmtLead->fetchColumn() ?: null;
+                                            }
+
+                                            $stmtTaskIns = $db->prepare("INSERT INTO crm_tasks (user_id, company_id, contact_id, lead_id, title, description, due_date, due_time, priority, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
+                                            $stmtTaskIns->execute([
+                                                $userId, $companyId, $crmContactId, $leadId, $taskTitle, $taskDesc, $taskDueDate, $taskDueTime, $taskPriority
+                                            ]);
+                                            
+                                            $db->prepare("INSERT INTO crm_timeline (user_id, lead_id, contact_id, company_id, activity_type, description) VALUES (?, ?, ?, ?, 'Task Created', ?)")
+                                               ->execute([$userId, $leadId, $crmContactId, $companyId, "Task '$taskTitle' automatically scheduled via AI WhatsApp agent (Due: $taskDueDate)."]);
+                                        }
                                     }
-                                    
-                                    // Resolve company_id and lead_id
-                                    $companyId = null;
-                                    if ($crmContactId) {
-                                        $stmtComp = $db->prepare("SELECT company_id FROM crm_contacts WHERE id = ? LIMIT 1");
-                                        $stmtComp->execute([$crmContactId]);
-                                        $companyId = $stmtComp->fetchColumn() ?: null;
-                                    }
-                                    
-                                    $leadId = null;
-                                    if ($crmContactId) {
-                                        $stmtLead = $db->prepare("SELECT id FROM crm_leads WHERE contact_id = ? AND user_id = ? ORDER BY id DESC LIMIT 1");
-                                        $stmtLead->execute([$crmContactId, $userId]);
-                                        $leadId = $stmtLead->fetchColumn() ?: null;
-                                    }
-                                    
-                                    // Insert the task
-                                    $stmtTaskIns = $db->prepare("INSERT INTO crm_tasks (user_id, company_id, contact_id, lead_id, title, description, due_date, due_time, priority, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
-                                    $stmtTaskIns->execute([
-                                        $userId, $companyId, $crmContactId, $leadId, $taskTitle, $taskDesc, $taskDueDate, $taskDueTime, $taskPriority
-                                    ]);
-                                    $newTaskId = $db->lastInsertId();
-                                    
-                                    // Log to timeline
-                                    $db->prepare("INSERT INTO crm_timeline (user_id, lead_id, contact_id, company_id, activity_type, description) VALUES (?, ?, ?, ?, 'Task Created', ?)")
-                                       ->execute([$userId, $leadId, $crmContactId, $companyId, "Task '$taskTitle' automatically scheduled via AI WhatsApp agent (Due: $taskDueDate)."]);
                                 }
                             }
                         } catch (Exception $aiEx) {

@@ -725,4 +725,112 @@ class ExternalAppsHelper {
             throw new Exception("Google Meet generation failed: " . $e->getMessage());
         }
     }
+
+    /**
+     * Send calendar invite email with invite.ics attachment for a task meeting
+     */
+    public static function sendTaskMeetingInviteEmail($userId, $taskId, $meetLink, $recipientEmail) {
+        $db = Database::getConnection();
+        
+        // Fetch task details
+        $stmtTask = $db->prepare("SELECT title, description, due_date, due_time FROM crm_tasks WHERE id = ? AND user_id = ?");
+        $stmtTask->execute([$taskId, $userId]);
+        $task = $stmtTask->fetch();
+        if (!$task) return false;
+
+        $title = $task['title'];
+        $cleanTitle = str_replace('[Meeting] ', '', $title);
+        $dateStr = $task['due_date'] ?: date('Y-m-d');
+        $timeStr = $task['due_time'] ?: '12:00:00';
+        
+        $startDateTime = str_replace('-', '', $dateStr) . 'T' . str_replace(':', '', $timeStr);
+        $endTimeVal = strtotime("$dateStr $timeStr") + 3600;
+        $endDateTime = date('Ymd\THis', $endTimeVal);
+        
+        $uid = uniqid() . '@linkpilot.ai';
+        $createdStamp = date('Ymd\THis\Z');
+
+        $icsContent = "BEGIN:VCALENDAR\r\n";
+        $icsContent .= "VERSION:2.0\r\n";
+        $icsContent .= "PRODID:-//LinkPilot//CRM//EN\r\n";
+        $icsContent .= "METHOD:REQUEST\r\n";
+        $icsContent .= "BEGIN:VEVENT\r\n";
+        $icsContent .= "UID:{$uid}\r\n";
+        $icsContent .= "DTSTAMP:{$createdStamp}\r\n";
+        $icsContent .= "DTSTART:{$startDateTime}\r\n";
+        $icsContent .= "DTEND:{$endDateTime}\r\n";
+        $icsContent .= "SUMMARY:{$cleanTitle}\r\n";
+        $icsContent .= "DESCRIPTION:{$task['description']}\\n\\nJoin meeting here: {$meetLink}\r\n";
+        $icsContent .= "LOCATION:{$meetLink}\r\n";
+        $icsContent .= "STATUS:CONFIRMED\r\n";
+        $icsContent .= "SEQUENCE:0\r\n";
+        $icsContent .= "ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE:mailto:{$recipientEmail}\r\n";
+        $icsContent .= "END:VEVENT\r\n";
+        $icsContent .= "END:VCALENDAR\r\n";
+
+        // Fetch SMTP credentials
+        $stmtSmtp = $db->prepare("SELECT smtp_host, smtp_port, smtp_username, smtp_password, smtp_encryption FROM imap_smtp_configurations WHERE user_id = ?");
+        $stmtSmtp->execute([$userId]);
+        $smtp = $stmtSmtp->fetch();
+
+        $phpmailerPath = __DIR__ . '/libs/PHPMailer/PHPMailer.php';
+        if (file_exists($phpmailerPath)) {
+            require_once __DIR__ . '/libs/PHPMailer/PHPMailer.php';
+            require_once __DIR__ . '/libs/PHPMailer/SMTP.php';
+            require_once __DIR__ . '/libs/PHPMailer/Exception.php';
+        }
+
+        if (class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+            $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+            try {
+                if ($smtp && !empty($smtp['smtp_host'])) {
+                    $mail->isSMTP();
+                    $mail->Host = $smtp['smtp_host'];
+                    $mail->SMTPAuth = true;
+                    $mail->Username = $smtp['smtp_username'];
+                    $mail->Password = decryptData($smtp['smtp_password']);
+                    $mail->Port = (int)$smtp['smtp_port'];
+                    $mail->SMTPSecure = strtolower($smtp['smtp_encryption']) === 'ssl' ? PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS : PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+                } else {
+                    $mail->isMail();
+                }
+
+                $mail->setFrom($smtp['smtp_username'] ?? 'noreply@linkpilot.ai', 'LinkPilot AI CRM');
+                $mail->addAddress($recipientEmail);
+                $mail->Subject = "Meeting Invite: " . $cleanTitle;
+                $mail->isHTML(true);
+                $mailBody = "
+                    <div style='font-family: sans-serif; padding: 20px; color: #1e293b;'>
+                        <h2 style='color: #4f46e5;'>Meeting Scheduled</h2>
+                        <p>Hello,</p>
+                        <p>You have been invited to a meeting scheduled through LinkPilot CRM.</p>
+                        <table style='border-collapse: collapse; width: 100%; margin: 20px 0;'>
+                            <tr>
+                                <td style='padding: 8px; font-weight: bold; border-bottom: 1px solid #e2e8f0; width: 120px;'>Subject:</td>
+                                <td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{$cleanTitle}</td>
+                            </tr>
+                            <tr>
+                                <td style='padding: 8px; font-weight: bold; border-bottom: 1px solid #e2e8f0;'>Date & Time:</td>
+                                <td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{$dateStr} @ " . substr($timeStr, 0, 5) . "</td>
+                            </tr>
+                            <tr>
+                                <td style='padding: 8px; font-weight: bold; border-bottom: 1px solid #e2e8f0;'>Meeting Link:</td>
+                                <td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'><a href='{$meetLink}' style='color: #4f46e5; font-weight: bold;'>Join Google Meet</a></td>
+                            </tr>
+                        </table>
+                        <p style='color: #64748b; font-size: 12px;'>An <b>invite.ics</b> file is attached to this email. You can add it directly to your Google Calendar, Outlook, or Apple Calendar in one click.</p>
+                    </div>
+                ";
+                $mail->Body = $mailBody;
+
+                $mail->addStringAttachment($icsContent, 'invite.ics', 'base64', 'text/calendar; method=REQUEST');
+                $mail->send();
+                return true;
+            } catch (Exception $e) {
+                error_log("Failed to send calendar invite email to $recipientEmail: " . $e->getMessage());
+                return false;
+            }
+        }
+        return false;
+    }
 }

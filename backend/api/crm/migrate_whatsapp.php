@@ -199,7 +199,7 @@ try {
         `max_numbers` INT DEFAULT 1,
         `max_campaign_size` INT DEFAULT 500,
         `max_messages_per_day` INT DEFAULT 1000,
-        `ai_enabled` TINYINT(1) DEFAULT 1,
+        `ai_enabled` TINYINT(1) DEFAULT 0,
         `auto_crm_creation` TINYINT(1) DEFAULT 1,
         `auto_lead_detection` TINYINT(1) DEFAULT 1,
         `auto_contact_detection` TINYINT(1) DEFAULT 1,

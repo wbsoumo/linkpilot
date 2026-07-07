@@ -2722,12 +2722,12 @@ function renderWhatsAppSettings(container) {
                                             <i data-lucide="sparkles" class="h-5 w-5"></i>
                                         </div>
                                         <div>
-                                            <div class="font-bold text-slate-700 text-xs">AI Processing Enabled</div>
-                                            <div class="text-[10px] text-slate-400 mt-0.5">Use AI to automatically draft suggested replies for inbound chats.</div>
+                                            <div class="font-bold text-slate-700 text-xs">AI Autopilot (Auto-Reply Enabled)</div>
+                                            <div class="text-[10px] text-slate-400 mt-0.5">Let AI automatically reply to chats, negotiating and scheduling calls based on lead records, tasks, availability, and timeline remarks.</div>
                                         </div>
                                     </div>
                                     <label class="relative inline-flex items-center cursor-pointer shrink-0">
-                                        <input type="checkbox" id="set-ai" ${set.ai_enabled ? 'checked' : ''} onchange="autoSaveWaSettings()" class="sr-only peer">
+                                        <input type="checkbox" id="set-ai" ${set.ai_enabled ? 'checked' : ''} onchange="toggleAiProcessing(this)" class="sr-only peer">
                                         <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-350 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
                                     </label>
                                 </div>
@@ -2819,6 +2819,107 @@ function renderWhatsAppSettings(container) {
             `;
             lucide.createIcons();
             
+            // AI Autopilot Toggle Handler & Privacy Policy Modal
+            window.toggleAiProcessing = function(checkbox) {
+                if (checkbox.checked) {
+                    checkbox.checked = false; // Keep unchecked until accepted!
+                    showPrivacyPolicyModal(checkbox);
+                } else {
+                    autoSaveWaSettings();
+                }
+            };
+
+            window.showPrivacyPolicyModal = function(checkbox) {
+                const existing = document.getElementById('ai-privacy-modal');
+                if (existing) existing.remove();
+                
+                const modalHtml = `
+                    <div id="ai-privacy-modal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300">
+                        <div class="bg-white rounded-3xl w-full max-w-xl p-6 shadow-2xl border border-slate-100 max-h-[85vh] flex flex-col transform transition-all scale-100 duration-300 mx-4">
+                            <!-- Header -->
+                            <div class="flex items-center justify-between pb-4 border-b border-slate-100 shrink-0">
+                                <div class="flex items-center space-x-3">
+                                    <div class="h-10 w-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center border border-purple-100 shadow-sm">
+                                        <i data-lucide="shield-alert" class="h-5 w-5"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="text-xs font-bold text-slate-800">AI Autopilot & Data Privacy Policy</h2>
+                                        <p class="text-[9px] text-slate-400">Please review and accept to enable autonomous replies</p>
+                                    </div>
+                                </div>
+                                <button onclick="closePrivacyModal(false)" class="h-7 w-7 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition border border-slate-100">
+                                    <i data-lucide="x" class="h-4 w-4"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Content -->
+                            <div class="flex-1 overflow-y-auto py-4 pr-1 text-slate-600 text-xs leading-relaxed space-y-4 font-normal custom-scrollbar">
+                                <div class="bg-amber-50 border border-amber-100 p-3.5 rounded-2xl flex space-x-2 text-[11px] text-amber-800">
+                                    <i data-lucide="info" class="h-4 w-4 shrink-0 mt-0.5 text-amber-600"></i>
+                                    <div>
+                                        <strong>Declaration:</strong> AI can make mistakes or hallucinate. Please note that once enabled, the AI acts autonomously to respond to your customers.
+                                    </div>
+                                </div>
+                                
+                                <h3 class="font-bold text-slate-700 text-xs mt-2 flex items-center space-x-1.5">
+                                    <i data-lucide="database" class="h-4 w-4 text-blue-500"></i>
+                                    <span>Scope of Data Access & Integration</span>
+                                </h3>
+                                <p>To negotiate, ask clarifying questions, schedule calls, and close deals efficiently, the AI Agent requires real-time read and write access to the following workspace data:</p>
+                                <ul class="list-disc pl-5 space-y-1.5 text-slate-500 text-[11px]">
+                                    <li><strong>WhatsApp Inbound Messages:</strong> Reading incoming messages and replying autonomously.</li>
+                                    <li><strong>CRM Pipeline Leads:</strong> Querying contact status, lead stage, custom fields, and client pipeline properties.</li>
+                                    <li><strong>Account Remarks & Timeline Logs:</strong> Retrieving previous activity notes and remarks to maintain conversation context.</li>
+                                    <li><strong>CRM Tasks & Availability Schedules:</strong> Accessing upcoming tasks, scheduled meetings, and calendars to arrange/confirm calls.</li>
+                                </ul>
+                                
+                                <h3 class="font-bold text-slate-700 text-xs flex items-center space-x-1.5">
+                                    <i data-lucide="check-square" class="h-4 w-4 text-emerald-500"></i>
+                                    <span>User Declaration & Clarifications</span>
+                                </h3>
+                                <p>By clicking "Accept & Enable", you acknowledge, understand, and agree that:</p>
+                                <ol class="list-decimal pl-5 space-y-1.5 text-slate-500 text-[11px]">
+                                    <li>The AI will reply <strong>automatically</strong> to incoming WhatsApp messages under your name and active WABA phone number.</li>
+                                    <li>You release the platform from any liabilities arising from replies, errors, or commitments made autonomously by the AI.</li>
+                                    <li>You can disable this setting at any time to return to manual suggested drafts.</li>
+                                </ol>
+                            </div>
+                            
+                            <!-- Footer -->
+                            <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3 shrink-0 text-xs">
+                                <button onclick="closePrivacyModal(false)" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-500 font-bold rounded-xl transition text-xs">
+                                    Decline & Keep Disabled
+                                </button>
+                                <button onclick="closePrivacyModal(true)" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-95 text-white font-bold rounded-xl transition shadow-md text-xs flex items-center space-x-1">
+                                    <i data-lucide="check" class="h-4 w-4"></i>
+                                    <span>Accept & Enable Autopilot</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                lucide.createIcons();
+                
+                window.closePrivacyModal = function(accepted) {
+                    const modal = document.getElementById('ai-privacy-modal');
+                    if (modal) {
+                        modal.classList.add('opacity-0');
+                        setTimeout(() => {
+                            modal.remove();
+                            if (accepted) {
+                                checkbox.checked = true;
+                                autoSaveWaSettings();
+                            } else {
+                                checkbox.checked = false;
+                                autoSaveWaSettings();
+                            }
+                        }, 200);
+                    }
+                };
+            };
+
             // Auto Save Handler
             window.autoSaveWaSettings = function() {
                 const payload = {

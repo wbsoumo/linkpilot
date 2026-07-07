@@ -91,13 +91,17 @@ try {
             }
             
             // 1. Locate the connected account by phone_number_id
-            $stmtAcc = $db->prepare("SELECT user_id FROM whatsapp_accounts WHERE phone_number_id = ? AND status = 'connected' LIMIT 1");
+            $stmtAcc = $db->prepare("SELECT user_id, access_token, business_name FROM whatsapp_accounts WHERE phone_number_id = ? AND status = 'connected' LIMIT 1");
             $stmtAcc->execute([$phoneNumberId]);
             $accRow = $stmtAcc->fetch();
             if (!$accRow) {
                 continue; // WhatsApp Account not linked to any user inside LinkPilot
             }
             $userId = (int)$accRow['user_id'];
+            $encryptedToken = $accRow['access_token'];
+            $decrypted = decryptData($encryptedToken);
+            $accessToken = ($decrypted !== false) ? $decrypted : $encryptedToken;
+            $isMock = (strpos($accessToken, 'Mock') !== false || strpos($accessToken, 'EAAGemini') !== false);
             
             // 2. Fetch User Settings
             $stmtSettings = $db->prepare("SELECT * FROM whatsapp_settings WHERE user_id = ? LIMIT 1");
@@ -211,26 +215,117 @@ try {
                     $sentiment = 'neutral';
                     
                     if ($settings['ai_enabled'] && $msgType === 'text' && !empty($bodyText)) {
-                        $systemPrompt = "You are an AI WhatsApp Assistant. Extract CRM attributes, classify conversation sentiment, formulate a summary, and draft a response.
-                        
-                        You MUST reply in a valid, parsable JSON structure only, with the following properties:
-                        {
-                          \"summary\": \"Brief summary of this message\",
-                          \"suggested_reply\": \"A helpful, professional response to write back\",
-                          \"sentiment\": \"positive|neutral|negative\",
-                          \"extracted_lead\": {
-                            \"person_name\": \"...\",
-                            \"company_name\": \"...\",
-                            \"budget\": 0.00,
-                            \"services\": \"...\",
-                            \"timeline\": \"...\",
-                            \"priority\": \"high|medium|low\"
-                          }
-                        }";
-                        
-                        $userPrompt = "Sender Name: $profileName\nMessage: $bodyText";
-                        
                         try {
+                            // 1. Fetch Today's & Upcoming Meetings
+                            $stmtMeetings = $db->prepare("SELECT title, description, start_time, location FROM crm_meetings WHERE user_id = ? AND start_time >= NOW() ORDER BY start_time ASC LIMIT 5");
+                            $stmtMeetings->execute([$userId]);
+                            $meetings = $stmtMeetings->fetchAll(PDO::FETCH_ASSOC);
+
+                            // 2. Fetch Pending/Active Tasks
+                            $stmtTasks = $db->prepare("SELECT title, description, status, due_date, priority FROM crm_tasks WHERE user_id = ? AND status != 'Completed' ORDER BY due_date ASC LIMIT 8");
+                            $stmtTasks->execute([$userId]);
+                            $tasks = $stmtTasks->fetchAll(PDO::FETCH_ASSOC);
+
+                            // 3. Fetch Recent CRM Leads
+                            $stmtLeads = $db->prepare("SELECT name, company, email, phone, budget, stage, priority, requirements FROM crm_leads WHERE user_id = ? ORDER BY created_at DESC LIMIT 10");
+                            $stmtLeads->execute([$userId]);
+                            $leads = $stmtLeads->fetchAll(PDO::FETCH_ASSOC);
+
+                            // 4. Fetch Recent Inbox Emails
+                            $stmtEmails = $db->prepare("SELECT sender_name, sender_email, subject, category, ai_summary, received_date FROM received_emails WHERE user_id = ? AND is_spam = 0 AND is_archived = 0 ORDER BY received_date DESC LIMIT 5");
+                            $stmtEmails->execute([$userId]);
+                            $emails = $stmtEmails->fetchAll(PDO::FETCH_ASSOC);
+
+                            // 5. Fetch Timeline Remarks for this Contact
+                            $timeline = [];
+                            if ($crmContactId) {
+                                $stmtTimeline = $db->prepare("SELECT activity_type, description, created_at FROM crm_timeline WHERE user_id = ? AND contact_id = ? ORDER BY created_at DESC LIMIT 8");
+                                $stmtTimeline->execute([$userId, $crmContactId]);
+                                $timeline = $stmtTimeline->fetchAll(PDO::FETCH_ASSOC);
+                            }
+
+                            // 6. Fetch Conversation History (last 10 messages)
+                            $stmtChatHist = $db->prepare("SELECT direction, body, created_at FROM whatsapp_messages WHERE wa_contact_id = ? ORDER BY created_at DESC LIMIT 10");
+                            $stmtChatHist->execute([$waContactId]);
+                            $chatHist = array_reverse($stmtChatHist->fetchAll(PDO::FETCH_ASSOC));
+
+                            // Build context strings
+                            $leadsCtx = "";
+                            foreach ($leads as $l) {
+                                $leadsCtx .= "- Lead: {$l['name']} | Company: {$l['company']} | Budget: INR {$l['budget']} | Stage: {$l['stage']} | Requirements: {$l['requirements']}\n";
+                            }
+                            
+                            $tasksCtx = "";
+                            foreach ($tasks as $t) {
+                                $tasksCtx .= "- Task: {$t['title']} | Due: {$t['due_date']} | Status: {$t['status']} | Priority: {$t['priority']}\n";
+                            }
+                            
+                            $meetingsCtx = "";
+                            foreach ($meetings as $m) {
+                                $meetingsCtx .= "- Meeting: {$m['title']} | Time: {$m['start_time']} | Location: {$m['location']}\n";
+                            }
+                            
+                            $emailsCtx = "";
+                            foreach ($emails as $e) {
+                                $emailsCtx .= "- Email from {$e['sender_name']} <{$e['sender_email']}> | Subject: {$e['subject']} | Category: {$e['category']} | Summary: {$e['ai_summary']}\n";
+                            }
+                            
+                            $remarksCtx = "";
+                            foreach ($timeline as $tl) {
+                                $remarksCtx .= "- [{$tl['created_at']}] {$tl['activity_type']}: {$tl['description']}\n";
+                            }
+                            
+                            $chatHistCtx = "";
+                            foreach ($chatHist as $ch) {
+                                $sender = ($ch['direction'] === 'inbound') ? $profileName : "You (AI)";
+                                $chatHistCtx .= "- [{$ch['created_at']}] $sender: {$ch['body']}\n";
+                            }
+
+                            $systemPrompt = "You are the autonomous AI WhatsApp CRM Agent for user " . $accRow['business_name'] . " (User ID: $userId).
+Your goal is to reply automatically to incoming customer messages, asking clarifying questions if required, negotiating, and closing deals like a professional human sales/CRM agent.
+You have real-time access to the user's workspace context below. Use this information to address their queries accurately, coordinate scheduling, or quote pricing.
+
+CRITICAL INSTRUCTIONS:
+1. Stay strictly on-topic. Do not discuss general knowledge, general coding, or unrelated subjects. Focus entirely on the customer's business relationship, leads, bookings, invoices, and sales inquiries.
+2. If you need to schedule a meeting, check the meetings/availability list. Propose slot options that do not conflict with existing meetings.
+3. If you do not have enough information to close a deal or answer a technical question, ask polite clarifying questions.
+4. You MUST return your response as a valid, parsable JSON block with the following keys, and nothing else (no extra markdown blocks outside JSON):
+{
+  \"summary\": \"Brief 1-sentence summary of the user message\",
+  \"suggested_reply\": \"The message text that you will automatically write back to the customer on WhatsApp. Write it in a natural, friendly, human-like professional tone. Do not use generic placeholders.\",
+  \"sentiment\": \"positive|neutral|negative\",
+  \"extracted_lead\": {
+    \"person_name\": \"...\",
+    \"company_name\": \"...\",
+    \"budget\": 0.00,
+    \"services\": \"...\",
+    \"timeline\": \"...\",
+    \"priority\": \"high|medium|low\"
+  }
+}
+
+--- USER WORKSPACE CONTEXT ---
+## RECENT PIPELINE LEADS:
+" . ($leadsCtx ?: "No leads in pipeline.") . "
+
+## RECENT TASKS:
+" . ($tasksCtx ?: "No active tasks.") . "
+
+## UPCOMING MEETINGS & AVAILABILITY:
+" . ($meetingsCtx ?: "No upcoming meetings scheduled.") . "
+
+## RECENT INBOX EMAILS:
+" . ($emailsCtx ?: "No recent emails.") . "
+
+## RECENT REMARKS & TIMELINE FOR THIS CONTACT:
+" . ($remarksCtx ?: "No timeline logs found.") . "
+
+## CONVERSATION HISTORY (LAST 10 MESSAGES):
+" . ($chatHistCtx ?: "No previous chat history.") . "
+";
+
+                            $userPrompt = "Sender Name: $profileName\nMessage: $bodyText";
+
                             $ai = callAI($systemPrompt, $userPrompt, $userId);
                             $aiRes = json_decode($ai['text'], true);
                             if ($aiRes) {
@@ -271,6 +366,34 @@ try {
                     $stmtInsMsg->execute([
                         $userId, $waContactId, $messageId, $msgType, $bodyText, $mediaUrl, $mediaMimeType, $aiSummary, $aiSuggestedReply, $sentiment
                     ]);
+                    
+                    // If AI Auto-Pilot is enabled, automatically transmit response to WhatsApp
+                    if ($settings['ai_enabled'] && !empty($aiSuggestedReply)) {
+                        $replyMsgId = '';
+                        try {
+                            if (!$isMock) {
+                                $sendRes = WhatsAppMetaService::sendTextMessage($userId, $phoneNumberId, $fromWaId, $aiSuggestedReply, $accessToken);
+                                $replyMsgId = $sendRes['messages'][0]['id'] ?? 'wamid.auto.' . uniqid();
+                            } else {
+                                $replyMsgId = 'wamid.MockAuto.' . uniqid();
+                            }
+                            
+                            // Save outbound auto reply to database
+                            $stmtInsAutoMsg = $db->prepare("INSERT INTO whatsapp_messages (user_id, wa_contact_id, message_id, direction, type, body, status) VALUES (?, ?, ?, 'outbound', 'text', ?, 'sent')");
+                            $stmtInsAutoMsg->execute([$userId, $waContactId, $replyMsgId, $aiSuggestedReply]);
+                            
+                            // Update last active activity
+                            $db->prepare("UPDATE whatsapp_contacts SET last_message_at = NOW() WHERE id = ?")->execute([$waContactId]);
+                            
+                            // Log timeline
+                            $db->prepare("INSERT INTO crm_timeline (user_id, contact_id, activity_type, description) VALUES (?, ?, 'WhatsApp Outbound', ?)")
+                               ->execute([$userId, $crmContactId, "AI Auto-Pilot replied to '$profileName': " . substr($aiSuggestedReply, 0, 100)]);
+                        } catch (Exception $sendEx) {
+                            // Save error log to whatsapp messages if failed
+                            $stmtInsAutoErr = $db->prepare("INSERT INTO whatsapp_messages (user_id, wa_contact_id, message_id, direction, type, body, status, error_message) VALUES (?, ?, ?, 'outbound', 'text', ?, 'failed', ?)");
+                            $stmtInsAutoErr->execute([$userId, $waContactId, 'wamid.err.' . uniqid(), $aiSuggestedReply, $sendEx->getMessage()]);
+                        }
+                    }
                     
                     // Update user statistics
                     updateStatistic($userId, 'whatsapp_generated');

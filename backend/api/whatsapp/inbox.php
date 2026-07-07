@@ -273,7 +273,29 @@ try {
                 if (empty($templateName)) {
                     sendJsonResponse('error', 'Template name is required.', [], 400);
                 }
-                $response = WhatsAppMetaService::sendTemplateMessage($userId, $phoneNumberId, $recipient, $templateName, $lang, [], $accessToken);
+                
+                $components = [];
+                if (!empty($input['components'])) {
+                    $components = $input['components'];
+                } elseif (!empty($input['variables'])) {
+                    $params = [];
+                    foreach ($input['variables'] as $v) {
+                        $params[] = [
+                            "type" => "text",
+                            "text" => (string)$v
+                        ];
+                    }
+                    if (!empty($params)) {
+                        $components = [
+                            [
+                                "type" => "body",
+                                "parameters" => $params
+                            ]
+                        ];
+                    }
+                }
+                
+                $response = WhatsAppMetaService::sendTemplateMessage($userId, $phoneNumberId, $recipient, $templateName, $lang, $components, $accessToken);
                 $bodyText = "[Template: {$templateName}]";
             } else {
                 sendJsonResponse('error', 'Unsupported message type: ' . $type, [], 400);

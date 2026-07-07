@@ -330,6 +330,9 @@ async function navigateTo(view, params = {}) {
         case 'whatsapp-templates':
             renderWhatsAppTemplates(contentArea);
             break;
+        case 'whatsapp-send-template':
+            renderWhatsAppSendTemplate(contentArea, params);
+            break;
         case 'whatsapp-broadcast':
             renderWhatsAppBroadcast(contentArea);
             break;

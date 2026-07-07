@@ -3255,3 +3255,308 @@ window.submitTemplateMsg = async function(phone) {
         btn.innerHTML = '<span>Send Template</span>';
     }
 };
+
+// ----------------------------------------------------
+// 9. WHATSAPP SEND TEMPLATE PAGE VIEW
+// ----------------------------------------------------
+window.renderWhatsAppSendTemplate = function(container, params = {}) {
+    checkWaConnectionAndRender('send-template', container, async (contentArea) => {
+        try {
+            // Find selected template
+            let templateId = params.templateId || localStorage.getItem('wa_send_template_id');
+            const res = await apiCall('whatsapp/templates.php');
+            const allTemplates = res.templates || [];
+            
+            let selectedTemplate = allTemplates.find(t => t.id == templateId) || allTemplates[0];
+            if (!selectedTemplate) {
+                contentArea.innerHTML = `<div class="p-6 text-center text-slate-400">No approved templates found. Please sync templates first.</div>`;
+                return;
+            }
+            
+            // Save selected template to local storage in case of tab reload
+            localStorage.setItem('wa_send_template_id', selectedTemplate.id);
+            
+            const components = JSON.parse(selectedTemplate.components_json) || [];
+            const headerComp = components.find(c => c.type === 'HEADER') || null;
+            const bodyComp = components.find(c => c.type === 'BODY') || null;
+            const footerComp = components.find(c => c.type === 'FOOTER') || null;
+            const buttonsComp = components.find(c => c.type === 'BUTTONS') || null;
+            
+            // Find variables
+            const fullText = (headerComp?.text || '') + ' ' + (bodyComp?.text || '');
+            const varsFound = [...new Set(fullText.match(/{{[0-9]+}}/g) || [])].sort((a, b) => {
+                const numA = parseInt(a.replace(/[{}]/g, ''));
+                const numB = parseInt(b.replace(/[{}]/g, ''));
+                return numA - numB;
+            });
+            
+            contentArea.innerHTML = `
+                <div class="space-y-6 animate-fade-in text-xs">
+                    <!-- Title Bar -->
+                    <div class="flex items-center border-b border-slate-200 pb-4 bg-white p-5 rounded-2xl shadow-sm">
+                        <button onclick="navigateTo('whatsapp-templates')" class="mr-3 p-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500 transition shadow-sm">
+                            <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                        </button>
+                        <div>
+                            <h2 class="text-sm font-bold text-slate-800">Send Message Template</h2>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Deploy templates with custom parameters to target recipients</p>
+                        </div>
+                    </div>
+
+                    <!-- Two Columns View -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        <!-- Left Column: Sender Form (lg:col-span-8) -->
+                        <div class="lg:col-span-8 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
+                            <h3 class="font-bold text-slate-800 text-xs border-b border-slate-100 pb-2">Sender Configurations</h3>
+                            
+                            <form onsubmit="submitSendTemplateForm(event)" class="space-y-4">
+                                <!-- Recipient Numbers -->
+                                <div>
+                                    <label class="block text-slate-500 font-semibold mb-1 uppercase tracking-wider text-[10px]">Recipient Numbers</label>
+                                    <textarea id="set-send-recipients" required rows="3" placeholder="Enter phone numbers separated by commas, e.g. +91 92423 22991, 919999999999" class="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-[11px] focus:outline-none focus:border-blue-500 bg-[#f8fafc]"></textarea>
+                                    <span class="text-[10px] text-slate-400 mt-1 block">Include country codes and exclude symbols/spaces for best delivery.</span>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <!-- Template name -->
+                                    <div>
+                                        <label class="block text-slate-500 font-semibold mb-1 uppercase tracking-wider text-[10px]">Active Template</label>
+                                        <input type="text" readonly value="${selectedTemplate.name}" class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-500 font-semibold">
+                                    </div>
+                                    <!-- Language -->
+                                    <div>
+                                        <label class="block text-slate-500 font-semibold mb-1 uppercase tracking-wider text-[10px]">Language</label>
+                                        <input type="text" readonly value="${selectedTemplate.language}" class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-500 font-semibold">
+                                    </div>
+                                </div>
+
+                                <!-- Dynamic Variables Inputs -->
+                                ${varsFound.length > 0 ? `
+                                <div class="space-y-3.5 border-t border-slate-100 pt-4">
+                                    <h4 class="text-slate-600 font-bold uppercase tracking-wider text-[10px] mb-2">Template Parameter Variables</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        ${varsFound.map(v => {
+                                            const vNum = parseInt(v.replace(/[{}]/g, ''));
+                                            let label = `Variable ${vNum}`;
+                                            let placeholder = `Value for ${v}`;
+                                            if (vNum === 1) {
+                                                label = `1 Customer Name`;
+                                                placeholder = `e.g. Soumojit`;
+                                            } else if (vNum === 2) {
+                                                label = `2 Offer Code`;
+                                                placeholder = `e.g. OUTREACH20`;
+                                            } else if (vNum === 3) {
+                                                label = `3 Offer Expiry`;
+                                                placeholder = `e.g. 31st July, 2026`;
+                                            }
+                                            return `
+                                                <div>
+                                                    <label class="block text-slate-500 font-semibold text-[10px] mb-1">${label}</label>
+                                                    <input type="text" data-send-var="${v}" oninput="updateSendMockPreview()" placeholder="${placeholder}" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 bg-[#f8fafc]">
+                                                </div>
+                                            `;
+                                        }).join('')}
+                                    </div>
+                                </div>
+                                ` : ''}
+
+                                <!-- Send Action -->
+                                <div class="pt-3 border-t border-slate-100 flex items-center justify-end">
+                                    <button type="submit" id="send-tpl-submit-btn" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition flex items-center space-x-2 shadow-md">
+                                        <i data-lucide="send" class="h-4 w-4"></i>
+                                        <span>Send Template Message</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Right Column: Live Mockup Preview (lg:col-span-4) -->
+                        <div class="lg:col-span-4 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col items-center">
+                            <h3 class="font-bold text-slate-800 text-xs self-start mb-4">Live Preview</h3>
+                            
+                            <!-- Mobile Phone Frame Mockup -->
+                            <div class="w-full max-w-[290px] bg-slate-100 rounded-[40px] p-3 shadow-2xl border border-slate-200/80 relative">
+                                <!-- Screen Container -->
+                                <div class="w-full bg-[#efeae2] rounded-[32px] overflow-hidden flex flex-col aspect-[9/16] relative border border-slate-200 select-none shadow-inner">
+                                    
+                                    <!-- Status Bar -->
+                                    <div class="bg-[#054c44] text-white/90 px-5 pt-2 pb-1.5 flex justify-between items-center text-[9px] font-semibold tracking-wide shrink-0">
+                                        <span>9:41</span>
+                                        <div class="flex items-center space-x-1.5">
+                                            <svg class="h-2.5 w-2.5 fill-current" viewBox="0 0 24 24">
+                                                <path d="M2 22h20V2z"/>
+                                            </svg>
+                                            <svg class="h-2.5 w-2.5 fill-current" viewBox="0 0 24 24">
+                                                <path d="M12 21c-1.2 0-2.4-.3-3.5-.8L2.3 14c-.4-.4-.4-1 0-1.4.4-.4 1-.4 1.4 0l6.2 6.2c1.2.6 2.6.6 3.8 0l6.2-6.2c.4-.4 1-.4 1.4 0 .4.4.4 1 0 1.4l-6.2 6.2c-1.1.5-2.3.8-3.5.8z"/>
+                                            </svg>
+                                            <div class="w-4 h-2.25 border border-white/80 rounded-sm p-[1px] flex items-center">
+                                                <div class="bg-white h-full w-full rounded-2xs"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- WhatsApp Header -->
+                                    <div class="bg-[#075e54] text-white px-3 py-2 flex items-center justify-between shadow-md shrink-0">
+                                        <div class="flex items-center space-x-1.5">
+                                            <i data-lucide="arrow-left" class="h-4 w-4 text-white hover:opacity-80 cursor-pointer"></i>
+                                            <div class="h-8 w-8 rounded-full bg-white flex items-center justify-center overflow-hidden shrink-0 border border-white/20 p-1">
+                                                <img src="assets/img/logo.png" class="h-full w-full object-contain" alt="">
+                                            </div>
+                                            <div>
+                                                <div class="text-[11px] font-bold flex items-center">
+                                                    <span>Taskbazi</span>
+                                                    <span class="inline-flex items-center justify-center h-3.5 w-3.5 rounded-full bg-emerald-500 text-white shrink-0 ml-1 scale-[0.8] origin-left">
+                                                        <svg class="h-2.25 w-2.25 stroke-[4.5] text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                    </span>
+                                                </div>
+                                                <div class="text-[8px] text-white/70 leading-none mt-0.5">Business Account</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-2.5 text-white/95">
+                                            <i data-lucide="video" class="h-4 w-4"></i>
+                                            <i data-lucide="phone" class="h-3.5 w-3.5"></i>
+                                            <i data-lucide="more-vertical" class="h-3.5 w-3.5"></i>
+                                        </div>
+                                    </div>
+
+                                    <!-- Mock Chat Feed Wallpaper area -->
+                                    <div class="flex-grow p-4 flex flex-col justify-between overflow-hidden relative" style="background-image: url('../backend/api/whatsapp/chatbg.jpg'), url('/backend/api/whatsapp/chatbg.jpg'); background-size: cover; background-blend-mode: overlay; background-color: rgba(239, 234, 226, 0.94);">
+                                        <div class="flex flex-col space-y-3.5 overflow-y-auto pr-1 flex-grow">
+                                            <div class="self-center bg-white/90 text-slate-500 font-bold px-3 py-1 rounded-lg text-[9px] uppercase tracking-wider shadow-sm select-none border border-slate-200/30">
+                                                Today
+                                            </div>
+
+                                            <div class="self-start max-w-[90%] bg-white rounded-2xl rounded-tl-none p-3 shadow-md border border-slate-200/50 flex flex-col relative animate-fade-in">
+                                                <!-- Bubble Tail -->
+                                                <div class="absolute -left-[7px] top-0 w-2 h-3 text-white fill-current overflow-hidden">
+                                                    <svg class="h-full w-full" viewBox="0 0 8 12" fill="white">
+                                                        <path d="M8 0H0v12l8-12z"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="text-[10px] text-slate-800 leading-relaxed font-sans whitespace-pre-wrap" id="mock-send-bubble-text">
+                                                    <!-- Filled live template body text -->
+                                                </div>
+                                                <span class="text-[7.5px] text-slate-400 self-end mt-1.5 flex items-center space-x-0.5">
+                                                    <span>11:30 AM</span>
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="pt-3 flex items-center space-x-2 shrink-0 select-none">
+                                            <div class="flex-grow bg-white rounded-full px-3 py-2 flex items-center space-x-2 shadow-md border border-slate-200/20">
+                                                <i data-lucide="smile" class="h-4 w-4 text-slate-400"></i>
+                                                <span class="text-[10px] text-slate-400 flex-grow">Type a message</span>
+                                                <i data-lucide="paperclip" class="h-4 w-4 text-slate-400"></i>
+                                                <i data-lucide="camera" class="h-4 w-4 text-slate-400"></i>
+                                            </div>
+                                            <div class="h-8.5 w-8.5 rounded-full bg-[#00a884] text-white flex items-center justify-center shadow-lg shrink-0">
+                                                <i data-lucide="mic" class="h-4.5 w-4.5 text-white"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+            
+            // Sync preview bubble
+            window.updateSendMockPreview = function() {
+                let bodyText = bodyComp?.text || '';
+                const inputs = document.querySelectorAll('input[data-send-var]');
+                inputs.forEach(input => {
+                    const tag = input.getAttribute('data-send-var');
+                    const val = input.value.trim();
+                    if (val !== '') {
+                        bodyText = bodyText.replaceAll(tag, `**${val}**`);
+                    }
+                });
+                
+                let formattedHtml = bodyText
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-extrabold text-slate-900">$1</strong>');
+                
+                const bubble = document.getElementById('mock-send-bubble-text');
+                if (bubble) bubble.innerHTML = formattedHtml;
+            };
+            
+            // Initialize preview bubble
+            updateSendMockPreview();
+            
+            // Form Submit handler
+            window.submitSendTemplateForm = async function(e) {
+                e.preventDefault();
+                const btn = document.getElementById('send-tpl-submit-btn');
+                const rawRecipients = document.getElementById('set-send-recipients').value;
+                
+                // Clean numbers
+                const recipients = rawRecipients.split(',')
+                    .map(n => n.replace(/[^0-9]/g, '').trim())
+                    .filter(n => n.length > 5);
+                
+                if (recipients.length === 0) {
+                    showNotification('error', 'Please enter at least one valid recipient phone number with country code.');
+                    return;
+                }
+                
+                // Read variables in order
+                const variables = [];
+                const inputs = document.querySelectorAll('input[data-send-var]');
+                inputs.forEach(input => {
+                    variables.push(input.value.trim());
+                });
+                
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="loader-spinner mr-1.5"></span> Sending...';
+                }
+                
+                showNotification('info', `Deploying template to ${recipients.length} contact(s)...`);
+                
+                let successCount = 0;
+                let failureCount = 0;
+                
+                // Loop send requests sequentially so we can report detail progress!
+                for (let i = 0; i < recipients.length; i++) {
+                    const recipient = recipients[i];
+                    try {
+                        await apiCall('whatsapp/inbox.php?action=send', 'POST', {
+                            recipient: recipient,
+                            type: 'template',
+                            template_name: selectedTemplate.name,
+                            template_lang: selectedTemplate.language,
+                            variables: variables
+                        });
+                        successCount++;
+                    } catch (err) {
+                        console.error("Failed template send to recipient: " + recipient, err);
+                        failureCount++;
+                    }
+                }
+                
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="send" class="h-4 w-4"></i><span>Send Template Message</span>';
+                    lucide.createIcons();
+                }
+                
+                if (successCount > 0) {
+                    showNotification('success', `Successfully sent template to ${successCount} recipient(s).` + (failureCount > 0 ? ` (${failureCount} failed)` : ''));
+                    // Navigate back to WhatsApp Inbox
+                    navigateTo('whatsapp-inbox');
+                } else {
+                    showNotification('error', `Failed sending template messages. Please check debug logs.`);
+                }
+            };
+            
+        } catch (err) {
+            showNotification('error', 'Failed loading template sender page: ' + err.message);
+        }
+    });
+};

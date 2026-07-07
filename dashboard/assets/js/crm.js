@@ -6604,6 +6604,45 @@ function renderReports(container) {
     container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs animate-fade-in">Aggregated reports database compiled successfully. Explore statistics on the main Hub.</div>`;
 }
 
+function getKeyManagerHtml(provider, providerKeys) {
+    const listHtml = providerKeys.length > 0 ? providerKeys.map(k => {
+        let badgeColor = 'bg-emerald-50 text-emerald-600 border border-emerald-200';
+        if (k.status === 'limit_exceeded') {
+            badgeColor = 'bg-amber-50 text-amber-600 border border-amber-200';
+        } else if (k.status === 'invalid') {
+            badgeColor = 'bg-red-50 text-red-600 border border-red-200';
+        }
+        
+        return `
+            <div class="flex items-center justify-between p-2 bg-slate-50 border border-slate-200 rounded-lg">
+                <span class="font-mono text-slate-700 text-[10px]">${k.masked_key}</span>
+                <div class="flex items-center space-x-2">
+                    <span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${badgeColor}">${k.status.replace('_', ' ')}</span>
+                    <button onclick="deleteAIKey(${k.id})" class="text-red-500 hover:text-red-700 transition" title="Delete Key">
+                        <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('') : `<p class="text-slate-400 italic text-[10px] text-center py-2">No API keys saved for this provider.</p>`;
+
+    return `
+        <div class="space-y-2 mt-2">
+            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Saved API Keys</span>
+            <div class="space-y-1.5 max-h-[150px] overflow-y-auto pr-1">
+                ${listHtml}
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex space-x-2">
+                <input type="password" id="add-key-input-${provider}" placeholder="Enter new API key" class="flex-grow px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-[10px] text-slate-800 focus:outline-none focus:border-indigo-500">
+                <button onclick="addAIKey('${provider}')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition shrink-0 flex items-center space-x-1">
+                    <i data-lucide="plus" class="h-3 w-3"></i>
+                    <span>Add</span>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
 async function renderIntegrations(container) {
     container.innerHTML = `
         <div class="flex items-center justify-center py-12">
@@ -6613,33 +6652,38 @@ async function renderIntegrations(container) {
     lucide.createIcons();
     
     try {
-        // Fetch current credentials, email intelligence settings, and token credits
+        // Fetch current credentials, email intelligence settings, token credits, and AI keys
         const profileData = await apiCall('profile/get.php');
         const emailIntel = await apiCall('crm/email_intelligence/settings.php');
         const creditData = await apiCall('profile/get_credits.php');
+        const keysData = await apiCall('profile/manage_ai_keys.php');
         
         const user = profileData.user || {};
         const connection = emailIntel.connection || {};
         const settings = emailIntel.settings || {};
         const wallet = creditData.wallet || { total: 0, used: 0, remaining: 0 };
         const todayUsage = creditData.today_usage || 0;
+        const keysList = keysData.keys || [];
+
+        const openrouterKeys = keysList.filter(k => k.provider === 'openrouter');
+        const githubKeys = keysList.filter(k => k.provider === 'github_models');
+        const googleKeys = keysList.filter(k => k.provider === 'google_ai_studio');
 
         // Determine SMTP configuration status
         const isMailConfigured = !!(connection.smtp_host && connection.imap_host);
         
         // Determine AI key configuration status
-        let isAIConfigured = false;
+        let isAIConfigured = keysList.some(k => k.provider === user.active_ai_provider && k.status === 'active');
         let aiProviderLabel = 'None';
         if (user.active_ai_provider === 'openrouter') {
-            isAIConfigured = user.has_openrouter_key;
             aiProviderLabel = 'OpenRouter';
         } else if (user.active_ai_provider === 'github_models') {
-            isAIConfigured = user.has_github_key;
             aiProviderLabel = 'GitHub Models';
         } else if (user.active_ai_provider === 'google_ai_studio') {
-            isAIConfigured = user.has_google_key;
             aiProviderLabel = 'Google Gemini AI Studio';
         }
+
+        const activeKeysCount = keysList.filter(k => k.provider === user.active_ai_provider && k.status === 'active').length;
 
         container.innerHTML = `
             <div class="space-y-6 pt-4 animate-fade-in text-xs max-w-4xl mx-auto">
@@ -6709,7 +6753,7 @@ async function renderIntegrations(container) {
                             <div class="flex justify-between items-center pt-1">
                                 <span class="text-slate-500">Credentials:</span>
                                 <span class="text-[10px] px-2 py-0.5 bg-slate-200/50 rounded font-semibold text-slate-600">
-                                    ${isAIConfigured ? '•••••••• (Encrypted)' : 'Not Configured'}
+                                    ${isAIConfigured ? `${activeKeysCount} Active Key(s) Saved` : 'Not Configured'}
                                 </span>
                             </div>
                         </div>
@@ -6735,26 +6779,17 @@ async function renderIntegrations(container) {
                             
                             <!-- OpenRouter Fields -->
                             <div id="ai-provider-openrouter-fields" class="space-y-3 ${user.active_ai_provider === 'openrouter' ? '' : 'hidden'}">
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">OpenRouter API Key</label>
-                                    <input type="password" id="openrouter-api-key-input" placeholder="${user.has_openrouter_key ? '••••••••' : 'Enter your OpenRouter key'}" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-indigo-500">
-                                </div>
+                                ${getKeyManagerHtml('openrouter', openrouterKeys)}
                             </div>
                             
                             <!-- GitHub Models Fields -->
                             <div id="ai-provider-github-fields" class="space-y-3 ${user.active_ai_provider === 'github_models' ? '' : 'hidden'}">
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">GitHub Personal Token</label>
-                                    <input type="password" id="github-api-key-input" placeholder="${user.has_github_key ? '••••••••' : 'Enter your GitHub Token'}" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-indigo-500">
-                                </div>
+                                ${getKeyManagerHtml('github_models', githubKeys)}
                             </div>
                             
                             <!-- Google Gemini Fields -->
                             <div id="ai-provider-google-fields" class="space-y-3 ${user.active_ai_provider === 'google_ai_studio' ? '' : 'hidden'}">
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Gemini API Key</label>
-                                    <input type="password" id="google-api-key-input" placeholder="${user.has_google_key ? '••••••••' : 'Enter Gemini API key'}" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-indigo-500">
-                                </div>
+                                ${getKeyManagerHtml('google_ai_studio', googleKeys)}
                             </div>
                             
                             <div>
@@ -6992,25 +7027,10 @@ async function saveAICredentials() {
     const activeProvider = document.getElementById('active-ai-provider-select').value;
     const model = document.getElementById('active-ai-model-input').value.trim();
     
-    let keyVal = null;
-    if (activeProvider === 'openrouter') {
-        keyVal = document.getElementById('openrouter-api-key-input').value;
-    } else if (activeProvider === 'github_models') {
-        keyVal = document.getElementById('github-api-key-input').value;
-    } else if (activeProvider === 'google_ai_studio') {
-        keyVal = document.getElementById('google-api-key-input').value;
-    }
-    
     const payload = {
         active_ai_provider: activeProvider,
         active_ai_model: model || null
     };
-    
-    if (keyVal !== null && keyVal !== '') {
-        if (activeProvider === 'openrouter') payload.openrouter_key = keyVal;
-        else if (activeProvider === 'github_models') payload.github_key = keyVal;
-        else if (activeProvider === 'google_ai_studio') payload.google_key = keyVal;
-    }
     
     try {
         const data = await apiCall('profile/save_openrouter.php', 'POST', payload);
@@ -7024,6 +7044,58 @@ async function saveAICredentials() {
         showNotification('error', e.message);
     }
 }
+
+window.addAIKey = async function(provider) {
+    const inputEl = document.getElementById(`add-key-input-${provider}`);
+    const key = inputEl.value.trim();
+    if (!key) {
+        showNotification('error', 'Please enter an API Key first.');
+        return;
+    }
+    
+    try {
+        const res = await apiCall('profile/manage_ai_keys.php', 'POST', {
+            provider: provider,
+            api_key: key
+        });
+        
+        if (res.status === 'success') {
+            showNotification('success', 'API Key added successfully.');
+            const activeTabContainer = document.getElementById('tab-content-container');
+            if (activeTabContainer) {
+                renderIntegrations(activeTabContainer);
+            }
+        } else {
+            showNotification('error', res.message || 'Failed to add key.');
+        }
+    } catch (err) {
+        showNotification('error', 'Connection error: ' + err.message);
+    }
+};
+
+window.deleteAIKey = async function(keyId) {
+    if (!confirm('Are you sure you want to delete this API Key?')) {
+        return;
+    }
+    
+    try {
+        const res = await apiCall('profile/manage_ai_keys.php', 'DELETE', {
+            id: keyId
+        });
+        
+        if (res.status === 'success') {
+            showNotification('success', 'API Key deleted successfully.');
+            const activeTabContainer = document.getElementById('tab-content-container');
+            if (activeTabContainer) {
+                renderIntegrations(activeTabContainer);
+            }
+        } else {
+            showNotification('error', res.message || 'Failed to delete key.');
+        }
+    } catch (err) {
+        showNotification('error', 'Connection error: ' + err.message);
+    }
+};
 
 // Mailbox Connection Saving
 async function saveMailboxCredentials(btn) {

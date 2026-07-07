@@ -24,9 +24,14 @@ try {
         sendJsonResponse('error', 'User not found.', [], 404);
     }
     
-    $userData['has_openrouter_key'] = !empty($userData['openrouter_key']);
-    $userData['has_github_key'] = !empty($userData['github_key']);
-    $userData['has_google_key'] = !empty($userData['google_key']);
+    // Check if there is at least one key in user_ai_keys table for each provider (non-invalid)
+    $stmtKeysCount = $db->prepare("SELECT provider, COUNT(*) as cnt FROM user_ai_keys WHERE user_id = ? AND status != 'invalid' GROUP BY provider");
+    $stmtKeysCount->execute([$userId]);
+    $keysCounts = $stmtKeysCount->fetchAll(PDO::FETCH_KEY_PAIR);
+
+    $userData['has_openrouter_key'] = !empty($keysCounts['openrouter']);
+    $userData['has_github_key'] = !empty($keysCounts['github_models']);
+    $userData['has_google_key'] = !empty($keysCounts['google_ai_studio']);
     $userData['active_ai_provider'] = $userData['active_ai_provider'] ?? 'github_models';
     $userData['active_ai_model'] = $userData['active_ai_model'];
     unset($userData['openrouter_key']);

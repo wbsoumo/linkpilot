@@ -46,8 +46,23 @@ try {
             
             if ($layout === 'kanban') {
                 // Fetch all deals and group them by stages in PHP
-                $stmt = $db->prepare("SELECT d.*, co.name as company_name, c.name as contact_name FROM crm_deals d LEFT JOIN crm_companies co ON d.company_id = co.id LEFT JOIN crm_contacts c ON d.contact_id = c.id WHERE d.user_id = ? ORDER BY d.closing_date ASC");
-                $stmt->execute([$userId]);
+                $search = trim($_GET['search'] ?? '');
+                $stage = trim($_GET['stage'] ?? '');
+                
+                $query = "FROM crm_deals d LEFT JOIN crm_companies co ON d.company_id = co.id LEFT JOIN crm_contacts c ON d.contact_id = c.id WHERE d.user_id = :user_id";
+                $params = ['user_id' => $userId];
+                
+                if ($search !== '') {
+                    $query .= " AND (d.title LIKE :search OR co.name LIKE :search OR c.name LIKE :search)";
+                    $params['search'] = '%' . $search . '%';
+                }
+                if ($stage !== '') {
+                    $query .= " AND d.stage = :stage";
+                    $params['stage'] = $stage;
+                }
+                
+                $stmt = $db->prepare("SELECT d.*, co.name as company_name, c.name as contact_name " . $query . " ORDER BY d.closing_date ASC");
+                $stmt->execute($params);
                 $allDeals = $stmt->fetchAll();
                 
                 $stages = [

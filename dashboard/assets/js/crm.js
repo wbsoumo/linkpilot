@@ -2703,48 +2703,344 @@ function closeCrmModal() {
 // ----------------------------------------------------
 async function renderDeals(container) {
     try {
-        const data = await apiCall('crm/deals.php?layout=kanban');
+        let url = 'crm/deals.php?layout=kanban';
+        if (window.dealsFilterSearch) {
+            url += `&search=${encodeURIComponent(window.dealsFilterSearch)}`;
+        }
+        if (window.dealsFilterStage) {
+            url += `&stage=${encodeURIComponent(window.dealsFilterStage)}`;
+        }
+        
+        const data = await apiCall(url);
         const stages = data.stages || {};
         
+        // Calculate statistics
+        let totalCount = 0;
+        let totalValue = 0;
+        let openCount = 0;
+        let wonCount = 0;
+        let wonValue = 0;
+
+        Object.keys(stages).forEach(st => {
+            const list = stages[st] || [];
+            list.forEach(c => {
+                totalCount++;
+                totalValue += parseFloat(c.expected_revenue || 0);
+                if (st === 'Closed Won') {
+                    wonCount++;
+                    wonValue += parseFloat(c.expected_revenue || 0);
+                } else if (st !== 'Closed Lost') {
+                    openCount++;
+                }
+            });
+        });
+
+        const openPercent = totalCount > 0 ? Math.round((openCount / totalCount) * 100) : 0;
+        const wonPercent = totalCount > 0 ? Math.round((wonCount / totalCount) * 100) : 0;
+        const winRate = totalCount > 0 ? Math.round((wonCount / totalCount) * 100) : 0;
+        const avgValue = totalCount > 0 ? Math.round(totalValue / totalCount) : 0;
+
+        const themeMap = {
+            'Lead': { text: 'text-indigo-600 border-t-indigo-500', bg: 'bg-indigo-500/10', name: 'LEAD' },
+            'Qualified': { text: 'text-blue-600 border-t-blue-500', bg: 'bg-blue-500/10', name: 'QUALIFIED' },
+            'Proposal': { text: 'text-amber-600 border-t-amber-500', bg: 'bg-amber-500/10', name: 'PROPOSAL' },
+            'Negotiation': { text: 'text-emerald-600 border-t-emerald-500', bg: 'bg-emerald-500/10', name: 'NEGOTIATION' },
+            'Closed Won': { text: 'text-green-600 border-t-green-500', bg: 'bg-green-500/10', name: 'WON' },
+            'Closed Lost': { text: 'text-rose-600 border-t-rose-500', bg: 'bg-rose-500/10', name: 'LOST' }
+        };
+
         let kanbanColumns = Object.keys(stages).map(st => {
-            const cards = stages[st].map(c => `
-                <div class="kanban-card text-xs space-y-2 card-hover" draggable="true" ondragstart="handleDealDragStart(event, ${c.id})">
-                    <div class="font-bold text-white truncate">${c.title}</div>
-                    <div class="text-[10px] text-slate-400 font-medium truncate">${c.company_name || 'Direct Contact'}</div>
-                    <div class="flex justify-between items-center pt-1 border-t border-slate-800/40 mt-1">
-                        <span class="text-[10px] text-teal-400 font-bold">₹${parseFloat(c.expected_revenue).toLocaleString('en-IN')}</span>
-                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-medium">${c.probability}%</span>
+            const theme = themeMap[st] || { text: 'text-slate-600 border-t-slate-450', bg: 'bg-slate-500/10', name: st.toUpperCase() };
+            
+            const cards = stages[st].map(c => {
+                const revenue = parseFloat(c.expected_revenue || 0).toLocaleString('en-IN');
+                
+                let dateStr = 'N/A';
+                if (c.closing_date) {
+                    const d = new Date(c.closing_date);
+                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    dateStr = `${d.getDate().toString().padStart(2, '0')} ${months[d.getMonth()]} ${d.getFullYear()}`;
+                }
+                
+                const isWon = (st === 'Closed Won');
+                const isLost = (st === 'Closed Lost');
+                
+                let footerHtml = '';
+                if (isWon) {
+                    footerHtml = `
+                        <div class="flex items-center space-x-1 text-[9px] text-emerald-600 font-bold">
+                            <i data-lucide="check" class="h-3 w-3"></i>
+                            <span>Won on ${dateStr}</span>
+                        </div>
+                    `;
+                } else if (isLost) {
+                    footerHtml = `
+                        <div class="flex items-center space-x-1 text-[9px] text-rose-600 font-bold">
+                            <i data-lucide="x" class="h-3 w-3"></i>
+                            <span>Lost on ${dateStr}</span>
+                        </div>
+                    `;
+                } else {
+                    footerHtml = `
+                        <div class="flex items-center space-x-1 text-[9px] text-slate-400 font-semibold">
+                            <i data-lucide="calendar" class="h-3 w-3"></i>
+                            <span>${dateStr}</span>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3 card-hover relative group cursor-grab active:cursor-grabbing" draggable="true" ondragstart="handleDealDragStart(event, ${c.id})">
+                        <!-- Action Menu Button -->
+                        <div class="absolute top-3.5 right-3.5 z-10">
+                            <button onclick="openDealMenu(event, ${c.id})" class="h-6 w-6 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-50 flex items-center justify-center transition">
+                                <i data-lucide="more-vertical" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Title & Company -->
+                        <div class="space-y-1 pr-6">
+                            <div class="font-extrabold text-slate-800 text-xs truncate group-hover:text-blue-600 transition-colors">${c.title}</div>
+                            <div class="text-[10px] text-slate-400 font-bold truncate">${c.company_name || 'Direct Contact'}</div>
+                        </div>
+                        
+                        <!-- Value -->
+                        <div class="text-xs font-black text-slate-800">
+                            ₹${revenue}
+                        </div>
+                        
+                        <!-- Owner & Date Footer -->
+                        <div class="flex items-center justify-between pt-2.5 border-t border-slate-100 mt-2">
+                            <div class="flex items-center space-x-1.5 text-[9px] text-slate-500 font-bold">
+                                <div class="h-4.5 w-4.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 text-[8px] font-black uppercase">
+                                    ${(c.owner || 'U')[0]}
+                                </div>
+                                <span class="truncate max-w-[70px]">${c.owner || 'Unassigned'}</span>
+                            </div>
+                            ${footerHtml}
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
 
             return `
-                <div class="kanban-column" ondragover="event.preventDefault()" ondrop="handleDealDrop(event, '${st}')">
-                    <div class="flex justify-between items-center border-b border-slate-800 pb-2 w-full">
-                        <span class="text-xs font-bold text-white uppercase tracking-wider">${st}</span>
-                        <span class="text-[10px] font-bold text-indigo-400 px-2 py-0.5 bg-indigo-500/10 rounded-full">₹${parseFloat(data.totals[st]).toLocaleString('en-IN')}</span>
+                <div class="flex-1 min-w-[280px] bg-slate-50/30 rounded-2xl border border-slate-200/50 p-4 space-y-4 flex flex-col min-h-[500px] border-t-4 ${theme.text.split(' ')[1]}" ondragover="event.preventDefault()" ondrop="handleDealDrop(event, '${st}')">
+                    <!-- Column Header -->
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-extrabold ${theme.text.split(' ')[0]} tracking-wider uppercase">${theme.name}</span>
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black ${theme.bg} ${theme.text.split(' ')[0]}">${stages[st].length}</span>
+                        </div>
+                        <span class="text-[10px] font-black text-slate-800">₹${parseFloat(data.totals[st] || 0).toLocaleString('en-IN')}</span>
                     </div>
-                    <div class="kanban-cards-container">
-                        ${cards || `<p class="text-[10px] text-slate-600 text-center py-8">No deals in this stage</p>`}
+                    
+                    <!-- Cards Container -->
+                    <div class="flex-1 space-y-3 overflow-y-auto max-h-[600px] pr-1">
+                        ${cards || `<p class="text-[10px] text-slate-400 text-center py-12 font-medium">No deals in this stage</p>`}
                     </div>
+
+                    <!-- Column Footer Action -->
+                    ${st === 'Closed Won' ? `
+                        <div class="pt-2 text-center border-t border-slate-100 mt-2">
+                            <button onclick="navigateTo('deals')" class="text-[10px] text-blue-600 hover:text-blue-700 hover:underline font-bold transition flex items-center justify-center space-x-1 mx-auto">
+                                <span>View all won deals</span>
+                                <i data-lucide="arrow-right" class="h-3 w-3"></i>
+                            </button>
+                        </div>
+                    ` : `
+                        <div class="pt-2 border-t border-slate-100 mt-2">
+                            <button onclick="openCreateDealModal('${st}')" class="w-full py-2 border border-dashed border-slate-200 rounded-xl text-[10px] font-bold text-slate-500 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50/20 transition flex items-center justify-center space-x-1">
+                                <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                                <span>Add Deal</span>
+                            </button>
+                        </div>
+                    `}
                 </div>
             `;
         }).join('');
 
         container.innerHTML = `
-            <div class="space-y-6 animate-fade-in pt-4">
-                <div class="flex justify-between items-center border-b border-slate-850 pb-4">
-                    <div>
-                        <h1 class="text-2xl font-extrabold text-white">Deals Board</h1>
-                        <p class="text-slate-400 text-xs mt-1">Interactive Kanban Pipeline. Drag-and-drop cards to update stages and forecast statistics.</p>
+            <div class="space-y-6 animate-fade-in pt-4 text-slate-700 text-xs">
+                <!-- Header Actions Row -->
+                <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 border-b border-slate-100 pb-5">
+                    <div class="flex items-center space-x-3.5">
+                        <div class="h-11 w-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100">
+                            <i data-lucide="award" class="h-5.5 w-5.5"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-black text-slate-800 tracking-tight">Deals Board</h2>
+                            <p class="text-xs text-slate-500 mt-1">Visualize and manage your sales pipeline</p>
+                        </div>
                     </div>
-                    <button onclick="alert('Quick Deal Created!')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center space-x-1.5">
-                        <i data-lucide="plus" class="h-3.5 w-3.5"></i>
-                        <span>New Deal</span>
-                    </button>
+                    
+                    <div class="flex items-center space-x-3">
+                        <!-- Pipeline View -->
+                        <div class="relative">
+                            <button onclick="togglePipelineViewDropdown()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition hover:bg-slate-50 flex items-center space-x-1.5 shadow-sm">
+                                <i data-lucide="kanban" class="h-4 w-4"></i>
+                                <span>Pipeline View</span>
+                                <i data-lucide="chevron-down" class="h-3 w-3"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Filters -->
+                        <button onclick="toggleDealsFilterPanel()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition hover:bg-slate-50 flex items-center space-x-1.5 shadow-sm">
+                            <i data-lucide="filter" class="h-4 w-4"></i>
+                            <span>Filters</span>
+                        </button>
+                        
+                        <!-- Forecast -->
+                        <button onclick="toggleDealsForecastPanel()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition hover:bg-slate-50 flex items-center space-x-1.5 shadow-sm">
+                            <i data-lucide="bar-chart-3" class="h-4 w-4"></i>
+                            <span>Forecast</span>
+                        </button>
+                        
+                        <!-- New Deal -->
+                        <button onclick="openCreateDealModal()" class="px-4.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-extrabold transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10" style="color: #ffffff !important;">
+                            <i data-lucide="plus" class="h-4 w-4" style="color: #ffffff !important;"></i>
+                            <span style="color: #ffffff !important;">New Deal</span>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Kanban Container -->
+                <!-- Filters Row (collapsible) -->
+                <div id="deals-filter-panel" class="hidden bg-slate-50 border border-slate-200/80 rounded-2xl p-4 grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-in text-xs">
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-650 uppercase tracking-wider text-[9px]">Search Query</label>
+                        <input type="text" id="filter-deals-search" value="${window.dealsFilterSearch || ''}" placeholder="Search deal, company, contact..." class="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 bg-white shadow-sm">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-650 uppercase tracking-wider text-[9px]">Filter by Stage</label>
+                        <select id="filter-deals-stage" class="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 bg-white shadow-sm">
+                            <option value="">-- All Stages --</option>
+                            <option value="Lead" ${window.dealsFilterStage === 'Lead' ? 'selected' : ''}>Lead</option>
+                            <option value="Qualified" ${window.dealsFilterStage === 'Qualified' ? 'selected' : ''}>Qualified</option>
+                            <option value="Proposal" ${window.dealsFilterStage === 'Proposal' ? 'selected' : ''}>Proposal</option>
+                            <option value="Negotiation" ${window.dealsFilterStage === 'Negotiation' ? 'selected' : ''}>Negotiation</option>
+                            <option value="Closed Won" ${window.dealsFilterStage === 'Closed Won' ? 'selected' : ''}>Closed Won</option>
+                            <option value="Closed Lost" ${window.dealsFilterStage === 'Closed Lost' ? 'selected' : ''}>Closed Lost</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end space-x-2">
+                        <button onclick="applyDealsFilters()" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-sm" style="color: #ffffff !important;">
+                            <i data-lucide="check" class="h-3.5 w-3.5" style="color: #ffffff !important;"></i>
+                            <span style="color: #ffffff !important;">Apply Filters</span>
+                        </button>
+                        <button onclick="resetDealsFilters()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-650 rounded-xl text-xs font-bold transition">Reset</button>
+                    </div>
+                </div>
+
+                <!-- Forecast Row (collapsible) -->
+                <div id="deals-forecast-panel" class="hidden bg-slate-50 border border-slate-200/80 rounded-2xl p-5 animate-fade-in text-xs space-y-4">
+                    <h3 class="font-extrabold text-slate-800 text-sm">Pipeline Value Forecast</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <div class="space-y-3.5">
+                            <div>
+                                <div class="flex justify-between text-[11px] font-bold text-slate-600 mb-1">
+                                    <span>Closed Won Revenue Goal</span>
+                                    <span>₹${wonValue.toLocaleString('en-IN')} / ₹${totalValue.toLocaleString('en-IN')}</span>
+                                </div>
+                                <div class="w-full bg-slate-200 rounded-full h-3">
+                                    <div class="bg-emerald-500 h-3 rounded-full transition-all duration-500" style="width: ${totalValue > 0 ? Math.round((wonValue / totalValue) * 100) : 0}%"></div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3 text-[10px] font-bold">
+                                <div class="p-3 bg-white border border-slate-100 rounded-xl">
+                                    <span class="text-slate-400 block uppercase text-[8px]">Weighted Pipeline (50% prob)</span>
+                                    <span class="text-slate-800 text-sm font-extrabold">₹${Math.round(totalValue * 0.5).toLocaleString('en-IN')}</span>
+                                </div>
+                                <div class="p-3 bg-white border border-slate-100 rounded-xl">
+                                    <span class="text-slate-400 block uppercase text-[8px]">Average Deal Size</span>
+                                    <span class="text-slate-800 text-sm font-extrabold">₹${avgValue.toLocaleString('en-IN')}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Mini breakdown -->
+                        <div class="bg-white border border-slate-150 rounded-2xl p-4 space-y-3">
+                            <h4 class="font-bold text-slate-700 text-xs">Stage-wise Breakdown</h4>
+                            <div class="space-y-2 max-h-36 overflow-y-auto">
+                                ${Object.keys(stages).map(st => {
+                                    const count = stages[st].length;
+                                    const val = parseFloat(data.totals[st] || 0);
+                                    const pct = totalValue > 0 ? Math.round((val / totalValue) * 100) : 0;
+                                    return `
+                                        <div class="flex items-center justify-between text-[10px] font-semibold text-slate-600">
+                                            <span class="truncate max-w-[80px]">${st} (${count})</span>
+                                            <div class="flex items-center space-x-2 flex-1 mx-4">
+                                                <div class="w-full bg-slate-100 h-2 rounded-full">
+                                                    <div class="bg-indigo-500 h-2 rounded-full" style="width: ${pct}%"></div>
+                                                </div>
+                                                <span class="w-6 text-right">${pct}%</span>
+                                            </div>
+                                            <span class="font-bold text-slate-800">₹${val.toLocaleString('en-IN')}</span>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Cards Row -->
+                <div class="grid grid-cols-2 md:grid-cols-6 gap-4">
+                    <!-- Total Deals -->
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-1 relative">
+                        <div class="absolute top-4 right-4 h-7 w-7 bg-purple-50 text-purple-500 rounded-lg flex items-center justify-center">
+                            <i data-lucide="folder" class="h-3.5 w-3.5"></i>
+                        </div>
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Total Deals</div>
+                        <div class="text-xl font-extrabold text-slate-800">${totalCount}</div>
+                        <div class="text-[9px] text-slate-400 font-medium">All stages</div>
+                    </div>
+                    <!-- Total Value -->
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-1 relative">
+                        <div class="absolute top-4 right-4 h-7 w-7 bg-emerald-50 text-emerald-500 rounded-lg flex items-center justify-center">
+                            <i data-lucide="trending-up" class="h-3.5 w-3.5"></i>
+                        </div>
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Total Value</div>
+                        <div class="text-xl font-extrabold text-slate-800">₹${totalValue.toLocaleString('en-IN')}</div>
+                        <div class="text-[9px] text-slate-400 font-medium">All deals</div>
+                    </div>
+                    <!-- Open Deals -->
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-1 relative">
+                        <div class="absolute top-4 right-4 h-7 w-7 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center">
+                            <i data-lucide="eye" class="h-3.5 w-3.5"></i>
+                        </div>
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Open Deals</div>
+                        <div class="text-xl font-extrabold text-slate-800">${openCount}</div>
+                        <div class="text-[9px] text-slate-400 font-medium">${openPercent}% of total</div>
+                    </div>
+                    <!-- Won Deals -->
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-1 relative">
+                        <div class="absolute top-4 right-4 h-7 w-7 bg-emerald-50 text-emerald-500 rounded-lg flex items-center justify-center">
+                            <i data-lucide="check-circle" class="h-3.5 w-3.5"></i>
+                        </div>
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Won Deals</div>
+                        <div class="text-xl font-extrabold text-slate-800">${wonCount}</div>
+                        <div class="text-[9px] text-slate-400 font-medium">${wonPercent}% of total</div>
+                    </div>
+                    <!-- Win Rate -->
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-1 relative">
+                        <div class="absolute top-4 right-4 h-7 w-7 bg-violet-50 text-violet-500 rounded-lg flex items-center justify-center">
+                            <i data-lucide="target" class="h-3.5 w-3.5"></i>
+                        </div>
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Win Rate</div>
+                        <div class="text-xl font-extrabold text-slate-800">${winRate}%</div>
+                        <div class="text-[9px] text-slate-400 font-medium">All time</div>
+                    </div>
+                    <!-- Avg. Deal Value -->
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-1 relative">
+                        <div class="absolute top-4 right-4 h-7 w-7 bg-amber-50 text-amber-500 rounded-lg flex items-center justify-center">
+                            <i data-lucide="bar-chart" class="h-3.5 w-3.5"></i>
+                        </div>
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Avg. Deal Value</div>
+                        <div class="text-xl font-extrabold text-slate-800">₹${avgValue.toLocaleString('en-IN')}</div>
+                        <div class="text-[9px] text-slate-400 font-medium">All time</div>
+                    </div>
+                </div>
+
+                <!-- Kanban Board view -->
                 <div class="kanban-board">
                     ${kanbanColumns}
                 </div>
@@ -2755,6 +3051,375 @@ async function renderDeals(container) {
         showNotification('error', err.message);
     }
 }
+
+// Window-scoped toggle & filtering controls
+window.toggleDealsFilterPanel = function() {
+    const el = document.getElementById('deals-filter-panel');
+    if (el) el.classList.toggle('hidden');
+};
+
+window.toggleDealsForecastPanel = function() {
+    const el = document.getElementById('deals-forecast-panel');
+    if (el) el.classList.toggle('hidden');
+};
+
+window.applyDealsFilters = function() {
+    window.dealsFilterSearch = document.getElementById('filter-deals-search').value.trim();
+    window.dealsFilterStage = document.getElementById('filter-deals-stage').value;
+    navigateTo('deals');
+};
+
+window.resetDealsFilters = function() {
+    window.dealsFilterSearch = '';
+    window.dealsFilterStage = '';
+    navigateTo('deals');
+};
+
+window.togglePipelineViewDropdown = function() {
+    showNotification('info', 'You are currently in Pipeline Kanban View. List/Table view coming soon!');
+};
+
+// Window-scoped Deal actions popup menu
+window.openDealMenu = function(event, dealId) {
+    event.stopPropagation();
+    event.preventDefault();
+    
+    const existing = document.getElementById('deal-menu-popover');
+    if (existing) existing.remove();
+    
+    const menu = document.createElement('div');
+    menu.id = 'deal-menu-popover';
+    menu.className = 'absolute bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 w-28 text-left z-50 text-[10px] font-bold text-slate-700 animate-fade-in animate-duration-150';
+    
+    menu.innerHTML = `
+        <button onclick="editDealMenuAction(${dealId})" class="w-full px-3 py-1.5 hover:bg-slate-50 transition flex items-center space-x-1.5">
+            <i data-lucide="edit-3" class="h-3.5 w-3.5 text-slate-400"></i>
+            <span>Edit Deal</span>
+        </button>
+        <button onclick="deleteDealMenuAction(${dealId})" class="w-full px-3 py-1.5 hover:bg-slate-50 transition flex items-center space-x-1.5 text-rose-600">
+            <i data-lucide="trash-2" class="h-3.5 w-3.5 text-rose-400"></i>
+            <span>Delete</span>
+        </button>
+    `;
+    
+    document.body.appendChild(menu);
+    lucide.createIcons();
+    
+    const rect = event.currentTarget.getBoundingClientRect();
+    menu.style.top = `${rect.bottom + window.scrollY}px`;
+    menu.style.left = `${rect.left + window.scrollX - 80}px`;
+    
+    const closeMenu = () => {
+        menu.remove();
+        document.removeEventListener('click', closeMenu);
+    };
+    setTimeout(() => document.addEventListener('click', closeMenu), 0);
+};
+
+window.editDealMenuAction = function(dealId) {
+    openEditDealModal(dealId);
+};
+
+window.deleteDealMenuAction = async function(dealId) {
+    if (!confirm('Are you sure you want to delete this deal?')) return;
+    try {
+        await apiCall(`crm/deals.php?action=delete&id=${dealId}`, 'POST');
+        showNotification('success', 'Deal deleted successfully.');
+        navigateTo('deals');
+    } catch(err) {
+        showNotification('error', 'Failed to delete deal: ' + err.message);
+    }
+};
+
+// Window-scoped Dynamic modals for creation & edits
+window.openCreateDealModal = async function(prefilledStage) {
+    const existing = document.getElementById('deal-create-modal');
+    if (existing) existing.remove();
+    
+    let companies = [];
+    let contacts = [];
+    try {
+        const compsRes = await apiCall('crm/companies.php?limit=1000');
+        companies = compsRes.companies || [];
+    } catch(e) {}
+    try {
+        const contsRes = await apiCall('crm/contacts.php?limit=1000');
+        contacts = contsRes.contacts || [];
+    } catch(e) {}
+
+    const modal = document.createElement('div');
+    modal.id = 'deal-create-modal';
+    modal.className = 'fixed inset-0 z-[2000] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4';
+    
+    const stageOptions = [
+        { value: 'Lead', label: 'Lead' },
+        { value: 'Qualified', label: 'Qualified' },
+        { value: 'Proposal', label: 'Proposal' },
+        { value: 'Negotiation', label: 'Negotiation' },
+        { value: 'Closed Won', label: 'Closed Won' },
+        { value: 'Closed Lost', label: 'Closed Lost' }
+    ];
+    
+    const stageSelectHtml = stageOptions.map(opt => `
+        <option value="${opt.value}" ${prefilledStage === opt.value ? 'selected' : ''}>${opt.label}</option>
+    `).join('');
+    
+    const companySelectOptions = companies.map(c => `
+        <option value="${c.id}">${c.name}</option>
+    `).join('');
+
+    const contactSelectOptions = contacts.map(c => `
+        <option value="${c.id}">${c.name} (${c.email || c.phone || 'No Contact Info'})</option>
+    `).join('');
+
+    modal.innerHTML = `
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in flex flex-col text-slate-700">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <div>
+                    <h4 class="text-sm font-black text-slate-800 tracking-tight">Create New Deal</h4>
+                    <p class="text-[10px] text-slate-450 font-bold uppercase tracking-wider mt-0.5">Link deal to contacts and companies</p>
+                </div>
+                <button onclick="document.getElementById('deal-create-modal').remove()" class="h-8 w-8 rounded-full hover:bg-slate-100 text-slate-400 flex items-center justify-center transition">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            </div>
+            <form id="deal-create-form" class="p-6 flex-grow overflow-y-auto max-h-[70vh] space-y-4 text-xs">
+                <div class="space-y-1">
+                    <label class="block font-bold text-slate-600 uppercase tracking-wider text-[9px]">Deal Title</label>
+                    <input type="text" id="deal-title" required placeholder="e.g. Enterprise Software License" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 shadow-sm bg-white">
+                </div>
+                
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-600 uppercase tracking-wider text-[9px]">Pipeline Stage</label>
+                        <select id="deal-stage" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 shadow-sm bg-white">
+                            ${stageSelectHtml}
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-600 uppercase tracking-wider text-[9px]">Revenue (₹)</label>
+                        <input type="number" id="deal-revenue" value="0.00" step="0.01" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 shadow-sm bg-white">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-600 uppercase tracking-wider text-[9px]">Probability (%)</label>
+                        <input type="number" id="deal-probability" value="50" min="0" max="100" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 shadow-sm bg-white">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-600 uppercase tracking-wider text-[9px]">Link Company (Optional)</label>
+                        <select id="deal-company" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 shadow-sm bg-white">
+                            <option value="">-- No Link --</option>
+                            ${companySelectOptions}
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-600 uppercase tracking-wider text-[9px]">Link Contact (Optional)</label>
+                        <select id="deal-contact" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 shadow-sm bg-white">
+                            <option value="">-- No Link --</option>
+                            ${contactSelectOptions}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-600 uppercase tracking-wider text-[9px]">Owner Name</label>
+                        <input type="text" id="deal-owner" value="Soumojit Saha" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 shadow-sm bg-white">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-600 uppercase tracking-wider text-[9px]">Target Closing Date</label>
+                        <input type="date" id="deal-closing-date" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 shadow-sm bg-white">
+                    </div>
+                </div>
+            </form>
+            <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex justify-end space-x-2">
+                <button onclick="document.getElementById('deal-create-modal').remove()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 rounded-xl font-bold transition text-[10px]">Cancel</button>
+                <button type="submit" form="deal-create-form" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition text-[10px] flex items-center space-x-1.5 shadow-md shadow-blue-500/10" style="color: #ffffff !important;">
+                    <i data-lucide="check" class="h-3.5 w-3.5" style="color: #ffffff !important;"></i>
+                    <span style="color: #ffffff !important;">Create Deal</span>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    lucide.createIcons();
+    
+    document.getElementById('deal-create-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const payload = {
+            title: document.getElementById('deal-title').value.trim(),
+            stage: document.getElementById('deal-stage').value,
+            expected_revenue: parseFloat(document.getElementById('deal-revenue').value || 0),
+            probability: parseInt(document.getElementById('deal-probability').value || 50),
+            company_id: document.getElementById('deal-company').value || null,
+            contact_id: document.getElementById('deal-contact').value || null,
+            owner: document.getElementById('deal-owner').value.trim(),
+            closing_date: document.getElementById('deal-closing-date').value || null
+        };
+        
+        try {
+            await apiCall('crm/deals.php', 'POST', payload);
+            showNotification('success', 'Deal created successfully!');
+            modal.remove();
+            navigateTo('deals');
+        } catch(err) {
+            showNotification('error', 'Failed to create deal: ' + err.message);
+        }
+    };
+};
+
+window.openEditDealModal = async function(dealId) {
+    const existing = document.getElementById('deal-edit-modal');
+    if (existing) existing.remove();
+    
+    let deal = null;
+    let companies = [];
+    let contacts = [];
+    try {
+        const dealRes = await apiCall(`crm/deals.php?id=${dealId}`);
+        deal = dealRes.deal;
+    } catch(e) {
+        showNotification('error', 'Failed to load deal details.');
+        return;
+    }
+    
+    try {
+        const compsRes = await apiCall('crm/companies.php?limit=1000');
+        companies = compsRes.companies || [];
+    } catch(e) {}
+    try {
+        const contsRes = await apiCall('crm/contacts.php?limit=1000');
+        contacts = contsRes.contacts || [];
+    } catch(e) {}
+
+    const modal = document.createElement('div');
+    modal.id = 'deal-edit-modal';
+    modal.className = 'fixed inset-0 z-[2000] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4';
+    
+    const stageOptions = [
+        { value: 'Lead', label: 'Lead' },
+        { value: 'Qualified', label: 'Qualified' },
+        { value: 'Proposal', label: 'Proposal' },
+        { value: 'Negotiation', label: 'Negotiation' },
+        { value: 'Closed Won', label: 'Closed Won' },
+        { value: 'Closed Lost', label: 'Closed Lost' }
+    ];
+    
+    const stageSelectHtml = stageOptions.map(opt => `
+        <option value="${opt.value}" ${deal.stage === opt.value ? 'selected' : ''}>${opt.label}</option>
+    `).join('');
+    
+    const companySelectOptions = companies.map(c => `
+        <option value="${c.id}" ${deal.company_id == c.id ? 'selected' : ''}>${c.name}</option>
+    `).join('');
+
+    const contactSelectOptions = contacts.map(c => `
+        <option value="${c.id}" ${deal.contact_id == c.id ? 'selected' : ''}>${c.name} (${c.email || c.phone || 'No Contact Info'})</option>
+    `).join('');
+
+    modal.innerHTML = `
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in flex flex-col text-slate-700">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <div>
+                    <h4 class="text-sm font-black text-slate-800 tracking-tight">Edit Deal Details</h4>
+                    <p class="text-[10px] text-slate-450 font-bold uppercase tracking-wider mt-0.5">Modify parameters or update linked records</p>
+                </div>
+                <button onclick="document.getElementById('deal-edit-modal').remove()" class="h-8 w-8 rounded-full hover:bg-slate-100 text-slate-400 flex items-center justify-center transition">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            </div>
+            <form id="deal-edit-form" class="p-6 flex-grow overflow-y-auto max-h-[70vh] space-y-4 text-xs">
+                <div class="space-y-1">
+                    <label class="block font-bold text-slate-600 uppercase tracking-wider text-[9px]">Deal Title</label>
+                    <input type="text" id="edit-deal-title" required value="${deal.title}" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 shadow-sm bg-white">
+                </div>
+                
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-600 uppercase tracking-wider text-[9px]">Pipeline Stage</label>
+                        <select id="edit-deal-stage" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 shadow-sm bg-white">
+                            ${stageSelectHtml}
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-600 uppercase tracking-wider text-[9px]">Revenue (₹)</label>
+                        <input type="number" id="edit-deal-revenue" value="${deal.expected_revenue}" step="0.01" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 shadow-sm bg-white">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-600 uppercase tracking-wider text-[9px]">Probability (%)</label>
+                        <input type="number" id="edit-deal-probability" value="${deal.probability}" min="0" max="100" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 shadow-sm bg-white">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-600 uppercase tracking-wider text-[9px]">Link Company (Optional)</label>
+                        <select id="edit-deal-company" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 shadow-sm bg-white">
+                            <option value="">-- No Link --</option>
+                            ${companySelectOptions}
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-600 uppercase tracking-wider text-[9px]">Link Contact (Optional)</label>
+                        <select id="edit-deal-contact" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 shadow-sm bg-white">
+                            <option value="">-- No Link --</option>
+                            ${contactSelectOptions}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-600 uppercase tracking-wider text-[9px]">Owner Name</label>
+                        <input type="text" id="edit-deal-owner" value="${deal.owner || 'Soumojit Saha'}" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 shadow-sm bg-white">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-600 uppercase tracking-wider text-[9px]">Target Closing Date</label>
+                        <input type="date" id="edit-deal-closing-date" value="${deal.closing_date ? deal.closing_date.split(' ')[0] : ''}" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 shadow-sm bg-white">
+                    </div>
+                </div>
+            </form>
+            <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex justify-end space-x-2">
+                <button onclick="document.getElementById('deal-edit-modal').remove()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 rounded-xl font-bold transition text-[10px]">Cancel</button>
+                <button type="submit" form="deal-edit-form" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition text-[10px] flex items-center space-x-1.5 shadow-md shadow-blue-500/10" style="color: #ffffff !important;">
+                    <i data-lucide="check" class="h-3.5 w-3.5" style="color: #ffffff !important;"></i>
+                    <span style="color: #ffffff !important;">Save Changes</span>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    lucide.createIcons();
+    
+    document.getElementById('deal-edit-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const payload = {
+            id: dealId,
+            action: 'update',
+            title: document.getElementById('edit-deal-title').value.trim(),
+            stage: document.getElementById('edit-deal-stage').value,
+            expected_revenue: parseFloat(document.getElementById('edit-deal-revenue').value || 0),
+            probability: parseInt(document.getElementById('edit-deal-probability').value || 50),
+            company_id: document.getElementById('edit-deal-company').value || null,
+            contact_id: document.getElementById('edit-deal-contact').value || null,
+            owner: document.getElementById('edit-deal-owner').value.trim(),
+            closing_date: document.getElementById('edit-deal-closing-date').value || null
+        };
+        
+        try {
+            await apiCall('crm/deals.php', 'POST', payload);
+            showNotification('success', 'Deal updated successfully!');
+            modal.remove();
+            navigateTo('deals');
+        } catch(err) {
+            showNotification('error', 'Failed to update deal: ' + err.message);
+        }
+    };
+};
 
 let draggedDealId = null;
 function handleDealDragStart(e, id) {

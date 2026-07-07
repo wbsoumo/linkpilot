@@ -531,13 +531,13 @@ async function renderDashboard(container) {
                         </div>
                     </div>
                     <!-- Today's Tasks Checklist -->
-                    <div class="glass-panel p-6 bg-slate-900/40 space-y-4 flex flex-col h-full text-left">
-                        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                            <h3 class="text-lg font-bold text-white flex items-center space-x-2">
-                                <i data-lucide="check-square" class="h-4.5 w-4.5 text-indigo-400"></i>
+                    <div class="glass-panel p-6 bg-white shadow-sm border border-slate-200 rounded-2xl space-y-4 flex flex-col h-full text-left">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                            <h3 class="text-lg font-bold text-slate-850 flex items-center space-x-2">
+                                <i data-lucide="check-square" class="h-4.5 w-4.5 text-indigo-600"></i>
                                 <span>Today's Tasks</span>
                             </h3>
-                            <a href="#/tasks" class="text-xs text-indigo-400 hover:text-indigo-300 font-bold transition">View Hub</a>
+                            <a href="#/tasks" class="text-xs text-indigo-600 hover:text-indigo-500 font-bold transition">View Hub</a>
                         </div>
                         <div class="flex-grow overflow-y-auto pr-1 space-y-3 max-h-[220px]" id="dash-tasks-today-list">
                             <p class="text-xs text-slate-500 py-6 text-center">Loading tasks...</p>
@@ -604,55 +604,54 @@ async function renderDashboard(container) {
         document.getElementById('stat-tasks-today').textContent = pendingTodayTasks.length;
         document.getElementById('stat-followups-due').textContent = tasksData.tasks.filter(t => t.status === 'pending').length;
         
-        // Render Dashboard Today's Tasks list
         const tasksContainer = document.getElementById('dash-tasks-today-list');
         if (pendingTodayTasks.length > 0) {
             tasksContainer.innerHTML = pendingTodayTasks.map(t => {
                 const priority = t.priority || 'medium';
                 let priorityBadge = '';
                 if (priority === 'high') {
-                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase">High</span>`;
+                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-rose-50 text-rose-600 border border-rose-200 uppercase">High</span>`;
                 } else if (priority === 'medium') {
-                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase">Medium</span>`;
+                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-200 uppercase">Medium</span>`;
                 } else {
-                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-slate-800 text-slate-400 border border-slate-700 uppercase">Low</span>`;
+                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase">Low</span>`;
                 }
 
                 // Parse category prefix out
                 let displayTitle = t.title || '';
                 let categoryHTML = '';
                 if (displayTitle.startsWith('[Follow-up]')) {
-                    categoryHTML = `<span class="text-indigo-400 font-bold mr-1">[Follow-up]</span>`;
+                    categoryHTML = `<span class="text-indigo-600 font-bold mr-1">[Follow-up]</span>`;
                     displayTitle = displayTitle.replace('[Follow-up] ', '');
                 } else if (displayTitle.startsWith('[Reply]')) {
-                    categoryHTML = `<span class="text-emerald-400 font-bold mr-1">[Reply]</span>`;
+                    categoryHTML = `<span class="text-emerald-600 font-bold mr-1">[Reply]</span>`;
                     displayTitle = displayTitle.replace('[Reply] ', '');
                 } else if (displayTitle.startsWith('[Meeting]')) {
-                    categoryHTML = `<span class="text-blue-400 font-bold mr-1">[Meeting]</span>`;
+                    categoryHTML = `<span class="text-blue-600 font-bold mr-1">[Meeting]</span>`;
                     displayTitle = displayTitle.replace('[Meeting] ', '');
                 } else if (displayTitle.startsWith('[Arrange]')) {
-                    categoryHTML = `<span class="text-amber-400 font-bold mr-1">[Arrange]</span>`;
+                    categoryHTML = `<span class="text-amber-600 font-bold mr-1">[Arrange]</span>`;
                     displayTitle = displayTitle.replace('[Arrange] ', '');
                 }
 
                 const timeStr = t.due_time ? `<span class="text-slate-500 ml-1.5">@ ${t.due_time.substring(0, 5)}</span>` : '';
                 const meetHTML = t.meet_link ? `
-                    <a href="${t.meet_link}" target="_blank" class="mt-1 flex items-center space-x-1 text-[9px] text-blue-400 hover:text-blue-300 font-bold bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20 transition w-fit inline-flex">
+                    <a href="${t.meet_link}" target="_blank" class="mt-1 flex items-center space-x-1 text-[9px] text-blue-600 hover:text-blue-500 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200 transition w-fit inline-flex">
                         <i data-lucide="video" class="h-3 w-3 mr-0.5"></i>
                         <span>Join Meet</span>
                     </a>
                 ` : '';
 
                 return `
-                    <div class="p-2.5 bg-slate-900/60 border border-slate-850 rounded-xl flex items-start space-x-2.5 hover:border-indigo-500/30 transition">
-                        <input type="checkbox" onclick="dashboardToggleTask(${t.id}, '${t.status}')" class="mt-0.5 h-3.5 w-3.5 border-slate-700 rounded text-indigo-500 bg-slate-950 focus:ring-indigo-500 cursor-pointer">
+                    <div class="p-2.5 bg-slate-50 border border-slate-150 rounded-xl flex items-start space-x-2.5 hover:border-indigo-500/30 hover:bg-indigo-50/10 transition">
+                        <input type="checkbox" onclick="dashboardToggleTask(${t.id}, '${t.status}')" class="mt-0.5 h-3.5 w-3.5 border-slate-300 rounded text-indigo-600 bg-white focus:ring-indigo-500 cursor-pointer">
                         <div class="flex-grow text-left">
-                            <div class="font-bold text-white text-[11px] leading-tight flex flex-wrap items-center">
+                            <div class="font-bold text-slate-800 text-[11px] leading-tight flex flex-wrap items-center">
                                 ${categoryHTML}
                                 <span>${displayTitle}</span>
                                 ${timeStr}
                             </div>
-                            <p class="text-[9px] text-slate-400 mt-0.5 line-clamp-1">${t.description || 'No description.'}</p>
+                            <p class="text-[9px] text-slate-500 mt-0.5 line-clamp-1">${t.description || 'No description.'}</p>
                             ${meetHTML}
                         </div>
                         <div class="shrink-0 flex items-center">

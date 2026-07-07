@@ -773,6 +773,14 @@ body :not(aside) button.bg-blue-600, body :not(aside) button.bg-blue-600 *,
 body :not(aside) button.bg-blue-650, body :not(aside) button.bg-blue-650 *,
 body :not(aside) button.bg-blue-500, body :not(aside) button.bg-blue-500 *,
 body :not(aside) button.bg-indigo-600, body :not(aside) button.bg-indigo-600 *,
-body :not(aside) button.bg-indigo-650, body :not(aside) button.bg-indigo-650 * {
+body :not(aside) button.bg-indigo-650, body :not(aside) button.bg-indigo-650 *,
+body button.bg-indigo-600, body button.bg-indigo-600 *,
+body button.bg-indigo-500, body button.bg-indigo-500 *,
+body button.bg-blue-600, body button.bg-blue-600 *,
+body button.bg-blue-500, body button.bg-blue-500 *,
+body button.bg-emerald-600, body button.bg-emerald-600 *,
+body button.bg-emerald-500, body button.bg-emerald-500 *,
+body button.bg-\[\#2563eb\], body button.bg-\[\#2563eb\] * {
     color: #ffffff !important;
+    stroke: #ffffff !important;
 }

@@ -1585,7 +1585,7 @@ window.triggerWaAIChatAnalysis = function() {
     input.value = '';
     input.disabled = true;
     
-    apiCall('whatsapp/inbox.php?action=apply_ai_reply', 'APPLY_AI_REPLY', {
+    apiCall('whatsapp/inbox.php?action=apply_ai_reply', 'POST', {
         wa_contact_id: activeWaThreadId
     }).then(res => {
         input.disabled = false;

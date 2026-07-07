@@ -9674,6 +9674,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const hash = window.location.hash || '#/dashboard';
     const view = hash.replace('#/', '');
     navigateTo(view);
+});
 
 // --- EXTERNAL APPS SaaS INTEGRATION MARKETPLACE ---
 async function renderExternalApps(container) {
@@ -10141,6 +10142,3 @@ window.shareMeetViaEmail = function() {
     const body = encodeURIComponent(`Hello,\n\nPlease join our synchronization call using the following link: ${url}\n\nBest regards.`);
     window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
 };
-
-});
-

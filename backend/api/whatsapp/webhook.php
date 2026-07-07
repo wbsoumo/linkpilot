@@ -281,9 +281,13 @@ try {
                                 $chatHistCtx .= "- [{$ch['created_at']}] $sender: {$ch['body']}\n";
                             }
 
+                            $currentDate = date('Y-m-d');
+                            $currentTime = date('H:i:s');
                             $systemPrompt = "You are the autonomous AI WhatsApp CRM Agent for user " . $accRow['business_name'] . " (User ID: $userId).
 Your goal is to reply automatically to incoming customer messages, asking clarifying questions if required, negotiating, and closing deals like a professional human sales/CRM agent.
 You have real-time access to the user's workspace context below. Use this information to address their queries accurately, coordinate scheduling, or quote pricing.
+
+TODAY'S DATE AND TIME: $currentDate $currentTime (relative offsets like 'tomorrow', 'next week', 'Friday at 2pm' must be calculated relative to this timestamp).
 
 CRITICAL INSTRUCTIONS:
 1. Stay strictly on-topic. Do not discuss general knowledge, general coding, or unrelated subjects. Focus entirely on the customer's business relationship, leads, bookings, invoices, and sales inquiries.
@@ -301,8 +305,19 @@ CRITICAL INSTRUCTIONS:
     \"services\": \"...\",
     \"timeline\": \"...\",
     \"priority\": \"high|medium|low\"
+  },
+  \"extracted_task\": {
+    \"title\": \"Describe the task/meeting to set, e.g., 'Follow up on proposed quote' or 'Introduce services call'\",
+    \"description\": \"Any additional task or meeting details/description requested by the sender\",
+    \"category\": \"Meeting|Follow-up|Reply|Arrange|General\",
+    \"due_date\": \"YYYY-MM-DD\",
+    \"due_time\": \"HH:MM:SS\" or null,
+    \"priority\": \"high|medium|low\"
   }
 }
+
+NOTE:
+- Only return \"extracted_task\" if the customer explicitly mentions or asks for a meeting, follow-up, call, task, or action item. If no task or meeting is requested or mentioned, do NOT include the \"extracted_task\" field in the JSON (set it to null or omit it).
 
 --- USER WORKSPACE CONTEXT ---
 ## RECENT PIPELINE LEADS:
@@ -354,6 +369,48 @@ CRITICAL INSTRUCTIONS:
                                         $db->prepare("INSERT INTO crm_timeline (user_id, lead_id, contact_id, activity_type, description) VALUES (?, ?, ?, 'Lead Created', ?)")
                                            ->execute([$userId, $newLeadId, $crmContactId, "Lead '$leadName' automatically created via AI WhatsApp parser."]);
                                     }
+                                }
+                                
+                                // Auto CRM Task Creation if task or meeting extracted
+                                $taskInfo = $aiRes['extracted_task'] ?? null;
+                                if ($taskInfo && !empty($taskInfo['title'])) {
+                                    $taskTitle = trim($taskInfo['title']);
+                                    $taskDesc = trim($taskInfo['description'] ?? '');
+                                    $taskCategory = trim($taskInfo['category'] ?? 'General');
+                                    $taskDueDate = !empty($taskInfo['due_date']) ? trim($taskInfo['due_date']) : date('Y-m-d');
+                                    $taskDueTime = !empty($taskInfo['due_time']) ? trim($taskInfo['due_time']) : null;
+                                    $taskPriority = trim($taskInfo['priority'] ?? 'medium');
+                                    
+                                    // Prefix title if categorized and not already prefixed
+                                    if ($taskCategory !== 'General' && strpos($taskTitle, "[$taskCategory]") === false) {
+                                        $taskTitle = "[$taskCategory] " . $taskTitle;
+                                    }
+                                    
+                                    // Resolve company_id and lead_id
+                                    $companyId = null;
+                                    if ($crmContactId) {
+                                        $stmtComp = $db->prepare("SELECT company_id FROM crm_contacts WHERE id = ? LIMIT 1");
+                                        $stmtComp->execute([$crmContactId]);
+                                        $companyId = $stmtComp->fetchColumn() ?: null;
+                                    }
+                                    
+                                    $leadId = null;
+                                    if ($crmContactId) {
+                                        $stmtLead = $db->prepare("SELECT id FROM crm_leads WHERE contact_id = ? AND user_id = ? ORDER BY id DESC LIMIT 1");
+                                        $stmtLead->execute([$crmContactId, $userId]);
+                                        $leadId = $stmtLead->fetchColumn() ?: null;
+                                    }
+                                    
+                                    // Insert the task
+                                    $stmtTaskIns = $db->prepare("INSERT INTO crm_tasks (user_id, company_id, contact_id, lead_id, title, description, due_date, due_time, priority, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
+                                    $stmtTaskIns->execute([
+                                        $userId, $companyId, $crmContactId, $leadId, $taskTitle, $taskDesc, $taskDueDate, $taskDueTime, $taskPriority
+                                    ]);
+                                    $newTaskId = $db->lastInsertId();
+                                    
+                                    // Log to timeline
+                                    $db->prepare("INSERT INTO crm_timeline (user_id, lead_id, contact_id, company_id, activity_type, description) VALUES (?, ?, ?, ?, 'Task Created', ?)")
+                                       ->execute([$userId, $leadId, $crmContactId, $companyId, "Task '$taskTitle' automatically scheduled via AI WhatsApp agent (Due: $taskDueDate)."]);
                                 }
                             }
                         } catch (Exception $aiEx) {

@@ -891,7 +891,7 @@ function renderWhatsAppInbox(container) {
                     </div>
 
                     <!-- Messages list -->
-                    <div class="flex-grow overflow-y-auto p-4 space-y-3 flex flex-col" id="wa-messages-container-list">
+                    <div class="flex-grow overflow-y-auto p-4 space-y-3 flex flex-col" id="wa-messages-container-list" style="background-image: url('../backend/api/whatsapp/chatbg.jpg'); background-repeat: repeat; background-color: #efeae2;">
                         <div class="flex items-center justify-center h-full text-slate-400">
                             No conversation loaded.
                         </div>

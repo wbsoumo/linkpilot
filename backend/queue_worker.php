@@ -353,7 +353,7 @@ You MUST return your response as a valid, parsable JSON block with the following
             $decrypted = decryptData($encryptedToken);
             $accessToken = ($decrypted !== false) ? $decrypted : $encryptedToken;
             
-            $isMock = (strpos($accessToken, 'Mock') !== false || strpos($accessToken, 'EAAGemini') !== false);
+            $isMock = (strpos($accessToken, 'Mock') !== false || $accessToken === 'EAAGemini' || $accessToken === 'EAAGeminiTest');
             
             try {
                 // Credits balance validation

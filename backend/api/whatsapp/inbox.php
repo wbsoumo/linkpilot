@@ -269,6 +269,7 @@ try {
         $response = null;
         $metaMsgId = '';
         
+        $isMock = (strpos($accessToken, 'Mock') !== false || $accessToken === 'EAAGemini' || $accessToken === 'EAAGeminiTest');
         if (!$isMock) {
             if ($type === 'text') {
                 $response = WhatsAppMetaService::sendTextMessage($userId, $phoneNumberId, $recipient, $bodyText, $accessToken);

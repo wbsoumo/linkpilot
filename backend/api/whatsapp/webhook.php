@@ -101,7 +101,7 @@ try {
             $encryptedToken = $accRow['access_token'];
             $decrypted = decryptData($encryptedToken);
             $accessToken = ($decrypted !== false) ? $decrypted : $encryptedToken;
-            $isMock = (strpos($accessToken, 'Mock') !== false || strpos($accessToken, 'EAAGemini') !== false);
+            $isMock = (strpos($accessToken, 'Mock') !== false || $accessToken === 'EAAGemini' || $accessToken === 'EAAGeminiTest');
             
             // 2. Fetch User Settings
             $stmtSettings = $db->prepare("SELECT * FROM whatsapp_settings WHERE user_id = ? LIMIT 1");

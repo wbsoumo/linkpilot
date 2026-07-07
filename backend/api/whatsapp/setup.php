@@ -96,7 +96,7 @@ try {
             sendJsonResponse('error', 'System User Access Token is required.', [], 400);
         }
         
-        $isMock = (strpos($accessToken, 'Mock') !== false || strpos($accessToken, 'EAAGemini') !== false);
+        $isMock = (strpos($accessToken, 'Mock') !== false || $accessToken === 'EAAGemini' || $accessToken === 'EAAGeminiTest');
         if ($isMock) {
             sendJsonResponse('success', 'Token verified successfully.', [
                 'token_status' => 'valid',
@@ -169,7 +169,7 @@ try {
             sendJsonResponse('error', 'WABA ID is required.', [], 400);
         }
         
-        $isMock = (strpos($accessToken, 'Mock') !== false || strpos($accessToken, 'EAAGemini') !== false);
+        $isMock = (strpos($accessToken, 'Mock') !== false || $accessToken === 'EAAGemini' || $accessToken === 'EAAGeminiTest');
         if ($isMock) {
             sendJsonResponse('success', 'WABA verified successfully.', [
                 'waba_id' => $wabaId,
@@ -199,7 +199,7 @@ try {
             sendJsonResponse('error', 'WABA ID is required.', [], 400);
         }
         
-        $isMock = (strpos($accessToken, 'Mock') !== false || strpos($accessToken, 'EAAGemini') !== false);
+        $isMock = (strpos($accessToken, 'Mock') !== false || $accessToken === 'EAAGemini' || $accessToken === 'EAAGeminiTest');
         if ($isMock) {
             sendJsonResponse('success', 'Phones loaded.', [
                 'phones' => [
@@ -248,7 +248,7 @@ try {
             sendJsonResponse('error', 'Missing credentials for diagnostic validation.', [], 400);
         }
         
-        $isMock = (strpos($accessToken, 'Mock') !== false || strpos($accessToken, 'EAAGemini') !== false);
+        $isMock = (strpos($accessToken, 'Mock') !== false || $accessToken === 'EAAGemini' || $accessToken === 'EAAGeminiTest');
         if ($isMock) {
             sendJsonResponse('success', 'Health check diagnostics succeeded.', [
                 'checklist' => [
@@ -363,7 +363,7 @@ try {
             sendJsonResponse('error', 'Missing connection credentials to save.', [], 400);
         }
         
-        $isMock = (strpos($accessToken, 'Mock') !== false || strpos($accessToken, 'EAAGemini') !== false);
+        $isMock = (strpos($accessToken, 'Mock') !== false || $accessToken === 'EAAGemini' || $accessToken === 'EAAGeminiTest');
         $qualityRating = 'unknown';
         $limitTier = 'TIER_50';
         
@@ -468,7 +468,7 @@ try {
         $wabaId = $account['waba_id'];
         $phoneNumberId = $account['phone_number_id'];
         
-        $isMock = (strpos($token, 'Mock') !== false || strpos($token, 'EAAGemini') !== false);
+        $isMock = (strpos($token, 'Mock') !== false || $token === 'EAAGemini' || $token === 'EAAGeminiTest');
         
         $tokenStatus = 'valid';
         $webhookStatus = 'verified';

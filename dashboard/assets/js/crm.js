@@ -6940,25 +6940,56 @@ async function renderIntegrations(container) {
                     </div>
 
                     <!-- Inline Add Key Form -->
-                    <div id="add-key-form-container" class="p-4 bg-slate-50 border border-slate-150 rounded-xl space-y-3 hidden">
+                    <div id="add-key-form-container" class="p-4 bg-slate-50 border border-slate-150 rounded-xl space-y-4 hidden">
                         <span class="block text-slate-700 font-bold text-[10px] uppercase tracking-wider">Connect New API Key</span>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <div>
-                                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">AI Provider</label>
-                                <select id="new-key-provider-select" class="w-full px-2.5 py-1.5 bg-white border border-slate-250 rounded-lg text-[11px] text-slate-750 focus:outline-none">
-                                    <option value="openrouter">OpenRouter (Vibrant Free & Premium)</option>
-                                    <option value="github_models">GitHub Models API</option>
-                                    <option value="google_ai_studio">Google Gemini AI Studio</option>
-                                </select>
-                            </div>
-                            <div class="sm:col-span-2">
-                                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">API Key Value / Token</label>
-                                <div class="flex space-x-2">
-                                    <input type="password" id="new-key-value-input" placeholder="Enter API Key value" class="flex-grow px-2.5 py-1.5 bg-white border border-slate-250 rounded-lg text-[11px] text-slate-850 focus:outline-none focus:border-indigo-500">
-                                    <button onclick="submitNewAIKey()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[11px] font-bold transition shrink-0">
-                                        Save Key
-                                    </button>
+                        <input type="hidden" id="new-key-provider-hidden" value="openrouter">
+                        
+                        <!-- Provider Card Selector Row -->
+                        <div class="space-y-1.5">
+                            <label class="block text-[9px] font-bold text-slate-400 uppercase">Select AI Provider</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <!-- OpenRouter Card -->
+                                <div onclick="selectNewKeyProvider('openrouter')" id="provider-card-openrouter" class="provider-card border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition flex items-center space-x-3 bg-white border-indigo-600 shadow-sm">
+                                    <img src="https://openrouter.ai/favicon.ico" class="h-6 w-6 rounded-md object-contain shrink-0" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2103/2103633.png'">
+                                    <div>
+                                        <span class="block font-bold text-slate-800 text-[11px]">OpenRouter</span>
+                                        <span class="text-[9px] text-slate-400">Free & Premium Models</span>
+                                    </div>
                                 </div>
+
+                                <!-- GitHub Models Card -->
+                                <div onclick="selectNewKeyProvider('github_models')" id="provider-card-github_models" class="provider-card border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition flex items-center space-x-3 bg-white border-slate-200">
+                                    <img src="https://github.githubassets.com/favicons/favicon.svg" class="h-6 w-6 rounded-md object-contain shrink-0">
+                                    <div>
+                                        <span class="block font-bold text-slate-800 text-[11px]">GitHub Models</span>
+                                        <span class="text-[9px] text-slate-400">Developer Tokens API</span>
+                                    </div>
+                                </div>
+
+                                <!-- Gemini Card -->
+                                <div onclick="selectNewKeyProvider('google_ai_studio')" id="provider-card-google_ai_studio" class="provider-card border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition flex items-center space-x-3 bg-white border-slate-200">
+                                    <img src="https://www.gstatic.com/lamda/images/favicon_v1_150160d13ff2adce15e18.svg" class="h-6 w-6 rounded-md object-contain shrink-0">
+                                    <div>
+                                        <span class="block font-bold text-slate-800 text-[11px]">Gemini Studio</span>
+                                        <span class="text-[9px] text-slate-400">Google Gemini API</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Developer Help Instruction Card -->
+                        <div id="provider-instructions-box" class="p-3.5 bg-indigo-50/50 border border-indigo-100 rounded-xl space-y-2">
+                            <!-- Populated dynamically via selectNewKeyProvider() -->
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="block text-[9px] font-bold text-slate-400 uppercase">API Key Value / Token</label>
+                            <div class="flex space-x-2">
+                                <input type="password" id="new-key-value-input" placeholder="Enter API Key value" class="flex-grow px-2.5 py-1.5 bg-white border border-slate-250 rounded-lg text-[11px] text-slate-850 focus:outline-none focus:border-indigo-500">
+                                <button onclick="submitNewAIKey()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[11px] font-bold transition shrink-0 flex items-center justify-center space-x-1.5 shadow-sm">
+                                    <i data-lucide="save" class="h-3.5 w-3.5"></i>
+                                    <span>Save Key</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -6985,6 +7016,9 @@ async function renderIntegrations(container) {
             </div>
         `;
         lucide.createIcons();
+        if (document.getElementById('add-key-form-container')) {
+            window.selectNewKeyProvider('openrouter');
+        }
     } catch (err) {
         container.innerHTML = `
             <div class="max-w-xl mx-auto p-5 text-center text-red-500">
@@ -7112,7 +7146,7 @@ window.toggleAddKeyForm = function() {
 };
 
 window.submitNewAIKey = async function() {
-    const provider = document.getElementById('new-key-provider-select').value;
+    const provider = document.getElementById('new-key-provider-hidden').value;
     const apiKey = document.getElementById('new-key-value-input').value.trim();
     if (!apiKey) {
         showNotification('error', 'Please enter an API Key value.');
@@ -7136,6 +7170,88 @@ window.submitNewAIKey = async function() {
         }
     } catch (err) {
         showNotification('error', 'Connection error: ' + err.message);
+    }
+};
+
+window.selectNewKeyProvider = function(provider) {
+    // 1. Update hidden input
+    const hiddenEl = document.getElementById('new-key-provider-hidden');
+    if (hiddenEl) {
+        hiddenEl.value = provider;
+    }
+    
+    // 2. Toggle active card borders
+    const cards = ['openrouter', 'github_models', 'google_ai_studio'];
+    cards.forEach(c => {
+        const cardEl = document.getElementById(`provider-card-${c}`);
+        if (cardEl) {
+            if (c === provider) {
+                cardEl.classList.remove('border-slate-200');
+                cardEl.classList.add('border-indigo-650', 'shadow-sm');
+            } else {
+                cardEl.classList.remove('border-indigo-650', 'shadow-sm');
+                cardEl.classList.add('border-slate-200');
+            }
+        }
+    });
+
+    // 3. Render guide instructions
+    const guides = {
+        openrouter: {
+            title: "How to get an OpenRouter API Key?",
+            link: "https://openrouter.ai/keys",
+            steps: [
+                "Go to the official <a href='https://openrouter.ai/keys' target='_blank' class='text-indigo-600 font-bold hover:underline inline-flex items-center space-x-0.5'><span>OpenRouter Keys Console</span> <i data-lucide='external-link' class='h-3 w-3 ml-0.5'></i></a>.",
+                "Click <strong>Create Key</strong>.",
+                "Name the key (e.g. <code>LinkPilot</code>) and save it.",
+                "Copy the key value (starts with <code>sk-or-</code>) and paste it in the input below."
+            ]
+        },
+        github_models: {
+            title: "How to get a GitHub Models Token?",
+            link: "https://github.com/settings/tokens",
+            steps: [
+                "Go to your <a href='https://github.com/settings/tokens' target='_blank' class='text-indigo-600 font-bold hover:underline inline-flex items-center space-x-0.5'><span>GitHub Developer Settings page</span> <i data-lucide='external-link' class='h-3 w-3 ml-0.5'></i></a>.",
+                "Click <strong>Generate new token</strong> ➔ select <strong>Generate new token (classic)</strong>.",
+                "Name the note (e.g. <code>LinkPilot AI</code>) and check the <strong>models:read</strong> scope checkbox (or keep scopes empty for basic models read access).",
+                "Click **Generate token** at the bottom, copy the token (starts with <code>ghp_</code>), and paste it below."
+            ]
+        },
+        google_ai_studio: {
+            title: "How to get a Google Gemini API Key?",
+            link: "https://aistudio.google.com/app/apikey",
+            steps: [
+                "Open the <a href='https://aistudio.google.com/app/apikey' target='_blank' class='text-indigo-600 font-bold hover:underline inline-flex items-center space-x-0.5'><span>Google AI Studio API Keys dashboard</span> <i data-lucide='external-link' class='h-3 w-3 ml-0.5'></i></a>.",
+                "Click **Create API key**.",
+                "Choose a project or create a new one, then click **Create API key**.",
+                "Copy the API key string (starts with <code>AIzaSy</code>) and paste it below."
+            ]
+        }
+    };
+
+    const activeGuide = guides[provider];
+    const instructionsBox = document.getElementById('provider-instructions-box');
+    if (instructionsBox && activeGuide) {
+        let stepsHtml = activeGuide.steps.map((s, idx) => `
+            <li class="flex items-start space-x-2 text-[10px] text-slate-650">
+                <span class="h-4 w-4 bg-indigo-100/80 text-indigo-750 font-bold rounded-full flex items-center justify-center shrink-0 text-[8px] mt-0.5">${idx + 1}</span>
+                <span class="leading-relaxed">${s}</span>
+            </li>
+        `).join('');
+
+        instructionsBox.innerHTML = `
+            <div class="flex items-center justify-between mb-1.5 pb-1 border-b border-indigo-100/50">
+                <span class="font-extrabold text-slate-800 text-[10px] uppercase tracking-wider">${activeGuide.title}</span>
+                <a href="${activeGuide.link}" target="_blank" class="text-[9px] font-bold text-indigo-650 hover:text-indigo-850 flex items-center space-x-0.5">
+                    <span>Direct Link</span>
+                    <i data-lucide="external-link" class="h-2.5 w-2.5"></i>
+                </a>
+            </div>
+            <ul class="space-y-1.5">
+                ${stepsHtml}
+            </ul>
+        `;
+        lucide.createIcons();
     }
 };
 

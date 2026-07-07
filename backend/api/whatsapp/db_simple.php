@@ -1,3 +1,4 @@
 <?php
 header('Content-Type: text/plain');
-echo "Hello World from Simple Debug File!";
+require_once __DIR__ . '/../../config.php';
+echo "Hello World! config.php loaded successfully!";

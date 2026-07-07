@@ -55,6 +55,7 @@ try {
     $category = $tpl['category'];
     
     echo "Using Template: $templateName ($lang) | Category: $category\n";
+    echo "Template Components JSON: " . $tpl['components_json'] . "\n\n";
     
     // Define a test recipient number (using the user's phone or a generic test number)
     $recipient = '919242322991'; // Fallback test number

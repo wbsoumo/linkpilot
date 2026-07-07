@@ -74,6 +74,58 @@ function renderWhatsAppSetup(container, settings) {
     let connectedDetails = {};
 
     function drawWizard() {
+        let stepperHtml = `
+            <div class="flex items-center justify-between w-full max-w-2xl mx-auto mb-8 border-b border-slate-100 pb-6 relative z-10">
+                <!-- Step 1 -->
+                <div class="flex flex-col items-center flex-1 relative">
+                    <div class="h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs transition duration-200 ${currentStep === 1 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : (currentStep > 1 ? 'bg-emerald-500 text-white' : 'bg-white border border-slate-200 text-slate-400')}">
+                        ${currentStep > 1 ? '✓' : '1'}
+                    </div>
+                    <span class="text-[10px] font-bold mt-2 ${currentStep === 1 ? 'text-blue-600' : (currentStep > 1 ? 'text-slate-700' : 'text-slate-400')}">Token</span>
+                    <div class="absolute top-4 left-[calc(50%+16px)] right-[calc(-50%+16px)] h-[2px] bg-slate-100 z-0">
+                        <div class="h-full bg-blue-600 transition-all duration-300" style="width: ${currentStep > 1 ? '100%' : '0%'}"></div>
+                    </div>
+                </div>
+                <!-- Step 2 -->
+                <div class="flex flex-col items-center flex-1 relative">
+                    <div class="h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs transition duration-200 ${currentStep === 2 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : (currentStep > 2 ? 'bg-emerald-500 text-white' : 'bg-white border border-slate-200 text-slate-400')}">
+                        ${currentStep > 2 ? '✓' : '2'}
+                    </div>
+                    <span class="text-[10px] font-bold mt-2 ${currentStep === 2 ? 'text-blue-600' : (currentStep > 2 ? 'text-slate-700' : 'text-slate-400')}">WABA</span>
+                    <div class="absolute top-4 left-[calc(50%+16px)] right-[calc(-50%+16px)] h-[2px] bg-slate-100 z-0">
+                        <div class="h-full bg-blue-600 transition-all duration-300" style="width: ${currentStep > 2 ? '100%' : '0%'}"></div>
+                    </div>
+                </div>
+                <!-- Step 3 -->
+                <div class="flex flex-col items-center flex-1 relative">
+                    <div class="h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs transition duration-200 ${currentStep === 3 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : (currentStep > 3 ? 'bg-emerald-500 text-white' : 'bg-white border border-slate-200 text-slate-400')}">
+                        ${currentStep > 3 ? '✓' : '3'}
+                    </div>
+                    <span class="text-[10px] font-bold mt-2 ${currentStep === 3 ? 'text-blue-600' : (currentStep > 3 ? 'text-slate-700' : 'text-slate-400')}">Phone</span>
+                    <div class="absolute top-4 left-[calc(50%+16px)] right-[calc(-50%+16px)] h-[2px] bg-slate-100 z-0">
+                        <div class="h-full bg-blue-600 transition-all duration-300" style="width: ${currentStep > 3 ? '100%' : '0%'}"></div>
+                    </div>
+                </div>
+                <!-- Step 4 -->
+                <div class="flex flex-col items-center flex-1 relative">
+                    <div class="h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs transition duration-200 ${currentStep === 4 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : (currentStep > 4 ? 'bg-emerald-500 text-white' : 'bg-white border border-slate-200 text-slate-400')}">
+                        ${currentStep > 4 ? '✓' : '4'}
+                    </div>
+                    <span class="text-[10px] font-bold mt-2 ${currentStep === 4 ? 'text-blue-600' : (currentStep > 4 ? 'text-slate-700' : 'text-slate-400')}">Health</span>
+                    <div class="absolute top-4 left-[calc(50%+16px)] right-[calc(-50%+16px)] h-[2px] bg-slate-100 z-0">
+                        <div class="h-full bg-blue-600 transition-all duration-300" style="width: ${currentStep > 4 ? '100%' : '0%'}"></div>
+                    </div>
+                </div>
+                <!-- Step 5 -->
+                <div class="flex flex-col items-center flex-1 relative">
+                    <div class="h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs transition duration-200 ${currentStep >= 5 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white border border-slate-200 text-slate-400'}">
+                        5
+                    </div>
+                    <span class="text-[10px] font-bold mt-2 ${currentStep >= 5 ? 'text-blue-600 font-extrabold' : 'text-slate-400'}">Success</span>
+                </div>
+            </div>
+        `;
+
         let stepHtml = '';
         
         if (currentStep === 1) {
@@ -93,13 +145,13 @@ function renderWhatsAppSetup(container, settings) {
                 `;
             } else if (tokenVerifiedInfo) {
                 stepHtml = `
-                    <div class="space-y-4 py-2">
+                    <div class="space-y-4 py-2 text-left">
                         <div class="text-center">
                             <div class="h-10 w-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto text-base font-bold">✓</div>
                             <h3 class="text-xs font-bold text-emerald-600 mt-2">✓ Access Token Verified</h3>
                         </div>
                         
-                        <div class="bg-slate-50 border border-slate-100 rounded-xl p-4 text-xs space-y-2.5 max-w-xs mx-auto">
+                        <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs space-y-2.5 max-w-xs mx-auto shadow-sm">
                             <div class="flex justify-between border-b border-slate-200/50 pb-1.5">
                                 <span class="text-slate-500 font-semibold">Meta User Name</span>
                                 <span class="text-slate-800 font-bold">${tokenVerifiedInfo.user_name}</span>
@@ -118,41 +170,52 @@ function renderWhatsAppSetup(container, settings) {
                             </div>
                         </div>
                         
-                        <div class="pt-4 flex justify-between">
-                            <button onclick="goWizardStep(1); tokenVerifiedInfo = null;" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Change Token</button>
-                            <button onclick="goWizardStep(2)" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">Next: WABA ID →</button>
+                        <div class="pt-4 flex justify-between space-x-3">
+                            <button onclick="goWizardStep(1); tokenVerifiedInfo = null;" class="px-5 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl transition hover:bg-slate-50">Change Token</button>
+                            <button onclick="goWizardStep(2)" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition shadow-md">Next: WABA ID →</button>
                         </div>
                     </div>
                 `;
             } else {
                 stepHtml = `
-                    <div class="space-y-4">
-                        <div class="text-center pb-2">
-                            <h3 class="text-sm font-bold text-slate-800">System User Access Token</h3>
-                            <p class="text-xs text-slate-500 mt-1">Provide your Permanent Meta System User Access Token.</p>
+                    <div class="space-y-5 text-left">
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-900">Connect WhatsApp Business</h3>
+                            <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">Connect your Meta WhatsApp Cloud API in a few simple steps to start sending messages and engaging with your audience.</p>
                         </div>
                         
-                        <div class="space-y-3.5 text-left">
+                        <div class="space-y-4">
                             <div>
-                                <div class="flex justify-between items-center mb-1">
-                                    <label class="block text-slate-600 font-semibold text-[11px]">System User Access Token</label>
-                                    <button onclick="openMetaTokenHelpDialog()" class="text-[10px] text-blue-600 hover:text-blue-700 hover:underline font-bold">How do I get this?</button>
+                                <div class="flex justify-between items-center mb-1.5">
+                                    <label class="block text-slate-700 font-bold text-[10px] uppercase tracking-wider flex items-center space-x-1">
+                                        <span>Permanent Meta System User Access Token</span>
+                                        <i data-lucide="info" class="h-3.5 w-3.5 text-slate-400 cursor-pointer" onclick="openMetaTokenHelpDialog()"></i>
+                                    </label>
+                                    <button onclick="openMetaTokenHelpDialog()" class="text-[10px] text-blue-600 hover:text-blue-750 hover:underline font-bold transition">Where do I get this?</button>
                                 </div>
-                                <div class="relative rounded-lg shadow-sm">
-                                    <input type="password" id="wa-access-token" value="${accessToken}" placeholder="EAA..." class="w-full pl-3 pr-28 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500 font-mono">
-                                    <div class="absolute inset-y-0 right-0 pr-1.5 flex items-center space-x-1">
-                                        <button onclick="toggleTokenVisibility()" class="p-1 text-slate-400 hover:text-slate-600 text-[10px] font-bold" id="btn-toggle-visibility">Show</button>
-                                        <button onclick="pasteToken()" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded text-[9px] font-bold">Paste</button>
-                                        <button onclick="clearTokenInput()" class="p-1 text-slate-400 hover:text-slate-600 text-[10px] font-bold">Clear</button>
+                                <div class="relative rounded-xl shadow-sm">
+                                    <input type="password" id="wa-access-token" value="${accessToken}" placeholder="EAA..." class="w-full pl-3.5 pr-28 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 font-mono shadow-sm transition">
+                                    <div class="absolute inset-y-0 right-0 pr-2 flex items-center space-x-1">
+                                        <button onclick="toggleTokenVisibility()" class="p-1 text-slate-450 hover:text-slate-750 text-[10px] font-bold transition" id="btn-toggle-visibility">Show</button>
+                                        <button onclick="pasteToken()" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[9px] font-bold transition">Paste</button>
+                                        <button onclick="clearTokenInput()" class="p-1 text-slate-450 hover:text-slate-750 text-[10px] font-bold transition">Clear</button>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="pt-4">
-                            <button id="btn-verify-token" onclick="verifyMetaToken()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">
-                                Verify Access Token
-                            </button>
+                            
+                            <div class="bg-blue-50/60 border border-blue-100 rounded-2xl p-4 flex items-start space-x-3 text-[10px] text-blue-800 leading-relaxed shadow-sm">
+                                <i data-lucide="info" class="h-4.5 w-4.5 text-blue-600 shrink-0 mt-0.5"></i>
+                                <div>
+                                    <strong class="font-bold">Your token is securely stored and encrypted.</strong> We never share your credentials with anyone.
+                                </div>
+                            </div>
+                            
+                            <div class="pt-2">
+                                <button id="btn-verify-token" onclick="verifyMetaToken()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition shadow-md flex items-center justify-center space-x-1.5">
+                                    <i data-lucide="shield-check" class="h-4.5 w-4.5"></i>
+                                    <span>Verify Token</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -176,13 +239,13 @@ function renderWhatsAppSetup(container, settings) {
                 `;
             } else if (wabaVerifiedInfo) {
                 stepHtml = `
-                    <div class="space-y-4 py-2">
+                    <div class="space-y-4 py-2 text-left">
                         <div class="text-center">
                             <div class="h-10 w-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto text-base font-bold">✓</div>
                             <h3 class="text-xs font-bold text-emerald-600 mt-2">✓ WABA Verified Successfully</h3>
                         </div>
                         
-                        <div class="bg-slate-50 border border-slate-100 rounded-xl p-4 text-xs space-y-2.5 max-w-xs mx-auto">
+                        <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs space-y-2.5 max-w-xs mx-auto shadow-sm">
                             <div class="flex justify-between border-b border-slate-200/50 pb-1.5">
                                 <span class="text-slate-500 font-semibold">WABA Name</span>
                                 <span class="text-slate-800 font-bold">${wabaVerifiedInfo.waba_name}</span>
@@ -197,32 +260,33 @@ function renderWhatsAppSetup(container, settings) {
                             </div>
                         </div>
                         
-                        <div class="pt-4 flex justify-between">
-                            <button onclick="goWizardStep(2); wabaVerifiedInfo = null;" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Change ID</button>
-                            <button onclick="fetchPhones()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">Next: Select Phone →</button>
+                        <div class="pt-4 flex justify-between space-x-3">
+                            <button onclick="goWizardStep(2); wabaVerifiedInfo = null;" class="px-5 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl transition hover:bg-slate-50">Change ID</button>
+                            <button onclick="fetchPhones()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition shadow-md">Next: Select Phone →</button>
                         </div>
                     </div>
                 `;
             } else {
                 stepHtml = `
-                    <div class="space-y-4">
-                        <div class="text-center pb-2">
-                            <h3 class="text-sm font-bold text-slate-800">WhatsApp Business Account ID</h3>
-                            <p class="text-xs text-slate-500 mt-1">Specify your WhatsApp Business Account (WABA) ID.</p>
+                    <div class="space-y-5 text-left">
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-900">WhatsApp Business Account ID</h3>
+                            <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">Specify your WhatsApp Business Account (WABA) ID to discover registered phone numbers and settings.</p>
                         </div>
                         
-                        <div class="space-y-3.5 text-left">
+                        <div class="space-y-4">
                             <div>
-                                <label class="block text-slate-600 font-semibold text-[11px] mb-1">WABA ID</label>
-                                <input type="text" id="wa-waba-id" value="${wabaId}" placeholder="e.g. 718557" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500 font-mono">
+                                <label class="block text-slate-700 font-bold text-[10px] uppercase tracking-wider mb-1.5">WABA ID</label>
+                                <input type="text" id="wa-waba-id" value="${wabaId}" placeholder="e.g. 718557" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 font-mono shadow-sm transition">
                             </div>
-                        </div>
-                        
-                        <div class="pt-4 flex justify-between">
-                            <button onclick="goWizardStep(1)" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
-                            <button id="btn-verify-waba" onclick="verifyWabaId()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">
-                                Verify WABA Account
-                            </button>
+                            
+                            <div class="pt-2 flex justify-between space-x-3">
+                                <button onclick="goWizardStep(1)" class="px-5 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl transition hover:bg-slate-50">Back</button>
+                                <button id="btn-verify-waba" onclick="verifyWabaId()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition shadow-md flex items-center justify-center space-x-1.5">
+                                    <i data-lucide="check" class="h-4.5 w-4.5"></i>
+                                    <span>Verify WABA Account</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -232,23 +296,23 @@ function renderWhatsAppSetup(container, settings) {
         else if (currentStep === 3) {
             // Select Phone Number
             stepHtml = `
-                <div class="space-y-4">
+                <div class="space-y-5 text-left">
                     <div>
-                        <h3 class="text-xs font-bold text-slate-800">Select Phone Number</h3>
-                        <p class="text-[11px] text-slate-500 mt-0.5">Select the verified phone number to link.</p>
+                        <h3 class="text-base font-extrabold text-slate-900">Select Phone Number</h3>
+                        <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">Select the registered and approved phone number you want to link with LinkPilot.</p>
                     </div>
                     
                     <div class="space-y-2.5 max-h-56 overflow-y-auto pr-1">
                         ${phones.map(p => `
-                            <div onclick="selectPhone('${p.id}')" class="p-3 border rounded-xl cursor-pointer transition text-left space-y-2.5 ${selectedPhone && selectedPhone.id === p.id ? 'border-blue-500 bg-blue-50/20' : 'border-slate-200 hover:bg-slate-50/60'}">
+                            <div onclick="selectPhone('${p.id}')" class="p-3.5 border rounded-2xl cursor-pointer transition text-left space-y-2.5 ${selectedPhone && selectedPhone.id === p.id ? 'border-blue-500 bg-blue-50/20' : 'border-slate-200 hover:bg-slate-50/60'}">
                                 <div class="flex justify-between items-center">
-                                    <div class="text-xs text-slate-700 font-extrabold">${p.display_phone_number}</div>
+                                    <div class="text-xs text-slate-850 font-bold">${p.display_phone_number}</div>
                                     <span class="px-2 py-0.5 text-[9px] font-bold rounded ${p.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${p.status}</span>
                                 </div>
                                 <div class="grid grid-cols-2 gap-1 text-[10px] text-slate-500 font-semibold">
                                     <div>
                                         <div class="text-slate-400 uppercase text-[8px] font-bold">Display Name</div>
-                                        <div class="truncate text-slate-600">${p.verified_name || 'N/A'}</div>
+                                        <div class="truncate text-slate-700">${p.verified_name || 'N/A'}</div>
                                     </div>
                                     <div>
                                         <div class="text-slate-400 uppercase text-[8px] font-bold">Quality</div>
@@ -260,9 +324,9 @@ function renderWhatsAppSetup(container, settings) {
                         ${phones.length === 0 ? '<p class="text-xs text-slate-400 text-center py-4">No registered phone numbers found in this WABA account.</p>' : ''}
                     </div>
                     
-                    <div class="pt-4 flex justify-between">
-                        <button onclick="goWizardStep(2)" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
-                        <button onclick="triggerHealthCheck()" ${!selectedPhone ? 'disabled' : ''} class="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-lg transition shadow-md">Next: Health Check →</button>
+                    <div class="pt-2 flex justify-between space-x-3">
+                        <button onclick="goWizardStep(2)" class="px-5 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl transition hover:bg-slate-50">Back</button>
+                        <button onclick="triggerHealthCheck()" ${!selectedPhone ? 'disabled' : ''} class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition shadow-md">Next: Health Check →</button>
                     </div>
                 </div>
             `;
@@ -278,9 +342,9 @@ function renderWhatsAppSetup(container, settings) {
                             <h3 class="text-xs font-bold text-slate-800">Health Check Failed</h3>
                             <p class="text-xs text-rose-500 mt-2 bg-rose-50 border border-rose-100 rounded-lg p-3 text-left font-semibold">${healthError}</p>
                         </div>
-                        <div class="pt-4 flex justify-between">
-                            <button onclick="goWizardStep(3)" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
-                            <button onclick="triggerHealthCheck()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">Retry Diagnostics</button>
+                        <div class="pt-4 flex justify-between space-x-3">
+                            <button onclick="goWizardStep(3)" class="px-5 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl transition hover:bg-slate-50">Back</button>
+                            <button onclick="triggerHealthCheck()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition shadow-md">Retry Diagnostics</button>
                         </div>
                     </div>
                 `;
@@ -307,10 +371,10 @@ function renderWhatsAppSetup(container, settings) {
                     <div class="space-y-4 text-left">
                         <div>
                             <h3 class="text-xs font-bold text-slate-800">Connection Health Diagnostics</h3>
-                            <p class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Health Checklist</p>
+                            <p class="text-[10px] text-slate-450 uppercase tracking-wider font-bold">Health Checklist</p>
                         </div>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 bg-slate-50/50 border border-slate-100 p-4 rounded-2xl max-w-sm mx-auto">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 bg-slate-50/50 border border-slate-100 p-4 rounded-2xl max-w-sm mx-auto shadow-sm">
                             ${renderCheck(healthChecklist.token_valid, 'Access Token Valid')}
                             ${renderCheck(healthChecklist.waba_found, 'WABA Found')}
                             ${renderCheck(healthChecklist.phone_found, 'Phone Number Found')}
@@ -319,37 +383,37 @@ function renderWhatsAppSetup(container, settings) {
                         </div>
 
                         ${healthDetails ? `
-                        <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 text-xs space-y-1.5 max-w-sm mx-auto mt-2">
+                        <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3.5 text-xs space-y-1.5 max-w-sm mx-auto mt-2 shadow-sm">
                             <div class="flex justify-between">
-                                <span class="text-slate-400">WABA Name</span>
-                                <span class="text-slate-700 font-bold text-right">${healthDetails.waba_name}</span>
+                                <span class="text-slate-450">WABA Name</span>
+                                <span class="text-slate-800 font-bold text-right">${healthDetails.waba_name}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-slate-400">Phone Number</span>
-                                <span class="text-slate-700 font-bold text-right">${healthDetails.phone_number}</span>
+                                <span class="text-slate-450">Phone Number</span>
+                                <span class="text-slate-800 font-bold text-right">${healthDetails.phone_number}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-slate-400">Messaging Limit</span>
-                                <span class="text-slate-700 font-bold text-right">${healthDetails.messaging_limit}</span>
+                                <span class="text-slate-450">Messaging Limit</span>
+                                <span class="text-slate-800 font-bold text-right">${healthDetails.messaging_limit}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-slate-400">Quality Rating</span>
+                                <span class="text-slate-450">Quality Rating</span>
                                 <span class="text-emerald-600 font-extrabold text-right">${healthDetails.quality_rating}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-slate-400">Verified Name</span>
-                                <span class="text-slate-700 font-bold text-right">${healthDetails.verified_name}</span>
+                                <span class="text-slate-450">Verified Name</span>
+                                <span class="text-slate-800 font-bold text-right">${healthDetails.verified_name}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-slate-400">Status</span>
-                                <span class="text-slate-700 font-bold text-right">${healthDetails.status}</span>
+                                <span class="text-slate-450">Status</span>
+                                <span class="text-slate-800 font-bold text-right">${healthDetails.status}</span>
                             </div>
                         </div>
                         ` : ''}
                         
-                        <div class="pt-4 flex justify-between">
-                            <button onclick="goWizardStep(3)" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
-                            <button onclick="saveConnection()" ${!passes ? 'disabled' : ''} class="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-lg transition shadow-md">Next: Save & Connect →</button>
+                        <div class="pt-4 flex justify-between space-x-3">
+                            <button onclick="goWizardStep(3)" class="px-5 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl transition hover:bg-slate-50">Back</button>
+                            <button onclick="saveConnection()" ${!passes ? 'disabled' : ''} class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition shadow-md">Next: Save & Connect →</button>
                         </div>
                     </div>
                 `;
@@ -394,7 +458,7 @@ function renderWhatsAppSetup(container, settings) {
                     </div>
                     
                     <div class="pt-4">
-                        <button onclick="window.location.reload()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md">
+                        <button onclick="window.location.reload()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition shadow-md">
                             Go to WhatsApp Inbox
                         </button>
                     </div>
@@ -403,32 +467,57 @@ function renderWhatsAppSetup(container, settings) {
         }
 
         container.innerHTML = `
-            <div class="max-w-md mx-auto my-12 bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xl space-y-6 animate-fade-in">
-                <div class="flex items-center space-x-3 border-b border-slate-100 pb-4">
-                    <div class="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
-                        <i data-lucide="message-circle" class="h-5.5 w-5.5"></i>
+            <div class="max-w-4xl mx-auto my-12 bg-white border border-slate-200/80 rounded-3xl p-8 shadow-xl animate-fade-in flex flex-col">
+                <!-- Header -->
+                <div class="flex items-center space-x-3.5 mb-8 border-b border-slate-100 pb-5">
+                    <div class="h-11 w-11 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 shadow-sm">
+                        <i data-lucide="message-circle" class="h-6 w-6"></i>
                     </div>
                     <div>
-                        <h2 class="text-base font-extrabold text-slate-800">Connect WhatsApp Business</h2>
-                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Guided Manual Cloud API Wizard</p>
+                        <h2 class="text-lg font-black text-slate-800 tracking-tight">Connect WhatsApp Business</h2>
+                        <p class="text-[10px] text-slate-450 font-bold uppercase tracking-wider mt-0.5">Guided Manual Cloud API Wizard</p>
                     </div>
                 </div>
-                
-                <!-- Stepper Wizard Progress tracker -->
-                <div class="flex items-center justify-center space-x-2 text-[10px] font-bold text-slate-400 border-b border-slate-100 pb-3">
-                    <span class="${currentStep === 1 ? 'text-blue-600 border-b-2 border-blue-600 pb-1.5' : ''}">1. Token</span>
-                    <span class="text-slate-300">•</span>
-                    <span class="${currentStep === 2 ? 'text-blue-600 border-b-2 border-blue-600 pb-1.5' : ''}">2. WABA</span>
-                    <span class="text-slate-300">•</span>
-                    <span class="${currentStep === 3 ? 'text-blue-600 border-b-2 border-blue-600 pb-1.5' : ''}">3. Phone</span>
-                    <span class="text-slate-300">•</span>
-                    <span class="${currentStep === 4 ? 'text-blue-600 border-b-2 border-blue-600 pb-1.5' : ''}">4. Health</span>
-                    <span class="text-slate-300">•</span>
-                    <span class="${currentStep >= 5 ? 'text-blue-600 border-b-2 border-blue-600 pb-1.5' : ''}">5. Success</span>
-                </div>
-                
-                <div class="py-2">
-                    ${stepHtml}
+
+                <!-- Stepper Progress Tracker -->
+                ${stepperHtml}
+
+                <!-- Content Split Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
+                    <!-- Left Column: Visual Illustration -->
+                    <div class="lg:col-span-2 hidden lg:flex flex-col items-center justify-center p-6 bg-slate-50/50 rounded-2xl border border-slate-100 relative">
+                        <div class="relative w-48 h-48 flex items-center justify-center">
+                            <!-- Outer glow circles -->
+                            <div class="absolute inset-0 rounded-full border border-emerald-500/10 bg-emerald-500/[0.02] animate-pulse"></div>
+                            <div class="absolute inset-6 rounded-full border border-emerald-500/20 bg-emerald-500/[0.04]"></div>
+                            <!-- Main WhatsApp platform 3D pedestal -->
+                            <div class="absolute bottom-6 w-32 h-8 rounded-full bg-slate-200 border border-slate-350 shadow-[0_10px_20px_rgba(0,0,0,0.06)] flex items-center justify-center"></div>
+                            <!-- WhatsApp floating logo -->
+                            <div class="absolute bottom-10 h-20 w-20 rounded-3xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30 transform hover:-translate-y-2 transition-transform duration-300">
+                                <svg viewBox="0 0 24 24" class="h-11 w-11 fill-current">
+                                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.66.986 3.288 1.448 4.905 1.45 5.275 0 9.56-4.28 9.564-9.553.002-2.553-1.002-4.955-2.816-6.764-1.815-1.81-4.226-2.806-6.776-2.807-5.28 0-9.57 4.282-9.574 9.556-.001 1.709.47 3.326 1.368 4.798l-.999 3.648 3.738-.978zm11.387-5.464c-.307-.154-1.82-.9-2.1-.1s-.24.3-.24.3-.22.25-.48.1a6.05 6.05 0 0 1-2.22-1.37c-.77-.675-1.28-1.51-1.44-1.785-.15-.275-.017-.424.12-.562.124-.124.275-.32.413-.48.138-.16.184-.275.275-.46.09-.184.046-.346-.023-.5-.069-.153-.615-1.482-.843-2.029-.22-.533-.464-.46-.615-.468-.152-.008-.328-.01-.505-.01a.97.97 0 0 0-.705.328c-.24.26-1.025 1.004-1.025 2.45s1.05 2.836 1.196 3.036c.147.2 2.068 3.16 5.01 4.43.7.3 1.25.48 1.67.62.7.22 1.34.19 1.85.11.57-.08 1.82-.74 2.08-1.425.26-.684.26-1.27.184-1.397-.076-.124-.275-.205-.58-.36z"/>
+                                </svg>
+                            </div>
+                            <!-- Floating badges -->
+                            <div class="absolute top-10 left-6 bg-blue-500/10 border border-blue-500/20 text-blue-500 px-2 py-1 rounded-xl text-[9px] font-bold flex items-center space-x-1 shadow-sm">
+                                <i data-lucide="shield" class="h-3 w-3"></i>
+                                <span>Secure Encryption</span>
+                            </div>
+                            <div class="absolute bottom-16 right-6 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 px-2 py-1 rounded-xl text-[9px] font-bold flex items-center space-x-1 shadow-sm">
+                                <i data-lucide="zap" class="h-3 w-3"></i>
+                                <span>Real-time Sync</span>
+                            </div>
+                        </div>
+                        <div class="text-center mt-4">
+                            <h4 class="text-xs font-bold text-slate-800">Secure Meta Gateway</h4>
+                            <p class="text-[10px] text-slate-500 mt-1 max-w-[200px] leading-relaxed mx-auto">Connect your Meta Developer app credentials to link your business inbox.</p>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Step Form Content -->
+                    <div class="lg:col-span-3 w-full animate-fade-in animate-duration-200">
+                        ${stepHtml}
+                    </div>
                 </div>
             </div>
         `;

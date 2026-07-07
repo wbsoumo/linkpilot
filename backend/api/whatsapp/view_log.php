@@ -2,6 +2,15 @@
 // backend/api/whatsapp/view_log.php
 header('Content-Type: text/plain; charset=utf-8');
 
+echo "=== DIRECT SEND DIAGNOSTIC RESULTS ===\n";
+$diagLog = __DIR__ . '/wa_temp_debug.txt';
+if (file_exists($diagLog)) {
+    echo file_get_contents($diagLog);
+} else {
+    echo "No direct send diagnostic results found. Please browse test_send_tpl.php first.\n";
+}
+echo "\n";
+
 echo "=== WHATSAPP SYSTEM DEBUGLOG ===\n";
 $debugLog = __DIR__ . '/whatsapp_debug.log';
 if (file_exists($debugLog)) {

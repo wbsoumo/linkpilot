@@ -6933,9 +6933,9 @@ async function renderIntegrations(container) {
                             <i data-lucide="key-round" class="h-4 w-4 text-indigo-600"></i>
                             <span>AI API Keys Control Board</span>
                         </div>
-                        <button onclick="toggleAddKeyForm()" class="flex items-center justify-center space-x-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition shadow-sm" id="add-key-toggle-btn">
-                            <i data-lucide="plus" class="h-3 w-3"></i>
-                            <span>Add API Key</span>
+                        <button onclick="toggleAddKeyForm()" class="flex items-center justify-center space-x-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition shadow-sm" id="add-key-toggle-btn" style="color: #ffffff !important;">
+                            <i data-lucide="plus" class="h-3 w-3" style="color: #ffffff !important;"></i>
+                            <span style="color: #ffffff !important;">Add API Key</span>
                         </button>
                     </div>
 
@@ -6968,7 +6968,7 @@ async function renderIntegrations(container) {
 
                                 <!-- Gemini Card -->
                                 <div onclick="selectNewKeyProvider('google_ai_studio')" id="provider-card-google_ai_studio" class="provider-card border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition flex items-center space-x-3 bg-white border-slate-200">
-                                    <img src="https://www.gstatic.com/lamda/images/favicon_v1_150160d13ff2adce15e18.svg" class="h-6 w-6 rounded-md object-contain shrink-0">
+                                    <img src="/backend/google-gemini.png" class="h-6 w-6 rounded-md object-contain shrink-0">
                                     <div>
                                         <span class="block font-bold text-slate-800 text-[11px]">Gemini Studio</span>
                                         <span class="text-[9px] text-slate-400">Google Gemini API</span>
@@ -6986,9 +6986,9 @@ async function renderIntegrations(container) {
                             <label class="block text-[9px] font-bold text-slate-400 uppercase">API Key Value / Token</label>
                             <div class="flex space-x-2">
                                 <input type="password" id="new-key-value-input" placeholder="Enter API Key value" class="flex-grow px-2.5 py-1.5 bg-white border border-slate-250 rounded-lg text-[11px] text-slate-850 focus:outline-none focus:border-indigo-500">
-                                <button onclick="submitNewAIKey()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[11px] font-bold transition shrink-0 flex items-center justify-center space-x-1.5 shadow-sm">
-                                    <i data-lucide="save" class="h-3.5 w-3.5"></i>
-                                    <span>Save Key</span>
+                                <button onclick="submitNewAIKey()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[11px] font-bold transition shrink-0 flex items-center justify-center space-x-1.5 shadow-sm" style="color: #ffffff !important;">
+                                    <i data-lucide="save" class="h-3.5 w-3.5" style="color: #ffffff !important;"></i>
+                                    <span style="color: #ffffff !important;">Save Key</span>
                                 </button>
                             </div>
                         </div>
@@ -7187,9 +7187,9 @@ window.selectNewKeyProvider = function(provider) {
         if (cardEl) {
             if (c === provider) {
                 cardEl.classList.remove('border-slate-200');
-                cardEl.classList.add('border-indigo-650', 'shadow-sm');
+                cardEl.classList.add('border-indigo-600', 'shadow-sm');
             } else {
-                cardEl.classList.remove('border-indigo-650', 'shadow-sm');
+                cardEl.classList.remove('border-indigo-600', 'shadow-sm');
                 cardEl.classList.add('border-slate-200');
             }
         }

@@ -105,6 +105,22 @@ try {
         sendJsonResponse('success', 'Task created successfully', ['task_id' => $taskId]);
     }
     
+    elseif ($method === 'GENERATE_MEET') {
+        $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+        $taskId = (int)($input['task_id'] ?? $input['id'] ?? $_GET['id'] ?? 0);
+        
+        if ($taskId <= 0) {
+            sendJsonResponse('error', 'Task ID is required.', [], 400);
+        }
+
+        try {
+            $meetLink = ExternalAppsHelper::generateGoogleMeetForTask($userId, $taskId);
+            sendJsonResponse('success', 'Google Meet Link generated successfully!', ['meet_link' => $meetLink]);
+        } catch (Exception $e) {
+            sendJsonResponse('error', $e->getMessage(), [], 400);
+        }
+    }
+    
     elseif ($method === 'PUT' || $method === 'UPDATE') {
         $input = json_decode(file_get_contents('php://input'), true);
         if (!$input) {

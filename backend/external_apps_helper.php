@@ -634,4 +634,95 @@ class ExternalAppsHelper {
             ];
         }
     }
+
+    /**
+     * Generate Google Meet link for a specific CRM Task
+     */
+    public static function generateGoogleMeetForTask($userId, $taskId) {
+        $token = self::getGoogleAccessToken($userId);
+        if (!$token) {
+            throw new Exception("Google Account connection is not active.");
+        }
+
+        $db = Database::getConnection();
+        $stmt = $db->prepare("SELECT * FROM crm_tasks WHERE id = ? AND user_id = ? LIMIT 1");
+        $stmt->execute([$taskId, $userId]);
+        $task = $stmt->fetch();
+        
+        if (!$task) {
+            throw new Exception("Task not found.");
+        }
+
+        $title = $task['title'];
+        // Ensure task title contains [Meeting] prefix
+        if (!str_contains($title, '[Meeting]')) {
+            if (str_starts_with($title, '[')) {
+                $title = preg_replace('/^\[.*?\]\s*/', '[Meeting] ', $title);
+            } else {
+                $title = '[Meeting] ' . $title;
+            }
+        }
+
+        $dueDate = $task['due_date'] ?: date('Y-m-d');
+        $dueTime = $task['due_time'] ?: '09:00:00';
+        $startStr = $dueDate . ' ' . $dueTime;
+        $startIso = date(DATE_RFC3339, strtotime($startStr));
+        $endIso = date(DATE_RFC3339, strtotime($startStr) + 3600); // 1-hour duration meeting
+
+        try {
+            $client = new Google\Client();
+            $client->setAccessToken($token);
+            $service = new Google\Service\Calendar($client);
+
+            $event = new Google\Service\Calendar\Event([
+                'summary' => $title,
+                'description' => $task['description'] ?: 'Meeting scheduled via LinkPilot CRM.',
+                'start' => ['dateTime' => $startIso],
+                'end' => ['dateTime' => $endIso],
+                'reminders' => [
+                    'useDefault' => false,
+                    'overrides' => [
+                        ['method' => 'popup', 'minutes' => 15]
+                    ]
+                ],
+                'conferenceData' => [
+                    'createRequest' => [
+                        'requestId' => 'task-meet-' . $taskId . '-' . time(),
+                        'conferenceSolutionKey' => [
+                            'type' => 'hangoutsMeet'
+                        ]
+                    ]
+                ]
+            ]);
+
+            $createdEvent = $service->events->insert('primary', $event, ['conferenceDataVersion' => 1]);
+            $googleEventId = $createdEvent->getId();
+
+            $meetLink = null;
+            $confData = $createdEvent->getConferenceData();
+            if ($confData) {
+                $entryPoints = $confData->getEntryPoints();
+                if ($entryPoints) {
+                    foreach ($entryPoints as $ep) {
+                        if ($ep->getEntryPointType() === 'video') {
+                            $meetLink = $ep->getUri();
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (empty($meetLink)) {
+                throw new Exception("Google Calendar did not generate a conference (Meet) link. Ensure Meet is enabled for your Google calendar account.");
+            }
+
+            // Update Task in DB
+            $stmtUpdate = $db->prepare("UPDATE crm_tasks SET meet_link = ?, google_event_id = ?, title = ?, sync_to_calendar = 1 WHERE id = ?");
+            $stmtUpdate->execute([$meetLink, $googleEventId, $title, $taskId]);
+
+            return $meetLink;
+        } catch (Exception $e) {
+            throw new Exception("Google Meet generation failed: " . $e->getMessage());
+        }
+    }
 }

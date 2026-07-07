@@ -4938,6 +4938,16 @@ function handleTaskRightClick(e, id, status, title, desc, meet, remarks, categor
             <span>${statusText}</span>
         </button>
     `;
+
+    // 2.5 Generate Google Meet option
+    if (!meet) {
+        optionsHTML += `
+            <button onclick="triggerGenerateMeetLinkForTask(${id})" class="w-full text-left px-3.5 py-2 hover:bg-indigo-50 hover:text-indigo-700 transition flex items-center space-x-2 text-slate-700">
+                <i data-lucide="video" class="h-3.5 w-3.5 text-indigo-500"></i>
+                <span>Generate Google Meet</span>
+            </button>
+        `;
+    }
     
     // 3. Add Peoples / Configure invite (Meetings Only)
     if (isMeeting) {
@@ -5015,7 +5025,13 @@ function viewTaskDetailsModal(id, status, title, desc, meet, remarks, category, 
 
     const meetLinkHTML = meet 
         ? `<a href="${meet}" target="_blank" class="text-indigo-600 hover:text-indigo-800 underline break-all">${meet}</a>` 
-        : '<span class="text-slate-400">No meeting link configured.</span>';
+        : `<div class="mt-1 flex items-center space-x-2" id="details-meet-container-${id}">
+             <span class="text-slate-400">No meeting link configured.</span>
+             <button onclick="generateMeetLinkForTaskInModal(${id})" class="px-2 py-0.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded text-[10px] font-bold transition flex items-center space-x-1 shrink-0">
+                 <i data-lucide="video" class="h-3 w-3"></i>
+                 <span>Generate Meet Link</span>
+             </button>
+           </div>`;
 
     const modalHTML = `
         <div id="task-details-view-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in">
@@ -11202,5 +11218,49 @@ window.deleteCrmWorkspaceAccount = function(btn) {
         setTimeout(() => {
             logout();
         }, 1500);
+    }
+};
+
+window.triggerGenerateMeetLinkForTask = async function(taskId) {
+    try {
+        showNotification('info', 'Generating Google Meet link via Calendar API...');
+        const res = await apiCall('crm/tasks.php?action=generate_meet', 'POST', { id: taskId });
+        if (res.status === 'success') {
+            showNotification('success', 'Google Meet link generated successfully!');
+            loadTasksHub();
+        } else {
+            showNotification('error', res.message || 'Failed to generate Meet link.');
+        }
+    } catch (err) {
+        showNotification('error', 'Google Meet generation failed: ' + err.message);
+    }
+};
+
+window.generateMeetLinkForTaskInModal = async function(taskId) {
+    const container = document.getElementById(`details-meet-container-${taskId}`);
+    if (!container) return;
+    
+    const origHtml = container.innerHTML;
+    container.innerHTML = `
+        <i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin text-indigo-650"></i>
+        <span class="text-[10px] text-slate-450 ml-1">Generating Meet URL...</span>
+    `;
+    lucide.createIcons();
+    
+    try {
+        const res = await apiCall('crm/tasks.php?action=generate_meet', 'POST', { id: taskId });
+        if (res.status === 'success' && res.meet_link) {
+            showNotification('success', 'Google Meet link generated successfully!');
+            container.innerHTML = `<a href="${res.meet_link}" target="_blank" class="text-indigo-600 hover:text-indigo-800 underline break-all">${res.meet_link}</a>`;
+            loadTasksHub();
+        } else {
+            showNotification('error', res.message || 'Failed to generate link. Make sure Google Calendar is connected.');
+            container.innerHTML = origHtml;
+            lucide.createIcons();
+        }
+    } catch (err) {
+        showNotification('error', 'Meet link generation failed: ' + err.message);
+        container.innerHTML = origHtml;
+        lucide.createIcons();
     }
 };

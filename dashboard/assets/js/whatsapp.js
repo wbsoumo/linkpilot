@@ -493,10 +493,8 @@ function renderWhatsAppSetup(container, settings) {
                             <!-- Main WhatsApp platform 3D pedestal -->
                             <div class="absolute bottom-6 w-32 h-8 rounded-full bg-slate-200 border border-slate-350 shadow-[0_10px_20px_rgba(0,0,0,0.06)] flex items-center justify-center"></div>
                             <!-- WhatsApp floating logo -->
-                            <div class="absolute bottom-10 h-20 w-20 rounded-3xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30 transform hover:-translate-y-2 transition-transform duration-300">
-                                <svg viewBox="0 0 24 24" class="h-11 w-11 fill-current">
-                                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.66.986 3.288 1.448 4.905 1.45 5.275 0 9.56-4.28 9.564-9.553.002-2.553-1.002-4.955-2.816-6.764-1.815-1.81-4.226-2.806-6.776-2.807-5.28 0-9.57 4.282-9.574 9.556-.001 1.709.47 3.326 1.368 4.798l-.999 3.648 3.738-.978zm11.387-5.464c-.307-.154-1.82-.9-2.1-.1s-.24.3-.24.3-.22.25-.48.1a6.05 6.05 0 0 1-2.22-1.37c-.77-.675-1.28-1.51-1.44-1.785-.15-.275-.017-.424.12-.562.124-.124.275-.32.413-.48.138-.16.184-.275.275-.46.09-.184.046-.346-.023-.5-.069-.153-.615-1.482-.843-2.029-.22-.533-.464-.46-.615-.468-.152-.008-.328-.01-.505-.01a.97.97 0 0 0-.705.328c-.24.26-1.025 1.004-1.025 2.45s1.05 2.836 1.196 3.036c.147.2 2.068 3.16 5.01 4.43.7.3 1.25.48 1.67.62.7.22 1.34.19 1.85.11.57-.08 1.82-.74 2.08-1.425.26-.684.26-1.27.184-1.397-.076-.124-.275-.205-.58-.36z"/>
-                                </svg>
+                            <div class="absolute bottom-10 h-20 w-20 bg-transparent flex items-center justify-center shadow-lg shadow-emerald-500/10 transform hover:-translate-y-2 transition-transform duration-300">
+                                <img src="assets/css/WhatsApp_icon.png" class="h-20 w-20 object-contain" alt="WhatsApp">
                             </div>
                             <!-- Floating badges -->
                             <div class="absolute top-10 left-6 bg-blue-500/10 border border-blue-500/20 text-blue-500 px-2 py-1 rounded-xl text-[9px] font-bold flex items-center space-x-1 shadow-sm">

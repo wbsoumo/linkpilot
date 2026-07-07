@@ -751,8 +751,13 @@ aside .bg-blue-600 * {
     background-color: #4f46e5 !important;
 }
 
-
-
-
-
-
+/* Ensure text in primary colored buttons remains white even in hover/active states */
+:not(aside) .bg-blue-600, :not(aside) .bg-blue-600 *,
+:not(aside) .bg-blue-500, :not(aside) .bg-blue-500 *,
+:not(aside) .bg-indigo-600, :not(aside) .bg-indigo-600 *,
+:not(aside) .bg-indigo-500, :not(aside) .bg-indigo-500 *,
+:not(aside) .bg-emerald-600, :not(aside) .bg-emerald-600 *,
+:not(aside) .bg-emerald-500, :not(aside) .bg-emerald-500 *,
+:not(aside) .bg-[#2563eb], :not(aside) .bg-[#2563eb] * {
+    color: #ffffff !important;
+}

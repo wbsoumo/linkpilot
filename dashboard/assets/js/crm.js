@@ -708,6 +708,9 @@ function renderDashboardCharts(data) {
     // 1. Line Trend Chart
     const trendEl = document.getElementById('dashboardTrendChart');
     if (trendEl) {
+        if (charts.trend) {
+            charts.trend.destroy();
+        }
         const trendCtx = trendEl.getContext('2d');
         const emailLabels = data.emails_received_trend.length > 0 ? data.emails_received_trend.map(e => e.date) : ['Jul 01', 'Jul 02', 'Jul 03', 'Jul 04', 'Jul 05'];
         const emailCounts = data.emails_received_trend.length > 0 ? data.emails_received_trend.map(e => e.count) : [5, 8, 12, 6, 9];
@@ -752,6 +755,9 @@ function renderDashboardCharts(data) {
     // 2. Lead Sources Doughnut Chart
     const sourcesEl = document.getElementById('leadSourcesChart');
     if (sourcesEl) {
+        if (charts.sources) {
+            charts.sources.destroy();
+        }
         const sourcesCtx = sourcesEl.getContext('2d');
         const sourceLabels = data.lead_sources.length > 0 ? data.lead_sources.map(s => s.source) : ['Email', 'LinkedIn', 'Website', 'WhatsApp'];
         const sourceValues = data.lead_sources.length > 0 ? data.lead_sources.map(s => s.count) : [12, 18, 9, 5];
@@ -777,6 +783,9 @@ function renderDashboardCharts(data) {
     // 3. AI Categories Bar Chart
     const catsEl = document.getElementById('aiCategoriesChart');
     if (catsEl) {
+        if (charts.categories) {
+            charts.categories.destroy();
+        }
         const catsCtx = catsEl.getContext('2d');
         const catLabels = data.ai_categorization.length > 0 ? data.ai_categorization.map(c => c.category) : ['New Lead', 'Invoice', 'Complaint', 'General'];
         const catValues = data.ai_categorization.length > 0 ? data.ai_categorization.map(c => c.count) : [8, 4, 2, 11];
@@ -807,6 +816,9 @@ function renderDashboardCharts(data) {
     // 4. Revenue Pipeline Horizontal Bar
     const pipeEl = document.getElementById('pipelineFunnelChart');
     if (pipeEl) {
+        if (charts.pipeline) {
+            charts.pipeline.destroy();
+        }
         const pipeCtx = pipeEl.getContext('2d');
         const pipeLabels = data.revenue_pipeline.length > 0 ? data.revenue_pipeline.map(r => r.stage) : ['Lead', 'Qualified', 'Proposal', 'Won'];
         const pipeValues = data.revenue_pipeline.length > 0 ? data.revenue_pipeline.map(r => r.value) : [12000, 25000, 18000, 32000];
@@ -9639,31 +9651,75 @@ async function renderExternalApps(container) {
 
     try {
         const res = await apiCall('external_apps/status.php');
-        const conn = res.data || { connected: false };
+        const conn = res.data || {
+            connected: false,
+            email: null,
+            name: null,
+            avatar: null,
+            last_sync: null,
+            scopes: [],
+            profile_connected: false,
+            calendar_connected: false,
+            gmail_connected: false
+        };
 
         if (conn.error) {
             showNotification('warning', 'Integrations warning: ' + conn.error);
         }
 
-        const statusBadge = conn.connected
-            ? `<span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center space-x-1 shrink-0">
-                 <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                 <span>CONNECTED</span>
-               </span>`
-            : `<span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-slate-100 text-slate-500 border border-slate-200 shrink-0">
-                 NOT CONNECTED
-               </span>`;
+        const buildStatusBadge = (isConnected) => {
+            return isConnected
+                ? `<span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center space-x-1 shrink-0">
+                     <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                     <span>ACTIVE</span>
+                   </span>`
+                : `<span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-slate-100 text-slate-500 border border-slate-200 shrink-0">
+                     INACTIVE
+                   </span>`;
+        };
 
         container.innerHTML = `
             <div class="space-y-6 pt-4 animate-fade-in text-xs max-w-7xl mx-auto text-left">
                 <!-- Header -->
                 <div class="border-b border-slate-150 pb-4">
                     <h1 class="text-2xl font-extrabold text-slate-800">External Apps Marketplace</h1>
-                    <p class="text-slate-500 text-xs mt-1">Connect and authorize developer workflow integrations to synchronize your CRM activities.</p>
+                    <p class="text-slate-500 text-xs mt-1">Connect and authorize Google developer integrations to synchronize your CRM activities.</p>
                 </div>
 
                 <!-- Integrations Cards Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Google Profile Connection Card -->
+                    <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl flex flex-col justify-between hover:shadow-md transition">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <div class="h-12 w-12 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-center p-2 shrink-0">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" class="h-full w-full object-contain" alt="Google Logo">
+                                </div>
+                                ${buildStatusBadge(conn.profile_connected)}
+                            </div>
+                            <h3 class="text-sm font-extrabold text-slate-800 mt-4">Google Account Connection</h3>
+                            <p class="text-slate-500 mt-1.5 leading-relaxed">Connect your primary Google account identity to enable advanced external integrations.</p>
+                            
+                            ${conn.profile_connected ? `
+                                <div class="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-150 flex items-center space-x-3 text-slate-650">
+                                    ${conn.avatar ? `<img src="${conn.avatar}" class="h-8 w-8 rounded-full border border-slate-200" alt="Avatar">` : ''}
+                                    <div class="truncate font-mono text-[10px] space-y-0.5">
+                                        <p class="font-bold text-slate-850 truncate">${conn.name || 'Google User'}</p>
+                                        <p class="text-slate-500 truncate">${conn.email}</p>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <div class="mt-6 flex space-x-2 pt-2 border-t border-slate-100">
+                            ${conn.profile_connected ? `
+                                <button onclick="disconnectExternalGoogle()" class="w-full py-2 border border-slate-200 hover:border-red-500/20 hover:bg-red-50 text-red-500 rounded-lg font-bold transition">Disconnect Account</button>
+                            ` : `
+                                <button onclick="connectExternalGoogle('login')" class="w-full py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-lg font-bold text-center transition" style="color: #ffffff !important;">Connect Google Account</button>
+                            `}
+                        </div>
+                    </div>
+
                     <!-- Google Calendar Card -->
                     <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl flex flex-col justify-between hover:shadow-md transition">
                         <div>
@@ -9671,54 +9727,26 @@ async function renderExternalApps(container) {
                                 <div class="h-12 w-12 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-center p-2.5 shrink-0">
                                     <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" class="h-full w-full object-contain" alt="Google Calendar">
                                 </div>
-                                ${statusBadge}
+                                ${buildStatusBadge(conn.calendar_connected)}
                             </div>
-                            <h3 class="text-sm font-extrabold text-slate-800 mt-4">Google Calendar</h3>
-                            <p class="text-slate-500 mt-1.5 leading-relaxed">Schedule events dynamically inside the CRM and sync task lifecycles directly with Google Calendar.</p>
+                            <h3 class="text-sm font-extrabold text-slate-800 mt-4">Google Calendar Sync</h3>
+                            <p class="text-slate-500 mt-1.5 leading-relaxed">Schedule events dynamically inside the CRM and sync meeting lifecycles directly with Google Calendar.</p>
                             
-                            ${conn.connected ? `
+                            ${conn.calendar_connected ? `
                                 <div class="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-150 space-y-1 font-mono text-[10px] text-slate-650">
-                                    <p><strong>Account:</strong> ${conn.email}</p>
-                                    <p><strong>Last Sync:</strong> ${new Date(conn.last_sync).toLocaleString()}</p>
+                                    <p><strong>Integration:</strong> Calendar Events API</p>
+                                    <p><strong>Auto-sync:</strong> Enabled</p>
+                                    <p><strong>Meet Solution:</strong> Active</p>
                                 </div>
                             ` : ''}
                         </div>
 
                         <div class="mt-6 flex space-x-2 pt-2 border-t border-slate-100">
-                            ${conn.connected ? `
-                                <button onclick="openGoogleCalendarTestModal()" class="flex-1 py-2 bg-indigo-550 hover:bg-indigo-650 text-white rounded-lg font-bold text-center transition" style="color: #ffffff !important;">Configure</button>
-                                <button onclick="disconnectExternalGoogle()" class="px-3 py-2 border border-slate-200 hover:border-red-500/20 hover:bg-red-50 text-red-500 rounded-lg font-bold transition">Disconnect</button>
+                            ${conn.calendar_connected ? `
+                                <button onclick="openGoogleCalendarTestModal()" class="flex-1 py-2 bg-indigo-550 hover:bg-indigo-650 text-white rounded-lg font-bold text-center transition" style="color: #ffffff !important;">Test Sync</button>
+                                <button onclick="disconnectExternalGoogle()" class="px-3 py-2 border border-slate-200 hover:border-red-500/20 hover:bg-red-50 text-red-500 rounded-lg font-bold transition">Disable</button>
                             ` : `
-                                <button onclick="connectExternalGoogle()" class="w-full py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-lg font-bold text-center transition" style="color: #ffffff !important;">Connect Account</button>
-                            `}
-                        </div>
-                    </div>
-
-                    <!-- Google Meet Card -->
-                    <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl flex flex-col justify-between hover:shadow-md transition">
-                        <div>
-                            <div class="flex justify-between items-start">
-                                <div class="h-12 w-12 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-center p-2.5 shrink-0">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Google_Meet_icon_%282020%29.svg/960px-Google_Meet_icon_%282020%29.svg.png" class="h-full w-full object-contain" alt="Google Meet">
-                                </div>
-                                ${statusBadge}
-                            </div>
-                            <h3 class="text-sm font-extrabold text-slate-800 mt-4">Google Meet</h3>
-                            <p class="text-slate-500 mt-1.5 leading-relaxed">Automatically generate video meeting links on creation, and attach conference URLs inside CRM schedules.</p>
-                            
-                            ${conn.connected ? `
-                                <div class="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-150 space-y-1 font-mono text-[10px] text-slate-650">
-                                    <p><strong>Status:</strong> Meet solution key active</p>
-                                    <p><strong>Integration:</strong> Conference Data API v1</p>
-                                </div>
-                            ` : ''}
-                        </div>
-
-                        <div class="mt-6 flex space-x-2 pt-2 border-t border-slate-100">
-                            ${conn.connected ? `
-                                <button onclick="openGoogleMeetTestModal()" class="w-full py-2 bg-indigo-550 hover:bg-indigo-650 text-white rounded-lg font-bold text-center transition" style="color: #ffffff !important;">Configure Meet</button>
-                            ` : `
-                                <button onclick="connectExternalGoogle()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-bold text-center transition">Connect Account</button>
+                                <button onclick="${conn.profile_connected ? "connectExternalGoogle('calendar')" : "showNotification('warning', 'Please connect your Google Account profile first.')"}" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-bold text-center transition ${conn.profile_connected ? '' : 'opacity-50 cursor-not-allowed'}">Enable Calendar Sync</button>
                             `}
                         </div>
                     </div>
@@ -9730,24 +9758,26 @@ async function renderExternalApps(container) {
                                 <div class="h-12 w-12 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-center p-2.5 shrink-0">
                                     <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg" class="h-full w-full object-contain" alt="Gmail">
                                 </div>
-                                ${statusBadge}
+                                ${buildStatusBadge(conn.gmail_connected)}
                             </div>
-                            <h3 class="text-sm font-extrabold text-slate-800 mt-4">Gmail Outreach</h3>
-                            <p class="text-slate-500 mt-1.5 leading-relaxed">Compose outbound pitches, reply to client threads, and save draft correspondence transparently via Google API.</p>
+                            <h3 class="text-sm font-extrabold text-slate-800 mt-4">Gmail Integration</h3>
+                            <p class="text-slate-500 mt-1.5 leading-relaxed">Compose outbound pitches, reply to client threads, and save draft correspondence transparently via Gmail API.</p>
                             
-                            ${conn.connected ? `
+                            ${conn.gmail_connected ? `
                                 <div class="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-150 space-y-1 font-mono text-[10px] text-slate-650">
                                     <p><strong>Method:</strong> Gmail Web API Send</p>
-                                    <p><strong>Token Status:</strong> Autorefresh Enabled</p>
+                                    <p><strong>Draft Support:</strong> Enabled</p>
+                                    <p><strong>Auth Refresh:</strong> Automatic</p>
                                 </div>
                             ` : ''}
                         </div>
 
                         <div class="mt-6 flex space-x-2 pt-2 border-t border-slate-100">
-                            ${conn.connected ? `
-                                <button onclick="openGoogleGmailModal()" class="w-full py-2 bg-indigo-550 hover:bg-indigo-650 text-white rounded-lg font-bold text-center transition" style="color: #ffffff !important;">Configure Gmail</button>
+                            ${conn.gmail_connected ? `
+                                <button onclick="openGoogleGmailModal()" class="flex-1 py-2 bg-indigo-550 hover:bg-indigo-650 text-white rounded-lg font-bold text-center transition" style="color: #ffffff !important;">Compose Email</button>
+                                <button onclick="disconnectExternalGoogle()" class="px-3 py-2 border border-slate-200 hover:border-red-500/20 hover:bg-red-50 text-red-500 rounded-lg font-bold transition">Disable</button>
                             ` : `
-                                <button onclick="connectExternalGoogle()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-bold text-center transition">Connect Account</button>
+                                <button onclick="${conn.profile_connected ? "connectExternalGoogle('gmail')" : "showNotification('warning', 'Please connect your Google Account profile first.')"}" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-bold text-center transition ${conn.profile_connected ? '' : 'opacity-50 cursor-not-allowed'}">Enable Gmail Integration</button>
                             `}
                         </div>
                     </div>
@@ -9765,10 +9795,10 @@ async function renderExternalApps(container) {
 }
 
 // Global window OAuth flow handlers
-window.connectExternalGoogle = async function() {
+window.connectExternalGoogle = async function(type = 'login') {
     try {
         showNotification('info', 'Constructing secure Google auth request URL...');
-        const res = await apiCall('external_apps/auth.php');
+        const res = await apiCall(`external_apps/auth.php?type=${type}`);
         if (res.status === 'success' && res.auth_url) {
             window.location.href = res.auth_url;
         } else {
@@ -10095,6 +10125,7 @@ window.shareMeetViaEmail = function() {
     window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
 };
 
+
 // --- REDESIGNED PROFILE & SETTINGS HELPERS ---
 function getSettingsBaseLayout(user) {
     return `
@@ -10105,9 +10136,9 @@ function getSettingsBaseLayout(user) {
                 <p class="text-slate-500 text-xs mt-1">Manage your account profile details, business descriptors, and workflow settings.</p>
             </div>
 
-            <!-- Main Layout Grid -->
+            <!-- Main Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <!-- Left Tab Selection Panel (col-span-3) -->
+                <!-- Sidebar -->
                 <div class="lg:col-span-3 space-y-2" id="settings-tabs-sidebar">
                     <button onclick="switchSettingsTab('profile', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left bg-indigo-50 border border-indigo-100/50 text-indigo-650 font-bold active-settings-tab">
                         <div class="flex items-center space-x-3">
@@ -10120,18 +10151,18 @@ function getSettingsBaseLayout(user) {
                         <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i>
                     </button>
                     
-                    <button onclick="switchSettingsTab('business', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-600 hover:bg-slate-100 border border-transparent">
+                    <button onclick="switchSettingsTab('business', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-655 hover:bg-slate-100 border border-transparent">
                         <div class="flex items-center space-x-3">
                             <i data-lucide="briefcase" class="h-4 w-4 text-slate-400"></i>
                             <div>
-                                <p class="font-extrabold text-slate-850">Business Settings</p>
+                                <p class="font-extrabold text-slate-855">Business Settings</p>
                                 <p class="text-[10px] text-slate-400 font-normal">Configure business info</p>
                             </div>
                         </div>
                         <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
                     </button>
 
-                    <button onclick="switchSettingsTab('whatsapp', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-600 hover:bg-slate-100 border border-transparent">
+                    <button onclick="switchSettingsTab('whatsapp', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-655 hover:bg-slate-100 border border-transparent">
                         <div class="flex items-center space-x-3">
                             <i data-lucide="message-circle" class="h-4 w-4 text-slate-400"></i>
                             <div>
@@ -10142,7 +10173,7 @@ function getSettingsBaseLayout(user) {
                         <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
                     </button>
 
-                    <button onclick="switchSettingsTab('team', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-600 hover:bg-slate-100 border border-transparent">
+                    <button onclick="switchSettingsTab('team', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-655 hover:bg-slate-100 border border-transparent">
                         <div class="flex items-center space-x-3">
                             <i data-lucide="users" class="h-4 w-4 text-slate-400"></i>
                             <div>
@@ -10153,7 +10184,7 @@ function getSettingsBaseLayout(user) {
                         <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
                     </button>
 
-                    <button onclick="switchSettingsTab('notifications', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-600 hover:bg-slate-100 border border-transparent">
+                    <button onclick="switchSettingsTab('notifications', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-655 hover:bg-slate-100 border border-transparent">
                         <div class="flex items-center space-x-3">
                             <i data-lucide="bell" class="h-4 w-4 text-slate-400"></i>
                             <div>
@@ -10164,7 +10195,7 @@ function getSettingsBaseLayout(user) {
                         <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
                     </button>
 
-                    <button onclick="switchSettingsTab('security', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-600 hover:bg-slate-100 border border-transparent">
+                    <button onclick="switchSettingsTab('security', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-655 hover:bg-slate-100 border border-transparent">
                         <div class="flex items-center space-x-3">
                             <i data-lucide="shield-check" class="h-4 w-4 text-slate-400"></i>
                             <div>
@@ -10175,7 +10206,7 @@ function getSettingsBaseLayout(user) {
                         <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
                     </button>
 
-                    <button onclick="switchSettingsTab('billing', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-600 hover:bg-slate-100 border border-transparent">
+                    <button onclick="switchSettingsTab('billing', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-655 hover:bg-slate-100 border border-transparent">
                         <div class="flex items-center space-x-3">
                             <i data-lucide="credit-card" class="h-4 w-4 text-slate-400"></i>
                             <div>
@@ -10186,7 +10217,7 @@ function getSettingsBaseLayout(user) {
                         <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
                     </button>
 
-                    <button onclick="switchSettingsTab('api', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-600 hover:bg-slate-100 border border-transparent">
+                    <button onclick="switchSettingsTab('api', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-655 hover:bg-slate-100 border border-transparent">
                         <div class="flex items-center space-x-3">
                             <i data-lucide="key" class="h-4 w-4 text-slate-400"></i>
                             <div>
@@ -10197,7 +10228,7 @@ function getSettingsBaseLayout(user) {
                         <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
                     </button>
 
-                    <button onclick="switchSettingsTab('storage', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-600 hover:bg-slate-100 border border-transparent">
+                    <button onclick="switchSettingsTab('storage', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-655 hover:bg-slate-100 border border-transparent">
                         <div class="flex items-center space-x-3">
                             <i data-lucide="database" class="h-4 w-4 text-slate-400"></i>
                             <div>
@@ -10209,12 +10240,10 @@ function getSettingsBaseLayout(user) {
                     </button>
                 </div>
 
-                <!-- Center active tab Form Area (col-span-6) -->
-                <div class="lg:col-span-6 space-y-4" id="settings-tab-form-container">
-                    <!-- Content gets loaded here -->
-                </div>
+                <!-- Form Area -->
+                <div class="lg:col-span-6 space-y-4" id="settings-tab-form-container"></div>
 
-                <!-- Right Profile card summary Panel (col-span-3) -->
+                <!-- Right Card -->
                 <div class="lg:col-span-3 space-y-6">
                     <div class="glass-panel bg-white border border-slate-200 rounded-2xl p-5 text-center flex flex-col items-center">
                         <div class="relative h-20 w-20 rounded-full bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-600 font-extrabold text-2xl mb-4 shadow-inner">
@@ -10245,7 +10274,7 @@ function getSettingsBaseLayout(user) {
                                 <i data-lucide="clock" class="h-4 w-4 text-slate-400 shrink-0"></i>
                                 <div class="text-left">
                                     <p class="text-[9px] font-bold text-slate-455 uppercase tracking-wider">Time Zone</p>
-                                    <p class="font-semibold text-slate-700">Asia/Kolkata (GMT +05:30)</p>
+                                    <p class="font-semibold text-slate-700" id="settings-sidebar-timezone">Asia/Kolkata</p>
                                 </div>
                             </div>
                             <div class="flex items-center space-x-3">
@@ -10258,7 +10287,6 @@ function getSettingsBaseLayout(user) {
                         </div>
                     </div>
 
-                    <!-- 2FA Banner -->
                     <div class="p-4 bg-indigo-50/50 border border-indigo-100/50 rounded-2xl flex items-center justify-between">
                         <div class="flex items-center space-x-3">
                             <div class="h-8 w-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-650 shrink-0">
@@ -10278,6 +10306,13 @@ function getSettingsBaseLayout(user) {
 }
 
 window.switchSettingsTab = function(tabName, btn) {
+    if (!btn) {
+        const sidebar = document.getElementById('settings-tabs-sidebar');
+        if (sidebar) {
+            btn = sidebar.querySelector(`button[onclick*="'${tabName}'"]`);
+        }
+    }
+
     if (btn) {
         const sidebar = document.getElementById('settings-tabs-sidebar');
         if (sidebar) {
@@ -10301,6 +10336,25 @@ window.switchSettingsTab = function(tabName, btn) {
 function renderSettingsTabContent(tab, container) {
     const user = window.activeUserSettings || {};
     const profile = window.activeUserProfileSettings || {};
+
+    // Sync Right sidebar values
+    if (document.getElementById('settings-sidebar-phone')) {
+        document.getElementById('settings-sidebar-phone').textContent = user.phone_number || 'Not Set';
+    }
+    if (document.getElementById('settings-sidebar-timezone')) {
+        document.getElementById('settings-sidebar-timezone').textContent = profile.timezone || 'Asia/Kolkata';
+    }
+    
+    const faBtn = document.getElementById('settings-2fa-btn');
+    if (faBtn) {
+        if (parseInt(profile.two_factor_enabled || 0) === 1) {
+            faBtn.textContent = 'Disable 2FA';
+            faBtn.className = 'px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-[10px] font-bold transition shadow-sm';
+        } else {
+            faBtn.textContent = 'Enable 2FA';
+            faBtn.className = 'px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition shadow-sm';
+        }
+    }
 
     if (tab === 'profile') {
         container.innerHTML = `
@@ -10339,14 +10393,19 @@ function renderSettingsTabContent(tab, container) {
                             <input type="text" id="profile-job-input" value="${profile.job_title || ''}" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Profile Role Type</label>
-                            <select id="profile-usertype-select" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
-                                <option value="owner" ${profile.user_type === 'owner' ? 'selected' : ''}>Business Owner / Founder</option>
-                                <option value="freelancer" ${profile.user_type === 'freelancer' ? 'selected' : ''}>Freelancer / Contractor</option>
-                                <option value="agency" ${profile.user_type === 'agency' ? 'selected' : ''}>Agency Executive</option>
-                                <option value="sales" ${profile.user_type === 'sales' ? 'selected' : ''}>Sales Development Rep</option>
-                            </select>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Phone Number</label>
+                            <input type="text" id="profile-phone-input" value="${user.phone_number || ''}" placeholder="+91 XXXXX XXXXX" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
                         </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Profile Role Type</label>
+                        <select id="profile-usertype-select" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                            <option value="owner" ${profile.user_type === 'owner' ? 'selected' : ''}>Business Owner / Founder</option>
+                            <option value="freelancer" ${profile.user_type === 'freelancer' ? 'selected' : ''}>Freelancer / Contractor</option>
+                            <option value="agency" ${profile.user_type === 'agency' ? 'selected' : ''}>Agency Executive</option>
+                            <option value="sales" ${profile.user_type === 'sales' ? 'selected' : ''}>Sales Development Rep</option>
+                        </select>
                     </div>
 
                     <div>
@@ -10362,10 +10421,6 @@ function renderSettingsTabContent(tab, container) {
             </div>
         `;
     } else if (tab === 'business') {
-        const localBusinessAddress = localStorage.getItem('LP_SETTINGS_biz_address') || '123 Tech Square, Suite 400';
-        const localBusinessTax = localStorage.getItem('LP_SETTINGS_biz_tax') || 'TX-9842109-A';
-        const localSupportEmail = localStorage.getItem('LP_SETTINGS_biz_support') || 'support@taskbazi.com';
-        
         container.innerHTML = `
             <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm animate-fade-in">
                 <div class="pb-2 border-b border-slate-100">
@@ -10373,20 +10428,20 @@ function renderSettingsTabContent(tab, container) {
                     <p class="text-slate-400 text-[10px]">Configure your workspace business descriptors and default configurations.</p>
                 </div>
 
-                <form onsubmit="saveBusinessSettings(event)" class="space-y-4 pt-2">
+                <form onsubmit="saveBusinessSettings(event, this)" class="space-y-4 pt-2">
                     <div>
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Business Registered Address</label>
-                        <input type="text" id="biz-address" value="${localBusinessAddress}" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                        <input type="text" id="biz-address" value="${profile.business_address || ''}" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
                     </div>
                     
                     <div class="grid grid-cols-2 gap-3.5">
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Tax ID / VAT Registration Number</label>
-                            <input type="text" id="biz-tax" value="${localBusinessTax}" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                            <input type="text" id="biz-tax" value="${profile.tax_id || ''}" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Support Email Address</label>
-                            <input type="email" id="biz-support" value="${localSupportEmail}" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                            <input type="email" id="biz-support" value="${profile.support_email || ''}" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
                         </div>
                     </div>
 
@@ -10394,19 +10449,19 @@ function renderSettingsTabContent(tab, container) {
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">System Base Currency</label>
                             <select id="biz-currency" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
-                                <option value="USD">USD - United States Dollar</option>
-                                <option value="INR">INR - Indian Rupee</option>
-                                <option value="EUR">EUR - Euro</option>
-                                <option value="GBP">GBP - British Pound</option>
+                                <option value="INR" ${profile.currency === 'INR' ? 'selected' : ''}>INR - Indian Rupee (₹)</option>
+                                <option value="USD" ${profile.currency === 'USD' ? 'selected' : ''}>USD - United States Dollar ($)</option>
+                                <option value="EUR" ${profile.currency === 'EUR' ? 'selected' : ''}>EUR - Euro (€)</option>
+                                <option value="GBP" ${profile.currency === 'GBP' ? 'selected' : ''}>GBP - British Pound (£)</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Standard Work Timezone</label>
                             <select id="biz-timezone" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
-                                <option value="Asia/Kolkata">Asia/Kolkata (GMT +05:30)</option>
-                                <option value="UTC">UTC - Coordinated Universal Time</option>
-                                <option value="America/New_York">America/New_York (EST)</option>
-                                <option value="Europe/London">Europe/London (GMT)</option>
+                                <option value="Asia/Kolkata" ${profile.timezone === 'Asia/Kolkata' ? 'selected' : ''}>Asia/Kolkata (GMT +05:30)</option>
+                                <option value="UTC" ${profile.timezone === 'UTC' ? 'selected' : ''}>UTC - Coordinated Universal Time</option>
+                                <option value="America/New_York" ${profile.timezone === 'America/New_York' ? 'selected' : ''}>America/New_York (EST)</option>
+                                <option value="Europe/London" ${profile.timezone === 'Europe/London' ? 'selected' : ''}>Europe/London (GMT)</option>
                             </select>
                         </div>
                     </div>
@@ -10439,15 +10494,9 @@ function renderSettingsTabContent(tab, container) {
                         <p><strong>Webhook Sync:</strong> Active</p>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3.5">
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Webhook Endpoint URL</label>
-                            <input type="text" value="https://linkpilot.work/backend/api/whatsapp/webhook.php" disabled class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-lg text-slate-450 cursor-not-allowed">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">WhatsApp Linked Number</label>
-                            <input type="text" value="+91 92423 22991" disabled class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-lg text-slate-450 cursor-not-allowed">
-                        </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">WhatsApp Linked Number</label>
+                        <input type="text" value="${user.phone_number || '+91 92423 22991'}" disabled class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-lg text-slate-450 cursor-not-allowed">
                     </div>
 
                     <div class="flex space-x-2 pt-2">
@@ -10506,25 +10555,17 @@ function renderSettingsTabContent(tab, container) {
                                     <button onclick="removeMockTeamMember(this, 'Prakash Sharma')" class="text-red-500 hover:text-red-700 font-bold transition">Remove</button>
                                 </td>
                             </tr>
-                            <tr>
-                                <td class="py-3">
-                                    <p class="font-extrabold text-slate-800">Rohit Verma</p>
-                                    <p class="text-slate-400 text-[10px]">rohit@example.com</p>
-                                </td>
-                                <td class="py-3 font-semibold text-slate-700">Agency Executive</td>
-                                <td class="py-3">
-                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-50 text-amber-600 border border-amber-100">Pending Invite</span>
-                                </td>
-                                <td class="py-3 text-right">
-                                    <button onclick="removeMockTeamMember(this, 'Rohit Verma')" class="text-red-500 hover:text-red-700 font-bold transition">Cancel</button>
-                                </td>
-                            </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         `;
     } else if (tab === 'notifications') {
+        const checkLeads = parseInt(profile.notification_leads !== null ? profile.notification_leads : 1) === 1 ? 'checked' : '';
+        const checkTasks = parseInt(profile.notification_tasks !== null ? profile.notification_tasks : 1) === 1 ? 'checked' : '';
+        const checkDigest = parseInt(profile.notification_digest !== null ? profile.notification_digest : 0) === 1 ? 'checked' : '';
+        const checkErrors = parseInt(profile.notification_errors !== null ? profile.notification_errors : 1) === 1 ? 'checked' : '';
+        
         container.innerHTML = `
             <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm animate-fade-in">
                 <div class="pb-2 border-b border-slate-100">
@@ -10532,10 +10573,10 @@ function renderSettingsTabContent(tab, container) {
                     <p class="text-slate-400 text-[10px]">Choose how and when you receive automated crm workflow updates.</p>
                 </div>
 
-                <form onsubmit="saveNotificationPreferences(event)" class="space-y-4 pt-2">
+                <form onsubmit="saveNotificationPreferences(event, this)" class="space-y-4 pt-2">
                     <div class="space-y-3">
                         <div class="flex items-start space-x-3">
-                            <input type="checkbox" id="notif-leads" checked class="h-4 w-4 mt-0.5 border-slate-350 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
+                            <input type="checkbox" id="notif-leads" ${checkLeads} class="h-4 w-4 mt-0.5 border-slate-350 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
                             <div>
                                 <label for="notif-leads" class="font-bold text-slate-700 cursor-pointer select-none">New Lead Alerts</label>
                                 <p class="text-slate-450 text-[10px] leading-relaxed">Send an immediate email notification when a new contact/lead is synced or created.</p>
@@ -10543,7 +10584,7 @@ function renderSettingsTabContent(tab, container) {
                         </div>
 
                         <div class="flex items-start space-x-3">
-                            <input type="checkbox" id="notif-tasks" checked class="h-4 w-4 mt-0.5 border-slate-350 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
+                            <input type="checkbox" id="notif-tasks" ${checkTasks} class="h-4 w-4 mt-0.5 border-slate-350 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
                             <div>
                                 <label for="notif-tasks" class="font-bold text-slate-700 cursor-pointer select-none">Task Reminder Warnings</label>
                                 <p class="text-slate-455 text-[10px] leading-relaxed">Send alerts via WhatsApp and email 15 minutes before task and meeting due times.</p>
@@ -10551,7 +10592,7 @@ function renderSettingsTabContent(tab, container) {
                         </div>
 
                         <div class="flex items-start space-x-3">
-                            <input type="checkbox" id="notif-digest" class="h-4 w-4 mt-0.5 border-slate-350 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
+                            <input type="checkbox" id="notif-digest" ${checkDigest} class="h-4 w-4 mt-0.5 border-slate-350 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
                             <div>
                                 <label for="notif-digest" class="font-bold text-slate-700 cursor-pointer select-none">Weekly Performance Digests</label>
                                 <p class="text-slate-455 text-[10px] leading-relaxed">Compile email campaign results, closed deal values, and metrics reports weekly.</p>
@@ -10559,7 +10600,7 @@ function renderSettingsTabContent(tab, container) {
                         </div>
 
                         <div class="flex items-start space-x-3">
-                            <input type="checkbox" id="notif-errors" checked class="h-4 w-4 mt-0.5 border-slate-350 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
+                            <input type="checkbox" id="notif-errors" ${checkErrors} class="h-4 w-4 mt-0.5 border-slate-350 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
                             <div>
                                 <label for="notif-errors" class="font-bold text-slate-700 cursor-pointer select-none">API Connection Failures</label>
                                 <p class="text-slate-455 text-[10px] leading-relaxed">Alert workspace administrators immediately if SMTP, Google Calendar, or WhatsApp webhooks disconnect.</p>
@@ -10623,10 +10664,10 @@ function renderSettingsTabContent(tab, container) {
                     <div class="p-4 bg-slate-50 border border-slate-150 rounded-xl space-y-2.5">
                         <div class="flex justify-between items-start">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Current Plan</span>
-                            <span class="text-lg font-extrabold text-slate-800">$49.00<span class="text-xs font-normal text-slate-400">/mo</span></span>
+                            <span class="text-lg font-extrabold text-slate-800">₹3,999<span class="text-xs font-normal text-slate-400">/mo</span></span>
                         </div>
                         <h3 class="font-extrabold text-indigo-650 text-sm">Workspace Professional</h3>
-                        <p class="text-[10px] text-slate-550">Renews automatically on June 25, 2025 using Mastercard ending in 9843.</p>
+                        <p class="text-[10px] text-slate-555">Renews automatically on June 25, 2025 using Mastercard ending in 9843.</p>
                     </div>
 
                     <div class="p-4 bg-slate-50 border border-slate-150 rounded-xl space-y-2 text-xs">
@@ -10640,7 +10681,7 @@ function renderSettingsTabContent(tab, container) {
                 </div>
 
                 <div class="space-y-3">
-                    <h3 class="text-[10px] font-bold text-slate-450 uppercase tracking-wider border-b border-slate-100 pb-1.5">Invoicing History</h3>
+                    <h3 class="text-[10px] font-bold text-slate-455 uppercase tracking-wider border-b border-slate-100 pb-1.5">Invoicing History</h3>
                     <div class="space-y-2 text-[11px] text-slate-600">
                         <div class="flex justify-between items-center py-1">
                             <div>
@@ -10648,7 +10689,7 @@ function renderSettingsTabContent(tab, container) {
                                 <span class="text-slate-400 ml-2">25 Jun, 2024</span>
                             </div>
                             <div class="flex items-center space-x-3">
-                                <span class="font-bold text-slate-800">$49.00</span>
+                                <span class="font-bold text-slate-800">₹3,999.00</span>
                                 <a href="#" onclick="event.preventDefault(); showNotification('info', 'Downloading invoice PDF...')" class="text-indigo-600 hover:underline">Download PDF</a>
                             </div>
                         </div>
@@ -10658,7 +10699,7 @@ function renderSettingsTabContent(tab, container) {
                                 <span class="text-slate-400 ml-2">25 May, 2024</span>
                             </div>
                             <div class="flex items-center space-x-3">
-                                <span class="font-bold text-slate-800">$49.00</span>
+                                <span class="font-bold text-slate-800">₹3,999.00</span>
                                 <a href="#" onclick="event.preventDefault(); showNotification('info', 'Downloading invoice PDF...')" class="text-indigo-600 hover:underline">Download PDF</a>
                             </div>
                         </div>
@@ -10688,7 +10729,7 @@ function renderSettingsTabContent(tab, container) {
                         
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Active Callback Payload Endpoint</label>
-                            <input type="url" id="crm-webhook-url" placeholder="https://yourdomain.com/webhook-receiver" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                            <input type="url" id="crm-webhook-url" placeholder="https://yourdomain.com/webhook-receiver" value="${profile.webhook_url || ''}" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
                         </div>
 
                         <div class="grid grid-cols-2 gap-2 text-[10px] text-slate-655">
@@ -10705,8 +10746,6 @@ function renderSettingsTabContent(tab, container) {
                 </div>
             </div>
         `;
-        const val = localStorage.getItem('LP_SETTINGS_webhook') || '';
-        document.getElementById('crm-webhook-url').value = val;
     } else if (tab === 'storage') {
         container.innerHTML = `
             <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm animate-fade-in">
@@ -10734,7 +10773,7 @@ function renderSettingsTabContent(tab, container) {
                         <div class="flex justify-between items-center text-xs">
                             <div>
                                 <p class="font-extrabold text-slate-700">Clear Workspace Audit logs</p>
-                                <p class="text-[10px] text-slate-450 leading-relaxed">Deletes old webhook payloads and activity logs to save storage space.</p>
+                                <p class="text-[10px] text-slate-455 leading-relaxed">Deletes old webhook payloads and activity logs to save storage space.</p>
                             </div>
                             <button onclick="clearWorkspaceAuditLogs(this)" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-lg font-bold transition">Clear Logs</button>
                         </div>
@@ -10742,7 +10781,7 @@ function renderSettingsTabContent(tab, container) {
                         <div class="flex justify-between items-center text-xs pt-3 border-t border-slate-100">
                             <div>
                                 <p class="font-extrabold text-red-500">Deactivate CRM Workspace Account</p>
-                                <p class="text-[10px] text-slate-450 leading-relaxed">Permanently deletes your workspace, users data, and credentials immediately.</p>
+                                <p class="text-[10px] text-slate-455 leading-relaxed">Permanently deletes your workspace, users data, and credentials immediately.</p>
                             </div>
                             <button onclick="deleteCrmWorkspaceAccount(this)" class="px-4 py-2 border border-red-200 hover:bg-red-50 text-red-500 rounded-lg font-bold transition">Delete Account</button>
                         </div>
@@ -10755,17 +10794,204 @@ function renderSettingsTabContent(tab, container) {
     lucide.createIcons();
 }
 
-window.saveBusinessSettings = function(e) {
+window.saveProfileSettings = async function(btn) {
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="refresh-cw" class="h-3 w-3 animate-spin mr-1.5 inline"></i> Saving...`;
+    lucide.createIcons();
+    
+    const name = document.getElementById('profile-name-input').value.trim();
+    const company = document.getElementById('profile-company-input').value.trim();
+    const website = document.getElementById('profile-website-input').value.trim();
+    const jobTitle = document.getElementById('profile-job-input').value.trim();
+    const phone = document.getElementById('profile-phone-input').value.trim();
+    const userType = document.getElementById('profile-usertype-select').value;
+    const about = document.getElementById('profile-about-input').value.trim();
+    
+    const payload = {
+        name,
+        phone_number: phone,
+        user_type: userType,
+        company_name: company,
+        website,
+        job_title: jobTitle,
+        about_me: about,
+        experience_years: 1,
+        skills: ''
+    };
+    
+    try {
+        const data = await apiCall('profile/update.php', 'POST', payload);
+        if (data.status === 'success') {
+            showNotification('success', 'Profile credentials updated successfully.');
+            document.querySelectorAll('.user-name-display').forEach(el => el.textContent = name);
+            if (document.getElementById('settings-sidebar-name')) {
+                document.getElementById('settings-sidebar-name').textContent = name;
+            }
+            if (document.getElementById('settings-sidebar-phone')) {
+                document.getElementById('settings-sidebar-phone').textContent = phone || 'Not Set';
+            }
+            window.activeUserSettings.name = name;
+            window.activeUserSettings.phone_number = phone;
+            window.activeUserProfileSettings.company_name = company;
+            window.activeUserProfileSettings.website = website;
+            window.activeUserProfileSettings.job_title = jobTitle;
+            window.activeUserProfileSettings.user_type = userType;
+            window.activeUserProfileSettings.about_me = about;
+        } else {
+            showNotification('error', data.message);
+        }
+    } catch (e) {
+        showNotification('error', e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+        lucide.createIcons();
+    }
+};
+
+window.saveBusinessSettings = async function(e, btn) {
     e.preventDefault();
-    const addr = document.getElementById('biz-address').value.trim();
+    const submitBtn = btn.querySelector('button[type="submit"]');
+    const orig = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<i data-lucide="refresh-cw" class="h-3.5 w-3.5 animate-spin mr-1.5 inline"></i> Saving...`;
+    lucide.createIcons();
+
+    const address = document.getElementById('biz-address').value.trim();
     const tax = document.getElementById('biz-tax').value.trim();
     const support = document.getElementById('biz-support').value.trim();
+    const currency = document.getElementById('biz-currency').value;
+    const timezone = document.getElementById('biz-timezone').value;
 
-    localStorage.setItem('LP_SETTINGS_biz_address', addr);
-    localStorage.setItem('LP_SETTINGS_biz_tax', tax);
-    localStorage.setItem('LP_SETTINGS_biz_support', support);
+    const payload = {
+        business_address: address,
+        tax_id: tax,
+        support_email: support,
+        currency: currency,
+        timezone: timezone
+    };
 
-    showNotification('success', 'Business settings updated successfully.');
+    try {
+        const data = await apiCall('profile/update.php', 'POST', payload);
+        if (data.status === 'success') {
+            showNotification('success', 'Business settings updated successfully.');
+            if (document.getElementById('settings-sidebar-timezone')) {
+                document.getElementById('settings-sidebar-timezone').textContent = timezone;
+            }
+            window.activeUserProfileSettings.business_address = address;
+            window.activeUserProfileSettings.tax_id = tax;
+            window.activeUserProfileSettings.support_email = support;
+            window.activeUserProfileSettings.currency = currency;
+            window.activeUserProfileSettings.timezone = timezone;
+        } else {
+            showNotification('error', data.message);
+        }
+    } catch (err) {
+        showNotification('error', err.message);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = orig;
+        lucide.createIcons();
+    }
+};
+
+window.saveNotificationPreferences = async function(e, form) {
+    e.preventDefault();
+    const btn = form.querySelector('button[type="submit"]');
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="refresh-cw" class="h-3.5 w-3.5 animate-spin mr-1.5 inline"></i> Saving...`;
+    lucide.createIcons();
+
+    const leads = document.getElementById('notif-leads').checked ? 1 : 0;
+    const tasks = document.getElementById('notif-tasks').checked ? 1 : 0;
+    const digest = document.getElementById('notif-digest').checked ? 1 : 0;
+    const errors = document.getElementById('notif-errors').checked ? 1 : 0;
+
+    const payload = {
+        notification_leads: leads,
+        notification_tasks: tasks,
+        notification_digest: digest,
+        notification_errors: errors
+    };
+
+    try {
+        const data = await apiCall('profile/update.php', 'POST', payload);
+        if (data.status === 'success') {
+            showNotification('success', 'Notification preferences saved to database.');
+            window.activeUserProfileSettings.notification_leads = leads;
+            window.activeUserProfileSettings.notification_tasks = tasks;
+            window.activeUserProfileSettings.notification_digest = digest;
+            window.activeUserProfileSettings.notification_errors = errors;
+        } else {
+            showNotification('error', data.message);
+        }
+    } catch (err) {
+        showNotification('error', err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+        lucide.createIcons();
+    }
+};
+
+window.toggleMock2FA = async function(btn) {
+    const isCurrentlyEnabled = parseInt(window.activeUserProfileSettings.two_factor_enabled || 0) === 1;
+    const nextVal = isCurrentlyEnabled ? 0 : 1;
+    
+    const orig = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Updating...';
+
+    try {
+        const data = await apiCall('profile/update.php', 'POST', { two_factor_enabled: nextVal });
+        if (data.status === 'success') {
+            window.activeUserProfileSettings.two_factor_enabled = nextVal;
+            if (nextVal === 1) {
+                btn.textContent = 'Disable 2FA';
+                btn.className = 'px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-[10px] font-bold transition shadow-sm';
+                showNotification('success', 'Two-Factor Authentication is now enabled in the database.');
+            } else {
+                btn.textContent = 'Enable 2FA';
+                btn.className = 'px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition shadow-sm';
+                showNotification('success', 'Two-Factor Authentication has been disabled.');
+            }
+        } else {
+            showNotification('error', data.message);
+            btn.textContent = orig;
+        }
+    } catch (err) {
+        showNotification('error', err.message);
+        btn.textContent = orig;
+    } finally {
+        btn.disabled = false;
+    }
+};
+
+window.saveWebhookSetting = async function(e) {
+    e.preventDefault();
+    const url = document.getElementById('crm-webhook-url').value.trim();
+    const form = e.target;
+    const btn = form.querySelector('button[type="submit"]');
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `Saving...`;
+
+    try {
+        const data = await apiCall('profile/update.php', 'POST', { webhook_url: url });
+        if (data.status === 'success') {
+            showNotification('success', 'Webhook settings registered to database.');
+            window.activeUserProfileSettings.webhook_url = url;
+        } else {
+            showNotification('error', data.message);
+        }
+    } catch (err) {
+        showNotification('error', err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+    }
 };
 
 window.testWhatsAppWebhook = function(btn) {
@@ -10869,11 +11095,6 @@ window.removeMockTeamMember = function(btn, name) {
     }
 };
 
-window.saveNotificationPreferences = function(e) {
-    e.preventDefault();
-    showNotification('success', 'Notification preferences saved.');
-};
-
 window.savePasswordSettings = function(e, form) {
     e.preventDefault();
     const cur = document.getElementById('sec-current').value;
@@ -10889,31 +11110,12 @@ window.savePasswordSettings = function(e, form) {
     form.reset();
 };
 
-window.toggleMock2FA = function(btn) {
-    if (btn.textContent === 'Enable 2FA') {
-        btn.textContent = 'Disable 2FA';
-        btn.className = 'px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-[10px] font-bold transition shadow-sm';
-        showNotification('success', 'Two-Factor Authentication is now enabled for your account.');
-    } else {
-        btn.textContent = 'Enable 2FA';
-        btn.className = 'px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition shadow-sm';
-        showNotification('success', 'Two-Factor Authentication has been disabled.');
-    }
-};
-
 window.copyCrmApiToken = function(btn) {
     const input = document.getElementById('crm-api-token-val');
     if (input) {
         navigator.clipboard.writeText(input.value);
         showNotification('success', 'API Token copied to clipboard!');
     }
-};
-
-window.saveWebhookSetting = function(e) {
-    e.preventDefault();
-    const url = document.getElementById('crm-webhook-url').value.trim();
-    localStorage.setItem('LP_SETTINGS_webhook', url);
-    showNotification('success', 'Webhook settings registered successfully.');
 };
 
 window.exportSettingsLeads = async function(btn) {

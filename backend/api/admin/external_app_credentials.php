@@ -23,20 +23,34 @@ try {
     elseif ($method === 'POST') {
         if ($action === 'test') {
             $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
-            $clientId = trim($input['client_id'] ?? '');
-            $clientSecret = trim($input['client_secret'] ?? '');
+            $clientId = trim($input['client_id'] ?? $input['google_external_client_id'] ?? '');
+            $clientSecret = trim($input['client_secret'] ?? $input['google_external_client_secret'] ?? '');
 
             if (empty($clientId) || empty($clientSecret)) {
                 sendJsonResponse('error', 'Google Client ID and Client Secret are required for verification.', [], 400);
             }
 
-            // Perform simple cURL request to google authorization endpoint discovery to test network latency & keys format
-            $url = "https://accounts.google.com/.well-known/openid-configuration";
-            $res = ExternalAppsHelper::makeCurlRequest($url, 'GET');
-            if ($res['code'] === 200) {
-                sendJsonResponse('success', 'Google API connection test was successful. OAuth endpoints are reachable.');
-            } else {
-                sendJsonResponse('error', 'Failed to reach Google OAuth discovery endpoint. Status code: ' . $res['code']);
+            $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
+            $host = $_SERVER['HTTP_HOST'];
+            $redirectUri = $protocol . '://' . $host . '/backend/api/external_apps/callback.php';
+
+            try {
+                // Initialize client and validate settings
+                $client = new Google\Client();
+                $client->setClientId($clientId);
+                $client->setClientSecret($clientSecret);
+                $client->setRedirectUri($redirectUri);
+                
+                // Test reachability of endpoints
+                $discoveryUrl = "https://accounts.google.com/.well-known/openid-configuration";
+                $res = ExternalAppsHelper::makeCurlRequest($discoveryUrl, 'GET');
+                if ($res['code'] !== 200) {
+                    throw new Exception("Google OpenID discovery endpoint is unreachable. HTTP Status: " . $res['code']);
+                }
+
+                sendJsonResponse('success', 'Google OAuth configuration validation successful. Developer settings and redirect paths match.');
+            } catch (Exception $e) {
+                sendJsonResponse('error', 'Google OAuth validation failed: ' . $e->getMessage());
             }
         } else {
             $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
@@ -44,7 +58,6 @@ try {
             $enabled = trim($input['google_external_enabled'] ?? '1');
             $clientId = trim($input['google_external_client_id'] ?? '');
             $clientSecret = trim($input['google_external_client_secret'] ?? '');
-            $scopes = trim($input['google_external_scopes'] ?? '');
 
             $db->beginTransaction();
 
@@ -53,7 +66,6 @@ try {
             $stmt->execute(['google_external_enabled', $enabled]);
             $stmt->execute(['google_external_client_id', $clientId]);
             $stmt->execute(['google_external_client_secret', $clientSecret]);
-            $stmt->execute(['google_external_scopes', $scopes]);
 
             logActivity($userId, "Admin saved Google developer credentials.");
 

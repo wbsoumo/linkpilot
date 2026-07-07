@@ -6,5 +6,7 @@ backend/config.php
 .DS_Store
 .vscode/
 .idea/
-*.log
 *.tmp
+
+# Vendor libraries
+backend/vendor/

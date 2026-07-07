@@ -17,12 +17,14 @@ if (empty($code) || empty($state)) {
 
 // 1. Verify user state token
 $parts = explode('-', $state);
-if (count($parts) !== 2) {
+if (count($parts) < 2) {
     die("Authorization callback error: Invalid state format.");
 }
 
 $userId = (int)$parts[0];
 $hash = $parts[1];
+$type = $parts[2] ?? 'login';
+
 $expectedHash = md5($userId . ENCRYPTION_KEY);
 
 if ($hash !== $expectedHash) {
@@ -31,85 +33,124 @@ if ($hash !== $expectedHash) {
 
 $db = Database::getConnection();
 
-// 2. Fetch admin OAuth credentials
+// Fetch admin OAuth credentials
 $creds = ExternalAppsHelper::getGoogleCredentials();
 
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
 $host = $_SERVER['HTTP_HOST'];
 $redirectUri = $protocol . '://' . $host . '/backend/api/external_apps/callback.php';
 
-// 3. Exchange authorization code for token
-$tokenUrl = 'https://oauth2.googleapis.com/token';
-$payload = [
-    'code' => $code,
-    'client_id' => $creds['client_id'],
-    'client_secret' => $creds['client_secret'],
-    'redirect_uri' => $redirectUri,
-    'grant_type' => 'authorization_code'
-];
-
-$res = ExternalAppsHelper::makeCurlRequest($tokenUrl, 'POST', $payload, [
-    'Content-Type' => 'application/x-www-form-urlencoded'
-]);
-
-if ($res['code'] !== 200 || !isset($res['data']['access_token'])) {
-    die("Failed to exchange authorization code: " . ($res['data']['error_description'] ?? $res['body']));
+try {
+    // 2. Initialize official Google client
+    $client = new Google\Client();
+    $client->setClientId($creds['client_id']);
+    $client->setClientSecret($creds['client_secret']);
+    $client->setRedirectUri($redirectUri);
+    
+    // 3. Exchange authorization code for token
+    $token = $client->fetchAccessTokenWithAuthCode($code);
+    if (isset($token['error'])) {
+        throw new Exception("Google Token Exchange failure: " . ($token['error_description'] ?? $token['error']));
+    }
+    
+    $accessToken = $token['access_token'];
+    $refreshToken = $token['refresh_token'] ?? null;
+    $expiresIn = $token['expires_in'] ?? 3600;
+    $expiresAt = date('Y-m-d H:i:s', time() + $expiresIn);
+    
+    // 4. Fetch Google profile details using official service
+    $client->setAccessToken($accessToken);
+    $oauth2 = new Google\Service\Oauth2($client);
+    $userInfo = $oauth2->userinfo->get();
+    
+    $googleUserId = $userInfo->getId();
+    $googleEmail = $userInfo->getEmail();
+    $googleName = $userInfo->getName();
+    $avatar = $userInfo->getPicture();
+    
+    // 5. Encrypt sensitive tokens
+    $encryptedAccess = encryptData($accessToken);
+    
+    // Retrieve existing connection to merge scopes and preserve refresh token
+    $stmt = $db->prepare("SELECT id, refresh_token, scopes FROM external_app_connections WHERE user_id = ? AND provider = 'google' LIMIT 1");
+    $stmt->execute([$userId]);
+    $existing = $stmt->fetch();
+    
+    // Scope tracking
+    $newScopes = GoogleOAuthHelper::getScopes($type);
+    $existingScopes = [];
+    if (!empty($existing['scopes'])) {
+        $existingScopes = explode(',', $existing['scopes']);
+    }
+    $mergedScopes = array_unique(array_merge($existingScopes, $newScopes));
+    $scopesStr = implode(',', $mergedScopes);
+    
+    // Refresh token validation (never overwrite with empty)
+    $finalRefreshToken = $refreshToken;
+    if (empty($finalRefreshToken) && !empty($existing['refresh_token'])) {
+        $finalRefreshToken = decryptData($existing['refresh_token']);
+    }
+    
+    $encryptedRefresh = $finalRefreshToken ? encryptData($finalRefreshToken) : null;
+    
+    if ($existing) {
+        $stmtUpdate = $db->prepare("
+            UPDATE external_app_connections 
+            SET email = ?, 
+                connected_email = ?,
+                connected_name = ?,
+                avatar = ?,
+                google_user_id = ?,
+                access_token = ?,
+                refresh_token = COALESCE(?, refresh_token),
+                expires_at = ?,
+                scopes = ?,
+                status = 'connected',
+                updated_at = NOW()
+            WHERE id = ?
+        ");
+        $stmtUpdate->execute([
+            $googleEmail, 
+            $googleEmail, 
+            $googleName, 
+            $avatar, 
+            $googleUserId, 
+            $encryptedAccess, 
+            $encryptedRefresh, 
+            $expiresAt, 
+            $scopesStr, 
+            $existing['id']
+        ]);
+    } else {
+        $stmtInsert = $db->prepare("
+            INSERT INTO external_app_connections 
+                (user_id, provider, email, connected_email, connected_name, avatar, google_user_id, access_token, refresh_token, expires_at, scopes, status, updated_at)
+            VALUES 
+                (?, 'google', ?, ?, ?, ?, ?, ?, ?, ?, ?, 'connected', NOW())
+        ");
+        $stmtInsert->execute([
+            $userId,
+            $googleEmail,
+            $googleEmail,
+            $googleName,
+            $avatar,
+            $googleUserId,
+            $encryptedAccess,
+            $encryptedRefresh,
+            $expiresAt,
+            $scopesStr
+        ]);
+    }
+    
+    // Log timeline activity
+    $timelineStmt = $db->prepare("INSERT INTO crm_timeline (user_id, activity_type, description) VALUES (?, 'Integration Connected', ?)");
+    $timelineStmt->execute([$userId, "Connected Google external application integrations: " . ucfirst($type) . " ($googleEmail)."]);
+    
+} catch (Exception $e) {
+    error_log("Google OAuth callback exchange failure: " . $e->getMessage());
+    die("Authorization callback error: " . $e->getMessage());
 }
 
-$accessToken = $res['data']['access_token'];
-$refreshToken = $res['data']['refresh_token'] ?? null; // Refresh token only returned on first consent prompt
-$expiresIn = $res['data']['expires_in'] ?? 3600;
-$expiresAt = date('Y-m-d H:i:s', time() + $expiresIn);
-
-// 4. Fetch Google User email profile details
-$profileUrl = 'https://www.googleapis.com/oauth2/v2/userinfo';
-$profileRes = ExternalAppsHelper::makeCurlRequest($profileUrl, 'GET', null, [
-    'Authorization' => "Bearer $accessToken"
-]);
-
-$googleEmail = null;
-if ($profileRes['code'] === 200 && isset($profileRes['data']['email'])) {
-    $googleEmail = $profileRes['data']['email'];
-}
-
-// 5. Encrypt sensitive tokens
-$encryptedAccess = encryptData($accessToken);
-
-// Save or update Google integration connection logs
-if ($refreshToken) {
-    $encryptedRefresh = encryptData($refreshToken);
-    $stmt = $db->prepare("
-        INSERT INTO external_app_connections (user_id, provider, email, access_token, refresh_token, expires_at, status, updated_at)
-        VALUES (?, 'google', ?, ?, ?, ?, 'connected', NOW())
-        ON DUPLICATE KEY UPDATE 
-            email = VALUES(email),
-            access_token = VALUES(access_token),
-            refresh_token = VALUES(refresh_token),
-            expires_at = VALUES(expires_at),
-            status = 'connected',
-            updated_at = NOW()
-    ");
-    $stmt->execute([$userId, $googleEmail, $encryptedAccess, $encryptedRefresh, $expiresAt]);
-} else {
-    // If user already authenticated once, Google may omit the refresh token in subsequent exchanges.
-    // Try to update existing access token and keep previous refresh token.
-    $stmt = $db->prepare("
-        INSERT INTO external_app_connections (user_id, provider, email, access_token, expires_at, status, updated_at)
-        VALUES (?, 'google', ?, ?, ?, 'connected', NOW())
-        ON DUPLICATE KEY UPDATE 
-            email = VALUES(email),
-            access_token = VALUES(access_token),
-            expires_at = VALUES(expires_at),
-            status = 'connected',
-            updated_at = NOW()
-    ");
-    $stmt->execute([$userId, $googleEmail, $encryptedAccess, $expiresAt]);
-}
-
-// Log connection timeline details
-$timelineStmt = $db->prepare("INSERT INTO crm_timeline (user_id, activity_type, description) VALUES (?, 'Integration Connected', ?)");
-$timelineStmt->execute([$userId, "Connected Google external applications account ($googleEmail) successfully."]);
-
-// 6. Redirect back to External Apps marketplace view in CRM
+// Redirect back to CRM External Apps marketplace
 header("Location: {$protocol}://{$host}/dashboard/index.html#/external-apps");
 exit;

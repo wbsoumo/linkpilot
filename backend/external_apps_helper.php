@@ -3,6 +3,59 @@
 
 require_once __DIR__ . '/config.php';
 
+class GoogleOAuthHelper {
+    public static $predefined = [
+        'login' => [
+            'openid',
+            'email',
+            'profile'
+        ],
+        'calendar' => [
+            'https://www.googleapis.com/auth/calendar.events'
+        ],
+        'gmail' => [
+            'https://www.googleapis.com/auth/gmail.send'
+        ]
+    ];
+
+    public static function getScopes($type) {
+        if (!isset(self::$predefined[$type])) {
+            return [];
+        }
+        return self::$predefined[$type];
+    }
+
+    public static function validateScopes($scopesArray) {
+        $allowed = [];
+        foreach (self::$predefined as $t => $sList) {
+            $allowed = array_merge($allowed, $sList);
+        }
+
+        $valid = [];
+        foreach ($scopesArray as $s) {
+            $s = trim($s);
+            if (empty($s)) continue;
+            if (in_array($s, $allowed)) {
+                $valid[] = $s;
+            }
+        }
+        return array_values(array_unique($valid));
+    }
+
+    public static function validateConfiguration($creds, $redirectUri) {
+        if (empty($creds['client_id'])) {
+            return 'Google Client ID is missing or empty.';
+        }
+        if (empty($creds['client_secret'])) {
+            return 'Google Client Secret is missing or empty.';
+        }
+        if (empty($redirectUri) || !filter_var($redirectUri, FILTER_VALIDATE_URL)) {
+            return 'Google Redirect URI is invalid or empty.';
+        }
+        return true;
+    }
+}
+
 class ExternalAppsHelper {
 
     /**
@@ -59,6 +112,42 @@ class ExternalAppsHelper {
                 $stmt = $db->query("SHOW COLUMNS FROM `crm_tasks` LIKE 'google_event_id'");
                 if ($stmt->rowCount() === 0) {
                     $db->exec("ALTER TABLE `crm_tasks` ADD COLUMN `google_event_id` VARCHAR(255) DEFAULT NULL AFTER `sync_to_calendar`");
+                }
+            } catch (Exception $e) {}
+
+            // New connection columns
+            try {
+                $stmt = $db->query("SHOW COLUMNS FROM `external_app_connections` LIKE 'connected_email'");
+                if ($stmt->rowCount() === 0) {
+                    $db->exec("ALTER TABLE `external_app_connections` ADD COLUMN `connected_email` VARCHAR(255) DEFAULT NULL AFTER `email`");
+                }
+            } catch (Exception $e) {}
+
+            try {
+                $stmt = $db->query("SHOW COLUMNS FROM `external_app_connections` LIKE 'connected_name'");
+                if ($stmt->rowCount() === 0) {
+                    $db->exec("ALTER TABLE `external_app_connections` ADD COLUMN `connected_name` VARCHAR(255) DEFAULT NULL AFTER `connected_email`");
+                }
+            } catch (Exception $e) {}
+
+            try {
+                $stmt = $db->query("SHOW COLUMNS FROM `external_app_connections` LIKE 'avatar'");
+                if ($stmt->rowCount() === 0) {
+                    $db->exec("ALTER TABLE `external_app_connections` ADD COLUMN `avatar` TEXT DEFAULT NULL AFTER `connected_name`");
+                }
+            } catch (Exception $e) {}
+
+            try {
+                $stmt = $db->query("SHOW COLUMNS FROM `external_app_connections` LIKE 'google_user_id'");
+                if ($stmt->rowCount() === 0) {
+                    $db->exec("ALTER TABLE `external_app_connections` ADD COLUMN `google_user_id` VARCHAR(255) DEFAULT NULL AFTER `avatar`");
+                }
+            } catch (Exception $e) {}
+
+            try {
+                $stmt = $db->query("SHOW COLUMNS FROM `external_app_connections` LIKE 'scopes'");
+                if ($stmt->rowCount() === 0) {
+                    $db->exec("ALTER TABLE `external_app_connections` ADD COLUMN `scopes` TEXT DEFAULT NULL AFTER `google_user_id`");
                 }
             } catch (Exception $e) {}
 
@@ -164,21 +253,18 @@ class ExternalAppsHelper {
 
             $creds = self::getGoogleCredentials();
             
-            $url = 'https://oauth2.googleapis.com/token';
-            $payload = [
-                'client_id' => $creds['client_id'],
-                'client_secret' => $creds['client_secret'],
-                'refresh_token' => $refreshToken,
-                'grant_type' => 'refresh_token'
-            ];
-
-            $res = self::makeCurlRequest($url, 'POST', $payload, [
-                'Content-Type' => 'application/x-www-form-urlencoded'
-            ]);
-
-            if ($res['code'] === 200 && isset($res['data']['access_token'])) {
-                $newAccess = $res['data']['access_token'];
-                $newExpiresIn = $res['data']['expires_in'] ?? 3600;
+            try {
+                $client = new Google\Client();
+                $client->setClientId($creds['client_id']);
+                $client->setClientSecret($creds['client_secret']);
+                
+                $tokenData = $client->fetchAccessTokenWithRefreshToken($refreshToken);
+                if (isset($tokenData['error'])) {
+                    throw new Exception("Token refresh failed: " . ($tokenData['error_description'] ?? $tokenData['error']));
+                }
+                
+                $newAccess = $tokenData['access_token'];
+                $newExpiresIn = $tokenData['expires_in'] ?? 3600;
                 $newExpiresAt = date('Y-m-d H:i:s', time() + $newExpiresIn);
 
                 $encryptedAccess = encryptData($newAccess);
@@ -187,8 +273,8 @@ class ExternalAppsHelper {
                 $stmtUpdate->execute([$encryptedAccess, $newExpiresAt, $conn['id']]);
 
                 return $newAccess;
-            } else {
-                error_log("Google Refresh Token Error: " . $res['body']);
+            } catch (Exception $e) {
+                error_log("Google SDK Refresh Token Error: " . $e->getMessage());
                 return false;
             }
         }
@@ -205,66 +291,66 @@ class ExternalAppsHelper {
 
         $db = Database::getConnection();
 
-        // Fetch contact email if linked
         $attendees = [];
         if ($contactId) {
             $stmtC = $db->prepare("SELECT name, email FROM crm_contacts WHERE id = ? LIMIT 1");
             $stmtC->execute([$contactId]);
             $contact = $stmtC->fetch();
             if ($contact && !empty($contact['email'])) {
-                $attendees[] = [
+                $attendees[] = new Google\Service\Calendar\EventAttendee([
                     'email' => $contact['email'],
                     'displayName' => $contact['name']
-                ];
+                ]);
             }
         }
 
-        // Format dates to RFC3339
         $startIso = date(DATE_RFC3339, strtotime($startTime));
         $endIso = $endTime ? date(DATE_RFC3339, strtotime($endTime)) : date(DATE_RFC3339, strtotime($startTime) + 3600);
 
-        $eventBody = [
-            'summary' => $title,
-            'description' => $description,
-            'location' => $location,
-            'start' => ['dateTime' => $startIso],
-            'end' => ['dateTime' => $endIso],
-            'attendees' => $attendees,
-            'reminders' => [
-                'useDefault' => false,
-                'overrides' => [
-                    ['method' => 'popup', 'minutes' => 30],
-                    ['method' => 'email', 'minutes' => 1440]
-                ]
-            ],
-            // Request Google Meet creation
-            'conferenceData' => [
-                'createRequest' => [
-                    'requestId' => 'meet-' . $meetingId . '-' . time(),
-                    'conferenceSolutionKey' => [
-                        'type' => 'hangoutsMeet'
+        try {
+            $client = new Google\Client();
+            $client->setAccessToken($token);
+            $service = new Google\Service\Calendar($client);
+
+            $event = new Google\Service\Calendar\Event([
+                'summary' => $title,
+                'description' => $description,
+                'location' => $location,
+                'start' => ['dateTime' => $startIso],
+                'end' => ['dateTime' => $endIso],
+                'attendees' => $attendees,
+                'reminders' => [
+                    'useDefault' => false,
+                    'overrides' => [
+                        ['method' => 'popup', 'minutes' => 30],
+                        ['method' => 'email', 'minutes' => 1440]
+                    ]
+                ],
+                'conferenceData' => [
+                    'createRequest' => [
+                        'requestId' => 'meet-' . $meetingId . '-' . time(),
+                        'conferenceSolutionKey' => [
+                            'type' => 'hangoutsMeet'
+                        ]
                     ]
                 ]
-            ]
-        ];
+            ]);
 
-        $url = 'https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1';
-        $res = self::makeCurlRequest($url, 'POST', json_encode($eventBody), [
-            'Authorization' => "Bearer $token",
-            'Content-Type' => 'application/json'
-        ]);
-
-        if ($res['code'] === 200 && isset($res['data']['id'])) {
-            $googleEventId = $res['data']['id'];
+            $createdEvent = $service->events->insert('primary', $event, ['conferenceDataVersion' => 1]);
+            $googleEventId = $createdEvent->getId();
             
             // Extract Google Meet link
             $meetLink = null;
-            $confData = $res['data']['conferenceData'] ?? [];
-            $entryPoints = $confData['entryPoints'] ?? [];
-            foreach ($entryPoints as $ep) {
-                if ($ep['entryPointType'] === 'video') {
-                    $meetLink = $ep['uri'];
-                    break;
+            $confData = $createdEvent->getConferenceData();
+            if ($confData) {
+                $entryPoints = $confData->getEntryPoints();
+                if ($entryPoints) {
+                    foreach ($entryPoints as $ep) {
+                        if ($ep->getEntryPointType() === 'video') {
+                            $meetLink = $ep->getUri();
+                            break;
+                        }
+                    }
                 }
             }
 
@@ -276,10 +362,10 @@ class ExternalAppsHelper {
                 'event_id' => $googleEventId,
                 'meet_link' => $meetLink
             ];
+        } catch (Exception $e) {
+            error_log("Failed to create Google Calendar Event via SDK: " . $e->getMessage());
+            return false;
         }
-
-        error_log("Failed to create Google Calendar Event: " . $res['body']);
-        return false;
     }
 
     /**
@@ -291,39 +377,42 @@ class ExternalAppsHelper {
 
         $db = Database::getConnection();
 
-        // Fetch contact email if linked
         $attendees = [];
         if ($contactId) {
             $stmtC = $db->prepare("SELECT name, email FROM crm_contacts WHERE id = ? LIMIT 1");
             $stmtC->execute([$contactId]);
             $contact = $stmtC->fetch();
             if ($contact && !empty($contact['email'])) {
-                $attendees[] = [
+                $attendees[] = new Google\Service\Calendar\EventAttendee([
                     'email' => $contact['email'],
                     'displayName' => $contact['name']
-                ];
+                ]);
             }
         }
 
         $startIso = date(DATE_RFC3339, strtotime($startTime));
         $endIso = $endTime ? date(DATE_RFC3339, strtotime($endTime)) : date(DATE_RFC3339, strtotime($startTime) + 3600);
 
-        $eventBody = [
-            'summary' => $title,
-            'description' => $description,
-            'location' => $location,
-            'start' => ['dateTime' => $startIso],
-            'end' => ['dateTime' => $endIso],
-            'attendees' => $attendees
-        ];
+        try {
+            $client = new Google\Client();
+            $client->setAccessToken($token);
+            $service = new Google\Service\Calendar($client);
 
-        $url = "https://www.googleapis.com/calendar/v3/calendars/primary/events/{$googleEventId}";
-        $res = self::makeCurlRequest($url, 'PUT', json_encode($eventBody), [
-            'Authorization' => "Bearer $token",
-            'Content-Type' => 'application/json'
-        ]);
+            $event = new Google\Service\Calendar\Event([
+                'summary' => $title,
+                'description' => $description,
+                'location' => $location,
+                'start' => ['dateTime' => $startIso],
+                'end' => ['dateTime' => $endIso],
+                'attendees' => $attendees
+            ]);
 
-        return ($res['code'] === 200);
+            $updatedEvent = $service->events->update('primary', $googleEventId, $event);
+            return !empty($updatedEvent->getId());
+        } catch (Exception $e) {
+            error_log("Failed to update Google Calendar Event via SDK: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -333,12 +422,17 @@ class ExternalAppsHelper {
         $token = self::getGoogleAccessToken($userId);
         if (!$token || !$googleEventId) return false;
 
-        $url = "https://www.googleapis.com/calendar/v3/calendars/primary/events/{$googleEventId}";
-        $res = self::makeCurlRequest($url, 'DELETE', null, [
-            'Authorization' => "Bearer $token"
-        ]);
+        try {
+            $client = new Google\Client();
+            $client->setAccessToken($token);
+            $service = new Google\Service\Calendar($client);
 
-        return ($res['code'] === 204 || $res['code'] === 200);
+            $service->events->delete('primary', $googleEventId);
+            return true;
+        } catch (Exception $e) {
+            error_log("Failed to delete Google Calendar Event via SDK: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -354,35 +448,35 @@ class ExternalAppsHelper {
         $startIso = date(DATE_RFC3339, strtotime($startStr));
         $endIso = date(DATE_RFC3339, strtotime($startStr) + 1800); // 30-min duration task
 
-        $eventBody = [
-            'summary' => "[Task] " . $title,
-            'description' => $description,
-            'start' => ['dateTime' => $startIso],
-            'end' => ['dateTime' => $endIso],
-            'reminders' => [
-                'useDefault' => false,
-                'overrides' => [
-                    ['method' => 'popup', 'minutes' => 15]
+        try {
+            $client = new Google\Client();
+            $client->setAccessToken($token);
+            $service = new Google\Service\Calendar($client);
+
+            $event = new Google\Service\Calendar\Event([
+                'summary' => "[Task] " . $title,
+                'description' => $description,
+                'start' => ['dateTime' => $startIso],
+                'end' => ['dateTime' => $endIso],
+                'reminders' => [
+                    'useDefault' => false,
+                    'overrides' => [
+                        ['method' => 'popup', 'minutes' => 15]
+                    ]
                 ]
-            ]
-        ];
+            ]);
 
-        $url = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
-        $res = self::makeCurlRequest($url, 'POST', json_encode($eventBody), [
-            'Authorization' => "Bearer $token",
-            'Content-Type' => 'application/json'
-        ]);
-
-        if ($res['code'] === 200 && isset($res['data']['id'])) {
-            $googleEventId = $res['data']['id'];
+            $created = $service->events->insert('primary', $event);
+            $googleEventId = $created->getId();
             
             $stmtUpdate = $db->prepare("UPDATE crm_tasks SET google_event_id = ?, sync_to_calendar = 1 WHERE id = ?");
             $stmtUpdate->execute([$googleEventId, $taskId]);
 
             return $googleEventId;
+        } catch (Exception $e) {
+            error_log("Failed to create Google Task Calendar Event via SDK: " . $e->getMessage());
+            return false;
         }
-
-        return false;
     }
 
     /**
@@ -396,20 +490,24 @@ class ExternalAppsHelper {
         $startIso = date(DATE_RFC3339, strtotime($startStr));
         $endIso = date(DATE_RFC3339, strtotime($startStr) + 1800);
 
-        $eventBody = [
-            'summary' => "[Task] " . $title,
-            'description' => $description,
-            'start' => ['dateTime' => $startIso],
-            'end' => ['dateTime' => $endIso]
-        ];
+        try {
+            $client = new Google\Client();
+            $client->setAccessToken($token);
+            $service = new Google\Service\Calendar($client);
 
-        $url = "https://www.googleapis.com/calendar/v3/calendars/primary/events/{$googleEventId}";
-        $res = self::makeCurlRequest($url, 'PUT', json_encode($eventBody), [
-            'Authorization' => "Bearer $token",
-            'Content-Type' => 'application/json'
-        ]);
+            $event = new Google\Service\Calendar\Event([
+                'summary' => "[Task] " . $title,
+                'description' => $description,
+                'start' => ['dateTime' => $startIso],
+                'end' => ['dateTime' => $endIso]
+            ]);
 
-        return ($res['code'] === 200);
+            $updated = $service->events->update('primary', $googleEventId, $event);
+            return !empty($updated->getId());
+        } catch (Exception $e) {
+            error_log("Failed to update Google Task Calendar Event via SDK: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -463,24 +561,27 @@ class ExternalAppsHelper {
         // Base64url encode helper
         $encodedRaw = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($rawMessage));
 
-        $url = 'https://gmail.googleapis.com/v1/users/me/messages/send';
-        $res = self::makeCurlRequest($url, 'POST', json_encode(['raw' => $encodedRaw]), [
-            'Authorization' => "Bearer $token",
-            'Content-Type' => 'application/json'
-        ]);
+        try {
+            $client = new Google\Client();
+            $client->setAccessToken($token);
+            $service = new Google\Service\Gmail($client);
 
-        if ($res['code'] === 200 && isset($res['data']['id'])) {
+            $msg = new Google\Service\Gmail\Message();
+            $msg->setRaw($encodedRaw);
+
+            $result = $service->users_messages->send('me', $msg);
             return [
                 'status' => true,
                 'message' => 'Email sent successfully via Gmail API.',
-                'message_id' => $res['data']['id']
+                'message_id' => $result->getId()
+            ];
+        } catch (Exception $e) {
+            error_log("Gmail API Send SDK Error: " . $e->getMessage());
+            return [
+                'status' => false,
+                'message' => 'Gmail API Send Error: ' . $e->getMessage()
             ];
         }
-
-        return [
-            'status' => false,
-            'message' => 'Gmail API Send Error: ' . ($res['data']['error']['message'] ?? $res['body'])
-        ];
     }
 
     /**
@@ -503,27 +604,29 @@ class ExternalAppsHelper {
 
         $encodedRaw = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($rawMessage));
 
-        $url = 'https://gmail.googleapis.com/v1/users/me/drafts';
-        $res = self::makeCurlRequest($url, 'POST', json_encode([
-            'message' => [
-                'raw' => $encodedRaw
-            ]
-        ]), [
-            'Authorization' => "Bearer $token",
-            'Content-Type' => 'application/json'
-        ]);
+        try {
+            $client = new Google\Client();
+            $client->setAccessToken($token);
+            $service = new Google\Service\Gmail($client);
 
-        if ($res['code'] === 200 && isset($res['data']['id'])) {
+            $msg = new Google\Service\Gmail\Message();
+            $msg->setRaw($encodedRaw);
+
+            $draft = new Google\Service\Gmail\Draft();
+            $draft->setMessage($msg);
+
+            $result = $service->users_drafts->create('me', $draft);
             return [
                 'status' => true,
                 'message' => 'Draft created successfully in Gmail.',
-                'draft_id' => $res['data']['id']
+                'draft_id' => $result->getId()
+            ];
+        } catch (Exception $e) {
+            error_log("Gmail API Draft SDK Error: " . $e->getMessage());
+            return [
+                'status' => false,
+                'message' => 'Gmail API Draft Error: ' . $e->getMessage()
             ];
         }
-
-        return [
-            'status' => false,
-            'message' => 'Gmail API Draft Error: ' . ($res['data']['error']['message'] ?? $res['body'])
-        ];
     }
 }

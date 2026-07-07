@@ -1577,40 +1577,49 @@ window.sendWaMessage = function(e) {
 // AI Reply Suggested replies triggers
 window.triggerWaAIChatAnalysis = function() {
     if (!activeWaThreadId) return;
-    const bar = document.getElementById('wa-ai-suggestion-bar');
-    const text = document.getElementById('wa-ai-suggestion-text');
-    if (!bar || !text) return;
+    const input = document.getElementById('wa-chat-input');
+    if (!input) return;
     
-    text.textContent = 'Analyzing context...';
-    bar.classList.remove('hidden');
+    const originalPlaceholder = input.placeholder;
+    input.placeholder = 'AI is composing a response...';
+    input.value = '';
+    input.disabled = true;
     
     apiCall('whatsapp/inbox.php?action=apply_ai_reply', 'APPLY_AI_REPLY', {
         wa_contact_id: activeWaThreadId
     }).then(res => {
-        text.textContent = res.suggested_reply;
+        input.disabled = false;
+        input.placeholder = originalPlaceholder;
+        
+        const reply = res.suggested_reply || '';
+        if (reply) {
+            typeTextInInput(input, reply, 12);
+        }
     }).catch(err => {
-        showNotification('error', err.message);
-        bar.classList.add('hidden');
+        input.disabled = false;
+        input.placeholder = originalPlaceholder;
+        showNotification('error', 'AI Compose failed: ' + err.message);
     });
 };
 
-window.dismissAISuggestion = function() {
-    const bar = document.getElementById('wa-ai-suggestion-bar');
-    if (bar) bar.classList.add('hidden');
-};
-
-window.applyAISuggestion = function() {
-    const text = document.getElementById('wa-ai-suggestion-text').textContent;
-    const input = document.getElementById('wa-chat-input');
-    if (input && text) {
-        input.value = text;
-        dismissAISuggestion();
+function typeTextInInput(inputElement, text, speed = 12) {
+    inputElement.value = '';
+    let i = 0;
+    if (inputElement.typingInterval) {
+        clearInterval(inputElement.typingInterval);
     }
-};
-
-window.regenerateAISuggestion = function() {
-    triggerWaAIChatAnalysis();
-};
+    
+    inputElement.typingInterval = setInterval(() => {
+        if (i < text.length) {
+            inputElement.value += text.charAt(i);
+            i++;
+            inputElement.dispatchEvent(new Event('input', { bubbles: true }));
+        } else {
+            clearInterval(inputElement.typingInterval);
+            inputElement.focus();
+        }
+    }, speed);
+}
 
 // ----------------------------------------------------
 // 4. WHATSAPP CONTACTS VIEW

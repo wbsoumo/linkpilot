@@ -1133,7 +1133,7 @@ function renderWhatsAppInbox(container) {
                     </div>
 
                     <!-- Messages list -->
-                    <div class="flex-grow overflow-y-auto p-4 space-y-3 flex flex-col" id="wa-messages-container-list" style="background-image: url('../backend/api/whatsapp/chatbg.jpg'); background-repeat: repeat; background-color: #efeae2;">
+                    <div class="flex-grow overflow-y-auto p-4 space-y-3 flex flex-col bg-[#F2F4F7]" id="wa-messages-container-list">
                         <div class="flex items-center justify-center h-full text-slate-400">
                             No conversation loaded.
                         </div>
@@ -1368,6 +1368,11 @@ async function loadWaThreadMessages() {
         // 2. Render Messages list
         const msgList = document.getElementById('wa-messages-container-list');
         if (msgList) {
+            // Apply faint repeating wallpaper style
+            msgList.style.backgroundImage = "linear-gradient(rgba(244, 245, 247, 0.94), rgba(244, 245, 247, 0.94)), url('../backend/api/whatsapp/chatbg.jpg')";
+            msgList.style.backgroundRepeat = "repeat";
+            msgList.style.backgroundColor = "#efeae2";
+
             if (messages.length === 0) {
                 msgList.innerHTML = `<div class="text-slate-400 text-center py-20">No messages in this chat. Send a template message to start!</div>`;
             } else {

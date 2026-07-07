@@ -1,11 +1,17 @@
 <?php
 require_once __DIR__ . '/../../config.php';
 header('Content-Type: text/plain');
-$db = Database::getConnection();
 
-echo "=== LAST 10 MESSAGES ===\n";
-$stmt = $db->query("SELECT m.*, c.profile_name FROM whatsapp_messages m JOIN whatsapp_contacts c ON m.wa_contact_id = c.id ORDER BY m.id DESC LIMIT 10");
-print_r($stmt->fetchAll(PDO::FETCH_ASSOC));
+try {
+    $db = Database::getConnection();
 
-echo "\n=== WHATSAPP SETTINGS ===\n";
-print_r($db->query("SELECT * FROM whatsapp_settings")->fetchAll(PDO::FETCH_ASSOC));
+    echo "=== WHATSAPP SETTINGS ===\n";
+    $settings = $db->query("SELECT * FROM whatsapp_settings")->fetchAll(PDO::FETCH_ASSOC);
+    print_r($settings);
+
+    echo "\n=== LAST 5 MESSAGES ===\n";
+    $msgs = $db->query("SELECT id, wa_contact_id, direction, body, status, error_message, created_at FROM whatsapp_messages ORDER BY id DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
+    print_r($msgs);
+} catch (Throwable $e) {
+    echo "ERROR: " . $e->getMessage() . "\n" . $e->getTraceAsString();
+}

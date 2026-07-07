@@ -2196,10 +2196,8 @@ function renderWhatsAppSettings(container) {
                         <div class="flex flex-col lg:flex-row items-center lg:items-start space-y-6 lg:space-y-0 lg:space-x-8">
                             <!-- Circular WhatsApp Logo -->
                             <div class="h-20 w-20 rounded-full bg-emerald-50 flex items-center justify-center shrink-0 shadow-inner border border-emerald-100">
-                                <div class="h-14 w-14 rounded-full bg-gradient-to-tr from-emerald-500 to-emerald-400 flex items-center justify-center shadow-md">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white fill-current" viewBox="0 0 24 24">
-                                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.588 1.485 5.41 1.486 5.454 0 9.9-4.426 9.902-9.852.001-2.631-1.019-5.101-2.871-6.956C17.228 1.977 14.77 1.955 12 1.955c-5.46 0-9.911 4.427-9.913 9.855-.001 1.939.508 3.83 1.472 5.502l-.965 3.525 3.653-.943zm12.355-6.845c-.328-.164-1.94-.959-2.241-1.07-.301-.11-.521-.164-.741.164-.221.328-.854 1.07-1.047 1.29-.193.221-.386.248-.713.084-.328-.164-1.385-.51-2.637-1.627-.975-.87-1.633-1.945-1.825-2.274-.193-.328-.02-.505.144-.668.148-.147.328-.384.493-.575.164-.192.22-.328.329-.548.11-.22.055-.411-.027-.575-.082-.164-.741-1.785-1.015-2.443-.267-.642-.56-.554-.74-.564-.176-.01-.377-.014-.578-.014-.201 0-.528.075-.804.377-.276.3-.146.904-.082 1.259.108.591.312 1.127.636 1.639 1.42 2.247 3.328 3.992 5.642 4.795.539.187 1.078.298 1.611.332 1.341.085 2.563-.12 3.523-.39.816-.23 1.666-.81 1.942-1.543.276-.733.276-1.36.193-1.493-.083-.133-.301-.22-.63-.384z"/>
-                                    </svg>
+                                <div class="h-14 w-14 rounded-full bg-gradient-to-tr from-emerald-500 to-emerald-400 flex items-center justify-center shadow-md overflow-hidden">
+                                    <img src="assets/img/WhatsApp_icon.png" class="h-9 w-9 object-contain" alt="WhatsApp">
                                 </div>
                             </div>
                             

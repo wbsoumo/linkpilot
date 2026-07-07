@@ -2,35 +2,51 @@
 // backend/api/whatsapp/view_log.php
 header('Content-Type: text/plain; charset=utf-8');
 
-echo "=== DIRECT SEND DIAGNOSTIC RESULTS ===\n";
-$diagLog = __DIR__ . '/wa_temp_debug.txt';
-if (file_exists($diagLog)) {
-    echo file_get_contents($diagLog);
-} else {
-    echo "No direct send diagnostic results found. Please browse test_send_tpl.php first.\n";
+function tail_file($filepath, $lines = 100) {
+    if (!file_exists($filepath)) return "File not found.\n";
+    $f = fopen($filepath, "r");
+    if (!$f) return "Could not open file.\n";
+    
+    // Quick size check to avoid excessive loops on huge files
+    $size = filesize($filepath);
+    if ($size < 4096) {
+        $data = file_get_contents($filepath);
+        fclose($f);
+        return $data;
+    }
+    
+    // Read backwards
+    $pos = -2;
+    $lineCount = 0;
+    
+    while ($lineCount < $lines && fseek($f, $pos, SEEK_END) !== -1) {
+        $char = fgetc($f);
+        if ($char === "\n") {
+            $lineCount++;
+        }
+        $pos--;
+    }
+    
+    $data = "";
+    while (!feof($f)) {
+        $data .= fgets($f);
+    }
+    fclose($f);
+    return $data;
 }
+
+echo "=== DIRECT SEND DIAGNOSTIC RESULTS (Last 100 lines) ===\n";
+echo tail_file(__DIR__ . '/wa_temp_debug.txt', 100);
 echo "\n";
 
-echo "=== WHATSAPP SYSTEM DEBUGLOG ===\n";
-$debugLog = __DIR__ . '/whatsapp_debug.log';
-if (file_exists($debugLog)) {
-    echo file_get_contents($debugLog);
-} else {
-    echo "No whatsapp_debug.log file found.\n";
-}
+echo "=== WHATSAPP SYSTEM DEBUGLOG (Last 100 lines) ===\n";
+echo tail_file(__DIR__ . '/whatsapp_debug.log', 100);
+echo "\n";
 
-echo "\n=== RAW REQUEST LOG ===\n";
-$reqLog = __DIR__ . '/request_log.txt';
-if (file_exists($reqLog)) {
-    echo file_get_contents($reqLog);
-} else {
-    echo "No request_log.txt file found.\n";
-}
+echo "=== RAW REQUEST LOG (Last 100 lines) ===\n";
+echo tail_file(__DIR__ . '/request_log.txt', 100);
+echo "\n";
 
-echo "\n=== AI SUGGESTED REPLY DEBUGLOG ===\n";
-$aiLog = __DIR__ . '/../../ai_debug.log';
-if (file_exists($aiLog)) {
-    echo file_get_contents($aiLog);
-} else {
-    echo "No ai_debug.log file found.\n";
-}
+echo "=== AI SUGGESTED REPLY DEBUGLOG (Last 100 lines) ===\n";
+echo tail_file(__DIR__ . '/../../ai_debug.log', 100);
+echo "\n";

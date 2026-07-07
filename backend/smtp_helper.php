@@ -15,6 +15,23 @@ class SMTPHelper {
      * Send email using user's custom SMTP configuration
      */
     public static function sendEmail($userId, $recipientEmail, $subject, $body, $attachments = [], $senderEmail = null, $originalMessageId = null) {
+        // Intercept and route via Gmail API if user connected Google integration
+        require_once __DIR__ . '/external_apps_helper.php';
+        if (ExternalAppsHelper::isGoogleConnected($userId)) {
+            $gmailResult = ExternalAppsHelper::sendGmailEmail($userId, $recipientEmail, $subject, $body, $attachments, $originalMessageId);
+            if ($gmailResult['status']) {
+                self::logSentEmail($userId, $recipientEmail, $subject, $body, 'sent');
+                updateStatistic($userId, 'emails_sent');
+                logActivity($userId, "Sent outreach email via Gmail API to: " . $recipientEmail);
+                return [
+                    "status" => true,
+                    "message" => "Email sent successfully via Gmail API."
+                ];
+            } else {
+                return $gmailResult;
+            }
+        }
+
         $db = Database::getConnection();
         
         // 1. Fetch default SMTP Account, fallback to first configured

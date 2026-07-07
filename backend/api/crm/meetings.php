@@ -3,6 +3,7 @@
 
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../jwt_helper.php';
+require_once __DIR__ . '/../../external_apps_helper.php';
 
 $user = JWTHelper::requireAuth();
 $userId = $user['id'];
@@ -75,6 +76,15 @@ try {
         
         $meetingId = $db->lastInsertId();
         
+        // Sync to Google Calendar
+        try {
+            if (ExternalAppsHelper::isGoogleConnected($userId)) {
+                ExternalAppsHelper::createGoogleCalendarEvent($userId, $meetingId, $title, $description, $startTime, $endTime, $location, $contactId);
+            }
+        } catch (Exception $e) {
+            error_log("Google Calendar Meeting sync failed: " . $e->getMessage());
+        }
+        
         // Log on timeline
         $timelineStmt = $db->prepare("INSERT INTO crm_timeline (user_id, company_id, contact_id, activity_type, description) VALUES (?, ?, ?, 'Meeting Scheduled', ?)");
         $timelineStmt->execute([$userId, $companyId, $contactId, "Meeting '$title' was scheduled for $startTime."]);
@@ -94,7 +104,7 @@ try {
         }
         
         // Check ownership
-        $stmtCheck = $db->prepare("SELECT id, title, status, company_id, contact_id FROM crm_meetings WHERE id = ? AND user_id = ?");
+        $stmtCheck = $db->prepare("SELECT id, title, status, company_id, contact_id, google_event_id FROM crm_meetings WHERE id = ? AND user_id = ?");
         $stmtCheck->execute([$meetingId, $userId]);
         $meeting = $stmtCheck->fetch();
         if (!$meeting) {
@@ -116,6 +126,15 @@ try {
             $companyId, $contactId, $title, $description, $startTime, $endTime, $location, $status, $meetingId, $userId
         ]);
         
+        // Sync to Google Calendar
+        try {
+            if (!empty($meeting['google_event_id']) && ExternalAppsHelper::isGoogleConnected($userId)) {
+                ExternalAppsHelper::updateGoogleCalendarEvent($userId, $meeting['google_event_id'], $title, $description, $startTime, $endTime, $location, $contactId);
+            }
+        } catch (Exception $e) {
+            error_log("Google Calendar Meeting update failed: " . $e->getMessage());
+        }
+        
         // Log changes
         if ($status !== $meeting['status']) {
             $timelineStmt = $db->prepare("INSERT INTO crm_timeline (user_id, company_id, contact_id, activity_type, description) VALUES (?, ?, ?, 'Meeting Status Changed', ?)");
@@ -133,13 +152,22 @@ try {
             sendJsonResponse('error', 'Meeting ID is required.', [], 400);
         }
         
-        $stmtCheck = $db->prepare("SELECT id, title FROM crm_meetings WHERE id = ? AND user_id = ?");
+        $stmtCheck = $db->prepare("SELECT id, title, google_event_id FROM crm_meetings WHERE id = ? AND user_id = ?");
         $stmtCheck->execute([$meetingId, $userId]);
         $meeting = $stmtCheck->fetch();
         if (!$meeting) {
             sendJsonResponse('error', 'Meeting not found or access denied.', [], 404);
         }
         
+        // Sync delete to Google Calendar
+        try {
+            if (!empty($meeting['google_event_id']) && ExternalAppsHelper::isGoogleConnected($userId)) {
+                ExternalAppsHelper::deleteGoogleCalendarEvent($userId, $meeting['google_event_id']);
+            }
+        } catch (Exception $e) {
+            error_log("Google Calendar Meeting delete failed: " . $e->getMessage());
+        }
+
         $stmt = $db->prepare("DELETE FROM crm_meetings WHERE id = ? AND user_id = ?");
         $stmt->execute([$meetingId, $userId]);
         

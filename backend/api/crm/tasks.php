@@ -3,6 +3,7 @@
 
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../jwt_helper.php';
+require_once __DIR__ . '/../../external_apps_helper.php';
 
 $user = JWTHelper::requireAuth();
 $userId = $user['id'];
@@ -77,12 +78,25 @@ try {
         $contactId = !empty($input['contact_id']) ? (int)$input['contact_id'] : null;
         $leadId = !empty($input['lead_id']) ? (int)$input['lead_id'] : null;
         
-        $stmt = $db->prepare("INSERT INTO crm_tasks (user_id, company_id, contact_id, lead_id, title, description, due_date, status, priority, due_time, meet_link, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $syncToCalendar = !empty($input['sync_to_calendar']) ? 1 : 0;
+        
+        $stmt = $db->prepare("INSERT INTO crm_tasks (user_id, company_id, contact_id, lead_id, title, description, due_date, status, priority, due_time, meet_link, remarks, sync_to_calendar) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
-            $userId, $companyId, $contactId, $leadId, $title, $description, $dueDate, $status, $priority, $dueTime, $meetLink, $remarks
+            $userId, $companyId, $contactId, $leadId, $title, $description, $dueDate, $status, $priority, $dueTime, $meetLink, $remarks, $syncToCalendar
         ]);
         
         $taskId = $db->lastInsertId();
+
+        // Sync to Google Calendar if enabled
+        if ($syncToCalendar === 1) {
+            try {
+                if (ExternalAppsHelper::isGoogleConnected($userId)) {
+                    ExternalAppsHelper::createGoogleCalendarEventFromTask($userId, $taskId, $title, $description, $dueDate, $dueTime);
+                }
+            } catch (Exception $e) {
+                error_log("Google Calendar Task Sync failed: " . $e->getMessage());
+            }
+        }
         
         // Log on timeline
         $timelineStmt = $db->prepare("INSERT INTO crm_timeline (user_id, company_id, contact_id, lead_id, activity_type, description) VALUES (?, ?, ?, ?, 'Task Created', ?)");
@@ -103,7 +117,7 @@ try {
         }
         
         // Check ownership
-        $stmtCheck = $db->prepare("SELECT id, title, status, company_id, contact_id, lead_id, due_time, meet_link, remarks FROM crm_tasks WHERE id = ? AND user_id = ?");
+        $stmtCheck = $db->prepare("SELECT id, title, status, company_id, contact_id, lead_id, due_date, due_time, meet_link, remarks, google_event_id, sync_to_calendar FROM crm_tasks WHERE id = ? AND user_id = ?");
         $stmtCheck->execute([$taskId, $userId]);
         $task = $stmtCheck->fetch();
         if (!$task) {
@@ -119,14 +133,34 @@ try {
         $meetLink = isset($input['meet_link']) ? (!empty($input['meet_link']) ? trim($input['meet_link']) : null) : $task['meet_link'];
         $remarks = isset($input['remarks']) ? trim($input['remarks']) : $task['remarks'];
         
-        $companyId = !empty($input['company_id']) ? (int)$input['company_id'] : $task['company_id'];
-        $contactId = !empty($input['contact_id']) ? (int)$input['contact_id'] : $task['contact_id'];
-        $leadId = !empty($input['lead_id']) ? (int)$input['lead_id'] : $task['lead_id'];
-        
-        $stmt = $db->prepare("UPDATE crm_tasks SET company_id = ?, contact_id = ?, lead_id = ?, title = ?, description = ?, due_date = ?, status = ?, priority = ?, due_time = ?, meet_link = ?, remarks = ? WHERE id = ? AND user_id = ?");
+        $syncToCalendar = isset($input['sync_to_calendar']) ? (!empty($input['sync_to_calendar']) ? 1 : 0) : (int)$task['sync_to_calendar'];
+
+        $stmt = $db->prepare("UPDATE crm_tasks SET company_id = ?, contact_id = ?, lead_id = ?, title = ?, description = ?, due_date = ?, status = ?, priority = ?, due_time = ?, meet_link = ?, remarks = ?, sync_to_calendar = ? WHERE id = ? AND user_id = ?");
         $stmt->execute([
-            $companyId, $contactId, $leadId, $title, $description, $dueDate, $status, $priority, $dueTime, $meetLink, $remarks, $taskId, $userId
+            $companyId, $contactId, $leadId, $title, $description, $dueDate, $status, $priority, $dueTime, $meetLink, $remarks, $syncToCalendar, $taskId, $userId
         ]);
+
+        // Sync changes to Google Calendar
+        try {
+            if ($syncToCalendar === 1) {
+                if (ExternalAppsHelper::isGoogleConnected($userId)) {
+                    if (!empty($task['google_event_id'])) {
+                        ExternalAppsHelper::updateGoogleCalendarEventFromTask($userId, $task['google_event_id'], $title, $description, $dueDate, $dueTime);
+                    } else {
+                        ExternalAppsHelper::createGoogleCalendarEventFromTask($userId, $taskId, $title, $description, $dueDate, $dueTime);
+                    }
+                }
+            } else {
+                if (!empty($task['google_event_id'])) {
+                    if (ExternalAppsHelper::isGoogleConnected($userId)) {
+                        ExternalAppsHelper::deleteGoogleCalendarEvent($userId, $task['google_event_id']);
+                    }
+                    $db->prepare("UPDATE crm_tasks SET google_event_id = NULL WHERE id = ?")->execute([$taskId]);
+                }
+            }
+        } catch (Exception $e) {
+            error_log("Google Calendar Task Sync update failed: " . $e->getMessage());
+        }
         
         // Log changes
         if ($status !== $task['status']) {
@@ -145,13 +179,22 @@ try {
             sendJsonResponse('error', 'Task ID is required.', [], 400);
         }
         
-        $stmtCheck = $db->prepare("SELECT id, title FROM crm_tasks WHERE id = ? AND user_id = ?");
+        $stmtCheck = $db->prepare("SELECT id, title, google_event_id FROM crm_tasks WHERE id = ? AND user_id = ?");
         $stmtCheck->execute([$taskId, $userId]);
         $task = $stmtCheck->fetch();
         if (!$task) {
             sendJsonResponse('error', 'Task not found or access denied.', [], 404);
         }
         
+        // Delete Google Calendar Event if synced
+        try {
+            if (!empty($task['google_event_id']) && ExternalAppsHelper::isGoogleConnected($userId)) {
+                ExternalAppsHelper::deleteGoogleCalendarEvent($userId, $task['google_event_id']);
+            }
+        } catch (Exception $e) {
+            error_log("Google Calendar Task delete failed: " . $e->getMessage());
+        }
+
         $stmt = $db->prepare("DELETE FROM crm_tasks WHERE id = ? AND user_id = ?");
         $stmt->execute([$taskId, $userId]);
         

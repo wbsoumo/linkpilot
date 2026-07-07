@@ -56,6 +56,9 @@
                 <button onclick="switchAdminTab('whatsapp', this)" class="sidebar-nav-link text-slate-300 transition w-full text-left">
                     <i data-lucide="message-circle" class="h-4 w-4 mr-2.5 text-emerald-500"></i><span>WhatsApp Settings</span>
                 </button>
+                <button onclick="switchAdminTab('external-apps', this)" class="sidebar-nav-link text-slate-300 transition w-full text-left">
+                    <i data-lucide="package" class="h-4 w-4 mr-2.5 text-rose-500"></i><span>External Apps</span>
+                </button>
                 
                 <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest pt-6 pb-1.5 pl-2">Client Workspace</span>
                 <a href="index.html" class="sidebar-nav-link text-slate-400 hover:bg-slate-800 hover:text-white transition duration-150">
@@ -343,6 +346,46 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- External Apps Admin Pane -->
+            <div id="admin-external-apps-pane" class="hidden space-y-6">
+                <div class="glass-panel p-6 bg-slate-900/40 space-y-6 max-w-xl">
+                    <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2">External App Developer Credentials</h3>
+                    
+                    <div class="space-y-4 text-xs">
+                        <h4 class="text-xs font-black text-rose-400 uppercase tracking-wider">Google OAuth Integration</h4>
+                        <form onsubmit="saveGoogleExternalAppKeys(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-slate-400 font-semibold mb-1">Enable Integration</label>
+                                <select id="adm-google-enabled" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 font-semibold mb-1">Google Client ID</label>
+                                <input type="text" id="adm-google-client-id" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 font-semibold mb-1">Google Client Secret</label>
+                                <input type="password" id="adm-google-client-secret" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 font-semibold mb-1">Redirect URI (Auto-generated / Read-only)</label>
+                                <input type="text" id="adm-google-redirect-uri" readonly class="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-400 font-mono select-all">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 font-semibold mb-1">OAuth Scopes</label>
+                                <input type="text" id="adm-google-scopes" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono" value="https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.modify">
+                            </div>
+                            <div class="flex space-x-2 pt-2">
+                                <button type="submit" class="px-5 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-lg font-bold transition" style="color: #ffffff !important;">Save Credentials</button>
+                                <button type="button" onclick="testGoogleExternalConnection()" class="px-4 py-2 bg-slate-800 border border-slate-700 text-white rounded-lg font-bold transition hover:bg-slate-700">Test Connection</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -368,7 +411,8 @@
             document.getElementById('admin-credits-pane').classList.add('hidden');
             document.getElementById('admin-logs-pane').classList.add('hidden');
             document.getElementById('admin-whatsapp-pane').classList.add('hidden');
-
+            document.getElementById('admin-external-apps-pane').classList.add('hidden');
+ 
             // Show target
             document.getElementById(`admin-${tab}-pane`).classList.remove('hidden');
             
@@ -376,6 +420,7 @@
             if (tab === 'users') loadAdminUsersData();
             if (tab === 'logs') loadAdminLogsData();
             if (tab === 'whatsapp') loadAdminWhatsAppDetails();
+            if (tab === 'external-apps') loadAdminExternalAppsDetails();
         }
 
         async function loadAdminHealthData() {
@@ -601,6 +646,55 @@
             }
         }
         
+        async function loadAdminExternalAppsDetails() {
+            try {
+                // Populate redirect uri automatically
+                const protocol = window.location.protocol;
+                const host = window.location.host;
+                document.getElementById('adm-google-redirect-uri').value = `${protocol}//${host}/backend/api/external_apps/callback.php`;
+
+                const res = await apiCall('admin/external_app_credentials.php');
+                const c = res.credentials;
+                document.getElementById('adm-google-enabled').value = c.enabled || '1';
+                document.getElementById('adm-google-client-id').value = c.client_id || '';
+                document.getElementById('adm-google-client-secret').value = c.client_secret || '';
+                document.getElementById('adm-google-scopes').value = c.scopes || '';
+            } catch (err) {
+                showNotification('error', 'Failed to load Google developer credentials: ' + err.message);
+            }
+        }
+
+        window.saveGoogleExternalAppKeys = async function(e) {
+            e.preventDefault();
+            const payload = {
+                google_external_enabled: document.getElementById('adm-google-enabled').value,
+                google_external_client_id: document.getElementById('adm-google-client-id').value.trim(),
+                google_external_client_secret: document.getElementById('adm-google-client-secret').value.trim(),
+                google_external_scopes: document.getElementById('adm-google-scopes').value.trim()
+            };
+            try {
+                const res = await apiCall('admin/external_app_credentials.php', 'POST', payload);
+                showNotification('success', res.message);
+                loadAdminExternalAppsDetails();
+            } catch (err) {
+                showNotification('error', 'Failed to save credentials: ' + err.message);
+            }
+        };
+
+        window.testGoogleExternalConnection = async function() {
+            const payload = {
+                client_id: document.getElementById('adm-google-client-id').value.trim(),
+                client_secret: document.getElementById('adm-google-client-secret').value.trim()
+            };
+            try {
+                showNotification('info', 'Testing connection endpoints...');
+                const res = await apiCall('admin/external_app_credentials.php?action=test', 'POST', payload);
+                showNotification('success', res.message);
+            } catch (err) {
+                showNotification('error', 'Google endpoints test failed: ' + err.message);
+            }
+        };
+
         function escapeHtml(str) {
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }

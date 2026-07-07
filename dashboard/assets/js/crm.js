@@ -314,6 +314,9 @@ async function navigateTo(view, params = {}) {
         case 'integrations':
             renderIntegrations(contentArea);
             break;
+        case 'external-apps':
+            renderExternalApps(contentArea);
+            break;
         case 'settings':
             renderSettings(contentArea);
             break;
@@ -4235,6 +4238,11 @@ function createNewTaskModal(prefills = {}) {
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Task Description</label>
                             <textarea id="new-task-description" rows="3" placeholder="Provide extra description notes..." class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500 font-sans"></textarea>
                         </div>
+
+                        <div class="flex items-center space-x-2 pt-1">
+                            <input type="checkbox" id="new-task-synctocalendar" class="h-4 w-4 border-slate-350 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
+                            <label for="new-task-synctocalendar" class="font-bold text-slate-700 cursor-pointer select-none">Sync task to Google Calendar</label>
+                        </div>
                     </div>
 
                     <!-- Right: AI Suggestions -->
@@ -4288,6 +4296,7 @@ async function submitNewTaskForm(btn) {
     const priority = document.getElementById('new-task-priority').value;
     const meetLink = document.getElementById('new-task-meetlink').value.trim();
     const description = document.getElementById('new-task-description').value.trim();
+    const syncToCalendar = document.getElementById('new-task-synctocalendar').checked ? 1 : 0;
     
     // Prefix title if categorized
     let title = rawTitle;
@@ -4302,7 +4311,8 @@ async function submitNewTaskForm(btn) {
         priority,
         meet_link: meetLink || null,
         status: 'pending',
-        description
+        description,
+        sync_to_calendar: syncToCalendar
     };
 
     if (window.activeWaCrmContext) {
@@ -4454,6 +4464,11 @@ async function editCrmTask(taskId) {
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Task Description</label>
                         <textarea id="edit-task-description" rows="3" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500 font-sans">${t.description || ''}</textarea>
                     </div>
+
+                    <div class="flex items-center space-x-2 pt-1">
+                        <input type="checkbox" id="edit-task-synctocalendar" ${t.sync_to_calendar == 1 ? 'checked' : ''} class="h-4 w-4 border-slate-350 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
+                        <label for="edit-task-synctocalendar" class="font-bold text-slate-700 cursor-pointer select-none">Sync task to Google Calendar</label>
+                    </div>
                 </div>
                 
                 <!-- Modal Footer -->
@@ -4500,6 +4515,8 @@ async function submitEditTaskForm(btn) {
         title = `[${category}] ${rawTitle}`;
     }
     
+    const syncToCalendar = document.getElementById('edit-task-synctocalendar').checked ? 1 : 0;
+
     const payload = {
         id: taskId,
         title,
@@ -4507,7 +4524,8 @@ async function submitEditTaskForm(btn) {
         due_time: dueTime || null,
         priority,
         meet_link: meetLink || null,
-        description
+        description,
+        sync_to_calendar: syncToCalendar
     };
     
     try {
@@ -9656,4 +9674,469 @@ document.addEventListener('DOMContentLoaded', () => {
     const hash = window.location.hash || '#/dashboard';
     const view = hash.replace('#/', '');
     navigateTo(view);
+
+// --- EXTERNAL APPS SaaS INTEGRATION MARKETPLACE ---
+async function renderExternalApps(container) {
+    container.innerHTML = `
+        <div class="flex items-center justify-center py-12">
+            <i data-lucide="loader-2" class="h-8 w-8 animate-spin text-rose-500"></i>
+        </div>
+    `;
+    lucide.createIcons();
+
+    try {
+        const res = await apiCall('external_apps/status.php');
+        const conn = res.data || { connected: false };
+
+        const statusBadge = conn.connected
+            ? `<span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center space-x-1 shrink-0">
+                 <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                 <span>CONNECTED</span>
+               </span>`
+            : `<span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-slate-100 text-slate-500 border border-slate-200 shrink-0">
+                 NOT CONNECTED
+               </span>`;
+
+        container.innerHTML = `
+            <div class="space-y-6 pt-4 animate-fade-in text-xs max-w-7xl mx-auto text-left">
+                <!-- Header -->
+                <div class="border-b border-slate-150 pb-4">
+                    <h1 class="text-2xl font-extrabold text-slate-800">External Apps Marketplace</h1>
+                    <p class="text-slate-500 text-xs mt-1">Connect and authorize developer workflow integrations to synchronize your CRM activities.</p>
+                </div>
+
+                <!-- Integrations Cards Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Google Calendar Card -->
+                    <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl flex flex-col justify-between hover:shadow-md transition">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <div class="h-12 w-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                                    <i data-lucide="calendar" class="h-6 w-6"></i>
+                                </div>
+                                ${statusBadge}
+                            </div>
+                            <h3 class="text-sm font-extrabold text-slate-800 mt-4">Google Calendar</h3>
+                            <p class="text-slate-500 mt-1.5 leading-relaxed">Schedule events dynamically inside the CRM and sync task lifecycles directly with Google Calendar.</p>
+                            
+                            ${conn.connected ? `
+                                <div class="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-150 space-y-1 font-mono text-[10px] text-slate-650">
+                                    <p><strong>Account:</strong> ${conn.email}</p>
+                                    <p><strong>Last Sync:</strong> ${new Date(conn.last_sync).toLocaleString()}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <div class="mt-6 flex space-x-2 pt-2 border-t border-slate-100">
+                            ${conn.connected ? `
+                                <button onclick="openGoogleCalendarTestModal()" class="flex-1 py-2 bg-indigo-550 hover:bg-indigo-650 text-white rounded-lg font-bold text-center transition" style="color: #ffffff !important;">Configure</button>
+                                <button onclick="disconnectExternalGoogle()" class="px-3 py-2 border border-slate-200 hover:border-red-500/20 hover:bg-red-50 text-red-500 rounded-lg font-bold transition">Disconnect</button>
+                            ` : `
+                                <button onclick="connectExternalGoogle()" class="w-full py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-lg font-bold text-center transition" style="color: #ffffff !important;">Connect Account</button>
+                            `}
+                        </div>
+                    </div>
+
+                    <!-- Google Meet Card -->
+                    <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl flex flex-col justify-between hover:shadow-md transition">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <div class="h-12 w-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                                    <i data-lucide="video" class="h-6 w-6"></i>
+                                </div>
+                                ${statusBadge}
+                            </div>
+                            <h3 class="text-sm font-extrabold text-slate-800 mt-4">Google Meet</h3>
+                            <p class="text-slate-500 mt-1.5 leading-relaxed">Automatically generate video meeting links on creation, and attach conference URLs inside CRM schedules.</p>
+                            
+                            ${conn.connected ? `
+                                <div class="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-150 space-y-1 font-mono text-[10px] text-slate-650">
+                                    <p><strong>Status:</strong> Meet solution key active</p>
+                                    <p><strong>Integration:</strong> Conference Data API v1</p>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <div class="mt-6 flex space-x-2 pt-2 border-t border-slate-100">
+                            ${conn.connected ? `
+                                <button onclick="openGoogleMeetTestModal()" class="w-full py-2 bg-indigo-550 hover:bg-indigo-650 text-white rounded-lg font-bold text-center transition" style="color: #ffffff !important;">Configure Meet</button>
+                            ` : `
+                                <button onclick="connectExternalGoogle()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-bold text-center transition">Connect Account</button>
+                            `}
+                        </div>
+                    </div>
+
+                    <!-- Gmail Integration Card -->
+                    <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl flex flex-col justify-between hover:shadow-md transition">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <div class="h-12 w-12 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
+                                    <i data-lucide="mail" class="h-6 w-6"></i>
+                                </div>
+                                ${statusBadge}
+                            </div>
+                            <h3 class="text-sm font-extrabold text-slate-800 mt-4">Gmail Outreach</h3>
+                            <p class="text-slate-500 mt-1.5 leading-relaxed">Compose outbound pitches, reply to client threads, and save draft correspondence transparently via Google API.</p>
+                            
+                            ${conn.connected ? `
+                                <div class="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-150 space-y-1 font-mono text-[10px] text-slate-650">
+                                    <p><strong>Method:</strong> Gmail Web API Send</p>
+                                    <p><strong>Token Status:</strong> Autorefresh Enabled</p>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <div class="mt-6 flex space-x-2 pt-2 border-t border-slate-100">
+                            ${conn.connected ? `
+                                <button onclick="openGoogleGmailModal()" class="w-full py-2 bg-indigo-550 hover:bg-indigo-650 text-white rounded-lg font-bold text-center transition" style="color: #ffffff !important;">Configure Gmail</button>
+                            ` : `
+                                <button onclick="connectExternalGoogle()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-bold text-center transition">Connect Account</button>
+                            `}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        lucide.createIcons();
+    } catch (e) {
+        container.innerHTML = `
+            <div class="max-w-xl mx-auto p-5 text-center text-red-500">
+                Failed to load external apps: ${e.message}
+            </div>
+        `;
+    }
+}
+
+// Global window OAuth flow handlers
+window.connectExternalGoogle = async function() {
+    try {
+        showNotification('info', 'Constructing secure Google auth request URL...');
+        const res = await apiCall('external_apps/auth.php');
+        if (res.status === 'success' && res.auth_url) {
+            window.location.href = res.auth_url;
+        } else {
+            showNotification('error', res.message || 'Failed to construct URL.');
+        }
+    } catch (err) {
+        showNotification('error', 'OAuth URL creation failed: ' + err.message);
+    }
+};
+
+window.disconnectExternalGoogle = async function() {
+    if (!confirm('WARNING: Disconnecting Google will disable live syncing for Calendar, Meet, and Gmail outreach routing. Proceed?')) return;
+    try {
+        const res = await apiCall('external_apps/disconnect.php');
+        showNotification('success', res.message);
+        const viewport = document.getElementById('main-content-viewport');
+        if (viewport) renderExternalApps(viewport);
+    } catch (err) {
+        showNotification('error', err.message);
+    }
+};
+
+// Gmail Outreach modal handler
+window.openGoogleGmailModal = function() {
+    const existing = document.getElementById('gmail-app-modal');
+    if (existing) existing.remove();
+
+    const modalHTML = `
+        <div id="gmail-app-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in text-left">
+            <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+                <!-- Header -->
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="mail" class="h-5 w-5 text-rose-500"></i>
+                        <h3 class="text-sm font-bold text-slate-800">Gmail API outreach composer</h3>
+                    </div>
+                    <button onclick="document.getElementById('gmail-app-modal').remove()" class="h-7 w-7 rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                    </button>
+                </div>
+                
+                <!-- Body -->
+                <form onsubmit="submitGmailAPIAction(event, this)" class="p-6 space-y-4 text-xs">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">To (Recipient Email) *</label>
+                        <input type="email" id="gmail-to" required placeholder="recipient@example.com" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Subject *</label>
+                        <input type="text" id="gmail-subject" required placeholder="Outreach pitch" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Email Body *</label>
+                        <textarea id="gmail-body" required rows="6" placeholder="Hi! Write your pitch message here..." class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500 font-sans"></textarea>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="pt-4 border-t border-slate-100 flex justify-end space-x-2">
+                        <button type="button" onclick="document.getElementById('gmail-app-modal').remove()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 rounded-lg font-bold transition">Cancel</button>
+                        <button type="submit" name="action" value="draft" class="px-4 py-2 bg-slate-800 text-white hover:bg-slate-700 rounded-lg font-bold transition">Save Draft</button>
+                        <button type="submit" name="action" value="send" class="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-lg font-bold transition flex items-center space-x-1" style="color: #ffffff !important;">
+                            <i data-lucide="send" class="h-3.5 w-3.5"></i>
+                            <span>Send Email</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    lucide.createIcons();
+};
+
+window.submitGmailAPIAction = async function(e, form) {
+    e.preventDefault();
+    const action = e.submitter.value; // 'send' or 'draft'
+    const btn = e.submitter;
+    const origHtml = btn.innerHTML;
+    
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin text-white"></i>`;
+    lucide.createIcons();
+
+    const payload = {
+        recipient_email: document.getElementById('gmail-to').value.trim(),
+        subject: document.getElementById('gmail-subject').value.trim(),
+        body: document.getElementById('gmail-body').value.trim()
+    };
+
+    try {
+        const res = await apiCall(`external_apps/gmail.php?action=${action}`, 'POST', payload);
+        if (res.status === 'success') {
+            showNotification('success', res.message);
+            document.getElementById('gmail-app-modal').remove();
+        } else {
+            showNotification('error', res.message);
+        }
+    } catch (err) {
+        showNotification('error', err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+    }
+};
+
+// Calendar Event test modal handler
+window.openGoogleCalendarTestModal = function() {
+    const existing = document.getElementById('calendar-app-modal');
+    if (existing) existing.remove();
+
+    const modalHTML = `
+        <div id="calendar-app-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in text-left">
+            <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+                <!-- Header -->
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="calendar" class="h-5 w-5 text-blue-500"></i>
+                        <h3 class="text-sm font-bold text-slate-800">Schedule Google Calendar Test Event</h3>
+                    </div>
+                    <button onclick="document.getElementById('calendar-app-modal').remove()" class="h-7 w-7 rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                    </button>
+                </div>
+                
+                <!-- Body -->
+                <form onsubmit="submitCalendarTestEvent(event, this)" class="p-6 space-y-4 text-xs">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Event Title *</label>
+                        <input type="text" id="cal-title" required placeholder="Introduction Sync Meeting" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Start Time *</label>
+                            <input type="datetime-local" id="cal-start" required class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">End Time *</label>
+                            <input type="datetime-local" id="cal-end" required class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Location</label>
+                        <input type="text" id="cal-location" placeholder="Google Meet (Auto-generated if left blank)" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Description</label>
+                        <textarea id="cal-desc" rows="3" placeholder="Description details..." class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500 font-sans"></textarea>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="pt-4 border-t border-slate-100 flex justify-end space-x-2">
+                        <button type="button" onclick="document.getElementById('calendar-app-modal').remove()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 rounded-lg font-bold transition">Cancel</button>
+                        <button type="submit" class="px-5 py-2 bg-indigo-655 hover:bg-indigo-600 text-white rounded-lg font-bold transition flex items-center space-x-1.5 shadow-sm" style="color: #ffffff !important;">
+                            <i data-lucide="plus" class="h-4 w-4"></i>
+                            <span>Schedule Event</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // Set default times to today
+    const now = new Date();
+    const start = new Date(now.getTime() + 1800000); // 30-mins later
+    const end = new Date(start.getTime() + 3600000); // 1-hour duration
+
+    const pad = (num) => String(num).padStart(2, '0');
+    const formatLocal = (d) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+
+    document.getElementById('cal-start').value = formatLocal(start);
+    document.getElementById('cal-end').value = formatLocal(end);
+
+    lucide.createIcons();
+};
+
+window.submitCalendarTestEvent = async function(e, form) {
+    e.preventDefault();
+    const btn = form.querySelector('button[type="submit"]');
+    const origHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin text-white"></i>`;
+    lucide.createIcons();
+
+    const payload = {
+        title: document.getElementById('cal-title').value.trim(),
+        start_time: document.getElementById('cal-start').value.replace('T', ' '),
+        end_time: document.getElementById('cal-end').value.replace('T', ' '),
+        location: document.getElementById('cal-location').value.trim() || 'Google Meet',
+        description: document.getElementById('cal-desc').value.trim()
+    };
+
+    try {
+        const res = await apiCall('crm/meetings.php', 'POST', payload);
+        if (res.status === 'success') {
+            showNotification('success', 'Google Calendar Event scheduled successfully. Check your calendar!');
+            document.getElementById('calendar-app-modal').remove();
+        } else {
+            showNotification('error', res.message);
+        }
+    } catch (err) {
+        showNotification('error', err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+    }
+};
+
+// Meet Modal handler
+window.openGoogleMeetTestModal = function() {
+    const existing = document.getElementById('meet-app-modal');
+    if (existing) existing.remove();
+
+    const modalHTML = `
+        <div id="meet-app-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in text-left">
+            <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+                <!-- Header -->
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="video" class="h-5 w-5 text-emerald-500"></i>
+                        <h3 class="text-sm font-bold text-slate-800">Dynamic Google Meet link dispatcher</h3>
+                    </div>
+                    <button onclick="document.getElementById('meet-app-modal').remove()" class="h-7 w-7 rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                    </button>
+                </div>
+                
+                <!-- Body -->
+                <div class="p-6 space-y-4 text-xs">
+                    <p class="text-slate-500 leading-relaxed">Generate Google Meet link via Calendar API immediately, and dispatch it to standard channels.</p>
+                    
+                    <button onclick="generateInstantMeetLink(this)" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-bold transition flex items-center justify-center space-x-1.5" style="color: #ffffff !important;">
+                        <i data-lucide="video" class="h-4 w-4"></i>
+                        <span>Generate Instant Meet Link</span>
+                    </button>
+
+                    <div id="meet-result-box" class="hidden space-y-3.5 pt-4 border-t border-slate-100">
+                        <div class="p-3 bg-slate-50 border border-slate-150 rounded-lg">
+                            <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Meet Join URL</span>
+                            <a id="meet-url-href" href="#" target="_blank" class="text-blue-600 hover:underline font-mono text-[10px] break-all"></a>
+                        </div>
+
+                        <div class="flex space-x-2">
+                            <button onclick="shareMeetViaWhatsApp()" class="flex-1 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold transition flex items-center justify-center space-x-1" style="color: #ffffff !important;">
+                                <i data-lucide="message-square" class="h-3.5 w-3.5"></i>
+                                <span>WhatsApp Link</span>
+                            </button>
+                            <button onclick="shareMeetViaEmail()" class="flex-1 py-2 bg-indigo-500 hover:bg-indigo-650 text-white rounded-lg font-bold transition flex items-center justify-center space-x-1" style="color: #ffffff !important;">
+                                <i data-lucide="mail" class="h-3.5 w-3.5"></i>
+                                <span>Email Link</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    lucide.createIcons();
+};
+
+window.generateInstantMeetLink = async function(btn) {
+    const origHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin text-white"></i>`;
+    lucide.createIcons();
+
+    // Create a temporary 10-minute meeting to generate a meet link
+    const now = new Date();
+    const startStr = now.toISOString().slice(0, 19).replace('T', ' ');
+    const endStr = new Date(now.getTime() + 600000).toISOString().slice(0, 19).replace('T', ' ');
+
+    const payload = {
+        title: "Instant Google Meet Sync Session",
+        start_time: startStr,
+        end_time: endStr,
+        location: "Google Meet",
+        description: "Ad-hoc quick synchronization call."
+    };
+
+    try {
+        const res = await apiCall('crm/meetings.php', 'POST', payload);
+        if (res.status === 'success') {
+            // Retrieve created meeting details to extract meet link
+            const meetingsRes = await apiCall('crm/meetings.php');
+            const created = meetingsRes.meetings.find(m => m.id === res.meeting_id);
+            if (created && created.meet_link) {
+                showNotification('success', 'Google Meet Link generated successfully!');
+                const href = document.getElementById('meet-url-href');
+                href.href = created.meet_link;
+                href.textContent = created.meet_link;
+                document.getElementById('meet-result-box').classList.remove('hidden');
+                
+                // Store globally for sharing triggers
+                window.activeGeneratedMeetUrl = created.meet_link;
+            } else {
+                showNotification('error', 'Meet link was not returned by Google Calendar. Check settings.');
+            }
+        } else {
+            showNotification('error', res.message);
+        }
+    } catch (err) {
+        showNotification('error', err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+        lucide.createIcons();
+    }
+};
+
+window.shareMeetViaWhatsApp = function() {
+    const url = window.activeGeneratedMeetUrl;
+    if (!url) return;
+    const text = encodeURIComponent(`Hello! Please join our video sync meeting using this link: ${url}`);
+    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+};
+
+window.shareMeetViaEmail = function() {
+    const url = window.activeGeneratedMeetUrl;
+    if (!url) return;
+    const subject = encodeURIComponent('Video Meeting Invitation Link');
+    const body = encodeURIComponent(`Hello,\n\nPlease join our synchronization call using the following link: ${url}\n\nBest regards.`);
+    window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+};
+
 });
+

@@ -357,20 +357,20 @@ TODAY'S DATE AND TIME: $currentDate $currentTime (relative offsets like 'tomorro
                             $userPrompt = "Sender Name: $profileName\nMessage: $bodyText";
 
                             $ai = callAI($systemPrompt, $userPrompt, $userId);
-                            $aiRes = json_decode($ai['text'], true);
-                            if ($aiRes) {
-                                $aiSummary = $aiRes['summary'] ?? null;
-                                $aiSuggestedReply = $aiRes['suggested_reply'] ?? null;
+                             $aiRes = json_decode($ai['text'], true);
+                             if ($aiRes) {
+                                 $aiSummary = $aiRes['summary'] ?? null;
+                                 $aiSuggestedReply = $aiRes['suggested_reply'] ?? null;
                                 $sentiment = $aiRes['sentiment'] ?? 'neutral';
                                 
-                                // Auto CRM Lead Creation if name or company extracted
-                                $leadInfo = $aiRes['extracted_lead'] ?? [];
-                                if ($settings['auto_crm_creation'] && (!empty($leadInfo['person_name']) || !empty($leadInfo['company_name']))) {
-                                    $leadName = $leadInfo['person_name'] ?: $profileName;
-                                    $leadCompany = $leadInfo['company_name'] ?? '';
-                                    $leadBudget = (float)($leadInfo['budget'] ?? 0.00);
-                                    $leadServices = $leadInfo['services'] ?? '';
-                                    $leadPriority = $leadInfo['priority'] ?? 'medium';
+                                 // Auto CRM Lead Creation if name or company extracted
+                                 $leadInfo = $aiRes['extracted_lead'] ?? [];
+                                 if ($settings['auto_crm_creation'] && is_array($leadInfo) && (!empty($leadInfo['person_name']) || !empty($leadInfo['company_name']))) {
+                                     $leadName = (!empty($leadInfo['person_name']) && is_string($leadInfo['person_name'])) ? trim($leadInfo['person_name']) : $profileName;
+                                     $leadCompany = (!empty($leadInfo['company_name']) && is_string($leadInfo['company_name'])) ? trim($leadInfo['company_name']) : '';
+                                     $leadBudget = (float)($leadInfo['budget'] ?? 0.00);
+                                     $leadServices = (!empty($leadInfo['services']) && is_string($leadInfo['services'])) ? trim($leadInfo['services']) : '';
+                                     $leadPriority = (!empty($leadInfo['priority']) && is_string($leadInfo['priority'])) ? trim($leadInfo['priority']) : 'medium';
                                     
                                     // Verify if lead exists already
                                     $stmtLeadCheck = $db->prepare("SELECT id FROM crm_leads WHERE (phone = ? OR email = ?) AND user_id = ? LIMIT 1");
@@ -388,7 +388,7 @@ TODAY'S DATE AND TIME: $currentDate $currentTime (relative offsets like 'tomorro
                                 
                                 // Auto CRM Task Creation if task or meeting extracted
                                 $taskInfo = $aiRes['extracted_task'] ?? null;
-                                if ($taskInfo && !empty($taskInfo['title'])) {
+                                if ($taskInfo && is_array($taskInfo) && !empty($taskInfo['title'])) {
                                     $taskTitle = trim($taskInfo['title']);
                                     $taskDesc = trim($taskInfo['description'] ?? '');
                                     $taskCategory = trim($taskInfo['category'] ?? 'General');
@@ -486,8 +486,9 @@ TODAY'S DATE AND TIME: $currentDate $currentTime (relative offsets like 'tomorro
                                     }
                                 }
                             }
-                        } catch (Exception $aiEx) {
+                        } catch (Throwable $aiEx) {
                             // Suppress AI errors to keep webhook delivery successful
+                            WhatsAppMetaService::logDebug("AI parsing error suppressed: " . $aiEx->getMessage());
                         }
                     }
                     

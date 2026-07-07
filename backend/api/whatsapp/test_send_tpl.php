@@ -81,20 +81,7 @@ try {
         ]
     ];
     
-    $isAuth = ($category === 'AUTHENTICATION' || stripos($templateName, 'otp') !== false || stripos($templateName, 'auth') !== false);
-    if ($isAuth) {
-        $components[] = [
-            "type" => "button",
-            "sub_type" => "copy_code",
-            "index" => 0,
-            "parameters" => [
-                [
-                    "type" => "coupon_code",
-                    "coupon_code" => "123456"
-                ]
-            ]
-        ];
-    }
+    $isAuth = false; // Bypass button component parameter injection
     
     echo "Sending payload components: " . json_encode($components) . "\n";
     

@@ -5,6 +5,10 @@ require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../jwt_helper.php';
 require_once __DIR__ . '/../../providers/whatsapp_meta_service.php';
 
+// Log raw request
+@file_put_contents(__DIR__ . '/request_log.txt', "[" . date('Y-m-d H:i:s') . "] REQUEST: METHOD=" . $_SERVER['REQUEST_METHOD'] . " URI=" . $_SERVER['REQUEST_URI'] . " BODY=" . file_get_contents('php://input') . "\n", FILE_APPEND);
+@chmod(__DIR__ . '/request_log.txt', 0777);
+
 $user = JWTHelper::requireAuth();
 $userId = $user['id'];
 $db = Database::getConnection();

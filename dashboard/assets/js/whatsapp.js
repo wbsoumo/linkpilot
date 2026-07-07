@@ -2379,6 +2379,7 @@ function renderWhatsAppTemplates(container) {
             window.useActiveTemplate = function() {
                 if (!selectedTemplate) return;
                 showNotification('info', `Selected template: ${selectedTemplate.name}. Redirecting to Sender Panel...`);
+                localStorage.setItem('wa_send_template_id', selectedTemplate.id);
                 navigateTo('whatsapp-send-template', { templateId: selectedTemplate.id });
             };
             

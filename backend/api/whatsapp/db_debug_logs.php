@@ -4,16 +4,23 @@ header('Content-Type: text/plain');
 
 $logFile = __DIR__ . '/whatsapp_debug.log';
 if (file_exists($logFile)) {
-    $content = file_get_contents($logFile);
-    $lines = explode("\n", $content);
-    $filtered = [];
-    foreach ($lines as $line) {
-        if (strpos($line, '919593501403') !== false || strpos($line, '23:54') !== false || strpos($line, '23:55') !== false || strpos($line, '23:50') !== false) {
-            $filtered[] = $line;
+    $f = fopen($logFile, 'r');
+    if ($f) {
+        $filtered = [];
+        while (($line = fgets($f)) !== false) {
+            if (strpos($line, '919593501403') !== false || strpos($line, '23:54') !== false || strpos($line, '23:55') !== false || strpos($line, '23:50') !== false) {
+                $filtered[] = $line;
+                if (count($filtered) > 100) {
+                    array_shift($filtered);
+                }
+            }
         }
+        fclose($f);
+        echo "=== FILTERED WHATSAPP DEBUG LOG ===\n";
+        print_r($filtered);
+    } else {
+        echo "Could not open log file.\n";
     }
-    echo "=== FILTERED WHATSAPP DEBUG LOG ===\n";
-    print_r(array_slice($filtered, -30));
 } else {
     echo "Log file not found.\n";
 }

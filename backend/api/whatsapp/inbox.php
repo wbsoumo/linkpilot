@@ -371,9 +371,15 @@ try {
         $userPrompt = "Chat logs history:\n$chatLog\nDraft response for You:";
         
         try {
+            // Write input debug log
+            file_put_contents(__DIR__ . '/../../ai_debug.log', "[" . date('Y-m-d H:i:s') . "] INPUTS: systemPrompt=[$systemPrompt], userPrompt=[$userPrompt], userId=[$userId]\n", FILE_APPEND);
+
             $ai = callAI($systemPrompt, $userPrompt, $userId);
-            $aiReplyText = $ai['text'];
+            $aiReplyText = $ai['text'] ?? '';
             
+            // Write output debug log
+            file_put_contents(__DIR__ . '/../../ai_debug.log', "[" . date('Y-m-d H:i:s') . "] OUTPUTS: text=[$aiReplyText], raw=" . print_r($ai, true) . "\n", FILE_APPEND);
+
             // Save the suggestion in the last inbound message log
             $db->prepare("
                 UPDATE whatsapp_messages 
@@ -386,6 +392,7 @@ try {
                 'suggested_reply' => $aiReplyText
             ]);
         } catch (Exception $aiEx) {
+            file_put_contents(__DIR__ . '/../../ai_debug.log', "[" . date('Y-m-d H:i:s') . "] EXCEPTION: " . $aiEx->getMessage() . "\n", FILE_APPEND);
             sendJsonResponse('error', 'AI suggested reply generation failed: ' . $aiEx->getMessage(), [], 500);
         }
     }

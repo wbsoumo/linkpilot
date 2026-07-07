@@ -11227,7 +11227,8 @@ window.triggerGenerateMeetLinkForTask = async function(taskId) {
         const res = await apiCall('crm/tasks.php?action=generate_meet', 'POST', { id: taskId });
         if (res.status === 'success') {
             showNotification('success', 'Google Meet link generated successfully!');
-            loadTasksHub();
+            const viewport = document.getElementById('main-content-viewport');
+            if (viewport) renderTasks(viewport);
         } else {
             showNotification('error', res.message || 'Failed to generate Meet link.');
         }
@@ -11252,7 +11253,8 @@ window.generateMeetLinkForTaskInModal = async function(taskId) {
         if (res.status === 'success' && res.meet_link) {
             showNotification('success', 'Google Meet link generated successfully!');
             container.innerHTML = `<a href="${res.meet_link}" target="_blank" class="text-indigo-600 hover:text-indigo-800 underline break-all">${res.meet_link}</a>`;
-            loadTasksHub();
+            const viewport = document.getElementById('main-content-viewport');
+            if (viewport) renderTasks(viewport);
         } else {
             showNotification('error', res.message || 'Failed to generate link. Make sure Google Calendar is connected.');
             container.innerHTML = origHtml;

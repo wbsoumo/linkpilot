@@ -3515,7 +3515,7 @@ window.renderWhatsAppSendTemplate = function(container, params = {}) {
                 for (let i = 0; i < recipients.length; i++) {
                     const recipient = recipients[i];
                     try {
-                        await apiCall('whatsapp/inbox.php?action=send', 'POST', {
+                        await apiCall('whatsapp/inbox.php', 'POST', {
                             recipient: recipient,
                             type: 'template',
                             template_name: selectedTemplate.name,

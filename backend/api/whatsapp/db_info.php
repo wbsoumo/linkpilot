@@ -1,17 +1,18 @@
 <?php
 require_once __DIR__ . '/../../config.php';
-header('Content-Type: text/plain');
+header('Content-Type: application/json');
 
+$output = [];
 try {
     $db = Database::getConnection();
 
-    echo "=== WHATSAPP SETTINGS ===\n";
     $settings = $db->query("SELECT * FROM whatsapp_settings")->fetchAll(PDO::FETCH_ASSOC);
-    print_r($settings);
+    $output['settings'] = $settings;
 
-    echo "\n=== LAST 5 MESSAGES ===\n";
     $msgs = $db->query("SELECT id, wa_contact_id, direction, body, status, error_message, created_at FROM whatsapp_messages ORDER BY id DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
-    print_r($msgs);
+    $output['messages'] = $msgs;
 } catch (Throwable $e) {
-    echo "ERROR: " . $e->getMessage() . "\n" . $e->getTraceAsString();
+    $output['error'] = $e->getMessage() . "\n" . $e->getTraceAsString();
 }
+
+echo json_encode($output, JSON_PRETTY_PRINT);

@@ -1217,6 +1217,27 @@ async function loadWaThreads(search = '') {
         container.innerHTML = threads.map(t => {
             const isActive = (t.id == activeWaThreadId);
             const displayTime = t.last_message_at ? new Date(t.last_message_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+            
+            let lastMsgText = '';
+            if (t.last_message_body) {
+                if (t.last_message_type === 'image') {
+                    lastMsgText = '📷 Photo';
+                } else if (t.last_message_type === 'video') {
+                    lastMsgText = '🎥 Video';
+                } else if (t.last_message_type === 'audio') {
+                    lastMsgText = '🎵 Audio';
+                } else if (t.last_message_type === 'document') {
+                    lastMsgText = '📄 Document';
+                } else {
+                    lastMsgText = t.last_message_body;
+                }
+            } else {
+                lastMsgText = '+' + t.wa_id;
+            }
+
+            const unreadBadge = (t.unread_count > 0 && !isActive) ? 
+                `<span id="wa-unread-badge-${t.id}" class="bg-emerald-500 text-white text-[9px] font-bold h-4.5 w-4.5 rounded-full flex items-center justify-center shrink-0 shadow-sm">${t.unread_count}</span>` : '';
+
             return `
                 <div onclick="selectWaThread(${t.id})" class="p-3 flex items-start justify-between cursor-pointer transition ${isActive ? 'bg-blue-50/80 border-l-4 border-blue-500' : 'bg-white hover:bg-slate-50'}">
                     <div class="flex items-start space-x-2.5 truncate">
@@ -1225,12 +1246,12 @@ async function loadWaThreads(search = '') {
                         </div>
                         <div class="truncate">
                             <div class="font-bold text-slate-700">${t.profile_name}</div>
-                            <div class="text-[10px] text-slate-400 truncate mt-0.5">+${t.wa_id}</div>
+                            <div class="text-[10px] text-slate-400 truncate mt-0.5">${lastMsgText}</div>
                         </div>
                     </div>
                     <div class="flex flex-col items-end shrink-0 space-y-1">
                         <span class="text-[9px] text-slate-400">${displayTime}</span>
-                        ${t.unread_count > 0 ? `<span class="bg-blue-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">${t.unread_count}</span>` : ''}
+                        ${unreadBadge}
                     </div>
                 </div>
             `;
@@ -1244,6 +1265,10 @@ async function loadWaThreads(search = '') {
 // Select WhatsApp Thread
 window.selectWaThread = function(threadId) {
     activeWaThreadId = threadId;
+    
+    // Hide unread badge green dot instantly for snappy feel
+    const badge = document.getElementById(`wa-unread-badge-${threadId}`);
+    if (badge) badge.classList.add('hidden');
     
     // Highlight list selection
     loadWaThreads();

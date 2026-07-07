@@ -127,19 +127,23 @@ try {
             $search = trim($_GET['search'] ?? '');
             $tag = trim($_GET['tag'] ?? '');
             
-            $sql = "SELECT * FROM whatsapp_contacts WHERE user_id = :user_id";
+            $sql = "SELECT c.*, 
+                           (SELECT body FROM whatsapp_messages WHERE wa_contact_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message_body,
+                           (SELECT type FROM whatsapp_messages WHERE wa_contact_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message_type
+                    FROM whatsapp_contacts c 
+                    WHERE c.user_id = :user_id";
             $params = ['user_id' => $userId];
             
             if ($search !== '') {
-                $sql .= " AND (profile_name LIKE :search OR wa_id LIKE :search)";
+                $sql .= " AND (c.profile_name LIKE :search OR c.wa_id LIKE :search)";
                 $params['search'] = "%{$search}%";
             }
             if ($tag !== '') {
-                $sql .= " AND tags LIKE :tag";
+                $sql .= " AND c.tags LIKE :tag";
                 $params['tag'] = "%{$tag}%";
             }
             
-            $sql .= " ORDER BY last_message_at DESC";
+            $sql .= " ORDER BY c.last_message_at DESC";
             
             $stmt = $db->prepare($sql);
             $stmt->execute($params);

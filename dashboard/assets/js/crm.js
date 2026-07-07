@@ -9747,7 +9747,7 @@ async function renderExternalApps(container) {
                         <div>
                             <div class="flex justify-between items-start">
                                 <div class="h-12 w-12 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-center p-2.5 shrink-0">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Google_Meet_icon_%282020%29.svg" class="h-full w-full object-contain" alt="Google Meet">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Google_Meet_icon_%282020%29.svg/960px-Google_Meet_icon_%282020%29.svg.png" class="h-full w-full object-contain" alt="Google Meet">
                                 </div>
                                 ${statusBadge}
                             </div>

@@ -1,20 +1,18 @@
 <?php
 require_once __DIR__ . '/../../config.php';
-header('Content-Type: text/plain');
+header('Content-Type: application/json');
 
-$logFile = __DIR__ . '/whatsapp_debug.log';
-if (file_exists($logFile)) {
-    $content = file_get_contents($logFile);
-    // Find all lines containing "919593501403" or "23:54" or "23:55"
-    $lines = explode("\n", $content);
-    $filtered = [];
-    foreach ($lines as $line) {
-        if (strpos($line, '919593501403') !== false || strpos($line, '23:54') !== false || strpos($line, '23:55') !== false || strpos($line, '23:50') !== false) {
-            $filtered[] = $line;
-        }
-    }
-    echo "=== FILTERED WHATSAPP DEBUG LOG ===\n";
-    print_r(array_slice($filtered, -20));
-} else {
-    echo "Log file not found.\n";
+$output = [];
+try {
+    $db = Database::getConnection();
+    $user = $db->query("SELECT id, name, email, active_ai_provider, active_ai_model, 
+                               (github_key IS NOT NULL AND github_key != '') as has_github_key,
+                               (google_key IS NOT NULL AND google_key != '') as has_google_key,
+                               (openrouter_key IS NOT NULL AND openrouter_key != '') as has_openrouter_key
+                        FROM users WHERE id = 1")->fetch(PDO::FETCH_ASSOC);
+    $output['user'] = $user;
+} catch (Throwable $e) {
+    $output['error'] = $e->getMessage();
 }
+
+echo json_encode($output, JSON_PRETTY_PRINT);

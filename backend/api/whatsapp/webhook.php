@@ -299,10 +299,11 @@ CRITICAL IDENTITY & CONVERSATIONAL RULES:
 6. If you need to schedule a meeting, check the meetings/availability list below. Propose slot options that do not conflict with existing meetings.
 7. If you do not have enough information to close a deal or answer a technical question, ask polite clarifying questions.
 8. CRITICAL MEETING SCHEDULING FLOW:
-   - If the customer mentions scheduling a meeting, call, or appointment:
+   - If the customer mentions scheduling a meeting, call, or appointment, OR is currently replying to your scheduling request with a datetime or their Gmail/email address:
+      - Even if the latest message is just their email address (e.g. 'myemail@gmail.com') or a date/time, you MUST treat this as part of the ongoing scheduling flow and extract the task info.
       - Check the conversation history to see if a date and time are finalized. If not, set 'meeting_flow_stage' to 'ask_datetime' and ask them to select a date and time in your 'suggested_reply'.
       - If a date and time are finalized but we do not have their Gmail/email address, set 'meeting_flow_stage' to 'ask_gmail' and ask them to provide their Gmail address in your 'suggested_reply' so you can send them a calendar invite.
-      - If both date/time and Gmail are provided, set 'meeting_flow_stage' to 'finalize' (and specify the finalized due_date, due_time, and contact_gmail).
+      - If both date/time and Gmail are provided (either in the latest message or context history), set 'meeting_flow_stage' to 'finalize' (and specify the finalized due_date, due_time, and contact_gmail).
       - If they refuse or cannot provide an email, set 'meeting_flow_stage' to 'finalize' and do not ask again.
 9. You MUST return your response as a valid, parsable JSON block with the following keys, and nothing else (no extra markdown blocks outside JSON):
 {
@@ -436,29 +437,37 @@ TODAY'S DATE AND TIME: $currentDate $currentTime (relative offsets like 'tomorro
                                             error_log("Google Meet generation via AI autopilot failed: " . $meetEx->getMessage());
                                         }
 
-                                        // Send calendar invite email if gmail is provided
-                                        if ($contactGmail && $meetLink) {
+                                        // Send calendar invite email if gmail is provided (even if meetLink is null)
+                                        if ($contactGmail) {
                                             try {
-                                                ExternalAppsHelper::sendTaskMeetingInviteEmail($userId, $newTaskId, $meetLink, $contactGmail);
+                                                ExternalAppsHelper::sendTaskMeetingInviteEmail($userId, $newTaskId, $meetLink ?: '', $contactGmail);
                                             } catch (Exception $emailEx) {
                                                 error_log("Auto calendar email invite failed: " . $emailEx->getMessage());
                                             }
                                         }
 
-                                        // Append Meet link and timing details to the AI's suggested reply
+                                        // Format timing
                                         $timingFormatted = date('jS F Y', strtotime($taskDueDate)) . ' at ' . ($taskDueTime ? substr($taskDueTime, 0, 5) : '09:00');
-                                        if ($meetLink) {
-                                            $aiSuggestedReply .= "\n\nI have scheduled our meeting for " . $timingFormatted . ".\nHere is the Google Meet link to join: " . $meetLink;
-                                            if ($contactGmail) {
-                                                $aiSuggestedReply .= "\n\nI've also sent the calendar invitation to your email (" . $contactGmail . ") with the event attachment. See you then!";
-                                            }
-                                        } else {
-                                            $aiSuggestedReply .= "\n\nI have scheduled our meeting for " . $timingFormatted . ". I will send you the meeting details shortly!";
+                                        
+                                        // Build custom response update with timing, agenda and meet link
+                                        $additionalText = "\n\n📅 *Meeting Scheduled Details*:\n";
+                                        $additionalText .= "• *Subject*: " . str_replace('[Meeting] ', '', $taskTitle) . "\n";
+                                        $additionalText .= "• *Time*: " . $timingFormatted . "\n";
+                                        if (!empty($taskDesc)) {
+                                            $additionalText .= "• *Agenda*: " . $taskDesc . "\n";
                                         }
+                                        if ($meetLink) {
+                                            $additionalText .= "• *Google Meet Link*: " . $meetLink . "\n";
+                                        }
+                                        if ($contactGmail) {
+                                            $additionalText .= "\nI have sent a calendar invitation email to your email: *" . $contactGmail . "* containing the invite attachment. Looking forward to our call!";
+                                        }
+                                        
+                                        $aiSuggestedReply .= $additionalText;
                                         
                                         // Log to timeline
                                         $db->prepare("INSERT INTO crm_timeline (user_id, lead_id, contact_id, company_id, activity_type, description) VALUES (?, ?, ?, ?, 'Task Created', ?)")
-                                           ->execute([$userId, $leadId, $crmContactId, $companyId, "Meeting task '$taskTitle' was automatically scheduled and Google Meet link generated via WhatsApp AI agent."]);
+                                           ->execute([$userId, $leadId, $crmContactId, $companyId, "Meeting task '$taskTitle' was automatically scheduled and invite sent via WhatsApp AI agent."]);
                                     } else {
                                         // Standard task creation (for non-meeting tasks or general follow-ups)
                                         if ($taskCategory !== 'Meeting' && strpos($taskTitle, '[Meeting]') === false) {

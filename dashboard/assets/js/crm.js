@@ -9716,8 +9716,8 @@ async function renderExternalApps(container) {
                     <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl flex flex-col justify-between hover:shadow-md transition">
                         <div>
                             <div class="flex justify-between items-start">
-                                <div class="h-12 w-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
-                                    <i data-lucide="calendar" class="h-6 w-6"></i>
+                                <div class="h-12 w-12 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-center p-2.5 shrink-0">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" class="h-full w-full object-contain" alt="Google Calendar">
                                 </div>
                                 ${statusBadge}
                             </div>
@@ -9746,8 +9746,8 @@ async function renderExternalApps(container) {
                     <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl flex flex-col justify-between hover:shadow-md transition">
                         <div>
                             <div class="flex justify-between items-start">
-                                <div class="h-12 w-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
-                                    <i data-lucide="video" class="h-6 w-6"></i>
+                                <div class="h-12 w-12 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-center p-2.5 shrink-0">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Google_Meet_icon_%282020%29.svg" class="h-full w-full object-contain" alt="Google Meet">
                                 </div>
                                 ${statusBadge}
                             </div>
@@ -9775,8 +9775,8 @@ async function renderExternalApps(container) {
                     <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl flex flex-col justify-between hover:shadow-md transition">
                         <div>
                             <div class="flex justify-between items-start">
-                                <div class="h-12 w-12 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
-                                    <i data-lucide="mail" class="h-6 w-6"></i>
+                                <div class="h-12 w-12 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-center p-2.5 shrink-0">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg" class="h-full w-full object-contain" alt="Gmail">
                                 </div>
                                 ${statusBadge}
                             </div>

@@ -593,19 +593,25 @@ nav.glass-panel .sidebar-nav-link.active * {
    SIDEBAR ICONS & TEXT VISIBILITY OVERRIDES
    ========================================== */
 aside a.sidebar-nav-link,
-aside a.sidebar-nav-link * {
+aside button.sidebar-nav-link,
+aside a.sidebar-nav-link *,
+aside button.sidebar-nav-link * {
     color: #94a3b8 !important;
     stroke: #94a3b8 !important;
 }
 
 aside a.sidebar-nav-link:hover,
-aside a.sidebar-nav-link:hover * {
+aside button.sidebar-nav-link:hover,
+aside a.sidebar-nav-link:hover *,
+aside button.sidebar-nav-link:hover * {
     color: #ffffff !important;
     stroke: #ffffff !important;
 }
 
 aside a.sidebar-nav-link.active,
-aside a.sidebar-nav-link.active * {
+aside button.sidebar-nav-link.active,
+aside a.sidebar-nav-link.active *,
+aside button.sidebar-nav-link.active * {
     background-color: #2563eb !important;
     color: #ffffff !important;
     stroke: #ffffff !important;

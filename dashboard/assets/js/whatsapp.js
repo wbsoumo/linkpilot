@@ -1895,50 +1895,438 @@ function renderWhatsAppTemplates(container) {
     checkWaConnectionAndRender('templates', container, async (contentArea) => {
         try {
             const res = await apiCall('whatsapp/templates.php');
-            const list = res.templates || [];
+            const allTemplates = res.templates || [];
+            
+            let searchQuery = '';
+            let categoryFilter = 'ALL';
+            let currentPage = 1;
+            const itemsPerPage = 6;
+            let selectedTemplate = allTemplates.length > 0 ? allTemplates[0] : null;
             
             contentArea.innerHTML = `
                 <div class="space-y-6">
-                    <div class="flex items-center justify-between border-b border-slate-200 pb-4 bg-white p-5 rounded-2xl shadow-sm">
+                    <div class="flex items-center justify-between border-b border-slate-200 pb-4 bg-white p-5 rounded-2xl shadow-sm animate-fade-in">
                         <div>
                             <h2 class="text-sm font-bold text-slate-800">Approved Meta Message Templates</h2>
-                            <p class="text-[11px] text-slate-400 mt-0.5">Approved templates synced from your Facebook WABA console.</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Templates synced from your Facebook WABA console</p>
                         </div>
-                        <button onclick="triggerTemplatesSync()" id="sync-tpl-btn" class="flex items-center space-x-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition">
+                        <button onclick="triggerTemplatesSync()" id="sync-tpl-btn" class="flex items-center space-x-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition shadow-sm">
                             <i data-lucide="refresh-cw" class="h-4 w-4"></i>
                             <span>Sync Templates</span>
                         </button>
                     </div>
 
-                    <!-- Grid list -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="templates-grid-list">
-                        ${list.length > 0 ? list.map(t => {
-                            const components = JSON.parse(t.components_json) || [];
-                            const bodyComponent = components.find(c => c.type === 'BODY') || {};
-                            const bodyText = bodyComponent.text || 'No text components.';
-                            return `
-                                <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[160px]">
-                                    <div class="space-y-3">
-                                        <div class="flex justify-between items-start">
-                                            <span class="font-extrabold text-slate-800 text-[11px] truncate max-w-[150px]" title="${t.name}">${t.name}</span>
-                                            <span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">${t.status}</span>
+                    <!-- Three Columns Layout -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        <!-- Column 1: Templates List (lg:col-span-5) -->
+                        <div class="lg:col-span-5 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col space-y-4">
+                            <!-- Search and Filter controls -->
+                            <div class="flex items-center space-x-2">
+                                <div class="relative flex-grow">
+                                    <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
+                                        <i data-lucide="search" class="h-3.5 w-3.5"></i>
+                                    </span>
+                                    <input type="text" id="tpl-search-input" placeholder="Search templates..." class="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500 bg-[#f8fafc]">
+                                </div>
+                                <button class="px-2.5 py-1.5 border border-slate-200 rounded-lg bg-white hover:bg-slate-50 text-slate-600 text-[11px] font-bold flex items-center space-x-1 transition shadow-sm">
+                                    <i data-lucide="sliders-horizontal" class="h-3.5 w-3.5"></i>
+                                    <span>Filters</span>
+                                </button>
+                                <select id="tpl-category-filter" class="px-2.5 py-1.5 border border-slate-200 rounded-lg bg-white text-slate-600 text-[11px] font-bold focus:outline-none shadow-sm">
+                                    <option value="ALL">All Categories</option>
+                                    <option value="MARKETING">Marketing</option>
+                                    <option value="UTILITY">Utility</option>
+                                    <option value="AUTHENTICATION">Authentication</option>
+                                </select>
+                            </div>
+
+                            <!-- Templates scrollable container -->
+                            <div class="space-y-3 max-h-[550px] overflow-y-auto pr-1" id="templates-list-scrollable">
+                                <!-- list items will be injected here dynamically -->
+                            </div>
+                            
+                            <!-- Pagination indicator -->
+                            <div class="flex justify-between items-center border-t border-slate-100 pt-3 text-[10px] text-slate-400 font-semibold" id="tpl-pagination-bar">
+                                <!-- pagination control -->
+                            </div>
+                        </div>
+
+                        <!-- Column 2: Template Preview (lg:col-span-4) -->
+                        <div class="lg:col-span-4 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col items-center">
+                            <h3 class="font-bold text-slate-800 text-xs self-start mb-4">Template Preview</h3>
+                            
+                            <!-- Mobile Phone Frame Mockup -->
+                            <div class="w-full max-w-[280px] bg-slate-900 rounded-[36px] p-2.5 shadow-2xl border-4 border-slate-800/80 relative">
+                                <!-- Speaker/camera notch -->
+                                <div class="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-4 bg-slate-900 rounded-full z-20 flex items-center justify-center space-x-1.5">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-slate-850"></div>
+                                    <div class="w-8 h-1 rounded-full bg-slate-850"></div>
+                                </div>
+
+                                <!-- Screen Container -->
+                                <div class="w-full bg-[#efeae2] rounded-[28px] overflow-hidden flex flex-col aspect-[9/16] relative border border-slate-800 select-none">
+                                    <!-- Mock WhatsApp Header -->
+                                    <div class="bg-[#075e54] text-white px-3 pt-6 pb-2.5 flex items-center justify-between shadow-sm shrink-0">
+                                        <div class="flex items-center space-x-1.5">
+                                            <i data-lucide="arrow-left" class="h-4 w-4 text-white hover:opacity-80 cursor-pointer"></i>
+                                            <div class="h-7 w-7 rounded-full bg-white/20 flex items-center justify-center overflow-hidden shrink-0 border border-white/10">
+                                                <img src="assets/img/WhatsApp_icon.png" class="h-4.5 w-4.5 object-contain" alt="">
+                                            </div>
+                                            <div>
+                                                <div class="text-[10px] font-bold flex items-center space-x-0.5">
+                                                    <span>Taskbazi</span>
+                                                    <!-- Verified Checkmark -->
+                                                    <svg class="h-3 w-3 text-emerald-400 fill-current" viewBox="0 0 24 24">
+                                                        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="text-[7px] text-white/80 leading-none">Business Account</div>
+                                            </div>
                                         </div>
-                                        <p class="text-[10px] text-slate-500 leading-relaxed max-h-24 overflow-y-auto bg-slate-50 p-2 rounded-lg font-mono">
-                                            ${bodyText}
-                                        </p>
+                                        <div class="flex items-center space-x-2 text-white/90">
+                                            <i data-lucide="video" class="h-3.5 w-3.5"></i>
+                                            <i data-lucide="phone" class="h-3.5 w-3.5"></i>
+                                            <i data-lucide="more-vertical" class="h-3.5 w-3.5"></i>
+                                        </div>
                                     </div>
-                                    <div class="flex justify-between items-center mt-4 pt-2 border-t border-slate-100 text-[10px] text-slate-400">
-                                        <span>Category: ${t.category}</span>
-                                        <span>Lang: ${t.language}</span>
+
+                                    <!-- Mock Chat Feed Wallpaper area -->
+                                    <div class="flex-grow p-3 flex flex-col justify-start space-y-3 overflow-y-auto" style="background-image: url('backend/api/whatsapp/chatbg.jpg'); background-size: cover; background-blend-mode: overlay; background-color: rgba(239, 234, 226, 0.94);">
+                                        <!-- Today Date stamp -->
+                                        <div class="self-center bg-white/85 text-slate-500 font-semibold px-2 py-0.5 rounded text-[8px] uppercase tracking-wider shadow-sm select-none">
+                                            Today
+                                        </div>
+
+                                        <!-- WhatsApp Bubble Container -->
+                                        <div class="self-start max-w-[85%] bg-white rounded-2xl rounded-tl-none p-2.5 shadow-sm border border-slate-100 flex flex-col relative">
+                                            <!-- Bubble Content -->
+                                            <div class="text-[9.5px] text-slate-800 leading-relaxed font-sans whitespace-pre-wrap" id="mock-bubble-text">
+                                                <!-- Body template text will be filled here dynamically -->
+                                            </div>
+                                            <!-- Message time indicator -->
+                                            <span class="text-[7px] text-slate-400 self-end mt-1 flex items-center space-x-0.5">
+                                                <span>11:30 AM</span>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Mock WhatsApp Footer bar -->
+                                    <div class="p-1.5 bg-[#f0f0f0] border-t border-slate-200/80 flex items-center space-x-1.5 shrink-0 select-none">
+                                        <div class="flex-grow bg-white rounded-full px-2.5 py-1 flex items-center space-x-1.5 shadow-sm">
+                                            <i data-lucide="smile" class="h-3.5 w-3.5 text-slate-400"></i>
+                                            <span class="text-[9px] text-slate-400 flex-grow">Type a message</span>
+                                            <i data-lucide="paperclip" class="h-3.5 w-3.5 text-slate-400"></i>
+                                            <i data-lucide="camera" class="h-3.5 w-3.5 text-slate-400"></i>
+                                        </div>
+                                        <div class="h-6.5 w-6.5 rounded-full bg-[#075e54] text-white flex items-center justify-center shadow">
+                                            <i data-lucide="mic" class="h-3.5 w-3.5"></i>
+                                        </div>
                                     </div>
                                 </div>
-                            `;
-                        }).join('') : '<div class="md:col-span-3 text-center py-20 text-slate-400">No message templates loaded. Click sync to retrieve templates.</div>'}
+                            </div>
+                            
+                            <p class="text-[10px] text-slate-400 font-semibold mt-4 flex items-center space-x-1 justify-center">
+                                <i data-lucide="info" class="h-3.5 w-3.5 text-slate-400"></i>
+                                <span>This is how the template will appear in WhatsApp chat.</span>
+                            </p>
+                        </div>
+
+                        <!-- Column 3: Template Details (lg:col-span-3) -->
+                        <div class="lg:col-span-3 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col space-y-4" id="template-details-panel">
+                            <!-- details will be injected here dynamically -->
+                        </div>
                     </div>
                 </div>
             `;
-            lucide.createIcons();
             
+            // Core Render function for templates list, detail view & preview
+            function renderAllTplViews() {
+                const listScrollable = document.getElementById('templates-list-scrollable');
+                const paginationBar = document.getElementById('tpl-pagination-bar');
+                
+                if (!listScrollable) return;
+                
+                // 1. Filter
+                const filtered = allTemplates.filter(t => {
+                    const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase());
+                    const matchesCat = (categoryFilter === 'ALL' || t.category === categoryFilter);
+                    return matchesSearch && matchesCat;
+                });
+                
+                // 2. Pagination
+                const totalItems = filtered.length;
+                const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+                if (currentPage > totalPages) currentPage = totalPages;
+                
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+                const paginated = filtered.slice(startIndex, endIndex);
+                
+                // Inject List HTML
+                if (paginated.length === 0) {
+                    listScrollable.innerHTML = `<div class="text-center py-10 text-slate-400 text-[11px]">No message templates found.</div>`;
+                } else {
+                    listScrollable.innerHTML = paginated.map(t => {
+                        const components = JSON.parse(t.components_json) || [];
+                        const bodyComp = components.find(c => c.type === 'BODY') || {};
+                        const bodyPreview = bodyComp.text || '';
+                        const isSelected = selectedTemplate && selectedTemplate.id === t.id;
+                        
+                        return `
+                            <div onclick="selectActiveTemplate(${t.id})" class="p-3.5 rounded-xl border transition cursor-pointer flex justify-between items-center ${isSelected ? 'border-blue-500 bg-blue-50/20 shadow-sm' : 'border-slate-100 hover:border-slate-200 bg-white'}">
+                                <div class="space-y-1.5 flex-grow truncate mr-2">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="font-bold text-slate-800 text-[11px] truncate max-w-[170px]" title="${t.name}">${t.name}</span>
+                                        <span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100/50 uppercase">${t.status}</span>
+                                    </div>
+                                    <p class="text-[10px] text-slate-400 truncate max-w-[280px]">${bodyPreview}</p>
+                                    <div class="text-[8px] text-slate-400 font-bold uppercase tracking-wider">
+                                        ${t.category} &bull; ${t.language}
+                                    </div>
+                                </div>
+                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 shrink-0"></i>
+                            </div>
+                        `;
+                    }).join('');
+                }
+                
+                // Inject Pagination HTML
+                paginationBar.innerHTML = `
+                    <span>Showing ${totalItems === 0 ? 0 : startIndex + 1} to ${endIndex} of ${totalItems} templates</span>
+                    <div class="flex items-center space-x-1">
+                        <button onclick="setTplPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} class="p-1 border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-40 transition">
+                            <i data-lucide="chevron-left" class="h-3 w-3"></i>
+                        </button>
+                        ${Array.from({ length: totalPages }).map((_, i) => {
+                            const pageNum = i + 1;
+                            return `
+                                <button onclick="setTplPage(${pageNum})" class="px-2 py-0.5 rounded border text-[10px] transition ${currentPage === pageNum ? 'bg-blue-600 text-white border-blue-600 font-bold' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}">
+                                    ${pageNum}
+                                </button>
+                            `;
+                        }).join('')}
+                        <button onclick="setTplPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} class="p-1 border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-40 transition">
+                            <i data-lucide="chevron-right" class="h-3 w-3"></i>
+                        </button>
+                    </div>
+                `;
+                
+                // 3. Render Details & Preview Bubble
+                renderDetailsPanel();
+                lucide.createIcons();
+            }
+            
+            // Helper to render preview details panel on the right
+            function renderDetailsPanel() {
+                const detailsPanel = document.getElementById('template-details-panel');
+                if (!detailsPanel) return;
+                
+                if (!selectedTemplate) {
+                    detailsPanel.innerHTML = `<div class="text-center py-20 text-slate-400">Select a template to view details.</div>`;
+                    document.getElementById('mock-bubble-text').textContent = 'No template selected.';
+                    return;
+                }
+                
+                const components = JSON.parse(selectedTemplate.components_json) || [];
+                const headerComp = components.find(c => c.type === 'HEADER') || null;
+                const bodyComp = components.find(c => c.type === 'BODY') || null;
+                const footerComp = components.find(c => c.type === 'FOOTER') || null;
+                const buttonsComp = components.find(c => c.type === 'BUTTONS') || null;
+                
+                const headerVal = headerComp ? (headerComp.format || 'Text') : 'None';
+                
+                // Match placeholders like {{1}}, {{2}}
+                const fullText = (headerComp?.text || '') + ' ' + (bodyComp?.text || '');
+                const varsFound = [...new Set(fullText.match(/{{[0-9]+}}/g) || [])].sort((a, b) => {
+                    const numA = parseInt(a.replace(/[{}]/g, ''));
+                    const numB = parseInt(b.replace(/[{}]/g, ''));
+                    return numA - numB;
+                });
+                
+                const varsCountText = varsFound.length > 0 ? `${varsFound.length} variable${varsFound.length > 1 ? 's' : ''}` : 'None';
+                const footerVal = footerComp ? '1 line' : 'None';
+                const buttonsCountText = buttonsComp ? `${buttonsComp.buttons.length} button${buttonsComp.buttons.length > 1 ? 's' : ''}` : 'None';
+                
+                detailsPanel.innerHTML = `
+                    <h3 class="font-bold text-slate-800 text-xs border-b border-slate-100 pb-2">Template Details</h3>
+                    
+                    <div class="space-y-3.5 text-[11px]">
+                        <!-- Template Name -->
+                        <div>
+                            <div class="text-slate-400 font-semibold mb-1">Template Name</div>
+                            <div class="flex items-center justify-between p-2 bg-slate-50 border border-slate-100 rounded-lg">
+                                <span class="font-bold text-slate-700 truncate max-w-[170px]">${selectedTemplate.name}</span>
+                                <button onclick="navigator.clipboard.writeText('${selectedTemplate.name}'); showNotification('success', 'Template name copied!')" class="text-slate-400 hover:text-slate-600" title="Copy Template Name">
+                                    <i data-lucide="copy" class="h-3.5 w-3.5"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Category -->
+                        <div>
+                            <div class="text-slate-400 font-semibold mb-1">Category</div>
+                            <div class="flex items-center justify-between p-2 bg-slate-50 border border-slate-100 rounded-lg">
+                                <span class="font-bold text-slate-700 uppercase">${selectedTemplate.category}</span>
+                                <button onclick="navigator.clipboard.writeText('${selectedTemplate.category}'); showNotification('success', 'Category copied!')" class="text-slate-400 hover:text-slate-600" title="Copy Category">
+                                    <i data-lucide="copy" class="h-3.5 w-3.5"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Language -->
+                        <div class="flex justify-between border-b border-slate-100 pb-2.5">
+                            <span class="text-slate-400 font-semibold">Language</span>
+                            <span class="text-slate-700 font-bold">${selectedTemplate.language}</span>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="flex justify-between border-b border-slate-100 pb-2.5">
+                            <span class="text-slate-400 font-semibold">Status</span>
+                            <span class="px-2 py-0.5 text-[9px] font-bold rounded uppercase bg-emerald-50 text-emerald-700 border border-emerald-150 flex items-center space-x-1">
+                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span>${selectedTemplate.status}</span>
+                            </span>
+                        </div>
+
+                        <!-- Components Breakdown -->
+                        <div class="space-y-2 pt-1">
+                            <div class="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Components</div>
+                            
+                            <div class="flex justify-between items-center text-[10px]">
+                                <span class="text-slate-500 font-medium">Header</span>
+                                <span class="text-slate-700 font-bold uppercase">${headerVal}</span>
+                            </div>
+                            <div class="flex justify-between items-center text-[10px]">
+                                <span class="text-slate-500 font-medium">Body</span>
+                                <span class="text-slate-700 font-bold">${varsCountText}</span>
+                            </div>
+                            <div class="flex justify-between items-center text-[10px]">
+                                <span class="text-slate-500 font-medium">Footer</span>
+                                <span class="text-slate-700 font-bold">${footerVal}</span>
+                            </div>
+                            <div class="flex justify-between items-center text-[10px]">
+                                <span class="text-slate-500 font-medium">Buttons</span>
+                                <span class="text-slate-700 font-bold uppercase">${buttonsCountText}</span>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Variables Inputs -->
+                        ${varsFound.length > 0 ? `
+                        <div class="space-y-3.5 border-t border-slate-100 pt-3">
+                            <div class="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Variables</div>
+                            
+                            <div class="space-y-2.5">
+                                ${varsFound.map(v => {
+                                    const vNum = parseInt(v.replace(/[{}]/g, ''));
+                                    let label = `Variable ${vNum}`;
+                                    let placeholder = `Example: Value for ${v}`;
+                                    
+                                    // Custom presets matching typical user preview fields in the mockup
+                                    if (vNum === 1) {
+                                        label = `1 Customer Name`;
+                                        placeholder = `Example: Soumojit`;
+                                    } else if (vNum === 2) {
+                                        label = `2 Offer Code`;
+                                        placeholder = `Example: OUTREACH20`;
+                                    } else if (vNum === 3) {
+                                        label = `3 Offer Expiry`;
+                                        placeholder = `Example: 31st July, 2026`;
+                                    }
+                                    
+                                    return `
+                                        <div>
+                                            <label class="block text-slate-500 font-bold text-[9px] mb-1">${label}</label>
+                                            <input type="text" data-var="${v}" oninput="updateMockPreviewBubble()" placeholder="${placeholder}" class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500 bg-[#f8fafc]">
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+
+                        <!-- Action Button -->
+                        <div class="pt-2">
+                            <button onclick="useActiveTemplate()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition flex items-center justify-center space-x-1.5 shadow-md">
+                                <i data-lucide="navigation" class="h-4 w-4"></i>
+                                <span>Use Template</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                // Initialize default bubble content preview text
+                updateMockPreviewBubble();
+            }
+            
+            // Helper to dynamically update the mock bubble preview as users fill variables
+            window.updateMockPreviewBubble = function() {
+                if (!selectedTemplate) return;
+                
+                const components = JSON.parse(selectedTemplate.components_json) || [];
+                const bodyComp = components.find(c => c.type === 'BODY') || {};
+                let bodyText = bodyComp.text || '';
+                
+                // Replace variables with user inputs
+                const inputs = document.querySelectorAll('#template-details-panel input[data-var]');
+                inputs.forEach(input => {
+                    const varTag = input.getAttribute('data-var');
+                    const userVal = input.value.trim();
+                    if (userVal !== '') {
+                        bodyText = bodyText.replaceAll(varTag, `**${userVal}**`);
+                    }
+                });
+                
+                // Convert double star markdown **text** to bold tags inside HTML preview
+                let formattedHtml = bodyText
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-extrabold text-slate-900">$1</strong>');
+                
+                const bubble = document.getElementById('mock-bubble-text');
+                if (bubble) {
+                    bubble.innerHTML = formattedHtml;
+                }
+            };
+            
+            // Selection / Filter actions
+            window.selectActiveTemplate = function(id) {
+                const found = allTemplates.find(t => t.id === id);
+                if (found) {
+                    selectedTemplate = found;
+                    renderAllTplViews();
+                }
+            };
+            
+            window.setTplPage = function(p) {
+                currentPage = p;
+                renderAllTplViews();
+            };
+            
+            window.filterTemplatesList = function() {
+                const searchEl = document.getElementById('tpl-search-input');
+                const catEl = document.getElementById('tpl-category-filter');
+                if (searchEl) searchQuery = searchEl.value.trim();
+                if (catEl) categoryFilter = catEl.value;
+                currentPage = 1;
+                renderAllTplViews();
+            };
+            
+            // Bind search and filter events in the DOM
+            setTimeout(() => {
+                const searchEl = document.getElementById('tpl-search-input');
+                const catEl = document.getElementById('tpl-category-filter');
+                if (searchEl) {
+                    searchEl.addEventListener('keyup', filterTemplatesList);
+                }
+                if (catEl) {
+                    catEl.addEventListener('change', filterTemplatesList);
+                }
+            }, 100);
+            
+            // Initial Draw
+            renderAllTplViews();
+            
+            // Global Trigger Sync Function
             window.triggerTemplatesSync = function() {
                 const btn = document.getElementById('sync-tpl-btn');
                 if (btn) {
@@ -1955,9 +2343,29 @@ function renderWhatsAppTemplates(container) {
                         showNotification('error', err.message);
                         if (btn) {
                             btn.disabled = false;
-                            btn.innerHTML = '<span>Sync Templates</span>';
+                            btn.innerHTML = '<i data-lucide="refresh-cw" class="h-4 w-4"></i><span>Sync Templates</span>';
+                            lucide.createIcons();
                         }
                     });
+            };
+            
+            // Link active template to use modal/redirect
+            window.useActiveTemplate = function() {
+                if (!selectedTemplate) return;
+                showNotification('info', `Selected template: ${selectedTemplate.name}. Redirecting to Broadcast Campaigns...`);
+                // Simulate click on Broadcast navigation link
+                const broadcastSidebarLink = document.querySelector('[onclick*="broadcast"]');
+                if (broadcastSidebarLink) {
+                    broadcastSidebarLink.click();
+                    setTimeout(() => {
+                        // Prepopulate template select field in broadcast setup
+                        const selectEl = document.getElementById('broadcast-template-select');
+                        if (selectEl) {
+                            selectEl.value = selectedTemplate.id;
+                            selectEl.dispatchEvent(new Event('change'));
+                        }
+                    }, 500);
+                }
             };
             
         } catch (err) {

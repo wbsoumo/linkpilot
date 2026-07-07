@@ -638,6 +638,16 @@ aside .bg-blue-600 * {
     color: #334155 !important;
 }
 
+/* Active Settings Page Sidebar Tab */
+.active-settings-tab {
+    background-color: #eef2ff !important; /* soft indigo-50 */
+    border-color: rgba(99, 102, 241, 0.3) !important;
+    color: #4f46e5 !important; /* indigo-600 */
+}
+.active-settings-tab * {
+    color: #4f46e5 !important;
+}
+
 /* ==========================================
    AI CRM CHAT ASSISTANT STYLING (MOCKUP DESIGN)
    ========================================== */

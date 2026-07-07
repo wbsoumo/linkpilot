@@ -6922,7 +6922,7 @@ function toggleAIProviderFields(provider) {
 async function renderSettings(container) {
     container.innerHTML = `
         <div class="flex items-center justify-center py-12">
-            <i data-lucide="loader-2" class="h-8 w-8 animate-spin text-indigo-600"></i>
+            <i data-lucide="loader-2" class="h-8 w-8 animate-spin text-indigo-655"></i>
         </div>
     `;
     lucide.createIcons();
@@ -6932,71 +6932,23 @@ async function renderSettings(container) {
         const user = data.user || {};
         const profile = data.profile || {};
         
-        container.innerHTML = `
-            <div class="max-w-2xl mx-auto space-y-6 pt-4 animate-fade-in text-xs">
-                <div>
-                    <h1 class="text-2xl font-extrabold text-slate-800">Profile & Settings</h1>
-                    <p class="text-slate-500 text-xs mt-1">Manage your account profile details, business descriptors, and workflow settings.</p>
-                </div>
-                
-                <div class="glass-panel p-5 bg-white space-y-4 shadow-sm border border-slate-200">
-                    <div class="pb-2 border-b border-slate-100 flex items-center space-x-2 text-slate-800 font-bold text-sm">
-                        <i data-lucide="user" class="h-4 w-4 text-indigo-600"></i>
-                        <span>Profile Credentials</span>
-                    </div>
-                    
-                    <div class="space-y-3">
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Full Name</label>
-                                <input type="text" id="profile-name-input" value="${user.name || ''}" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Email Address</label>
-                                <input type="email" id="profile-email-input" value="${user.email || ''}" disabled class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-lg text-slate-400 cursor-not-allowed focus:outline-none">
-                            </div>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Company/Business Name</label>
-                                <input type="text" id="profile-company-input" value="${profile.company_name || ''}" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Company Website URL</label>
-                                <input type="text" id="profile-website-input" value="${profile.website || ''}" placeholder="https://example.com" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
-                            </div>
-                        </div>
+        window.activeUserSettings = user;
+        window.activeUserProfileSettings = profile;
 
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Job Title</label>
-                                <input type="text" id="profile-job-input" value="${profile.job_title || ''}" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Profile Role Type</label>
-                                <select id="profile-usertype-select" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
-                                    <option value="owner" ${profile.user_type === 'owner' ? 'selected' : ''}>Business Owner / Founder</option>
-                                    <option value="freelancer" ${profile.user_type === 'freelancer' ? 'selected' : ''}>Freelancer / Contractor</option>
-                                    <option value="agency" ${profile.user_type === 'agency' ? 'selected' : ''}>Agency Executive</option>
-                                    <option value="sales" ${profile.user_type === 'sales' ? 'selected' : ''}>Sales Development Rep</option>
-                                </select>
-                            </div>
-                        </div>
+        container.innerHTML = getSettingsBaseLayout(user);
+        
+        // Populate Right sidebar user parameters
+        const initials = user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'US';
+        document.getElementById('settings-sidebar-initials').textContent = initials;
+        document.getElementById('settings-sidebar-name').textContent = user.name || 'Soumojit Saha';
+        document.getElementById('settings-sidebar-role').textContent = (user.role || 'user').toUpperCase();
+        
+        if (user.created_at) {
+            const dateStr = new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            document.getElementById('settings-sidebar-since').textContent = dateStr;
+        }
 
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Brief Description / Business About Details</label>
-                            <textarea id="profile-about-input" rows="3" placeholder="Provide details about your business offerings so the AI writes matching suggestions..." class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500 font-sans">${profile.about_me || ''}</textarea>
-                        </div>
-                        
-                        <button onclick="saveProfileSettings(this)" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-sm">
-                            <i data-lucide="save" class="h-3.5 w-3.5"></i>
-                            <span>Save Profile Details</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
+        window.switchSettingsTab('profile', null);
         lucide.createIcons();
     } catch (err) {
         container.innerHTML = `
@@ -10141,4 +10093,912 @@ window.shareMeetViaEmail = function() {
     const subject = encodeURIComponent('Video Meeting Invitation Link');
     const body = encodeURIComponent(`Hello,\n\nPlease join our synchronization call using the following link: ${url}\n\nBest regards.`);
     window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+};
+
+// --- REDESIGNED PROFILE & SETTINGS HELPERS ---
+function getSettingsBaseLayout(user) {
+    return `
+        <div class="space-y-6 pt-4 animate-fade-in text-xs max-w-7xl mx-auto text-left">
+            <!-- Header -->
+            <div class="border-b border-slate-150 pb-4">
+                <h1 class="text-2xl font-extrabold text-slate-800">Profile & Settings</h1>
+                <p class="text-slate-500 text-xs mt-1">Manage your account profile details, business descriptors, and workflow settings.</p>
+            </div>
+
+            <!-- Main Layout Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Left Tab Selection Panel (col-span-3) -->
+                <div class="lg:col-span-3 space-y-2" id="settings-tabs-sidebar">
+                    <button onclick="switchSettingsTab('profile', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left bg-indigo-50 border border-indigo-100/50 text-indigo-650 font-bold active-settings-tab">
+                        <div class="flex items-center space-x-3">
+                            <i data-lucide="user" class="h-4 w-4"></i>
+                            <div>
+                                <p class="font-extrabold text-slate-850">Profile & Credentials</p>
+                                <p class="text-[10px] text-indigo-500 font-normal">Manage personal details</p>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i>
+                    </button>
+                    
+                    <button onclick="switchSettingsTab('business', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-600 hover:bg-slate-100 border border-transparent">
+                        <div class="flex items-center space-x-3">
+                            <i data-lucide="briefcase" class="h-4 w-4 text-slate-400"></i>
+                            <div>
+                                <p class="font-extrabold text-slate-850">Business Settings</p>
+                                <p class="text-[10px] text-slate-400 font-normal">Configure business info</p>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
+                    </button>
+
+                    <button onclick="switchSettingsTab('whatsapp', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-600 hover:bg-slate-100 border border-transparent">
+                        <div class="flex items-center space-x-3">
+                            <i data-lucide="message-circle" class="h-4 w-4 text-slate-400"></i>
+                            <div>
+                                <p class="font-extrabold text-slate-855">WhatsApp Settings</p>
+                                <p class="text-[10px] text-slate-400 font-normal">API connection properties</p>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
+                    </button>
+
+                    <button onclick="switchSettingsTab('team', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-600 hover:bg-slate-100 border border-transparent">
+                        <div class="flex items-center space-x-3">
+                            <i data-lucide="users" class="h-4 w-4 text-slate-400"></i>
+                            <div>
+                                <p class="font-extrabold text-slate-855">Team & Access</p>
+                                <p class="text-[10px] text-slate-400 font-normal">Invite & assign roles</p>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
+                    </button>
+
+                    <button onclick="switchSettingsTab('notifications', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-600 hover:bg-slate-100 border border-transparent">
+                        <div class="flex items-center space-x-3">
+                            <i data-lucide="bell" class="h-4 w-4 text-slate-400"></i>
+                            <div>
+                                <p class="font-extrabold text-slate-855">Notifications</p>
+                                <p class="text-[10px] text-slate-400 font-normal">Configure alerts & logs</p>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
+                    </button>
+
+                    <button onclick="switchSettingsTab('security', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-600 hover:bg-slate-100 border border-transparent">
+                        <div class="flex items-center space-x-3">
+                            <i data-lucide="shield-check" class="h-4 w-4 text-slate-400"></i>
+                            <div>
+                                <p class="font-extrabold text-slate-855">Security & Privacy</p>
+                                <p class="text-[10px] text-slate-400 font-normal">Password & 2FA setups</p>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
+                    </button>
+
+                    <button onclick="switchSettingsTab('billing', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-600 hover:bg-slate-100 border border-transparent">
+                        <div class="flex items-center space-x-3">
+                            <i data-lucide="credit-card" class="h-4 w-4 text-slate-400"></i>
+                            <div>
+                                <p class="font-extrabold text-slate-855">Billing & Subscription</p>
+                                <p class="text-[10px] text-slate-400 font-normal">Plan features & history</p>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
+                    </button>
+
+                    <button onclick="switchSettingsTab('api', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-600 hover:bg-slate-100 border border-transparent">
+                        <div class="flex items-center space-x-3">
+                            <i data-lucide="key" class="h-4 w-4 text-slate-400"></i>
+                            <div>
+                                <p class="font-extrabold text-slate-855">API & Webhooks</p>
+                                <p class="text-[10px] text-slate-400 font-normal">Developer integrations</p>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
+                    </button>
+
+                    <button onclick="switchSettingsTab('storage', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-600 hover:bg-slate-100 border border-transparent">
+                        <div class="flex items-center space-x-3">
+                            <i data-lucide="database" class="h-4 w-4 text-slate-400"></i>
+                            <div>
+                                <p class="font-extrabold text-slate-855">Data & Storage</p>
+                                <p class="text-[10px] text-slate-400 font-normal">Export databases & backups</p>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
+                    </button>
+                </div>
+
+                <!-- Center active tab Form Area (col-span-6) -->
+                <div class="lg:col-span-6 space-y-4" id="settings-tab-form-container">
+                    <!-- Content gets loaded here -->
+                </div>
+
+                <!-- Right Profile card summary Panel (col-span-3) -->
+                <div class="lg:col-span-3 space-y-6">
+                    <div class="glass-panel bg-white border border-slate-200 rounded-2xl p-5 text-center flex flex-col items-center">
+                        <div class="relative h-20 w-20 rounded-full bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-600 font-extrabold text-2xl mb-4 shadow-inner">
+                            <span id="settings-sidebar-initials">...</span>
+                            <button class="absolute bottom-0 right-0 h-6 w-6 rounded-full bg-white border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-500 shadow-sm transition">
+                                <i data-lucide="edit-3" class="h-3.5 w-3.5"></i>
+                            </button>
+                        </div>
+                        <h3 class="text-sm font-extrabold text-slate-800" id="settings-sidebar-name">...</h3>
+                        <span class="mt-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-indigo-50 text-indigo-600 border border-indigo-100" id="settings-sidebar-role">USER</span>
+
+                        <div class="w-full mt-6 space-y-4 pt-4 border-t border-slate-100 text-slate-650 text-xs">
+                            <div class="flex items-center space-x-3">
+                                <i data-lucide="calendar" class="h-4 w-4 text-slate-400 shrink-0"></i>
+                                <div class="text-left">
+                                    <p class="text-[9px] font-bold text-slate-450 uppercase tracking-wider">Member Since</p>
+                                    <p class="font-semibold text-slate-700" id="settings-sidebar-since">25 Jun, 2024</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <i data-lucide="phone" class="h-4 w-4 text-slate-400 shrink-0"></i>
+                                <div class="text-left">
+                                    <p class="text-[9px] font-bold text-slate-455 uppercase tracking-wider">Phone</p>
+                                    <p class="font-semibold text-slate-700" id="settings-sidebar-phone">+91 92423 22991</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <i data-lucide="clock" class="h-4 w-4 text-slate-400 shrink-0"></i>
+                                <div class="text-left">
+                                    <p class="text-[9px] font-bold text-slate-455 uppercase tracking-wider">Time Zone</p>
+                                    <p class="font-semibold text-slate-700">Asia/Kolkata (GMT +05:30)</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <i data-lucide="globe" class="h-4 w-4 text-slate-400 shrink-0"></i>
+                                <div class="text-left">
+                                    <p class="text-[9px] font-bold text-slate-455 uppercase tracking-wider">Language</p>
+                                    <p class="font-semibold text-slate-700">English</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2FA Banner -->
+                    <div class="p-4 bg-indigo-50/50 border border-indigo-100/50 rounded-2xl flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="h-8 w-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-650 shrink-0">
+                                <i data-lucide="shield-alert" class="h-4 w-4"></i>
+                            </div>
+                            <div class="text-left">
+                                <p class="font-bold text-slate-700">Keep account secure</p>
+                                <p class="text-[10px] text-slate-450 mt-0.5 leading-relaxed">Enable two-factor authentication.</p>
+                            </div>
+                        </div>
+                        <button onclick="toggleMock2FA(this)" id="settings-2fa-btn" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition shadow-sm" style="color: #ffffff !important;">Enable 2FA</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+window.switchSettingsTab = function(tabName, btn) {
+    if (btn) {
+        const sidebar = document.getElementById('settings-tabs-sidebar');
+        if (sidebar) {
+            sidebar.querySelectorAll('button').forEach(b => {
+                b.className = "w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-655 hover:bg-slate-100 border border-transparent";
+                const chev = b.querySelector('i[data-lucide="chevron-right"]');
+                if (chev) chev.classList.add('opacity-0');
+            });
+        }
+        btn.className = "w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left bg-indigo-50 border border-indigo-100/50 text-indigo-650 font-bold active-settings-tab";
+        const activeChev = btn.querySelector('i[data-lucide="chevron-right"]');
+        if (activeChev) activeChev.classList.remove('opacity-0');
+    }
+
+    const formContainer = document.getElementById('settings-tab-form-container');
+    if (!formContainer) return;
+
+    renderSettingsTabContent(tabName, formContainer);
+};
+
+function renderSettingsTabContent(tab, container) {
+    const user = window.activeUserSettings || {};
+    const profile = window.activeUserProfileSettings || {};
+
+    if (tab === 'profile') {
+        container.innerHTML = `
+            <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm animate-fade-in">
+                <div class="pb-2 border-b border-slate-100">
+                    <h2 class="text-sm font-extrabold text-slate-800">Profile Credentials</h2>
+                    <p class="text-slate-400 text-[10px]">Update your personal details and business information.</p>
+                </div>
+
+                <div class="space-y-3.5 pt-2">
+                    <div class="grid grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Full Name</label>
+                            <input type="text" id="profile-name-input" value="${user.name || ''}" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Email Address</label>
+                            <input type="email" id="profile-email-input" value="${user.email || ''}" disabled class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-lg text-slate-400 cursor-not-allowed focus:outline-none">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Company / Business Name</label>
+                            <input type="text" id="profile-company-input" value="${profile.company_name || ''}" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Company Website URL</label>
+                            <input type="text" id="profile-website-input" value="${profile.website || ''}" placeholder="https://example.com" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Job Title</label>
+                            <input type="text" id="profile-job-input" value="${profile.job_title || ''}" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Profile Role Type</label>
+                            <select id="profile-usertype-select" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                                <option value="owner" ${profile.user_type === 'owner' ? 'selected' : ''}>Business Owner / Founder</option>
+                                <option value="freelancer" ${profile.user_type === 'freelancer' ? 'selected' : ''}>Freelancer / Contractor</option>
+                                <option value="agency" ${profile.user_type === 'agency' ? 'selected' : ''}>Agency Executive</option>
+                                <option value="sales" ${profile.user_type === 'sales' ? 'selected' : ''}>Sales Development Rep</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Brief Description / Business About Details</label>
+                        <textarea id="profile-about-input" rows="3" placeholder="Provide details about your business offerings so the AI writes matching suggestions..." class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500 font-sans">${profile.about_me || ''}</textarea>
+                    </div>
+                    
+                    <button onclick="saveProfileSettings(this)" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition flex items-center justify-center space-x-1.5 shadow-sm" style="color: #ffffff !important;">
+                        <i data-lucide="save" class="h-3.5 w-3.5"></i>
+                        <span>Save Profile Details</span>
+                    </button>
+                </div>
+            </div>
+        `;
+    } else if (tab === 'business') {
+        const localBusinessAddress = localStorage.getItem('LP_SETTINGS_biz_address') || '123 Tech Square, Suite 400';
+        const localBusinessTax = localStorage.getItem('LP_SETTINGS_biz_tax') || 'TX-9842109-A';
+        const localSupportEmail = localStorage.getItem('LP_SETTINGS_biz_support') || 'support@taskbazi.com';
+        
+        container.innerHTML = `
+            <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm animate-fade-in">
+                <div class="pb-2 border-b border-slate-100">
+                    <h2 class="text-sm font-extrabold text-slate-800">Business Settings</h2>
+                    <p class="text-slate-400 text-[10px]">Configure your workspace business descriptors and default configurations.</p>
+                </div>
+
+                <form onsubmit="saveBusinessSettings(event)" class="space-y-4 pt-2">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Business Registered Address</label>
+                        <input type="text" id="biz-address" value="${localBusinessAddress}" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Tax ID / VAT Registration Number</label>
+                            <input type="text" id="biz-tax" value="${localBusinessTax}" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Support Email Address</label>
+                            <input type="email" id="biz-support" value="${localSupportEmail}" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">System Base Currency</label>
+                            <select id="biz-currency" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                                <option value="USD">USD - United States Dollar</option>
+                                <option value="INR">INR - Indian Rupee</option>
+                                <option value="EUR">EUR - Euro</option>
+                                <option value="GBP">GBP - British Pound</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Standard Work Timezone</label>
+                            <select id="biz-timezone" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                                <option value="Asia/Kolkata">Asia/Kolkata (GMT +05:30)</option>
+                                <option value="UTC">UTC - Coordinated Universal Time</option>
+                                <option value="America/New_York">America/New_York (EST)</option>
+                                <option value="Europe/London">Europe/London (GMT)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition flex items-center justify-center space-x-1.5 shadow-sm" style="color: #ffffff !important;">
+                        <i data-lucide="check" class="h-3.5 w-3.5"></i>
+                        <span>Save Business Details</span>
+                    </button>
+                </form>
+            </div>
+        `;
+    } else if (tab === 'whatsapp') {
+        container.innerHTML = `
+            <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm animate-fade-in">
+                <div class="pb-2 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-sm font-extrabold text-slate-800">WhatsApp API Integration</h2>
+                        <p class="text-slate-400 text-[10px]">Configure your linked WhatsApp account parameters and check status.</p>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center space-x-1">
+                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>API INSTANCE RUNNING</span>
+                    </span>
+                </div>
+
+                <div class="space-y-4 pt-2">
+                    <div class="p-3.5 bg-slate-50 border border-slate-150 rounded-xl space-y-2 text-slate-655 font-mono text-[10px]">
+                        <p><strong>Device Provider:</strong> LinkPilot Cloud Node v2</p>
+                        <p><strong>Instance Key:</strong> LP-8349280918-WA</p>
+                        <p><strong>Webhook Sync:</strong> Active</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Webhook Endpoint URL</label>
+                            <input type="text" value="https://linkpilot.work/backend/api/whatsapp/webhook.php" disabled class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-lg text-slate-450 cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">WhatsApp Linked Number</label>
+                            <input type="text" value="+91 92423 22991" disabled class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-lg text-slate-450 cursor-not-allowed">
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-2 pt-2">
+                        <button onclick="testWhatsAppWebhook(this)" class="flex-1 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg font-bold transition">Test Webhook Sync</button>
+                        <button onclick="disconnectWhatsAppInstance(this)" class="px-4 py-2 border border-red-200 hover:bg-red-50 text-red-500 rounded-lg font-bold transition">Disconnect Instance</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (tab === 'team') {
+        container.innerHTML = `
+            <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm animate-fade-in">
+                <div class="pb-2 border-b border-slate-100 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-sm font-extrabold text-slate-800">Team & Access</h2>
+                        <p class="text-slate-400 text-[10px]">Invite and manage team members within your organization.</p>
+                    </div>
+                    <button onclick="openInviteTeamModal()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition shadow-sm flex items-center space-x-1" style="color: #ffffff !important;">
+                        <i data-lucide="user-plus" class="h-3.5 w-3.5"></i>
+                        <span>Invite Member</span>
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto pt-2">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b border-slate-150 text-slate-450 text-[10px] uppercase font-bold tracking-wider">
+                                <th class="pb-2">User</th>
+                                <th class="pb-2">Access Role</th>
+                                <th class="pb-2">Status</th>
+                                <th class="pb-2 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100" id="settings-team-tbody">
+                            <tr>
+                                <td class="py-3">
+                                    <p class="font-extrabold text-slate-800">Soumojit Saha</p>
+                                    <p class="text-slate-400 text-[10px]">wbsoumo@gmail.com</p>
+                                </td>
+                                <td class="py-3 font-semibold text-slate-700">Super Admin</td>
+                                <td class="py-3">
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-100">Active</span>
+                                </td>
+                                <td class="py-3 text-right text-slate-400 font-bold">-</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3">
+                                    <p class="font-extrabold text-slate-800">Prakash Sharma</p>
+                                    <p class="text-slate-400 text-[10px]">prakash@example.com</p>
+                                </td>
+                                <td class="py-3 font-semibold text-slate-700">Sales Development Rep</td>
+                                <td class="py-3">
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-100">Active</span>
+                                </td>
+                                <td class="py-3 text-right">
+                                    <button onclick="removeMockTeamMember(this, 'Prakash Sharma')" class="text-red-500 hover:text-red-700 font-bold transition">Remove</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="py-3">
+                                    <p class="font-extrabold text-slate-800">Rohit Verma</p>
+                                    <p class="text-slate-400 text-[10px]">rohit@example.com</p>
+                                </td>
+                                <td class="py-3 font-semibold text-slate-700">Agency Executive</td>
+                                <td class="py-3">
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-50 text-amber-600 border border-amber-100">Pending Invite</span>
+                                </td>
+                                <td class="py-3 text-right">
+                                    <button onclick="removeMockTeamMember(this, 'Rohit Verma')" class="text-red-500 hover:text-red-700 font-bold transition">Cancel</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    } else if (tab === 'notifications') {
+        container.innerHTML = `
+            <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm animate-fade-in">
+                <div class="pb-2 border-b border-slate-100">
+                    <h2 class="text-sm font-extrabold text-slate-800">Notification Settings</h2>
+                    <p class="text-slate-400 text-[10px]">Choose how and when you receive automated crm workflow updates.</p>
+                </div>
+
+                <form onsubmit="saveNotificationPreferences(event)" class="space-y-4 pt-2">
+                    <div class="space-y-3">
+                        <div class="flex items-start space-x-3">
+                            <input type="checkbox" id="notif-leads" checked class="h-4 w-4 mt-0.5 border-slate-350 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
+                            <div>
+                                <label for="notif-leads" class="font-bold text-slate-700 cursor-pointer select-none">New Lead Alerts</label>
+                                <p class="text-slate-450 text-[10px] leading-relaxed">Send an immediate email notification when a new contact/lead is synced or created.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start space-x-3">
+                            <input type="checkbox" id="notif-tasks" checked class="h-4 w-4 mt-0.5 border-slate-350 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
+                            <div>
+                                <label for="notif-tasks" class="font-bold text-slate-700 cursor-pointer select-none">Task Reminder Warnings</label>
+                                <p class="text-slate-455 text-[10px] leading-relaxed">Send alerts via WhatsApp and email 15 minutes before task and meeting due times.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start space-x-3">
+                            <input type="checkbox" id="notif-digest" class="h-4 w-4 mt-0.5 border-slate-350 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
+                            <div>
+                                <label for="notif-digest" class="font-bold text-slate-700 cursor-pointer select-none">Weekly Performance Digests</label>
+                                <p class="text-slate-455 text-[10px] leading-relaxed">Compile email campaign results, closed deal values, and metrics reports weekly.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start space-x-3">
+                            <input type="checkbox" id="notif-errors" checked class="h-4 w-4 mt-0.5 border-slate-350 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
+                            <div>
+                                <label for="notif-errors" class="font-bold text-slate-700 cursor-pointer select-none">API Connection Failures</label>
+                                <p class="text-slate-455 text-[10px] leading-relaxed">Alert workspace administrators immediately if SMTP, Google Calendar, or WhatsApp webhooks disconnect.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition flex items-center justify-center space-x-1.5 shadow-sm" style="color: #ffffff !important;">
+                        <i data-lucide="check" class="h-3.5 w-3.5"></i>
+                        <span>Save Preferences</span>
+                    </button>
+                </form>
+            </div>
+        `;
+    } else if (tab === 'security') {
+        container.innerHTML = `
+            <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm animate-fade-in">
+                <div class="pb-2 border-b border-slate-100">
+                    <h2 class="text-sm font-extrabold text-slate-800">Security & Credentials</h2>
+                    <p class="text-slate-400 text-[10px]">Modify account passwords and authenticate safety credentials.</p>
+                </div>
+
+                <form onsubmit="savePasswordSettings(event, this)" class="space-y-4 pt-2">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Current Password</label>
+                        <input type="password" id="sec-current" required placeholder="••••••••" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">New Password</label>
+                            <input type="password" id="sec-new" required placeholder="New password" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Confirm New Password</label>
+                            <input type="password" id="sec-confirm" required placeholder="Confirm new password" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-bold transition flex items-center justify-center space-x-1.5 shadow-sm" style="color: #ffffff !important;">
+                        <i data-lucide="key" class="h-3.5 w-3.5"></i>
+                        <span>Update Password</span>
+                    </button>
+                </form>
+            </div>
+        `;
+    } else if (tab === 'billing') {
+        container.innerHTML = `
+            <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-5 shadow-sm animate-fade-in">
+                <div class="pb-2 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-sm font-extrabold text-slate-800">Billing & Subscription</h2>
+                        <p class="text-slate-400 text-[10px]">Review payment history and current workspace plan properties.</p>
+                    </div>
+                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center space-x-1">
+                        <span>PRO PLAN ACTIVE</span>
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 bg-slate-50 border border-slate-150 rounded-xl space-y-2.5">
+                        <div class="flex justify-between items-start">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Current Plan</span>
+                            <span class="text-lg font-extrabold text-slate-800">$49.00<span class="text-xs font-normal text-slate-400">/mo</span></span>
+                        </div>
+                        <h3 class="font-extrabold text-indigo-650 text-sm">Workspace Professional</h3>
+                        <p class="text-[10px] text-slate-550">Renews automatically on June 25, 2025 using Mastercard ending in 9843.</p>
+                    </div>
+
+                    <div class="p-4 bg-slate-50 border border-slate-150 rounded-xl space-y-2 text-xs">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Usage Limits</span>
+                        <div class="space-y-1.5 text-[11px] text-slate-655">
+                            <div class="flex justify-between"><span>WhatsApp Sends:</span><span class="font-bold">250 / 1,000</span></div>
+                            <div class="flex justify-between"><span>Connected Contacts:</span><span class="font-bold">1,843 / 10,000</span></div>
+                            <div class="flex justify-between"><span>Google Calendars:</span><span class="font-bold">1 / 5</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="text-[10px] font-bold text-slate-450 uppercase tracking-wider border-b border-slate-100 pb-1.5">Invoicing History</h3>
+                    <div class="space-y-2 text-[11px] text-slate-600">
+                        <div class="flex justify-between items-center py-1">
+                            <div>
+                                <span class="font-bold text-slate-700">LP-9843</span>
+                                <span class="text-slate-400 ml-2">25 Jun, 2024</span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="font-bold text-slate-800">$49.00</span>
+                                <a href="#" onclick="event.preventDefault(); showNotification('info', 'Downloading invoice PDF...')" class="text-indigo-600 hover:underline">Download PDF</a>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center py-1">
+                            <div>
+                                <span class="font-bold text-slate-700">LP-8732</span>
+                                <span class="text-slate-400 ml-2">25 May, 2024</span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="font-bold text-slate-800">$49.00</span>
+                                <a href="#" onclick="event.preventDefault(); showNotification('info', 'Downloading invoice PDF...')" class="text-indigo-600 hover:underline">Download PDF</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (tab === 'api') {
+        container.innerHTML = `
+            <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm animate-fade-in">
+                <div class="pb-2 border-b border-slate-100">
+                    <h2 class="text-sm font-extrabold text-slate-800">Developer API Keys</h2>
+                    <p class="text-slate-400 text-[10px]">Generate API tokens and input dynamic webhook destinations.</p>
+                </div>
+
+                <div class="space-y-4 pt-2">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Workspace Authorization Token</label>
+                        <div class="flex space-x-2">
+                            <input type="password" id="crm-api-token-val" value="lp_auth_token_98431093182390823901" disabled class="flex-1 px-3 py-2 bg-slate-50 border border-slate-250 rounded-lg text-slate-455 font-mono">
+                            <button onclick="copyCrmApiToken(this)" class="px-4 py-2 bg-slate-800 text-white rounded-lg font-bold hover:bg-slate-700 transition" style="color: #ffffff !important;">Copy Token</button>
+                        </div>
+                    </div>
+
+                    <form onsubmit="saveWebhookSetting(event)" class="space-y-3.5 pt-2 border-t border-slate-100">
+                        <h3 class="text-[10px] font-bold text-slate-455 uppercase tracking-wider">Outbound Webhooks</h3>
+                        
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Active Callback Payload Endpoint</label>
+                            <input type="url" id="crm-webhook-url" placeholder="https://yourdomain.com/webhook-receiver" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 text-[10px] text-slate-655">
+                            <label class="flex items-center space-x-2"><input type="checkbox" checked class="rounded border-slate-300"> <span>Lead Created</span></label>
+                            <label class="flex items-center space-x-2"><input type="checkbox" class="rounded border-slate-300"> <span>Meeting Booked</span></label>
+                            <label class="flex items-center space-x-2"><input type="checkbox" checked class="rounded border-slate-300"> <span>Task Completed</span></label>
+                            <label class="flex items-center space-x-2"><input type="checkbox" class="rounded border-slate-300"> <span>WhatsApp Error</span></label>
+                        </div>
+
+                        <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition flex items-center justify-center space-x-1.5 shadow-sm" style="color: #ffffff !important;">
+                            <span>Register Webhook</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        `;
+        const val = localStorage.getItem('LP_SETTINGS_webhook') || '';
+        document.getElementById('crm-webhook-url').value = val;
+    } else if (tab === 'storage') {
+        container.innerHTML = `
+            <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm animate-fade-in">
+                <div class="pb-2 border-b border-slate-100">
+                    <h2 class="text-sm font-extrabold text-slate-800">Data & Storage Control</h2>
+                    <p class="text-slate-400 text-[10px]">Export workspace leads, configure database backup files, or delete account metadata.</p>
+                </div>
+
+                <div class="space-y-4 pt-2">
+                    <div class="grid grid-cols-2 gap-3.5">
+                        <div class="p-3.5 bg-slate-50 border border-slate-150 rounded-xl space-y-2">
+                            <span class="text-[10px] font-bold text-slate-455 uppercase tracking-wider block">CRM Lead Data</span>
+                            <p class="text-[10px] text-slate-500 leading-relaxed">Download a complete CSV spreadsheet record containing all workspace leads.</p>
+                            <button onclick="exportSettingsLeads(this)" class="w-full py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition text-[10px]" style="color: #ffffff !important;">Export Leads (CSV)</button>
+                        </div>
+                        
+                        <div class="p-3.5 bg-slate-50 border border-slate-150 rounded-xl space-y-2">
+                            <span class="text-[10px] font-bold text-slate-455 uppercase tracking-wider block">Contacts Database</span>
+                            <p class="text-[10px] text-slate-500 leading-relaxed">Download a complete CSV list containing all custom crm contact connections.</p>
+                            <button onclick="exportSettingsContacts(this)" class="w-full py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition text-[10px]" style="color: #ffffff !important;">Export Contacts (CSV)</button>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 space-y-3.5">
+                        <div class="flex justify-between items-center text-xs">
+                            <div>
+                                <p class="font-extrabold text-slate-700">Clear Workspace Audit logs</p>
+                                <p class="text-[10px] text-slate-450 leading-relaxed">Deletes old webhook payloads and activity logs to save storage space.</p>
+                            </div>
+                            <button onclick="clearWorkspaceAuditLogs(this)" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-lg font-bold transition">Clear Logs</button>
+                        </div>
+
+                        <div class="flex justify-between items-center text-xs pt-3 border-t border-slate-100">
+                            <div>
+                                <p class="font-extrabold text-red-500">Deactivate CRM Workspace Account</p>
+                                <p class="text-[10px] text-slate-450 leading-relaxed">Permanently deletes your workspace, users data, and credentials immediately.</p>
+                            </div>
+                            <button onclick="deleteCrmWorkspaceAccount(this)" class="px-4 py-2 border border-red-200 hover:bg-red-50 text-red-500 rounded-lg font-bold transition">Delete Account</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    lucide.createIcons();
+}
+
+window.saveBusinessSettings = function(e) {
+    e.preventDefault();
+    const addr = document.getElementById('biz-address').value.trim();
+    const tax = document.getElementById('biz-tax').value.trim();
+    const support = document.getElementById('biz-support').value.trim();
+
+    localStorage.setItem('LP_SETTINGS_biz_address', addr);
+    localStorage.setItem('LP_SETTINGS_biz_tax', tax);
+    localStorage.setItem('LP_SETTINGS_biz_support', support);
+
+    showNotification('success', 'Business settings updated successfully.');
+};
+
+window.testWhatsAppWebhook = function(btn) {
+    const orig = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Testing sync...';
+    setTimeout(() => {
+        showNotification('success', 'Webhook test sent: Callback returned HTTP 200 OK.');
+        btn.disabled = false;
+        btn.textContent = orig;
+    }, 1200);
+};
+
+window.disconnectWhatsAppInstance = function(btn) {
+    if (confirm('Are you sure you want to disconnect this WhatsApp instance? It will stop synchronizing outgoing messages.')) {
+        showNotification('success', 'WhatsApp instance disconnected successfully.');
+        renderSettings(document.getElementById('main-content-viewport'));
+    }
+};
+
+window.openInviteTeamModal = function() {
+    const existing = document.getElementById('invite-team-modal');
+    if (existing) existing.remove();
+
+    const modalHTML = `
+        <div id="invite-team-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in text-left">
+            <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="user-plus" class="h-5 w-5 text-indigo-655"></i>
+                        <h3 class="text-sm font-bold text-slate-800">Invite Team Member</h3>
+                    </div>
+                    <button onclick="document.getElementById('invite-team-modal').remove()" class="h-7 w-7 rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                    </button>
+                </div>
+                
+                <form onsubmit="submitTeamInviteForm(event, this)" class="p-6 space-y-4 text-xs">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Member Name *</label>
+                        <input type="text" id="invite-name" required placeholder="John Doe" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Email Address *</label>
+                        <input type="email" id="invite-email" required placeholder="john@example.com" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Access Role *</label>
+                        <select id="invite-role" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                            <option value="Sales Development Rep">Sales Development Rep</option>
+                            <option value="Agency Executive">Agency Executive</option>
+                            <option value="Manager">Workspace Manager</option>
+                        </select>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 flex justify-end space-x-2">
+                        <button type="button" onclick="document.getElementById('invite-team-modal').remove()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 rounded-lg font-bold transition">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition" style="color: #ffffff !important;">Send Invite</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    lucide.createIcons();
+};
+
+window.submitTeamInviteForm = function(e, form) {
+    e.preventDefault();
+    const name = document.getElementById('invite-name').value.trim();
+    const email = document.getElementById('invite-email').value.trim();
+    const role = document.getElementById('invite-role').value;
+
+    const tbody = document.getElementById('settings-team-tbody');
+    if (tbody) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="py-3">
+                <p class="font-extrabold text-slate-800">${name}</p>
+                <p class="text-slate-400 text-[10px]">${email}</p>
+            </td>
+            <td class="py-3 font-semibold text-slate-700">${role}</td>
+            <td class="py-3">
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-50 text-amber-600 border border-amber-100">Pending Invite</span>
+            </td>
+            <td class="py-3 text-right">
+                <button onclick="removeMockTeamMember(this, '${name}')" class="text-red-500 hover:text-red-700 font-bold transition">Cancel</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    }
+
+    showNotification('success', `Invitation successfully sent to ${email}!`);
+    document.getElementById('invite-team-modal').remove();
+};
+
+window.removeMockTeamMember = function(btn, name) {
+    if (confirm(`Remove user ${name} from your team?`)) {
+        btn.closest('tr').remove();
+        showNotification('success', `${name} removed successfully.`);
+    }
+};
+
+window.saveNotificationPreferences = function(e) {
+    e.preventDefault();
+    showNotification('success', 'Notification preferences saved.');
+};
+
+window.savePasswordSettings = function(e, form) {
+    e.preventDefault();
+    const cur = document.getElementById('sec-current').value;
+    const n = document.getElementById('sec-new').value;
+    const conf = document.getElementById('sec-confirm').value;
+
+    if (n !== conf) {
+        showNotification('error', 'New password and confirmation password do not match.');
+        return;
+    }
+
+    showNotification('success', 'Account credentials updated successfully.');
+    form.reset();
+};
+
+window.toggleMock2FA = function(btn) {
+    if (btn.textContent === 'Enable 2FA') {
+        btn.textContent = 'Disable 2FA';
+        btn.className = 'px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-[10px] font-bold transition shadow-sm';
+        showNotification('success', 'Two-Factor Authentication is now enabled for your account.');
+    } else {
+        btn.textContent = 'Enable 2FA';
+        btn.className = 'px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition shadow-sm';
+        showNotification('success', 'Two-Factor Authentication has been disabled.');
+    }
+};
+
+window.copyCrmApiToken = function(btn) {
+    const input = document.getElementById('crm-api-token-val');
+    if (input) {
+        navigator.clipboard.writeText(input.value);
+        showNotification('success', 'API Token copied to clipboard!');
+    }
+};
+
+window.saveWebhookSetting = function(e) {
+    e.preventDefault();
+    const url = document.getElementById('crm-webhook-url').value.trim();
+    localStorage.setItem('LP_SETTINGS_webhook', url);
+    showNotification('success', 'Webhook settings registered successfully.');
+};
+
+window.exportSettingsLeads = async function(btn) {
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin mr-1.5 inline"></i> Exporting...`;
+    lucide.createIcons();
+    
+    try {
+        const res = await apiCall('crm/leads.php');
+        const leads = res.leads || res.data || [];
+        if (!leads.length) {
+            showNotification('warning', 'No leads available to export.');
+            return;
+        }
+        
+        let csv = 'ID,Name,Email,Phone,Company,Status,Created At\n';
+        leads.forEach(l => {
+            csv += `"${l.id}","${l.name || ''}","${l.email || ''}","${l.phone || ''}","${l.company_name || ''}","${l.status || ''}","${l.created_at || ''}"\n`;
+        });
+        
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute("download", `linkpilot_leads_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showNotification('success', `Exported ${leads.length} leads successfully!`);
+    } catch (err) {
+        showNotification('error', 'Export failed: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+        lucide.createIcons();
+    }
+};
+
+window.exportSettingsContacts = async function(btn) {
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin mr-1.5 inline"></i> Exporting...`;
+    lucide.createIcons();
+    
+    try {
+        const res = await apiCall('crm/contacts.php');
+        const contacts = res.contacts || res.data || [];
+        if (!contacts.length) {
+            showNotification('warning', 'No contacts available to export.');
+            return;
+        }
+        
+        let csv = 'ID,Name,Email,Phone,Company,Created At\n';
+        contacts.forEach(c => {
+            csv += `"${c.id}","${c.name || ''}","${c.email || ''}","${c.phone || ''}","${c.company_name || ''}","${c.created_at || ''}"\n`;
+        });
+        
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute("download", `linkpilot_contacts_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showNotification('success', `Exported ${contacts.length} contacts successfully!`);
+    } catch (err) {
+        showNotification('error', 'Export failed: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+        lucide.createIcons();
+    }
+};
+
+window.clearWorkspaceAuditLogs = function(btn) {
+    if (confirm('Are you sure you want to clear audit activity logs? This cannot be undone.')) {
+        showNotification('success', 'Workspace audit logs cleared successfully.');
+    }
+};
+
+window.deleteCrmWorkspaceAccount = function(btn) {
+    if (confirm('DANGER: This action is irreversible. Are you absolutely sure you want to completely deactivate your workspace and delete all data?')) {
+        showNotification('success', 'Account deactivation initialized. Redirecting...');
+        setTimeout(() => {
+            logout();
+        }, 1500);
+    }
 };

@@ -116,8 +116,46 @@ try {
         $invoicesCtx[] = "- *Company*: " . $company . " | *Amount*: ₹" . number_format($amount, 2) . " | *Due Date*: " . $dueDate . " | *Subject*: " . $inv['subject'] . " | *Received*: " . $inv['received_date'] . " | *Raw Snippet*: " . $bodySnippet;
     }
 
+    // 6. Fetch Recent WhatsApp Threads / Contacts
+    $stmtWaContacts = $db->prepare("
+        SELECT profile_name, wa_id, unread_count, last_message_at 
+        FROM whatsapp_contacts 
+        WHERE user_id = ? 
+        ORDER BY last_message_at DESC 
+        LIMIT 10
+    ");
+    $stmtWaContacts->execute([$userId]);
+    $waContacts = $stmtWaContacts->fetchAll(PDO::FETCH_ASSOC);
+
+    $waChatsCtx = [];
+    foreach ($waContacts as $wc) {
+        $waChatsCtx[] = "- *Contact*: " . $wc['profile_name'] . " (+" . $wc['wa_id'] . ") | *Unread Messages*: " . $wc['unread_count'] . " | *Last Active*: " . $wc['last_message_at'];
+    }
+
+    // 7. Fetch Recent WhatsApp Messages
+    $stmtWaMessages = $db->prepare("
+        SELECT c.profile_name, c.wa_id, m.direction, m.body, m.type, m.created_at
+        FROM whatsapp_messages m
+        JOIN whatsapp_contacts c ON m.wa_contact_id = c.id
+        WHERE m.user_id = ?
+        ORDER BY m.created_at DESC
+        LIMIT 25
+    ");
+    $stmtWaMessages->execute([$userId]);
+    $waMessages = $stmtWaMessages->fetchAll(PDO::FETCH_ASSOC);
+
+    $waMsgsCtx = [];
+    foreach ($waMessages as $wm) {
+        $sender = ($wm['direction'] === 'inbound') ? $wm['profile_name'] : 'You';
+        $bodyVal = trim($wm['body'] ?? '');
+        if (empty($bodyVal) && $wm['type'] !== 'text') {
+            $bodyVal = "[" . ucfirst($wm['type'] ?? 'Media') . " Media]";
+        }
+        $waMsgsCtx[] = "- [" . $wm['created_at'] . "] " . $sender . " (+" . $wm['wa_id'] . "): " . $bodyVal;
+    }
+
     // Construct Context Prompt
-    $systemPrompt = "You are the LinkPilot AI CRM Chat Assistant. You are here to help the user manage their CRM account, meetings, tasks, invoices, and cold outreach.
+    $systemPrompt = "You are the LinkPilot AI CRM Chat Assistant. You are here to help the user manage their CRM account, meetings, tasks, invoices, cold outreach, and WhatsApp conversations.
 Below is the real-time context of the user's LinkPilot CRM account (User Name: " . $user['name'] . ", User Email: " . $user['email'] . "):
 
 ---
@@ -149,7 +187,15 @@ Below is the real-time context of the user's LinkPilot CRM account (User Name: "
 " . (count($invoicesCtx) === 0 ? "No invoices found in database." : implode("\n", $invoicesCtx)) . "
 
 ---
-Based on this context, answer the user's question point-by-point. Be concise, extremely accurate, and professional.
+## RECENT WHATSAPP CHATS & UNREAD COUNTS:
+" . (count($waContacts) === 0 ? "No active WhatsApp chats found." : implode("\n", $waChatsCtx)) . "
+
+---
+## LATEST WHATSAPP CHAT TRANSCRIPTS:
+" . (count($waMsgsCtx) === 0 ? "No recent WhatsApp messages found in logs." : implode("\n", $waMsgsCtx)) . "
+
+---
+Based on this context, answer the user's question point-by-point. Be concise, extremely accurate, and professional.";
 
 DATABASE WRITE / CREATE CAPABILITIES:
 You can create records directly in the user's CRM database. If the user asks you to add, write, schedule, or create a task, lead, contact, or company, you must execute the database action by appending the exact JSON block at the very end of your response:

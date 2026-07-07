@@ -233,6 +233,11 @@ async function navigateTo(view, params = {}) {
     currentView = view;
     window.location.hash = `#/${view}`;
     
+    // Clear WhatsApp CRM context if navigating away from whatsapp views
+    if (!view.startsWith('whatsapp-')) {
+        window.activeWaCrmContext = null;
+    }
+    
     // Dynamically update today's tasks badge count on sidebar and top header
     updateGlobalTaskBadges();
     
@@ -2226,8 +2231,7 @@ async function renderLeads(container) {
     }
 }
 
-// Add New Lead Modal Overlay
-function createNewLeadModal() {
+function createNewLeadModal(prefills = {}) {
     // Remove existing modal if any
     const existing = document.getElementById('crm-lead-modal');
     if (existing) existing.remove();
@@ -2275,15 +2279,16 @@ function createNewLeadModal() {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Estimated Budget (₹)</label>
-                            <input type="number" id="new-lead-budget" value="0" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                            <input type="number" id="new-lead-budget" placeholder="0" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Lead Source</label>
-                            <select id="new-lead-source" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
-                                <option value="Manual Entry">Manual Entry</option>
-                                <option value="Email Sync">Email Intelligence Sync</option>
+                            <select id="new-lead-source" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500 bg-white">
                                 <option value="LinkedIn Extension">LinkedIn Extension</option>
-                                <option value="Website Contact">Website Form</option>
+                                <option value="WhatsApp Inbox">WhatsApp Inbox</option>
+                                <option value="Email Finder">Email Finder</option>
+                                <option value="Manual Entry" selected>Manual Entry</option>
+                                <option value="Website Inbound">Website Inbound</option>
                             </select>
                         </div>
                     </div>
@@ -2291,7 +2296,7 @@ function createNewLeadModal() {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Priority</label>
-                            <select id="new-lead-priority" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                            <select id="new-lead-priority" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500 bg-white">
                                 <option value="low">Low</option>
                                 <option value="medium" selected>Medium</option>
                                 <option value="high">High</option>
@@ -2299,33 +2304,31 @@ function createNewLeadModal() {
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Pipeline Stage</label>
-                            <select id="new-lead-stage" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                            <select id="new-lead-stage" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500 bg-white">
                                 <option value="New" selected>New Lead</option>
                                 <option value="Contacted">Contacted</option>
-                                <option value="Qualified">Qualified</option>
-                                <option value="Proposal">Proposal Sent</option>
+                                <option value="Meeting Scheduled">Meeting Scheduled</option>
+                                <option value="Proposal Sent">Proposal Sent</option>
                                 <option value="Negotiation">Negotiation</option>
-                                <option value="Closed Won">Closed Won</option>
-                                <option value="Closed Lost">Closed Lost</option>
                             </select>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Services Required / Lead Scope</label>
-                        <input type="text" id="new-lead-services" placeholder="e.g. Web Development, CRM setup" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Services Required</label>
+                        <input type="text" id="new-lead-services" placeholder="e.g. SEO, Web Dev, SaaS Subscription" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Requirements & notes</label>
-                        <textarea id="new-lead-requirements" rows="3" placeholder="Provide extra requirements details..." class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500 font-sans"></textarea>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Key Requirements / Bio Info</label>
+                        <textarea id="new-lead-requirements" rows="3" placeholder="Provide extra detail descriptions..." class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500 font-sans"></textarea>
                     </div>
                 </div>
                 
                 <!-- Modal Footer -->
                 <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end space-x-2">
                     <button onclick="closeCrmModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 rounded-lg font-bold transition">Cancel</button>
-                    <button onclick="submitNewLeadForm(this)" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition flex items-center space-x-1.5">
+                    <button onclick="submitNewLeadForm(this)" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition flex items-center space-x-1.5 shadow-sm">
                         <i data-lucide="check" class="h-4 w-4"></i>
                         <span>Save Lead</span>
                     </button>
@@ -2335,6 +2338,13 @@ function createNewLeadModal() {
     `;
 
     document.body.insertAdjacentHTML('beforeend', modalHTML);
+    if (prefills) {
+        if (prefills.name) document.getElementById('new-lead-name').value = prefills.name;
+        if (prefills.company) document.getElementById('new-lead-company').value = prefills.company;
+        if (prefills.email) document.getElementById('new-lead-email').value = prefills.email;
+        if (prefills.phone) document.getElementById('new-lead-phone').value = prefills.phone;
+        if (prefills.source) document.getElementById('new-lead-source').value = prefills.source;
+    }
     lucide.createIcons();
 }
 
@@ -2373,14 +2383,23 @@ async function submitNewLeadForm(btn) {
         requirements
     };
     
+    if (window.activeWaCrmContext) {
+        if (window.activeWaCrmContext.contact) payload.contact_id = window.activeWaCrmContext.contact.id;
+        if (window.activeWaCrmContext.company) payload.company_id = window.activeWaCrmContext.company.id;
+    }
+    
     try {
         const data = await apiCall('crm/leads.php', 'POST', payload);
         if (data.status === 'success') {
             showNotification('success', 'Lead created successfully.');
             closeCrmModal();
             // Refresh viewport
-            const viewport = document.getElementById('main-content-viewport');
-            if (viewport) renderLeads(viewport);
+            if (typeof loadWaThreadMessages === 'function' && currentView === 'whatsapp-inbox') {
+                loadWaThreadMessages();
+            } else {
+                const viewport = document.getElementById('main-content-viewport');
+                if (viewport) renderLeads(viewport);
+            }
         } else {
             showNotification('error', data.message);
         }
@@ -3481,7 +3500,7 @@ async function toggleTaskStatus(taskId, currentStatus) {
 }
 
 // Add New Task Modal Overlay
-function createNewTaskModal() {
+function createNewTaskModal(prefills = {}) {
     const existing = document.getElementById('crm-task-modal');
     if (existing) existing.remove();
 
@@ -3577,6 +3596,11 @@ function createNewTaskModal() {
     document.body.insertAdjacentHTML('beforeend', modalHTML);
     // Set default date to today
     document.getElementById('new-task-duedate').valueAsDate = new Date();
+    if (prefills) {
+        if (prefills.title) document.getElementById('new-task-title').value = prefills.title;
+        if (prefills.description) document.getElementById('new-task-description').value = prefills.description;
+        if (prefills.category) document.getElementById('new-task-category').value = prefills.category;
+    }
     loadTaskAiSuggestions();
     lucide.createIcons();
 }
@@ -3615,6 +3639,12 @@ async function submitNewTaskForm(btn) {
         status: 'pending',
         description
     };
+
+    if (window.activeWaCrmContext) {
+        if (window.activeWaCrmContext.contact) payload.contact_id = window.activeWaCrmContext.contact.id;
+        if (window.activeWaCrmContext.company) payload.company_id = window.activeWaCrmContext.company.id;
+        if (window.activeWaCrmContext.lead) payload.lead_id = window.activeWaCrmContext.lead.id;
+    }
     
     try {
         const data = await apiCall('crm/tasks.php', 'POST', payload);
@@ -3622,12 +3652,16 @@ async function submitNewTaskForm(btn) {
             showNotification('success', 'Task added successfully.');
             closeCrmTaskModal();
             updateGlobalTaskBadges();
-            const viewport = document.getElementById('main-content-viewport');
-            if (viewport) {
-                if (currentView === 'dashboard') {
-                    renderDashboard(viewport);
-                } else {
-                    renderTasks(viewport);
+            if (typeof loadWaThreadMessages === 'function' && currentView === 'whatsapp-inbox') {
+                loadWaThreadMessages();
+            } else {
+                const viewport = document.getElementById('main-content-viewport');
+                if (viewport) {
+                    if (currentView === 'dashboard') {
+                        renderDashboard(viewport);
+                    } else {
+                        renderTasks(viewport);
+                    }
                 }
             }
         } else {

@@ -480,6 +480,84 @@ try {
         }
     }
     
+    elseif ($method === 'CREATE_AND_LINK_CONTACT') {
+        $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+        $waContactId = (int)($input['wa_contact_id'] ?? 0);
+        
+        if ($waContactId <= 0) {
+            sendJsonResponse('error', 'wa_contact_id is required.', [], 400);
+        }
+        
+        // 1. Fetch whatsapp contact info
+        $stmtCon = $db->prepare("SELECT * FROM whatsapp_contacts WHERE id = ? AND user_id = ?");
+        $stmtCon->execute([$waContactId, $userId]);
+        $waContact = $stmtCon->fetch();
+        if (!$waContact) {
+            sendJsonResponse('error', 'WhatsApp contact thread not found.', [], 404);
+        }
+        
+        // 2. Clean/Format details
+        $profileName = $waContact['profile_name'] ?: 'WhatsApp Contact';
+        $phone = $waContact['wa_id'];
+        
+        // Check if a CRM contact with this phone already exists to avoid duplicate
+        $stmtExist = $db->prepare("SELECT id FROM crm_contacts WHERE (phone = ? OR whatsapp = ?) AND user_id = ? LIMIT 1");
+        $stmtExist->execute([$phone, $phone, $userId]);
+        $crmContactId = $stmtExist->fetchColumn();
+        
+        if (!$crmContactId) {
+            // Create CRM Contact
+            $insStmt = $db->prepare("INSERT INTO crm_contacts (user_id, name, phone, whatsapp) VALUES (?, ?, ?, ?)");
+            $insStmt->execute([$userId, $profileName, $phone, $phone]);
+            $crmContactId = $db->lastInsertId();
+            
+            // Log to timeline
+            $timelineStmt = $db->prepare("INSERT INTO crm_timeline (user_id, contact_id, activity_type, description) VALUES (?, ?, 'Contact Created', ?)");
+            $timelineStmt->execute([$userId, $crmContactId, "Contact '$profileName' was auto-created from WhatsApp chat."]);
+        }
+        
+        // 3. Link contact to whatsapp thread
+        $db->prepare("UPDATE whatsapp_contacts SET contact_id = ? WHERE id = ? AND user_id = ?")->execute([$crmContactId, $waContactId, $userId]);
+        
+        sendJsonResponse('success', 'CRM Contact created and linked successfully.', [
+            'contact_id' => (int)$crmContactId,
+            'name' => $profileName
+        ]);
+    }
+    
+    elseif ($method === 'LINK_CRM_CONTACT') {
+        $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+        $waContactId = (int)($input['wa_contact_id'] ?? 0);
+        $crmContactId = (int)($input['contact_id'] ?? 0);
+        
+        if ($waContactId <= 0 || $crmContactId <= 0) {
+            sendJsonResponse('error', 'wa_contact_id and contact_id are required.', [], 400);
+        }
+        
+        // Verify WhatsApp Contact ownership
+        $stmtWa = $db->prepare("SELECT id FROM whatsapp_contacts WHERE id = ? AND user_id = ?");
+        $stmtWa->execute([$waContactId, $userId]);
+        if (!$stmtWa->fetch()) {
+            sendJsonResponse('error', 'WhatsApp contact thread not found.', [], 404);
+        }
+        
+        // Verify CRM Contact ownership
+        $stmtCrm = $db->prepare("SELECT id, name FROM crm_contacts WHERE id = ? AND user_id = ?");
+        $stmtCrm->execute([$crmContactId, $userId]);
+        $crmContact = $stmtCrm->fetch();
+        if (!$crmContact) {
+            sendJsonResponse('error', 'CRM Contact not found.', [], 404);
+        }
+        
+        // Link them
+        $db->prepare("UPDATE whatsapp_contacts SET contact_id = ? WHERE id = ? AND user_id = ?")->execute([$crmContactId, $waContactId, $userId]);
+        
+        sendJsonResponse('success', 'WhatsApp thread successfully linked to CRM Contact.', [
+            'contact_id' => $crmContactId,
+            'name' => $crmContact['name']
+        ]);
+    }
+    
     else {
         sendJsonResponse('error', 'Method not allowed', [], 405);
     }

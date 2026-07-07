@@ -237,6 +237,54 @@ try {
         sendJsonResponse('success', "Contact '{$contact['name']}' deleted successfully.");
     }
     
+    elseif ($method === 'LINK_COMPANY') {
+        $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+        $contactId = (int)($input['contact_id'] ?? 0);
+        $companyId = !empty($input['company_id']) ? (int)$input['company_id'] : null;
+        $companyName = trim($input['company_name'] ?? '');
+        
+        if ($contactId <= 0) {
+            sendJsonResponse('error', 'Contact ID is required.', [], 400);
+        }
+        
+        // Verify Contact ownership
+        $stmtCon = $db->prepare("SELECT id, name, company_id FROM crm_contacts WHERE id = ? AND user_id = ?");
+        $stmtCon->execute([$contactId, $userId]);
+        $contact = $stmtCon->fetch();
+        if (!$contact) {
+            sendJsonResponse('error', 'Contact not found or access denied.', [], 404);
+        }
+        
+        if (!$companyId && !empty($companyName)) {
+            // Find or create company
+            $stmtComp = $db->prepare("SELECT id FROM crm_companies WHERE name = ? AND user_id = ?");
+            $stmtComp->execute([$companyName, $userId]);
+            if ($compRow = $stmtComp->fetch()) {
+                $companyId = $compRow['id'];
+            } else {
+                $insComp = $db->prepare("INSERT INTO crm_companies (user_id, name, status) VALUES (?, ?, 'Active')");
+                $insComp->execute([$userId, $companyName]);
+                $companyId = $db->lastInsertId();
+                
+                // Log company creation to timeline
+                $timelineStmt = $db->prepare("INSERT INTO crm_timeline (user_id, company_id, activity_type, description) VALUES (?, ?, 'Company Created', ?)");
+                $timelineStmt->execute([$userId, $companyId, "Company '$companyName' was added to the CRM."]);
+            }
+        }
+        
+        if ($companyId) {
+            $db->prepare("UPDATE crm_contacts SET company_id = ? WHERE id = ? AND user_id = ?")->execute([$companyId, $contactId, $userId]);
+            
+            // Log to timeline
+            $timelineStmt = $db->prepare("INSERT INTO crm_timeline (user_id, contact_id, company_id, activity_type, description) VALUES (?, ?, ?, 'Contact Linked', ?)");
+            $timelineStmt->execute([$userId, $contactId, $companyId, "Contact '{$contact['name']}' was linked to the company."]);
+        }
+        
+        sendJsonResponse('success', 'Company successfully linked to Contact.', [
+            'company_id' => $companyId
+        ]);
+    }
+    
     else {
         sendJsonResponse('error', 'Method not allowed', [], 405);
     }

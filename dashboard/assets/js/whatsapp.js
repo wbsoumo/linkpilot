@@ -1471,24 +1471,75 @@ async function loadWaThreadMessages() {
             }
         }
         
+        // Store resolved CRM context globally
+        window.activeWaCrmContext = crm;
+
         // 3. Render CRM & AI details right panel
         const sidePanel = document.getElementById('wa-crm-sidepanel');
         if (sidePanel) {
+            // CRM Contact HTML Block
+            let contactHtml = '';
+            if (crm.contact) {
+                contactHtml = `
+                    <div class="bg-indigo-50 border border-indigo-105 p-3.5 rounded-xl space-y-2 text-slate-800 shadow-sm">
+                        <div class="flex items-center space-x-2">
+                            <div class="h-8 w-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                                ${crm.contact.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-slate-900">${crm.contact.name}</h4>
+                                <p class="text-[10px] text-slate-500 mt-0.5">${crm.contact.designation || 'CRM Contact Profile'}</p>
+                            </div>
+                        </div>
+                        <div class="text-[10px] space-y-1 pt-1.5 border-t border-slate-200 text-slate-600">
+                            <div>Email: <span class="font-mono text-slate-900 font-medium">${crm.contact.email || '-'}</span></div>
+                            <div>Phone: <span class="font-mono text-slate-900 font-medium">${crm.contact.phone || '-'}</span></div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                contactHtml = `
+                    <div class="bg-amber-50 border border-amber-200/80 p-3.5 rounded-xl text-center space-y-2.5">
+                        <p class="text-[10px] text-amber-800 font-medium leading-relaxed">This WhatsApp contact is not linked to any CRM Contact profile.</p>
+                        <button onclick="createAndLinkCRMContact(${activeWaThreadId})" class="w-full py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[10px] font-bold transition flex items-center justify-center space-x-1.5 shadow-sm">
+                            <i data-lucide="user-plus" class="h-3.5 w-3.5"></i>
+                            <span>Add to CRM Contacts</span>
+                        </button>
+                    </div>
+                `;
+            }
+
+            // Lead HTML Block
             let leadHtml = '<div class="text-[10px] text-slate-400">No active leads matched.</div>';
             if (crm.lead) {
                 leadHtml = `
-                    <div class="bg-indigo-500/5 border border-indigo-100/80 p-3 rounded-xl space-y-1">
-                        <div class="flex justify-between font-bold text-slate-700">
+                    <div class="bg-blue-50/55 border border-blue-100 p-3 rounded-xl space-y-1">
+                        <div class="flex justify-between font-bold text-slate-800">
                             <span>${crm.lead.name}</span>
                             <span class="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded-md font-extrabold uppercase">${crm.lead.stage}</span>
                         </div>
                         <div class="text-[10px] text-slate-500">Company: ${crm.lead.company || 'None'}</div>
-                        <div class="text-[10px] text-slate-500">Budget: $${crm.lead.budget}</div>
+                        <div class="text-[10px] text-slate-500">Budget: ₹${parseFloat(crm.lead.budget).toLocaleString('en-IN')}</div>
                         <div class="text-[10px] text-slate-500">Priority: <strong class="text-indigo-600 uppercase font-bold">${crm.lead.priority}</strong></div>
                     </div>
                 `;
             }
             
+            // Company HTML Block
+            let companyHtml = '<div class="text-[10px] text-slate-400">No company linked.</div>';
+            if (crm.company) {
+                companyHtml = `
+                    <div class="bg-emerald-50/55 border border-emerald-100 p-3 rounded-xl space-y-1">
+                        <div class="flex justify-between font-bold text-slate-800">
+                            <span>${crm.company.name}</span>
+                            <span class="text-[10px] px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded-md font-extrabold uppercase">${crm.company.status}</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500">Industry: ${crm.company.industry || '-'}</div>
+                        <div class="text-[10px] text-slate-500">Website: <a href="${crm.company.website && crm.company.website.startsWith('http') ? crm.company.website : 'https://' + (crm.company.website || '')}" target="_blank" class="text-blue-500 hover:underline font-medium">${crm.company.website || '-'}</a></div>
+                    </div>
+                `;
+            }
+
             let notesHtml = crm.notes.length > 0 ? crm.notes.map(n => `
                 <div class="p-2 bg-white border border-slate-100 rounded-lg text-[10px] text-slate-500 italic">"${n.content}"</div>
             `).join('') : '<p class="text-[10px] text-slate-400">No notes recorded.</p>';
@@ -1507,9 +1558,30 @@ async function loadWaThreadMessages() {
                 </div>
             `).join('') : '<p class="text-[10px] text-slate-400">No activities.</p>';
             
+            // Render buttons based on whether contact is linked
+            const contactLinked = !!crm.contact;
+            const leadActionBtn = contactLinked ? `
+                <button onclick="openAddLeadFromWa()" class="text-[10px] font-bold text-indigo-600 hover:text-indigo-500 transition flex items-center space-x-0.5">
+                    <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                    <span>Add Lead</span>
+                </button>
+            ` : '';
+            const taskActionBtn = contactLinked ? `
+                <button onclick="openAddTaskFromWa()" class="text-[10px] font-bold text-indigo-600 hover:text-indigo-500 transition flex items-center space-x-0.5">
+                    <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                    <span>Add Task</span>
+                </button>
+            ` : '';
+            const companyActionBtn = contactLinked ? `
+                <button onclick="openLinkCompanyFromWa()" class="text-[10px] font-bold text-indigo-600 hover:text-indigo-500 transition flex items-center space-x-0.5">
+                    <i data-lucide="link" class="h-3.5 w-3.5"></i>
+                    <span>Link Company</span>
+                </button>
+            ` : '';
+
             sidePanel.innerHTML = `
                 <!-- AI insights section -->
-                <div class="space-y-3">
+                <div class="space-y-3 mb-4">
                     <div class="text-xs font-bold text-slate-700 flex items-center space-x-1">
                         <i data-lucide="sparkles" class="h-3.5 w-3.5 text-indigo-500"></i>
                         <span>AI Analysis Panel</span>
@@ -1526,28 +1598,51 @@ async function loadWaThreadMessages() {
                     </div>
                 </div>
 
+                <!-- CRM Profile Link -->
+                <div class="space-y-2 pt-3 border-t border-slate-200">
+                    <div class="text-xs font-bold text-slate-700 flex justify-between items-center">
+                        <span>CRM Contact Profile</span>
+                    </div>
+                    ${contactHtml}
+                </div>
+
                 <!-- CRM Lead cards -->
-                <div class="space-y-2">
-                    <div class="text-xs font-bold text-slate-700">Matched CRM Lead</div>
+                <div class="space-y-2 pt-3 border-t border-slate-200">
+                    <div class="text-xs font-bold text-slate-700 flex justify-between items-center">
+                        <span>Matched CRM Lead</span>
+                        ${leadActionBtn}
+                    </div>
                     ${leadHtml}
                 </div>
 
+                <!-- Match Company -->
+                <div class="space-y-2 pt-3 border-t border-slate-200">
+                    <div class="text-xs font-bold text-slate-700 flex justify-between items-center">
+                        <span>Matched Company</span>
+                        ${companyActionBtn}
+                    </div>
+                    ${companyHtml}
+                </div>
+
                 <!-- Tasks list -->
-                <div class="space-y-2">
-                    <div class="text-xs font-bold text-slate-700">CRM Tasks</div>
+                <div class="space-y-2 pt-3 border-t border-slate-200">
+                    <div class="text-xs font-bold text-slate-700 flex justify-between items-center">
+                        <span>CRM Tasks</span>
+                        ${taskActionBtn}
+                    </div>
                     <div class="space-y-2">${taskHtml}</div>
                 </div>
 
                 <!-- Notes list -->
-                <div class="space-y-2">
+                <div class="space-y-2 pt-3 border-t border-slate-200">
                     <div class="text-xs font-bold text-slate-700">Notes</div>
                     <div class="space-y-2">${notesHtml}</div>
                 </div>
 
                 <!-- Timeline updates -->
-                <div class="space-y-2">
+                <div class="space-y-2 pt-3 border-t border-slate-200">
                     <div class="text-xs font-bold text-slate-700">Timeline</div>
-                    <div class="space-y-2 max-h-40 overflow-y-auto">${timelineHtml}</div>
+                    <div class="space-y-2 max-h-40 overflow-y-auto font-sans">${timelineHtml}</div>
                 </div>
             `;
             lucide.createIcons();
@@ -3649,4 +3744,102 @@ window.renderWhatsAppSendTemplate = function(container, params = {}) {
             showNotification('error', 'Failed loading template sender page: ' + err.message);
         }
     });
+};
+
+window.createAndLinkCRMContact = function(waContactId) {
+    showNotification('warning', 'Adding contact to CRM...');
+    apiCall('whatsapp/inbox.php?action=create_and_link_contact', 'POST', {
+        wa_contact_id: waContactId
+    }).then(res => {
+        showNotification('success', 'Contact successfully added and linked to CRM.');
+        loadWaThreadMessages();
+    }).catch(err => {
+        showNotification('error', err.message);
+    });
+};
+
+window.openAddLeadFromWa = function() {
+    if (!window.activeWaCrmContext || !window.activeWaCrmContext.contact) {
+        showNotification('warning', 'Please link this contact to CRM first.');
+        return;
+    }
+    const prefills = {
+        name: window.activeWaCrmContext.contact.name,
+        phone: window.activeWaCrmContext.contact.phone,
+        company: window.activeWaCrmContext.company ? window.activeWaCrmContext.company.name : '',
+        email: window.activeWaCrmContext.contact.email,
+        source: 'WhatsApp Inbox'
+    };
+    createNewLeadModal(prefills);
+};
+
+window.openAddTaskFromWa = function() {
+    if (!window.activeWaCrmContext || !window.activeWaCrmContext.contact) {
+        showNotification('warning', 'Please link this contact to CRM first.');
+        return;
+    }
+    const prefills = {
+        title: `Follow-up with ${window.activeWaCrmContext.contact.name}`,
+        category: 'Follow-up'
+    };
+    createNewTaskModal(prefills);
+};
+
+window.openLinkCompanyFromWa = function() {
+    if (!window.activeWaCrmContext || !window.activeWaCrmContext.contact) {
+        showNotification('warning', 'Please link this contact to CRM first.');
+        return;
+    }
+    
+    const existing = document.getElementById('link-company-modal');
+    if (existing) existing.remove();
+    
+    const modal = document.createElement('div');
+    modal.id = 'link-company-modal';
+    modal.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4';
+    
+    modal.innerHTML = `
+        <div class="bg-white border border-slate-200 p-6 max-w-md w-full rounded-2xl shadow-2xl relative text-slate-800 text-xs">
+            <button onclick="document.getElementById('link-company-modal').remove()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 text-xl font-bold">&times;</button>
+            
+            <h2 class="text-sm font-bold text-slate-800 mb-4 flex items-center space-x-1.5">
+                <i data-lucide="building" class="h-4 w-4 text-indigo-650"></i>
+                <span>Link Company to Contact</span>
+            </h2>
+            
+            <form onsubmit="submitLinkCompanyForm(event)" class="space-y-4">
+                <div>
+                    <label class="block text-slate-650 font-bold mb-1 uppercase text-[9px] tracking-wider">Company Name</label>
+                    <input type="text" id="wa-link-company-name" required placeholder="Enter company name to link/create..." class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
+                    <p class="text-[10px] text-slate-400 mt-1">If the company already exists in the CRM Vault, it will link to it. Otherwise, a new company record will be created.</p>
+                </div>
+                
+                <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition flex items-center justify-center space-x-1 shadow-sm">
+                    <i data-lucide="check" class="h-4.5 w-4.5"></i>
+                    <span>Link Company</span>
+                </button>
+            </form>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    lucide.createIcons();
+    
+    window.submitLinkCompanyForm = function(e) {
+        e.preventDefault();
+        const compName = document.getElementById('wa-link-company-name').value.trim();
+        if (!compName) return;
+        
+        showNotification('warning', 'Linking company to contact...');
+        apiCall('crm/contacts.php?action=link_company', 'POST', {
+            contact_id: window.activeWaCrmContext.contact.id,
+            company_name: compName
+        }).then(res => {
+            showNotification('success', 'Company linked successfully.');
+            document.getElementById('link-company-modal').remove();
+            loadWaThreadMessages();
+        }).catch(err => {
+            showNotification('error', err.message);
+        });
+    };
 };

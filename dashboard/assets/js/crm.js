@@ -7177,7 +7177,7 @@ window.submitNewAIKey = async function() {
         
         if (res.status === 'success') {
             showNotification('success', 'API Key added successfully.');
-            const activeTabContainer = document.getElementById('tab-content-container');
+            const activeTabContainer = document.getElementById('main-content-viewport');
             if (activeTabContainer) {
                 renderIntegrations(activeTabContainer);
             }
@@ -7282,7 +7282,7 @@ window.toggleAIKeyStatus = async function(keyId, currentStatus) {
         
         if (res.status === 'success') {
             showNotification('success', `API Key ${newStatus === 'paused' ? 'paused' : 'resumed'} successfully.`);
-            const activeTabContainer = document.getElementById('tab-content-container');
+            const activeTabContainer = document.getElementById('main-content-viewport');
             if (activeTabContainer) {
                 renderIntegrations(activeTabContainer);
             }
@@ -7313,7 +7313,7 @@ window.editAIKeyValue = async function(keyId, providerLabel) {
         
         if (res.status === 'success') {
             showNotification('success', 'API Key value updated successfully.');
-            const activeTabContainer = document.getElementById('tab-content-container');
+            const activeTabContainer = document.getElementById('main-content-viewport');
             if (activeTabContainer) {
                 renderIntegrations(activeTabContainer);
             }
@@ -7338,7 +7338,7 @@ window.deleteAIKey = async function(keyId) {
         
         if (res.status === 'success') {
             showNotification('success', 'API Key deleted successfully.');
-            const activeTabContainer = document.getElementById('tab-content-container');
+            const activeTabContainer = document.getElementById('main-content-viewport');
             if (activeTabContainer) {
                 renderIntegrations(activeTabContainer);
             }

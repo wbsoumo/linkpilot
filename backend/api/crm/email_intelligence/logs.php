@@ -24,14 +24,13 @@ try {
     $stmt = $db->prepare("
         SELECT id, email_subject, sender, status, message, tokens_used, created_at 
         FROM email_processing_logs 
-        WHERE user_id = ? 
+        WHERE user_id = :userId 
         ORDER BY id DESC 
         LIMIT :limit OFFSET :offset
     ");
-    $stmt->bindValue(':userId', $userId, PDO::PARAM_INT); // Wait, placeholder is ? not :userId, let's bind by position to match query or bind with parameter names. Let's bind by position for safety.
-    $stmt->bindValue(1, $userId, PDO::PARAM_INT);
-    $stmt->bindValue(2, $limit, PDO::PARAM_INT);
-    $stmt->bindValue(3, $offset, PDO::PARAM_INT);
+    $stmt->bindValue(':userId', $userId, PDO::PARAM_INT);
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
     $stmt->execute();
     $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

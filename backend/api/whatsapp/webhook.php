@@ -113,7 +113,8 @@ try {
                 'auto_contact_detection' => 1,
                 'auto_lead_detection' => 1,
                 'auto_company_detection' => 1,
-                'auto_reply_suggestions' => 1
+                'auto_reply_suggestions' => 1,
+                'auto_summarize_history' => 1
             ];
             
             // 3. Process Inbound Messages
@@ -134,7 +135,7 @@ try {
                 $db->beginTransaction();
                 try {
                     // a. Locate or create whatsapp_contacts record
-                    $stmtContact = $db->prepare("SELECT id, contact_id FROM whatsapp_contacts WHERE user_id = ? AND wa_id = ?");
+                    $stmtContact = $db->prepare("SELECT id, contact_id, chat_summary, last_message_at FROM whatsapp_contacts WHERE user_id = ? AND wa_id = ?");
                     $stmtContact->execute([$userId, $fromWaId]);
                     $waContact = $stmtContact->fetch();
                     
@@ -246,6 +247,54 @@ try {
                                 $timeline = $stmtTimeline->fetchAll(PDO::FETCH_ASSOC);
                             }
 
+                            // Check if history auto-summarization is enabled and if we need to update/compress it
+                            $chatSummaryText = $waContact ? ($waContact['chat_summary'] ?? '') : '';
+                            $autoSummarize = isset($settings['auto_summarize_history']) ? (int)$settings['auto_summarize_history'] : 1;
+                            
+                            if ($autoSummarize && $waContact) {
+                                $lastMsgTime = $waContact['last_message_at'] ?? null;
+                                $shouldSummarize = false;
+                                
+                                if (empty($chatSummaryText)) {
+                                    $shouldSummarize = true;
+                                } elseif ($lastMsgTime && (time() - strtotime($lastMsgTime)) > 86400) { // 24 hours
+                                    $shouldSummarize = true;
+                                }
+                                
+                                if ($shouldSummarize) {
+                                    // Count total previous messages
+                                    $stmtCount = $db->prepare("SELECT COUNT(*) FROM whatsapp_messages WHERE wa_contact_id = ?");
+                                    $stmtCount->execute([$waContactId]);
+                                    $msgCount = (int)$stmtCount->fetchColumn();
+                                    
+                                    if ($msgCount >= 3) {
+                                        try {
+                                            // Fetch all messages (up to 200)
+                                            $stmtAllMsg = $db->prepare("SELECT direction, body, created_at FROM whatsapp_messages WHERE wa_contact_id = ? ORDER BY created_at ASC LIMIT 200");
+                                            $stmtAllMsg->execute([$waContactId]);
+                                            $allMsgs = $stmtAllMsg->fetchAll(PDO::FETCH_ASSOC);
+                                            
+                                            $script = "";
+                                            foreach ($allMsgs as $m) {
+                                                $sender = ($m['direction'] === 'inbound') ? $profileName : "You (AI)";
+                                                $script .= "[" . $m['created_at'] . "] " . $sender . ": " . $m['body'] . "\n";
+                                            }
+                                            
+                                            $summaryPrompt = "You are a professional CRM assistant. Compress and summarize the following WhatsApp conversation history between our representative and the customer into a single, high-density paragraph (maximum 150 words). Focus strictly on customer needs, budget, scheduled follow-ups, and relationship state. Do not include introductory text, headers, or XML tags.";
+                                            $aiSummaryResult = callAI($summaryPrompt, $script, $userId);
+                                            $newSummary = trim($aiSummaryResult['text'] ?? '');
+                                            
+                                            if (!empty($newSummary)) {
+                                                $db->prepare("UPDATE whatsapp_contacts SET chat_summary = ? WHERE id = ?")->execute([$newSummary, $waContactId]);
+                                                $chatSummaryText = $newSummary;
+                                            }
+                                        } catch (Throwable $summEx) {
+                                            WhatsAppMetaService::logDebug("Background auto-summarizer failed: " . $summEx->getMessage());
+                                        }
+                                    }
+                                }
+                            }
+
                             // 6. Fetch Conversation History (last 10 messages)
                             $stmtChatHist = $db->prepare("SELECT direction, body, created_at FROM whatsapp_messages WHERE wa_contact_id = ? ORDER BY created_at DESC LIMIT 10");
                             $stmtChatHist->execute([$waContactId]);
@@ -355,6 +404,9 @@ TODAY'S DATE AND TIME: $currentDate $currentTime (relative offsets like 'tomorro
 
 ## RECENT REMARKS & TIMELINE FOR THIS CONTACT:
 " . ($remarksCtx ?: "No timeline logs found.") . "
+
+## CONVERSATION HISTORY SUMMARY (PREVIOUS CONTEXT):
+" . ($chatSummaryText ?: "No previous conversation summary available.") . "
 
 ## CONVERSATION HISTORY (LAST 10 MESSAGES):
 " . ($chatHistCtx ?: "No previous chat history.") . "

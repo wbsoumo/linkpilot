@@ -42,6 +42,7 @@ try {
         $autoContact = isset($input['auto_contact_detection']) ? (int)$input['auto_contact_detection'] : 1;
         $autoCompany = isset($input['auto_company_detection']) ? (int)$input['auto_company_detection'] : 1;
         $autoReply = isset($input['auto_reply_suggestions']) ? (int)$input['auto_reply_suggestions'] : 1;
+        $autoSummarize = isset($input['auto_summarize_history']) ? (int)$input['auto_summarize_history'] : 1;
         $mediaLimit = isset($input['media_upload_limit_mb']) ? (int)$input['media_upload_limit_mb'] : 16;
         $fileTypes = trim($input['allowed_file_types'] ?? 'jpg,png,pdf,mp4,mp3,docx');
         
@@ -53,12 +54,13 @@ try {
                 auto_contact_detection = ?,
                 auto_company_detection = ?,
                 auto_reply_suggestions = ?,
+                auto_summarize_history = ?,
                 media_upload_limit_mb = ?,
                 allowed_file_types = ?
             WHERE user_id = ?
         ");
         $stmt->execute([
-            $aiEnabled, $autoCrm, $autoLead, $autoContact, $autoCompany, $autoReply, $mediaLimit, $fileTypes, $userId
+            $aiEnabled, $autoCrm, $autoLead, $autoContact, $autoCompany, $autoReply, $autoSummarize, $mediaLimit, $fileTypes, $userId
         ]);
         
         sendJsonResponse('success', 'WhatsApp settings updated successfully.');

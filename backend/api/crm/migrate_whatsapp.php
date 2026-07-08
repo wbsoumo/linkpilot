@@ -228,6 +228,17 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
     $wa_messages[] = "Table 'whatsapp_automation_logs' checked/created.";
 
+    // Schema upgrades for auto summarizer
+    try {
+        $db->exec("ALTER TABLE `whatsapp_settings` ADD COLUMN `auto_summarize_history` TINYINT(1) DEFAULT 1 AFTER `auto_reply_suggestions`");
+        $wa_messages[] = "Added column 'auto_summarize_history' to 'whatsapp_settings'.";
+    } catch (Exception $e) {}
+
+    try {
+        $db->exec("ALTER TABLE `whatsapp_contacts` ADD COLUMN `chat_summary` TEXT DEFAULT NULL AFTER `unread_count`");
+        $wa_messages[] = "Added column 'chat_summary' to 'whatsapp_contacts'.";
+    } catch (Exception $e) {}
+
     if ($is_direct) {
         sendJsonResponse('success', 'WhatsApp Database Migrations check completed.', ['details' => $wa_messages]);
     }

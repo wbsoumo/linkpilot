@@ -1674,10 +1674,22 @@ async function loadWaThreadMessages() {
                         <span>AI Analysis Panel</span>
                     </div>
                     <div class="glass-panel p-4 bg-slate-900 border border-slate-800 text-slate-300 rounded-2xl space-y-3">
+                        <div class="flex justify-between items-center border-b border-slate-850 pb-1.5">
+                            <span class="text-[9px] uppercase font-bold text-slate-500">Thread Summary</span>
+                            <button onclick="optimizeChatSummary(${thread.id}, this)" class="text-[9px] font-bold text-indigo-400 hover:text-indigo-300 transition flex items-center space-x-1" title="Optimize Chat Summary">
+                                <i data-lucide="sparkles" class="h-3 w-3"></i>
+                                <span>Optimize Summary</span>
+                            </button>
+                        </div>
                         <div>
-                            <div class="text-[9px] uppercase font-bold text-slate-500">Thread Summary</div>
                             <p class="text-[10px] leading-relaxed mt-0.5 text-slate-300">${res.ai ? res.ai.ai_summary : 'Waiting for incoming text messages analysis...'}</p>
                         </div>
+                        ${thread.chat_summary ? `
+                        <div class="border-t border-slate-800/85 pt-2">
+                            <div class="text-[9px] uppercase font-bold text-indigo-400">Persistent Chat Summary</div>
+                            <p class="text-[10px] leading-relaxed mt-0.5 text-slate-350">${thread.chat_summary}</p>
+                        </div>
+                        ` : ''}
                         <div class="flex justify-between border-t border-slate-800/80 pt-2 text-[10px]">
                             <span>Sentiment: <strong class="uppercase text-emerald-400 font-bold">${res.ai ? res.ai.sentiment : 'Neutral'}</strong></span>
                             <span>Score: <strong class="text-blue-400 font-bold">${crm.lead ? crm.lead.lead_score : 50}</strong></span>
@@ -2947,6 +2959,23 @@ function renderWhatsAppSettings(container) {
                                         <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-350 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
                                     </label>
                                 </div>
+
+                                <!-- AI Auto-Summarization Memory Toggle -->
+                                <div class="bg-slate-50/50 border border-slate-100 p-4 rounded-2xl flex items-center justify-between">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="h-10 w-10 rounded-xl bg-indigo-50 text-indigo-650 flex items-center justify-center shrink-0 border border-indigo-100">
+                                            <i data-lucide="history" class="h-5 w-5"></i>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-slate-700 text-xs">AI Auto-Summarization Memory</div>
+                                            <div class="text-[10px] text-slate-400 mt-0.5">Compresses long chat history into semantic summaries, providing infinite context recall with minimal token usage.</div>
+                                        </div>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                                        <input type="checkbox" id="set-auto-summarize" ${set.auto_summarize_history ? 'checked' : ''} onchange="autoSaveWaSettings()" class="sr-only peer">
+                                        <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-350 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                                    </label>
+                                </div>
                             </div>
                         </div>
 
@@ -3108,6 +3137,7 @@ function renderWhatsAppSettings(container) {
                     ai_enabled: document.getElementById('set-ai').checked ? 1 : 0,
                     auto_crm_creation: document.getElementById('set-auto-crm').checked ? 1 : 0,
                     auto_lead_detection: document.getElementById('set-auto-lead').checked ? 1 : 0,
+                    auto_summarize_history: document.getElementById('set-auto-summarize').checked ? 1 : 0,
                     media_upload_limit_mb: parseInt(document.getElementById('set-media-limit').value),
                     allowed_file_types: document.getElementById('set-file-types').value.trim()
                 };
@@ -3125,6 +3155,28 @@ function renderWhatsAppSettings(container) {
                     });
             };
             
+            // Optimize Chat Summary Manual Action
+            window.optimizeChatSummary = function(contactId, btn) {
+                if (btn) {
+                    btn.disabled = true;
+                    btn.dataset.originalHtml = btn.innerHTML;
+                    btn.innerHTML = `<span class="loader-spinner mr-1"></span> Summarizing...`;
+                }
+                apiCall('whatsapp/summarize_chat.php', 'POST', { contact_id: contactId })
+                    .then(res => {
+                        showNotification('success', res.message);
+                        loadWaThreadMessages(); // Refresh UI to display new summary
+                    })
+                    .catch(err => {
+                        showNotification('error', 'Summarization failed: ' + err.message);
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = btn.dataset.originalHtml;
+                            lucide.createIcons();
+                        }
+                    });
+            };
+
             // Re-Verify Connection
             window.reVerifyConnection = function() {
                 showNotification('info', 'Re-verifying connection health with Meta...');

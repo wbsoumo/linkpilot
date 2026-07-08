@@ -13,6 +13,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 try {
+    // Check and Reset Monthly Credits lazily
+    checkAndResetMonthlyCredits($userId);
+
     // 1. Check AI enabled in Settings
     $stmtSettings = $db->prepare("SELECT ai_enabled FROM whatsapp_settings WHERE user_id = ? LIMIT 1");
     $stmtSettings->execute([$userId]);
@@ -55,18 +58,29 @@ try {
         ]);
     }
 
-    // 4. Check AI Keys status
-    $stmtKeys = $db->prepare("SELECT status, error_message FROM user_ai_keys WHERE user_id = ?");
-    $stmtKeys->execute([$userId]);
+    // 4. Check AI Keys status (Centralized Admin Keys)
+    $stmtKeys = $db->prepare("
+        SELECT k.status, k.error_message 
+        FROM user_ai_keys k
+        JOIN users u ON k.user_id = u.id
+        WHERE u.role = 'admin'
+    ");
+    $stmtKeys->execute();
     $keys = $stmtKeys->fetchAll(PDO::FETCH_ASSOC);
 
     if (count($keys) === 0) {
-        sendJsonResponse('success', 'Auto-Reply is inactive.', [
-            'live' => false,
-            'status' => 'no_keys',
-            'reason' => 'No AI API keys are configured for your account.',
-            'fix_action' => 'configure_keys'
-        ]);
+        // Fallback to check environment variables
+        $fallbackKey = getenv('GITHUB_TOKEN') ?: getenv('GEMINI_API_KEY') ?: getenv('OPENROUTER_API_KEY') ?: '';
+        if (empty($fallbackKey) || strpos($fallbackKey, 'placeholder') !== false) {
+            sendJsonResponse('success', 'Auto-Reply is inactive.', [
+                'live' => false,
+                'status' => 'no_keys',
+                'reason' => 'No AI API keys are configured in the admin settings panel.',
+                'fix_action' => ($user['role'] === 'admin') ? 'configure_keys' : ''
+            ]);
+        } else {
+            $keys = [['status' => 'active', 'error_message' => '']];
+        }
     }
 
     $activeKeyCount = 0;
@@ -87,8 +101,8 @@ try {
         sendJsonResponse('success', 'Auto-Reply is inactive.', [
             'live' => false,
             'status' => 'keys_paused',
-            'reason' => 'All of your AI API keys are currently paused.',
-            'fix_action' => 'configure_keys'
+            'reason' => 'All configured AI API keys are currently paused or unavailable.',
+            'fix_action' => ($user['role'] === 'admin') ? 'configure_keys' : ''
         ]);
     }
 
@@ -96,8 +110,8 @@ try {
         sendJsonResponse('success', 'Auto-Reply has key error.', [
             'live' => false,
             'status' => 'key_error',
-            'reason' => 'Your active AI API key is experiencing errors: ' . $errorMessage,
-            'fix_action' => 'configure_keys'
+            'reason' => 'An active AI API key is experiencing errors: ' . $errorMessage,
+            'fix_action' => ($user['role'] === 'admin') ? 'configure_keys' : ''
         ]);
     }
 

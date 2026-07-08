@@ -60,6 +60,10 @@ class CRMSyncHelper {
                     'source' => trim($mc['source'] ?? 'LinkedIn Extension')
                 ]);
 
+                if (!checkContactLimit($userId)) {
+                    continue; // Skip creating contacts if user has exceeded 100 contacts
+                }
+
                 $insCon = $db->prepare("INSERT INTO crm_contacts (user_id, company_id, name, email, phone, linkedin, notes, custom_fields, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 $insCon->execute([
                     $userId,
@@ -198,6 +202,10 @@ class CRMSyncHelper {
                     ]);
                     
                     $notes = "AI Inbound Summary:\n" . ($email['ai_summary'] ?? '');
+                    
+                    if (!checkContactLimit($userId)) {
+                        continue; // Skip creating contacts if user has exceeded 100 contacts
+                    }
                     
                     $insCon = $db->prepare("INSERT INTO crm_contacts (user_id, company_id, name, email, phone, notes, custom_fields) VALUES (?, ?, ?, ?, ?, ?, ?)");
                     $insCon->execute([

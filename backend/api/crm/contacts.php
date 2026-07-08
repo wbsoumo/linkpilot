@@ -134,6 +134,11 @@ try {
         $customFields = $input['custom_fields'] ?? [];
         $customFieldsJson = is_array($customFields) ? json_encode($customFields) : $customFields;
         
+        // Enforce contact limits (max 100 contacts for non-admins)
+        if (!checkContactLimit($userId)) {
+            sendJsonResponse('error', 'Contact limit reached. Your free tier allows up to 100 contacts. Please upgrade your plan or delete existing contacts.', [], 403);
+        }
+        
         // Prevent duplicate contacts by email
         if (!empty($email)) {
             $stmtDup = $db->prepare("SELECT id, name FROM crm_contacts WHERE email = ? AND user_id = ?");

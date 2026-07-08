@@ -6738,6 +6738,11 @@ async function renderIntegrations(container) {
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        `;
+
+        let column1Html = '';
+        if (user.role === 'admin') {
+            column1Html = `
                     <!-- Column 1: AI Provider & API Settings Override -->
                     <div class="glass-panel p-5 bg-white space-y-4 shadow-sm border border-slate-200 rounded-2xl">
                         <div class="pb-2 border-b border-slate-100 flex justify-between items-center">
@@ -6800,133 +6805,52 @@ async function renderIntegrations(container) {
                             </button>
                         </div>
                     </div>
-                    
-                    <!-- Column 2: SMTP / IMAP Connection -->
+            `;
+        } else {
+            column1Html = `
+                    <!-- Column 1: AI Autopilot Status Card -->
                     <div class="glass-panel p-5 bg-white space-y-4 shadow-sm border border-slate-200 rounded-2xl">
                         <div class="pb-2 border-b border-slate-100 flex justify-between items-center">
                             <div class="flex items-center space-x-2 text-slate-800 font-bold text-sm">
-                                <i data-lucide="mail" class="h-4 w-4 text-indigo-600"></i>
-                                <span>Email Sync Connection Status</span>
+                                <i data-lucide="cpu" class="h-4 w-4 text-indigo-600"></i>
+                                <span>AI Autopilot Status</span>
                             </div>
                             <!-- Status Badge -->
-                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider flex items-center space-x-1 ${isMailConfigured ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-red-50 text-red-550 border border-red-200'}">
-                                <span class="h-1.5 w-1.5 rounded-full ${isMailConfigured ? 'bg-emerald-500' : 'bg-red-500'} mr-1"></span>
-                                ${isMailConfigured ? 'Connected' : 'Disconnected'}
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider flex items-center space-x-1 bg-emerald-50 text-emerald-600 border border-emerald-200">
+                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 mr-1 animate-pulse"></span>
+                                Active (Free Tier)
                             </span>
                         </div>
                         
-                        <!-- Read-only Summary details -->
-                        <div class="p-3 bg-slate-50/50 border border-slate-150 rounded-xl space-y-2">
-                            <div class="flex justify-between">
-                                <span class="text-slate-500">SMTP Host:</span>
-                                <span class="font-bold text-slate-700">${connection.smtp_host ? `${connection.smtp_host}:${connection.smtp_port}` : 'None'}</span>
+                        <!-- Premium Description -->
+                        <div class="p-4 bg-gradient-to-br from-indigo-50/50 to-teal-50/30 border border-indigo-100 rounded-xl space-y-3">
+                            <div class="flex items-center space-x-2">
+                                <div class="p-1 bg-indigo-100 text-indigo-700 rounded-md">
+                                    <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
+                                </div>
+                                <span class="font-bold text-xs text-indigo-900">Admin-wide AI Connected</span>
                             </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-500">IMAP Host:</span>
-                                <span class="font-bold text-slate-700">${connection.imap_host ? `${connection.imap_host}:${connection.imap_port}` : 'None'}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-500">Sync Mail Username:</span>
-                                <span class="font-bold text-slate-700">${connection.smtp_username || 'None'}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-500">Sync Interval:</span>
-                                <span class="font-bold text-slate-700">${settings.sync_interval_minutes ? `Every ${settings.sync_interval_minutes} min` : '60 min'}</span>
-                            </div>
-                        </div>
-
-                        <!-- Add/Edit Trigger Button -->
-                        <div>
-                            <button onclick="toggleMailForm()" class="flex items-center justify-center space-x-1 px-3 py-1.5 border border-indigo-200 hover:bg-indigo-50 text-indigo-650 rounded-lg text-[10px] font-bold transition shadow-sm" id="toggle-mail-form-btn">
-                                <i data-lucide="pencil" class="h-3 w-3"></i>
-                                <span>Add / Edit Mail Details</span>
-                            </button>
-                        </div>
-                        
-                        <!-- Toggleable Mail Credentials Form -->
-                        <div id="mail-credentials-form-container" class="space-y-3 pt-3 border-t border-slate-100 hidden">
-                            <div class="grid grid-cols-2 gap-3">
+                            <p class="text-slate-600 text-xs leading-relaxed">
+                                You are connected to the central LinkPilot high-performance AI autopilot. You do not need to provide personal API keys. 
+                            </p>
+                            <div class="pt-1.5 border-t border-slate-200/60 grid grid-cols-2 gap-2 text-[10px]">
                                 <div>
-                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Email Provider Type</label>
-                                    <select id="email-provider-select" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-xs text-slate-800 focus:outline-none">
-                                        <option value="custom" ${connection.email_provider === 'custom' ? 'selected' : ''}>Custom Server</option>
-                                        <option value="gmail" ${connection.email_provider === 'gmail' ? 'selected' : ''}>Gmail App Passwords</option>
-                                        <option value="outlook" ${connection.email_provider === 'outlook' ? 'selected' : ''}>Outlook/Office365</option>
-                                    </select>
+                                    <span class="block text-slate-400 font-semibold uppercase">Quota Reset</span>
+                                    <span class="font-bold text-slate-700">1st of every month</span>
                                 </div>
                                 <div>
-                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Sync Interval</label>
-                                    <select id="sync-interval-select" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-xs text-slate-800 focus:outline-none">
-                                        <option value="15" ${settings.sync_interval_minutes === 15 ? 'selected' : ''}>15 minutes</option>
-                                        <option value="30" ${settings.sync_interval_minutes === 30 ? 'selected' : ''}>30 minutes</option>
-                                        <option value="60" ${settings.sync_interval_minutes === 60 ? 'selected' : ''}>1 hour</option>
-                                    </select>
+                                    <span class="block text-slate-400 font-semibold uppercase">Cost Per Auto-Reply</span>
+                                    <span class="font-bold text-slate-700">1 AI credit</span>
                                 </div>
                             </div>
-                            
-                            <!-- SMTP Config -->
-                            <div class="p-3 bg-slate-50 rounded-xl space-y-2 border border-slate-150">
-                                <span class="font-bold text-[10px] uppercase tracking-wider text-slate-600 block">Outbound Mail (SMTP)</span>
-                                <div class="grid grid-cols-3 gap-2">
-                                    <div class="col-span-2">
-                                        <input type="text" id="smtp-host-input" value="${connection.smtp_host || ''}" placeholder="Host (smtp.mail.com)" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
-                                    </div>
-                                    <div>
-                                        <input type="number" id="smtp-port-input" value="${connection.smtp_port || 587}" placeholder="Port" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <input type="text" id="smtp-username-input" value="${connection.smtp_username || ''}" placeholder="Username/Email" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
-                                    <input type="password" id="smtp-password-input" placeholder="••••••••" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
-                                </div>
-                                <div class="grid grid-cols-3 gap-2 items-center">
-                                    <select id="smtp-encryption-select" class="col-span-2 px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
-                                        <option value="tls" ${connection.smtp_encryption === 'tls' ? 'selected' : ''}>TLS Encryption</option>
-                                        <option value="ssl" ${connection.smtp_encryption === 'ssl' ? 'selected' : ''}>SSL Encryption</option>
-                                        <option value="none" ${connection.smtp_encryption === 'none' ? 'selected' : ''}>No Encryption</option>
-                                    </select>
-                                    <button type="button" onclick="testSMTPCredentials(this)" class="py-1 px-2 border border-indigo-200 text-indigo-650 hover:bg-indigo-50 rounded text-[9px] font-bold transition">Test SMTP</button>
-                                </div>
-                            </div>
-                            
-                            <!-- IMAP Config -->
-                            <div class="p-3 bg-slate-50 rounded-xl space-y-2 border border-slate-150">
-                                <span class="font-bold text-[10px] uppercase tracking-wider text-slate-600 block">Inbound Mail (IMAP)</span>
-                                <div class="grid grid-cols-3 gap-2">
-                                    <div class="col-span-2">
-                                        <input type="text" id="imap-host-input" value="${connection.imap_host || ''}" placeholder="Host (imap.mail.com)" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
-                                    </div>
-                                    <div>
-                                        <input type="number" id="imap-port-input" value="${connection.imap_port || 993}" placeholder="Port" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <input type="text" id="imap-username-input" value="${connection.imap_username || ''}" placeholder="Username/Email" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
-                                    <input type="password" id="imap-password-input" placeholder="••••••••" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
-                                </div>
-                                <div class="grid grid-cols-3 gap-2 items-center">
-                                    <select id="imap-encryption-select" class="col-span-2 px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
-                                        <option value="ssl" ${connection.imap_encryption === 'ssl' ? 'selected' : ''}>SSL Encryption</option>
-                                        <option value="tls" ${connection.imap_encryption === 'tls' ? 'selected' : ''}>TLS Encryption</option>
-                                        <option value="none" ${connection.imap_encryption === 'none' ? 'selected' : ''}>No Encryption</option>
-                                    </select>
-                                    <button type="button" onclick="testIMAPCredentials(this)" class="py-1 px-2 border border-indigo-200 text-indigo-650 hover:bg-indigo-50 rounded text-[9px] font-bold transition">Test IMAP</button>
-                                </div>
-                            </div>
-                            
-                            <div class="flex items-start space-x-2 pt-1.5">
-                                <input type="checkbox" id="sync-active-checkbox" ${settings.is_active ? 'checked' : ''} class="mt-0.5 h-3.5 w-3.5 border border-slate-300 rounded text-indigo-600 focus:ring-indigo-500">
-                                <label for="sync-active-checkbox" class="text-[10px] text-slate-500 leading-tight">Enable background mail downloader and AI processing worker pipeline</label>
-                            </div>
-                            
-                            <button onclick="saveMailboxCredentials(this)" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-sm">
-                                <i data-lucide="save" class="h-3.5 w-3.5"></i>
-                                <span>Save Mailbox Credentials</span>
-                            </button>
                         </div>
                     </div>
-                </div>
+            `;
+        }
 
+        let keysControlBoardHtml = '';
+        if (user.role === 'admin') {
+            keysControlBoardHtml = `
                 <!-- AI API Keys Control Board Card -->
                 <div class="glass-panel p-5 bg-white space-y-4 shadow-sm border border-slate-200 rounded-2xl">
                     <div class="pb-2 border-b border-slate-100 flex justify-between items-center">
@@ -6987,7 +6911,7 @@ async function renderIntegrations(container) {
                             <label class="block text-[9px] font-bold text-slate-400 uppercase">API Key Value / Token</label>
                             <div class="flex space-x-2">
                                 <input type="password" id="new-key-value-input" placeholder="Enter API Key value" class="flex-grow px-2.5 py-1.5 bg-white border border-slate-250 rounded-lg text-[11px] text-slate-850 focus:outline-none focus:border-indigo-500">
-                                <button onclick="submitNewAIKey()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[11px] font-bold transition shrink-0 flex items-center justify-center space-x-1.5 shadow-sm" style="color: #ffffff !important;">
+                                <button onclick="submitNewAIKey()" class="px-4 py-1.5 bg-indigo-650 hover:bg-indigo-550 text-white rounded-lg text-[11px] font-bold transition shrink-0 flex items-center justify-center space-x-1.5 shadow-sm" style="color: #ffffff !important;">
                                     <i data-lucide="save" class="h-3.5 w-3.5" style="color: #ffffff !important;"></i>
                                     <span style="color: #ffffff !important;">Save Key</span>
                                 </button>
@@ -7009,6 +6933,186 @@ async function renderIntegrations(container) {
                                 </tr>
                             </thead>
                             <tbody>
+                                ${tableRowsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        container.innerHTML = `
+            <div class="space-y-6 pt-4 animate-fade-in text-xs max-w-4xl mx-auto">
+                <div>
+                    <h1 class="text-2xl font-extrabold text-slate-800">Integrations Control</h1>
+                    <p class="text-slate-500 text-xs mt-1">Connect your outbound SMTP, inbound IMAP mail servers, and active AI model APIs.</p>
+                </div>
+
+                <!-- Token & Credit Usage Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="glass-panel p-4 bg-white shadow-sm border border-slate-200 rounded-2xl flex items-center space-x-3.5">
+                        <div class="h-10 w-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
+                            <i data-lucide="wallet" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Remaining Credits</span>
+                            <span class="text-lg font-bold text-slate-800">${wallet.remaining.toLocaleString()} Tokens</span>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-panel p-4 bg-white shadow-sm border border-slate-200 rounded-2xl flex items-center space-x-3.5">
+                        <div class="h-10 w-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
+                            <i data-lucide="line-chart" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Tokens Used</span>
+                            <span class="text-lg font-bold text-slate-800">${wallet.used.toLocaleString()} Tokens</span>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-panel p-4 bg-white shadow-sm border border-slate-200 rounded-2xl flex items-center space-x-3.5">
+                        <div class="h-10 w-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
+                            <i data-lucide="activity" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Today's Consumption</span>
+                            <span class="text-lg font-bold text-slate-800">${todayUsage.toLocaleString()} Tokens</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    ${column1Html}
+                    
+                    <!-- Column 2: SMTP / IMAP Connection -->
+                    <div class="glass-panel p-5 bg-white space-y-4 shadow-sm border border-slate-200 rounded-2xl">
+                        <div class="pb-2 border-b border-slate-100 flex justify-between items-center">
+                            <div class="flex items-center space-x-2 text-slate-800 font-bold text-sm">
+                                <i data-lucide="mail" class="h-4 w-4 text-indigo-600"></i>
+                                <span>Email Sync Connection Status</span>
+                            </div>
+                            <!-- Status Badge -->
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider flex items-center space-x-1 ${isMailConfigured ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-red-50 text-red-550 border border-red-200'}">
+                                <span class="h-1.5 w-1.5 rounded-full ${isMailConfigured ? 'bg-emerald-500' : 'bg-red-500'} mr-1"></span>
+                                ${isMailConfigured ? 'Connected' : 'Disconnected'}
+                            </span>
+                        </div>
+                        
+                        <!-- Read-only Summary details -->
+                        <div class="p-3 bg-slate-50/50 border border-slate-150 rounded-xl space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">SMTP Host:</span>
+                                <span class="font-bold text-slate-700">${connection.smtp_host ? `${connection.smtp_host}:${connection.smtp_port}` : 'None'}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">IMAP Host:</span>
+                                <span class="font-bold text-slate-700">${connection.imap_host ? `${connection.imap_host}:${connection.imap_port}` : 'None'}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Sync Mail Username:</span>
+                                <span class="font-bold text-slate-700">${connection.smtp_username || 'None'}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Sync Interval:</span>
+                                <span class="font-bold text-slate-700">${settings.sync_interval_minutes ? `Every ${settings.sync_interval_minutes} min` : '60 min'}</span>
+                            </div>
+                        </div>
+
+                        <!-- Add/Edit Trigger Button -->
+                        <div>
+                            <button onclick="toggleMailForm()" class="flex items-center justify-center space-x-1 px-3 py-1.5 border border-indigo-200 hover:bg-indigo-50 text-indigo-655 rounded-lg text-[10px] font-bold transition shadow-sm" id="toggle-mail-form-btn">
+                                <i data-lucide="pencil" class="h-3 w-3"></i>
+                                <span>Add / Edit Mail Details</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Toggleable Mail Credentials Form -->
+                        <div id="mail-credentials-form-container" class="space-y-3 pt-3 border-t border-slate-100 hidden">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Email Provider Type</label>
+                                    <select id="email-provider-select" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-xs text-slate-800 focus:outline-none">
+                                        <option value="custom" ${connection.email_provider === 'custom' ? 'selected' : ''}>Custom Server</option>
+                                        <option value="gmail" ${connection.email_provider === 'gmail' ? 'selected' : ''}>Gmail App Passwords</option>
+                                        <option value="outlook" ${connection.email_provider === 'outlook' ? 'selected' : ''}>Outlook/Office365</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Sync Interval</label>
+                                    <select id="sync-interval-select" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-xs text-slate-800 focus:outline-none">
+                                        <option value="15" ${settings.sync_interval_minutes === 15 ? 'selected' : ''}>15 minutes</option>
+                                        <option value="30" ${settings.sync_interval_minutes === 30 ? 'selected' : ''}>30 minutes</option>
+                                        <option value="60" ${settings.sync_interval_minutes === 60 ? 'selected' : ''}>1 hour</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- SMTP Config -->
+                            <div class="p-3 bg-slate-50 rounded-xl space-y-2 border border-slate-150">
+                                <span class="font-bold text-[10px] uppercase tracking-wider text-slate-650 block">Outbound Mail (SMTP)</span>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="col-span-2">
+                                        <input type="text" id="smtp-host-input" value="${connection.smtp_host || ''}" placeholder="Host (smtp.mail.com)" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
+                                    </div>
+                                    <div>
+                                        <input type="number" id="smtp-port-input" value="${connection.smtp_port || 587}" placeholder="Port" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input type="text" id="smtp-username-input" value="${connection.smtp_username || ''}" placeholder="Username/Email" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
+                                    <input type="password" id="smtp-password-input" placeholder="••••••••" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
+                                </div>
+                                <div class="grid grid-cols-3 gap-2 items-center">
+                                    <select id="smtp-encryption-select" class="col-span-2 px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
+                                        <option value="tls" ${connection.smtp_encryption === 'tls' ? 'selected' : ''}>TLS Encryption</option>
+                                        <option value="ssl" ${connection.smtp_encryption === 'ssl' ? 'selected' : ''}>SSL Encryption</option>
+                                        <option value="none" ${connection.smtp_encryption === 'none' ? 'selected' : ''}>No Encryption</option>
+                                    </select>
+                                    <button type="button" onclick="testSMTPCredentials(this)" class="py-1 px-2 border border-indigo-200 text-indigo-650 hover:bg-indigo-50 rounded text-[9px] font-bold transition">Test SMTP</button>
+                                </div>
+                            </div>
+                            
+                            <!-- IMAP Config -->
+                            <div class="p-3 bg-slate-50 rounded-xl space-y-2 border border-slate-150">
+                                <span class="font-bold text-[10px] uppercase tracking-wider text-slate-650 block">Inbound Mail (IMAP)</span>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="col-span-2">
+                                        <input type="text" id="imap-host-input" value="${connection.imap_host || ''}" placeholder="Host (imap.mail.com)" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
+                                    </div>
+                                    <div>
+                                        <input type="number" id="imap-port-input" value="${connection.imap_port || 993}" placeholder="Port" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input type="text" id="imap-username-input" value="${connection.imap_username || ''}" placeholder="Username/Email" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
+                                    <input type="password" id="imap-password-input" placeholder="••••••••" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
+                                </div>
+                                <div class="grid grid-cols-3 gap-2 items-center">
+                                    <select id="imap-encryption-select" class="col-span-2 px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
+                                        <option value="ssl" ${connection.imap_encryption === 'ssl' ? 'selected' : ''}>SSL Encryption</option>
+                                        <option value="tls" ${connection.imap_encryption === 'tls' ? 'selected' : ''}>TLS Encryption</option>
+                                        <option value="none" ${connection.imap_encryption === 'none' ? 'selected' : ''}>No Encryption</option>
+                                    </select>
+                                    <button type="button" onclick="testIMAPCredentials(this)" class="py-1 px-2 border border-indigo-200 text-indigo-650 hover:bg-indigo-50 rounded text-[9px] font-bold transition">Test IMAP</button>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start space-x-2 pt-1.5">
+                                <input type="checkbox" id="sync-active-checkbox" ${settings.is_active ? 'checked' : ''} class="mt-0.5 h-3.5 w-3.5 border border-slate-300 rounded text-indigo-650 focus:ring-indigo-500">
+                                <label for="sync-active-checkbox" class="text-[10px] text-slate-500 leading-tight">Enable background mail downloader and AI processing worker pipeline</label>
+                            </div>
+                            
+                            <button onclick="saveMailboxCredentials(this)" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-sm">
+                                <i data-lucide="save" class="h-3.5 w-3.5"></i>
+                                <span>Save Mailbox Credentials</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                ${keysControlBoardHtml}
+            </div>
+        `;>
                                 ${tableRowsHtml}
                             </tbody>
                         </table>
@@ -10667,6 +10771,7 @@ function getSettingsBaseLayout(user) {
                         <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
                     </button>
 
+                    ${user.role === 'admin' ? `
                     <button onclick="switchSettingsTab('api', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-655 hover:bg-slate-100 border border-transparent">
                         <div class="flex items-center space-x-3">
                             <i data-lucide="key" class="h-4 w-4 text-slate-400"></i>
@@ -10677,6 +10782,7 @@ function getSettingsBaseLayout(user) {
                         </div>
                         <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
                     </button>
+                    ` : ''}
 
                     <button onclick="switchSettingsTab('storage', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-655 hover:bg-slate-100 border border-transparent">
                         <div class="flex items-center space-x-3">
@@ -11099,65 +11205,95 @@ function renderSettingsTabContent(tab, container) {
         `;
     } else if (tab === 'billing') {
         container.innerHTML = `
-            <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-5 shadow-sm animate-fade-in">
-                <div class="pb-2 border-b border-slate-100 flex items-center justify-between">
-                    <div>
-                        <h2 class="text-sm font-extrabold text-slate-800">Billing & Subscription</h2>
-                        <p class="text-slate-400 text-[10px]">Review payment history and current workspace plan properties.</p>
-                    </div>
-                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center space-x-1">
-                        <span>PRO PLAN ACTIVE</span>
-                    </span>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="p-4 bg-slate-50 border border-slate-150 rounded-xl space-y-2.5">
-                        <div class="flex justify-between items-start">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Current Plan</span>
-                            <span class="text-lg font-extrabold text-slate-800">₹3,999<span class="text-xs font-normal text-slate-400">/mo</span></span>
-                        </div>
-                        <h3 class="font-extrabold text-indigo-650 text-sm">Workspace Professional</h3>
-                        <p class="text-[10px] text-slate-555">Renews automatically on June 25, 2025 using Mastercard ending in 9843.</p>
-                    </div>
-
-                    <div class="p-4 bg-slate-50 border border-slate-150 rounded-xl space-y-2 text-xs">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Usage Limits</span>
-                        <div class="space-y-1.5 text-[11px] text-slate-655">
-                            <div class="flex justify-between"><span>WhatsApp Sends:</span><span class="font-bold">250 / 1,000</span></div>
-                            <div class="flex justify-between"><span>Connected Contacts:</span><span class="font-bold">1,843 / 10,000</span></div>
-                            <div class="flex justify-between"><span>Google Calendars:</span><span class="font-bold">1 / 5</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="space-y-3">
-                    <h3 class="text-[10px] font-bold text-slate-455 uppercase tracking-wider border-b border-slate-100 pb-1.5">Invoicing History</h3>
-                    <div class="space-y-2 text-[11px] text-slate-600">
-                        <div class="flex justify-between items-center py-1">
-                            <div>
-                                <span class="font-bold text-slate-700">LP-9843</span>
-                                <span class="text-slate-400 ml-2">25 Jun, 2024</span>
-                            </div>
-                            <div class="flex items-center space-x-3">
-                                <span class="font-bold text-slate-800">₹3,999.00</span>
-                                <a href="#" onclick="event.preventDefault(); showNotification('info', 'Downloading invoice PDF...')" class="text-indigo-600 hover:underline">Download PDF</a>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center py-1">
-                            <div>
-                                <span class="font-bold text-slate-700">LP-8732</span>
-                                <span class="text-slate-400 ml-2">25 May, 2024</span>
-                            </div>
-                            <div class="flex items-center space-x-3">
-                                <span class="font-bold text-slate-800">₹3,999.00</span>
-                                <a href="#" onclick="event.preventDefault(); showNotification('info', 'Downloading invoice PDF...')" class="text-indigo-600 hover:underline">Download PDF</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="flex justify-center items-center py-10" id="billing-loader">
+                <div class="animate-spin rounded-full h-7 w-7 border-b-2 border-indigo-650"></div>
             </div>
+            <div id="billing-tab-inner-content" class="hidden"></div>
         `;
+        
+        Promise.all([
+            apiCall('profile/get_credits.php'),
+            apiCall('crm/contacts.php?limit=1'),
+            apiCall('whatsapp/accounts.php')
+        ]).then(([creditsRes, contactsRes, waAccountsRes]) => {
+            const wallet = creditsRes.wallet || { total: 200, used: 0, remaining: 200, free: 200, purchased: 0 };
+            const totalContacts = contactsRes.total || 0;
+            const accountsList = waAccountsRes.accounts || [];
+            const activeNumbersCount = accountsList.filter(a => a.status === 'connected').length;
+
+            const loader = document.getElementById('billing-loader');
+            if (loader) loader.classList.add('hidden');
+
+            const innerContent = document.getElementById('billing-tab-inner-content');
+            if (innerContent) {
+                innerContent.innerHTML = `
+                    <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-5 shadow-sm animate-fade-in text-xs">
+                        <div class="pb-2 border-b border-slate-100 flex items-center justify-between">
+                            <div>
+                                <h2 class="text-sm font-extrabold text-slate-800">Billing & Subscription</h2>
+                                <p class="text-slate-400 text-[10px]">Review your credit wallet breakdown and active limits.</p>
+                            </div>
+                            <span class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center space-x-1">
+                                <span>${user.role === 'admin' ? 'ADMIN PLAN ACTIVE' : 'FREE TIER ACTIVE'}</span>
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 bg-slate-50 border border-slate-150 rounded-xl space-y-2.5">
+                                <div class="flex justify-between items-start">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Remaining Wallet</span>
+                                    <span class="text-lg font-extrabold text-slate-800">${wallet.remaining.toLocaleString()} <span class="text-xs font-normal text-slate-400">credits</span></span>
+                                </div>
+                                <h3 class="font-extrabold text-indigo-650 text-sm">LinkPilot Credits Wallet</h3>
+                                <div class="pt-1.5 border-t border-slate-200 text-[10px] space-y-1 text-slate-555">
+                                    <div class="flex justify-between"><span>Free Tier Balance:</span><span class="font-bold text-slate-700">${wallet.free} credits</span></div>
+                                    <div class="flex justify-between"><span>Purchased Balance:</span><span class="font-bold text-slate-700">${wallet.purchased} credits</span></div>
+                                </div>
+                                <div class="pt-2">
+                                    <a href="recharge.html" class="inline-flex items-center justify-center px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition shadow-sm" style="color: #ffffff !important;">Recharge Wallet</a>
+                                </div>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 border border-slate-150 rounded-xl space-y-2 text-xs">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Usage Limits</span>
+                                <div class="space-y-1.5 text-[11px] text-slate-655">
+                                    <div class="flex justify-between"><span>Free Monthly Credits:</span><span class="font-bold">200 credits/mo</span></div>
+                                    <div class="flex justify-between">
+                                        <span>Connected Contacts:</span>
+                                        <span class="font-bold ${totalContacts >= 100 && user.role !== 'admin' ? 'text-red-500 font-extrabold animate-pulse' : ''}">${totalContacts} / 100</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>WhatsApp Numbers:</span>
+                                        <span class="font-bold ${activeNumbersCount >= 1 && user.role !== 'admin' ? 'text-red-500 font-extrabold animate-pulse' : ''}">${activeNumbersCount} / 1</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                innerContent.classList.remove('hidden');
+                lucide.createIcons();
+            }
+        }).catch((err) => {
+            const loader = document.getElementById('billing-loader');
+            if (loader) loader.innerHTML = `<span class="text-red-550 text-xs font-semibold">Error loading subscription wallet properties: ${err.message}</span>`;
+        });
     } else if (tab === 'api') {
+        if (user.role !== 'admin') {
+            container.innerHTML = `
+                <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl shadow-sm text-center py-12 animate-fade-in">
+                    <div class="h-12 w-12 bg-red-50 text-red-650 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="lock" class="h-6 w-6"></i>
+                    </div>
+                    <h2 class="text-sm font-extrabold text-slate-800">Access Restricted</h2>
+                    <p class="text-slate-500 text-xs mt-1 max-w-sm mx-auto leading-relaxed">
+                        The Developer API Integrations panel is only accessible by workspace administrators.
+                    </p>
+                </div>
+            `;
+            lucide.createIcons();
+            return;
+        }
         container.innerHTML = `
             <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm animate-fade-in">
                 <div class="pb-2 border-b border-slate-100">

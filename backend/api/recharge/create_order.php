@@ -20,8 +20,8 @@ if (!$input) {
 
 $amount = isset($input['amount']) ? (float)$input['amount'] : 0.00;
 
-if ($amount < 49.00) {
-    sendJsonResponse('error', 'Minimum recharge amount is ₹49.', [], 400);
+if ($amount < 100.00) {
+    sendJsonResponse('error', 'Minimum recharge amount is ₹100.', [], 400);
 }
 
 $db = Database::getConnection();
@@ -43,8 +43,8 @@ try {
         sendJsonResponse('error', 'Razorpay API credentials are not configured in admin settings.', [], 500);
     }
 
-    // 2. Calculate credits to allocate: credits = floor((amount / 49) * 101)
-    $credits = floor(($amount / 49) * 101);
+    // 2. Calculate credits to allocate: ₹100 yields 500 credits
+    $credits = floor(($amount / 100.00) * 500.00);
 
     // 3. Request Razorpay Order Creation via API
     $receipt = 'rcpt_u' . $userId . '_' . time();

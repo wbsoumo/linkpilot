@@ -104,6 +104,9 @@ try {
             $accessToken = ($decrypted !== false) ? $decrypted : $encryptedToken;
             $isMock = (strpos($accessToken, 'Mock') !== false || $accessToken === 'EAAGemini' || $accessToken === 'EAAGeminiTest');
             
+            // Check and Reset Monthly Credits lazily
+            checkAndResetMonthlyCredits($userId);
+            
             // 2. Fetch User Settings
             $stmtSettings = $db->prepare("SELECT * FROM whatsapp_settings WHERE user_id = ? LIMIT 1");
             $stmtSettings->execute([$userId]);
@@ -579,6 +582,16 @@ TODAY'S DATE AND TIME: $currentDate $currentTime (relative offsets like 'tomorro
                     if ($settings['ai_enabled'] && !empty($aiSuggestedReply)) {
                         $replyMsgId = '';
                         try {
+                            // Verify credit balance (cost of 1 AI reply is 1 credit)
+                            $stmtWallet = $db->prepare("SELECT remaining_credits, free_credits, purchased_credits FROM user_email_credits WHERE user_id = ?");
+                            $stmtWallet->execute([$userId]);
+                            $wallet = $stmtWallet->fetch();
+                            $creditsAvailable = $wallet ? (int)$wallet['remaining_credits'] : 0;
+                            
+                            if ($creditsAvailable < 1) {
+                                throw new Exception("Insufficient credit balance ($creditsAvailable) to send Autopilot reply.");
+                            }
+
                             if (!$isMock) {
                                 $sendRes = WhatsAppMetaService::sendTextMessage($userId, $phoneNumberId, $fromWaId, $aiSuggestedReply, $accessToken);
                                 $replyMsgId = $sendRes['messages'][0]['id'] ?? 'wamid.auto.' . uniqid();
@@ -589,6 +602,23 @@ TODAY'S DATE AND TIME: $currentDate $currentTime (relative offsets like 'tomorro
                             // Save outbound auto reply to database
                             $stmtInsAutoMsg = $db->prepare("INSERT INTO whatsapp_messages (user_id, wa_contact_id, message_id, direction, type, body, status) VALUES (?, ?, ?, 'outbound', 'text', ?, 'sent')");
                             $stmtInsAutoMsg->execute([$userId, $waContactId, $replyMsgId, $aiSuggestedReply]);
+                            
+                            // Deduct 1 credit (prefer free_credits, fallback to purchased_credits)
+                            $freeCredits = $wallet ? (int)$wallet['free_credits'] : 0;
+                            $purchasedCredits = $wallet ? (int)$wallet['purchased_credits'] : 0;
+                            if ($freeCredits >= 1) {
+                                $freeCredits--;
+                            } elseif ($purchasedCredits >= 1) {
+                                $purchasedCredits--;
+                            }
+                            $newRemaining = $freeCredits + $purchasedCredits;
+
+                            $stmtDeduct = $db->prepare("UPDATE user_email_credits SET free_credits = ?, purchased_credits = ?, remaining_credits = ?, used_credits = used_credits + 1 WHERE user_id = ?");
+                            $stmtDeduct->execute([$freeCredits, $purchasedCredits, $newRemaining, $userId]);
+
+                            // Log transaction
+                            $stmtTx = $db->prepare("INSERT INTO email_credit_transactions (user_id, type, credits, provider_used, status) VALUES (?, 'usage', 1, 'whatsapp_ai', 'success')");
+                            $stmtTx->execute([$userId]);
                             
                             // If there is a second message (e.g. meeting details) to send
                             if (!empty($secondWaMessageText)) {

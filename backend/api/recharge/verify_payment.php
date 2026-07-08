@@ -82,9 +82,9 @@ try {
     $stmtPayTx = $db->prepare("INSERT INTO payment_transactions (user_id, order_id, payment_id, signature, amount, status) VALUES (?, ?, ?, ?, ?, 'success')");
     $stmtPayTx->execute([$userId, $orderId, $paymentId, $signature, $order['amount']]);
 
-    // Increment user credits in user_email_credits
-    $stmtUpdateCredits = $db->prepare("UPDATE user_email_credits SET total_credits = total_credits + ?, remaining_credits = remaining_credits + ? WHERE user_id = ?");
-    $stmtUpdateCredits->execute([$order['credits'], $order['credits'], $userId]);
+    // Increment user credits in user_email_credits (both purchased and remaining)
+    $stmtUpdateCredits = $db->prepare("UPDATE user_email_credits SET total_credits = total_credits + ?, purchased_credits = purchased_credits + ?, remaining_credits = remaining_credits + ? WHERE user_id = ?");
+    $stmtUpdateCredits->execute([$order['credits'], $order['credits'], $order['credits'], $userId]);
 
     // Record credit transaction
     $stmtCreditTx = $db->prepare("INSERT INTO email_credit_transactions (user_id, type, credits, amount, payment_id, status) VALUES (?, 'recharge', ?, ?, ?, 'success')");

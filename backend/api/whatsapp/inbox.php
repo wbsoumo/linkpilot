@@ -253,17 +253,8 @@ try {
         // Clean phone number (strip whitespace, symbols, ensure it has country code)
         $recipient = preg_replace('/[^0-9]/', '', $recipient);
         
-        // 2.5 Credits balance validation
-        $messageCost = defined('WHATSAPP_MESSAGE_COST') ? WHATSAPP_MESSAGE_COST : 0.15;
+        // Manual messaging is free for all users now, no credit check required
         $isUser = ($user['role'] !== 'admin');
-        if ($isUser) {
-            $stmtCred = $db->prepare("SELECT remaining_credits FROM user_email_credits WHERE user_id = ?");
-            $stmtCred->execute([$userId]);
-            $creditsAvailable = (float)($stmtCred->fetchColumn() ?: 0.0);
-            if ($creditsAvailable < $messageCost) {
-                sendJsonResponse('error', "Insufficient credits. Each WhatsApp message costs {$messageCost} INR. Please top up your wallet.", [], 402);
-            }
-        }
         
         // 3. Dispatch to Meta Cloud API immediately
         $response = null;
@@ -362,19 +353,7 @@ try {
         // 4. Log outbound message to database
         $db->beginTransaction();
         try {
-            if ($isUser) {
-                // Deduct credits
-                $stmtDeduct = $db->prepare("UPDATE user_email_credits SET remaining_credits = remaining_credits - ?, used_credits = used_credits + ? WHERE user_id = ? AND remaining_credits >= ?");
-                $stmtDeduct->execute([$messageCost, $messageCost, $userId, $messageCost]);
-                
-                if ($stmtDeduct->rowCount() === 0) {
-                    throw new Exception("Credit deduction failed. Insufficient balance.");
-                }
-                
-                // Log transaction
-                $stmtTx = $db->prepare("INSERT INTO email_credit_transactions (user_id, type, credits, provider_used, status) VALUES (?, 'usage', ?, 'whatsapp', 'success')");
-                $stmtTx->execute([$userId, $messageCost]);
-            }
+            // Manual messaging is free, no credit deduction needed
             if ($waContactId <= 0) {
                 // Check if contact already exists
                 $stmtExist = $db->prepare("SELECT id FROM whatsapp_contacts WHERE user_id = ? AND wa_id = ?");
@@ -507,6 +486,10 @@ try {
         $crmContactId = $stmtExist->fetchColumn();
         
         if (!$crmContactId) {
+            // Verify contact limit (max 100 contacts for non-admins)
+            if (!checkContactLimit($userId)) {
+                sendJsonResponse('error', 'Contact limit reached. Your free tier allows up to 100 contacts. Please upgrade your plan to link more.', [], 403);
+            }
             // Create CRM Contact
             $insStmt = $db->prepare("INSERT INTO crm_contacts (user_id, name, phone, whatsapp) VALUES (?, ?, ?, ?)");
             $insStmt->execute([$userId, $profileName, $phone, $phone]);

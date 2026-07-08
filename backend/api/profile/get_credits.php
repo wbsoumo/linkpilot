@@ -15,16 +15,19 @@ $userId = $user['id'];
 $db = Database::getConnection();
 
 try {
+    // Check and Reset Monthly Credits lazily
+    checkAndResetMonthlyCredits($userId);
+
     // 1. Fetch Wallet Balance
-    $stmtWallet = $db->prepare("SELECT total_credits, used_credits, remaining_credits FROM user_email_credits WHERE user_id = ?");
+    $stmtWallet = $db->prepare("SELECT total_credits, used_credits, remaining_credits, free_credits, purchased_credits FROM user_email_credits WHERE user_id = ?");
     $stmtWallet->execute([$userId]);
     $wallet = $stmtWallet->fetch();
     
     if (!$wallet) {
-        // Initialize if not present
-        $stmtInsert = $db->prepare("INSERT INTO user_email_credits (user_id, total_credits, used_credits, remaining_credits) VALUES (?, 0, 0, 0)");
+        // Initialize if not present (default to 200 free tier credits)
+        $stmtInsert = $db->prepare("INSERT INTO user_email_credits (user_id, total_credits, used_credits, remaining_credits, free_credits, purchased_credits) VALUES (?, 200, 0, 200, 200, 0)");
         $stmtInsert->execute([$userId]);
-        $wallet = ['total_credits' => 0, 'used_credits' => 0, 'remaining_credits' => 0];
+        $wallet = ['total_credits' => 200, 'used_credits' => 0, 'remaining_credits' => 200, 'free_credits' => 200, 'purchased_credits' => 0];
     }
 
     // 2. Today's Usage Count
@@ -56,7 +59,9 @@ try {
         'wallet' => [
             'total' => (int)$wallet['total_credits'],
             'used' => (int)$wallet['used_credits'],
-            'remaining' => (int)$wallet['remaining_credits']
+            'remaining' => (int)$wallet['remaining_credits'],
+            'free' => (int)($wallet['free_credits'] ?? 200),
+            'purchased' => (int)($wallet['purchased_credits'] ?? 0)
         ],
         'today_usage' => $todayUsage,
         'last_recharge' => $lastRecharge ? [

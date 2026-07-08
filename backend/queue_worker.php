@@ -357,21 +357,8 @@ You MUST return your response as a valid, parsable JSON block with the following
             
             try {
                 // Credits balance validation
-                $messageCost = defined('WHATSAPP_MESSAGE_COST') ? WHATSAPP_MESSAGE_COST : 0.15;
-                
-                $stmtUser = $db->prepare("SELECT role FROM users WHERE id = ? LIMIT 1");
-                $stmtUser->execute([$userId]);
-                $userRole = $stmtUser->fetchColumn();
-                $isUser = ($userRole !== 'admin');
-                
-                if ($isUser) {
-                    $stmtCred = $db->prepare("SELECT remaining_credits FROM user_email_credits WHERE user_id = ?");
-                    $stmtCred->execute([$userId]);
-                    $creditsAvailable = (float)($stmtCred->fetchColumn() ?: 0.0);
-                    if ($creditsAvailable < $messageCost) {
-                        throw new Exception("Insufficient credits. WhatsApp message cost is {$messageCost} INR.");
-                    }
-                }
+                // Campaigns and normal broadcasts are free, no credit checks needed
+                $isUser = false;
                 
                 $metaMsgId = '';
                 if (!$isMock) {
@@ -400,17 +387,7 @@ You MUST return your response as a valid, parsable JSON block with the following
                 
                 $db->beginTransaction();
                 try {
-                    if ($isUser) {
-                        $stmtDeduct = $db->prepare("UPDATE user_email_credits SET remaining_credits = remaining_credits - ?, used_credits = used_credits + ? WHERE user_id = ? AND remaining_credits >= ?");
-                        $stmtDeduct->execute([$messageCost, $messageCost, $userId, $messageCost]);
-                        if ($stmtDeduct->rowCount() === 0) {
-                            throw new Exception("Credit deduction failed. Insufficient balance.");
-                        }
-                        
-                        // Record transaction
-                        $stmtTx = $db->prepare("INSERT INTO email_credit_transactions (user_id, type, credits, provider_used, status) VALUES (?, 'usage', ?, 'whatsapp', 'success')");
-                        $stmtTx->execute([$userId, $messageCost]);
-                    }
+                    // Campaigns are free, no credit deduction needed
                     // Update queue status
                     // Update queue status
                     $db->prepare("UPDATE whatsapp_queue SET status = 'sent', error_message = NULL WHERE id = ?")->execute([$queueId]);

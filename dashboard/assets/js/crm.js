@@ -9996,7 +9996,11 @@ async function renderExternalApps(container) {
     lucide.createIcons();
 
     try {
-        const res = await apiCall('external_apps/status.php');
+        const [res, sheetRes] = await Promise.all([
+            apiCall('external_apps/status.php'),
+            apiCall('google/status.php').catch(err => ({ status: 'error', connected: false }))
+        ]);
+        
         const conn = res.data || {
             connected: false,
             email: null,
@@ -10008,10 +10012,8 @@ async function renderExternalApps(container) {
             calendar_connected: false,
             gmail_connected: false
         };
-
-        if (conn.error) {
-            showNotification('warning', 'Integrations warning: ' + conn.error);
-        }
+        
+        const sheetConn = (sheetRes && sheetRes.status === 'success') ? sheetRes : { connected: false };
 
         const buildStatusBadge = (isConnected) => {
             return isConnected
@@ -10033,7 +10035,7 @@ async function renderExternalApps(container) {
                 </div>
 
                 <!-- Integrations Cards Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <!-- Google Profile Connection Card -->
                     <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl flex flex-col justify-between hover:shadow-md transition">
                         <div>
@@ -10127,6 +10129,56 @@ async function renderExternalApps(container) {
                             `}
                         </div>
                     </div>
+
+                    <!-- Google Sheets Sync Card -->
+                    <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl flex flex-col justify-between hover:shadow-md transition">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <div class="h-12 w-12 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-center p-2.5 shrink-0">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/30/Google_Sheets_logo_%282014-2020%29.svg" class="h-full w-full object-contain" alt="Google Sheets">
+                                </div>
+                                ${buildStatusBadge(sheetConn.connected)}
+                            </div>
+                            <h3 class="text-sm font-extrabold text-slate-800 mt-4">Google Sheets Sync</h3>
+                            <p class="text-slate-500 mt-1.5 leading-relaxed">Instantly stream incoming leads and message logs to a custom Google spreadsheet for sharing and analysis.</p>
+                            
+                            ${sheetConn.connected ? `
+                                <div class="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-150 space-y-1 font-mono text-[10px] text-slate-650 flex flex-col space-y-2">
+                                    <div>
+                                        <p class="truncate text-[10px]" title="${sheetConn.google_email}"><strong>Account:</strong> ${sheetConn.google_email}</p>
+                                        <p class="truncate text-[10px]" title="${sheetConn.spreadsheet_id || 'Not created'}"><strong>Sheet ID:</strong> ${sheetConn.spreadsheet_id || 'Not created'}</p>
+                                        ${sheetConn.spreadsheet_url ? `<p class="mt-1"><a href="${sheetConn.spreadsheet_url}" target="_blank" class="text-blue-600 hover:underline font-bold flex items-center space-x-1"><i data-lucide="external-link" class="h-3 w-3 inline"></i> <span>Open Spreadsheet</span></a></p>` : ''}
+                                    </div>
+                                    
+                                    ${!sheetConn.spreadsheet_id ? `
+                                        <div class="pt-2 border-t border-slate-100 flex flex-col space-y-2">
+                                            <button onclick="createGoogleSheet()" class="w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[10px] transition text-center select-none" style="color:#ffffff !important;">Create New Spreadsheet</button>
+                                            <div class="flex space-x-1.5 items-center">
+                                                <input type="text" id="existing-sheet-url" placeholder="Paste Sheet URL/ID" class="w-full px-2 py-1 border border-slate-200 rounded text-[9px] focus:outline-none bg-white">
+                                                <button onclick="connectExistingSheet()" class="px-2 py-1 bg-slate-850 hover:bg-slate-700 text-white rounded font-bold text-[9px] select-none">Link</button>
+                                            </div>
+                                        </div>
+                                    ` : `
+                                        <div class="pt-2 border-t border-slate-100 flex flex-col space-y-1 text-[9px] text-slate-500">
+                                            <p><strong>Rows Synced:</strong> ${sheetConn.rows_synced || 0}</p>
+                                            <p><strong>Last Sync:</strong> ${sheetConn.last_sync_time ? new Date(sheetConn.last_sync_time).toLocaleString() : 'Never'}</p>
+                                        </div>
+                                    `}
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <div class="mt-6 flex space-x-2 pt-2 border-t border-slate-100">
+                            ${sheetConn.connected ? `
+                                ${sheetConn.spreadsheet_id ? `
+                                    <button onclick="triggerGoogleSheetsSync()" class="flex-1 py-2 bg-indigo-550 hover:bg-indigo-650 text-white rounded-lg font-bold text-center transition select-none" style="color: #ffffff !important;">Sync Now</button>
+                                ` : ''}
+                                <button onclick="disconnectGoogleSheets()" class="px-3 py-2 border border-slate-200 hover:border-red-500/20 hover:bg-red-50 text-red-500 rounded-lg font-bold transition select-none">Disconnect</button>
+                            ` : `
+                                <button onclick="connectGoogleSheets()" class="w-full py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-lg font-bold text-center transition select-none" style="color: #ffffff !important;">Connect Google Sheets</button>
+                            `}
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -10152,6 +10204,69 @@ window.connectExternalGoogle = async function(type = 'login') {
         }
     } catch (err) {
         showNotification('error', 'OAuth URL creation failed: ' + err.message);
+    }
+};
+
+window.connectGoogleSheets = async function() {
+    try {
+        showNotification('info', 'Constructing secure Google Sheets auth request URL...');
+        const res = await apiCall('google/auth.php');
+        if (res.status === 'success' && res.auth_url) {
+            window.location.href = res.auth_url;
+        } else {
+            showNotification('error', res.message || 'Failed to construct Sheets URL.');
+        }
+    } catch (err) {
+        showNotification('error', 'Sheets OAuth URL creation failed: ' + err.message);
+    }
+};
+
+window.disconnectGoogleSheets = async function() {
+    if (!confirm('Are you sure you want to disconnect Google Sheets integration? This will stop real-time CRM updates from syncing.')) return;
+    try {
+        const res = await apiCall('google/disconnect.php', 'POST');
+        showNotification('success', res.message);
+        navigateTo('external-apps');
+    } catch (err) {
+        showNotification('error', 'Failed to disconnect: ' + err.message);
+    }
+};
+
+window.createGoogleSheet = async function() {
+    try {
+        showNotification('info', 'Creating a new spreadsheet in your Google Drive...');
+        const res = await apiCall('google/create_sheet.php', 'POST');
+        showNotification('success', res.message || 'Spreadsheet created successfully!');
+        navigateTo('external-apps');
+    } catch (err) {
+        showNotification('error', 'Failed to create spreadsheet: ' + err.message);
+    }
+};
+
+window.connectExistingSheet = async function() {
+    const input = document.getElementById('existing-sheet-url');
+    if (!input || !input.value.trim()) {
+        showNotification('warning', 'Please enter a spreadsheet URL or spreadsheet ID.');
+        return;
+    }
+    try {
+        showNotification('info', 'Verifying and linking spreadsheet...');
+        const res = await apiCall('google/connect_sheet.php', 'POST', { spreadsheet_url: input.value.trim() });
+        showNotification('success', res.message || 'Spreadsheet linked successfully!');
+        navigateTo('external-apps');
+    } catch (err) {
+        showNotification('error', 'Failed to link spreadsheet: ' + err.message);
+    }
+};
+
+window.triggerGoogleSheetsSync = async function() {
+    try {
+        showNotification('info', 'Starting manual synchronization to Google Sheets...');
+        const res = await apiCall('google/sync.php', 'POST');
+        showNotification('success', `Sync completed! ${res.rows_synced} rows updated.`);
+        navigateTo('external-apps');
+    } catch (err) {
+        showNotification('error', 'Sync failed: ' + err.message);
     }
 };
 

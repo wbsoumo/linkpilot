@@ -17,6 +17,11 @@ $db = Database::getConnection();
 try {
     if ($method === 'GET') {
         $creds = ExternalAppsHelper::getGoogleCredentials();
+        $stmt = $db->prepare("SELECT setting_value FROM admin_settings WHERE setting_key = ? LIMIT 1");
+        $stmt->execute(['google_sheets_client_id']);
+        $creds['sheets_client_id'] = trim($stmt->fetchColumn() ?: '');
+        $stmt->execute(['google_sheets_client_secret']);
+        $creds['sheets_client_secret'] = trim($stmt->fetchColumn() ?: '');
         sendJsonResponse('success', 'Google credentials fetched successfully.', ['credentials' => $creds]);
     }
     
@@ -62,6 +67,8 @@ try {
             $enabled = trim($input['google_external_enabled'] ?? '1');
             $clientId = trim($input['google_external_client_id'] ?? '');
             $clientSecret = trim($input['google_external_client_secret'] ?? '');
+            $sheetsClientId = trim($input['google_sheets_client_id'] ?? '');
+            $sheetsClientSecret = trim($input['google_sheets_client_secret'] ?? '');
 
             $db->beginTransaction();
 
@@ -70,6 +77,8 @@ try {
             $stmt->execute(['google_external_enabled', $enabled]);
             $stmt->execute(['google_external_client_id', $clientId]);
             $stmt->execute(['google_external_client_secret', $clientSecret]);
+            $stmt->execute(['google_sheets_client_id', $sheetsClientId]);
+            $stmt->execute(['google_sheets_client_secret', $sheetsClientSecret]);
 
             logActivity($userId, "Admin saved Google developer credentials.");
 

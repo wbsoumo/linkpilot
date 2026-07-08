@@ -123,9 +123,10 @@ class GoogleSheetsHelper {
 
             // Refresh Token Request
             $url = 'https://oauth2.googleapis.com/token';
+            $creds = self::getClientCredentials();
             $payload = [
-                'client_id' => GOOGLE_CLIENT_ID,
-                'client_secret' => GOOGLE_CLIENT_SECRET,
+                'client_id' => $creds['client_id'],
+                'client_secret' => $creds['client_secret'],
                 'refresh_token' => $refreshToken,
                 'grant_type' => 'refresh_token'
             ];
@@ -568,5 +569,36 @@ class GoogleSheetsHelper {
         }
 
         return $syncedCount;
+    }
+
+    /**
+     * Resolves Google Sheets Client credentials dynamically from database settings
+     * or falls back to system configuration constants.
+     */
+    public static function getClientCredentials() {
+        $db = Database::getConnection();
+        $clientId = '';
+        $clientSecret = '';
+        try {
+            $stmt = $db->prepare("SELECT setting_value FROM admin_settings WHERE setting_key = ? LIMIT 1");
+            
+            $stmt->execute(['google_sheets_client_id']);
+            $clientId = trim($stmt->fetchColumn() ?: '');
+            
+            $stmt->execute(['google_sheets_client_secret']);
+            $clientSecret = trim($stmt->fetchColumn() ?: '');
+        } catch (Exception $e) {}
+        
+        if (empty($clientId)) {
+            $clientId = defined('GOOGLE_CLIENT_ID') ? GOOGLE_CLIENT_ID : '';
+        }
+        if (empty($clientSecret)) {
+            $clientSecret = defined('GOOGLE_CLIENT_SECRET') ? GOOGLE_CLIENT_SECRET : '';
+        }
+        
+        return [
+            'client_id' => $clientId,
+            'client_secret' => $clientSecret
+        ];
     }
 }

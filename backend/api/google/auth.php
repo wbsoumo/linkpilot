@@ -12,9 +12,10 @@ GoogleSheetsHelper::checkDatabaseSchema();
 $user = JWTHelper::requireAuth();
 $userId = $user['id'];
 
-if (!defined('GOOGLE_CLIENT_ID') || !defined('GOOGLE_CLIENT_SECRET') || !defined('GOOGLE_REDIRECT_URI') || 
-    GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID' || empty(GOOGLE_CLIENT_ID)) {
-    sendJsonResponse('error', 'Google OAuth credentials are not configured. Please define GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REDIRECT_URI in backend/config.php.', [], 400);
+$creds = GoogleSheetsHelper::getClientCredentials();
+
+if (empty($creds['client_id']) || empty($creds['client_secret']) || !defined('GOOGLE_REDIRECT_URI')) {
+    sendJsonResponse('error', 'Google Sheets OAuth credentials are not configured. Please configure them in the Admin Portal or define GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in backend/config.php.', [], 400);
 }
 
 $scopes = [
@@ -28,7 +29,7 @@ $hash = md5($userId . ENCRYPTION_KEY);
 $stateEncoded = $userId . '-' . $hash;
 
 $authUrl = "https://accounts.google.com/o/oauth2/v2/auth?" . http_build_query([
-    'client_id' => GOOGLE_CLIENT_ID,
+    'client_id' => $creds['client_id'],
     'redirect_uri' => GOOGLE_REDIRECT_URI,
     'response_type' => 'code',
     'scope' => implode(' ', $scopes),

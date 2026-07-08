@@ -33,11 +33,13 @@ try {
     }
     
     // 2. Exchange authorization code for tokens
+    $creds = GoogleSheetsHelper::getClientCredentials();
+    
     $ch = curl_init('https://oauth2.googleapis.com/token');
     $payload = [
         'code' => $code,
-        'client_id' => GOOGLE_CLIENT_ID,
-        'client_secret' => GOOGLE_CLIENT_SECRET,
+        'client_id' => $creds['client_id'],
+        'client_secret' => $creds['client_secret'],
         'redirect_uri' => GOOGLE_REDIRECT_URI,
         'grant_type' => 'authorization_code'
     ];

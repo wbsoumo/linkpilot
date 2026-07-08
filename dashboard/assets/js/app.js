@@ -256,6 +256,11 @@ function setupNavigation() {
             .catch(err => console.warn('Failed to load nav credits:', err));
     }
 
+    // Load Auto-Reply status badge
+    if (typeof loadHeaderAutoReplyStatus === 'function') {
+        loadHeaderAutoReplyStatus();
+    }
+
     // Header Profile Dropdown Trigger Binding
     const headerTrigger = document.getElementById('header-profile-trigger');
     const headerDropdown = document.getElementById('header-profile-dropdown');
@@ -510,3 +515,117 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// Auto-Reply Global Status Checking & Modals
+window.loadHeaderAutoReplyStatus = function() {
+    const container = document.getElementById('header-autoreply-status-container');
+    if (!container) return;
+
+    apiCall('whatsapp/autoreply_status.php')
+        .then(res => {
+            if (res && res.status === 'success') {
+                container.classList.remove('hidden');
+                container.classList.add('flex');
+                
+                // Set click handler
+                container.onclick = () => showAutoReplyStatusModal(res);
+                
+                if (res.live) {
+                    container.className = "flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-lg text-[10px] font-extrabold hover:bg-emerald-600 hover:text-white transition duration-150 cursor-pointer shadow-sm";
+                    container.innerHTML = `
+                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                        <span>Auto-Reply Live</span>
+                    `;
+                } else {
+                    container.className = "flex items-center space-x-1.5 px-3 py-1.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-lg text-[10px] font-extrabold hover:bg-rose-600 hover:text-white transition duration-150 cursor-pointer shadow-sm";
+                    container.innerHTML = `
+                        <span class="h-1.5 w-1.5 rounded-full bg-rose-500 shrink-0"></span>
+                        <span>Auto-Reply Inactive</span>
+                    `;
+                }
+            }
+        })
+        .catch(err => console.warn('Failed to load auto-reply status:', err));
+};
+
+window.showAutoReplyStatusModal = function(res) {
+    const existing = document.getElementById('autoreply-status-modal');
+    if (existing) existing.remove();
+    
+    let fixBtnHtml = '';
+    let fixActionText = '';
+    let fixActionFunction = '';
+    
+    if (!res.live && res.fix_action) {
+        if (res.fix_action === 'enable_autopilot') {
+            fixActionText = 'Enable AI Autopilot';
+            fixActionFunction = "window.location.hash = '#/settings'; setTimeout(() => { if (typeof window.switchSettingsTab === 'function') window.switchSettingsTab('whatsapp', null); }, 100); closeAutoReplyModal();";
+        } else if (res.fix_action === 'connect_whatsapp') {
+            fixActionText = 'Connect WhatsApp Account';
+            fixActionFunction = "window.location.hash = '#/settings'; setTimeout(() => { if (typeof window.switchSettingsTab === 'function') window.switchSettingsTab('whatsapp', null); }, 100); closeAutoReplyModal();";
+        } else if (res.fix_action === 'recharge_wallet') {
+            fixActionText = 'Recharge Credit Balance';
+            fixActionFunction = "window.location.hash = '#/settings'; setTimeout(() => { if (typeof window.switchSettingsTab === 'function') window.switchSettingsTab('billing', null); }, 100); closeAutoReplyModal();";
+        } else if (res.fix_action === 'configure_keys') {
+            fixActionText = 'Configure AI Keys';
+            fixActionFunction = "window.location.hash = '#/settings'; setTimeout(() => { if (typeof window.switchSettingsTab === 'function') window.switchSettingsTab('profile', null); }, 100); closeAutoReplyModal();";
+        }
+        
+        if (fixActionText) {
+            fixBtnHtml = `
+                <button onclick="${fixActionFunction}" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition flex items-center justify-center space-x-1.5 shadow-sm text-xs" style="color: #ffffff !important;">
+                    <i data-lucide="wrench" class="h-4 w-4 text-white"></i>
+                    <span>${fixActionText}</span>
+                </button>
+            `;
+        }
+    }
+    
+    const modalHtml = `
+        <div id="autoreply-status-modal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300">
+            <div class="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl border border-slate-100 transform transition-all scale-100 duration-300 mx-4 flex flex-col space-y-4 animate-fade-in">
+                <!-- Header -->
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div class="flex items-center space-x-2">
+                        <div class="h-8 w-8 rounded-lg ${res.live ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'} flex items-center justify-center shadow-sm shrink-0">
+                            <i data-lucide="${res.live ? 'sparkles' : 'alert-circle'}" class="h-4 w-4"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-bold text-slate-800">Auto-Reply Autopilot</h3>
+                            <p class="text-[9px] text-slate-400">Real-time status check</p>
+                        </div>
+                    </div>
+                    <button onclick="closeAutoReplyModal()" class="h-6 w-6 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition border border-slate-100">
+                        <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                    </button>
+                </div>
+                
+                <!-- Status & Reason -->
+                <div class="space-y-2.5 text-center py-2">
+                    <div class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold ${res.live ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'}">
+                        <span class="h-1.5 w-1.5 rounded-full ${res.live ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}"></span>
+                        <span>${res.live ? 'LIVE & RUNNING' : 'SYSTEM INACTIVE'}</span>
+                    </div>
+                    <p class="text-slate-600 text-xs font-semibold px-2 leading-relaxed">${res.reason}</p>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="space-y-2">
+                    ${fixBtnHtml}
+                    <button onclick="closeAutoReplyModal()" class="w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-655 rounded-xl font-bold border border-slate-200 transition text-xs">
+                        Dismiss
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    lucide.createIcons();
+    
+    window.closeAutoReplyModal = function() {
+        const modal = document.getElementById('autoreply-status-modal');
+        if (modal) modal.remove();
+    };
+};
+

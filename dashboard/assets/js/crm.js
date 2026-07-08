@@ -241,6 +241,11 @@ async function navigateTo(view, params = {}) {
     // Dynamically update today's tasks badge count on sidebar and top header
     updateGlobalTaskBadges();
     
+    // Refresh Auto-Reply header status
+    if (typeof window.loadHeaderAutoReplyStatus === 'function') {
+        window.loadHeaderAutoReplyStatus();
+    }
+    
     // Highlight sidebar links
     document.querySelectorAll('.sidebar-nav-link, .sidebar-submenu-link').forEach(link => {
         const href = link.getAttribute('href');

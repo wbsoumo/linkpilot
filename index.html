@@ -1589,7 +1589,7 @@
 
 
 
-  <h2 class="text-center text-3xl leading-120 md:text-5xl lg:text-7xl">      Start your 14-day trial
+  <h2 class="text-center text-3xl leading-120 md:text-5xl lg:text-7xl">      Get lifetime free access
   </h2>
 
       
@@ -2148,7 +2148,7 @@
 
 
 
-  <h2 class="text-center text-3xl leading-120 md:text-5xl lg:text-7xl">      Start your 14-day trial
+  <h2 class="text-center text-3xl leading-120 md:text-5xl lg:text-7xl">      Get lifetime free access
   </h2>
 
       
@@ -6340,7 +6340,7 @@
 
 
 
-  <h1 class="mt-8 mb-16 text-center prevent-hyphen-break lg:w-800 text-6xl leading-120 font-medium md:text-9xl md:leading-110 lg:text-10xl">            Scale conversations,<span class="hidden md:inline"><br></span> skip the chaos
+  <h1 class="mt-8 mb-16 text-center prevent-hyphen-break lg:w-800 text-6xl leading-120 font-medium md:text-9xl md:leading-110 lg:text-10xl">            Scale outreach,<span class="hidden md:inline"><br></span> skip the chaos
   
   </h1>
 
@@ -6381,7 +6381,7 @@
 
 
 
-  <span class=" text-base font-medium leading-90 inline-block">Try it free for 14 days</span>
+  <span class=" text-base font-medium leading-90 inline-block">Try for free lifetime</span>
 
       <span class="block ml-8">
         
@@ -7644,7 +7644,7 @@
 
 
 
-  <span class="leading-90 mr-4 font-normal text-base font-medium leading-90 inline-block">Try it free for 14 days</span>
+  <span class="leading-90 mr-4 font-normal text-base font-medium leading-90 inline-block">Try for free lifetime</span>
 
       <span class="block ml-8">
         
@@ -9302,7 +9302,7 @@
 
 
 
-  <span class=" text-base font-medium leading-90 inline-block">Try it free for 14 days</span>
+  <span class=" text-base font-medium leading-90 inline-block">Try for free lifetime</span>
 
       <span class="block ml-8">
         
@@ -11566,6 +11566,41 @@
     })();
     </script>
     <!--End of Tawk.to Script-->
+
+
+    <!-- LinkPilot Authentication Redirects -->
+    <script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function() {
+        // Intercept all clicks on Sign Up / Register / Trial elements
+        const signupSelectors = [
+            ".js-go-to-sign-up", 
+            ".js-sign-up", 
+            "button:contains('Sign up')",
+            "button:contains('Try for free')",
+            "a:contains('Try for free')"
+        ];
+        
+        document.body.addEventListener("click", function(e) {
+            const target = e.target.closest("button, a");
+            if (!target) return;
+            
+            const text = (target.textContent || "").toLowerCase();
+            const classes = (target.className || "");
+            
+            if (classes.includes("sign-up") || classes.includes("signup") || classes.includes("go-to-sign-up") || 
+                text.includes("sign up") || text.includes("try for free") || text.includes("try it free") || text.includes("free trial")) {
+                e.preventDefault();
+                e.stopPropagation();
+                window.location.href = "dashboard/register.html";
+            } else if (classes.includes("log-in") || classes.includes("login") || classes.includes("sign-in") || classes.includes("signin") ||
+                       text.includes("log in") || text.includes("login") || text.includes("sign in")) {
+                e.preventDefault();
+                e.stopPropagation();
+                window.location.href = "dashboard/login.html";
+            }
+        }, true);
+    });
+    </script>
 
 </body>
 </html>

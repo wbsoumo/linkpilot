@@ -7274,7 +7274,8 @@ window.selectNewKeyProvider = function(provider) {
 window.toggleAIKeyStatus = async function(keyId, currentStatus) {
     const newStatus = currentStatus === 'paused' ? 'active' : 'paused';
     try {
-        const res = await apiCall('profile/manage_ai_keys.php', 'PUT', {
+        const res = await apiCall('profile/manage_ai_keys.php', 'POST', {
+            action: 'update',
             id: keyId,
             status: newStatus
         });
@@ -7304,7 +7305,8 @@ window.editAIKeyValue = async function(keyId, providerLabel) {
     }
 
     try {
-        const res = await apiCall('profile/manage_ai_keys.php', 'PUT', {
+        const res = await apiCall('profile/manage_ai_keys.php', 'POST', {
+            action: 'update',
             id: keyId,
             api_key: trimmed
         });
@@ -7329,7 +7331,8 @@ window.deleteAIKey = async function(keyId) {
     }
     
     try {
-        const res = await apiCall('profile/manage_ai_keys.php', 'DELETE', {
+        const res = await apiCall('profile/manage_ai_keys.php', 'POST', {
+            action: 'delete',
             id: keyId
         });
         

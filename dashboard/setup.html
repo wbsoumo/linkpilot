@@ -237,110 +237,206 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- SLIDE 2: WhatsApp Onboarding Form -->
+                                 <!-- SLIDE 2: WhatsApp Onboarding Form -->
                         <div class="w-1/3 shrink-0 px-2 flex flex-col justify-between min-h-[580px] space-y-6">
-                            <div class="space-y-4">
-                                <div class="border-b border-slate-100 pb-3 text-left">
-                                    <h3 class="text-lg font-black text-slate-800 flex items-center">
-                                        <span>Connect your WhatsApp</span>
-                                        <span class="ml-2 text-xs px-2.5 py-0.5 bg-blue-50 text-blue-600 rounded-full font-bold uppercase tracking-wider">Step 2 of 2</span>
-                                    </h3>
-                                    <p class="text-sm text-slate-500 mt-1">Integrate WhatsApp via Meta Cloud API to automatically handle messaging channels.</p>
-                                </div>
-
-                                <!-- Split Wrapper -->
-                                <div id="wa-split-wrapper" class="grid grid-cols-1 md:grid-cols-12 gap-6 relative items-start transition-all duration-500 w-full">
-                                    
-                                    <!-- Left Column: Selection Cards -->
-                                    <div id="wa-selection-column" class="col-span-12 transition-all duration-500 ease-in-out grid grid-cols-1 gap-4 shrink-0">
-                                        <div class="p-4 bg-blue-50/55 border border-blue-100 rounded-2xl text-left">
-                                            <span class="block font-extrabold text-slate-800 text-sm">Have you connected your phone number to Meta Developers?</span>
-                                            <p class="text-xs text-slate-500 font-semibold leading-relaxed mt-1.5">Meta requires hosting phone numbers inside a WhatsApp Cloud API App in order to send automated messages programmatically.</p>
+                            
+                            <!-- WhatsApp Connection Selection State -->
+                            <div id="wa-connect-selection-state" class="flex-grow flex flex-col justify-between space-y-6">
+                                <div class="space-y-4">
+                                    <div class="border-b border-slate-100 pb-3 text-left">
+                                        <h3 class="text-lg font-black text-slate-800 flex items-center">
+                                            <span>Connect WhatsApp Business</span>
+                                            <span class="ml-2 text-xs px-2.5 py-0.5 bg-blue-50 text-blue-600 rounded-full font-bold uppercase tracking-wider">Step 2 of 2</span>
+                                        </h3>
+                                        <p class="text-sm text-slate-500 mt-1">Connect your WhatsApp Business account securely using Meta's official authorization.</p>
+                                        <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400 font-semibold pt-1">
+                                            <span class="flex items-center"><i data-lucide="check" class="h-3 w-3 text-emerald-500 mr-1"></i>No developer setup</span>
+                                            <span class="flex items-center"><i data-lucide="check" class="h-3 w-3 text-emerald-500 mr-1"></i>No API keys</span>
+                                            <span class="flex items-center"><i data-lucide="check" class="h-3 w-3 text-emerald-500 mr-1"></i>No manual config</span>
                                         </div>
-                                        
-                                        <div class="grid grid-cols-2 gap-4">
-                                            <div id="wa-card-yes" onclick="selectWaMetaChoice(true)" class="p-6 border border-slate-200 hover:border-blue-500 rounded-2xl flex flex-col items-center justify-center space-y-3 cursor-pointer hover:bg-slate-55 transition text-center bg-white">
-                                                <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
-                                                    <i data-lucide="check" class="h-6 w-6"></i>
-                                                </div>
-                                                <span class="font-extrabold text-sm text-slate-800">Yes, it is connected</span>
+                                    </div>
+
+                                    <!-- Main Cards Stack -->
+                                    <div class="space-y-4">
+                                        <!-- Primary Recommended Option: Embedded Signup -->
+                                        <div class="p-6 border-2 border-emerald-500 bg-emerald-50/5 rounded-3xl text-left relative overflow-hidden shadow-sm">
+                                            <div class="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider px-3.5 py-1 rounded-bl-2xl flex items-center">
+                                                <span class="h-1.5 w-1.5 rounded-full bg-white animate-pulse mr-1.5"></span>
+                                                Recommended
                                             </div>
                                             
-                                            <div id="wa-card-no" onclick="selectWaMetaChoice(false)" class="p-6 border border-slate-200 hover:border-blue-500 rounded-2xl flex flex-col items-center justify-center space-y-3 cursor-pointer hover:bg-slate-55 transition text-center bg-white">
-                                                <div class="p-3 bg-slate-50 text-slate-500 rounded-xl">
-                                                    <i data-lucide="help-circle" class="h-6 w-6"></i>
+                                            <div class="space-y-4">
+                                                <div class="flex items-start space-x-3.5">
+                                                    <div class="p-3 bg-emerald-100/80 text-emerald-600 rounded-2xl shrink-0 mt-0.5">
+                                                        <i data-lucide="sparkles" class="h-6 w-6"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h4 class="font-black text-slate-800 text-base">Connect with Meta</h4>
+                                                        <p class="text-xs text-slate-500 leading-normal mt-0.5">The fastest and easiest way to connect your WhatsApp Business account.</p>
+                                                    </div>
                                                 </div>
-                                                <span class="font-extrabold text-sm text-slate-800">No, not yet</span>
+
+                                                <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-semibold text-slate-650 pl-2">
+                                                    <li class="flex items-center space-x-1.5">
+                                                        <i data-lucide="shield-check" class="h-4 w-4 text-emerald-500 shrink-0"></i>
+                                                        <span>Official Meta Embedded Signup</span>
+                                                    </li>
+                                                    <li class="flex items-center space-x-1.5">
+                                                        <i data-lucide="clock" class="h-4 w-4 text-emerald-500 shrink-0"></i>
+                                                        <span>Connect in under 2 minutes</span>
+                                                    </li>
+                                                    <li class="flex items-center space-x-1.5">
+                                                        <i data-lucide="zap" class="h-4 w-4 text-emerald-500 shrink-0"></i>
+                                                        <span>No API credentials required</span>
+                                                    </li>
+                                                    <li class="flex items-center space-x-1.5">
+                                                        <i data-lucide="import" class="h-4 w-4 text-emerald-500 shrink-0"></i>
+                                                        <span>Auto imports WABA details</span>
+                                                    </li>
+                                                </ul>
+
+                                                <div class="pt-2 flex justify-start">
+                                                    <button type="button" id="wa-embedded-connect-btn" onclick="launchMetaEmbeddedSignup()" class="px-6 py-3 text-xs font-black rounded-xl text-white bg-blue-600 hover:bg-blue-500 transition flex items-center space-x-2 shadow-md shadow-blue-500/10 cursor-pointer animate-pulse" style="color: #ffffff !important;">
+                                                        <i data-lucide="facebook" class="h-4 w-4 text-white"></i>
+                                                        <span>Connect WhatsApp</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Collapsible Advanced Setup Option -->
+                                        <div class="border border-slate-200 rounded-3xl bg-white overflow-hidden transition-all duration-350">
+                                            <!-- Collapse Header -->
+                                            <button type="button" onclick="toggleAdvancedSetup()" class="w-full px-6 py-4 flex justify-between items-center bg-slate-55 hover:bg-slate-100 transition border-b border-transparent" id="advanced-toggle-btn">
+                                                <div class="flex items-center space-x-2.5">
+                                                    <i data-lucide="settings" class="h-4 w-4 text-slate-500"></i>
+                                                    <span class="font-extrabold text-sm text-slate-700">Advanced Setup (Manual Configuration)</span>
+                                                </div>
+                                                <i data-lucide="chevron-down" class="h-4 w-4 text-slate-400 transform transition-transform duration-300" id="advanced-chevron"></i>
+                                            </button>
+
+                                            <!-- Collapse Body -->
+                                            <div id="advanced-setup-body" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
+                                                <div class="p-6 space-y-4 text-left border-t border-slate-100">
+                                                    <!-- Warning Banner -->
+                                                    <div class="p-3.5 bg-amber-50/60 border border-amber-100 rounded-2xl flex items-start space-x-3">
+                                                        <i data-lucide="alert-triangle" class="h-4 w-4 text-amber-600 mt-0.5 shrink-0"></i>
+                                                        <span class="text-xs text-amber-800 font-semibold leading-relaxed">
+                                                            <strong>For advanced users only:</strong> Use this option only if you already have your own Meta Cloud API credentials.
+                                                        </span>
+                                                    </div>
+
+                                                    <!-- Form fields -->
+                                                    <form id="setup-wa-manual-form" class="space-y-4" onsubmit="event.preventDefault();">
+                                                        <div class="space-y-1.5">
+                                                            <label class="block text-xs font-extrabold text-slate-600 uppercase tracking-wider">Permanent Access Token *</label>
+                                                            <input type="password" id="wa-manual-token" required placeholder="EAAGemini... or Paste your system user permanent access token" class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-500 bg-white">
+                                                        </div>
+                                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                            <div class="space-y-1.5">
+                                                                <label class="block text-xs font-extrabold text-slate-655 uppercase tracking-wider">WhatsApp Business ID (WABA ID) *</label>
+                                                                <input type="text" id="wa-manual-waba-id" required placeholder="e.g. 109846392038" class="block w-full px-4 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-500 bg-white">
+                                                            </div>
+                                                            <div class="space-y-1.5">
+                                                                <label class="block text-xs font-extrabold text-slate-655 uppercase tracking-wider">Phone Number ID *</label>
+                                                                <input type="text" id="wa-manual-phone-id" required placeholder="e.g. 10486389201" class="block w-full px-4 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-500 bg-white">
+                                                            </div>
+                                                            <div class="space-y-1.5">
+                                                                <label class="block text-xs font-extrabold text-slate-655 uppercase tracking-wider">Business Name *</label>
+                                                                <input type="text" id="wa-manual-biz-name" required placeholder="e.g. My Business Name" class="block w-full px-4 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-500 bg-white">
+                                                            </div>
+                                                            <div class="space-y-1.5">
+                                                                <label class="block text-xs font-extrabold text-slate-655 uppercase tracking-wider">WhatsApp Phone Number *</label>
+                                                                <input type="text" id="wa-manual-number" required placeholder="e.g. +919876543210" class="block w-full px-4 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-500 bg-white">
+                                                            </div>
+                                                        </div>
+                                                    </form>
+
+                                                    <!-- Manual Action Button -->
+                                                    <div class="pt-4 flex justify-end space-x-2 border-t border-slate-100">
+                                                        <button type="button" id="wa-manual-submit-btn" onclick="saveManualWhatsAppConnection()" class="px-5 py-2.5 text-xs font-black rounded-xl text-white bg-blue-600 hover:bg-blue-500 transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10 cursor-pointer" style="color: #ffffff !important;">
+                                                            <i data-lucide="check" class="h-4 w-4 text-white"></i>
+                                                            <span>Connect Manually</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <!-- Right Column: Inputs Form or Guide details (slides in) -->
-                                    <div id="wa-form-column" class="col-span-0 w-0 overflow-hidden opacity-0 hidden transition-all duration-500 ease-in-out flex flex-col justify-between space-y-4 shrink-0">
-                                        
-                                        <!-- Guides if NO connected -->
-                                        <div id="wa-guide-no-content" class="space-y-4 text-left hidden">
-                                            <div class="p-4 bg-amber-50/50 border border-amber-100 rounded-2xl space-y-2">
-                                                <span class="block font-extrabold text-amber-800 text-sm flex items-center space-x-1"><i data-lucide="info" class="h-4 w-4"></i><span>Steps to Connect with Meta</span></span>
-                                                <p class="text-xs text-slate-500 font-semibold leading-relaxed">Please follow this guide to connect your number to Meta before pasting details here:</p>
-                                            </div>
-                                        </div>
-
-                                        <!-- Form details screen if YES connected (ask all credentials on one screen) -->
-                                        <div id="wa-details-form-content" class="space-y-4 text-left hidden">
-                                            <form id="setup-wa-form" class="space-y-4 text-slate-800">
-                                                <div class="space-y-1.5">
-                                                    <label class="block text-xs font-extrabold text-slate-600 uppercase tracking-wider">Meta System User Access Token *</label>
-                                                    <input type="text" id="wa-token" required placeholder="EAAGemini... or Paste your access token" class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-blue-500 bg-white shadow-sm">
-                                                </div>
-                                                
-                                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                    <div class="space-y-1.5">
-                                                        <label class="block text-xs font-extrabold text-slate-600 uppercase tracking-wider">WhatsApp Business ID (WABA ID) *</label>
-                                                        <input type="text" id="wa-waba-id" required placeholder="e.g. 109846392038" class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-blue-500 bg-white shadow-sm">
-                                                    </div>
-                                                    <div class="space-y-1.5">
-                                                        <label class="block text-xs font-extrabold text-slate-600 uppercase tracking-wider">Phone Number ID *</label>
-                                                        <input type="text" id="wa-phone-id" required placeholder="e.g. 10486389201" class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-blue-500 bg-white shadow-sm">
-                                                    </div>
-                                                    
-                                                    <div class="space-y-1.5">
-                                                        <label class="block text-xs font-extrabold text-slate-600 uppercase tracking-wider">Business Name *</label>
-                                                        <input type="text" id="wa-biz-name" required placeholder="e.g. My Business" class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-blue-500 bg-white shadow-sm">
-                                                    </div>
-                                                    <div class="space-y-1.5">
-                                                        <label class="block text-xs font-extrabold text-slate-600 uppercase tracking-wider">WhatsApp Phone Number *</label>
-                                                        <input type="text" id="wa-number" required placeholder="e.g. +919876543210" class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-blue-500 bg-white shadow-sm">
-                                                    </div>
-                                                </div>
-                                            </form>
-                                        </div>
-
-                                        <div class="pt-4 flex justify-between items-center border-t border-slate-100">
-                                            <button type="button" onclick="closeWaFormColumn()" class="px-5 py-2.5 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition flex items-center space-x-1">
-                                                <i data-lucide="x" class="h-4 w-4"></i>
-                                                <span>Cancel</span>
-                                            </button>
-                                            <button type="button" id="wa-submit-btn" onclick="testAndSaveWhatsAppConnection()" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-500 transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10" style="color: #ffffff !important;">
-                                                <span style="color: #ffffff !important;">Verify & Save WhatsApp</span>
-                                                <i data-lucide="check" class="h-4 w-4" style="color: #ffffff !important;"></i>
-                                            </button>
-                                        </div>
-                                    </div>
+                                <!-- Default Footer for Back Navigation -->
+                                <div id="wa-selection-footer" class="flex flex-col sm:flex-row justify-between items-center border-t border-slate-100 pt-4 gap-4 shrink-0">
+                                    <button type="button" onclick="slideTo(0)" class="px-5 py-2.5 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition flex items-center space-x-1">
+                                        <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                                        <span>Back to Email</span>
+                                    </button>
+                                    <button onclick="slideTo(2)" class="px-5 py-2.5 text-xs font-extrabold text-slate-400 hover:text-slate-655 transition flex items-center space-x-1">
+                                        <span>Skip WhatsApp & Finish</span>
+                                        <i data-lucide="arrow-right" class="h-4 w-4"></i>
+                                    </button>
                                 </div>
                             </div>
 
-                            <!-- Footer Buttons (Hidden when choice details forms are active) -->
-                            <div id="wa-default-footer" class="flex flex-col sm:flex-row justify-between items-center border-t border-slate-100 pt-4 gap-4 shrink-0">
-                                <button type="button" onclick="slideTo(0)" class="px-5 py-2.5 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition flex items-center space-x-1">
-                                    <i data-lucide="arrow-left" class="h-4 w-4"></i>
-                                    <span>Back to Email</span>
-                                </button>
-                                <button onclick="slideTo(2)" class="px-5 py-2.5 text-xs font-extrabold text-slate-400 hover:text-slate-655 transition flex items-center space-x-1">
-                                    <span>Skip WhatsApp & Finish</span>
-                                    <i data-lucide="arrow-right" class="h-4 w-4"></i>
-                                </button>
+                            <!-- WhatsApp Connected Success State -->
+                            <div id="wa-connect-success-state" class="flex-grow flex flex-col justify-between space-y-6 hidden">
+                                <div class="space-y-4">
+                                    <div class="border-b border-slate-100 pb-3 text-left">
+                                        <h3 class="text-lg font-black text-slate-800 flex items-center space-x-2">
+                                            <span class="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                            <span>Connected Successfully</span>
+                                        </h3>
+                                        <p class="text-sm text-slate-500 mt-1">Your WhatsApp Business account is active and configured for auto-replies.</p>
+                                    </div>
+
+                                    <!-- Success Metrics Card -->
+                                    <div class="border border-slate-200/80 rounded-3xl bg-slate-50/50 p-6 text-left space-y-4">
+                                        <div class="grid grid-cols-2 gap-4 text-xs font-bold">
+                                            <div class="space-y-1">
+                                                <span class="text-slate-400 block uppercase tracking-wider text-[10px]">Business Name</span>
+                                                <span id="wa-success-biz-name" class="text-slate-700 text-sm">--</span>
+                                            </div>
+                                            <div class="space-y-1">
+                                                <span class="text-slate-400 block uppercase tracking-wider text-[10px]">Display Name</span>
+                                                <span id="wa-success-display-name" class="text-slate-700 text-sm">--</span>
+                                            </div>
+                                            <div class="space-y-1">
+                                                <span class="text-slate-400 block uppercase tracking-wider text-[10px]">Phone Number</span>
+                                                <span id="wa-success-number" class="text-slate-700 text-sm">--</span>
+                                            </div>
+                                            <div class="space-y-1">
+                                                <span class="text-slate-400 block uppercase tracking-wider text-[10px]">Connection Type</span>
+                                                <span id="wa-success-conn-type" class="px-2.5 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[10px] uppercase font-black tracking-wide inline-block">--</span>
+                                            </div>
+                                            <div class="space-y-1">
+                                                <span class="text-slate-400 block uppercase tracking-wider text-[10px]">Quality Rating</span>
+                                                <span id="wa-success-quality" class="px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full text-[10px] uppercase font-black tracking-wide inline-block">--</span>
+                                            </div>
+                                            <div class="space-y-1">
+                                                <span class="text-slate-400 block uppercase tracking-wider text-[10px]">Messaging Tier</span>
+                                                <span id="wa-success-tier" class="text-slate-700 text-sm">--</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Success Footer -->
+                                <div class="flex flex-col sm:flex-row justify-between items-center border-t border-slate-100 pt-4 gap-4 shrink-0">
+                                    <div class="flex space-x-3">
+                                        <button onclick="reconnectWhatsApp()" class="px-5 py-2.5 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition flex items-center space-x-1">
+                                            <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                                            <span>Reconnect</span>
+                                        </button>
+                                        <button onclick="disconnectWhatsApp()" class="px-5 py-2.5 text-xs font-bold rounded-xl border border-red-150 hover:bg-red-50 text-red-500 transition flex items-center space-x-1">
+                                            <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                            <span>Disconnect</span>
+                                        </button>
+                                    </div>
+                                    <button onclick="slideTo(2)" class="px-6 py-2.5 text-xs font-black rounded-xl text-white bg-blue-600 hover:bg-blue-500 transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10" style="color: #ffffff !important;">
+                                        <span style="color: #ffffff !important;">Continue Onboarding</span>
+                                        <i data-lucide="arrow-right" class="h-4 w-4" style="color: #ffffff !important;"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -960,46 +1056,80 @@
 
         // Test & Save WhatsApp connection details
         async function testAndSaveWhatsAppConnection() {
-            const accessToken = document.getElementById('wa-token').value.trim();
-            const wabaId = document.getElementById('wa-waba-id').value.trim();
-            const phoneId = document.getElementById('wa-phone-id').value.trim();
-            const bizName = document.getElementById('wa-biz-name').value.trim();
-            const phoneNumber = document.getElementById('wa-number').value.trim();
-            
-            if (!accessToken || !wabaId || !phoneId || !bizName || !phoneNumber) {
-                showNotification('warning', 'Please fill out all required Meta WhatsApp fields.');
-                return;
-            }
+            // Deprecated, kept for interface contract safety
+        }
 
-            const btn = document.getElementById('wa-submit-btn');
+        // WhatsApp Meta Advanced Manual Setup toggler
+        function toggleAdvancedSetup() {
+            const body = document.getElementById('advanced-setup-body');
+            const chevron = document.getElementById('advanced-chevron');
+            if (!body || !chevron) return;
+
+            if (body.style.maxHeight === '0px' || !body.style.maxHeight) {
+                body.style.maxHeight = '600px';
+                chevron.classList.add('rotate-180');
+            } else {
+                body.style.maxHeight = '0px';
+                chevron.classList.remove('rotate-180');
+            }
+        }
+
+        // Launch Meta Embedded Signup via SDK or Mock popup fallback
+        async function launchMetaEmbeddedSignup() {
+            const btn = document.getElementById('wa-embedded-connect-btn');
             const originalHtml = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = `
                 <div class="flex items-center space-x-1.5">
                     <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Verifying with Meta...</span>
+                    <span>Initializing Meta...</span>
                 </div>
             `;
-
-            // Save & Auto-verify WhatsApp Connection details
+            
             try {
-                const res = await apiCall('whatsapp/setup.php?action=save_connection', 'POST', {
-                    access_token: accessToken,
-                    waba_id: wabaId,
-                    phone_number_id: phoneId,
-                    business_name: bizName,
-                    waba_name: bizName,
-                    phone_number: phoneNumber,
-                    display_name: bizName
-                });
-
-                showNotification('success', 'WhatsApp Meta connection established!');
+                const config = await apiCall('whatsapp/embedded_signup.php');
+                const appId = config.app_id;
+                const state = config.state;
+                const scopes = config.scopes;
                 
-                // Transition to Congratulations step
-                slideTo(2);
-
+                if (!appId) {
+                    const useDemo = confirm("Demo Mode: No Meta App ID is configured in Admin Settings. Would you like to connect with a sandbox demo account?");
+                    if (useDemo) {
+                        await handleOauthCallback("EAAGeminiTest", state);
+                    } else {
+                        showNotification('warning', 'Meta App ID configuration is required in Admin Control Panel.');
+                    }
+                    return;
+                }
+                
+                // Initialize FB SDK dynamically
+                if (!window.FB) {
+                    await loadFbSdk();
+                }
+                
+                FB.init({
+                    appId: appId,
+                    cookie: true,
+                    xfbml: true,
+                    version: 'v20.0'
+                });
+                
+                FB.login(async function(response) {
+                    if (response.authResponse) {
+                        const userToken = response.authResponse.accessToken;
+                        await handleOauthCallback(userToken, state);
+                    } else {
+                        showNotification('error', 'Popup closed. Permission denied or login cancelled.');
+                    }
+                }, {
+                    scope: scopes,
+                    extras: {
+                        feature: 'whatsapp_embedded_signup'
+                    }
+                });
+                
             } catch (err) {
-                showNotification('error', err.message || 'WhatsApp Meta verification failed. Please check IDs.');
+                showNotification('error', err.message || 'Meta OAuth initialization failed.');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalHtml;
@@ -1008,6 +1138,154 @@
                 }
             }
         }
+        
+        function loadFbSdk() {
+            return new Promise((resolve) => {
+                var js, fjs = document.getElementsByTagName('script')[0];
+                if (document.getElementById('facebook-jssdk')) {
+                    resolve();
+                    return;
+                }
+                js = document.createElement('script');
+                js.id = 'facebook-jssdk';
+                js.src = "https://connect.facebook.net/en_US/sdk.js";
+                js.onload = () => {
+                    resolve();
+                };
+                fjs.parentNode.insertBefore(js, fjs);
+            });
+        }
+
+        // Handle OAuth authorization callback and token exchange
+        async function handleOauthCallback(token, state) {
+            try {
+                const res = await apiCall('whatsapp/oauth_callback.php', 'POST', {
+                    access_token: token,
+                    state: state
+                });
+                showNotification('success', 'Connected Successfully via Meta Embedded Signup!');
+                await checkWhatsAppStatus();
+                slideTo(2); // Jump to Congratulations
+            } catch (err) {
+                showNotification('error', err.message || 'Meta authorization exchange failed.');
+            }
+        }
+
+        // Verify and Save WhatsApp Credentials manually
+        async function saveManualWhatsAppConnection() {
+            const accessToken = document.getElementById('wa-manual-token').value.trim();
+            const wabaId = document.getElementById('wa-manual-waba-id').value.trim();
+            const phoneId = document.getElementById('wa-manual-phone-id').value.trim();
+            const bizName = document.getElementById('wa-manual-biz-name').value.trim();
+            const phoneNumber = document.getElementById('wa-manual-number').value.trim();
+            
+            if (!accessToken || !wabaId || !phoneId || !bizName || !phoneNumber) {
+                showNotification('warning', 'Please fill out all required Meta WhatsApp fields.');
+                return;
+            }
+            
+            const btn = document.getElementById('wa-manual-submit-btn');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `
+                <div class="flex items-center space-x-1.5">
+                    <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Connecting manually...</span>
+                </div>
+            `;
+            
+            try {
+                const res = await apiCall('whatsapp/manual_connect.php', 'POST', {
+                    access_token: accessToken,
+                    waba_id: wabaId,
+                    phone_number_id: phoneId,
+                    business_name: bizName,
+                    phone_number: phoneNumber,
+                    display_name: bizName
+                });
+                
+                showNotification('success', 'WhatsApp account configured manually!');
+                await checkWhatsAppStatus();
+                slideTo(2); // Jump to Congratulations
+                
+            } catch (err) {
+                showNotification('error', err.message || 'WhatsApp Meta manual connection failed.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+            }
+        }
+
+        // Check if WhatsApp account is already active and render the correct view state
+        async function checkWhatsAppStatus() {
+            try {
+                const res = await apiCall('whatsapp/fetch_business.php');
+                const selectionState = document.getElementById('wa-connect-selection-state');
+                const successState = document.getElementById('wa-connect-success-state');
+                
+                if (!selectionState || !successState) return;
+
+                if (res && res.connected && res.business) {
+                    selectionState.classList.add('hidden');
+                    successState.classList.remove('hidden');
+                    
+                    document.getElementById('wa-success-biz-name').textContent = res.business.business_name || '--';
+                    document.getElementById('wa-success-display-name').textContent = res.business.display_name || '--';
+                    document.getElementById('wa-success-number').textContent = res.business.display_phone_number || '--';
+                    document.getElementById('wa-success-conn-type').textContent = res.business.connection_type === 'embedded' ? 'Embedded Signup' : 'Manual Configuration';
+                    
+                    const qualityEl = document.getElementById('wa-success-quality');
+                    const quality = (res.business.quality_rating || 'unknown').toUpperCase();
+                    qualityEl.textContent = quality;
+                    if (quality === 'GREEN') {
+                        qualityEl.className = "px-2.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full text-[10px] uppercase font-black tracking-wide inline-block";
+                    } else if (quality === 'RED') {
+                        qualityEl.className = "px-2.5 py-0.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-full text-[10px] uppercase font-black tracking-wide inline-block";
+                    } else {
+                        qualityEl.className = "px-2.5 py-0.5 bg-amber-50 text-amber-600 border border-amber-100 rounded-full text-[10px] uppercase font-black tracking-wide inline-block";
+                    }
+                    
+                    document.getElementById('wa-success-tier').textContent = res.business.messaging_limit || 'Unknown Tier';
+                } else {
+                    selectionState.classList.remove('hidden');
+                    successState.classList.add('hidden');
+                }
+            } catch (err) {
+                console.warn('Failed retrieving WhatsApp connected status:', err);
+            }
+        }
+
+        // Reconnect WhatsApp (switch back to options)
+        function reconnectWhatsApp() {
+            const selectionState = document.getElementById('wa-connect-selection-state');
+            const successState = document.getElementById('wa-connect-success-state');
+            if (selectionState && successState) {
+                selectionState.classList.remove('hidden');
+                successState.classList.add('hidden');
+            }
+        }
+
+        // Disconnect WhatsApp account
+        async function disconnectWhatsApp() {
+            const confirmDis = confirm("Are you sure you want to disconnect your WhatsApp account? You will not be able to send automated replies.");
+            if (!confirmDis) return;
+            
+            try {
+                await apiCall('whatsapp/disconnect.php', 'POST');
+                showNotification('success', 'WhatsApp account disconnected.');
+                await checkWhatsAppStatus();
+            } catch (err) {
+                showNotification('error', err.message || 'Failed disconnecting account.');
+            }
+        }
+
+        // Auto-run status check on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            checkWhatsAppStatus();
+        });
     </script>
 </body>
 </html>

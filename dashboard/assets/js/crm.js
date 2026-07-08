@@ -12042,7 +12042,7 @@ window.loadRechargeWalletLogs = async function() {
                         `<span class="px-2 py-0.5 bg-red-50 text-red-550 border border-red-250 rounded-full font-bold">Failed</span>`;
 
                     const invoiceBtn = tx.status === 'success' ? 
-                        `<a href="/backend/api/recharge/invoice.php?id=${tx.id}" target="_blank" class="inline-flex items-center space-x-1 px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-650 rounded-lg text-[10px] font-bold transition">
+                        `<a href="/backend/api/recharge/invoice.php?id=${tx.id}&token=${getAuthToken()}" target="_blank" class="inline-flex items-center space-x-1 px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-650 rounded-lg text-[10px] font-bold transition">
                             <i data-lucide="download" class="h-3 w-3"></i>
                             <span>PDF Invoice</span>
                          </a>` : '--';
@@ -12106,7 +12106,7 @@ async function renderCreditLogs(container) {
                         (l.provider_used ? `Lookup (${l.provider_used})` : 'System Auto-Reply');
 
                     const invoiceBtn = (l.type === 'recharge' && l.status === 'success') ? 
-                        `<a href="/backend/api/recharge/invoice.php?id=${l.id}" target="_blank" class="inline-flex items-center space-x-1 px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-650 rounded-lg text-[9px] font-bold transition">
+                        `<a href="/backend/api/recharge/invoice.php?id=${l.id}&token=${getAuthToken()}" target="_blank" class="inline-flex items-center space-x-1 px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-650 rounded-lg text-[9px] font-bold transition">
                             <i data-lucide="download" class="h-2.5 w-2.5"></i>
                             <span>Invoice</span>
                          </a>` : '--';

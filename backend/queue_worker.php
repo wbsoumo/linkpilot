@@ -2,6 +2,7 @@
 // backend/queue_worker.php
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/wallet_helper.php';
 require_once __DIR__ . '/smtp_helper.php';
 require_once __DIR__ . '/providers/whatsapp_meta_service.php';
 

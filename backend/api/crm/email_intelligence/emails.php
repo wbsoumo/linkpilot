@@ -2,6 +2,7 @@
 // backend/api/crm/email_intelligence/emails.php
 
 require_once __DIR__ . '/../../../config.php';
+require_once __DIR__ . '/../../../wallet_helper.php';
 require_once __DIR__ . '/../../../jwt_helper.php';
 
 $user = JWTHelper::requireAuth();

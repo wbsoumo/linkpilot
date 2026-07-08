@@ -2,6 +2,7 @@
 // backend/api/crm/chat_assistant.php
 
 require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../wallet_helper.php';
 require_once __DIR__ . '/../../jwt_helper.php';
 
 // Validate Auth
@@ -195,7 +196,7 @@ Below is the real-time context of the user's LinkPilot CRM account (User Name: "
 " . (count($waMsgsCtx) === 0 ? "No recent WhatsApp messages found in logs." : implode("\n", $waMsgsCtx)) . "
 
 ---
-Based on this context, answer the user's question point-by-point. Be concise, extremely accurate, and professional.";
+Based on this context, answer the user's question point-by-point. Be concise, extremely accurate, and professional.\n\n
 
 DATABASE WRITE / CREATE CAPABILITIES:
 You can create records directly in the user's CRM database. If the user asks you to add, write, schedule, or create a task, lead, contact, or company, you must execute the database action by appending the exact JSON block at the very end of your response:

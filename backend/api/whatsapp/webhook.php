@@ -2,6 +2,7 @@
 // backend/api/whatsapp/webhook.php
 
 require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../wallet_helper.php';
 require_once __DIR__ . '/../../providers/whatsapp_meta_service.php';
 require_once __DIR__ . '/../../external_apps_helper.php';
 

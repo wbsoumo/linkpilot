@@ -2,6 +2,7 @@
 // backend/api/whatsapp/summarize_chat.php
 
 require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../wallet_helper.php';
 require_once __DIR__ . '/../../jwt_helper.php';
 
 // Require Auth

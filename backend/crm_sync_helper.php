@@ -1,6 +1,8 @@
 <?php
 // backend/crm_sync_helper.php
 
+require_once __DIR__ . '/wallet_helper.php';
+
 class CRMSyncHelper {
     public static function syncLeadVaultToCRM($userId, $db) {
         try {

@@ -1,234 +1,437 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-[#f8fafc]">
+<html lang="en" class="bg-[#f8fafc] h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="assets/img/logo.png">
-    <title>Register - LinkPilot AI</title>
+    <title>Create Account - LinkPilot AI</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Custom Style Sheet -->
     <link rel="stylesheet" href="assets/css/style.css?v=2.5">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+        }
+        .otp-box {
+            background-color: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            color: #1e293b !important;
+        }
+        .otp-box:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15) !important;
+        }
+    </style>
 </head>
-<body class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-[#f8fafc] auth-body">
-    <div class="max-w-2xl w-full space-y-8 animate-fade-in my-8">
-        <div class="text-center">
-            <h2 class="mt-6 text-3xl font-extrabold text-slate-900 tracking-tight">
-                Create your <span class="text-blue-600">LinkPilot AI</span> Account
-            </h2>
-            <p class="mt-2 text-sm text-slate-500 font-medium">
-                Set up your outreach copilot in four easy steps
-            </p>
-        </div>
+<body class="min-h-screen bg-[#f8fafc] flex flex-col md:flex-row text-slate-800 antialiased">
 
-        <div class="glass-panel p-8 shadow-2xl bg-white border border-slate-200 rounded-2xl">
-            <!-- Step Progress Wizard Indicator -->
-            <div class="flex items-center justify-between mb-8 max-w-lg mx-auto">
-                <div class="step-indicator flex flex-col items-center" id="ind-1">
-                    <span class="w-8 h-8 rounded-full bg-teal-400 text-slate-950 font-extrabold flex items-center justify-center text-xs shadow-lg shadow-teal-500/20 transition-all duration-300">1</span>
-                    <span class="text-[10px] text-teal-400 font-bold mt-1">Account</span>
+    <!-- Split Wrapper -->
+    <div class="flex-1 flex flex-col md:flex-row min-h-screen">
+        
+        <!-- Left Sidebar: Branding & Features -->
+        <div class="w-full md:w-[38%] bg-slate-50/50 border-r border-slate-200/60 p-8 md:p-12 flex flex-col justify-between space-y-12">
+            <!-- Header Logo -->
+            <div class="flex items-center space-x-2.5">
+                <img src="assets/img/logo.png" alt="LinkPilot AI" class="h-6 w-6">
+                <span class="text-lg font-black text-slate-900 tracking-tight">LinkPilot AI</span>
+            </div>
+
+            <!-- Features list block -->
+            <div class="space-y-8 flex-grow flex flex-col justify-center">
+                <div class="space-y-4">
+                    <div>
+                        <span class="inline-flex items-center space-x-1.5 px-3 py-1 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-full text-[10px] font-bold">
+                            <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
+                            <span>Smart Outreach Starts Here</span>
+                        </span>
+                    </div>
+                    <h2 class="text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                        Create your <br><span class="text-blue-600">LinkPilot AI</span> Account
+                    </h2>
+                    <p class="text-slate-500 text-xs font-semibold leading-relaxed max-w-sm">
+                        Set up your account in just a few minutes and start building meaningful conversations with AI.
+                    </p>
                 </div>
-                <div class="flex-grow border-t border-slate-800 mx-2 transition-all duration-300" id="line-1"></div>
-                
-                <div class="step-indicator flex flex-col items-center" id="ind-2">
-                    <span class="w-8 h-8 rounded-full bg-slate-850 text-slate-400 border border-slate-750 font-bold flex items-center justify-center text-xs transition-all duration-300">2</span>
-                    <span class="text-[10px] text-slate-400 font-semibold mt-1">Profile</span>
-                </div>
-                <div class="flex-grow border-t border-slate-800 mx-2 transition-all duration-300" id="line-2"></div>
-                
-                <div class="step-indicator flex flex-col items-center" id="ind-3">
-                    <span class="w-8 h-8 rounded-full bg-slate-850 text-slate-400 border border-slate-750 font-bold flex items-center justify-center text-xs transition-all duration-300">3</span>
-                    <span class="text-[10px] text-slate-400 font-semibold mt-1">Bio</span>
-                </div>
-                <div class="flex-grow border-t border-slate-800 mx-2 transition-all duration-300" id="line-3"></div>
-                
-                <div class="step-indicator flex flex-col items-center" id="ind-4">
-                    <span class="w-8 h-8 rounded-full bg-slate-850 text-slate-400 border border-slate-750 font-bold flex items-center justify-center text-xs transition-all duration-300">4</span>
-                    <span class="text-[10px] text-slate-400 font-semibold mt-1">Verify</span>
+
+                <!-- Features list -->
+                <div class="space-y-6 pt-4">
+                    <!-- AI-Powered Outreach -->
+                    <div class="flex items-start space-x-3.5">
+                        <div class="h-9 w-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 shadow-sm border border-purple-100">
+                            <i data-lucide="bot" class="h-4.5 w-4.5"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-extrabold text-slate-800 text-xs">AI-Powered Outreach</h4>
+                            <p class="text-slate-500 text-[10px] font-semibold mt-0.5 leading-relaxed">Automate personalized conversations that convert leads into customers.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Smart Insights -->
+                    <div class="flex items-start space-x-3.5">
+                        <div class="h-9 w-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 shadow-sm border border-emerald-100">
+                            <i data-lucide="trending-up" class="h-4.5 w-4.5"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-extrabold text-slate-800 text-xs">Smart Insights</h4>
+                            <p class="text-slate-500 text-[10px] font-semibold mt-0.5 leading-relaxed">Track performance and get actionable insights in real-time.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Seamless Integrations -->
+                    <div class="flex items-start space-x-3.5">
+                        <div class="h-9 w-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 shadow-sm border border-amber-100">
+                            <i data-lucide="zap" class="h-4.5 w-4.5"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-extrabold text-slate-800 text-xs">Seamless Integrations</h4>
+                            <p class="text-slate-500 text-[10px] font-semibold mt-0.5 leading-relaxed">Connect your favorite tools and streamline your workflow.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Enterprise Grade Security -->
+                    <div class="flex items-start space-x-3.5">
+                        <div class="h-9 w-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 shadow-sm border border-blue-100">
+                            <i data-lucide="shield" class="h-4.5 w-4.5"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-extrabold text-slate-800 text-xs">Enterprise Grade Security</h4>
+                            <p class="text-slate-500 text-[10px] font-semibold mt-0.5 leading-relaxed">Your data is secure with our advanced encryption and compliance.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <form class="space-y-6" id="register-form" novalidate>
-                
-                <!-- STEP 1: Account Information -->
-                <div class="step-container space-y-6" id="step-1">
-                    <div class="border-b border-slate-800 pb-3">
-                        <h3 class="text-base font-semibold text-white">Account Details</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Let's set up your access login details.</p>
+            <!-- Trust Badge Social Proof -->
+            <div class="pt-6 border-t border-slate-200 max-w-sm">
+                <div class="flex items-center space-x-4 bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm">
+                    <!-- Overlapping avatars -->
+                    <div class="flex -space-x-2.5 overflow-hidden">
+                        <img class="inline-block h-7 w-7 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80" alt="Avatar 1">
+                        <img class="inline-block h-7 w-7 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&h=100&q=80" alt="Avatar 2">
+                        <img class="inline-block h-7 w-7 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&h=100&q=80" alt="Avatar 3">
+                        <img class="inline-block h-7 w-7 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&h=100&q=80" alt="Avatar 4">
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="name" class="block text-xs font-semibold text-slate-400 uppercase">Full Name *</label>
-                            <input id="name" name="name" type="text" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="John Doe">
+                    <div>
+                        <!-- Five stars -->
+                        <div class="flex text-amber-400">
+                            <i data-lucide="star" class="h-3 w-3 fill-current"></i>
+                            <i data-lucide="star" class="h-3 w-3 fill-current"></i>
+                            <i data-lucide="star" class="h-3 w-3 fill-current"></i>
+                            <i data-lucide="star" class="h-3 w-3 fill-current"></i>
+                            <i data-lucide="star" class="h-3 w-3 fill-current"></i>
                         </div>
-                        <div>
-                            <label for="email" class="block text-xs font-semibold text-slate-400 uppercase">Email Address *</label>
-                            <input id="email" name="email" type="text" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="john@example.com">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label for="phone_number" class="block text-xs font-semibold text-slate-400 uppercase">WhatsApp Number * (10-digit, without country code)</label>
-                            <input id="phone_number" name="phone_number" type="text" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="9876543210">
-                        </div>
-                        <div>
-                            <label for="password" class="block text-xs font-semibold text-slate-400 uppercase">Password * (Min 6 chars)</label>
-                            <input id="password" name="password" type="password" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="••••••••">
-                        </div>
-                        <div>
-                            <label for="confirm_password" class="block text-xs font-semibold text-slate-400 uppercase">Confirm Password *</label>
-                            <input id="confirm_password" name="confirm_password" type="password" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="••••••••">
-                        </div>
+                        <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Trusted by 10,000+ businesses worldwide</span>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Registration Card -->
+        <div class="flex-grow p-6 md:p-12 flex items-center justify-center">
+            
+            <div class="w-full max-w-2xl bg-white border border-slate-200/80 rounded-3xl p-6 md:p-10 shadow-xl space-y-8">
+                <!-- Step progress wizard -->
+                <div class="flex items-center justify-between max-w-lg mx-auto relative px-4">
+                    <!-- Progress Line background -->
+                    <div class="absolute top-4 left-10 right-10 height-[2px] bg-slate-100 z-0"></div>
                     
-                    <div class="pt-4 flex justify-end">
-                        <button type="button" onclick="nextStep(2)" class="px-6 py-2.5 text-sm font-semibold rounded-md text-slate-950 bg-teal-400 hover:bg-teal-300 focus:outline-none transition duration-150 flex items-center space-x-1.5 shadow-lg shadow-teal-500/10">
-                            <span>Next: Profile</span>
-                            <i data-lucide="arrow-right" class="h-4 w-4"></i>
-                        </button>
+                    <div class="step-indicator flex flex-col items-center z-10" id="ind-1">
+                        <span class="w-8 h-8 rounded-full bg-blue-600 text-white font-extrabold flex items-center justify-center text-xs shadow-md shadow-blue-500/10 transition-all duration-300">1</span>
+                        <span class="text-[10px] text-blue-600 font-bold mt-1.5">Account</span>
+                    </div>
+                    <div class="flex-grow border-t-2 border-slate-100 mx-2 z-0" id="line-1"></div>
+                    
+                    <div class="step-indicator flex flex-col items-center z-10" id="ind-2">
+                        <span class="w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 font-extrabold flex items-center justify-center text-xs transition-all duration-300">2</span>
+                        <span class="text-[10px] text-slate-400 font-semibold mt-1.5">Profile</span>
+                    </div>
+                    <div class="flex-grow border-t-2 border-slate-100 mx-2 z-0" id="line-2"></div>
+                    
+                    <div class="step-indicator flex flex-col items-center z-10" id="ind-3">
+                        <span class="w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 font-extrabold flex items-center justify-center text-xs transition-all duration-300">3</span>
+                        <span class="text-[10px] text-slate-400 font-semibold mt-1.5">Bio</span>
+                    </div>
+                    <div class="flex-grow border-t-2 border-slate-100 mx-2 z-0" id="line-3"></div>
+                    
+                    <div class="step-indicator flex flex-col items-center z-10" id="ind-4">
+                        <span class="w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 font-extrabold flex items-center justify-center text-xs transition-all duration-300">4</span>
+                        <span class="text-[10px] text-slate-400 font-semibold mt-1.5">Verify</span>
                     </div>
                 </div>
 
-                <!-- STEP 2: Professional Profile -->
-                <div class="step-container space-y-6 hidden" id="step-2">
-                    <div class="border-b border-slate-800 pb-3">
-                        <h3 class="text-base font-semibold text-white">Professional Profile</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Let's learn about your professional background.</p>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="user_type" class="block text-xs font-semibold text-slate-400 uppercase">User Type *</label>
-                            <select id="user_type" name="user_type" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
-                                <option value="" class="bg-slate-900 text-slate-400">Select User Type</option>
-                                <option value="Job Seeker" class="bg-slate-900">Job Seeker</option>
-                                <option value="Freelancer" class="bg-slate-900">Freelancer</option>
-                                <option value="Agency" class="bg-slate-900">Agency</option>
-                                <option value="Recruiter" class="bg-slate-900">Recruiter</option>
-                                <option value="Business Owner" class="bg-slate-900">Business Owner</option>
-                                <option value="Sales Professional" class="bg-slate-900">Sales Professional</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="job_title" class="block text-xs font-semibold text-slate-400 uppercase">Current Job Title</label>
-                            <input id="job_title" name="job_title" type="text" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="Software Engineer">
-                        </div>
-                        <div>
-                            <label for="experience_years" class="block text-xs font-semibold text-slate-400 uppercase">Years of Experience</label>
-                            <input id="experience_years" name="experience_years" type="number" min="0" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="3">
-                        </div>
-                        <div>
-                            <label for="company_name" class="block text-xs font-semibold text-slate-400 uppercase">Company Name</label>
-                            <input id="company_name" name="company_name" type="text" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="Acme Corp">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label for="skills" class="block text-xs font-semibold text-slate-400 uppercase">Skills (Comma Separated)</label>
-                            <input id="skills" name="skills" type="text" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="PHP, JavaScript, React, System Design">
-                        </div>
-                    </div>
+                <form class="space-y-6" id="register-form" novalidate>
                     
-                    <div class="pt-4 flex justify-between items-center">
-                        <button type="button" onclick="prevStep(1)" class="px-5 py-2.5 text-sm font-semibold rounded-md border border-slate-700 text-slate-300 hover:text-white hover:border-slate-600 transition flex items-center space-x-1.5">
-                            <i data-lucide="arrow-left" class="h-4 w-4"></i>
-                            <span>Back</span>
-                        </button>
-                        <button type="button" onclick="nextStep(3)" class="px-6 py-2.5 text-sm font-semibold rounded-md text-slate-950 bg-teal-400 hover:bg-teal-300 focus:outline-none transition duration-150 flex items-center space-x-1.5 shadow-lg shadow-teal-500/10">
-                            <span>Next: Bio & Links</span>
-                            <i data-lucide="arrow-right" class="h-4 w-4"></i>
-                        </button>
+                    <!-- STEP 1: Account Information -->
+                    <div class="step-container space-y-5" id="step-1">
+                        <div class="border-b border-slate-100 pb-3 text-left">
+                            <h3 class="text-base font-extrabold text-slate-800">Account Details</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Let's start with your account login details.</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Full Name -->
+                            <div class="space-y-1.5 text-left">
+                                <label for="name" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Full Name *</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                        <i data-lucide="user" class="h-4 w-4"></i>
+                                    </span>
+                                    <input id="name" name="name" type="text" class="block w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="Enter your full name">
+                                </div>
+                            </div>
+                            
+                            <!-- Email -->
+                            <div class="space-y-1.5 text-left">
+                                <label for="email" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Email Address *</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                        <i data-lucide="mail" class="h-4 w-4"></i>
+                                    </span>
+                                    <input id="email" name="email" type="text" class="block w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="Enter your email address">
+                                </div>
+                            </div>
+                            
+                            <!-- WhatsApp Number -->
+                            <div class="md:col-span-2 space-y-1.5 text-left">
+                                <label for="phone_number" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">WhatsApp Number * (10-digit, without country code)</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                        <i data-lucide="message-circle" class="h-4 w-4"></i>
+                                    </span>
+                                    <input id="phone_number" name="phone_number" type="text" class="block w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="Enter your WhatsApp number">
+                                </div>
+                            </div>
+                            
+                            <!-- Password -->
+                            <div class="space-y-1.5 text-left">
+                                <label for="password" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Password * (min 6 characters)</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                        <i data-lucide="lock" class="h-4 w-4"></i>
+                                    </span>
+                                    <input id="password" name="password" type="password" class="block w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="Enter password">
+                                    <span onclick="togglePasswordVisibility('password', 'toggle-pass-icon-1')" class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-slate-400 hover:text-slate-655">
+                                        <i data-lucide="eye" id="toggle-pass-icon-1" class="h-4 w-4"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <!-- Confirm Password -->
+                            <div class="space-y-1.5 text-left">
+                                <label for="confirm_password" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Confirm Password *</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                        <i data-lucide="lock" class="h-4 w-4"></i>
+                                    </span>
+                                    <input id="confirm_password" name="confirm_password" type="password" class="block w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="Confirm password">
+                                    <span onclick="togglePasswordVisibility('confirm_password', 'toggle-pass-icon-2')" class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-slate-400 hover:text-slate-655">
+                                        <i data-lucide="eye" id="toggle-pass-icon-2" class="h-4 w-4"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Safe Note Alert Box -->
+                        <div class="p-4 bg-blue-50/55 border border-blue-100 rounded-2xl flex items-center space-x-3.5 text-left">
+                            <div class="h-9 w-9 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                                <i data-lucide="shield-check" class="h-5 w-5"></i>
+                            </div>
+                            <div>
+                                <span class="block text-slate-800 font-extrabold text-[11px]">Your data is safe with us</span>
+                                <span class="text-[10px] text-slate-500 leading-normal font-semibold">We use industry-standard encryption to protect your information and never share your data with anyone.</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Button footer -->
+                        <div class="pt-4 flex justify-end">
+                            <button type="button" onclick="nextStep(2)" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-500 transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10" style="color: #ffffff !important;">
+                                <span style="color: #ffffff !important;">Next: Profile</span>
+                                <i data-lucide="arrow-right" class="h-4 w-4" style="color: #ffffff !important;"></i>
+                            </button>
+                        </div>
                     </div>
+
+                    <!-- STEP 2: Professional Profile -->
+                    <div class="step-container space-y-5 hidden" id="step-2">
+                        <div class="border-b border-slate-100 pb-3 text-left">
+                            <h3 class="text-base font-extrabold text-slate-800">Professional Profile</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Let's learn about your professional background.</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- User Type -->
+                            <div class="space-y-1.5 text-left">
+                                <label for="user_type" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">User Type *</label>
+                                <select id="user_type" name="user_type" class="block w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm">
+                                    <option value="" class="text-slate-400">Select User Type</option>
+                                    <option value="Job Seeker">Job Seeker</option>
+                                    <option value="Freelancer">Freelancer</option>
+                                    <option value="Agency">Agency</option>
+                                    <option value="Recruiter">Recruiter</option>
+                                    <option value="Business Owner">Business Owner</option>
+                                    <option value="Sales Professional">Sales Professional</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Job Title -->
+                            <div class="space-y-1.5 text-left">
+                                <label for="job_title" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Current Job Title</label>
+                                <input id="job_title" name="job_title" type="text" class="block w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="Software Engineer">
+                            </div>
+                            
+                            <!-- Experience Years -->
+                            <div class="space-y-1.5 text-left">
+                                <label for="experience_years" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Years of Experience</label>
+                                <input id="experience_years" name="experience_years" type="number" min="0" class="block w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="3">
+                            </div>
+                            
+                            <!-- Company Name -->
+                            <div class="space-y-1.5 text-left">
+                                <label for="company_name" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Company Name</label>
+                                <input id="company_name" name="company_name" type="text" class="block w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="Acme Corp">
+                            </div>
+                            
+                            <!-- Skills -->
+                            <div class="md:col-span-2 space-y-1.5 text-left">
+                                <label for="skills" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Skills (Comma Separated)</label>
+                                <input id="skills" name="skills" type="text" class="block w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="PHP, JavaScript, React, System Design">
+                            </div>
+                        </div>
+                        
+                        <div class="pt-4 flex justify-between items-center">
+                            <button type="button" onclick="prevStep(1)" class="px-5 py-2.5 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition flex items-center space-x-1.5">
+                                <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                                <span>Back</span>
+                            </button>
+                            <button type="button" onclick="nextStep(3)" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-500 transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10" style="color: #ffffff !important;">
+                                <span style="color: #ffffff !important;">Next: Bio & Links</span>
+                                <i data-lucide="arrow-right" class="h-4 w-4" style="color: #ffffff !important;"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- STEP 3: Bio & Links -->
+                    <div class="step-container space-y-5 hidden" id="step-3">
+                        <div class="border-b border-slate-100 pb-3 text-left">
+                            <h3 class="text-base font-extrabold text-slate-800">Online Presence & Bio</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Let's connect your profiles to personalize your AI outreach.</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Website URL -->
+                            <div class="space-y-1.5 text-left">
+                                <label for="website" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Website URL</label>
+                                <input id="website" name="website" type="text" class="block w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="https://example.com">
+                            </div>
+                            
+                            <!-- Portfolio URL -->
+                            <div class="space-y-1.5 text-left">
+                                <label for="portfolio_url" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Portfolio URL</label>
+                                <input id="portfolio_url" name="portfolio_url" type="text" class="block w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="https://portfolio.com">
+                            </div>
+                            
+                            <!-- LinkedIn URL -->
+                            <div class="md:col-span-2 space-y-1.5 text-left">
+                                <label for="linkedin_url" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">LinkedIn Profile URL</label>
+                                <input id="linkedin_url" name="linkedin_url" type="text" class="block w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="https://linkedin.com/in/username">
+                            </div>
+                            
+                            <!-- About Me -->
+                            <div class="md:col-span-2 space-y-1.5 text-left">
+                                <label for="about_me" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">About Yourself</label>
+                                <textarea id="about_me" name="about_me" rows="3" class="block w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="Tell us about your professional background..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="pt-4 flex justify-between items-center">
+                            <button type="button" onclick="prevStep(2)" class="px-5 py-2.5 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition flex items-center space-x-1.5">
+                                <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                                <span>Back</span>
+                            </button>
+                            <button type="button" id="send-otp-trigger-btn" onclick="triggerOtpSend()" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-500 transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10" style="color: #ffffff !important;">
+                                <span style="color: #ffffff !important;">Send Verification OTP</span>
+                                <i data-lucide="send" class="h-4 w-4" style="color: #ffffff !important;"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- STEP 4: OTP Verification -->
+                    <div class="step-container space-y-5 hidden" id="step-4">
+                        <div class="border-b border-slate-100 pb-3 text-center">
+                            <h3 class="text-base font-extrabold text-slate-800">WhatsApp Verification</h3>
+                            <p class="text-xs text-slate-500 mt-1 font-semibold leading-relaxed">We have sent a 6-digit verification code to your WhatsApp number <span id="display-phone" class="text-blue-600 font-bold"></span>.</p>
+                        </div>
+                        
+                        <!-- 6-digit input boxes -->
+                        <div class="flex justify-center space-x-2.5 my-6" id="otp-inputs-container">
+                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-white border border-slate-350 text-slate-800 rounded-xl focus:outline-none transition shadow-sm" />
+                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-white border border-slate-350 text-slate-800 rounded-xl focus:outline-none transition shadow-sm" />
+                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-white border border-slate-350 text-slate-800 rounded-xl focus:outline-none transition shadow-sm" />
+                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-white border border-slate-350 text-slate-800 rounded-xl focus:outline-none transition shadow-sm" />
+                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-white border border-slate-350 text-slate-800 rounded-xl focus:outline-none transition shadow-sm" />
+                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-white border border-slate-350 text-slate-800 rounded-xl focus:outline-none transition shadow-sm" />
+                        </div>
+
+                        <!-- Under whatsapp OTP enter box notice -->
+                        <div class="text-center bg-blue-50/50 border border-blue-100 rounded-xl py-3 px-4 max-w-sm mx-auto my-4">
+                            <p class="text-[11px] text-slate-500 font-semibold leading-relaxed">
+                                <span class="inline-block text-blue-500 mr-1">💬</span>
+                                OTP will be received from <span class="text-blue-600 font-bold">Taskbazi (Partner Brand)</span>
+                            </p>
+                        </div>
+
+                        <div id="otp-error" class="text-xs text-red-500 font-bold text-center mb-4 hidden"></div>
+
+                        <div class="text-xs text-slate-500 text-center my-4 font-semibold">
+                            Didn't receive the code? 
+                            <button type="button" id="resend-otp-btn" disabled class="font-bold text-blue-600 hover:underline disabled:text-slate-400 disabled:no-underline ml-1">
+                                Resend in <span id="cooldown-timer">60</span>s
+                            </button>
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-100 flex justify-between items-center">
+                            <button type="button" onclick="prevStep(3)" class="px-5 py-2.5 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition flex items-center space-x-1.5">
+                                <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                                <span>Back</span>
+                            </button>
+                            <button type="submit" id="verify-otp-submit-btn" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-500 transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10" style="color: #ffffff !important;">
+                                <span style="color: #ffffff !important;">Verify & Register</span>
+                                <i data-lucide="check" class="h-4 w-4" style="color: #ffffff !important;"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </form>
+
+                <div class="mt-6 text-center border-t border-slate-100 pt-6">
+                    <span class="text-xs font-semibold text-slate-500">Already have an account? </span>
+                    <a href="login.html" class="text-xs font-bold text-blue-600 hover:underline">Log in here</a>
                 </div>
-
-                <!-- STEP 3: Bio & Links -->
-                <div class="step-container space-y-6 hidden" id="step-3">
-                    <div class="border-b border-slate-800 pb-3">
-                        <h3 class="text-base font-semibold text-white">Online Presence & Bio</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Let's connect your profiles to personalize your AI outreach.</p>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="website" class="block text-xs font-semibold text-slate-400 uppercase">Website URL</label>
-                            <input id="website" name="website" type="text" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="https://example.com">
-                        </div>
-                        <div>
-                            <label for="portfolio_url" class="block text-xs font-semibold text-slate-400 uppercase">Portfolio URL</label>
-                            <input id="portfolio_url" name="portfolio_url" type="text" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="https://portfolio.com">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label for="linkedin_url" class="block text-xs font-semibold text-slate-400 uppercase">LinkedIn Profile URL</label>
-                            <input id="linkedin_url" name="linkedin_url" type="text" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="https://linkedin.com/in/username">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label for="about_me" class="block text-xs font-semibold text-slate-400 uppercase">About Yourself</label>
-                            <textarea id="about_me" name="about_me" rows="3" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="Tell us about your professional background..."></textarea>
-                        </div>
-                    </div>
-                    
-                    <div class="pt-4 flex justify-between items-center">
-                        <button type="button" onclick="prevStep(2)" class="px-5 py-2.5 text-sm font-semibold rounded-md border border-slate-700 text-slate-300 hover:text-white hover:border-slate-600 transition flex items-center space-x-1.5">
-                            <i data-lucide="arrow-left" class="h-4 w-4"></i>
-                            <span>Back</span>
-                        </button>
-                        <button type="button" id="send-otp-trigger-btn" onclick="triggerOtpSend()" class="px-6 py-2.5 text-sm font-semibold rounded-md text-slate-950 bg-teal-400 hover:bg-teal-300 focus:outline-none transition duration-150 flex items-center space-x-1.5 shadow-lg shadow-teal-500/10">
-                            <span>Send Verification OTP</span>
-                            <i data-lucide="send" class="h-4 w-4"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- STEP 4: OTP Verification -->
-                <div class="step-container space-y-6 hidden" id="step-4">
-                    <div class="border-b border-slate-800 pb-3 text-center">
-                        <h3 class="text-base font-semibold text-white">WhatsApp Verification</h3>
-                        <p class="text-xs text-slate-400 mt-1">We have sent a 6-digit verification code to your WhatsApp number <span id="display-phone" class="text-teal-400 font-bold"></span>.</p>
-                    </div>
-                    
-                    <!-- 6-digit input boxes -->
-                    <div class="flex justify-center space-x-2.5 my-6" id="otp-inputs-container">
-                        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-slate-800 border border-slate-700 text-teal-400 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:outline-none transition" style="background-color: #1e293b; border-color: #334155;" />
-                        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-slate-800 border border-slate-700 text-teal-400 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:outline-none transition" style="background-color: #1e293b; border-color: #334155;" />
-                        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-slate-800 border border-slate-700 text-teal-400 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:outline-none transition" style="background-color: #1e293b; border-color: #334155;" />
-                        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-slate-800 border border-slate-700 text-teal-400 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:outline-none transition" style="background-color: #1e293b; border-color: #334155;" />
-                        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-slate-800 border border-slate-700 text-teal-400 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:outline-none transition" style="background-color: #1e293b; border-color: #334155;" />
-                        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-slate-800 border border-slate-700 text-teal-400 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:outline-none transition" style="background-color: #1e293b; border-color: #334155;" />
-                    </div>
-
-                    <!-- Under whatsapp OTP enter box notice -->
-                    <div class="text-center bg-slate-950/40 border border-slate-800/80 rounded-xl py-3 px-4 max-w-sm mx-auto my-4">
-                        <p class="text-[11px] text-slate-450 text-slate-400 font-medium leading-relaxed">
-                            <span class="inline-block animate-pulse text-teal-400 mr-1">💬</span>
-                            OTP will be received from <span class="text-teal-400 font-bold">Taskbazi (Partner Brand)</span>
-                        </p>
-                    </div>
-
-                    <div id="otp-error" class="text-xs text-red-400 text-center mb-4 hidden"></div>
-
-                    <div class="text-xs text-slate-400 text-center my-4">
-                        Didn't receive the code? 
-                        <button type="button" id="resend-otp-btn" disabled class="font-semibold text-teal-500 hover:underline disabled:text-slate-500 disabled:no-underline ml-1">
-                            Resend in <span id="cooldown-timer">60</span>s
-                        </button>
-                    </div>
-
-                    <div class="pt-4 border-t border-slate-800/60 flex justify-between items-center">
-                        <button type="button" onclick="prevStep(3)" class="px-5 py-2.5 text-sm font-semibold rounded-md border border-slate-700 text-slate-300 hover:text-white hover:border-slate-600 transition flex items-center space-x-1.5">
-                            <i data-lucide="arrow-left" class="h-4 w-4"></i>
-                            <span>Back</span>
-                        </button>
-                        <button type="submit" id="verify-otp-submit-btn" class="px-6 py-2.5 text-sm font-semibold rounded-md text-slate-950 bg-teal-400 hover:bg-teal-300 focus:outline-none transition duration-150 flex items-center space-x-1.5 shadow-lg shadow-teal-500/10">
-                            <span>Verify & Register</span>
-                            <i data-lucide="check" class="h-4 w-4"></i>
-                        </button>
-                    </div>
-                </div>
-
-            </form>
-
-            <div class="mt-6 text-center border-t border-slate-800/80 pt-6">
-                <span class="text-sm text-slate-400">Already have an account? </span>
-                <a href="login.html" class="text-sm font-semibold text-teal-400 hover:underline">Log in here</a>
             </div>
         </div>
     </div>
+
+    <!-- Password visibility toggle script & wizard style update -->
+    <script>
+        window.togglePasswordVisibility = function(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                input.type = 'password';
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        };
+    </script>
 
     <!-- Central JS Handler -->
     <script src="assets/js/app.js"></script>
@@ -248,29 +451,31 @@
             // Update indicator visual classes
             for (let i = 1; i <= 4; i++) {
                 const indicator = document.getElementById(`ind-${i}`);
+                if (!indicator) continue;
+                
                 const circle = indicator.querySelector('span:first-child');
                 const label = indicator.querySelector('span:last-child');
                 const line = document.getElementById(`line-${i}`);
                 
                 if (i === step) {
-                    circle.className = "w-8 h-8 rounded-full bg-teal-400 text-slate-950 font-extrabold flex items-center justify-center text-xs shadow-lg shadow-teal-500/20 transition-all duration-300";
-                    label.className = "text-[10px] text-teal-400 font-bold mt-1";
+                    circle.className = "w-8 h-8 rounded-full bg-blue-600 text-white font-extrabold flex items-center justify-center text-xs shadow-md shadow-blue-500/10 transition-all duration-300";
+                    label.className = "text-[10px] text-blue-600 font-bold mt-1.5";
                 } else if (i < step) {
-                    circle.className = "w-8 h-8 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/30 font-bold flex items-center justify-center text-xs transition-all duration-300";
-                    label.className = "text-[10px] text-teal-500/60 font-semibold mt-1";
+                    circle.className = "w-8 h-8 rounded-full bg-blue-50 text-blue-600 border border-blue-200 font-extrabold flex items-center justify-center text-xs transition-all duration-300";
+                    label.className = "text-[10px] text-blue-600/80 font-bold mt-1.5";
                 } else {
-                    circle.className = "w-8 h-8 rounded-full bg-slate-850 text-slate-400 border border-slate-750 font-bold flex items-center justify-center text-xs transition-all duration-300";
-                    label.className = "text-[10px] text-slate-400 font-semibold mt-1";
+                    circle.className = "w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 font-extrabold flex items-center justify-center text-xs transition-all duration-300";
+                    label.className = "text-[10px] text-slate-400 font-semibold mt-1.5";
                 }
 
                 // Color connecting lines
                 if (line) {
                     if (i < step) {
-                        line.classList.add('border-teal-500/40');
-                        line.classList.remove('border-slate-800');
+                        line.classList.add('border-blue-600');
+                        line.classList.remove('border-slate-100');
                     } else {
-                        line.classList.remove('border-teal-500/40');
-                        line.classList.add('border-slate-800');
+                        line.classList.remove('border-blue-600');
+                        line.classList.add('border-slate-100');
                     }
                 }
             }
@@ -444,7 +649,7 @@
             sendBtn.disabled = true;
             sendBtn.innerHTML = `
                 <div class="flex items-center justify-center space-x-1.5">
-                    <div class="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>
+                    <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     <span>Saving details...</span>
                 </div>
             `;
@@ -476,7 +681,7 @@
 
             sendBtn.innerHTML = `
                 <div class="flex items-center justify-center space-x-1.5">
-                    <div class="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>
+                    <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     <span>Sending OTP...</span>
                 </div>
             `;
@@ -563,7 +768,7 @@
             submitBtn.disabled = true;
             submitBtn.innerHTML = `
                 <div class="flex items-center justify-center space-x-1.5">
-                    <div class="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>
+                    <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     <span>Registering...</span>
                 </div>
             `;

@@ -319,6 +319,9 @@ async function navigateTo(view, params = {}) {
         case 'integrations':
             renderIntegrations(contentArea);
             break;
+        case 'recharge':
+            renderRecharge(contentArea, params);
+            break;
         case 'external-apps':
             renderExternalApps(contentArea);
             break;
@@ -10020,13 +10023,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // Intercept hash change
     window.addEventListener('hashchange', () => {
         const hash = window.location.hash || '#/dashboard';
-        const view = hash.replace('#/', '');
-        navigateTo(view);
+        const rawPath = hash.replace('#/', '');
+        const [view, queryString] = rawPath.split('?');
+        const params = {};
+        if (queryString) {
+            const urlParams = new URLSearchParams(queryString);
+            for (const [key, value] of urlParams) {
+                params[key] = value;
+            }
+        }
+        navigateTo(view, params);
     });
 
     const hash = window.location.hash || '#/dashboard';
-    const view = hash.replace('#/', '');
-    navigateTo(view);
+    const rawPath = hash.replace('#/', '');
+    const [view, queryString] = rawPath.split('?');
+    const params = {};
+    if (queryString) {
+        const urlParams = new URLSearchParams(queryString);
+        for (const [key, value] of urlParams) {
+            params[key] = value;
+        }
+    }
+    navigateTo(view, params);
 });
 
 // --- EXTERNAL APPS SaaS INTEGRATION MARKETPLACE ---
@@ -11200,7 +11219,7 @@ function renderSettingsTabContent(tab, container) {
                                     <div class="flex justify-between"><span>Purchased Balance:</span><span class="font-bold text-slate-700">${wallet.purchased} credits</span></div>
                                 </div>
                                 <div class="pt-2">
-                                    <a href="recharge.html" class="inline-flex items-center justify-center px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition shadow-sm" style="color: #ffffff !important;">Recharge Wallet</a>
+                                    <a href="#/recharge" class="inline-flex items-center justify-center px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition shadow-sm" style="color: #ffffff !important;">Recharge Wallet</a>
                                 </div>
                             </div>
 
@@ -11784,5 +11803,352 @@ window.generateMeetLinkForTaskInModal = async function(taskId) {
         showNotification('error', 'Meet link generation failed: ' + err.message);
         container.innerHTML = origHtml;
         lucide.createIcons();
+    }
+};
+
+// --- RECHARGE AND PAYMENTS PANEL ---
+async function renderRecharge(container, params = {}) {
+    try {
+        container.innerHTML = `
+            <div class="space-y-6 pt-4 animate-fade-in text-xs max-w-4xl mx-auto text-left">
+                <!-- Header -->
+                <div>
+                    <h1 class="text-2xl font-extrabold text-slate-800">Top-up Email Finder Credits</h1>
+                    <p class="text-slate-500 text-xs mt-1">Recharge your credit wallet to find verified email addresses directly from LinkedIn profiles.</p>
+                </div>
+
+                <!-- Stats Cards Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="glass-panel p-4 bg-white shadow-sm border border-slate-200 rounded-2xl flex items-center space-x-3.5">
+                        <div class="h-10 w-10 bg-teal-50 rounded-xl flex items-center justify-center text-teal-600 shrink-0">
+                            <i data-lucide="wallet" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Remaining Balance</span>
+                            <span class="text-lg font-bold text-slate-800" id="recharge-wallet-remaining">...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-panel p-4 bg-white shadow-sm border border-slate-200 rounded-2xl flex items-center space-x-3.5">
+                        <div class="h-10 w-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
+                            <i data-lucide="line-chart" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Purchased</span>
+                            <span class="text-lg font-bold text-slate-800" id="recharge-wallet-total">...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-panel p-4 bg-white shadow-sm border border-slate-200 rounded-2xl flex items-center space-x-3.5">
+                        <div class="h-10 w-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-500 shrink-0">
+                            <i data-lucide="activity" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Used Credits</span>
+                            <span class="text-lg font-bold text-slate-800" id="recharge-wallet-used">...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recharge Box Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Left column: Selector -->
+                    <div class="lg:col-span-7 glass-panel p-5 bg-white space-y-4 shadow-sm border border-slate-200 rounded-2xl">
+                        <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-2 pb-2 border-b border-slate-100">
+                            <i data-lucide="zap" class="h-4 w-4 text-indigo-650"></i>
+                            <span>Select Purchase Amount</span>
+                        </h3>
+
+                        <!-- Quick Options buttons -->
+                        <div class="grid grid-cols-3 gap-3">
+                            <button type="button" onclick="setRechargeAmount(100)" class="py-2 px-3 border border-slate-200 hover:border-indigo-650 hover:bg-indigo-50/50 rounded-xl text-xs font-bold transition">
+                                ₹100
+                            </button>
+                            <button type="button" onclick="setRechargeAmount(250)" class="py-2 px-3 border border-slate-200 hover:border-indigo-650 hover:bg-indigo-50/50 rounded-xl text-xs font-bold transition">
+                                ₹250
+                            </button>
+                            <button type="button" onclick="setRechargeAmount(500)" class="py-2 px-3 border border-slate-200 hover:border-indigo-650 hover:bg-indigo-50/50 rounded-xl text-xs font-bold transition">
+                                ₹500
+                            </button>
+                        </div>
+
+                        <!-- Numeric Custom input -->
+                        <div class="space-y-1">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Custom Amount (Min ₹100)</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-450 font-bold text-sm">₹</span>
+                                <input id="recharge-amount-input" type="number" min="100" value="250" oninput="calculateCreditsFromInput()" class="block w-full pl-7 pr-3 py-2 bg-white border border-slate-250 rounded-xl text-slate-800 font-bold focus:outline-none focus:border-indigo-500">
+                            </div>
+                        </div>
+
+                        <!-- Range Slider -->
+                        <div class="space-y-1">
+                            <input id="recharge-amount-slider" type="range" min="100" max="5000" step="10" value="250" oninput="calculateCreditsFromSlider()" class="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-650">
+                            <div class="flex justify-between text-[9px] text-slate-450 font-bold uppercase tracking-wider">
+                                <span>Min: ₹100</span>
+                                <span>Max: ₹5000</span>
+                            </div>
+                        </div>
+
+                        <!-- Pay Button -->
+                        <button id="recharge-submit-btn" onclick="startRazorpayPayment()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-sm" style="color: #ffffff !important;">
+                            <i data-lucide="credit-card" class="h-3.5 w-3.5" style="color: #ffffff !important;"></i>
+                            <span style="color: #ffffff !important;">Recharge Wallet Now</span>
+                        </button>
+                    </div>
+
+                    <!-- Right column: Summary -->
+                    <div class="lg:col-span-5 glass-panel p-5 bg-white space-y-4 shadow-sm border border-slate-200 rounded-2xl flex flex-col justify-between">
+                        <div class="space-y-4">
+                            <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">Order Summary</h4>
+                            <div class="space-y-2.5">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="text-slate-500">Credits Granted:</span>
+                                    <span class="font-extrabold text-indigo-600 text-sm" id="recharge-summary-credits">0</span>
+                                </div>
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="text-slate-500">Cost per Credit:</span>
+                                    <span class="font-mono text-slate-700 font-semibold" id="recharge-summary-unit-cost">₹0.00</span>
+                                </div>
+                            </div>
+                            
+                            <div class="p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl">
+                                <p class="text-[10px] text-indigo-900 leading-relaxed font-semibold">
+                                    💡 Credits are calculated dynamically: <strong>₹49 yields 101 Credits</strong>. Credits do not expire, roll over, and failed searches are refunded automatically.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-t border-slate-150 flex justify-between items-baseline">
+                            <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Total Payable</span>
+                            <span class="text-xl font-extrabold text-slate-800" id="recharge-summary-total">₹250.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction Log Table -->
+                <div class="glass-panel p-5 bg-white space-y-4 shadow-sm border border-slate-200 rounded-2xl">
+                    <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2">Credit Recharge & Usage History</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse custom-table text-[11px]">
+                            <thead>
+                                <tr class="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                                    <th class="py-2 px-3">Type</th>
+                                    <th class="py-2 px-3">Credits</th>
+                                    <th class="py-2 px-3">Amount</th>
+                                    <th class="py-2 px-3">Payment ID / Info</th>
+                                    <th class="py-2 px-3">Status</th>
+                                    <th class="py-2 px-3">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recharge-tx-history-tbody">
+                                <tr>
+                                    <td colspan="6" class="py-8 text-center text-slate-400 italic">
+                                        Loading transaction logs...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        lucide.createIcons();
+
+        // Run UI initializers
+        await loadRechargeWalletLogs();
+        setRechargeAmount(250);
+
+        // Parse state params
+        const status = params.status;
+        if (status === 'success') {
+            showNotification('success', 'Your payment was captured successfully. Balance updated.');
+            window.location.hash = '#/recharge';
+        } else if (status === 'failure') {
+            showNotification('error', 'Payment transaction failed. Please try again.');
+            window.location.hash = '#/recharge';
+        }
+
+    } catch (err) {
+        container.innerHTML = `
+            <div class="max-w-xl mx-auto p-5 text-center text-red-500">
+                Failed to load Recharge panel: ${err.message}
+            </div>
+        `;
+    }
+}
+
+// --- RECHARGE LOGIC HELPERS ---
+window.loadRechargeWalletLogs = async function() {
+    try {
+        const res = await apiCall('profile/get_credits.php');
+        if (res && res.status === 'success') {
+            document.getElementById('recharge-wallet-remaining').textContent = res.wallet.remaining.toLocaleString();
+            document.getElementById('recharge-wallet-total').textContent = res.wallet.total.toLocaleString();
+            document.getElementById('recharge-wallet-used').textContent = res.wallet.used.toLocaleString();
+
+            const navVal = document.getElementById('nav-credit-balance-value');
+            if (navVal) navVal.textContent = res.wallet.remaining.toLocaleString();
+
+            const tbody = document.getElementById('recharge-tx-history-tbody');
+            if (!tbody) return;
+
+            if (res.recent_transactions.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400 italic">No transactions recorded yet.</td></tr>`;
+            } else {
+                tbody.innerHTML = res.recent_transactions.map(tx => {
+                    const date = new Date(tx.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                    const badge = tx.status === 'success' ? 
+                        `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-250 rounded-full font-bold">Success</span>` :
+                        `<span class="px-2 py-0.5 bg-red-50 text-red-550 border border-red-250 rounded-full font-bold">Failed</span>`;
+
+                    const sign = tx.type === 'recharge' || tx.type === 'adjustment' ? '+' : '-';
+                    const colorCls = tx.type === 'recharge' || tx.type === 'adjustment' ? 'text-emerald-600 font-bold' : 'text-slate-500';
+                    
+                    const desc = tx.type === 'recharge' ? 
+                        (tx.payment_id || 'Direct Payment') : 
+                        (tx.provider_used ? `Lookup (${tx.provider_used})` : 'Manual Adjustment');
+
+                    return `
+                        <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition">
+                            <td class="py-3 px-3 font-bold uppercase text-[9px] tracking-wider">${tx.type}</td>
+                            <td class="py-3 px-3 ${colorCls}">${sign}${tx.credits}</td>
+                            <td class="py-3 px-3 font-mono">${tx.amount > 0 ? '₹' + parseFloat(tx.amount).toFixed(2) : '--'}</td>
+                            <td class="py-3 px-3 text-slate-500 truncate max-w-[120px] font-mono">${desc}</td>
+                            <td class="py-3 px-3">${badge}</td>
+                            <td class="py-3 px-3 text-slate-450 font-mono">${date}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+    } catch (err) {
+        console.error('Error loading wallet logs:', err);
+    }
+};
+
+window.calculateCredits = function(amount) {
+    if (amount < 100) return 0;
+    return Math.floor((amount / 100) * 500);
+};
+
+window.setRechargeAmount = function(amount) {
+    const input = document.getElementById('recharge-amount-input');
+    const slider = document.getElementById('recharge-amount-slider');
+    if (input) input.value = amount;
+    if (slider) slider.value = amount;
+    window.updateBreakdown(amount);
+};
+
+window.calculateCreditsFromInput = function() {
+    let amount = parseFloat(document.getElementById('recharge-amount-input').value);
+    if (isNaN(amount) || amount < 0) amount = 0;
+    const slider = document.getElementById('recharge-amount-slider');
+    if (slider) slider.value = amount;
+    window.updateBreakdown(amount);
+};
+
+window.calculateCreditsFromSlider = function() {
+    const amount = parseFloat(document.getElementById('recharge-amount-slider').value);
+    const input = document.getElementById('recharge-amount-input');
+    if (input) input.value = amount;
+    window.updateBreakdown(amount);
+};
+
+window.updateBreakdown = function(amount) {
+    const credits = window.calculateCredits(amount);
+    const unitCost = credits > 0 ? (amount / credits) : 0.00;
+
+    const summaryCredits = document.getElementById('recharge-summary-credits');
+    const summaryUnitCost = document.getElementById('recharge-summary-unit-cost');
+    const summaryTotal = document.getElementById('recharge-summary-total');
+    
+    if (summaryCredits) summaryCredits.textContent = credits.toLocaleString();
+    if (summaryUnitCost) summaryUnitCost.textContent = `₹${unitCost.toFixed(3)}`;
+    if (summaryTotal) summaryTotal.textContent = `₹${amount.toFixed(2)}`;
+    
+    const btn = document.getElementById('recharge-submit-btn');
+    if (btn) {
+        if (amount < 100) {
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    }
+};
+
+window.startRazorpayPayment = async function() {
+    const amount = parseFloat(document.getElementById('recharge-amount-input').value);
+    if (amount < 100) {
+        showNotification('warning', 'Minimum recharge amount is ₹100.');
+        return;
+    }
+
+    const rechargeBtn = document.getElementById('recharge-submit-btn');
+    const oldTxt = rechargeBtn.innerHTML;
+    rechargeBtn.disabled = true;
+    rechargeBtn.innerHTML = `<span class="loader-spinner !w-3.5 !h-3.5 border-slate-950 border-t-indigo-600"></span> <span>Preparing Order...</span>`;
+
+    try {
+        const orderData = await apiCall('recharge/create_order.php', 'POST', { amount });
+        
+        if (orderData.status === 'error') {
+            throw new Error(orderData.message);
+        }
+
+        const options = {
+            "key": orderData.key_id,
+            "amount": Math.round(orderData.amount * 100),
+            "currency": orderData.currency,
+            "name": "LinkPilot AI",
+            "description": "Email Finder Credits Recharge",
+            "order_id": orderData.order_id,
+            "handler": async function (response) {
+                rechargeBtn.innerHTML = `<span class="loader-spinner !w-3.5 !h-3.5 border-slate-950 border-t-indigo-600"></span> <span>Verifying Payment...</span>`;
+                try {
+                    const verifyData = await apiCall('recharge/verify_payment.php', 'POST', {
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_signature: response.razorpay_signature
+                    });
+
+                    if (verifyData && verifyData.status === 'success') {
+                        showNotification('success', `Payment captured successfully! Added ${verifyData.credits_allocated} credits.`);
+                        loadRechargeWalletLogs();
+                    } else {
+                        throw new Error(verifyData.message || 'Signature check failed.');
+                    }
+                } catch (err) {
+                    showNotification('error', 'Signature verification failed: ' + err.message);
+                } finally {
+                    rechargeBtn.disabled = false;
+                    rechargeBtn.innerHTML = oldTxt;
+                }
+            },
+            "prefill": {
+                "name": orderData.user.name,
+                "email": orderData.user.email
+            },
+            "theme": {
+                "color": "#4F46E5"
+            },
+            "modal": {
+                "ondismiss": function() {
+                    rechargeBtn.disabled = false;
+                    rechargeBtn.innerHTML = oldTxt;
+                }
+            }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+
+    } catch (err) {
+        showNotification('error', err.message || 'Error processing recharge.');
+        rechargeBtn.disabled = false;
+        rechargeBtn.innerHTML = oldTxt;
     }
 };

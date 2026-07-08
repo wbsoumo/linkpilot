@@ -203,7 +203,7 @@ function setupNavigation() {
                 
                 const rechargeLink = document.createElement('a');
                 rechargeLink.id = 'recharge-nav-link';
-                rechargeLink.href = 'recharge.html';
+                rechargeLink.href = 'index.html#/recharge';
                 rechargeLink.className = 'sidebar-nav-link px-4 py-2 rounded-lg text-sm font-semibold transition duration-150';
                 rechargeLink.textContent = 'Recharge';
     

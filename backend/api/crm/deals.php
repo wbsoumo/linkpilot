@@ -188,15 +188,15 @@ try {
         }
         
         $title = trim($input['title'] ?? $deal['title']);
-        $companyId = !empty($input['company_id']) ? (int)$input['company_id'] : $deal['company_id'];
-        $contactId = !empty($input['contact_id']) ? (int)$input['contact_id'] : $deal['contact_id'];
-        $leadId = !empty($input['lead_id']) ? (int)$input['lead_id'] : null;
+        $companyId = isset($input['company_id']) ? (!empty($input['company_id']) ? (int)$input['company_id'] : null) : $deal['company_id'];
+        $contactId = isset($input['contact_id']) ? (!empty($input['contact_id']) ? (int)$input['contact_id'] : null) : $deal['contact_id'];
+        $leadId = isset($input['lead_id']) ? (!empty($input['lead_id']) ? (int)$input['lead_id'] : null) : $deal['lead_id'];
         
         $stage = trim($input['stage'] ?? $deal['stage']);
-        $expectedRevenue = (float)($input['expected_revenue'] ?? 0.00);
-        $probability = (int)($input['probability'] ?? 50);
-        $owner = trim($input['owner'] ?? '');
-        $closingDate = !empty($input['closing_date']) ? $input['closing_date'] : null;
+        $expectedRevenue = isset($input['expected_revenue']) ? (float)$input['expected_revenue'] : (float)$deal['expected_revenue'];
+        $probability = isset($input['probability']) ? (int)$input['probability'] : (int)$deal['probability'];
+        $owner = isset($input['owner']) ? trim($input['owner']) : $deal['owner'];
+        $closingDate = isset($input['closing_date']) ? (!empty($input['closing_date']) ? $input['closing_date'] : null) : $deal['closing_date'];
         
         $stmt = $db->prepare("UPDATE crm_deals SET company_id = ?, contact_id = ?, lead_id = ?, title = ?, stage = ?, expected_revenue = ?, probability = ?, owner = ?, closing_date = ? WHERE id = ? AND user_id = ?");
         $stmt->execute([
@@ -213,6 +213,30 @@ try {
         }
         
         sendJsonResponse('success', 'Deal updated successfully');
+    }
+    
+    elseif ($method === 'ADD_REMARK' || $action === 'add_remark') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!$input) {
+            $input = $_POST;
+        }
+        $dealId = (int)($input['deal_id'] ?? 0);
+        $remark = trim($input['remark'] ?? '');
+        if ($dealId <= 0 || empty($remark)) {
+            sendJsonResponse('error', 'Deal ID and remark are required.', [], 400);
+        }
+        
+        $stmtCheck = $db->prepare("SELECT company_id, contact_id FROM crm_deals WHERE id = ? AND user_id = ?");
+        $stmtCheck->execute([$dealId, $userId]);
+        $deal = $stmtCheck->fetch();
+        if (!$deal) {
+            sendJsonResponse('error', 'Deal not found or access denied.', [], 404);
+        }
+        
+        $timelineStmt = $db->prepare("INSERT INTO crm_timeline (user_id, deal_id, company_id, contact_id, activity_type, description) VALUES (?, ?, ?, ?, 'Remark Added', ?)");
+        $timelineStmt->execute([$userId, $dealId, $deal['company_id'], $deal['contact_id'], $remark]);
+        
+        sendJsonResponse('success', 'Remark added successfully.');
     }
     
     elseif ($method === 'DELETE') {

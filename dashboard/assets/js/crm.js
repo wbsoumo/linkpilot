@@ -2816,7 +2816,7 @@ async function renderDeals(container) {
                 }
 
                 return `
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3 card-hover relative group cursor-grab active:cursor-grabbing" draggable="true" ondragstart="handleDealDragStart(event, ${c.id})">
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3 card-hover relative group cursor-grab active:cursor-grabbing" draggable="true" ondragstart="handleDealDragStart(event, ${c.id})" oncontextmenu="openDealContextMenu(event, ${c.id})" ondblclick="openDealLogsModal(${c.id})">
                         <!-- Action Menu Button -->
                         <div class="absolute top-3.5 right-3.5 z-10">
                             <button onclick="openDealMenu(event, ${c.id})" class="h-6 w-6 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-50 flex items-center justify-center transition">
@@ -2922,7 +2922,7 @@ async function renderDeals(container) {
                         </button>
                         
                         <!-- New Deal -->
-                        <button onclick="openCreateDealModal()" class="px-4.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-extrabold transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10" style="color: #ffffff !important;">
+                        <button onclick="openCreateDealModal()" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-extrabold transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10" style="color: #ffffff !important;">
                             <i data-lucide="plus" class="h-4 w-4" style="color: #ffffff !important;"></i>
                             <span style="color: #ffffff !important;">New Deal</span>
                         </button>
@@ -3143,10 +3143,18 @@ window.openDealMenu = function(event, dealId) {
 };
 
 window.editDealMenuAction = function(dealId) {
+    const menuPop = document.getElementById('deal-menu-popover');
+    if (menuPop) menuPop.remove();
+    const ctxPop = document.getElementById('deal-context-menu');
+    if (ctxPop) ctxPop.remove();
     openEditDealModal(dealId);
 };
 
 window.deleteDealMenuAction = async function(dealId) {
+    const menuPop = document.getElementById('deal-menu-popover');
+    if (menuPop) menuPop.remove();
+    const ctxPop = document.getElementById('deal-context-menu');
+    if (ctxPop) ctxPop.remove();
     if (!confirm('Are you sure you want to delete this deal?')) return;
     try {
         await apiCall(`crm/deals.php?action=delete&id=${dealId}`, 'POST');
@@ -3159,6 +3167,10 @@ window.deleteDealMenuAction = async function(dealId) {
 
 // Window-scoped Dynamic modals for creation & edits
 window.openCreateDealModal = async function(prefilledStage) {
+    const menuPop = document.getElementById('deal-menu-popover');
+    if (menuPop) menuPop.remove();
+    const ctxPop = document.getElementById('deal-context-menu');
+    if (ctxPop) ctxPop.remove();
     const existing = document.getElementById('deal-create-modal');
     if (existing) existing.remove();
     
@@ -3298,6 +3310,10 @@ window.openCreateDealModal = async function(prefilledStage) {
 };
 
 window.openEditDealModal = async function(dealId) {
+    const menuPop = document.getElementById('deal-menu-popover');
+    if (menuPop) menuPop.remove();
+    const ctxPop = document.getElementById('deal-context-menu');
+    if (ctxPop) ctxPop.remove();
     const existing = document.getElementById('deal-edit-modal');
     if (existing) existing.remove();
     
@@ -3470,6 +3486,170 @@ async function handleDealDrop(e, targetStage) {
         draggedDealId = null;
     }
 }
+
+window.openDealContextMenu = function(event, dealId) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const existingMenu = document.getElementById('deal-context-menu');
+    if (existingMenu) existingMenu.remove();
+    
+    const menu = document.createElement('div');
+    menu.id = 'deal-context-menu';
+    menu.className = 'fixed bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 w-32 text-left z-[3000] text-[10px] font-bold text-slate-700 animate-fade-in animate-duration-150';
+    
+    menu.innerHTML = `
+        <button onclick="openEditDealModal(${dealId})" class="w-full px-3 py-2 hover:bg-slate-50 transition flex items-center space-x-1.5">
+            <i data-lucide="edit-3" class="h-3.5 w-3.5 text-slate-400"></i>
+            <span>Edit Deal</span>
+        </button>
+        <button onclick="openDealLogsModal(${dealId})" class="w-full px-3 py-2 hover:bg-slate-50 transition flex items-center space-x-1.5">
+            <i data-lucide="file-text" class="h-3.5 w-3.5 text-slate-400"></i>
+            <span>Deal Logs</span>
+        </button>
+        <div class="border-t border-slate-100 my-1"></div>
+        <button onclick="deleteDealMenuAction(${dealId})" class="w-full px-3 py-2 hover:bg-slate-50 transition flex items-center space-x-1.5 text-rose-600">
+            <i data-lucide="trash-2" class="h-3.5 w-3.5 text-rose-455"></i>
+            <span>Delete Deal</span>
+        </button>
+    `;
+    
+    document.body.appendChild(menu);
+    lucide.createIcons();
+    
+    menu.style.top = `${event.clientY}px`;
+    menu.style.left = `${event.clientX}px`;
+    
+    const closeMenu = () => {
+        menu.remove();
+        document.removeEventListener('click', closeMenu);
+        document.removeEventListener('contextmenu', closeMenu);
+    };
+    setTimeout(() => {
+        document.addEventListener('click', closeMenu);
+        document.addEventListener('contextmenu', closeMenu);
+    }, 0);
+};
+
+window.openDealLogsModal = async function(dealId) {
+    const menuPop = document.getElementById('deal-menu-popover');
+    if (menuPop) menuPop.remove();
+    const ctxPop = document.getElementById('deal-context-menu');
+    if (ctxPop) ctxPop.remove();
+
+    const existing = document.getElementById('deal-logs-modal');
+    if (existing) existing.remove();
+    
+    let deal = null;
+    try {
+        const res = await apiCall(`crm/deals.php?id=${dealId}`);
+        deal = res.deal;
+    } catch (e) {
+        showNotification('error', 'Failed to load deal timeline.');
+        return;
+    }
+    
+    const modal = document.createElement('div');
+    modal.id = 'deal-logs-modal';
+    modal.className = 'fixed inset-0 z-[2000] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4';
+    
+    const timeline = deal.timeline || [];
+    let timelineHtml = '';
+    
+    if (timeline.length > 0) {
+        timelineHtml = timeline.map(t => {
+            const date = new Date(t.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+            return `
+                <div class="flex items-start space-x-3 text-xs border-l-2 border-slate-100 pl-4 relative pb-4 last:pb-0">
+                    <div class="absolute -left-1.5 top-1.5 h-3 w-3 rounded-full bg-indigo-500 border-2 border-white shadow-sm"></div>
+                    <div class="flex-grow text-left">
+                        <div class="flex items-center justify-between">
+                            <span class="font-extrabold text-slate-800 uppercase tracking-wider text-[9px]">${t.activity_type}</span>
+                            <span class="text-[9px] text-slate-400 font-semibold font-mono">${date}</span>
+                        </div>
+                        <p class="text-slate-655 mt-1 font-semibold leading-relaxed text-[11px]">${t.description}</p>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } else {
+        timelineHtml = `<p class="text-center text-slate-400 italic py-8">No log events recorded for this deal yet.</p>`;
+    }
+    
+    modal.innerHTML = `
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-md overflow-hidden animate-fade-in flex flex-col text-slate-700">
+            <!-- Modal Header -->
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <div class="text-left">
+                    <h4 class="text-sm font-black text-slate-800 tracking-tight">Deal Activity & Logs</h4>
+                    <p class="text-[10px] text-slate-455 font-bold uppercase tracking-wider mt-0.5">${deal.title} Timeline</p>
+                </div>
+                <button onclick="document.getElementById('deal-logs-modal').remove()" class="h-8 w-8 rounded-full hover:bg-slate-100 text-slate-400 flex items-center justify-center transition">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="p-6 overflow-y-auto max-h-[50vh] space-y-6">
+                <!-- Timeline Container -->
+                <div class="space-y-4 relative">
+                    ${timelineHtml}
+                </div>
+            </div>
+            
+            <!-- Add Remarks Form -->
+            <div class="p-5 border-t border-slate-100 bg-slate-50/50 space-y-3">
+                <span class="block text-[10px] font-bold text-slate-555 uppercase tracking-wider text-left">Add New Remark / Activity Log</span>
+                <div class="flex space-x-2">
+                    <input type="text" id="deal-remark-input" placeholder="Enter remarks..." class="flex-grow px-3 py-2.5 border border-slate-250 rounded-xl text-xs focus:outline-none focus:border-indigo-500 bg-white shadow-sm">
+                    <button id="add-remark-submit-btn" onclick="submitDealRemark(${dealId})" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-md shadow-indigo-500/10" style="color: #ffffff !important;">
+                        <i data-lucide="send" class="h-3.5 w-3.5" style="color: #ffffff !important;"></i>
+                        <span style="color: #ffffff !important;">Add</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    lucide.createIcons();
+};
+
+window.submitDealRemark = async function(dealId) {
+    const input = document.getElementById('deal-remark-input');
+    const remarkText = input ? input.value.trim() : '';
+    if (!remarkText) {
+        showNotification('warning', 'Please enter a remark first.');
+        return;
+    }
+    
+    const btn = document.getElementById('add-remark-submit-btn');
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = 'Sending...';
+    
+    try {
+        const res = await apiCall('crm/deals.php?action=add_remark', 'POST', {
+            deal_id: dealId,
+            remark: remarkText
+        });
+        if (res.status === 'success') {
+            showNotification('success', 'Remark added successfully.');
+            document.getElementById('deal-logs-modal').remove();
+            await openDealLogsModal(dealId);
+        } else {
+            showNotification('error', res.message);
+        }
+    } catch (e) {
+        showNotification('error', e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+        lucide.createIcons();
+    }
+};
+
+
 
 // ----------------------------------------------------
 // 6. COMPANIES & OTHER CRM VIEWS (STUBS / LISTS)

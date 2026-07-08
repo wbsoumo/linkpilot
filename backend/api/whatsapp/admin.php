@@ -43,7 +43,12 @@ try {
             'whatsapp_token_encryption_key',
             'whatsapp_global_api_timeout',
             'whatsapp_retry_attempts',
-            'whatsapp_logging_level'
+            'whatsapp_logging_level',
+            'whatsapp_meta_config_id',
+            'whatsapp_meta_system_user_token',
+            'whatsapp_business_portfolio_id',
+            'whatsapp_enable_embedded_signup',
+            'whatsapp_allow_manual_setup'
         ];
         $metaSettings = [];
         
@@ -103,7 +108,12 @@ try {
             'whatsapp_token_encryption_key' => trim($input['whatsapp_token_encryption_key'] ?? ''),
             'whatsapp_global_api_timeout' => (int)($input['whatsapp_global_api_timeout'] ?? 15),
             'whatsapp_retry_attempts' => (int)($input['whatsapp_retry_attempts'] ?? 3),
-            'whatsapp_logging_level' => trim($input['whatsapp_logging_level'] ?? 'debug')
+            'whatsapp_logging_level' => trim($input['whatsapp_logging_level'] ?? 'debug'),
+            'whatsapp_meta_config_id' => trim($input['whatsapp_meta_config_id'] ?? ''),
+            'whatsapp_meta_system_user_token' => trim($input['whatsapp_meta_system_user_token'] ?? ''),
+            'whatsapp_business_portfolio_id' => trim($input['whatsapp_business_portfolio_id'] ?? ''),
+            'whatsapp_enable_embedded_signup' => trim($input['whatsapp_enable_embedded_signup'] ?? '0'),
+            'whatsapp_allow_manual_setup' => trim($input['whatsapp_allow_manual_setup'] ?? '0')
         ];
         
         $stmtUpsert = $db->prepare("

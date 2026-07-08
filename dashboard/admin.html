@@ -288,42 +288,69 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <!-- Form Settings -->
                     <div class="glass-panel p-5 bg-slate-900/40 space-y-4 md:col-span-1">
-                        <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2">Meta API Configurations</h3>
+                        <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2">Meta Cloud API Setup</h3>
                         <form onsubmit="saveAdminWhatsAppKeys(event)" class="space-y-4 text-xs">
                             <div>
-                                <label class="block text-slate-400 font-semibold mb-1">Meta App ID</label>
+                                <label class="block text-slate-400 font-semibold mb-1">App ID</label>
                                 <input type="text" id="adm-wa-app-id" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
                             </div>
                             <div>
-                                <label class="block text-slate-400 font-semibold mb-1">Meta App Secret</label>
+                                <label class="block text-slate-400 font-semibold mb-1">App Secret</label>
                                 <input type="password" id="adm-wa-app-secret" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
                             </div>
                             <div>
-                                <label class="block text-slate-400 font-semibold mb-1">Webhook Verify Token</label>
-                                <input type="text" id="adm-wa-verify-token" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                                <label class="block text-slate-400 font-semibold mb-1">Configuration ID</label>
+                                <input type="text" id="adm-wa-config-id" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white" placeholder="Meta Configuration ID">
                             </div>
                             <div>
-                                <label class="block text-slate-400 font-semibold mb-1">Max Campaign Size</label>
-                                <input type="number" id="adm-wa-camp-size" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white" value="1000">
-                            </div>
-                            <div>
-                                <label class="block text-slate-400 font-semibold mb-1">Graph API Version</label>
-                                <input type="text" id="adm-wa-api-version" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white" value="v20.0">
+                                <label class="block text-slate-400 font-semibold mb-1">System User Access Token</label>
+                                <input type="password" id="adm-wa-system-user-token" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white" placeholder="System User Access Token">
                             </div>
                             <div>
                                 <label class="block text-slate-400 font-semibold mb-1">Webhook URL</label>
                                 <input type="text" id="adm-wa-webhook-url" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white" placeholder="https://linkpilot.work/backend/api/whatsapp/webhook.php">
                             </div>
                             <div>
-                                <label class="block text-slate-400 font-semibold mb-1">Test Mode / Live Mode</label>
-                                <select id="adm-wa-mode" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
-                                    <option value="live">Live Mode</option>
-                                    <option value="test">Test Mode</option>
-                                </select>
+                                <label class="block text-slate-400 font-semibold mb-1">Webhook Verify Token</label>
+                                <input type="text" id="adm-wa-verify-token" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 font-semibold mb-1">Graph API Version</label>
+                                <input type="text" id="adm-wa-api-version" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white" value="v20.0">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 font-semibold mb-1">Business Portfolio ID</label>
+                                <input type="text" id="adm-wa-business-portfolio-id" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white" placeholder="Meta Business Portfolio ID">
                             </div>
                             <div>
                                 <label class="block text-slate-400 font-semibold mb-1">Token Encryption Key</label>
                                 <input type="text" id="adm-wa-encryption-key" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white" placeholder="Default Encryption Key">
+                            </div>
+                            
+                            <!-- Toggle Options -->
+                            <div class="space-y-3 py-2 border-t border-b border-slate-800">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-slate-400 font-semibold">Enable Embedded Signup</label>
+                                    <label class="relative inline-flex items-center cursor-pointer select-none">
+                                        <input type="checkbox" id="adm-wa-enable-embedded" class="sr-only peer">
+                                        <div class="w-9 h-5 bg-slate-700 rounded-full peer peer-focus:ring-0 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                                    </label>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <label class="text-slate-400 font-semibold">Allow Manual Setup</label>
+                                    <label class="relative inline-flex items-center cursor-pointer select-none">
+                                        <input type="checkbox" id="adm-wa-allow-manual" class="sr-only peer">
+                                        <div class="w-9 h-5 bg-slate-700 rounded-full peer peer-focus:ring-0 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-slate-400 font-semibold mb-1">Mode</label>
+                                <select id="adm-wa-mode" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                                    <option value="live">Live</option>
+                                    <option value="sandbox">Sandbox</option>
+                                </select>
                             </div>
                             <div class="grid grid-cols-2 gap-2">
                                 <div>
@@ -334,6 +361,10 @@
                                     <label class="block text-slate-400 font-semibold mb-1">Retry Attempts</label>
                                     <input type="number" id="adm-wa-retries" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white" value="3">
                                 </div>
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 font-semibold mb-1">Max Campaign Size</label>
+                                <input type="number" id="adm-wa-camp-size" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white" value="1000">
                             </div>
                             <div>
                                 <label class="block text-slate-400 font-semibold mb-1">Logging Level</label>
@@ -691,16 +722,21 @@
                 // Load credentials input values
                 document.getElementById('adm-wa-app-id').value = s.whatsapp_meta_app_id || '';
                 document.getElementById('adm-wa-app-secret').value = s.whatsapp_meta_app_secret || '';
+                document.getElementById('adm-wa-config-id').value = s.whatsapp_meta_config_id || '';
+                document.getElementById('adm-wa-system-user-token').value = s.whatsapp_meta_system_user_token || '';
                 document.getElementById('adm-wa-verify-token').value = s.whatsapp_webhook_verify_token || '';
                 document.getElementById('adm-wa-camp-size').value = s.whatsapp_global_max_campaign_size || '1000';
                 document.getElementById('adm-wa-api-version').value = s.whatsapp_meta_api_version || 'v20.0';
                 document.getElementById('adm-wa-webhook-url').value = s.whatsapp_webhook_url || '';
+                document.getElementById('adm-wa-business-portfolio-id').value = s.whatsapp_business_portfolio_id || '';
                 document.getElementById('adm-wa-mode').value = s.whatsapp_mode || 'live';
                 document.getElementById('adm-wa-encryption-key').value = s.whatsapp_token_encryption_key || '';
                 document.getElementById('adm-wa-timeout').value = s.whatsapp_global_api_timeout || '15';
                 document.getElementById('adm-wa-retries').value = s.whatsapp_retry_attempts || '3';
                 document.getElementById('adm-wa-logging-level').value = s.whatsapp_logging_level || 'debug';
                 document.getElementById('adm-wa-messaging-settings').value = s.whatsapp_default_messaging_settings || '';
+                document.getElementById('adm-wa-enable-embedded').checked = (s.whatsapp_enable_embedded_signup === '1');
+                document.getElementById('adm-wa-allow-manual').checked = (s.whatsapp_allow_manual_setup === '1');
                 
                 // Render active connections
                 const connContainer = document.getElementById('adm-wa-connections-tbody');
@@ -835,16 +871,21 @@
             const payload = {
                 whatsapp_meta_app_id: document.getElementById('adm-wa-app-id').value.trim(),
                 whatsapp_meta_app_secret: document.getElementById('adm-wa-app-secret').value.trim(),
+                whatsapp_meta_config_id: document.getElementById('adm-wa-config-id').value.trim(),
+                whatsapp_meta_system_user_token: document.getElementById('adm-wa-system-user-token').value.trim(),
                 whatsapp_webhook_verify_token: document.getElementById('adm-wa-verify-token').value.trim(),
                 whatsapp_global_max_campaign_size: parseInt(document.getElementById('adm-wa-camp-size').value),
                 whatsapp_meta_api_version: document.getElementById('adm-wa-api-version').value.trim(),
                 whatsapp_webhook_url: document.getElementById('adm-wa-webhook-url').value.trim(),
+                whatsapp_business_portfolio_id: document.getElementById('adm-wa-business-portfolio-id').value.trim(),
                 whatsapp_mode: document.getElementById('adm-wa-mode').value,
                 whatsapp_token_encryption_key: document.getElementById('adm-wa-encryption-key').value.trim(),
                 whatsapp_global_api_timeout: parseInt(document.getElementById('adm-wa-timeout').value),
                 whatsapp_retry_attempts: parseInt(document.getElementById('adm-wa-retries').value),
                 whatsapp_logging_level: document.getElementById('adm-wa-logging-level').value,
-                whatsapp_default_messaging_settings: document.getElementById('adm-wa-messaging-settings').value.trim()
+                whatsapp_default_messaging_settings: document.getElementById('adm-wa-messaging-settings').value.trim(),
+                whatsapp_enable_embedded_signup: document.getElementById('adm-wa-enable-embedded').checked ? '1' : '0',
+                whatsapp_allow_manual_setup: document.getElementById('adm-wa-allow-manual').checked ? '1' : '0'
             };
             
             apiCall('whatsapp/admin.php?action=save_meta_keys', 'POST', payload)

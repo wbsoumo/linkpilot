@@ -323,6 +323,9 @@ async function navigateTo(view, params = {}) {
         case 'integration-logs':
             renderIntegrationLogs(contentArea);
             break;
+        case 'credit-logs':
+            renderCreditLogs(contentArea);
+            break;
         case 'recharge':
             renderRecharge(contentArea, params);
             break;
@@ -11914,7 +11917,7 @@ async function renderRecharge(container, params = {}) {
                         <!-- Range Slider -->
                         <div class="space-y-1">
                             <input id="recharge-amount-slider" type="range" min="100" max="5000" step="10" value="250" oninput="calculateCreditsFromSlider()" class="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-650">
-                            <div class="flex justify-between text-[9px] text-slate-450 font-bold uppercase tracking-wider">
+                            <div class="flex justify-between text-[9px] text-slate-455 font-bold uppercase tracking-wider">
                                 <span>Min: ₹100</span>
                                 <span>Max: ₹5000</span>
                             </div>
@@ -11944,7 +11947,7 @@ async function renderRecharge(container, params = {}) {
                             
                             <div class="p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl">
                                 <p class="text-[10px] text-indigo-900 leading-relaxed font-semibold">
-                                    💡 Credits are calculated dynamically: <strong>₹49 yields 101 Credits</strong>. Credits do not expire, roll over, and failed searches are refunded automatically.
+                                    💡 For every ₹100, you will get 500 AI credits (1 credit = ₹0.20). Credits do not expire, roll over, and failed replies are refunded automatically.
                                 </p>
                             </div>
                         </div>
@@ -11958,17 +11961,23 @@ async function renderRecharge(container, params = {}) {
 
                 <!-- Transaction Log Table -->
                 <div class="glass-panel p-5 bg-white space-y-4 shadow-sm border border-slate-200 rounded-2xl">
-                    <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2">Credit Recharge & Usage History</h3>
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                        <h3 class="text-sm font-bold text-slate-800">Credit Recharge History</h3>
+                        <button onclick="navigateTo('credit-logs')" class="flex items-center space-x-1.5 px-3 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-[10px] font-bold transition shadow-sm">
+                            <i data-lucide="file-text" class="h-3.5 w-3.5 text-slate-500"></i>
+                            <span>View Token Usage Logs</span>
+                        </button>
+                    </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse custom-table text-[11px]">
                             <thead>
                                 <tr class="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
-                                    <th class="py-2 px-3">Type</th>
-                                    <th class="py-2 px-3">Credits</th>
-                                    <th class="py-2 px-3">Amount</th>
-                                    <th class="py-2 px-3">Payment ID / Info</th>
-                                    <th class="py-2 px-3">Status</th>
                                     <th class="py-2 px-3">Date</th>
+                                    <th class="py-2 px-3">Payment ID / Info</th>
+                                    <th class="py-2 px-3 text-right">Paid Amount</th>
+                                    <th class="py-2 px-3 text-right">Credits Granted</th>
+                                    <th class="py-2 px-3 text-center">Status</th>
+                                    <th class="py-2 px-3 text-right">Invoice</th>
                                 </tr>
                             </thead>
                             <tbody id="recharge-tx-history-tbody">
@@ -12009,7 +12018,6 @@ async function renderRecharge(container, params = {}) {
     }
 }
 
-// --- RECHARGE LOGIC HELPERS ---
 window.loadRechargeWalletLogs = async function() {
     try {
         const res = await apiCall('profile/get_credits.php');
@@ -12025,7 +12033,7 @@ window.loadRechargeWalletLogs = async function() {
             if (!tbody) return;
 
             if (res.recent_transactions.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400 italic">No transactions recorded yet.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400 italic">No recharge payments recorded yet.</td></tr>`;
             } else {
                 tbody.innerHTML = res.recent_transactions.map(tx => {
                     const date = new Date(tx.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
@@ -12033,30 +12041,169 @@ window.loadRechargeWalletLogs = async function() {
                         `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-250 rounded-full font-bold">Success</span>` :
                         `<span class="px-2 py-0.5 bg-red-50 text-red-550 border border-red-250 rounded-full font-bold">Failed</span>`;
 
-                    const sign = tx.type === 'recharge' || tx.type === 'adjustment' ? '+' : '-';
-                    const colorCls = tx.type === 'recharge' || tx.type === 'adjustment' ? 'text-emerald-600 font-bold' : 'text-slate-500';
-                    
-                    const desc = tx.type === 'recharge' ? 
-                        (tx.payment_id || 'Direct Payment') : 
-                        (tx.provider_used ? `Lookup (${tx.provider_used})` : 'Manual Adjustment');
+                    const invoiceBtn = tx.status === 'success' ? 
+                        `<a href="/backend/api/recharge/invoice.php?id=${tx.id}" target="_blank" class="inline-flex items-center space-x-1 px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-650 rounded-lg text-[10px] font-bold transition">
+                            <i data-lucide="download" class="h-3 w-3"></i>
+                            <span>PDF Invoice</span>
+                         </a>` : '--';
 
                     return `
                         <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition">
-                            <td class="py-3 px-3 font-bold uppercase text-[9px] tracking-wider">${tx.type}</td>
-                            <td class="py-3 px-3 ${colorCls}">${sign}${tx.credits}</td>
-                            <td class="py-3 px-3 font-mono">${tx.amount > 0 ? '₹' + parseFloat(tx.amount).toFixed(2) : '--'}</td>
-                            <td class="py-3 px-3 text-slate-500 truncate max-w-[120px] font-mono">${desc}</td>
-                            <td class="py-3 px-3">${badge}</td>
                             <td class="py-3 px-3 text-slate-450 font-mono">${date}</td>
+                            <td class="py-3 px-3 text-slate-500 font-mono">${tx.payment_id || 'Direct Payment'}</td>
+                            <td class="py-3 px-3 font-mono text-right font-bold">₹${parseFloat(tx.amount).toFixed(2)}</td>
+                            <td class="py-3 px-3 text-right text-emerald-600 font-bold">+${tx.credits}</td>
+                            <td class="py-3 px-3 text-center">${badge}</td>
+                            <td class="py-3 px-3 text-right">${invoiceBtn}</td>
                         </tr>
                     `;
                 }).join('');
+                lucide.createIcons();
             }
         }
     } catch (err) {
         console.error('Error loading wallet logs:', err);
     }
 };
+
+async function renderCreditLogs(container) {
+    container.innerHTML = `
+        <div class="flex items-center justify-center py-12">
+            <i data-lucide="loader-2" class="h-8 w-8 animate-spin text-indigo-600"></i>
+        </div>
+    `;
+    lucide.createIcons();
+
+    let currentPage = 1;
+    const limit = 15;
+
+    async function loadLogs(page) {
+        try {
+            const res = await apiCall(`profile/get_all_credit_logs.php?page=${page}&limit=${limit}`);
+            if (res.status !== 'success') {
+                container.innerHTML = `<div class="max-w-xl mx-auto p-5 text-center text-red-500">Failed to load logs: ${res.message}</div>`;
+                return;
+            }
+
+            const logs = res.data.logs || [];
+            const pagination = res.data.pagination || { page: 1, pages: 1 };
+            currentPage = pagination.page;
+
+            let rowsHtml = '';
+            if (logs.length > 0) {
+                rowsHtml = logs.map(l => {
+                    let badge = l.status === 'success' ? 
+                        `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-250 rounded-full font-bold">Success</span>` :
+                        `<span class="px-2 py-0.5 bg-red-50 text-red-550 border border-red-250 rounded-full font-bold">Failed</span>`;
+
+                    const date = new Date(l.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                    const isCreditPlus = l.type === 'recharge' || l.type === 'adjustment' || l.type === 'reset';
+                    const sign = isCreditPlus ? '+' : '-';
+                    const colorCls = isCreditPlus ? 'text-emerald-600 font-bold' : 'text-slate-500';
+
+                    const detailsText = l.type === 'recharge' ? 
+                        (l.payment_id || 'Direct Payment') : 
+                        (l.provider_used ? `Lookup (${l.provider_used})` : 'System Auto-Reply');
+
+                    const invoiceBtn = (l.type === 'recharge' && l.status === 'success') ? 
+                        `<a href="/backend/api/recharge/invoice.php?id=${l.id}" target="_blank" class="inline-flex items-center space-x-1 px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-650 rounded-lg text-[9px] font-bold transition">
+                            <i data-lucide="download" class="h-2.5 w-2.5"></i>
+                            <span>Invoice</span>
+                         </a>` : '--';
+
+                    return `
+                        <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition">
+                            <td class="py-3 px-3 text-slate-500 font-mono text-[10px]">#${l.id}</td>
+                            <td class="py-3 px-3 font-semibold text-slate-600">${date}</td>
+                            <td class="py-3 px-3 font-bold uppercase text-[9px] tracking-wider">${l.type}</td>
+                            <td class="py-3 px-3 ${colorCls}">${sign}${l.credits}</td>
+                            <td class="py-3 px-3 font-mono">${l.amount > 0 ? '₹' + parseFloat(l.amount).toFixed(2) : '--'}</td>
+                            <td class="py-3 px-3 text-slate-500 truncate max-w-xs font-mono">${detailsText}</td>
+                            <td class="py-3 px-3">${badge}</td>
+                            <td class="py-3 px-3 text-right">${invoiceBtn}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                rowsHtml = `
+                    <tr>
+                        <td colspan="8" class="py-8 text-center text-slate-400 italic">
+                            No wallet transactions logs recorded yet.
+                        </td>
+                    </tr>
+                `;
+            }
+
+            container.innerHTML = `
+                <div class="space-y-6 pt-4 animate-fade-in text-xs max-w-5xl mx-auto">
+                    <!-- Header -->
+                    <div class="flex items-center space-x-3">
+                        <button onclick="navigateTo('recharge')" class="h-9 w-9 border border-slate-200 hover:bg-slate-50 rounded-xl flex items-center justify-center transition shadow-sm">
+                            <i data-lucide="arrow-left" class="h-4 w-4 text-slate-600"></i>
+                        </button>
+                        <div>
+                            <h1 class="text-2xl font-extrabold text-slate-800">Token Usage & Billing Logs</h1>
+                            <p class="text-slate-500 text-xs mt-0.5 font-normal">Review detailed credit additions, usage consumptions, and auto-reply deductions.</p>
+                        </div>
+                    </div>
+
+                    <!-- Logs Table Card -->
+                    <div class="glass-panel bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-[11px]">
+                                <thead>
+                                    <tr class="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[9px] bg-slate-50/50">
+                                        <th class="py-3 px-3">Tx ID</th>
+                                        <th class="py-3 px-3">Timestamp</th>
+                                        <th class="py-3 px-3">Type</th>
+                                        <th class="py-3 px-3">Tokens</th>
+                                        <th class="py-3 px-3">Amount</th>
+                                        <th class="py-3 px-3">Reference details</th>
+                                        <th class="py-3 px-3">Status</th>
+                                        <th class="py-3 px-3 text-right">Invoice</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${rowsHtml}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination controls -->
+                        <div class="p-4 border-t border-slate-100 flex items-center justify-between text-xs">
+                            <span class="text-slate-500 font-normal">Page <strong class="text-slate-700">${pagination.page}</strong> of <strong class="text-slate-700">${pagination.pages}</strong></span>
+                            <div class="flex space-x-2">
+                                <button id="prev-page-btn" ${pagination.page <= 1 ? 'disabled class="opacity-50 cursor-not-allowed"' : ''} class="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 font-bold transition">Previous</button>
+                                <button id="next-page-btn" ${pagination.page >= pagination.pages ? 'disabled class="opacity-50 cursor-not-allowed"' : ''} class="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 font-bold transition">Next</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+
+            // Bind Pagination events
+            const prevBtn = document.getElementById('prev-page-btn');
+            const nextBtn = document.getElementById('next-page-btn');
+
+            if (prevBtn && pagination.page > 1) {
+                prevBtn.onclick = () => {
+                    loadLogs(pagination.page - 1);
+                };
+            }
+            if (nextBtn && pagination.page < pagination.pages) {
+                nextBtn.onclick = () => {
+                    loadLogs(pagination.page + 1);
+                };
+            }
+
+        } catch (e) {
+            container.innerHTML = `<div class="max-w-xl mx-auto p-5 text-center text-red-500 font-normal">Failed to load logs: ${e.message}</div>`;
+        }
+    }
+
+    loadLogs(currentPage);
+}
 
 window.calculateCredits = function(amount) {
     if (amount < 100) return 0;

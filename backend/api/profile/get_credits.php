@@ -51,8 +51,8 @@ try {
     $stmtRecentSearches->execute([$userId]);
     $recentSearches = $stmtRecentSearches->fetchAll();
 
-    // 6. Recent Transactions
-    $stmtRecentTx = $db->prepare("SELECT id, type, credits, amount, payment_id, provider_used, status, created_at FROM email_credit_transactions WHERE user_id = ? ORDER BY id DESC LIMIT 5");
+    // 6. Recent Recharge Payments Only
+    $stmtRecentTx = $db->prepare("SELECT id, type, credits, amount, payment_id, provider_used, status, created_at FROM email_credit_transactions WHERE user_id = ? AND type = 'recharge' ORDER BY id DESC LIMIT 15");
     $stmtRecentTx->execute([$userId]);
     $recentTx = $stmtRecentTx->fetchAll();
 

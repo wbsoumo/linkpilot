@@ -178,6 +178,7 @@ function getSkeletonLoader(view) {
             </div>
         `;
     }
+    return `<div class="p-8 text-center text-slate-450"><div class="loader-spinner !w-6 !h-6 border-slate-200 border-t-indigo-600 mx-auto"></div></div>`;
 }
 
 let isSmtpConfigured = null;

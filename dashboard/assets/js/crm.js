@@ -6618,289 +6618,17 @@ async function renderIntegrations(container) {
     lucide.createIcons();
     
     try {
-        // Fetch current credentials, email intelligence settings, token credits, and AI keys
         const profileData = await apiCall('profile/get.php');
         const emailIntel = await apiCall('crm/email_intelligence/settings.php');
         const creditData = await apiCall('profile/get_credits.php');
-        const keysData = await apiCall('profile/manage_ai_keys.php');
         
         const user = profileData.user || {};
         const connection = emailIntel.connection || {};
         const settings = emailIntel.settings || {};
         const wallet = creditData.wallet || { total: 0, used: 0, remaining: 0 };
         const todayUsage = creditData.today_usage || 0;
-        const keysList = keysData.keys || [];
 
-        // Determine SMTP configuration status
         const isMailConfigured = !!(connection.smtp_host && connection.imap_host);
-        
-        // Determine AI key configuration status
-        let isAIConfigured = keysList.some(k => k.provider === user.active_ai_provider && k.status === 'active');
-        let aiProviderLabel = 'None';
-        if (user.active_ai_provider === 'openrouter') {
-            aiProviderLabel = 'OpenRouter';
-        } else if (user.active_ai_provider === 'github_models') {
-            aiProviderLabel = 'GitHub Models';
-        } else if (user.active_ai_provider === 'google_ai_studio') {
-            aiProviderLabel = 'Google Gemini AI Studio';
-        }
-
-        const activeKeysCount = keysList.filter(k => k.provider === user.active_ai_provider && k.status === 'active').length;
-
-        // Render AI API keys table rows
-        let tableRowsHtml = '';
-        if (keysList.length > 0) {
-            tableRowsHtml = keysList.map(k => {
-                let badgeColor = 'bg-emerald-50 text-emerald-600 border border-emerald-250';
-                if (k.status === 'limit_exceeded') {
-                    badgeColor = 'bg-amber-50 text-amber-600 border border-amber-250';
-                } else if (k.status === 'invalid') {
-                    badgeColor = 'bg-red-50 text-red-550 border border-red-250';
-                } else if (k.status === 'paused') {
-                    badgeColor = 'bg-slate-100 text-slate-500 border border-slate-200';
-                }
-                
-                let providerLabel = k.provider === 'openrouter' ? 'OpenRouter' : 
-                                    k.provider === 'github_models' ? 'GitHub Models' : 'Google Gemini';
-
-                let pausePlayIcon = k.status === 'paused' ? 'play' : 'pause';
-                let pausePlayTitle = k.status === 'paused' ? 'Resume Key' : 'Pause Key';
-
-                return `
-                    <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition">
-                        <td class="py-3 px-3 font-semibold text-slate-700">${providerLabel}</td>
-                        <td class="py-3 px-3 font-mono text-slate-600 text-[10px]">${k.masked_key}</td>
-                        <td class="py-3 px-3">
-                            <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${badgeColor}">${k.status.replace('_', ' ')}</span>
-                        </td>
-                        <td class="py-3 px-3 font-semibold text-slate-600">${k.total_calls.toLocaleString()}</td>
-                        <td class="py-3 px-3 font-semibold text-slate-600">${k.calls_24h.toLocaleString()}</td>
-                        <td class="py-3 px-3 text-right">
-                            <div class="flex items-center justify-end space-x-2">
-                                <button onclick="toggleAIKeyStatus(${k.id}, '${k.status}')" class="p-1 text-slate-500 hover:text-indigo-600 transition" title="${pausePlayTitle}">
-                                    <i data-lucide="${pausePlayIcon}" class="h-3.5 w-3.5"></i>
-                                </button>
-                                <button onclick="editAIKeyValue(${k.id}, '${providerLabel}')" class="p-1 text-slate-500 hover:text-emerald-600 transition" title="Edit Key Value">
-                                    <i data-lucide="edit-3" class="h-3.5 w-3.5"></i>
-                                </button>
-                                <button onclick="deleteAIKey(${k.id})" class="p-1 text-slate-500 hover:text-red-650 transition" title="Delete Key">
-                                    <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        } else {
-            tableRowsHtml = `
-                <tr>
-                    <td colspan="6" class="py-8 text-center text-slate-400 italic">
-                        No AI API Keys configured. Click "Add API Key" above to connect one!
-                    </td>
-                </tr>
-            `;
-        }
-
-        let column1Html = '';
-        if (user.role === 'admin') {
-            column1Html = `
-                    <!-- Column 1: AI Provider & API Settings Override -->
-                    <div class="glass-panel p-5 bg-white space-y-4 shadow-sm border border-slate-200 rounded-2xl">
-                        <div class="pb-2 border-b border-slate-100 flex justify-between items-center">
-                            <div class="flex items-center space-x-2 text-slate-800 font-bold text-sm">
-                                <i data-lucide="cpu" class="h-4 w-4 text-indigo-600"></i>
-                                <span>AI Provider API Status</span>
-                            </div>
-                            <!-- Status Badge -->
-                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider flex items-center space-x-1 ${isAIConfigured ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-red-50 text-red-550 border border-red-200'}">
-                                <span class="h-1.5 w-1.5 rounded-full ${isAIConfigured ? 'bg-emerald-500' : 'bg-red-500'} mr-1"></span>
-                                ${isAIConfigured ? 'Key Saved' : 'Not Configured'}
-                            </span>
-                        </div>
-                        
-                        <!-- Read-only Summary details -->
-                        <div class="p-3 bg-slate-50/50 border border-slate-150 rounded-xl space-y-2">
-                            <div class="flex justify-between">
-                                <span class="text-slate-500">Active Provider:</span>
-                                <span class="font-bold text-slate-700">${aiProviderLabel}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-500">AI Model Override:</span>
-                                <span class="font-bold text-slate-700">${user.active_ai_model || 'System Default'}</span>
-                            </div>
-                            <div class="flex justify-between items-center pt-1">
-                                <span class="text-slate-500">Credentials:</span>
-                                <span class="text-[10px] px-2 py-0.5 bg-slate-200/50 rounded font-semibold text-slate-600">
-                                    ${isAIConfigured ? `${activeKeysCount} Active Key(s) Saved` : 'Not Configured'}
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Add/Edit Trigger Button -->
-                        <div>
-                            <button onclick="toggleAIForm()" class="flex items-center justify-center space-x-1 px-3 py-1.5 border border-indigo-200 hover:bg-indigo-50 text-indigo-650 rounded-lg text-[10px] font-bold transition shadow-sm" id="toggle-ai-form-btn">
-                                <i data-lucide="settings" class="h-3 w-3"></i>
-                                <span>Adjust Provider & Model Override</span>
-                            </button>
-                        </div>
-
-                        <!-- Toggleable AI Credentials Form -->
-                        <div id="ai-credentials-form-container" class="space-y-3 pt-3 border-t border-slate-100 hidden">
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Active AI Provider</label>
-                                <select id="active-ai-provider-select" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-indigo-500">
-                                    <option value="openrouter" ${user.active_ai_provider === 'openrouter' ? 'selected' : ''}>OpenRouter (Vibrant Free & Premium Models)</option>
-                                    <option value="github_models" ${user.active_ai_provider === 'github_models' ? 'selected' : ''}>GitHub Models API</option>
-                                    <option value="google_ai_studio" ${user.active_ai_provider === 'google_ai_studio' ? 'selected' : ''}>Google Gemini AI Studio</option>
-                                </select>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">AI Model ID (Optional Custom Override)</label>
-                                <input type="text" id="active-ai-model-input" value="${user.active_ai_model || ''}" placeholder="e.g. google/gemini-2.0-flash-lite:free" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-indigo-500">
-                            </div>
-                            
-                            <button onclick="saveAICredentials()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-sm">
-                                <i data-lucide="save" class="h-3.5 w-3.5"></i>
-                                <span>Save AI Settings</span>
-                            </button>
-                        </div>
-                    </div>
-            `;
-        } else {
-            column1Html = `
-                    <!-- Column 1: AI Autopilot Status Card -->
-                    <div class="glass-panel p-5 bg-white space-y-4 shadow-sm border border-slate-200 rounded-2xl">
-                        <div class="pb-2 border-b border-slate-100 flex justify-between items-center">
-                            <div class="flex items-center space-x-2 text-slate-800 font-bold text-sm">
-                                <i data-lucide="cpu" class="h-4 w-4 text-indigo-600"></i>
-                                <span>AI Autopilot Status</span>
-                            </div>
-                            <!-- Status Badge -->
-                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider flex items-center space-x-1 bg-emerald-50 text-emerald-600 border border-emerald-200">
-                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 mr-1 animate-pulse"></span>
-                                Active (Free Tier)
-                            </span>
-                        </div>
-                        
-                        <!-- Premium Description -->
-                        <div class="p-4 bg-gradient-to-br from-indigo-50/50 to-teal-50/30 border border-indigo-100 rounded-xl space-y-3">
-                            <div class="flex items-center space-x-2">
-                                <div class="p-1 bg-indigo-100 text-indigo-700 rounded-md">
-                                    <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
-                                </div>
-                                <span class="font-bold text-xs text-indigo-900">Admin-wide AI Connected</span>
-                            </div>
-                            <p class="text-slate-600 text-xs leading-relaxed">
-                                You are connected to the central LinkPilot high-performance AI autopilot. You do not need to provide personal API keys. 
-                            </p>
-                            <div class="pt-1.5 border-t border-slate-200/60 grid grid-cols-2 gap-2 text-[10px]">
-                                <div>
-                                    <span class="block text-slate-400 font-semibold uppercase">Quota Reset</span>
-                                    <span class="font-bold text-slate-700">1st of every month</span>
-                                </div>
-                                <div>
-                                    <span class="block text-slate-400 font-semibold uppercase">Cost Per Auto-Reply</span>
-                                    <span class="font-bold text-slate-700">1 AI credit</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-            `;
-        }
-
-        let keysControlBoardHtml = '';
-        if (user.role === 'admin') {
-            keysControlBoardHtml = `
-                <!-- AI API Keys Control Board Card -->
-                <div class="glass-panel p-5 bg-white space-y-4 shadow-sm border border-slate-200 rounded-2xl">
-                    <div class="pb-2 border-b border-slate-100 flex justify-between items-center">
-                        <div class="flex items-center space-x-2 text-slate-800 font-bold text-sm">
-                            <i data-lucide="key-round" class="h-4 w-4 text-indigo-600"></i>
-                            <span>AI API Keys Control Board</span>
-                        </div>
-                        <button onclick="toggleAddKeyForm()" class="flex items-center justify-center space-x-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition shadow-sm" id="add-key-toggle-btn" style="color: #ffffff !important;">
-                            <i data-lucide="plus" class="h-3 w-3" style="color: #ffffff !important;"></i>
-                            <span style="color: #ffffff !important;">Add API Key</span>
-                        </button>
-                    </div>
-
-                    <!-- Inline Add Key Form -->
-                    <div id="add-key-form-container" class="p-4 bg-slate-50 border border-slate-150 rounded-xl space-y-4 hidden">
-                        <span class="block text-slate-700 font-bold text-[10px] uppercase tracking-wider">Connect New API Key</span>
-                        <input type="hidden" id="new-key-provider-hidden" value="openrouter">
-                        
-                        <!-- Provider Card Selector Row -->
-                        <div class="space-y-1.5">
-                            <label class="block text-[9px] font-bold text-slate-400 uppercase">Select AI Provider</label>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <!-- OpenRouter Card -->
-                                <div onclick="selectNewKeyProvider('openrouter')" id="provider-card-openrouter" class="provider-card border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition flex items-center space-x-3 bg-white border-indigo-600 shadow-sm">
-                                    <img src="https://openrouter.ai/favicon.ico" class="h-6 w-6 rounded-md object-contain shrink-0" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2103/2103633.png'">
-                                    <div>
-                                        <span class="block font-bold text-slate-800 text-[11px]">OpenRouter</span>
-                                        <span class="text-[9px] text-slate-400">Free & Premium Models</span>
-                                    </div>
-                                </div>
-
-                                <!-- GitHub Models Card -->
-                                <div onclick="selectNewKeyProvider('github_models')" id="provider-card-github_models" class="provider-card border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition flex items-center space-x-3 bg-white border-slate-200">
-                                    <img src="https://github.githubassets.com/favicons/favicon.svg" class="h-6 w-6 rounded-md object-contain shrink-0">
-                                    <div>
-                                        <span class="block font-bold text-slate-800 text-[11px]">GitHub Models</span>
-                                        <span class="text-[9px] text-slate-400">Developer Tokens API</span>
-                                    </div>
-                                </div>
-
-                                <!-- Gemini Card -->
-                                <div onclick="selectNewKeyProvider('google_ai_studio')" id="provider-card-google_ai_studio" class="provider-card border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition flex items-center space-x-3 bg-white border-slate-200">
-                                    <img src="/backend/google-gemini.png" class="h-6 w-6 rounded-md object-contain shrink-0">
-                                    <div>
-                                        <span class="block font-bold text-slate-800 text-[11px]">Gemini Studio</span>
-                                        <span class="text-[9px] text-slate-400">Google Gemini API</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Dynamic Developer Help Instruction Card -->
-                        <div id="provider-instructions-box" class="p-3.5 bg-indigo-50/50 border border-indigo-100 rounded-xl space-y-2">
-                            <!-- Populated dynamically via selectNewKeyProvider() -->
-                        </div>
-
-                        <div class="space-y-1.5">
-                            <label class="block text-[9px] font-bold text-slate-400 uppercase">API Key Value / Token</label>
-                            <div class="flex space-x-2">
-                                <input type="password" id="new-key-value-input" placeholder="Enter API Key value" class="flex-grow px-2.5 py-1.5 bg-white border border-slate-250 rounded-lg text-[11px] text-slate-850 focus:outline-none focus:border-indigo-500">
-                                <button onclick="submitNewAIKey()" class="px-4 py-1.5 bg-indigo-650 hover:bg-indigo-550 text-white rounded-lg text-[11px] font-bold transition shrink-0 flex items-center justify-center space-x-1.5 shadow-sm" style="color: #ffffff !important;">
-                                    <i data-lucide="save" class="h-3.5 w-3.5" style="color: #ffffff !important;"></i>
-                                    <span style="color: #ffffff !important;">Save Key</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- API Keys Table -->
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-[11px]">
-                            <thead>
-                                <tr class="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
-                                    <th class="py-2 px-3">Provider</th>
-                                    <th class="py-2 px-3">API Key (Masked)</th>
-                                    <th class="py-2 px-3">Status</th>
-                                    <th class="py-2 px-3">Total Calls</th>
-                                    <th class="py-2 px-3">Last 24h</th>
-                                    <th class="py-2 px-3 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${tableRowsHtml}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            `;
-        }
 
         container.innerHTML = `
             <div class="space-y-6 pt-4 animate-fade-in text-xs max-w-4xl mx-auto">
@@ -6942,10 +6670,8 @@ async function renderIntegrations(container) {
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    ${column1Html}
-                    
-                    <!-- Column 2: SMTP / IMAP Connection -->
+                <div class="max-w-2xl mx-auto">
+                    <!-- SMTP / IMAP Connection -->
                     <div class="glass-panel p-5 bg-white space-y-4 shadow-sm border border-slate-200 rounded-2xl">
                         <div class="pb-2 border-b border-slate-100 flex justify-between items-center">
                             <div class="flex items-center space-x-2 text-slate-800 font-bold text-sm">
@@ -7010,7 +6736,7 @@ async function renderIntegrations(container) {
                             
                             <!-- SMTP Config -->
                             <div class="p-3 bg-slate-50 rounded-xl space-y-2 border border-slate-150">
-                                <span class="font-bold text-[10px] uppercase tracking-wider text-slate-650 block">Outbound Mail (SMTP)</span>
+                                <span class="font-bold text-[10px] uppercase tracking-wider text-slate-655 block">Outbound Mail (SMTP)</span>
                                 <div class="grid grid-cols-3 gap-2">
                                     <div class="col-span-2">
                                         <input type="text" id="smtp-host-input" value="${connection.smtp_host || ''}" placeholder="Host (smtp.mail.com)" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
@@ -7029,13 +6755,13 @@ async function renderIntegrations(container) {
                                         <option value="ssl" ${connection.smtp_encryption === 'ssl' ? 'selected' : ''}>SSL Encryption</option>
                                         <option value="none" ${connection.smtp_encryption === 'none' ? 'selected' : ''}>No Encryption</option>
                                     </select>
-                                    <button type="button" onclick="testSMTPCredentials(this)" class="py-1 px-2 border border-indigo-200 text-indigo-650 hover:bg-indigo-50 rounded text-[9px] font-bold transition">Test SMTP</button>
+                                    <button type="button" onclick="testSMTPCredentials(this)" class="py-1 px-2 border border-indigo-200 text-indigo-655 hover:bg-indigo-550 rounded text-[9px] font-bold transition">Test SMTP</button>
                                 </div>
                             </div>
                             
                             <!-- IMAP Config -->
                             <div class="p-3 bg-slate-50 rounded-xl space-y-2 border border-slate-150">
-                                <span class="font-bold text-[10px] uppercase tracking-wider text-slate-650 block">Inbound Mail (IMAP)</span>
+                                <span class="font-bold text-[10px] uppercase tracking-wider text-slate-655 block">Inbound Mail (IMAP)</span>
                                 <div class="grid grid-cols-3 gap-2">
                                     <div class="col-span-2">
                                         <input type="text" id="imap-host-input" value="${connection.imap_host || ''}" placeholder="Host (imap.mail.com)" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs">
@@ -7054,12 +6780,12 @@ async function renderIntegrations(container) {
                                         <option value="tls" ${connection.imap_encryption === 'tls' ? 'selected' : ''}>TLS Encryption</option>
                                         <option value="none" ${connection.imap_encryption === 'none' ? 'selected' : ''}>No Encryption</option>
                                     </select>
-                                    <button type="button" onclick="testIMAPCredentials(this)" class="py-1 px-2 border border-indigo-200 text-indigo-650 hover:bg-indigo-50 rounded text-[9px] font-bold transition">Test IMAP</button>
+                                    <button type="button" onclick="testIMAPCredentials(this)" class="py-1 px-2 border border-indigo-200 text-indigo-655 hover:bg-indigo-550 rounded text-[9px] font-bold transition">Test IMAP</button>
                                 </div>
                             </div>
                             
                             <div class="flex items-start space-x-2 pt-1.5">
-                                <input type="checkbox" id="sync-active-checkbox" ${settings.is_active ? 'checked' : ''} class="mt-0.5 h-3.5 w-3.5 border border-slate-300 rounded text-indigo-650 focus:ring-indigo-500">
+                                <input type="checkbox" id="sync-active-checkbox" ${settings.is_active ? 'checked' : ''} class="mt-0.5 h-3.5 w-3.5 border border-slate-300 rounded text-indigo-655 focus:ring-indigo-500">
                                 <label for="sync-active-checkbox" class="text-[10px] text-slate-500 leading-tight">Enable background mail downloader and AI processing worker pipeline</label>
                             </div>
                             
@@ -7070,14 +6796,9 @@ async function renderIntegrations(container) {
                         </div>
                     </div>
                 </div>
-
-                ${keysControlBoardHtml}
             </div>
         `;
         lucide.createIcons();
-        if (document.getElementById('add-key-form-container')) {
-            window.selectNewKeyProvider('openrouter');
-        }
     } catch (err) {
         container.innerHTML = `
             <div class="max-w-xl mx-auto p-5 text-center text-red-500">
@@ -7087,7 +6808,6 @@ async function renderIntegrations(container) {
     }
 }
 
-// Toggle Helper Functions
 function toggleAIForm() {
     const el = document.getElementById('ai-credentials-form-container');
     const btn = document.getElementById('toggle-ai-form-btn');

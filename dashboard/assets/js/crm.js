@@ -7097,7 +7097,24 @@ async function renderSettings(container) {
             document.getElementById('settings-sidebar-since').textContent = dateStr;
         }
 
-        window.switchSettingsTab('profile', null);
+        let initialTab = 'profile';
+        if (window.activeSettingsTabOverride) {
+            initialTab = window.activeSettingsTabOverride;
+            window.activeSettingsTabOverride = null;
+        }
+        
+        window.switchSettingsTab(initialTab, null);
+        
+        if (initialTab === 'profile' && window.activeSettingsEditFocusOverride) {
+            window.activeSettingsEditFocusOverride = false;
+            setTimeout(() => {
+                const input = document.getElementById('profile-name-input');
+                if (input) {
+                    input.focus();
+                    input.select();
+                }
+            }, 100);
+        }
         lucide.createIcons();
     } catch (err) {
         container.innerHTML = `

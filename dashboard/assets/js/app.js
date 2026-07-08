@@ -168,6 +168,12 @@ function setupNavigation() {
     const avatar = document.getElementById('user-avatar-initials');
     if (avatar) avatar.textContent = initials;
 
+    // Header Initials & Role representation
+    const headerAvatar = document.getElementById('header-user-avatar-initials');
+    if (headerAvatar) headerAvatar.textContent = initials;
+    const roleDisplays = document.querySelectorAll('.user-role-display');
+    roleDisplays.forEach(el => el.textContent = (user.role === 'admin' ? 'Super Admin' : 'User'));
+
     // Show Admin Link if user is an admin
     const adminLink = document.getElementById('admin-nav-link');
     if (adminLink) {
@@ -238,29 +244,63 @@ function setupNavigation() {
         }
     }
 
-    // Programmatically inject Credit wallet balance badge near profile initials
-    const rightNav = avatar ? avatar.closest('.flex.items-center.space-x-4') : null;
-    if (rightNav && !document.getElementById('nav-credit-balance-container')) {
-        const creditBadge = document.createElement('a');
-        creditBadge.href = 'recharge.html';
-        creditBadge.id = 'nav-credit-balance-container';
-        creditBadge.className = 'hidden sm:flex items-center space-x-1.5 px-3 py-1.5 bg-teal-400/10 text-teal-400 border border-teal-400/20 hover:bg-teal-400 hover:text-slate-950 transition duration-150 rounded-lg text-xs font-bold mr-2';
-        creditBadge.innerHTML = `
-            <i data-lucide="zap" class="h-3.5 w-3.5"></i>
-            <span>Credits: <span id="nav-credit-balance-value">...</span></span>
-        `;
-        rightNav.insertBefore(creditBadge, rightNav.firstElementChild);
-        
-        // Load credit count
+    // Load Wallet balance if element exists (both pre-rendered in SPA shell and custom sub-pages)
+    const balanceVal = document.getElementById('nav-credit-balance-value');
+    if (balanceVal) {
         apiCall('profile/get_credits.php')
             .then(res => {
                 if (res && res.status === 'success' && res.wallet) {
-                    const balanceVal = document.getElementById('nav-credit-balance-value');
-                    if (balanceVal) balanceVal.textContent = res.wallet.remaining;
+                    balanceVal.textContent = res.wallet.remaining;
                 }
             })
             .catch(err => console.warn('Failed to load nav credits:', err));
     }
+
+    // Header Profile Dropdown Trigger Binding
+    const headerTrigger = document.getElementById('header-profile-trigger');
+    const headerDropdown = document.getElementById('header-profile-dropdown');
+    if (headerTrigger && headerDropdown && !headerTrigger.dataset.dropdownInitialized) {
+        headerTrigger.dataset.dropdownInitialized = "true";
+        headerTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            headerDropdown.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', () => {
+            headerDropdown.classList.add('hidden');
+        });
+
+        headerDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
+
+    // Global navigation helper for header menu options
+    window.headerNavigateToSettings = function(tabName, editMode = false) {
+        if (headerDropdown) {
+            headerDropdown.classList.add('hidden');
+        }
+        window.activeSettingsTabOverride = tabName;
+        if (editMode) {
+            window.activeSettingsEditFocusOverride = true;
+        }
+        
+        // If we are already on #/settings, switch directly
+        if (window.location.hash === '#/settings') {
+            window.switchSettingsTab(tabName, null);
+            if (editMode) {
+                setTimeout(() => {
+                    const input = document.getElementById('profile-name-input');
+                    if (input) {
+                        input.focus();
+                        input.select();
+                    }
+                }, 100);
+            }
+        } else {
+            navigateTo('settings');
+        }
+    };
 
     // Add interactive profile dropdown to avatar initials bubble
     if (avatar && !avatar.dataset.dropdownInitialized) {

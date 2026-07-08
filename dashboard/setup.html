@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-[#f8fafc] h-full">
+<head>
+    <script>
+        (function() {
+            const token = localStorage.getItem('linkpilot_token');
+            if (!token) {
+                window.location.replace('login.html');
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/img/logo.png">
+    <title>Workspace Setup - LinkPilot AI</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="assets/css/style.css?v=2.5">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-[#f8fafc] flex flex-col text-slate-800 antialiased h-full">
+
+    <!-- Header / Brand logo -->
+    <header class="py-5 px-6 border-b border-slate-200/60 bg-white/80 backdrop-blur-md sticky top-0 z-50 flex justify-between items-center">
+        <div class="flex items-center space-x-2.5">
+            <img src="assets/img/logo.png" alt="LinkPilot AI" class="h-6 w-6">
+            <span class="text-sm font-black text-slate-900 tracking-tight">LinkPilot AI Onboarding</span>
+        </div>
+        <div>
+            <button onclick="localStorage.removeItem('linkpilot_token'); window.location.href='login.html';" class="text-xs font-bold text-slate-400 hover:text-slate-600 transition flex items-center space-x-1">
+                <i data-lucide="log-out" class="h-3.5 w-3.5"></i>
+                <span>Sign Out</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow flex items-center justify-center p-4 md:p-8">
+        <div class="w-full max-w-2xl bg-white border border-slate-200/80 rounded-3xl p-6 md:p-10 shadow-xl space-y-6 overflow-hidden">
+            
+            <!-- Step Indicators -->
+            <div class="flex items-center justify-between max-w-sm mx-auto relative px-4 pb-4">
+                <div class="absolute top-4 left-10 right-10 h-[2px] bg-slate-100 z-0"></div>
+                
+                <div id="ind-smtp" class="flex flex-col items-center z-10">
+                    <span class="w-8 h-8 rounded-full bg-blue-600 text-white font-extrabold flex items-center justify-center text-xs transition duration-300">1</span>
+                    <span class="text-[10px] text-blue-600 font-bold mt-1.5">Email (SMTP)</span>
+                </div>
+                
+                <div id="ind-wa" class="flex flex-col items-center z-10">
+                    <span class="w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 font-extrabold flex items-center justify-center text-xs transition duration-300">2</span>
+                    <span class="text-[10px] text-slate-400 font-semibold mt-1.5">WhatsApp</span>
+                </div>
+            </div>
+
+            <!-- Carousel Slider viewport -->
+            <div class="relative w-full overflow-hidden">
+                <div id="setup-slider" class="flex transition-transform duration-500 ease-in-out" style="width: 400%; transform: translateX(0%);">
+                    
+                    <!-- SLIDE 1: SMTP Providers Selection -->
+                    <div class="w-1/4 shrink-0 px-2 flex flex-col justify-between space-y-6">
+                        <div class="border-b border-slate-100 pb-3 text-left">
+                            <h3 class="text-base font-extrabold text-slate-800">SMTP Integration Setup</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Choose an email provider to integrate with your LinkPilot outbound workspace.</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Gmail Card -->
+                            <div onclick="selectSmtpProvider('gmail')" class="p-5 border border-slate-200 hover:border-blue-500 rounded-2xl hover:bg-blue-50/5 cursor-pointer transition flex flex-col justify-between space-y-3 group text-left">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2 bg-red-50 text-red-500 rounded-xl">
+                                        <i data-lucide="mail" class="h-5 w-5"></i>
+                                    </div>
+                                    <span class="font-extrabold text-slate-800 text-xs">Gmail / Google Workspace</span>
+                                </div>
+                                <p class="text-[10px] text-slate-400 font-semibold leading-normal">Use Gmail servers easily with a secure Google App Password.</p>
+                            </div>
+                            
+                            <!-- Outlook Card -->
+                            <div onclick="selectSmtpProvider('outlook')" class="p-5 border border-slate-200 hover:border-blue-500 rounded-2xl hover:bg-blue-50/5 cursor-pointer transition flex flex-col justify-between space-y-3 group text-left">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2 bg-blue-50 text-blue-500 rounded-xl">
+                                        <i data-lucide="mail" class="h-5 w-5"></i>
+                                    </div>
+                                    <span class="font-extrabold text-slate-800 text-xs">Outlook / Office 365</span>
+                                </div>
+                                <p class="text-[10px] text-slate-400 font-semibold leading-normal">Outsource pitches from your business Outlook account.</p>
+                            </div>
+                            
+                            <!-- Yahoo Card -->
+                            <div onclick="selectSmtpProvider('yahoo')" class="p-5 border border-slate-200 hover:border-blue-500 rounded-2xl hover:bg-blue-50/5 cursor-pointer transition flex flex-col justify-between space-y-3 group text-left">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2 bg-purple-50 text-purple-500 rounded-xl">
+                                        <i data-lucide="mail" class="h-5 w-5"></i>
+                                    </div>
+                                    <span class="font-extrabold text-slate-800 text-xs">Yahoo Mail</span>
+                                </div>
+                                <p class="text-[10px] text-slate-400 font-semibold leading-normal">Integrate via Yahoo security settings and credentials.</p>
+                            </div>
+                            
+                            <!-- Custom Card -->
+                            <div onclick="selectSmtpProvider('custom')" class="p-5 border border-slate-200 hover:border-blue-500 rounded-2xl hover:bg-blue-50/5 cursor-pointer transition flex flex-col justify-between space-y-3 group text-left">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2 bg-emerald-50 text-emerald-500 rounded-xl">
+                                        <i data-lucide="server" class="h-5 w-5"></i>
+                                    </div>
+                                    <span class="font-extrabold text-slate-800 text-xs">Custom SMTP Server</span>
+                                </div>
+                                <p class="text-[10px] text-slate-400 font-semibold leading-normal">Configure Mailgun, SendGrid, Zoho, Hostinger, or GoDaddy.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-end pt-4">
+                            <button onclick="slideTo(2)" class="px-5 py-2.5 text-xs font-extrabold text-slate-400 hover:text-slate-600 transition flex items-center space-x-1">
+                                <span>Configure WhatsApp first</span>
+                                <i data-lucide="chevrons-right" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- SLIDE 2: SMTP Configuration Credentials Form -->
+                    <div class="w-1/4 shrink-0 px-2 flex flex-col justify-between space-y-6">
+                        <div class="border-b border-slate-100 pb-3 flex justify-between items-center text-left">
+                            <div>
+                                <h3 id="smtp-provider-title" class="text-base font-extrabold text-slate-800">Gmail Settings</h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Please provide connection parameters to authorize outbound emails.</p>
+                            </div>
+                            <span id="smtp-type-pill" class="text-[9px] px-2.5 py-0.5 bg-blue-50 text-blue-600 rounded-full font-bold uppercase tracking-wider">Gmail</span>
+                        </div>
+                        
+                        <!-- Configuration Help Links for easy integration -->
+                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-left space-y-3">
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Quick Setup References & Links</span>
+                            <div class="flex flex-wrap gap-2" id="smtp-help-links-box">
+                                <!-- Dynamic links loaded here -->
+                            </div>
+                        </div>
+
+                        <form id="setup-smtp-form" class="space-y-4 text-left">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="space-y-1">
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sender Name *</label>
+                                    <input type="text" id="smtp-sender-name" required placeholder="e.g. John Doe" class="block w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-500 shadow-sm bg-white">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sender Email *</label>
+                                    <input type="email" id="smtp-sender-email" required placeholder="e.g. john@yourdomain.com" class="block w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-500 shadow-sm bg-white">
+                                </div>
+                                
+                                <div id="custom-host-row" class="md:col-span-2 grid grid-cols-3 gap-3 hidden">
+                                    <div class="col-span-2 space-y-1">
+                                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">SMTP Host *</label>
+                                        <input type="text" id="smtp-host" placeholder="smtp.zoho.com" class="block w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-500 shadow-sm bg-white">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Port *</label>
+                                        <input type="number" id="smtp-port" placeholder="587" class="block w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-500 shadow-sm bg-white">
+                                    </div>
+                                </div>
+
+                                <div class="space-y-1">
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">SMTP Username *</label>
+                                    <input type="text" id="smtp-username" required placeholder="e.g. john@gmail.com" class="block w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-500 shadow-sm bg-white">
+                                </div>
+                                <div class="space-y-1">
+                                    <label id="smtp-pass-label" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">App Password *</label>
+                                    <input type="password" id="smtp-password" required placeholder="••••••••" class="block w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-500 shadow-sm bg-white">
+                                </div>
+                            </div>
+                        </form>
+                        
+                        <div class="pt-4 flex justify-between items-center border-t border-slate-100">
+                            <button type="button" onclick="slideTo(0)" class="px-5 py-2.5 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition flex items-center space-x-1">
+                                <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                                <span>Change Provider</span>
+                            </button>
+                            <button type="button" id="smtp-verify-submit-btn" onclick="testAndSaveSMTPConnection()" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-505 transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10" style="color: #ffffff !important;">
+                                <span style="color: #ffffff !important;">Test & Save connection</span>
+                                <i data-lucide="arrow-right" class="h-4 w-4" style="color: #ffffff !important;"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SLIDE 3: WhatsApp Onboarding Form -->
+                    <div class="w-1/4 shrink-0 px-2 flex flex-col justify-between space-y-6">
+                        <div class="border-b border-slate-100 pb-3 text-left">
+                            <h3 class="text-base font-extrabold text-slate-800">WhatsApp Integration</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Integrate WhatsApp via Meta Cloud API to automatically handle messaging channels.</p>
+                        </div>
+
+                        <!-- Step question: Connected to Meta? -->
+                        <div id="wa-gate-box" class="space-y-6 text-left py-4">
+                            <div class="p-4 bg-blue-50/50 border border-blue-100 rounded-2xl">
+                                <span class="block font-extrabold text-slate-800 text-xs">Have you connected your phone number to Meta Developers?</span>
+                                <p class="text-[10px] text-slate-500 font-semibold leading-normal mt-1">Meta requires hosting phone numbers inside a WhatsApp Cloud API App in order to send automated messages programmatically.</p>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <button onclick="toggleWaMetaStatus(true)" class="p-5 border-2 border-slate-200 hover:border-blue-500 rounded-2xl flex flex-col items-center justify-center space-y-2 hover:bg-blue-50/5 transition">
+                                    <div class="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+                                        <i data-lucide="check" class="h-5 w-5"></i>
+                                    </div>
+                                    <span class="font-extrabold text-xs text-slate-800">Yes, it is connected</span>
+                                </button>
+                                
+                                <button onclick="toggleWaMetaStatus(false)" class="p-5 border-2 border-slate-200 hover:border-blue-500 rounded-2xl flex flex-col items-center justify-center space-y-2 hover:bg-blue-50/5 transition">
+                                    <div class="p-2.5 bg-slate-50 text-slate-500 rounded-xl">
+                                        <i data-lucide="help-circle" class="h-5 w-5"></i>
+                                    </div>
+                                    <span class="font-extrabold text-xs text-slate-800">No, not yet</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Guides if NO connected -->
+                        <div id="wa-guide-no" class="space-y-4 text-left hidden">
+                            <div class="p-4 bg-amber-50/50 border border-amber-100 rounded-2xl space-y-2">
+                                <span class="block font-extrabold text-amber-800 text-xs flex items-center space-x-1"><i data-lucide="info" class="h-4 w-4"></i><span>Steps to Connect with Meta</span></span>
+                                <p class="text-[10px] text-slate-500 font-semibold leading-normal">Please follow this guide to connect your number to Meta before pasting details here:</p>
+                            </div>
+                            
+                            <div class="space-y-3 text-xs pl-2">
+                                <div class="flex items-start space-x-2.5">
+                                    <span class="w-4 h-4 rounded-full bg-slate-100 border border-slate-200 text-slate-500 font-bold text-[9px] flex items-center justify-center shrink-0 mt-0.5">1</span>
+                                    <span class="text-[11px] text-slate-600">Register as a developer on the <a href="https://developers.facebook.com/" target="_blank" class="text-blue-600 hover:underline font-bold">Meta Developer Dashboard</a>.</span>
+                                </div>
+                                <div class="flex items-start space-x-2.5">
+                                    <span class="w-4 h-4 rounded-full bg-slate-100 border border-slate-200 text-slate-500 font-bold text-[9px] flex items-center justify-center shrink-0 mt-0.5">2</span>
+                                    <span class="text-[11px] text-slate-600">Click **Create App** (Select 'Other' & choose 'Business' app type).</span>
+                                </div>
+                                <div class="flex items-start space-x-2.5">
+                                    <span class="w-4 h-4 rounded-full bg-slate-100 border border-slate-200 text-slate-500 font-bold text-[9px] flex items-center justify-center shrink-0 mt-0.5">3</span>
+                                    <span class="text-[11px] text-slate-600">Scroll down, find **WhatsApp**, click **Set Up** to link it.</span>
+                                </div>
+                                <div class="flex items-start space-x-2.5">
+                                    <span class="w-4 h-4 rounded-full bg-slate-100 border border-slate-200 text-slate-500 font-bold text-[9px] flex items-center justify-center shrink-0 mt-0.5">4</span>
+                                    <span class="text-[11px] text-slate-600">Navigate to WhatsApp -> **API Setup** in the left menu.</span>
+                                </div>
+                                <div class="flex items-start space-x-2.5">
+                                    <span class="w-4 h-4 rounded-full bg-slate-100 border border-slate-200 text-slate-500 font-bold text-[9px] flex items-center justify-center shrink-0 mt-0.5">5</span>
+                                    <span class="text-[11px] text-slate-600">Under Step 5, click **Add Phone Number**, fill your Business details, verify the number via SMS.</span>
+                                </div>
+                            </div>
+                            
+                            <div class="pt-4 flex justify-between items-center border-t border-slate-100">
+                                <button type="button" onclick="goBackFromWaDetails()" class="px-5 py-2.5 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition flex items-center space-x-1">
+                                    <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                                    <span>Back</span>
+                                </button>
+                                <button onclick="toggleWaMetaStatus(true)" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center space-x-1.5 shadow-md shadow-blue-500/10" style="color: #ffffff !important;">
+                                    <span style="color: #ffffff !important;">I've connected my number</span>
+                                    <i data-lucide="arrow-right" class="h-4 w-4" style="color: #ffffff !important;"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Form details screen if YES connected (ask all credentials on one screen) -->
+                        <div id="wa-details-form" class="space-y-4 text-left hidden">
+                            <!-- Short help guide box -->
+                            <div class="p-3.5 bg-indigo-50 border border-indigo-100 rounded-xl space-y-1.5">
+                                <span class="block font-extrabold text-indigo-800 text-[10px] uppercase tracking-wider">How to get these Meta Credentials:</span>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-[9px] text-indigo-700 leading-relaxed font-semibold">
+                                    <div>• **Access Token**: Generate under Users -> System Users in <a href="https://business.facebook.com/settings" target="_blank" class="underline">Meta Business Settings</a>. Ensure you grant `whatsapp_business_messaging` permissions.</div>
+                                    <div>• **IDs & Phone**: Navigate to WhatsApp -> API Setup in your Meta App Dashboard to copy Phone Number ID, WABA ID, and Display Number.</div>
+                                </div>
+                            </div>
+
+                            <form id="setup-wa-form" class="space-y-3.5 text-slate-800">
+                                <div class="space-y-1">
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Meta System User Access Token *</label>
+                                    <input type="text" id="wa-token" required placeholder="EAAGemini... or Paste your access token" class="block w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-500 bg-white shadow-sm">
+                                </div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="space-y-1">
+                                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">WhatsApp Business ID (WABA ID) *</label>
+                                        <input type="text" id="wa-waba-id" required placeholder="e.g. 109846392038" class="block w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-500 bg-white shadow-sm">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Phone Number ID *</label>
+                                        <input type="text" id="wa-phone-id" required placeholder="e.g. 10486389201" class="block w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-500 bg-white shadow-sm">
+                                    </div>
+                                    
+                                    <div class="space-y-1">
+                                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Business Name *</label>
+                                        <input type="text" id="wa-biz-name" required placeholder="e.g. My Business" class="block w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-500 bg-white shadow-sm">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">WhatsApp Phone Number *</label>
+                                        <input type="text" id="wa-number" required placeholder="e.g. +919876543210" class="block w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-500 bg-white shadow-sm">
+                                    </div>
+                                </div>
+                            </form>
+                            
+                            <div class="pt-4 flex justify-between items-center border-t border-slate-100">
+                                <button type="button" onclick="goBackFromWaDetails()" class="px-5 py-2.5 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition flex items-center space-x-1">
+                                    <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                                    <span>Back</span>
+                                </button>
+                                <button type="button" id="wa-submit-btn" onclick="testAndSaveWhatsAppConnection()" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-500 transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10" style="color: #ffffff !important;">
+                                    <span style="color: #ffffff !important;">Verify & Save WhatsApp</span>
+                                    <i data-lucide="check" class="h-4 w-4" style="color: #ffffff !important;"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Slide Back triggers -->
+                        <div id="wa-gate-back-btn" class="pt-4 border-t border-slate-100 flex justify-between items-center">
+                            <button type="button" onclick="slideTo(1)" class="px-5 py-2.5 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition flex items-center space-x-1">
+                                <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                                <span>Back</span>
+                            </button>
+                            <button onclick="slideTo(3)" class="px-5 py-2.5 text-xs font-extrabold text-slate-400 hover:text-slate-600 transition flex items-center space-x-1">
+                                <span>Skip WhatsApp</span>
+                                <i data-lucide="arrow-right" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SLIDE 4: Congratulations Screen -->
+                    <div class="w-1/4 shrink-0 px-2 flex flex-col justify-center items-center text-center space-y-6">
+                        <div class="h-16 w-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/10">
+                            <i data-lucide="award" class="h-8 w-8 animate-bounce"></i>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Congratulations! 🎉</h2>
+                            <h4 class="text-sm font-extrabold text-slate-700">Your LinkPilot AI Workspace is fully configured.</h4>
+                            <p class="text-xs text-slate-400 max-w-sm mx-auto font-semibold leading-relaxed">
+                                You have successfully connected your SMTP and WhatsApp channels. Your outreach copilot is now primed and ready to find leads and generate auto-replies.
+                            </p>
+                        </div>
+                        
+                        <div class="pt-4">
+                            <button onclick="window.location.href='index.html';" class="px-8 py-3 text-xs font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-500 transition flex items-center space-x-2 shadow-lg shadow-blue-500/15" style="color: #ffffff !important;">
+                                <span style="color: #ffffff !important;">Launch Dashboard</span>
+                                <i data-lucide="arrow-right" class="h-4 w-4" style="color: #ffffff !important;"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- App JS helpers & script logic -->
+    <script src="assets/js/app.js"></script>
+    <script>
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+
+        let selectedProvider = '';
+
+        // Provider configuration mappings
+        const providersMeta = {
+            gmail: {
+                title: 'Gmail / Google Workspace Settings',
+                host: 'smtp.gmail.com',
+                port: 587,
+                links: [
+                    { label: 'Google Account Settings', url: 'https://myaccount.google.com/' },
+                    { label: 'Enable 2-Step Verification', url: 'https://myaccount.google.com/security' },
+                    { label: 'Generate App Password', url: 'https://myaccount.google.com/apppasswords' }
+                ]
+            },
+            outlook: {
+                title: 'Outlook / Office 365 Settings',
+                host: 'smtp.office365.com',
+                port: 587,
+                links: [
+                    { label: 'Microsoft Account Security', url: 'https://account.microsoft.com/security' },
+                    { label: 'Generate Microsoft App Password', url: 'https://support.microsoft.com/en-us/account-billing/using-app-passwords-with-apps-that-don-t-support-two-step-verification-58562d9b-d5c5-cc53-a7ed-f0667c2e3998' }
+                ]
+            },
+            yahoo: {
+                title: 'Yahoo Mail Settings',
+                host: 'smtp.mail.yahoo.com',
+                port: 465,
+                links: [
+                    { label: 'Yahoo Account Security', url: 'https://login.yahoo.com/account/security' },
+                    { label: 'Yahoo Password Help Guide', url: 'https://help.yahoo.com/kb/SLN15241.html' }
+                ]
+            },
+            custom: {
+                title: 'Custom SMTP Server Settings',
+                host: '',
+                port: 587,
+                links: [
+                    { label: 'Zoho SMTP Settings', url: 'https://www.zoho.com/mail/help/smtp-settings.html' },
+                    { label: 'Hostinger SMTP details', url: 'https://support.hostinger.com/en/articles/1583227-how-to-set-up-hostinger-smtp-and-imap' },
+                    { label: 'Mailgun SMTP Setup Docs', url: 'https://documentation.mailgun.com/' }
+                ]
+            }
+        };
+
+        // Slide navigation slider
+        let currentActiveSlide = 0;
+        function slideTo(index) {
+            currentActiveSlide = index;
+            const slider = document.getElementById('setup-slider');
+            slider.style.transform = `translateX(-${index * 25}%)`;
+            
+            // Update active Wizard step circle indicator
+            const indSmtp = document.getElementById('ind-smtp');
+            const indWa = document.getElementById('ind-wa');
+            if (!indSmtp || !indWa) return;
+            
+            const smtpCircle = indSmtp.querySelector('span:first-child');
+            const smtpLabel = indSmtp.querySelector('span:last-child');
+            const waCircle = indWa.querySelector('span:first-child');
+            const waLabel = indWa.querySelector('span:last-child');
+            
+            if (index === 0 || index === 1) {
+                // Step 1: SMTP Settings Active
+                smtpCircle.className = "w-8 h-8 rounded-full bg-blue-600 text-white font-extrabold flex items-center justify-center text-xs shadow-md shadow-blue-500/10 transition duration-300";
+                smtpLabel.className = "text-[10px] text-blue-600 font-bold mt-1.5";
+                
+                waCircle.className = "w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 font-extrabold flex items-center justify-center text-xs transition duration-300";
+                waLabel.className = "text-[10px] text-slate-400 font-semibold mt-1.5";
+            } else if (index === 2) {
+                // Step 2: WhatsApp Settings Active
+                smtpCircle.className = "w-8 h-8 rounded-full bg-blue-50 text-blue-600 border border-blue-200 font-extrabold flex items-center justify-center text-xs transition duration-300";
+                smtpLabel.className = "text-[10px] text-blue-600/80 font-bold mt-1.5";
+                
+                waCircle.className = "w-8 h-8 rounded-full bg-blue-600 text-white font-extrabold flex items-center justify-center text-xs shadow-md shadow-blue-500/10 transition duration-300";
+                waLabel.className = "text-[10px] text-blue-600 font-bold mt-1.5";
+            } else {
+                // Both complete - Congratulations
+                smtpCircle.className = "w-8 h-8 rounded-full bg-blue-50 text-blue-600 border border-blue-200 font-extrabold flex items-center justify-center text-xs transition duration-300";
+                smtpLabel.className = "text-[10px] text-blue-600/80 font-bold mt-1.5";
+                
+                waCircle.className = "w-8 h-8 rounded-full bg-blue-50 text-blue-600 border border-blue-200 font-extrabold flex items-center justify-center text-xs transition duration-300";
+                waLabel.className = "text-[10px] text-blue-600/80 font-bold mt-1.5";
+            }
+        }
+
+        // Action when an SMTP Provider is chosen from Slide 1
+        function selectSmtpProvider(provider) {
+            selectedProvider = provider;
+            const meta = providersMeta[provider];
+            
+            // Prefill title & pill
+            document.getElementById('smtp-provider-title').textContent = meta.title;
+            const pill = document.getElementById('smtp-type-pill');
+            pill.textContent = provider.toUpperCase();
+            
+            // Setup prefilled inputs
+            document.getElementById('smtp-host').value = meta.host;
+            document.getElementById('smtp-port').value = meta.port;
+            
+            // Password label setup
+            const passLabel = document.getElementById('smtp-pass-label');
+            if (provider === 'gmail') {
+                passLabel.textContent = 'Google App Password *';
+                document.getElementById('smtp-password').placeholder = 'Enter 16-digit app password';
+            } else if (provider === 'outlook' || provider === 'yahoo') {
+                passLabel.textContent = 'App Password *';
+                document.getElementById('smtp-password').placeholder = 'Enter app password';
+            } else {
+                passLabel.textContent = 'SMTP Password *';
+                document.getElementById('smtp-password').placeholder = 'Enter SMTP password';
+            }
+
+            // Custom port/host row show/hide
+            const customRow = document.getElementById('custom-host-row');
+            if (provider === 'custom') {
+                customRow.classList.remove('hidden');
+                document.getElementById('smtp-host').required = true;
+                document.getElementById('smtp-port').required = true;
+            } else {
+                customRow.classList.add('hidden');
+                document.getElementById('smtp-host').required = false;
+                document.getElementById('smtp-port').required = false;
+            }
+
+            // Populate help links box
+            const linksBox = document.getElementById('smtp-help-links-box');
+            linksBox.innerHTML = meta.links.map(l => `
+                <a href="${l.url}" target="_blank" class="inline-flex items-center space-x-1 px-3 py-1.5 bg-white border border-slate-200 hover:border-blue-500 rounded-xl text-[10px] font-bold text-slate-600 hover:text-blue-600 transition shadow-sm">
+                    <span>${l.label}</span>
+                    <i data-lucide="external-link" class="h-3 w-3"></i>
+                </a>
+            `).join('');
+            
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+
+            // Slide left to Slide 2 credentials form
+            slideTo(1);
+        }
+
+        // Test & Save SMTP configuration in one click
+        async function testAndSaveSMTPConnection() {
+            const senderName = document.getElementById('smtp-sender-name').value.trim();
+            const senderEmail = document.getElementById('smtp-sender-email').value.trim();
+            const username = document.getElementById('smtp-username').value.trim();
+            const password = document.getElementById('smtp-password').value;
+            
+            const providerMeta = providersMeta[selectedProvider];
+            const host = (selectedProvider === 'custom') ? document.getElementById('smtp-host').value.trim() : providerMeta.host;
+            const port = (selectedProvider === 'custom') ? parseInt(document.getElementById('smtp-port').value) : providerMeta.port;
+            
+            if (!senderName || !senderEmail || !username || !password || !host || !port) {
+                showNotification('warning', 'Please fill out all required SMTP credentials.');
+                return;
+            }
+
+            const btn = document.getElementById('smtp-verify-submit-btn');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `
+                <div class="flex items-center space-x-1.5">
+                    <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Testing Connection...</span>
+                </div>
+            `;
+
+            // 1. Perform connection test
+            try {
+                const testRes = await apiCall('smtp/test.php', 'POST', {
+                    use_saved: false,
+                    host,
+                    port,
+                    username,
+                    password,
+                    sender_name: senderName,
+                    sender_email: senderEmail
+                });
+                
+                showNotification('success', 'SMTP Connection Test Successful!');
+                
+                // 2. Connection verified -> Save SMTP details
+                btn.innerHTML = `
+                    <div class="flex items-center space-x-1.5">
+                        <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Saving credentials...</span>
+                    </div>
+                `;
+                
+                const saveRes = await apiCall('smtp/save.php', 'POST', {
+                    host,
+                    port,
+                    username,
+                    password,
+                    sender_name: senderName,
+                    sender_email: senderEmail,
+                    smtp_type: selectedProvider
+                });
+
+                showNotification('success', 'SMTP credentials saved successfully!');
+                
+                // 3. Slide left to WhatsApp setup page (Slide 3)
+                slideTo(2);
+
+            } catch (err) {
+                showNotification('error', err.message || 'SMTP Handshake Verification Failed.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+            }
+        }
+
+        // WhatsApp Meta Connection yes/no toggle
+        function toggleWaMetaStatus(isConnected) {
+            const gateBox = document.getElementById('wa-gate-box');
+            const guideNo = document.getElementById('wa-guide-no');
+            const detailsForm = document.getElementById('wa-details-form');
+            const backBtn = document.getElementById('wa-gate-back-btn');
+            
+            gateBox.classList.add('hidden');
+            backBtn.classList.add('hidden');
+            
+            if (isConnected) {
+                detailsForm.classList.remove('hidden');
+                guideNo.classList.add('hidden');
+            } else {
+                guideNo.classList.remove('hidden');
+                detailsForm.classList.add('hidden');
+            }
+        }
+
+        function goBackFromWaDetails() {
+            const gateBox = document.getElementById('wa-gate-box');
+            const guideNo = document.getElementById('wa-guide-no');
+            const detailsForm = document.getElementById('wa-details-form');
+            const backBtn = document.getElementById('wa-gate-back-btn');
+            
+            gateBox.classList.remove('hidden');
+            backBtn.classList.remove('hidden');
+            
+            guideNo.classList.add('hidden');
+            detailsForm.classList.add('hidden');
+        }
+
+        // Test & Save WhatsApp connection details
+        async function testAndSaveWhatsAppConnection() {
+            const accessToken = document.getElementById('wa-token').value.trim();
+            const wabaId = document.getElementById('wa-waba-id').value.trim();
+            const phoneId = document.getElementById('wa-phone-id').value.trim();
+            const bizName = document.getElementById('wa-biz-name').value.trim();
+            const phoneNumber = document.getElementById('wa-number').value.trim();
+            
+            if (!accessToken || !wabaId || !phoneId || !bizName || !phoneNumber) {
+                showNotification('warning', 'Please fill out all required Meta WhatsApp fields.');
+                return;
+            }
+
+            const btn = document.getElementById('wa-submit-btn');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `
+                <div class="flex items-center space-x-1.5">
+                    <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Verifying with Meta...</span>
+                </div>
+            `;
+
+            // Save & Auto-verify WhatsApp Connection details
+            try {
+                const res = await apiCall('whatsapp/setup.php?action=save_connection', 'POST', {
+                    access_token: accessToken,
+                    waba_id: wabaId,
+                    phone_number_id: phoneId,
+                    business_name: bizName,
+                    waba_name: bizName,
+                    phone_number: phoneNumber,
+                    display_name: bizName
+                });
+
+                showNotification('success', 'WhatsApp Meta connection established!');
+                
+                // Transition to Congratulations step
+                slideTo(3);
+
+            } catch (err) {
+                showNotification('error', err.message || 'WhatsApp Meta verification failed. Please check IDs.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+            }
+        }
+    </script>
+</body>
+</html>

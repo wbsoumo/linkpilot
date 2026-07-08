@@ -800,9 +800,9 @@
                 setAuthToken(data.token);
                 localStorage.setItem('linkpilot_user', JSON.stringify(data.user));
                 
-                // Redirect to SMTP Configuration Setup
+                // Redirect to SMTP/WhatsApp Configuration Setup onboarding
                 setTimeout(() => {
-                    window.location.href = 'smtp.html';
+                    window.location.href = 'setup.html';
                 }, 1500);
 
             } catch (err) {

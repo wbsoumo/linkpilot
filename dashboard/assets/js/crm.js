@@ -378,8 +378,46 @@ async function navigateTo(view, params = {}) {
 // ----------------------------------------------------
 async function renderDashboard(container) {
     try {
-        const data = await apiCall('crm/reports.php');
-        const stats = await apiCall('analytics/dashboard.php');
+        const [data, stats, smtpRes, waRes] = await Promise.all([
+            apiCall('crm/reports.php'),
+            apiCall('analytics/dashboard.php'),
+            apiCall('smtp/list.php').catch(() => ({ accounts: [] })),
+            apiCall('whatsapp/setup.php').catch(() => ({ connected: false }))
+        ]);
+        
+        const smtpConfigured = (smtpRes.accounts && smtpRes.accounts.length > 0);
+        const whatsappConfigured = !!waRes.connected;
+        const showWarningBanner = !smtpConfigured || !whatsappConfigured;
+        
+        let warningBannerHtml = '';
+        if (showWarningBanner) {
+            let message = '';
+            if (!smtpConfigured && !whatsappConfigured) {
+                message = 'Please configure your SMTP email settings and WhatsApp Meta API credentials to enable automated outreach.';
+            } else if (!smtpConfigured) {
+                message = 'Please configure your SMTP email server to send automated email pitches.';
+            } else {
+                message = 'Please connect your WhatsApp number to automate mobile communications.';
+            }
+            
+            warningBannerHtml = `
+                <div onclick="window.location.href='setup.html'" class="glass-panel p-4 bg-amber-500/10 border border-amber-500/25 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer hover:bg-amber-500/15 transition-all duration-300">
+                    <div class="flex items-center space-x-3 text-left">
+                        <div class="h-10 w-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                            <i data-lucide="alert-triangle" class="h-5 w-5 animate-pulse text-amber-450"></i>
+                        </div>
+                        <div>
+                            <span class="block text-slate-200 font-extrabold text-xs">Workspace Onboarding Setup Incomplete</span>
+                            <span class="text-[11px] text-slate-400 font-semibold leading-relaxed">${message}</span>
+                        </div>
+                    </div>
+                    <button class="px-4 py-2 bg-amber-500 hover:bg-amber-450 text-slate-950 rounded-xl text-xs font-extrabold flex items-center space-x-1 transition shadow-md shadow-amber-500/10 shrink-0 select-none">
+                        <span>Complete Setup Now</span>
+                        <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+                    </button>
+                </div>
+            `;
+        }
         
         container.innerHTML = `
             <div class="space-y-8 animate-fade-in">
@@ -396,6 +434,8 @@ async function renderDashboard(container) {
                         </button>
                     </div>
                 </div>
+
+                ${warningBannerHtml}
 
                 <!-- 12 Top Statistics Cards Grid -->
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">

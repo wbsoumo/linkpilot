@@ -138,20 +138,100 @@
             </div>
             
             <div id="admin-ai-settings-pane" class="hidden space-y-6">
-                <!-- Prompt management & model selector -->
-                <div class="glass-panel p-6 bg-slate-900/40 space-y-6 max-w-xl">
-                    <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2">Global Scheduler & AI Prompts</h3>
-                    <form onsubmit="saveGlobalSettings(event)" class="space-y-4 text-xs">
-                        <div>
-                            <label class="block text-slate-400 font-semibold mb-1">Global Default Email Sync Interval (Minutes)</label>
-                            <input type="number" id="global_sync_interval" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+                    <!-- Left: Global settings overrides -->
+                    <div class="glass-panel p-6 bg-slate-900/40 space-y-6 md:col-span-1">
+                        <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2">Global Scheduler & AI Prompts</h3>
+                        <form onsubmit="saveGlobalSettings(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-slate-400 font-semibold mb-1">Global Default Email Sync Interval (Minutes)</label>
+                                <input type="number" id="global_sync_interval" class="w-full px-3 py-2 bg-slate-850 border border-slate-700 rounded-lg text-white">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 font-semibold mb-1">AI Prompt Overrides</label>
+                                <textarea id="ai_system_prompt_overrides" rows="6" class="w-full px-3 py-2 bg-slate-850 border border-slate-700 rounded-lg text-white font-mono" placeholder="Default system prompts..."></textarea>
+                            </div>
+                            <button type="submit" class="px-4 py-2 bg-rose-500 text-white rounded-lg font-bold transition hover:bg-rose-600">Save Configurations</button>
+                        </form>
+                    </div>
+
+                    <!-- Right: Central AI API Keys Manager -->
+                    <div class="glass-panel p-6 bg-slate-900/40 space-y-6 md:col-span-2">
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                            <h3 class="text-sm font-bold text-white">Central AI API Keys Manager</h3>
+                            <button onclick="toggleAdminAddKeyForm()" class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg font-bold transition shadow-sm" id="admin-add-key-toggle-btn" style="color: #ffffff !important;">
+                                <span style="color: #ffffff !important;">Add API Key</span>
+                            </button>
                         </div>
-                        <div>
-                            <label class="block text-slate-400 font-semibold mb-1">AI Prompt Overrides</label>
-                            <textarea id="ai_system_prompt_overrides" rows="6" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono" placeholder="Default system prompts..."></textarea>
+
+                        <!-- Inline Add Key Form -->
+                        <div id="admin-add-key-form-container" class="p-4 bg-slate-900/30 border border-slate-800 rounded-xl space-y-4 hidden">
+                            <span class="block text-slate-300 font-bold text-[10px] uppercase tracking-wider">Connect New Central API Key</span>
+                            <input type="hidden" id="admin-new-key-provider-hidden" value="openrouter">
+                            
+                            <!-- Provider Card Selector Row -->
+                            <div class="space-y-1.5">
+                                <label class="block text-[9px] font-bold text-slate-500 uppercase">Select AI Provider</label>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <!-- OpenRouter Card -->
+                                    <div onclick="selectAdminNewKeyProvider('openrouter')" id="admin-provider-card-openrouter" class="border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-850 transition flex items-center space-x-3 bg-slate-900 border-rose-500 shadow-sm">
+                                        <img src="https://openrouter.ai/favicon.ico" class="h-6 w-6 rounded-md object-contain shrink-0" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2103/2103633.png'">
+                                        <div>
+                                            <span class="block font-bold text-white text-[11px]">OpenRouter</span>
+                                            <span class="text-[9px] text-slate-500 font-semibold">Free & Premium</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- GitHub Models Card -->
+                                    <div onclick="selectAdminNewKeyProvider('github_models')" id="admin-provider-card-github_models" class="border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-850 transition flex items-center space-x-3 bg-slate-900 border-slate-800">
+                                        <img src="https://github.githubassets.com/favicons/favicon.svg" class="h-6 w-6 rounded-md object-contain shrink-0">
+                                        <div>
+                                            <span class="block font-bold text-white text-[11px]">GitHub Models</span>
+                                            <span class="text-[9px] text-slate-500 font-semibold">Developer Tokens</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Gemini Card -->
+                                    <div onclick="selectAdminNewKeyProvider('google_ai_studio')" id="admin-provider-card-google_ai_studio" class="border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-850 transition flex items-center space-x-3 bg-slate-900 border-slate-800">
+                                        <img src="https://aistudio.google.com/static/images/favicon.png" class="h-6 w-6 rounded-md object-contain shrink-0" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2103/2103633.png'">
+                                        <div>
+                                            <span class="block font-bold text-white text-[11px]">Gemini Studio</span>
+                                            <span class="text-[9px] text-slate-500 font-semibold">Google Gemini API</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <label class="block text-[9px] font-bold text-slate-500 uppercase">API Key Value / Token</label>
+                                <div class="flex space-x-2">
+                                    <input type="password" id="admin-new-key-value-input" placeholder="Enter API Key value" class="flex-grow px-2.5 py-1.5 bg-slate-850 border border-slate-700 rounded-lg text-white">
+                                    <button onclick="submitAdminNewAIKey()" class="px-4 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg font-bold transition shrink-0 flex items-center justify-center space-x-1.5 shadow-sm" style="color: #ffffff !important;">
+                                        <span style="color: #ffffff !important;">Save Key</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <button type="submit" class="px-4 py-2 bg-rose-500 text-white rounded-lg font-bold transition hover:bg-rose-600">Save Configurations</button>
-                    </form>
+
+                        <!-- API Keys Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse custom-table text-[11px]">
+                                <thead>
+                                    <tr class="border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                                        <th class="py-2">Provider</th>
+                                        <th class="py-2">API Key (Masked)</th>
+                                        <th class="py-2">Status</th>
+                                        <th class="py-2">Total Calls</th>
+                                        <th class="py-2">Last 24h</th>
+                                        <th class="py-2 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-ai-keys-tbody">
+                                    <tr><td colspan="6" class="text-center py-4 text-slate-500">Loading AI keys...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -446,6 +526,7 @@
             
             if (tab === 'health') loadAdminHealthData();
             if (tab === 'users') loadAdminUsersData();
+            if (tab === 'ai-settings') loadAdminAISettingsData();
             if (tab === 'logs') loadAdminLogsData();
             if (tab === 'whatsapp') loadAdminWhatsAppDetails();
             if (tab === 'external-apps') loadAdminExternalAppsDetails();
@@ -797,6 +878,157 @@
                 .catch(err => {
                     showNotification('error', err.message);
                 });
+        };
+
+        window.loadAdminAISettingsData = async function() {
+            try {
+                // Fetch Global Settings (to fill in interval and overrides)
+                const resSettings = await apiCall('admin/crm_settings.php');
+                const settings = resSettings.settings || {};
+                document.getElementById('global_sync_interval').value = settings.global_sync_interval || 60;
+                document.getElementById('ai_system_prompt_overrides').value = settings.ai_system_prompt_overrides || '';
+
+                // Fetch central AI API Keys
+                const keysData = await apiCall('profile/manage_ai_keys.php');
+                const keysList = keysData.keys || [];
+
+                const tbody = document.getElementById('admin-ai-keys-tbody');
+                if (keysList.length > 0) {
+                    tbody.innerHTML = keysList.map(k => {
+                        let badgeColor = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+                        if (k.status === 'limit_exceeded') {
+                            badgeColor = 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+                        } else if (k.status === 'invalid') {
+                            badgeColor = 'bg-red-500/10 text-red-400 border border-red-500/20';
+                        } else if (k.status === 'paused') {
+                            badgeColor = 'bg-slate-800 text-slate-400 border border-slate-700';
+                        }
+                        
+                        let providerLabel = k.provider === 'openrouter' ? 'OpenRouter' : 
+                                            k.provider === 'github_models' ? 'GitHub Models' : 'Google Gemini';
+
+                        let pausePlayIcon = k.status === 'paused' ? 'play' : 'pause';
+                        let pausePlayTitle = k.status === 'paused' ? 'Resume Key' : 'Pause Key';
+
+                        return `
+                            <tr class="hover:bg-slate-900/40">
+                                <td class="py-2.5 px-4 font-bold text-white">${providerLabel}</td>
+                                <td class="py-2.5 px-4 font-mono text-slate-400">${k.masked_key}</td>
+                                <td class="py-2.5 px-4">
+                                    <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${badgeColor}">${k.status.replace('_', ' ')}</span>
+                                </td>
+                                <td class="py-2.5 px-4 text-slate-300 font-semibold">${k.total_calls.toLocaleString()}</td>
+                                <td class="py-2.5 px-4 text-slate-300 font-semibold">${k.calls_24h.toLocaleString()}</td>
+                                <td class="py-2.5 px-4 text-right">
+                                    <button onclick="toggleAdminAIKeyStatus(${k.id}, '${k.status}')" class="text-[10px] px-2 py-1 bg-slate-850 border border-slate-700 rounded hover:border-indigo-400 hover:text-indigo-400 transition mr-2" title="${pausePlayTitle}">
+                                        ${k.status === 'paused' ? 'Resume' : 'Pause'}
+                                    </button>
+                                    <button onclick="deleteAdminAIKey(${k.id})" class="text-[10px] px-2 py-1 bg-red-950/20 text-red-400 border border-red-900/20 rounded hover:bg-red-900/20 transition">Delete</button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-slate-500">No Central AI API Keys configured. Click "Add API Key" above to connect one!</td></tr>';
+                }
+            } catch (err) {
+                showNotification('error', 'Failed to load AI Settings: ' + err.message);
+            }
+        };
+
+        window.toggleAdminAddKeyForm = function() {
+            const el = document.getElementById('admin-add-key-form-container');
+            const btn = document.getElementById('admin-add-key-toggle-btn');
+            if (el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+                btn.innerHTML = '<span>Cancel</span>';
+            } else {
+                el.classList.add('hidden');
+                btn.innerHTML = '<span>Add API Key</span>';
+            }
+        };
+
+        window.selectAdminNewKeyProvider = function(provider) {
+            document.getElementById('admin-new-key-provider-hidden').value = provider;
+            
+            const cards = ['openrouter', 'github_models', 'google_ai_studio'];
+            cards.forEach(c => {
+                const cardEl = document.getElementById(`admin-provider-card-${c}`);
+                if (cardEl) {
+                    if (c === provider) {
+                        cardEl.classList.remove('border-slate-800');
+                        cardEl.classList.add('border-rose-500', 'shadow-sm');
+                    } else {
+                        cardEl.classList.remove('border-rose-500', 'shadow-sm');
+                        cardEl.classList.add('border-slate-800');
+                    }
+                }
+            });
+        };
+
+        window.submitAdminNewAIKey = async function() {
+            const provider = document.getElementById('admin-new-key-provider-hidden').value;
+            const apiKey = document.getElementById('admin-new-key-value-input').value.trim();
+            if (!apiKey) {
+                showNotification('error', 'Please enter an API Key value.');
+                return;
+            }
+
+            try {
+                const res = await apiCall('profile/manage_ai_keys.php', 'POST', {
+                    provider: provider,
+                    api_key: apiKey
+                });
+                
+                if (res.status === 'success') {
+                    showNotification('success', 'API Key added successfully.');
+                    document.getElementById('admin-new-key-value-input').value = '';
+                    document.getElementById('admin-add-key-form-container').classList.add('hidden');
+                    document.getElementById('admin-add-key-toggle-btn').innerHTML = '<span>Add API Key</span>';
+                    loadAdminAISettingsData();
+                } else {
+                    showNotification('error', res.message || 'Failed to add key.');
+                }
+            } catch (err) {
+                showNotification('error', 'Connection error: ' + err.message);
+            }
+        };
+
+        window.toggleAdminAIKeyStatus = async function(keyId, currentStatus) {
+            const nextStatus = currentStatus === 'paused' ? 'active' : 'paused';
+            try {
+                const res = await apiCall('profile/manage_ai_keys.php', 'POST', {
+                    action: 'update',
+                    id: keyId,
+                    status: nextStatus
+                });
+                if (res.status === 'success') {
+                    showNotification('success', `Key status changed to ${nextStatus}.`);
+                    loadAdminAISettingsData();
+                } else {
+                    showNotification('error', res.message || 'Failed to toggle status.');
+                }
+            } catch (err) {
+                showNotification('error', err.message);
+            }
+        };
+
+        window.deleteAdminAIKey = async function(keyId) {
+            if (!confirm('Are you sure you want to delete this API Key? This action is permanent.')) return;
+            try {
+                const res = await apiCall('profile/manage_ai_keys.php', 'POST', {
+                    action: 'delete',
+                    id: keyId
+                });
+                if (res.status === 'success') {
+                    showNotification('success', 'Key deleted successfully.');
+                    loadAdminAISettingsData();
+                } else {
+                    showNotification('error', res.message || 'Failed to delete key.');
+                }
+            } catch (err) {
+                showNotification('error', err.message);
+            }
         };
 
         // Initialize on load

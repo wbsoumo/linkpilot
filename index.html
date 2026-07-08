@@ -6445,7 +6445,7 @@
 
 
 
-  <span class=" text-base font-normal  inline-block">Capture</span>
+  <span class=" text-base font-normal  inline-block">Automation</span>
 
   
 
@@ -6592,40 +6592,24 @@
   </div>
 
   <div class="relative z-10 w-full overflow-hidden px-16 md:px-0">
-    <div class="main-demo-block__mobile-frame relative left-1/2 -translate-x-1/2 overflow-hidden bg-irisMist rounded-20 md:box-content md:w-auto md:border-4 md:border-irisMist lg:max-w-800">
-
-      <div class="pointer-events-none absolute inset-0 z-10 hidden md:block">
-        <div class="js-demo-block-loader-overlay h-full w-full">
-          
-
-
-<div class="main-demo-block__loader absolute inset-0 m-auto h-fit w-fit">
-  <div class="w-32 h-32 rounded-full relative loader__in border-white ">
-  </div>
-</div>        </div>
+    <div class="main-demo-block__mobile-frame relative left-1/2 -translate-x-1/2 overflow-hidden bg-irisMist rounded-20 md:box-content md:w-auto md:border-4 md:border-irisMist lg:max-w-800 flex items-center justify-center" style="display: flex !important; align-items: center !important; justify-content: center !important; min-height: 450px; background: #eceaf9;">
+      
+      <!-- Keep the JS stage/loaders hidden to prevent Javascript errors -->
+      <div style="display: none !important;">
+        <div class="js-demo-block-loader-overlay">
+          <div class="js-demo-block-loader"></div>
+        </div>
+        <div class="js-demo-block-stage"></div>
+        <div class="js-demo-block-mobile-panel" data-name="capture"></div>
+        <div class="js-demo-block-mobile-panel" data-name="automate"></div>
+        <div class="js-demo-block-mobile-panel" data-name="scale"></div>
+        <div class="js-demo-block-mobile-panel" data-name="analyze"></div>
       </div>
 
-      <div class="overflow-hidden md:aspect-video">
-        <div class="hidden h-full w-full md:block">
-          <div class="h-full w-full">
-            <div class="js-demo-block-stage flex h-full w-full items-start justify-end"></div>
-          </div>
-        </div>
-
-        <div class="min-h-300 w-full md:hidden">
-                      <div class="js-demo-block-mobile-panel h-full w-full " data-name="capture">
-              <picture class="block h-full w-full"><source type="image/png" srcset="//pcfcdn.kommo.com/images/pages/main/demo-block/en/demo-block-capture-image.png 1x, //pcfcdn.kommo.com/images/pages/main/demo-block/en/demo-block-capture-image-2x.png 2x"></source><img class="block h-full w-full object-contain object-left-top" src="//pcfcdn.kommo.com/images/pages/main/demo-block/en/demo-block-capture-image.png" alt="Medical appointment booking interface with service selection menu and available time slots displayed in a weekly calendar"></picture>
-</div>
-                      <div class="js-demo-block-mobile-panel h-full w-full hidden" data-name="automate">
-              <picture class="block h-full w-full"><source type="image/png" srcset="//pcfcdn.kommo.com/images/pages/main/demo-block/en/demo-block-automate-image.png 1x, //pcfcdn.kommo.com/images/pages/main/demo-block/en/demo-block-automate-image-2x.png 2x"></source><img class="block h-full w-full object-contain object-left-top" src="//pcfcdn.kommo.com/images/pages/main/demo-block/en/demo-block-automate-image.png" alt="AI agent checking calendar availability and matching chat requests with open appointment slots"></picture>
-</div>
-                      <div class="js-demo-block-mobile-panel h-full w-full hidden" data-name="scale">
-              <picture class="block h-full w-full"><source type="image/png" srcset="//pcfcdn.kommo.com/images/pages/main/demo-block/en/demo-block-scale-image.png 1x, //pcfcdn.kommo.com/images/pages/main/demo-block/en/demo-block-scale-image-2x.png 2x"></source><img class="block h-full w-full object-contain object-left-top" src="//pcfcdn.kommo.com/images/pages/main/demo-block/en/demo-block-scale-image.png" alt="AI assistant helping a client find properties by budget and sending a payment link to continue the purchase process"></picture>
-</div>
-                      <div class="js-demo-block-mobile-panel h-full w-full hidden" data-name="analyze">
-              <picture class="block h-full w-full"><source type="image/png" srcset="//pcfcdn.kommo.com/images/pages/main/demo-block/en/demo-block-analyze-image.png 1x, //pcfcdn.kommo.com/images/pages/main/demo-block/en/demo-block-analyze-image-2x.png 2x"></source><img class="block h-full w-full object-contain object-left-top" src="//pcfcdn.kommo.com/images/pages/main/demo-block/en/demo-block-analyze-image.png" alt="LinkPilot Copilot analyzing lead drop-off after booking invitations and recommending follow-up actions to improve conversion"></picture>
-</div>
-                  </div>
+      <!-- Main Lottie File Model Content -->
+      <div class="flex items-center justify-center" style="display: flex !important; align-items: center !important; justify-content: center !important; width: 100%; height: 100%; min-height: 400px; padding: 2rem;">
+        <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.14/dist/dotlottie-wc.js" type="module"></script>
+        <dotlottie-wc src="https://lottie.host/4c8c121f-ad1e-424f-9065-8d9e37f573de/Cig3lPLtTH.lottie" style="width: 300px; height: 300px;" autoplay loop></dotlottie-wc>
       </div>
     </div>
   </div>

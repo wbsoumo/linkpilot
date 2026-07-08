@@ -140,74 +140,74 @@
             <div id="admin-ai-settings-pane" class="hidden space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
                     <!-- Left: Global settings overrides -->
-                    <div class="glass-panel p-6 bg-slate-900/40 space-y-6 md:col-span-1">
-                        <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2">Global Scheduler & AI Prompts</h3>
+                    <div class="glass-panel p-6 space-y-6 md:col-span-1">
+                        <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2">Global Scheduler & AI Prompts</h3>
                         <form onsubmit="saveGlobalSettings(event)" class="space-y-4">
                             <div>
-                                <label class="block text-slate-400 font-semibold mb-1">Global Default Email Sync Interval (Minutes)</label>
-                                <input type="number" id="global_sync_interval" class="w-full px-3 py-2 bg-slate-850 border border-slate-700 rounded-lg text-white">
+                                <label class="block text-slate-500 font-semibold mb-1">Global Default Email Sync Interval (Minutes)</label>
+                                <input type="number" id="global_sync_interval" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
                             </div>
                             <div>
-                                <label class="block text-slate-400 font-semibold mb-1">AI Prompt Overrides</label>
-                                <textarea id="ai_system_prompt_overrides" rows="6" class="w-full px-3 py-2 bg-slate-850 border border-slate-700 rounded-lg text-white font-mono" placeholder="Default system prompts..."></textarea>
+                                <label class="block text-slate-500 font-semibold mb-1">AI Prompt Overrides</label>
+                                <textarea id="ai_system_prompt_overrides" rows="6" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 font-mono" placeholder="Default system prompts..."></textarea>
                             </div>
-                            <button type="submit" class="px-4 py-2 bg-rose-500 text-white rounded-lg font-bold transition hover:bg-rose-600">Save Configurations</button>
+                            <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-bold transition">Save Configurations</button>
                         </form>
                     </div>
 
                     <!-- Right: Central AI API Keys Manager -->
-                    <div class="glass-panel p-6 bg-slate-900/40 space-y-6 md:col-span-2">
-                        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                            <h3 class="text-sm font-bold text-white">Central AI API Keys Manager</h3>
-                            <button onclick="toggleAdminAddKeyForm()" class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg font-bold transition shadow-sm" id="admin-add-key-toggle-btn" style="color: #ffffff !important;">
-                                <span style="color: #ffffff !important;">Add API Key</span>
+                    <div class="glass-panel p-6 space-y-6 md:col-span-2">
+                        <div class="flex justify-between items-center border-b border-slate-150 pb-2">
+                            <h3 class="text-sm font-bold text-slate-800">Central AI API Keys Manager</h3>
+                            <button onclick="toggleAdminAddKeyForm()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-bold transition shadow-sm" id="admin-add-key-toggle-btn">
+                                <span>Add API Key</span>
                             </button>
                         </div>
 
                         <!-- Inline Add Key Form -->
-                        <div id="admin-add-key-form-container" class="p-4 bg-slate-900/30 border border-slate-800 rounded-xl space-y-4 hidden">
-                            <span class="block text-slate-300 font-bold text-[10px] uppercase tracking-wider">Connect New Central API Key</span>
+                        <div id="admin-add-key-form-container" class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4 hidden">
+                            <span class="block text-slate-650 font-bold text-[10px] uppercase tracking-wider">Connect New Central API Key</span>
                             <input type="hidden" id="admin-new-key-provider-hidden" value="openrouter">
                             
                             <!-- Provider Card Selector Row -->
                             <div class="space-y-1.5">
-                                <label class="block text-[9px] font-bold text-slate-500 uppercase">Select AI Provider</label>
+                                <label class="block text-[9px] font-bold text-slate-400 uppercase">Select AI Provider</label>
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                     <!-- OpenRouter Card -->
-                                    <div onclick="selectAdminNewKeyProvider('openrouter')" id="admin-provider-card-openrouter" class="border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-850 transition flex items-center space-x-3 bg-slate-900 border-rose-500 shadow-sm">
+                                    <div onclick="selectAdminNewKeyProvider('openrouter')" id="admin-provider-card-openrouter" class="border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition flex items-center space-x-3 bg-white border-indigo-600 shadow-sm">
                                         <img src="https://openrouter.ai/favicon.ico" class="h-6 w-6 rounded-md object-contain shrink-0" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2103/2103633.png'">
                                         <div>
-                                            <span class="block font-bold text-white text-[11px]">OpenRouter</span>
-                                            <span class="text-[9px] text-slate-500 font-semibold">Free & Premium</span>
+                                            <span class="block font-bold text-slate-800 text-[11px]">OpenRouter</span>
+                                            <span class="text-[9px] text-slate-400 font-semibold">Free & Premium</span>
                                         </div>
                                     </div>
 
                                     <!-- GitHub Models Card -->
-                                    <div onclick="selectAdminNewKeyProvider('github_models')" id="admin-provider-card-github_models" class="border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-850 transition flex items-center space-x-3 bg-slate-900 border-slate-800">
+                                    <div onclick="selectAdminNewKeyProvider('github_models')" id="admin-provider-card-github_models" class="border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition flex items-center space-x-3 bg-white border-slate-200">
                                         <img src="https://github.githubassets.com/favicons/favicon.svg" class="h-6 w-6 rounded-md object-contain shrink-0">
                                         <div>
-                                            <span class="block font-bold text-white text-[11px]">GitHub Models</span>
-                                            <span class="text-[9px] text-slate-500 font-semibold">Developer Tokens</span>
+                                            <span class="block font-bold text-slate-800 text-[11px]">GitHub Models</span>
+                                            <span class="text-[9px] text-slate-400 font-semibold">Developer Tokens</span>
                                         </div>
                                     </div>
 
                                     <!-- Gemini Card -->
-                                    <div onclick="selectAdminNewKeyProvider('google_ai_studio')" id="admin-provider-card-google_ai_studio" class="border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-850 transition flex items-center space-x-3 bg-slate-900 border-slate-800">
+                                    <div onclick="selectAdminNewKeyProvider('google_ai_studio')" id="admin-provider-card-google_ai_studio" class="border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition flex items-center space-x-3 bg-white border-slate-200">
                                         <img src="https://aistudio.google.com/static/images/favicon.png" class="h-6 w-6 rounded-md object-contain shrink-0" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2103/2103633.png'">
                                         <div>
-                                            <span class="block font-bold text-white text-[11px]">Gemini Studio</span>
-                                            <span class="text-[9px] text-slate-500 font-semibold">Google Gemini API</span>
+                                            <span class="block font-bold text-slate-800 text-[11px]">Gemini Studio</span>
+                                            <span class="text-[9px] text-slate-400 font-semibold">Google Gemini API</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="space-y-1.5">
-                                <label class="block text-[9px] font-bold text-slate-500 uppercase">API Key Value / Token</label>
+                                <label class="block text-[9px] font-bold text-slate-400 uppercase">API Key Value / Token</label>
                                 <div class="flex space-x-2">
-                                    <input type="password" id="admin-new-key-value-input" placeholder="Enter API Key value" class="flex-grow px-2.5 py-1.5 bg-slate-850 border border-slate-700 rounded-lg text-white">
-                                    <button onclick="submitAdminNewAIKey()" class="px-4 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg font-bold transition shrink-0 flex items-center justify-center space-x-1.5 shadow-sm" style="color: #ffffff !important;">
-                                        <span style="color: #ffffff !important;">Save Key</span>
+                                    <input type="password" id="admin-new-key-value-input" placeholder="Enter API Key value" class="flex-grow px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800">
+                                    <button onclick="submitAdminNewAIKey()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-bold transition shrink-0 flex items-center justify-center space-x-1.5 shadow-sm">
+                                        <span>Save Key</span>
                                     </button>
                                 </div>
                             </div>
@@ -217,7 +217,7 @@
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse custom-table text-[11px]">
                                 <thead>
-                                    <tr class="border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                                    <tr class="border-b border-slate-200 text-slate-450 font-bold uppercase tracking-wider text-[9px]">
                                         <th class="py-2">Provider</th>
                                         <th class="py-2">API Key (Masked)</th>
                                         <th class="py-2">Status</th>
@@ -242,18 +242,18 @@
                         <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2">Adjust User Balance</h3>
                         <form onsubmit="applyManualCreditAdjustment(event)" class="space-y-4 text-xs">
                             <div>
-                                <label class="block text-slate-400 font-semibold mb-1">Target User ID</label>
-                                <input type="number" id="adj_user_id" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                                <label class="block text-slate-500 font-semibold mb-1">Target User ID</label>
+                                <input type="number" id="adj_user_id" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
                             </div>
                             <div>
-                                <label class="block text-slate-400 font-semibold mb-1">Adjust Value</label>
-                                <input type="number" id="adj_credits" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white" placeholder="Positive to add, negative to subtract">
+                                <label class="block text-slate-500 font-semibold mb-1">Adjust Value</label>
+                                <input type="number" id="adj_credits" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800" placeholder="Positive to add, negative to subtract">
                             </div>
                             <div>
-                                <label class="block text-slate-400 font-semibold mb-1">Deduction Reason</label>
-                                <input type="text" id="adj_reason" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                                <label class="block text-slate-500 font-semibold mb-1">Deduction Reason</label>
+                                <input type="text" id="adj_reason" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
                             </div>
-                            <button type="submit" class="w-full py-2 bg-rose-500 text-white rounded-lg font-bold transition hover:bg-rose-600">Update User Credits</button>
+                            <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-bold transition">Update User Credits</button>
                         </form>
                     </div>
                 </div>
@@ -895,13 +895,13 @@
                 const tbody = document.getElementById('admin-ai-keys-tbody');
                 if (keysList.length > 0) {
                     tbody.innerHTML = keysList.map(k => {
-                        let badgeColor = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+                        let badgeColor = 'bg-emerald-50 text-emerald-600 border border-emerald-200';
                         if (k.status === 'limit_exceeded') {
-                            badgeColor = 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+                            badgeColor = 'bg-amber-50 text-amber-600 border border-amber-200';
                         } else if (k.status === 'invalid') {
-                            badgeColor = 'bg-red-500/10 text-red-400 border border-red-500/20';
+                            badgeColor = 'bg-red-50 text-red-600 border border-red-200';
                         } else if (k.status === 'paused') {
-                            badgeColor = 'bg-slate-800 text-slate-400 border border-slate-700';
+                            badgeColor = 'bg-slate-100 text-slate-500 border border-slate-200';
                         }
                         
                         let providerLabel = k.provider === 'openrouter' ? 'OpenRouter' : 
@@ -911,19 +911,19 @@
                         let pausePlayTitle = k.status === 'paused' ? 'Resume Key' : 'Pause Key';
 
                         return `
-                            <tr class="hover:bg-slate-900/40">
-                                <td class="py-2.5 px-4 font-bold text-white">${providerLabel}</td>
-                                <td class="py-2.5 px-4 font-mono text-slate-400">${k.masked_key}</td>
+                            <tr>
+                                <td class="py-2.5 px-4 font-bold text-slate-800">${providerLabel}</td>
+                                <td class="py-2.5 px-4 font-mono text-slate-500">${k.masked_key}</td>
                                 <td class="py-2.5 px-4">
                                     <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${badgeColor}">${k.status.replace('_', ' ')}</span>
                                 </td>
-                                <td class="py-2.5 px-4 text-slate-300 font-semibold">${k.total_calls.toLocaleString()}</td>
-                                <td class="py-2.5 px-4 text-slate-300 font-semibold">${k.calls_24h.toLocaleString()}</td>
+                                <td class="py-2.5 px-4 text-slate-600 font-semibold">${k.total_calls.toLocaleString()}</td>
+                                <td class="py-2.5 px-4 text-slate-600 font-semibold">${k.calls_24h.toLocaleString()}</td>
                                 <td class="py-2.5 px-4 text-right">
-                                    <button onclick="toggleAdminAIKeyStatus(${k.id}, '${k.status}')" class="text-[10px] px-2 py-1 bg-slate-850 border border-slate-700 rounded hover:border-indigo-400 hover:text-indigo-400 transition mr-2" title="${pausePlayTitle}">
+                                    <button onclick="toggleAdminAIKeyStatus(${k.id}, '${k.status}')" class="text-[10px] px-2 py-1 bg-white border border-slate-200 rounded text-slate-600 hover:border-indigo-600 hover:text-indigo-600 transition mr-2" title="${pausePlayTitle}">
                                         ${k.status === 'paused' ? 'Resume' : 'Pause'}
                                     </button>
-                                    <button onclick="deleteAdminAIKey(${k.id})" class="text-[10px] px-2 py-1 bg-red-950/20 text-red-400 border border-red-900/20 rounded hover:bg-red-900/20 transition">Delete</button>
+                                    <button onclick="deleteAdminAIKey(${k.id})" class="text-[10px] px-2 py-1 bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 transition">Delete</button>
                                 </td>
                             </tr>
                         `;
@@ -956,11 +956,11 @@
                 const cardEl = document.getElementById(`admin-provider-card-${c}`);
                 if (cardEl) {
                     if (c === provider) {
-                        cardEl.classList.remove('border-slate-800');
-                        cardEl.classList.add('border-rose-500', 'shadow-sm');
+                        cardEl.classList.remove('border-slate-200');
+                        cardEl.classList.add('border-indigo-600', 'shadow-sm');
                     } else {
-                        cardEl.classList.remove('border-rose-500', 'shadow-sm');
-                        cardEl.classList.add('border-slate-800');
+                        cardEl.classList.remove('border-indigo-600', 'shadow-sm');
+                        cardEl.classList.add('border-slate-200');
                     }
                 }
             });

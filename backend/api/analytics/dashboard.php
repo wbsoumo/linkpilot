@@ -34,6 +34,16 @@ try {
         ];
     }
     
+    // Actual received emails count
+    $stmtRec = $db->prepare("SELECT COUNT(*) FROM received_emails WHERE user_id = ?");
+    $stmtRec->execute([$userId]);
+    $emailsReceived = (int)$stmtRec->fetchColumn();
+
+    // Actual AI processed emails count
+    $stmtProc = $db->prepare("SELECT COUNT(*) FROM received_emails WHERE user_id = ? AND ai_status = 'processed'");
+    $stmtProc->execute([$userId]);
+    $emailsProcessed = (int)$stmtProc->fetchColumn();
+    
     // 2. Fetch 5 Most Recent Activities
     $stmtRecent = $db->prepare("SELECT action, created_at FROM activity_logs WHERE user_id = ? ORDER BY id DESC LIMIT 5");
     $stmtRecent->execute([$userId]);
@@ -84,7 +94,9 @@ try {
             'emails_generated' => (int)$stats['emails_generated'],
             'emails_sent' => (int)$stats['emails_sent'],
             'whatsapp_generated' => (int)$stats['whatsapp_generated'],
-            'comments_generated' => (int)$stats['comments_generated']
+            'comments_generated' => (int)$stats['comments_generated'],
+            'emails_received' => $emailsReceived,
+            'emails_processed' => $emailsProcessed
         ],
         'recent_activities' => $recentActivities,
         'chart_trends' => array_values($trends)

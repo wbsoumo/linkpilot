@@ -6697,49 +6697,6 @@ async function renderIntegrations(container) {
             `;
         }
 
-        container.innerHTML = `
-            <div class="space-y-6 pt-4 animate-fade-in text-xs max-w-4xl mx-auto">
-                <div>
-                    <h1 class="text-2xl font-extrabold text-slate-800">Integrations Control</h1>
-                    <p class="text-slate-500 text-xs mt-1">Connect your outbound SMTP, inbound IMAP mail servers, and active AI model APIs.</p>
-                </div>
-
-                <!-- Token & Credit Usage Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div class="glass-panel p-4 bg-white shadow-sm border border-slate-200 rounded-2xl flex items-center space-x-3.5">
-                        <div class="h-10 w-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
-                            <i data-lucide="wallet" class="h-5 w-5"></i>
-                        </div>
-                        <div>
-                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Remaining Credits</span>
-                            <span class="text-lg font-bold text-slate-800">${wallet.remaining.toLocaleString()} Tokens</span>
-                        </div>
-                    </div>
-                    
-                    <div class="glass-panel p-4 bg-white shadow-sm border border-slate-200 rounded-2xl flex items-center space-x-3.5">
-                        <div class="h-10 w-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
-                            <i data-lucide="line-chart" class="h-5 w-5"></i>
-                        </div>
-                        <div>
-                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Tokens Used</span>
-                            <span class="text-lg font-bold text-slate-800">${wallet.used.toLocaleString()} Tokens</span>
-                        </div>
-                    </div>
-                    
-                    <div class="glass-panel p-4 bg-white shadow-sm border border-slate-200 rounded-2xl flex items-center space-x-3.5">
-                        <div class="h-10 w-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
-                            <i data-lucide="activity" class="h-5 w-5"></i>
-                        </div>
-                        <div>
-                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Today's Consumption</span>
-                            <span class="text-lg font-bold text-slate-800">${todayUsage.toLocaleString()} Tokens</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        `;
-
         let column1Html = '';
         if (user.role === 'admin') {
             column1Html = `
@@ -7111,13 +7068,6 @@ async function renderIntegrations(container) {
                 </div>
 
                 ${keysControlBoardHtml}
-            </div>
-        `;>
-                                ${tableRowsHtml}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
             </div>
         `;
         lucide.createIcons();

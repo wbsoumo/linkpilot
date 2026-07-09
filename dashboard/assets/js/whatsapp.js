@@ -4219,25 +4219,13 @@ function renderWhatsAppCampaigns(container) {
                             if (btn) {
                                 btn.disabled = false;
                                 btn.innerHTML = `<i data-lucide="rocket" class="h-4 w-4 text-white"></i><span>Launch Campaign Live</span>`;
-                                lucide.createIcons();
-                            }
-                        });
-                };
-            };
-
-            // Custom Template Selector Modal with List view and Live WhatsApp message layout preview
+                                lucide.crea            // Custom Template Selector Modal with List view and Live WhatsApp message layout preview
             window.openTemplateSelectorModal = function () {
                 const existing = document.getElementById('template-picker-modal');
                 if (existing) existing.remove();
 
-                const availableTemplates = templates.length > 0 ? templates : [
-                    { name: 'followup_reminder', category: 'UTILITY', language: 'en', status: 'APPROVED', components_json: '[{"type":"BODY","text":"Hi {{1}}, just following up on our chat. Let us know if you have any questions about the proposal we sent. Have a great day!"}]' },
-                    { name: 'welcome_message', category: 'UTILITY', language: 'en', status: 'APPROVED', components_json: '[{"type":"BODY","text":"Hello {{1}}, thank you for connecting with us! We have received your inquiry regarding our CRM services and will get back to you shortly."}]' },
-                    { name: 'discount_promo', category: 'MARKETING', language: 'en', status: 'APPROVED', components_json: '[{"type":"BODY","text":"Hey {{1}}, check out this exclusive offer! Get 20% off all LinkPilot CRM plans this month. Use code: OUTREACH20."}]' },
-                    { name: 'product_launch', category: 'MARKETING', language: 'en', status: 'APPROVED', components_json: '[{"type":"BODY","text":"Exciting news! We just launched our new feature. Check it out at {{1}}!"}]' }
-                ];
-
-                let activeTpl = availableTemplates.find(t => t.name === (window.campaignDraft ? window.campaignDraft.template : '')) || availableTemplates[0];
+                const availableTemplates = templates;
+                let activeTpl = (availableTemplates.length > 0) ? (availableTemplates.find(t => t.name === (window.campaignDraft ? window.campaignDraft.template : '')) || availableTemplates[0]) : null;
 
                 const modal = document.createElement('div');
                 modal.id = 'template-picker-modal';
@@ -4312,7 +4300,7 @@ function renderWhatsAppCampaigns(container) {
 
                                 <!-- Footer Action -->
                                 <div class="pt-4 shrink-0">
-                                    <button onclick="confirmSelectedTemplate()" class="w-full py-2.5 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-md shadow-emerald-500/10" style="color: white !important;">
+                                    <button onclick="confirmSelectedTemplate()" id="confirm-modal-tpl-btn" ${!activeTpl ? 'disabled' : ''} class="w-full py-2.5 bg-[#00a884] hover:bg-[#008f6f] disabled:opacity-50 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-md shadow-emerald-500/10" style="color: white !important;">
                                         <i data-lucide="check-circle-2" class="h-4 w-4 text-white"></i>
                                         <span>Confirm Template Selection</span>
                                     </button>
@@ -4329,6 +4317,11 @@ function renderWhatsAppCampaigns(container) {
                     const listContainer = document.getElementById('modal-tpl-list-container');
                     if (!listContainer) return;
 
+                    if (availableTemplates.length === 0) {
+                        listContainer.innerHTML = `<div class="text-center text-slate-400 text-xs py-8 font-medium">No synced templates found. Please sync templates first in the templates tab.</div>`;
+                        return;
+                    }
+
                     const filtered = availableTemplates.filter(t => t.name.toLowerCase().includes(query.toLowerCase()));
                     if (filtered.length === 0) {
                         listContainer.innerHTML = `<div class="text-center text-slate-400 text-xs py-8 font-medium">No templates match search query.</div>`;
@@ -4336,8 +4329,8 @@ function renderWhatsAppCampaigns(container) {
                     }
 
                     listContainer.innerHTML = filtered.map(t => {
-                        const isSelected = t.name === activeTpl.name;
-                        const borderClass = isSelected ? 'border-[#00a884] bg-emerald-50/40' : 'border-slate-200 bg-white hover:border-slate-350';
+                        const isSelected = activeTpl && t.name === activeTpl.name;
+                        const borderClass = isSelected ? 'border-[#00a884] bg-emerald-50/40' : 'border-slate-200 bg-white hover:border-slate-355';
                         const badgeBg = t.category === 'MARKETING' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-600';
 
                         return `
@@ -4359,24 +4352,31 @@ function renderWhatsAppCampaigns(container) {
                 };
 
                 window.selectModalTemplate = function (name) {
+                    if (!activeTpl) {
+                        document.getElementById('wa-preview-message-body').innerHTML = '<div class="text-center py-8 text-slate-400">No template selected.</div>';
+                        return;
+                    }
                     activeTpl = availableTemplates.find(t => t.name === name) || availableTemplates[0];
                     window.filterModalTemplates(document.getElementById('tpl-modal-search').value);
 
-                    let bodyText = '';
-                    try {
-                        const comps = typeof activeTpl.components_json === 'string' ? JSON.parse(activeTpl.components_json) : (activeTpl.components || []);
-                        const bodyComp = comps.find(c => c.type === 'BODY');
-                        bodyText = bodyComp ? bodyComp.text : 'Template body text not found.';
-                    } catch (e) {
-                        bodyText = 'Error parsing template body component.';
-                    }
+                    const components = typeof activeTpl.components_json === 'string' ? JSON.parse(activeTpl.components_json) : (activeTpl.components || []);
 
                     // Replace {{1}}, {{2}} with nice green chips
-                    bodyText = bodyText.replace(/\{\{(\d+)\}\}/g, '<strong class="text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-md font-extrabold text-[10px] border border-emerald-200">[Variable $1]</strong>');
-                    document.getElementById('wa-preview-message-body').innerHTML = bodyText;
+                    const varMappings = {};
+                    for (let j = 1; j <= 10; j++) {
+                        varMappings[`{{${j}}}`] = `<strong class="text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-md font-extrabold text-[10px] border border-emerald-200">[Variable ${j}]</strong>`;
+                    }
+
+                    const formattedHtml = window.renderWhatsAppBubbleHTML(components, varMappings);
+                    const bubble = document.getElementById('wa-preview-message-body');
+                    if (bubble) {
+                        bubble.innerHTML = formattedHtml;
+                        lucide.createIcons();
+                    }
                 };
 
                 window.confirmSelectedTemplate = function () {
+                    if (!activeTpl) return;
                     document.getElementById('camp-inline-template').value = activeTpl.name;
                     window.campaignDraft.template = activeTpl.name;
                     document.getElementById('summary-template').textContent = activeTpl.name;
@@ -4384,7 +4384,11 @@ function renderWhatsAppCampaigns(container) {
                     showNotification('success', `Confirmed template: ${activeTpl.name}`);
                 };
 
-                window.selectModalTemplate(activeTpl.name);
+                if (activeTpl) {
+                    window.selectModalTemplate(activeTpl.name);
+                } else {
+                    window.filterModalTemplates('');
+                }
             };
 
             window.triggerBroadcastCampaign = function (campId) {
@@ -4407,6 +4411,63 @@ function renderWhatsAppCampaigns(container) {
         }
     });
 }
+
+// Global WhatsApp Message Preview bubble renderer helper
+window.renderWhatsAppBubbleHTML = function(components, varMappings = {}) {
+    const headerComp = components.find(c => c.type === 'HEADER') || null;
+    const bodyComp = components.find(c => c.type === 'BODY') || null;
+    const footerComp = components.find(c => c.type === 'FOOTER') || null;
+    const buttonsComp = components.find(c => c.type === 'BUTTONS') || null;
+
+    let headerHtml = '';
+    if (headerComp && headerComp.text) {
+        let text = headerComp.text;
+        Object.keys(varMappings).forEach(tag => {
+            text = text.replaceAll(tag, varMappings[tag]);
+        });
+        headerHtml = `<div class="font-bold text-slate-900 mb-1 leading-normal text-[10.5px]">${text}</div>`;
+    }
+
+    let bodyHtml = '';
+    if (bodyComp && bodyComp.text) {
+        let text = bodyComp.text;
+        Object.keys(varMappings).forEach(tag => {
+            text = text.replaceAll(tag, varMappings[tag]);
+        });
+        bodyHtml = `<div class="text-[10px] text-slate-800 leading-relaxed font-sans whitespace-pre-wrap">${text.replace(/\*\*(.*?)\*\*/g, '<strong class="font-extrabold text-slate-900">$1</strong>')}</div>`;
+    }
+
+    let footerHtml = '';
+    if (footerComp && footerComp.text) {
+        footerHtml = `<div class="text-[8.5px] text-slate-400 mt-1 border-t border-slate-150/40 pt-1 leading-normal font-sans">${footerComp.text}</div>`;
+    }
+
+    let buttonsHtml = '';
+    if (buttonsComp && buttonsComp.buttons && buttonsComp.buttons.length > 0) {
+        buttonsHtml = `
+            <div class="mt-2.5 border-t border-slate-100 pt-2 flex flex-col space-y-1.5 select-none">
+                ${buttonsComp.buttons.map(b => `
+                    <div class="py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 rounded-lg text-center text-[#00a884] font-bold text-[9.5px] cursor-pointer flex items-center justify-center space-x-1 transition duration-150">
+                        <i data-lucide="external-link" class="h-3 w-3 text-[#00a884]"></i>
+                        <span>${b.text}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    return `
+        <div class="flex flex-col relative select-none">
+            ${headerHtml}
+            ${bodyHtml}
+            ${footerHtml}
+            <span class="text-[7.5px] text-slate-400 self-end mt-1.5 flex items-center space-x-0.5">
+                <span>11:30 AM</span>
+            </span>
+            ${buttonsHtml}
+        </div>
+    `;
+};
 
 // ----------------------------------------------------
 // 6. WHATSAPP TEMPLATES VIEW
@@ -4756,44 +4817,10 @@ function renderWhatsAppTemplates(container) {
                             </div>
                         </div>
 
-                        <!-- Dynamic Variables Inputs -->
-                        ${varsFound.length > 0 ? `
-                        <div class="space-y-3.5 border-t border-slate-100 pt-3">
-                            <div class="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Variables</div>
-                            
-                            <div class="space-y-2.5">
-                                ${varsFound.map(v => {
-                    const vNum = parseInt(v.replace(/[{}]/g, ''));
-                    let label = `Variable ${vNum}`;
-                    let placeholder = `Example: Value for ${v}`;
-
-                    // Custom presets matching typical user preview fields in the mockup
-                    if (vNum === 1) {
-                        label = `1 Customer Name`;
-                        placeholder = `Example: Soumojit`;
-                    } else if (vNum === 2) {
-                        label = `2 Offer Code`;
-                        placeholder = `Example: OUTREACH20`;
-                    } else if (vNum === 3) {
-                        label = `3 Offer Expiry`;
-                        placeholder = `Example: 31st July, 2026`;
-                    }
-
-                    return `
-                                        <div>
-                                            <label class="block text-slate-500 font-bold text-[9px] mb-1">${label}</label>
-                                            <input type="text" data-var="${v}" oninput="updateMockPreviewBubble()" placeholder="${placeholder}" class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500 bg-[#f8fafc]">
-                                        </div>
-                                    `;
-                }).join('')}
-                            </div>
-                        </div>
-                        ` : ''}
-
                         <!-- Action Button -->
                         <div class="pt-2">
-                            <button onclick="useActiveTemplate()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition flex items-center justify-center space-x-1.5 shadow-md">
-                                <i data-lucide="navigation" class="h-4 w-4"></i>
+                            <button onclick="useActiveTemplate()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition flex items-center justify-center space-x-1.5 shadow-md" style="color: white !important;">
+                                <i data-lucide="navigation" class="h-4 w-4 text-white"></i>
                                 <span>Use Template</span>
                             </button>
                         </div>
@@ -4809,28 +4836,21 @@ function renderWhatsAppTemplates(container) {
                 if (!selectedTemplate) return;
 
                 const components = JSON.parse(selectedTemplate.components_json) || [];
-                const bodyComp = components.find(c => c.type === 'BODY') || {};
-                let bodyText = bodyComp.text || '';
-
-                // Replace variables with user inputs
-                const inputs = document.querySelectorAll('#template-details-panel input[data-var]');
-                inputs.forEach(input => {
-                    const varTag = input.getAttribute('data-var');
-                    const userVal = input.value.trim();
-                    if (userVal !== '') {
-                        bodyText = bodyText.replaceAll(varTag, `**${userVal}**`);
+                const varMappings = {};
+                components.forEach(comp => {
+                    if (comp.type === 'BODY' && comp.text) {
+                        const matches = comp.text.match(/{{[0-9]+}}/g) || [];
+                        matches.forEach(m => {
+                            varMappings[m] = `<strong class="text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-md font-extrabold text-[10px] border border-emerald-200">[Variable ${m.replace(/[{}]/g, '')}]</strong>`;
+                        });
                     }
                 });
 
-                // Convert double star markdown **text** to bold tags inside HTML preview
-                let formattedHtml = bodyText
-                    .replace(/</g, '&lt;')
-                    .replace(/>/g, '&gt;')
-                    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-extrabold text-slate-900">$1</strong>');
-
+                const formattedHtml = window.renderWhatsAppBubbleHTML(components, varMappings);
                 const bubble = document.getElementById('mock-bubble-text');
                 if (bubble) {
                     bubble.innerHTML = formattedHtml;
+                    lucide.createIcons();
                 }
             };
 
@@ -6115,25 +6135,23 @@ window.renderWhatsAppSendTemplate = function (container, params = {}) {
             `;
             lucide.createIcons();
 
-            // Sync preview bubble
             window.updateSendMockPreview = function () {
-                let bodyText = bodyComp?.text || '';
+                if (!selectedTemplate) return;
+                const components = JSON.parse(selectedTemplate.components_json) || [];
+                const varMappings = {};
                 const inputs = document.querySelectorAll('input[data-send-var]');
                 inputs.forEach(input => {
                     const tag = input.getAttribute('data-send-var');
-                    const val = input.value.trim();
-                    if (val !== '') {
-                        bodyText = bodyText.replaceAll(tag, `**${val}**`);
-                    }
+                    const val = input.value.trim() || tag;
+                    varMappings[tag] = `**${val}**`;
                 });
 
-                let formattedHtml = bodyText
-                    .replace(/</g, '&lt;')
-                    .replace(/>/g, '&gt;')
-                    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-extrabold text-slate-900">$1</strong>');
-
+                const formattedHtml = window.renderWhatsAppBubbleHTML(components, varMappings);
                 const bubble = document.getElementById('mock-send-bubble-text');
-                if (bubble) bubble.innerHTML = formattedHtml;
+                if (bubble) {
+                    bubble.innerHTML = formattedHtml;
+                    lucide.createIcons();
+                }
             };
 
             // Initialize preview bubble

@@ -8342,815 +8342,191 @@
     
 
 <div id="PickYourPlan" class="pt-20 pb-20 md:pt-0 md:pb-0 md:mb-0 lg:mt-20 flex flex-col">
-  <div class="flex-row-reverse js-currency-top-container flex flex-wrap justify-between items-center mb-40 md:px-0">
-          
-      
-      
-      
-            
-<div class="js-periods-control overflow-auto no-scrollbar block flex-auto order-2 mt-16 -mx-16 md:mt-0">
-  <div class="w-max px-16">
-    <div class="js-tabs-wrapper flex w-fit space-x-4 px-6 py-6 bg-linkWater rounded-full md:min-w-max">
-              
-        <label class="cursor-pointer" role="radio">
-          <input class="peer w-0 h-0 hidden" checked name="period-switcher" value="6" type="radio"><p class="px-20 py-12 rounded-full peer-checked:bg-pastelOrange transition duration-300 ease-in-out hover:text-purpleHeart peer-checked:hover:text-tolopea text-base font-medium leading-90 inline-block">        <span class="inline-block">6 months</span>
-              </p>
-        </label>
-              
-        <label class="cursor-pointer" role="radio">
-          <input class="peer w-0 h-0 hidden" name="period-switcher" value="9" type="radio"><p class="px-20 py-12 rounded-full peer-checked:bg-pastelOrange transition duration-300 ease-in-out hover:text-purpleHeart peer-checked:hover:text-tolopea text-base font-medium leading-90 inline-block">        <span class="inline-block">9 months</span>
-              </p>
-        </label>
-              
-        <label class="cursor-pointer" role="radio">
-          <input class="peer w-0 h-0 hidden" name="period-switcher" value="12" type="radio"><p class="px-20 py-12 rounded-full peer-checked:bg-pastelOrange transition duration-300 ease-in-out hover:text-purpleHeart peer-checked:hover:text-tolopea text-base font-medium leading-90 inline-block">        <span class="inline-block">1 year</span>
-              </p>
-        </label>
-              
-        <label class="cursor-pointer" role="radio">
-          <input class="peer w-0 h-0 hidden" name="period-switcher" value="24" type="radio"><p class="px-20 py-12 rounded-full peer-checked:bg-pastelOrange transition duration-300 ease-in-out hover:text-purpleHeart peer-checked:hover:text-tolopea text-base font-medium leading-90 inline-block">        <span class="inline-block">2 years</span>
-              </p>
-        </label>
-          </div>
+  <div class="flex-row-reverse flex flex-wrap justify-between items-center mb-40 md:px-0">
+    <div class="overflow-auto no-scrollbar block flex-auto order-2 mt-16 -mx-16 md:mt-0">
+      <div class="w-max px-16">
+        <div class="flex w-fit space-x-4 px-6 py-6 bg-linkWater rounded-full md:min-w-max">
+          <span class="px-20 py-12 rounded-full bg-pastelOrange text-base font-bold text-tolopea">6 months</span>
+          <span class="px-20 py-12 rounded-full text-base font-medium text-tolopea opacity-60">9 months</span>
+          <span class="px-20 py-12 rounded-full text-base font-medium text-tolopea opacity-60">1 year</span>
+          <span class="px-20 py-12 rounded-full text-base font-medium text-tolopea opacity-60">2 years</span>
+        </div>
+      </div>
+    </div>
+    <div class="border border-tolopea/30 rounded-full px-20 py-10 flex items-center space-x-8 text-base font-bold text-tolopea bg-white shadow-sm">
+      <span>₹ INR</span>
+      <svg class="w-12 h-12 text-tolopea" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+    </div>
   </div>
-</div>
-          </div>
 
   <div class="grid grid-cols-1 mb-40 gap-22 md:mb-48 lg:mb-60 lg:grid-cols-4">
-          
-                    
-      
-
-<div class="js-plan-item min-h-264 md:min-h-320 relative px-24 py-24 pb-48 rounded-20 bg-linkWater md:pb-48 xxl:pb-40 md:px-32 md:pt-32 md:pb-48 lg:px-24 lg:py-24 lg:pb-40 " data-price="15" data-plan-id="base">
-  
-  
-  <div class="relative flex h-full flex-col">
-    <div class="flex justify-between items-center md:max-w-288">
-      
-
-
-
-
-  <h2 class="mb-8 text-tolopea text-lg leading-120 font-bold md:text-2xl lg:text-3xl">      Starter
-  </h2>
-    </div>
-
     
-
-
-
-
-
-
-  <p class="max-w-640 mb-24 opacity-60 text-s text-tolopea break-words line-clamp-2 md:max-w-288 text-s  leading-140 ">Essential AI CRM features for small teams starting WhatsApp Business and inbox automation.</p>
-
-    <div class="mt-20">
-      <div class="mt-auto flex flex-col items-start">
-        <div class="flex">
-          
-
-
-
-
-  <h5 class="js-plan-item-price min-h-38 opacity-0 text-6xl font-bold leading-120 text-tolopea md:text-6xl text-2xl leading-120 font-bold md:text-3xl lg:text-6xl">      15
-  </h5>
-
-          
-
-
-
-
-
-
-  <span class="js-plan-item-price-currency mt-4 ml-4 mb-2 font-bold md:mb-4 lg:mb-2 text-s  leading-140 inline-block">USD</span>
+    <!-- Free Plan -->
+    <div class="min-h-264 md:min-h-320 relative px-24 py-24 pb-48 rounded-20 bg-linkWater md:pb-48 xxl:pb-40 md:px-32 md:pt-32 md:pb-48 lg:px-24 lg:py-24 lg:pb-40">
+      <div class="relative flex h-full flex-col">
+        <div class="flex justify-between items-center md:max-w-288 mb-8">
+          <h2 class="text-tolopea text-lg leading-120 font-bold md:text-2xl lg:text-3xl">Free Plan</h2>
         </div>
+        <p class="max-w-640 mb-24 opacity-60 text-s text-tolopea break-words line-clamp-2 md:max-w-288 text-s leading-140">Ideal for testing and setting up your workspace.</p>
         
-
-
-
-
-
-
-  <span class="opacity-60 text-tolopea mb-2 text-s  leading-140 inline-block">per user/month</span>
-      </div>
-
-      <div class="flex mt-12 mb-20">
-        
-        
-
-
-<div class="underline underline-offset-4 decoration-dashed decoration-1 js-tooltip-button-control relative">
-        
-    
-
-
-
-
-
-
-
-
-
-  
-
-  <span class="js-tooltip-button text-btn text-btn--primary btn--content-center text-btn-link ">
-      
-  
-
-
-
-
-
-
-  <span class=" text-base   inline-block">          <span class="block text-left text-s leading-140">
-            What’s my total cost?
-          </span>
-        </span>
-
-  
-
-      <div class="js-control-button-spinner btn__spinner hidden absolute inset-0 m-auto w-16 h-16 opacity-0 border-2 border-current border-r-transparent border-b-transparent rounded-full animate-spin">
-  </div>
-
-  </span>
-  
-  <div class="js-tooltip-container hidden">
-    <div class="js-tooltip absolute -left-24 max-w-280 w-max px-12 z-10 md:px-16 pt-12 pb-16 rounded-10 bg-tolopea md:max-w-320 " data-position="up" data-horizontal-shift="">
-      
-      <p class="js-tooltip-text text-s leading-140 text-white md:text-base md:leading-160 js-plan-item-total-price">
-        Billed $90/user for 6 months       </p>
-    </div>
-          <span class="absolute -top-12 left-1/2 inline-block -translate-x-1/2 border-l-8 border-r-8 border-t-8 border-solid border-l-transparent border-r-transparent border-t-tolopea"></span>
-      </div>
-</div>
-      </div>
-
-              <div class="flex flex-col justify-center items-start w-132 h-104 pt-20 pb-20 space-y-12">
-                      <div class="flex flex-col">
-              <span class="text-base font-medium leading-120 text-juicyPurple">2 500</span>
-              <span class="text-s leading-140 text-dreamsViolet">leads per user</span>
+        <div class="mt-20">
+          <div class="mt-auto flex flex-col items-start">
+            <div class="flex">
+              <h5 class="text-6xl font-bold leading-120 text-tolopea md:text-6xl text-2xl leading-120 font-bold md:text-3xl lg:text-6xl">₹0</h5>
+              <span class="mt-4 ml-4 mb-2 font-bold md:mb-4 lg:mb-2 text-s leading-140 inline-block">INR</span>
             </div>
-                                              
-              
-
-
-<div class="text-juicyPurple underline underline-offset-4 decoration-dashed decoration-1 js-tooltip-button-control relative">
-        
-    
-
-
-
-
-
-
-
-
-
-  
-
-  <span class="js-tooltip-button text-btn text-btn--primary btn--content-center text-btn-link ">
-      
-  
-
-
-
-
-
-
-  <span class=" text-base   inline-block">                <span class="text-s leading-140 text-juicyPurple">Channel limits</span>
-              </span>
-
-  
-
-      <div class="js-control-button-spinner btn__spinner hidden absolute inset-0 m-auto w-16 h-16 opacity-0 border-2 border-current border-r-transparent border-b-transparent rounded-full animate-spin">
-  </div>
-
-  </span>
-  
-  <div class="js-tooltip-container hidden">
-    <div class="js-tooltip absolute -left-24 max-w-280 w-max px-12 z-10 md:px-16 pt-12 pb-16 rounded-10 bg-tolopea md:max-w-320 " data-position="up" data-horizontal-shift="">
-      
-      <p class="js-tooltip-text text-s leading-140 text-white md:text-base md:leading-160 ">
-        1 WhatsApp number and Instagram account included. Each additional user unlocks 1 more channel       </p>
-    </div>
-          <span class="absolute -top-12 left-1/2 inline-block -translate-x-1/2 border-l-8 border-r-8 border-t-8 border-solid border-l-transparent border-r-transparent border-t-tolopea"></span>
-      </div>
-</div>
-                              </div>
-      
-      
-
-  
-
-
-
-  
-
-
-
-
-
-
-
-
-
-
-  
-
-  <button class="js-control-button js-try-it-free mt-20 w-full m-auto md:mx-0 md:w-fit lg:w-full btn btn--outline btn--small btn--center text-btn text-btn--primary-inversed btn--content-center text-btn-link  " data-name="base">
-      
-  
-
-
-
-
-
-
-  <span class=" text-s font-medium leading-120 inline-block">Start Free Trial</span>
-
-  
-
-      <div class="js-control-button-spinner btn__spinner hidden absolute inset-0 m-auto w-16 h-16 opacity-0 border-2 border-current border-r-transparent border-b-transparent rounded-full animate-spin">
-  </div>
-
-  </button>
-
+            <span class="opacity-60 text-tolopea mb-2 text-s leading-140 inline-block">per month</span>
           </div>
-  </div>
-</div>
-          
-                    
-      
 
-<div class="js-plan-item min-h-264 md:min-h-320 relative px-24 py-24 pb-48 rounded-20 bg-linkWater md:pb-48 xxl:pb-40 md:px-32 md:pt-32 md:pb-48 lg:px-24 lg:py-24 lg:pb-40 " data-price="25" data-plan-id="advanced">
-  
-  
-  <div class="relative flex h-full flex-col">
-    <div class="flex justify-between items-center md:max-w-288">
-      
+          <div class="flex flex-col justify-center items-start w-full pt-20 pb-20 space-y-12 border-t border-dashed border-tolopea/20 mt-12">
+            <div class="flex flex-col">
+              <span class="text-base font-bold leading-120 text-juicyPurple">200 credits</span>
+              <span class="text-s leading-140 text-dreamsViolet">Free AI credits included</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-base font-bold leading-120 text-juicyPurple">1 WhatsApp Number</span>
+              <span class="text-s leading-140 text-dreamsViolet">WhatsApp number limit</span>
+            </div>
+            <div class="text-juicyPurple underline underline-offset-4 decoration-dashed decoration-1">
+              <span class="text-s leading-140 text-juicyPurple">Standard CRM included</span>
+            </div>
+          </div>
 
-
-
-
-  <h2 class="mb-8 text-tolopea text-lg leading-120 font-bold md:text-2xl lg:text-3xl">      Growth
-  </h2>
-    </div>
-
-    
-
-
-
-
-
-
-  <p class="max-w-640 mb-24 opacity-60 text-s text-tolopea break-words line-clamp-2 md:max-w-288 text-s  leading-140 ">For growing brands needing Kanban deal tracking, custom fields, and email automation.</p>
-
-    <div class="mt-20">
-      <div class="mt-auto flex flex-col items-start">
-        <div class="flex">
-          
-
-
-
-
-  <h5 class="js-plan-item-price min-h-38 opacity-0 text-6xl font-bold leading-120 text-tolopea md:text-6xl text-2xl leading-120 font-bold md:text-3xl lg:text-6xl">      25
-  </h5>
-
-          
-
-
-
-
-
-
-  <span class="js-plan-item-price-currency mt-4 ml-4 mb-2 font-bold md:mb-4 lg:mb-2 text-s  leading-140 inline-block">USD</span>
+          <a href="dashboard/register.html" class="mt-20 w-full m-auto md:mx-0 md:w-fit lg:w-full btn btn--outline btn--small btn--center text-btn text-btn--primary-inversed btn--content-center text-btn-link flex items-center justify-center">
+            <span class="text-s font-medium leading-120 inline-block">Try it free</span>
+          </a>
         </div>
-        
-
-
-
-
-
-
-  <span class="opacity-60 text-tolopea mb-2 text-s  leading-140 inline-block">per user/month</span>
       </div>
-
-      <div class="flex mt-12 mb-20">
-        
-        
-
-
-<div class="underline underline-offset-4 decoration-dashed decoration-1 js-tooltip-button-control relative">
-        
-    
-
-
-
-
-
-
-
-
-
-  
-
-  <span class="js-tooltip-button text-btn text-btn--primary btn--content-center text-btn-link ">
-      
-  
-
-
-
-
-
-
-  <span class=" text-base   inline-block">          <span class="block text-left text-s leading-140">
-            What’s my total cost?
-          </span>
-        </span>
-
-  
-
-      <div class="js-control-button-spinner btn__spinner hidden absolute inset-0 m-auto w-16 h-16 opacity-0 border-2 border-current border-r-transparent border-b-transparent rounded-full animate-spin">
-  </div>
-
-  </span>
-  
-  <div class="js-tooltip-container hidden">
-    <div class="js-tooltip absolute -left-24 max-w-280 w-max px-12 z-10 md:px-16 pt-12 pb-16 rounded-10 bg-tolopea md:max-w-320 " data-position="up" data-horizontal-shift="">
-      
-      <p class="js-tooltip-text text-s leading-140 text-white md:text-base md:leading-160 js-plan-item-total-price">
-        Billed $150/user for 6 months       </p>
     </div>
-          <span class="absolute -top-12 left-1/2 inline-block -translate-x-1/2 border-l-8 border-r-8 border-t-8 border-solid border-l-transparent border-r-transparent border-t-tolopea"></span>
-      </div>
-</div>
-      </div>
 
-              <div class="flex flex-col justify-center items-start w-132 h-104 pt-20 pb-20 space-y-12">
-                      <div class="flex flex-col">
-              <span class="text-base font-medium leading-120 text-juicyPurple">5 000</span>
-              <span class="text-s leading-140 text-dreamsViolet">leads per user</span>
-            </div>
-                                              
-              
-
-
-<div class="text-juicyPurple underline underline-offset-4 decoration-dashed decoration-1 js-tooltip-button-control relative">
-        
-    
-
-
-
-
-
-
-
-
-
-  
-
-  <span class="js-tooltip-button text-btn text-btn--primary btn--content-center text-btn-link ">
-      
-  
-
-
-
-
-
-
-  <span class=" text-base   inline-block">                <span class="text-s leading-140 text-juicyPurple">Channel limits</span>
-              </span>
-
-  
-
-      <div class="js-control-button-spinner btn__spinner hidden absolute inset-0 m-auto w-16 h-16 opacity-0 border-2 border-current border-r-transparent border-b-transparent rounded-full animate-spin">
-  </div>
-
-  </span>
-  
-  <div class="js-tooltip-container hidden">
-    <div class="js-tooltip absolute -left-24 max-w-280 w-max px-12 z-10 md:px-16 pt-12 pb-16 rounded-10 bg-tolopea md:max-w-320 " data-position="up" data-horizontal-shift="">
-      
-      <p class="js-tooltip-text text-s leading-140 text-white md:text-base md:leading-160 ">
-        3 WhatsApp numbers and 3 Instagram accounts. Additional channels unlocked per extra user after limit       </p>
-    </div>
-          <span class="absolute -top-12 left-1/2 inline-block -translate-x-1/2 border-l-8 border-r-8 border-t-8 border-solid border-l-transparent border-r-transparent border-t-tolopea"></span>
-      </div>
-</div>
-                              </div>
-      
-      
-
-  
-
-
-
-  
-
-
-
-
-
-
-
-
-
-
-  
-
-  <button class="js-control-button js-try-it-free mt-20 w-full m-auto md:mx-0 md:w-fit lg:w-full btn btn--outline btn--small btn--center text-btn text-btn--primary-inversed btn--content-center text-btn-link  " data-name="advanced">
-      
-  
-
-
-
-
-
-
-  <span class=" text-s font-medium leading-120 inline-block">Start Free Trial</span>
-
-  
-
-      <div class="js-control-button-spinner btn__spinner hidden absolute inset-0 m-auto w-16 h-16 opacity-0 border-2 border-current border-r-transparent border-b-transparent rounded-full animate-spin">
-  </div>
-
-  </button>
-
-          </div>
-  </div>
-</div>
-          
-                    
-      
-
-<div class="js-plan-item min-h-264 col-span-full lg:col-auto relative px-24 py-24 pb-48 rounded-20 bg-ai-gradient-purple md:pb-48 xxl:pb-40 md:px-32 md:pt-32 md:pb-48 lg:px-24 lg:py-24 lg:pb-40 " data-price="45" data-plan-id="pro">
-      <div class="absolute inset-0 overflow-hidden rounded-20 pointer-events-none">
-    <picture class="absolute right-0 bottom-0 rounded-20 md:hidden"><source type="image/png" media="(max-width: 767.9999px)" data-srcset="//pcfcdn.kommo.com/images/pages/main/star-corner-mobile-new.png 1x, //pcfcdn.kommo.com/images/pages/main/star-corner-mobile-new-2x.png 2x"></source><img class="lazy" alt="" width="281" height="160"></picture><picture class="absolute right-0 bottom-0 hidden rounded-tr-20 overflow-hidden rounded-20 md:block lg:hidden"><source type="image/png" media="(min-width: 768px) and (max-width: 1199.9999px)" data-srcset="//pcfcdn.kommo.com/images/pages/main/star-corner-tablet-new.png 1x, //pcfcdn.kommo.com/images/pages/main/star-corner-tablet-new-2x.png 2x"></source><img class="lazy" alt="" width="420" height="420"></picture><picture class="absolute right-0 bottom-0 hidden rounded-br-20 overflow-hidden rounded-20 lg:block"><source type="image/png" media="(min-width: 1200px)" data-srcset="//pcfcdn.kommo.com/images/pages/main/star-corner-desktop-new.png 1x, //pcfcdn.kommo.com/images/pages/main/star-corner-desktop-new-2x.png 2x"></source><img class="lazy" alt="" width="236" height="135"></picture>
-</div>
-  
+    <!-- Recharge Plan (Hero) -->
+    <div class="min-h-264 md:min-h-320 relative px-24 py-24 pb-48 rounded-20 bg-ai-gradient-purple md:pb-48 xxl:pb-40 md:px-32 md:pt-32 md:pb-48 lg:px-24 lg:py-24 lg:pb-40">
       <div class="absolute inset-x-0 top-0 z-10 flex justify-start pl-24 pointer-events-none md:pl-32 lg:pl-0 lg:justify-center">
-      <div class="-mt-12 pointer-events-auto">
-        
-<div class="inline-flex items-center justify-center px-8 py-6 text-s font-bold leading-120 rounded-8 text-white bg-irisMist">
-  most popular
-</div>
-      </div>
-    </div>
-  
-  <div class="relative flex h-full flex-col">
-    <div class="flex justify-between items-center md:max-w-288">
-      
-
-
-
-
-  <h2 class="mb-8 text-tolopea text-lg leading-120 font-bold md:text-2xl lg:text-3xl">      Pro
-  </h2>
-    </div>
-
-    
-
-
-
-
-
-
-  <p class="max-w-640 mb-24 opacity-60 text-s text-tolopea break-words line-clamp-2 md:max-w-288 text-s  leading-140 ">Scale your business with high-ROI WhatsApp Broadcast Campaigns and advanced AI Agents.</p>
-
-    <div class="mt-20">
-      <div class="mt-auto flex flex-col items-start">
-        <div class="flex">
-          
-
-
-
-
-  <h5 class="js-plan-item-price min-h-38 opacity-0 text-6xl font-bold leading-120 text-tolopea md:text-6xl text-2xl leading-120 font-bold md:text-3xl lg:text-6xl">      45
-  </h5>
-
-          
-
-
-
-
-
-
-  <span class="js-plan-item-price-currency mt-4 ml-4 mb-2 font-bold md:mb-4 lg:mb-2 text-s  leading-140 inline-block">USD</span>
+        <div class="-mt-12 pointer-events-auto">
+          <div class="inline-flex items-center justify-center px-8 py-6 text-s font-bold leading-120 rounded-8 text-white bg-irisMist">
+            most popular
+          </div>
         </div>
-        
-
-
-
-
-
-
-  <span class="opacity-60 text-tolopea mb-2 text-s  leading-140 inline-block">per user/month</span>
       </div>
-
-      <div class="flex mt-12 mb-20">
-        
-        
-
-
-<div class="underline underline-offset-4 decoration-dashed decoration-1 js-tooltip-button-control relative">
-        
-    
-
-
-
-
-
-
-
-
-
-  
-
-  <span class="js-tooltip-button text-btn text-btn--primary btn--content-center text-btn-link ">
       
-  
-
-
-
-
-
-
-  <span class=" text-base   inline-block">          <span class="block text-left text-s leading-140">
-            What’s my total cost?
-          </span>
-        </span>
-
-  
-
-      <div class="js-control-button-spinner btn__spinner hidden absolute inset-0 m-auto w-16 h-16 opacity-0 border-2 border-current border-r-transparent border-b-transparent rounded-full animate-spin">
-  </div>
-
-  </span>
-  
-  <div class="js-tooltip-container hidden">
-    <div class="js-tooltip absolute -left-24 max-w-280 w-max px-12 z-10 md:px-16 pt-12 pb-16 rounded-10 bg-tolopea md:max-w-320 " data-position="up" data-horizontal-shift="">
-      
-      <p class="js-tooltip-text text-s leading-140 text-white md:text-base md:leading-160 js-plan-item-total-price">
-        Billed $90/user for 6 months       </p>
-    </div>
-          <span class="absolute -top-12 left-1/2 inline-block -translate-x-1/2 border-l-8 border-r-8 border-t-8 border-solid border-l-transparent border-r-transparent border-t-tolopea"></span>
-      </div>
-</div>
+      <div class="absolute inset-0 overflow-hidden rounded-20 pointer-events-none">
+        <picture class="absolute right-0 bottom-0 rounded-20 md:hidden"><source type="image/png" media="(max-width: 767.9999px)" data-srcset="//pcfcdn.kommo.com/images/pages/main/star-corner-mobile-new.png 1x, //pcfcdn.kommo.com/images/pages/main/star-corner-mobile-new-2x.png 2x"></source><img class="lazy" alt="" width="281" height="160"></picture><picture class="absolute right-0 bottom-0 hidden rounded-tr-20 overflow-hidden rounded-20 md:block lg:hidden"><source type="image/png" media="(min-width: 768px) and (max-width: 1199.9999px)" data-srcset="//pcfcdn.kommo.com/images/pages/main/star-corner-tablet-new.png 1x, //pcfcdn.kommo.com/images/pages/main/star-corner-tablet-new-2x.png 2x"></source><img class="lazy" alt="" width="420" height="420"></picture><picture class="absolute right-0 bottom-0 hidden rounded-br-20 overflow-hidden rounded-20 lg:block"><source type="image/png" media="(min-width: 1200px)" data-srcset="//pcfcdn.kommo.com/images/pages/main/star-corner-desktop-new.png 1x, //pcfcdn.kommo.com/images/pages/main/star-corner-desktop-new-2x.png 2x"></source><img class="lazy" alt="" width="236" height="135"></picture>
       </div>
 
-              <div class="flex flex-col justify-center items-start w-132 h-104 pt-20 pb-20 space-y-12">
-                      <div class="flex flex-col">
-              <span class="text-base font-bold leading-120 text-juicyPurple">10 000</span>
-              <span class="text-s leading-140 text-dreamsViolet">leads per user</span>
+      <div class="relative flex h-full flex-col z-10">
+        <div class="flex justify-between items-center md:max-w-288 mb-8">
+          <h2 class="text-tolopea text-lg leading-120 font-bold md:text-2xl lg:text-3xl">Recharge Plan</h2>
+        </div>
+        <p class="max-w-640 mb-24 opacity-60 text-s text-tolopea break-words line-clamp-2 md:max-w-288 text-s leading-140">Pay-as-you-go. Zero monthly commitment.</p>
+        
+        <div class="mt-20">
+          <div class="mt-auto flex flex-col items-start">
+            <div class="flex">
+              <h5 class="text-6xl font-bold leading-120 text-tolopea md:text-6xl text-2xl leading-120 font-bold md:text-3xl lg:text-6xl">₹0</h5>
+              <span class="mt-4 ml-4 mb-2 font-bold md:mb-4 lg:mb-2 text-s leading-140 inline-block">INR</span>
             </div>
-                                              
-              
-
-
-<div class="text-juicyPurple underline underline-offset-4 decoration-dashed decoration-1 js-tooltip-button-control relative">
-        
-    
-
-
-
-
-
-
-
-
-
-  
-
-  <span class="js-tooltip-button text-btn text-btn--primary btn--content-center text-btn-link ">
-      
-  
-
-
-
-
-
-
-  <span class=" text-base   inline-block">                <span class="text-s leading-140 text-juicyPurple">Unlimited channels</span>
-              </span>
-
-  
-
-      <div class="js-control-button-spinner btn__spinner hidden absolute inset-0 m-auto w-16 h-16 opacity-0 border-2 border-current border-r-transparent border-b-transparent rounded-full animate-spin">
-  </div>
-
-  </span>
-  
-  <div class="js-tooltip-container hidden">
-    <div class="js-tooltip absolute -left-24 max-w-280 w-max px-12 z-10 md:px-16 pt-12 pb-16 rounded-10 bg-tolopea md:max-w-320 " data-position="up" data-horizontal-shift="">
-      
-      <p class="js-tooltip-text text-s leading-140 text-white md:text-base md:leading-160 ">
-        Unlimited WhatsApp numbers and access to Instagram accounts across all integrations       </p>
-    </div>
-          <span class="absolute -top-12 left-1/2 inline-block -translate-x-1/2 border-l-8 border-r-8 border-t-8 border-solid border-l-transparent border-r-transparent border-t-tolopea"></span>
-      </div>
-</div>
-                              </div>
-      
-      
-
-  
-
-
-
-  
-
-
-
-
-
-
-
-
-
-
-  
-
-  <button class="js-control-button js-try-it-free mt-20 w-full m-auto md:mx-0 md:w-fit lg:w-full btn btn--ai-gradient-3 btn--small btn--center text-btn text-btn--primary btn--content-center text-btn-link  " data-name="pro">
-      
-  
-
-
-
-
-
-
-  <span class=" text-s font-medium leading-120 inline-block">Start Free Trial</span>
-
-  
-
-      <div class="js-control-button-spinner btn__spinner hidden absolute inset-0 m-auto w-16 h-16 opacity-0 border-2 border-current border-r-transparent border-b-transparent rounded-full animate-spin">
-  </div>
-
-  </button>
-
+            <span class="opacity-60 text-tolopea mb-2 text-s leading-140 inline-block">per month subscription</span>
+            <span class="text-s text-purpleHeart font-bold mt-4 bg-white/40 px-8 py-4 rounded">₹0.20 per auto AI reply</span>
           </div>
-  </div>
-</div>
-          
-                    
-      
 
-<div class="js-plan-item min-h-264 md:min-h-320 relative px-24 py-24 pb-48 rounded-20 bg-linkWater md:pb-48 xxl:pb-40 md:px-32 md:pt-32 md:pb-48 lg:px-24 lg:py-24 lg:pb-40 " data-price="Custom" data-plan-id="enterprise">
-  
-  
-  <div class="relative flex h-full flex-col">
-    <div class="flex justify-between items-center md:max-w-288">
-      
+          <div class="flex flex-col justify-center items-start w-full pt-20 pb-20 space-y-12 border-t border-dashed border-tolopea/20 mt-12">
+            <div class="flex flex-col">
+              <span class="text-base font-bold leading-120 text-juicyPurple">FREE All Apps</span>
+              <span class="text-s leading-140 text-dreamsViolet">All internal & external apps free</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-base font-bold leading-120 text-juicyPurple">FREE Automation Tools</span>
+              <span class="text-s leading-140 text-dreamsViolet">Unlimited workflows & tools free</span>
+            </div>
+            <div class="text-juicyPurple underline underline-offset-4 decoration-dashed decoration-1">
+              <span class="text-s leading-140 text-juicyPurple">Unlimited WhatsApp Numbers</span>
+            </div>
+          </div>
 
-
-
-
-  <h2 class="mb-8 text-tolopea text-lg leading-120 font-bold md:text-2xl lg:text-3xl">      Enterprise
-  </h2>
-    </div>
-
-    
-
-
-
-
-
-
-  <p class="max-w-640 mb-24 opacity-60 text-s text-tolopea break-words line-clamp-2 md:max-w-288 text-s  leading-140 ">Custom integrations, dedicated servers, API &amp; Webhooks, and custom SLA support.</p>
-
-    <div class="mt-20">
-      <div class="mt-auto flex flex-col items-start">
-        <div class="flex">
-          
-
-
-
-
-  <h5 class="js-plan-item-price min-h-38 opacity-0 text-6xl font-bold leading-120 text-tolopea md:text-6xl text-2xl leading-120 font-bold md:text-3xl lg:text-6xl">      Custom
-  </h5>
-
-          
-
-
-
-
-
-
-  <span class="js-plan-item-price-currency mt-4 ml-4 mb-2 font-bold md:mb-4 lg:mb-2 text-s  leading-140 inline-block"></span>
+          <a href="dashboard/register.html" class="mt-20 w-full m-auto md:mx-0 md:w-fit lg:w-full btn btn--ai-gradient-3 btn--small btn--center text-btn text-btn--primary btn--content-center text-btn-link flex items-center justify-center shadow-md">
+            <span class="text-s font-medium leading-120 inline-block font-semibold">Try it free</span>
+          </a>
         </div>
-        
-
-
-
-
-
-
-  <span class="opacity-60 text-tolopea mb-2 text-s  leading-140 inline-block">Depends on your setup</span>
       </div>
-
-      <div class="flex mt-12 mb-20">
-        
-        
-
-
-<div class="underline underline-offset-4 decoration-dashed decoration-1 js-tooltip-button-control relative">
-        
-    
-
-
-
-
-
-
-
-
-
-  
-
-  <span class="js-tooltip-button text-btn text-btn--primary btn--content-center text-btn-link ">
-      
-  
-
-
-
-
-
-
-  <span class=" text-base   inline-block">          <span class="block text-left text-s leading-140">
-            How does it work?
-          </span>
-        </span>
-
-  
-
-      <div class="js-control-button-spinner btn__spinner hidden absolute inset-0 m-auto w-16 h-16 opacity-0 border-2 border-current border-r-transparent border-b-transparent rounded-full animate-spin">
-  </div>
-
-  </span>
-  
-  <div class="js-tooltip-container hidden">
-    <div class="js-tooltip absolute -left-24 max-w-280 w-max px-12 z-10 md:px-16 pt-12 pb-16 rounded-10 bg-tolopea md:max-w-320 " data-position="up" data-horizontal-shift="">
-      
-      <p class="js-tooltip-text text-s leading-140 text-white md:text-base md:leading-160 js-plan-item-total-price">
-        The cost for Enterprise depends on your custom business needs. Contact our sales team for more information       </p>
     </div>
-          <span class="absolute -top-12 left-1/2 inline-block -translate-x-1/2 border-l-8 border-r-8 border-t-8 border-solid border-l-transparent border-r-transparent border-t-tolopea"></span>
-      </div>
-</div>
-      </div>
 
-              <div class="flex flex-col justify-center items-start w-132 h-104 pt-20 pb-20 space-y-12">
-                                              <span class="text-base font-medium leading-120 text-dreamsViolet">Go beyond standard limits</span>
-                              </div>
-      
-      
-
-  
-
-
-
-  
-
-
-
-
-
-
-
-
-
-
-  
-
-  <button class="js-control-button js-try-it-free mt-20 w-full m-auto md:mx-0 md:w-fit lg:w-full btn btn--outline btn--small btn--center text-btn text-btn--primary-inversed btn--content-center text-btn-link  " data-name="enterprise">
-      
-  
-
-
-
-
-
-
-  <span class=" text-s font-medium leading-120 inline-block">Talk to Sales</span>
-
-  
-
-      <div class="js-control-button-spinner btn__spinner hidden absolute inset-0 m-auto w-16 h-16 opacity-0 border-2 border-current border-r-transparent border-b-transparent rounded-full animate-spin">
-  </div>
-
-  </button>
-
+    <!-- Premium Plan -->
+    <div class="min-h-264 md:min-h-320 relative px-24 py-24 pb-48 rounded-20 bg-linkWater md:pb-48 xxl:pb-40 md:px-32 md:pt-32 md:pb-48 lg:px-24 lg:py-24 lg:pb-40">
+      <div class="relative flex h-full flex-col">
+        <div class="flex justify-between items-center md:max-w-288 mb-8">
+          <h2 class="text-tolopea text-lg leading-120 font-bold md:text-2xl lg:text-3xl">Premium Plan</h2>
+        </div>
+        <p class="max-w-640 mb-24 opacity-60 text-s text-tolopea break-words line-clamp-2 md:max-w-288 text-s leading-140">For growing teams wanting predictable monthly budgeting.</p>
+        
+        <div class="mt-20">
+          <div class="mt-auto flex flex-col items-start">
+            <div class="flex">
+              <h5 class="text-6xl font-bold leading-120 text-tolopea md:text-6xl text-2xl leading-120 font-bold md:text-3xl lg:text-6xl">1,999</h5>
+              <span class="mt-4 ml-4 mb-2 font-bold md:mb-4 lg:mb-2 text-s leading-140 inline-block">INR</span>
+            </div>
+            <span class="opacity-60 text-tolopea mb-2 text-s leading-140 inline-block">per month</span>
           </div>
-  </div>
-</div>
+
+          <div class="flex flex-col justify-center items-start w-full pt-20 pb-20 space-y-12 border-t border-dashed border-tolopea/20 mt-12">
+            <div class="flex flex-col">
+              <span class="text-base font-bold leading-120 text-juicyPurple">10 000 replies</span>
+              <span class="text-s leading-140 text-dreamsViolet">Monthly AI auto replies included</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-base font-bold leading-120 text-juicyPurple">FREE All Apps</span>
+              <span class="text-s leading-140 text-dreamsViolet">All internal & external apps free</span>
+            </div>
+            <div class="text-juicyPurple underline underline-offset-4 decoration-dashed decoration-1">
+              <span class="text-s leading-140 text-juicyPurple">Unlimited WhatsApp Numbers</span>
+            </div>
+          </div>
+
+          <a href="dashboard/register.html" class="mt-20 w-full m-auto md:mx-0 md:w-fit lg:w-full btn btn--outline btn--small btn--center text-btn text-btn--primary-inversed btn--content-center text-btn-link flex items-center justify-center">
+            <span class="text-s font-medium leading-120 inline-block">Try it free</span>
+          </a>
+        </div>
       </div>
+    </div>
 
-  
+    <!-- Enterprise -->
+    <div class="min-h-264 md:min-h-320 relative px-24 py-24 pb-48 rounded-20 bg-linkWater md:pb-48 xxl:pb-40 md:px-32 md:pt-32 md:pb-48 lg:px-24 lg:py-24 lg:pb-40">
+      <div class="relative flex h-full flex-col">
+        <div class="flex justify-between items-center md:max-w-288 mb-8">
+          <h2 class="text-tolopea text-lg leading-120 font-bold md:text-2xl lg:text-3xl">Enterprise</h2>
+        </div>
+        <p class="max-w-640 mb-24 opacity-60 text-s text-tolopea break-words line-clamp-2 md:max-w-288 text-s leading-140">Custom configurations for high-volume enterprises.</p>
+        
+        <div class="mt-20">
+          <div class="mt-auto flex flex-col items-start">
+            <div class="flex">
+              <h5 class="text-6xl font-bold leading-120 text-tolopea md:text-6xl text-2xl leading-120 font-bold md:text-3xl lg:text-6xl">Custom</h5>
+            </div>
+            <span class="opacity-60 text-tolopea mb-2 text-s leading-140 inline-block">Depends on your setup</span>
+          </div>
+
+          <div class="flex flex-col justify-center items-start w-full pt-20 pb-20 space-y-12 border-t border-dashed border-tolopea/20 mt-12">
+            <div class="flex flex-col">
+              <span class="text-base font-bold leading-120 text-juicyPurple">Custom Volume</span>
+              <span class="text-s leading-140 text-dreamsViolet">Discounts on AI replies</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-base font-bold leading-120 text-juicyPurple">Dedicated support</span>
+              <span class="text-s leading-140 text-dreamsViolet">Direct developer SLA support</span>
+            </div>
+            <div class="text-juicyPurple underline underline-offset-4 decoration-dashed decoration-1">
+              <span class="text-s leading-140 text-juicyPurple">On-premise deploy option</span>
+            </div>
+          </div>
+
+          <a href="dashboard/register.html" class="mt-20 w-full m-auto md:mx-0 md:w-fit lg:w-full btn btn--outline btn--small btn--center text-btn text-btn--primary-inversed btn--content-center text-btn-link flex items-center justify-center">
+            <span class="text-s font-medium leading-120 inline-block">Try it free</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
   </div>
-  
 </div>
-  
-
 <div class="w-full rounded-t-20 bg-tolopea md:px-40">
   
 <div class="flex flex-col justify-center py-40 md:pt-60  mx-40 mx-240 md:mx-96 lg:max-w-680 lg:mx-auto mx-0 md:mx-auto md:w-576 lg:w-full lg:max-w-800">

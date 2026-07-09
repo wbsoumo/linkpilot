@@ -1,52 +1,23 @@
-<!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-950">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="dashboard/assets/img/logo.png">
-    
-    <title>Pricing Plans - LinkPilot AI CRM</title>
-    <meta name="description" content="Explore transparent pricing for LinkPilot AI CRM. Choose between Starter, Growth, and Pro plans to automate WhatsApp Business, manage customer timelines, and track deals.">
-    
-    <!-- Tailwind CSS & Lucide -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="assets/css/marketing.css">
-</head>
-<body class="h-full bg-slate-950 text-slate-100 flex flex-col antialiased">
+import re
 
-    <!-- Sticky Navigation -->
-    <nav class="glass-nav sticky top-0 z-50 w-full px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center space-x-10">
-            <a href="index.html" class="flex items-center space-x-2 text-xl font-bold tracking-wider">
-                <span class="text-teal-400">✨ LinkPilot</span>
-                <span class="text-xs px-2 py-0.5 bg-slate-800 text-teal-400 border border-slate-700 rounded-full font-semibold">AI</span>
-            </a>
-            <div class="hidden lg:flex items-center space-x-6 text-sm font-medium text-slate-300">
-                <a href="index.html#features" class="nav-link hover:text-white transition">Features</a>
-                <a href="index.html#solutions" class="nav-link hover:text-white transition">Solutions</a>
-                <a href="pricing.html" class="nav-link-active text-teal-400 transition font-semibold">Pricing</a>
-                <a href="docs.html" class="nav-link hover:text-white transition">Docs</a>
-                <a href="about.html" class="nav-link hover:text-white transition">About</a>
-            </div>
-        </div>
-        <div class="hidden sm:flex items-center space-x-4">
-            <a href="dashboard/login.html" class="text-sm font-semibold text-slate-300 hover:text-white transition">Log In</a>
-            <a href="dashboard/register.html" class="px-4 py-2 text-sm font-semibold text-slate-950 btn-primary rounded-lg shadow transition">Get Started</a>
-        </div>
-    </nav>
+pricing_path = "/Users/wbsoumo/Desktop/LinkPilot AI/pricing.html"
+with open(pricing_path, "r", encoding="utf-8") as f:
+    pricing_content = f.read()
 
-    <!-- Main Content -->
-    <main class="flex-grow py-16 md:py-24">
-        <div class="max-w-6xl mx-auto px-6 space-y-16">
-            
-            <!-- Heading -->
-            <div class="text-center max-w-2xl mx-auto space-y-4">
-                <h1 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">Pricing Plans</h1>
-                <p class="text-slate-400 text-sm">Simple, transparent pricing built for your customer communication and AI CRM workflows.</p>
-            </div>
-            
-            <!-- Cards Grid -->
+pricing_grid_start_pattern = r'<!-- Cards Grid -->'
+pricing_grid_end_pattern = r'<!-- Pricing FAQ -->'
+
+grid_start_match = re.search(pricing_grid_start_pattern, pricing_content)
+grid_end_match = re.search(pricing_grid_end_pattern, pricing_content)
+
+if not grid_start_match or not grid_end_match:
+    print("Error: Could not locate boundaries in pricing.html.")
+    exit(1)
+
+grid_start_idx = grid_start_match.start()
+grid_end_idx = grid_end_match.start()
+
+new_pricing_grid = """<!-- Cards Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 items-start">
                 
                 <!-- Free Plan -->
@@ -257,116 +228,11 @@
                 </div>
             </div>
             
-            <!-- Pricing FAQ -->
-            <div class="space-y-6 max-w-4xl mx-auto">
-                <h3 class="text-xl font-bold text-white text-center">Pricing & Platform FAQ</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    
-                    <div class="glass-panel p-5 rounded-xl border-slate-800 space-y-2">
-                        <h4 class="text-sm font-bold text-white">How do I connect my WhatsApp Business number?</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">You can connect your WhatsApp number easily using the official Meta WhatsApp Cloud API or by scanning a QR code for quick setup.</p>
-                    </div>
-                    
-                    <div class="glass-panel p-5 rounded-xl border-slate-800 space-y-2">
-                        <h4 class="text-sm font-bold text-white">Can the AI WhatsApp Chatbot reply automatically?</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">Yes! You can configure the AI Chatbot with custom instructions, prompt templates, and business details to qualify leads and reply to chats 24/7.</p>
-                    </div>
-                    
-                    <div class="glass-panel p-5 rounded-xl border-slate-800 space-y-2">
-                        <h4 class="text-sm font-bold text-white">What CRM features are included?</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">Our AI CRM features include contact management, custom fields, tags & segments, interactive calendars, meeting scheduling, and a visual Kanban Deals Board.</p>
-                    </div>
-                    
-                    <div class="glass-panel p-5 rounded-xl border-slate-800 space-y-2">
-                        <h4 class="text-sm font-bold text-white">Does LinkPilot support email automation?</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">Yes. You can build automated email workflows, link your SMTP accounts, and use AI Email Replies to draft contextual email responses instantly.</p>
-                    </div>
-                    
-                    <div class="glass-panel p-5 rounded-xl border-slate-800 space-y-2">
-                        <h4 class="text-sm font-bold text-white">Are there any hidden fees or Meta message costs?</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">There are no hidden fees. Standard subscription costs cover platform access. WhatsApp Template message costs are billed directly by Meta via your Cloud API account.</p>
-                    </div>
-                    
-                    <div class="glass-panel p-5 rounded-xl border-slate-800 space-y-2">
-                        <h4 class="text-sm font-bold text-white">Is my customer data secure?</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">Security is our priority. We use secure end-to-end encrypted connections for WhatsApp, token-based API access, and never share or store raw passwords.</p>
-                    </div>
-                    
-                    <div class="glass-panel p-5 rounded-xl border-slate-800 space-y-2">
-                        <h4 class="text-sm font-bold text-white">What integrations does the platform support?</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">We support native integrations with Google Sheets, Slack, Zapier, Shopify, and Stripe. Custom integrations can be built using our API & Webhooks.</p>
-                    </div>
-                    
-                    <div class="glass-panel p-5 rounded-xl border-slate-800 space-y-2">
-                        <h4 class="text-sm font-bold text-white">Can I add team members and assign roles?</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">Yes. LinkPilot supports multi-user collaboration. You can invite team members to your Shared Team Inbox and manage their permission levels.</p>
-                    </div>
-                    
-                    <div class="glass-panel p-5 rounded-xl border-slate-800 space-y-2">
-                        <h4 class="text-sm font-bold text-white">Is there a free trial available?</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">Yes! We offer a 14-day free trial on all paid plans (Starter, Growth, Pro) so you can test features before being billed. No credit card is required to start.</p>
-                    </div>
-                    
-                    <div class="glass-panel p-5 rounded-xl border-slate-800 space-y-2">
-                        <h4 class="text-sm font-bold text-white">How do I import my existing contacts?</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">You can import your contacts in bulk using CSV files, or sync them directly from tools like Salesforce, HubSpot, and Zoho CRM.</p>
-                    </div>
-                    
-                    <div class="glass-panel p-5 rounded-xl border-slate-800 space-y-2">
-                        <h4 class="text-sm font-bold text-white">Can you help us migrate from another CRM?</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">Our migration team can assist you in moving all your data, deal history, custom fields, and segments to LinkPilot AI seamlessly.</p>
-                    </div>
-                    
-                    <div class="glass-panel p-5 rounded-xl border-slate-800 space-y-2">
-                        <h4 class="text-sm font-bold text-white">Can I send bulk broadcasts using WhatsApp Templates?</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">Yes. Our Pro plan includes Broadcast Campaigns where you can schedule and send bulk WhatsApp messages using pre-approved templates.</p>
-                    </div>
-                    
-                </div>
-            </div>
+            """
 
-        </div>
-    </main>
+updated_pricing = pricing_content[:grid_start_idx] + new_pricing_grid + pricing_content[grid_end_idx:]
 
-    <!-- Footer -->
-    <footer class="border-t border-slate-900 bg-slate-950 py-12 text-slate-500 text-xs">
-        <div class="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-5 gap-8">
-            <div class="col-span-2 space-y-4">
-                <div class="text-white font-bold tracking-wider text-sm">✨ LinkPilot AI</div>
-                <p class="max-w-xs text-slate-600 leading-relaxed">AI outreach drafts generation directly inside LinkedIn. Completely free during our open beta phase.</p>
-                <div class="text-slate-700">© 2026 LinkPilot AI. All rights reserved.</div>
-            </div>
-            <div class="space-y-3">
-                <h5 class="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Product</h5>
-                <ul class="space-y-2">
-                    <li><a href="index.html#features" class="hover:text-white transition">Features</a></li>
-                    <li><a href="pricing.html" class="hover:text-white transition">Pricing</a></li>
-                    <li><a href="docs.html" class="hover:text-white transition">Documentation</a></li>
-                </ul>
-            </div>
-            <div class="space-y-3">
-                <h5 class="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Company</h5>
-                <ul class="space-y-2">
-                    <li><a href="about.html" class="hover:text-white transition">About Us</a></li>
-                    <li><a href="blog.html" class="hover:text-white transition">Blog & Updates</a></li>
-                    <li><a href="contact.html" class="hover:text-white transition">Support Contact</a></li>
-                </ul>
-            </div>
-            <div class="space-y-3">
-                <h5 class="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Legal</h5>
-                <ul class="space-y-2">
-                    <li><a href="privacy.html" class="hover:text-white transition">Privacy Policy</a></li>
-                    <li><a href="terms.html" class="hover:text-white transition">Terms of Service</a></li>
-                    <li><a href="cookies.html" class="hover:text-white transition">Cookie Policy</a></li>
-                    <li><a href="disclaimer.html" class="hover:text-white transition">Disclaimer</a></li>
-                    <li><a href="sitemap.html" class="hover:text-white transition">Sitemap</a></li>
-                </ul>
-            </div>
-        </div>
-    </footer>
+with open(pricing_path, "w", encoding="utf-8") as f:
+    f.write(updated_pricing)
 
-    <script>
-        lucide.createIcons();
-    </script>
-</body>
-</html>
+print("pricing.html updated successfully with custom plans!")

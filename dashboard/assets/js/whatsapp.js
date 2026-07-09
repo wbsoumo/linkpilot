@@ -2751,21 +2751,21 @@ function renderWhatsAppCampaigns(container) {
                                         <p class="text-slate-400 text-xs font-medium">Configure the basic details of your WhatsApp campaign</p>
                                     </div>
 
-                                    <form onsubmit="handleCampaignSubmitInline(event)" class="space-y-4 text-xs font-semibold text-slate-700">
+                                    <form onsubmit="handleCampaignSubmitInline(event)" class="space-y-5 text-xs font-semibold text-slate-700">
                                         <div>
-                                            <label class="block text-slate-600 font-bold mb-1">Campaign Name <span class="text-rose-500">*</span></label>
-                                            <input type="text" id="camp-inline-name" required value="Follow Up Reminder - 07/07/2026" oninput="updateSummaryCard()" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-xs text-slate-800 font-semibold shadow-2xs">
+                                            <label class="block text-slate-700 font-bold mb-1.5">Campaign Name <span class="text-rose-500">*</span></label>
+                                            <input type="text" id="camp-inline-name" required value="Follow Up Reminder - 07/07/2026" oninput="updateSummaryCard()" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-xs text-slate-800 font-semibold transition-all duration-150">
                                             <span class="block text-[10px] text-slate-400 font-medium mt-1">Give a unique name to your campaign</span>
                                         </div>
 
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                             <div>
-                                                <label class="block text-slate-600 font-bold mb-1">WhatsApp Number <span class="text-rose-500">*</span></label>
+                                                <label class="block text-slate-700 font-bold mb-1.5">WhatsApp Number <span class="text-rose-500">*</span></label>
                                                 <div class="relative">
                                                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                                         <img src="../assets/css/WhatsApp_icon.png" class="h-4 w-4 object-contain" alt="WhatsApp">
                                                     </span>
-                                                    <select id="camp-inline-number" onchange="updateSummaryCard()" class="w-full pl-9 pr-3 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-xs text-slate-800 font-bold shadow-2xs cursor-pointer">
+                                                    <select id="camp-inline-number" onchange="updateSummaryCard()" class="w-full pl-9 pr-3 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-xs text-slate-800 font-bold cursor-pointer transition-all duration-150">
                                                         <option value="91 98765 43210">91 98765 43210</option>
                                                     </select>
                                                 </div>
@@ -2773,21 +2773,21 @@ function renderWhatsAppCampaigns(container) {
                                             </div>
 
                                             <div>
-                                                <label class="block text-slate-600 font-bold mb-1">Message Template <span class="text-rose-500">*</span></label>
+                                                <label class="block text-slate-700 font-bold mb-1.5">Message Template <span class="text-rose-500">*</span></label>
                                                 <div class="relative cursor-pointer" onclick="openTemplateSelectorModal()">
-                                                    <input type="text" id="camp-inline-template" readonly value="followup_reminder" class="w-full pl-3.5 pr-8 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-xs text-slate-800 font-bold shadow-2xs cursor-pointer select-none">
+                                                    <input type="text" id="camp-inline-template" readonly value="followup_reminder" class="w-full pl-3.5 pr-8 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-xs text-slate-805 font-bold cursor-pointer select-none transition-all duration-150">
                                                     <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
-                                                        <i data-lucide="chevron-down" class="h-3.5 w-3.5"></i>
+                                                        <i data-lucide="chevron-down" class="h-4 w-4"></i>
                                                     </span>
                                                 </div>
                                                 <span class="block text-[10px] text-slate-400 font-medium mt-1">Choose a pre-approved template</span>
                                             </div>
                                         </div>
 
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                             <div>
-                                                <label class="block text-slate-600 font-bold mb-1">Campaign Category</label>
-                                                <select id="camp-inline-category" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-xs text-slate-800 font-bold shadow-2xs cursor-pointer">
+                                                <label class="block text-slate-700 font-bold mb-1.5">Campaign Category</label>
+                                                <select id="camp-inline-category" class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-xs text-slate-800 font-bold cursor-pointer transition-all duration-150">
                                                     <option value="marketing">Marketing</option>
                                                     <option value="utility">Utility</option>
                                                     <option value="authentication">Authentication</option>
@@ -2796,10 +2796,10 @@ function renderWhatsAppCampaigns(container) {
                                             </div>
 
                                             <div>
-                                                <label class="block text-slate-600 font-bold mb-1">Campaign Type</label>
-                                                <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-[#f8fafc] p-0.5 shadow-2xs h-[38px]">
-                                                    <button type="button" id="type-btn-broadcast" onclick="selectCampaignType('broadcast')" class="flex-grow py-1.5 rounded-lg text-emerald-600 bg-white border border-slate-200/60 shadow-2xs font-bold text-center text-xs transition duration-150">Broadcast</button>
-                                                    <button type="button" id="type-btn-sequence" onclick="selectCampaignType('sequence')" class="flex-grow py-1.5 rounded-lg text-slate-500 hover:text-slate-800 font-semibold text-center text-xs transition duration-150">Drip / Sequence</button>
+                                                <label class="block text-slate-700 font-bold mb-1.5">Campaign Type</label>
+                                                <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-white p-0.5 h-[44px] transition-all duration-150 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/15">
+                                                    <button type="button" id="type-btn-broadcast" onclick="selectCampaignType('broadcast')" class="flex-grow py-2 rounded-lg text-emerald-600 bg-emerald-50/50 border border-emerald-100/30 font-bold text-center text-xs transition duration-150">Broadcast</button>
+                                                    <button type="button" id="type-btn-sequence" onclick="selectCampaignType('sequence')" class="flex-grow py-2 rounded-lg text-slate-500 hover:text-slate-800 font-semibold text-center text-xs transition duration-150">Drip / Sequence</button>
                                                 </div>
                                                 <span class="block text-[10px] text-slate-400 font-medium mt-1">Send to all at once or in a sequence</span>
                                             </div>
@@ -2807,28 +2807,28 @@ function renderWhatsAppCampaigns(container) {
 
                                         <!-- Tags input box -->
                                         <div>
-                                            <label class="block text-slate-600 font-bold mb-1">Tags</label>
-                                            <div class="flex flex-wrap items-center gap-1.5 w-full px-3 py-2 bg-[#f8fafc] border border-slate-200 rounded-xl shadow-2xs min-h-[38px]">
-                                                <div class="flex items-center space-x-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-bold text-[10px] border border-emerald-100">
+                                            <label class="block text-slate-700 font-bold mb-1.5">Tags</label>
+                                            <div class="flex flex-wrap items-center gap-1.5 w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl min-h-[44px] transition-all duration-150 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/15">
+                                                <div class="flex items-center space-x-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-bold text-[10px] border border-emerald-100/50">
                                                     <span>followup</span>
                                                     <button type="button" onclick="removeInlineTag(this)" class="hover:text-rose-500 text-slate-400 font-black">&times;</button>
                                                 </div>
-                                                <div class="flex items-center space-x-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-bold text-[10px] border border-emerald-100">
+                                                <div class="flex items-center space-x-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-bold text-[10px] border border-emerald-100/50">
                                                     <span>reminder</span>
                                                     <button type="button" onclick="removeInlineTag(this)" class="hover:text-rose-500 text-slate-400 font-black">&times;</button>
                                                 </div>
-                                                <div class="flex items-center space-x-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-bold text-[10px] border border-emerald-100">
+                                                <div class="flex items-center space-x-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-bold text-[10px] border border-emerald-100/50">
                                                     <span>leads</span>
                                                     <button type="button" onclick="removeInlineTag(this)" class="hover:text-rose-500 text-slate-400 font-black">&times;</button>
                                                 </div>
-                                                <input type="text" placeholder="Add tag..." onkeydown="handleTagInputInline(event)" class="bg-transparent border-0 focus:outline-none focus:ring-0 text-[11px] placeholder-slate-400 w-24">
+                                                <input type="text" placeholder="Add tag..." onkeydown="handleTagInputInline(event)" style="border: none !important; outline: none !important; box-shadow: none !important;" class="bg-transparent text-xs text-slate-800 placeholder-slate-400 min-w-[120px] flex-grow py-1">
                                             </div>
                                             <span class="block text-[10px] text-slate-400 font-medium mt-1">Add tags to organize your campaigns</span>
                                         </div>
 
                                         <div>
-                                            <label class="block text-slate-600 font-bold mb-1">Campaign Description (Optional)</label>
-                                            <textarea id="camp-inline-desc" placeholder="This campaign is to follow up with interested leads who didn't respond to our previous message." class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-xs text-slate-800 font-semibold h-24 shadow-2xs resize-none">This campaign is to follow up with interested leads who didn't respond to our previous message.</textarea>
+                                            <label class="block text-slate-700 font-bold mb-1.5">Campaign Description (Optional)</label>
+                                            <textarea id="camp-inline-desc" placeholder="This campaign is to follow up with interested leads who didn't respond to our previous message." class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-xs text-slate-800 font-semibold h-24 resize-none transition-all duration-150">This campaign is to follow up with interested leads who didn't respond to our previous message.</textarea>
                                             <span class="block text-[10px] text-slate-400 font-medium mt-1">This helps you and your team identify the purpose of this campaign</span>
                                         </div>
 
@@ -2981,14 +2981,14 @@ function renderWhatsAppCampaigns(container) {
             };
 
             window.handleTagInputInline = function(event) {
-                if (event.key === 'Enter') {
+                const input = event.target;
+                if (event.key === 'Enter' || event.key === ',') {
                     event.preventDefault();
-                    const input = event.target;
-                    const tagText = input.value.trim();
+                    const tagText = input.value.replace(/,/g, '').trim();
                     if (tagText) {
                         const container = input.parentElement;
                         const newTag = document.createElement('div');
-                        newTag.className = 'flex items-center space-x-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-bold text-[10px] border border-emerald-100';
+                        newTag.className = 'flex items-center space-x-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-bold text-[10px] border border-emerald-100/50';
                         newTag.innerHTML = `
                             <span>${tagText}</span>
                             <button type="button" onclick="removeInlineTag(this)" class="hover:text-rose-500 text-slate-400 font-black">&times;</button>

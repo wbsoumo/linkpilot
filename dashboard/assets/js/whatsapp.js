@@ -6,14 +6,14 @@ let waThreadsInterval = null;
 let waMessagesInterval = null;
 
 // Listen for Embedded Signup postMessage events
-window.addEventListener("message", function(event) {
+window.addEventListener("message", function (event) {
     if (event.origin !== "https://www.facebook.com" && event.origin !== "https://web.facebook.com") {
         return;
     }
-    
+
     // Log postMessage events during development
     console.log("[LinkPilot Dev] postMessage event received:", event.data);
-    
+
     try {
         const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
         if (data && data.type === 'WA_EMBEDDED_SIGNUP') {
@@ -34,7 +34,7 @@ async function checkWaConnectionAndRender(viewName, container, renderFn) {
     try {
         const res = await apiCall('whatsapp/setup.php?t=' + Date.now());
         console.log("[Diagnostics] Connection status fetched:", res);
-        
+
         if (res && res.connected) {
             // User connected, render the specific dashboard page
             renderFn(container, res);
@@ -55,14 +55,14 @@ function renderWhatsAppSetup(container, settings) {
     let currentStep = 1;
     let accessToken = '';
     let wabaId = '';
-    
+
     // Discovered Assets
     let phones = [];
-    
+
     // Selections
     let selectedWaba = null;
     let selectedPhone = null;
-    
+
     // Status metrics
     let tokenVerifiedInfo = null;
     let verifyError = '';
@@ -127,7 +127,7 @@ function renderWhatsAppSetup(container, settings) {
         `;
 
         let stepHtml = '';
-        
+
         if (currentStep === 1) {
             if (verifyError) {
                 stepHtml = `
@@ -220,8 +220,8 @@ function renderWhatsAppSetup(container, settings) {
                     </div>
                 `;
             }
-        } 
-        
+        }
+
         else if (currentStep === 2) {
             if (wabaError) {
                 stepHtml = `
@@ -292,7 +292,7 @@ function renderWhatsAppSetup(container, settings) {
                 `;
             }
         }
-        
+
         else if (currentStep === 3) {
             // Select Phone Number
             stepHtml = `
@@ -331,7 +331,7 @@ function renderWhatsAppSetup(container, settings) {
                 </div>
             `;
         }
-        
+
         else if (currentStep === 4) {
             // Connection Health Check
             if (healthError) {
@@ -364,9 +364,9 @@ function renderWhatsAppSetup(container, settings) {
                         <span class="${val ? 'text-slate-700' : 'text-rose-500 font-bold'}">${label}</span>
                     </div>
                 `;
-                
+
                 const passes = Object.values(healthChecklist).every(v => v === true);
-                
+
                 stepHtml = `
                     <div class="space-y-4 text-left">
                         <div>
@@ -419,7 +419,7 @@ function renderWhatsAppSetup(container, settings) {
                 `;
             }
         }
-        
+
         else if (currentStep === 5 || currentStep === 6) {
             // Success & Test Connection Dashboard Overview
             stepHtml = `
@@ -523,14 +523,14 @@ function renderWhatsAppSetup(container, settings) {
     }
 
     // Step-by-Step Help Dialog Trigger
-    window.openMetaTokenHelpDialog = function() {
+    window.openMetaTokenHelpDialog = function () {
         const existing = document.getElementById('token-help-modal');
         if (existing) existing.remove();
-        
+
         const modal = document.createElement('div');
         modal.id = 'token-help-modal';
         modal.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4';
-        
+
         modal.innerHTML = `
             <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 relative space-y-4 text-xs text-slate-300 shadow-2xl animate-fade-in animate-duration-200">
                 <button onclick="document.getElementById('token-help-modal').remove()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold">&times;</button>
@@ -576,7 +576,7 @@ function renderWhatsAppSetup(container, settings) {
     };
 
     // UI actions helper
-    window.toggleTokenVisibility = function() {
+    window.toggleTokenVisibility = function () {
         const input = document.getElementById('wa-access-token');
         const btn = document.getElementById('btn-toggle-visibility');
         if (input && btn) {
@@ -590,13 +590,13 @@ function renderWhatsAppSetup(container, settings) {
         }
     };
 
-    window.clearTokenInput = function() {
+    window.clearTokenInput = function () {
         const input = document.getElementById('wa-access-token');
         if (input) input.value = '';
         accessToken = '';
     };
 
-    window.pasteToken = async function() {
+    window.pasteToken = async function () {
         try {
             const text = await navigator.clipboard.readText();
             const input = document.getElementById('wa-access-token');
@@ -606,22 +606,22 @@ function renderWhatsAppSetup(container, settings) {
             showNotification('error', 'Clipboard access denied. Please paste manually.');
         }
     };
-    
+
     // Verify Access Token action
-    window.verifyMetaToken = function() {
+    window.verifyMetaToken = function () {
         const input = document.getElementById('wa-access-token');
         const tokenVal = input ? input.value.trim() : accessToken;
-        
+
         if (!tokenVal) {
             showNotification('error', 'Please enter a Meta System User Access Token.');
             return;
         }
-        
+
         accessToken = tokenVal;
         verifyError = '';
         tokenVerifiedInfo = null;
         drawWizard();
-        
+
         apiCall('whatsapp/setup.php?action=verify_token', 'POST', {
             access_token: accessToken
         }).then(res => {
@@ -633,26 +633,26 @@ function renderWhatsAppSetup(container, settings) {
         });
     };
 
-    window.clearTokenError = function() {
+    window.clearTokenError = function () {
         verifyError = '';
         tokenVerifiedInfo = null;
         drawWizard();
     };
 
-    window.verifyWabaId = function() {
+    window.verifyWabaId = function () {
         const input = document.getElementById('wa-waba-id');
         const wabaVal = input ? input.value.trim() : wabaId;
-        
+
         if (!wabaVal) {
             showNotification('error', 'Please enter your WABA Account ID.');
             return;
         }
-        
+
         wabaId = wabaVal;
         wabaError = '';
         wabaVerifiedInfo = null;
         drawWizard();
-        
+
         apiCall('whatsapp/setup.php?action=verify_waba', 'POST', {
             access_token: accessToken,
             waba_id: wabaId
@@ -666,30 +666,30 @@ function renderWhatsAppSetup(container, settings) {
         });
     };
 
-    window.clearWabaError = function() {
+    window.clearWabaError = function () {
         wabaError = '';
         wabaVerifiedInfo = null;
         drawWizard();
     };
-    
-    window.selectPhone = function(id) {
+
+    window.selectPhone = function (id) {
         selectedPhone = phones.find(p => p.id === id);
         drawWizard();
     };
-    
-    window.goWizardStep = function(step) {
+
+    window.goWizardStep = function (step) {
         currentStep = step;
         drawWizard();
     };
-    
+
     // 3. Fetch Phone Numbers
-    window.fetchPhones = function() {
+    window.fetchPhones = function () {
         if (!selectedWaba) return;
         currentStep = 3;
         phones = [];
         selectedPhone = null;
         drawWizard();
-        
+
         apiCall('whatsapp/setup.php?action=get_phone_numbers', 'POST', {
             access_token: accessToken,
             waba_id: selectedWaba.id
@@ -704,15 +704,15 @@ function renderWhatsAppSetup(container, settings) {
             goWizardStep(2);
         });
     };
-    
+
     // 4. Diagnostics Checklist health check
-    window.triggerHealthCheck = function() {
+    window.triggerHealthCheck = function () {
         currentStep = 4;
         healthChecklist = null;
         healthDetails = null;
         healthError = '';
         drawWizard();
-        
+
         apiCall('whatsapp/setup.php?action=health_check', 'POST', {
             access_token: accessToken,
             waba_id: selectedWaba.id,
@@ -726,9 +726,9 @@ function renderWhatsAppSetup(container, settings) {
             drawWizard();
         });
     };
-    
+
     // 5. Save connection details
-    window.saveConnection = function() {
+    window.saveConnection = function () {
         apiCall('whatsapp/setup.php?action=save_connection', 'POST', {
             access_token: accessToken,
             business_id: 'WABA_' + selectedWaba.id,
@@ -761,7 +761,7 @@ function renderWhatsAppDashboard(container) {
             const data = await apiCall('whatsapp/dashboard.php');
             const cards = data.cards;
             const act = data.activities;
-            
+
             contentArea.innerHTML = `
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 text-slate-700 text-xs">
                     <!-- Left Columns: main analytics (3/4 width) -->
@@ -1072,9 +1072,9 @@ function renderWhatsAppDashboard(container) {
                     </div>
                 </div>
             `;
-            
+
             lucide.createIcons();
-            
+
             // Helper function to render sparklines
             const renderMiniSparkline = (canvasId, dataPoints, borderColor) => {
                 const miniCtx = document.getElementById(canvasId).getContext('2d');
@@ -1127,7 +1127,7 @@ function renderWhatsAppDashboard(container) {
                     plugins: { legend: { display: false } }
                 }
             });
-            
+
             // Render main Analytics Chart.js
             const ctx = document.getElementById('wa-chart-daily').getContext('2d');
             new Chart(ctx, {
@@ -1165,7 +1165,7 @@ function renderWhatsAppDashboard(container) {
                     }
                 }
             });
-            
+
         } catch (err) {
             showNotification('error', err.message);
         }
@@ -1180,7 +1180,7 @@ function renderWhatsAppInbox(container) {
         // Stop any background intervals
         clearInterval(waThreadsInterval);
         clearInterval(waMessagesInterval);
-        
+
         contentArea.innerHTML = `
             <div class="h-[calc(100vh-100px)] flex border border-slate-200 rounded-2xl bg-white overflow-hidden shadow-sm text-xs">
                 <!-- Pane 1: Left List (Threads) -->
@@ -1260,12 +1260,12 @@ function renderWhatsAppInbox(container) {
                 </div>
             </div>
         `;
-        
+
         lucide.createIcons();
-        
+
         // Initial thread load
         loadWaThreads();
-        
+
         // Set Thread poll timer
         waThreadsInterval = setInterval(loadWaThreads, 7000);
     });
@@ -1295,16 +1295,16 @@ async function loadWaThreads(search = '') {
         const threads = res.threads || [];
         const container = document.getElementById('wa-threads-container');
         if (!container) return;
-        
+
         if (threads.length === 0) {
             container.innerHTML = `<div class="p-6 text-center text-slate-400">No active chats found.</div>`;
             return;
         }
-        
+
         container.innerHTML = threads.map(t => {
             const isActive = (t.id == activeWaThreadId);
-            const displayTime = t.last_message_at ? new Date(t.last_message_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
-            
+            const displayTime = t.last_message_at ? new Date(t.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+
             let lastMsgText = '';
             if (t.last_message_body) {
                 if (t.last_message_type === 'image') {
@@ -1322,7 +1322,7 @@ async function loadWaThreads(search = '') {
                 lastMsgText = '+' + t.wa_id;
             }
 
-            const unreadBadge = (t.unread_count > 0 && !isActive) ? 
+            const unreadBadge = (t.unread_count > 0 && !isActive) ?
                 `<span id="wa-unread-badge-${t.id}" class="bg-emerald-500 text-white text-[9px] font-bold h-4.5 w-4.5 rounded-full flex items-center justify-center shrink-0 shadow-sm">${t.unread_count}</span>` : '';
 
             return `
@@ -1343,23 +1343,23 @@ async function loadWaThreads(search = '') {
                 </div>
             `;
         }).join('');
-        
+
     } catch (err) {
         console.warn('Failed threads sync: ', err);
     }
 }
 
 // Select WhatsApp Thread
-window.selectWaThread = function(threadId) {
+window.selectWaThread = function (threadId) {
     activeWaThreadId = threadId;
-    
+
     // Hide unread badge green dot instantly for snappy feel
     const badge = document.getElementById(`wa-unread-badge-${threadId}`);
     if (badge) badge.classList.add('hidden');
-    
+
     // Highlight list selection
     loadWaThreads();
-    
+
     // Start Message Poll
     clearInterval(waMessagesInterval);
     loadWaThreadMessages();
@@ -1369,13 +1369,13 @@ window.selectWaThread = function(threadId) {
 // Fetch conversation thread messages and CRM profiles
 async function loadWaThreadMessages() {
     if (!activeWaThreadId) return;
-    
+
     try {
         const res = await apiCall(`whatsapp/inbox.php?action=messages&wa_contact_id=${activeWaThreadId}`);
         const thread = res.thread;
         const messages = res.messages || [];
         const crm = res.crm;
-        
+
         // 1. Render Chat Header
         const header = document.getElementById('wa-chat-header');
         if (header) {
@@ -1412,7 +1412,7 @@ async function loadWaThreadMessages() {
                 </div>
             `;
         }
-        
+
         // 24-Hour window calculations
         const inboundMessages = messages.filter(m => m.direction === 'inbound');
         let isWindowActive = true;
@@ -1427,7 +1427,7 @@ async function loadWaThreadMessages() {
                 isWindowActive = false;
             }
         }
-        
+
         // Show/Hide Input Footer or Warning alert
         const footer = document.getElementById('wa-chat-footer');
         if (footer) {
@@ -1482,7 +1482,7 @@ async function loadWaThreadMessages() {
                 }
             }
         }
-        
+
         // 2. Render Messages list
         const msgList = document.getElementById('wa-messages-container-list');
         if (msgList) {
@@ -1496,12 +1496,12 @@ async function loadWaThreadMessages() {
             } else {
                 let currentGroupDate = '';
                 let messagesHtml = '';
-                
+
                 messages.forEach(m => {
                     const msgDate = new Date(m.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
                     const todayDate = new Date().toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
                     const displayDate = (msgDate === todayDate) ? 'Today' : msgDate;
-                    
+
                     if (msgDate !== currentGroupDate) {
                         currentGroupDate = msgDate;
                         messagesHtml += `
@@ -1510,10 +1510,10 @@ async function loadWaThreadMessages() {
                             </div>
                         `;
                     }
-                    
+
                     const isInbound = (m.direction === 'inbound');
-                    const time = new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    
+                    const time = new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
                     let bubbleHtml = m.body;
                     if (m.media_url) {
                         if (m.media_mime_type.includes('image')) {
@@ -1532,14 +1532,14 @@ async function loadWaThreadMessages() {
                             `;
                         }
                     }
-                    
-                    const timeHtml = isInbound ? 
-                        `<span class="text-[9px] text-slate-400">${time}</span>` : 
+
+                    const timeHtml = isInbound ?
+                        `<span class="text-[9px] text-slate-400">${time}</span>` :
                         `<span class="text-[9px] text-slate-500 flex items-center justify-end space-x-1">
                             <span>${time}</span>
                             <span class="text-blue-500 font-semibold text-[10px]">✔✔</span>
                          </span>`;
-                    
+
                     messagesHtml += `
                         <div class="flex ${isInbound ? 'justify-start' : 'justify-end'}">
                             <div class="max-w-[70%] p-3 rounded-2xl shadow-sm text-xs ${isInbound ? 'bg-white text-slate-800 rounded-tl-none border border-slate-100' : 'bg-[#d9fdd3] text-slate-800 rounded-tr-none border border-emerald-100/50'}">
@@ -1549,15 +1549,15 @@ async function loadWaThreadMessages() {
                         </div>
                     `;
                 });
-                
+
                 msgList.innerHTML = messagesHtml;
-                
+
                 // Auto scroll to bottom
                 msgList.scrollTop = msgList.scrollHeight;
                 lucide.createIcons();
             }
         }
-        
+
         // Store resolved CRM context globally
         window.activeWaCrmContext = crm;
 
@@ -1611,7 +1611,7 @@ async function loadWaThreadMessages() {
                     </div>
                 `;
             }
-            
+
             // Company HTML Block
             let companyHtml = '<div class="text-[10px] text-slate-400">No company linked.</div>';
             if (crm.company) {
@@ -1630,21 +1630,21 @@ async function loadWaThreadMessages() {
             let notesHtml = crm.notes.length > 0 ? crm.notes.map(n => `
                 <div class="p-2 bg-white border border-slate-100 rounded-lg text-[10px] text-slate-500 italic">"${n.content}"</div>
             `).join('') : '<p class="text-[10px] text-slate-400">No notes recorded.</p>';
-            
+
             let taskHtml = crm.tasks.length > 0 ? crm.tasks.map(t => `
                 <div class="flex items-center space-x-2 text-[10px] text-slate-500">
                     <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
                     <span>${t.title} (Due: ${t.due_date})</span>
                 </div>
             `).join('') : '<p class="text-[10px] text-slate-400">No pending tasks.</p>';
-            
+
             let timelineHtml = crm.timeline.length > 0 ? crm.timeline.map(t => `
                 <div class="flex items-start space-x-2 text-[10px] text-slate-400">
-                    <span class="text-slate-300 font-bold shrink-0">${new Date(t.created_at).toLocaleDateString([], {month: 'short', day: 'numeric'})}:</span>
+                    <span class="text-slate-300 font-bold shrink-0">${new Date(t.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}:</span>
                     <span>${t.description}</span>
                 </div>
             `).join('') : '<p class="text-[10px] text-slate-400">No activities.</p>';
-            
+
             // Render buttons based on whether contact is linked
             const contactLinked = !!crm.contact;
             const leadActionBtn = contactLinked ? `
@@ -1746,23 +1746,23 @@ async function loadWaThreadMessages() {
             `;
             lucide.createIcons();
         }
-        
+
     } catch (err) {
         console.warn('Failed inbox load thread details:', err);
     }
 }
 
 // Live message submit trigger
-window.sendWaMessage = function(e) {
+window.sendWaMessage = function (e) {
     e.preventDefault();
     if (!activeWaThreadId) return;
-    
+
     const input = document.getElementById('wa-chat-input');
     const msg = input.value.trim();
     if (!msg) return;
-    
+
     input.value = '';
-    
+
     apiCall('whatsapp/inbox.php', 'POST', {
         wa_contact_id: activeWaThreadId,
         body: msg,
@@ -1775,22 +1775,22 @@ window.sendWaMessage = function(e) {
 };
 
 // AI Reply Suggested replies triggers
-window.triggerWaAIChatAnalysis = function() {
+window.triggerWaAIChatAnalysis = function () {
     if (!activeWaThreadId) return;
     const input = document.getElementById('wa-chat-input');
     if (!input) return;
-    
+
     const originalPlaceholder = input.placeholder;
     input.placeholder = 'AI is composing a response...';
     input.value = '';
     input.disabled = true;
-    
+
     apiCall('whatsapp/inbox.php?action=apply_ai_reply', 'POST', {
         wa_contact_id: activeWaThreadId
     }).then(res => {
         input.disabled = false;
         input.placeholder = originalPlaceholder;
-        
+
         const reply = res.suggested_reply || '';
         if (reply) {
             typeTextInInput(input, reply, 12);
@@ -1808,7 +1808,7 @@ function typeTextInInput(inputElement, text, speed = 12) {
     if (inputElement.typingInterval) {
         clearInterval(inputElement.typingInterval);
     }
-    
+
     inputElement.typingInterval = setInterval(() => {
         if (i < text.length) {
             inputElement.value += text.charAt(i);
@@ -1829,7 +1829,7 @@ function renderWhatsAppContacts(container) {
         try {
             const res = await apiCall('whatsapp/contacts.php');
             const list = res.contacts || [];
-            
+
             contentArea.innerHTML = `
                 <div class="space-y-6">
                     <div class="flex items-center justify-between border-b border-slate-200 pb-4 bg-white p-5 rounded-2xl shadow-sm">
@@ -1899,7 +1899,7 @@ function renderWhatsAppCampaigns(container) {
 
             const res = await apiCall('whatsapp/campaigns.php');
             const campaigns = res.campaigns || [];
-            
+
             const templatesRes = await apiCall('whatsapp/templates.php');
             const templates = templatesRes.templates || [];
 
@@ -2202,7 +2202,7 @@ function renderWhatsAppCampaigns(container) {
                     const dPercent = c.sent_count > 0 ? ((c.delivered_count / c.sent_count) * 100).toFixed(1) : '100';
                     const rPercent = c.sent_count > 0 ? ((c.read_count / c.sent_count) * 100).toFixed(1) : '0';
                     const repPercent = c.sent_count > 0 ? ((c.replies_count / c.sent_count) * 100).toFixed(1) : '0';
-                    
+
                     return {
                         id: c.id,
                         name: c.name,
@@ -2233,11 +2233,11 @@ function renderWhatsAppCampaigns(container) {
 
                 // Perform filtering first to get correct stats dynamically based on criteria
                 let filtered = allMerged.filter(c => {
-                    const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                                          c.template_name.toLowerCase().includes(searchQuery.toLowerCase());
+                    const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        c.template_name.toLowerCase().includes(searchQuery.toLowerCase());
                     const matchesStatus = (statusFilter === 'ALL' || c.status.toLowerCase() === statusFilter.toLowerCase());
                     const matchesNumber = (numberFilter === 'ALL' || c.wa_number.replace(/\s+/g, '') === numberFilter);
-                    
+
                     let matchesDate = true;
                     const campDate = new Date(c.created_at);
                     const now = new Date();
@@ -2256,8 +2256,8 @@ function renderWhatsAppCampaigns(container) {
                     }
 
                     const matchesMinContacts = (c.total_contacts >= minContacts);
-                    const matchesCampaignType = (campaignType === 'ALL' || 
-                        (campaignType === 'REAL' && !c.is_sample) || 
+                    const matchesCampaignType = (campaignType === 'ALL' ||
+                        (campaignType === 'REAL' && !c.is_sample) ||
                         (campaignType === 'SAMPLE' && c.is_sample));
 
                     return matchesSearch && matchesStatus && matchesNumber && matchesDate && matchesMinContacts && matchesCampaignType;
@@ -2305,8 +2305,8 @@ function renderWhatsAppCampaigns(container) {
                 const endIdx = Math.min(startIdx + itemsPerPage, totalItems);
                 const paginatedList = filtered.slice(startIdx, endIdx);
 
-                document.getElementById('pagination-summary').textContent = totalItems > 0 ? 
-                    `Showing ${startIdx + 1} to ${endIdx} of ${totalItems} campaigns` : 
+                document.getElementById('pagination-summary').textContent = totalItems > 0 ?
+                    `Showing ${startIdx + 1} to ${endIdx} of ${totalItems} campaigns` :
                     `Showing 0 to 0 of 0 campaigns`;
 
                 const tableBody = document.getElementById('campaigns-table-body');
@@ -2432,19 +2432,19 @@ function renderWhatsAppCampaigns(container) {
                 lucide.createIcons();
             }
 
-            window.changePage = function(page) {
+            window.changePage = function (page) {
                 currentPage = page;
                 applyFilterAndRender();
             };
 
-            window.toggleAdvancedFilters = function() {
+            window.toggleAdvancedFilters = function () {
                 const panel = document.getElementById('advanced-filters-panel');
                 if (panel) {
                     panel.classList.toggle('hidden');
                 }
             };
 
-            window.resetAllFilters = function() {
+            window.resetAllFilters = function () {
                 document.getElementById('camp-search').value = '';
                 document.getElementById('camp-status-select').value = 'ALL';
                 document.getElementById('camp-number-select').value = 'ALL';
@@ -2464,14 +2464,14 @@ function renderWhatsAppCampaigns(container) {
                 showNotification('info', 'All filters reset.');
             };
 
-            window.exportCampaignsCSV = function() {
+            window.exportCampaignsCSV = function () {
                 const allMerged = getMergedCampaigns();
                 const filtered = allMerged.filter(c => {
-                    const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                                          c.template_name.toLowerCase().includes(searchQuery.toLowerCase());
+                    const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        c.template_name.toLowerCase().includes(searchQuery.toLowerCase());
                     const matchesStatus = (statusFilter === 'ALL' || c.status.toLowerCase() === statusFilter.toLowerCase());
                     const matchesNumber = (numberFilter === 'ALL' || c.wa_number.replace(/\s+/g, '') === numberFilter);
-                    
+
                     let matchesDate = true;
                     const campDate = new Date(c.created_at);
                     const now = new Date();
@@ -2490,8 +2490,8 @@ function renderWhatsAppCampaigns(container) {
                     }
 
                     const matchesMinContacts = (c.total_contacts >= minContacts);
-                    const matchesCampaignType = (campaignType === 'ALL' || 
-                        (campaignType === 'REAL' && !c.is_sample) || 
+                    const matchesCampaignType = (campaignType === 'ALL' ||
+                        (campaignType === 'REAL' && !c.is_sample) ||
                         (campaignType === 'SAMPLE' && c.is_sample));
 
                     return matchesSearch && matchesStatus && matchesNumber && matchesDate && matchesMinContacts && matchesCampaignType;
@@ -2568,7 +2568,7 @@ function renderWhatsAppCampaigns(container) {
             });
 
             // Handle delete action (support sample and real deletion)
-            window.deleteCampaign = function(campId) {
+            window.deleteCampaign = function (campId) {
                 if (typeof campId === 'string' && campId.startsWith('sample-')) {
                     if (confirm('Delete this sample campaign draft?')) {
                         const idx = baseSamples.findIndex(s => s.id === campId);
@@ -2592,7 +2592,7 @@ function renderWhatsAppCampaigns(container) {
             };
 
             // View detailed number-wise logs report
-            window.openCampaignReportPopup = function(campaignId, campaignName) {
+            window.openCampaignReportPopup = function (campaignId, campaignName) {
                 const existing = document.getElementById('campaign-report-modal');
                 if (existing) existing.remove();
 
@@ -2693,7 +2693,7 @@ function renderWhatsAppCampaigns(container) {
                             const filtered = logs.filter(l => {
                                 const cleanPhone = (l.wa_id || '').replace(/[^0-9]/g, '');
                                 return (l.profile_name || '').toLowerCase().includes(filterText.toLowerCase()) ||
-                                       cleanPhone.includes(filterText);
+                                    cleanPhone.includes(filterText);
                             });
 
                             const tbody = document.getElementById('report-table-rows');
@@ -2771,7 +2771,7 @@ function renderWhatsAppCampaigns(container) {
             }
 
             // Define Step 1: Campaign Setup Page View
-            window.openCampaignCreatePage = function() {
+            window.openCampaignCreatePage = function () {
                 const draft = window.campaignDraft;
                 contentArea.innerHTML = `
                     <div class="space-y-6 text-slate-805 animate-fade-in bg-[#f8fafc] p-6 rounded-3xl border border-slate-200/60">
@@ -3026,11 +3026,11 @@ function renderWhatsAppCampaigns(container) {
                 lucide.createIcons();
             };
 
-            window.updateSummaryCard = function() {
+            window.updateSummaryCard = function () {
                 const name = document.getElementById('camp-inline-name') ? document.getElementById('camp-inline-name').value : window.campaignDraft.name;
                 const num = document.getElementById('camp-inline-number') ? document.getElementById('camp-inline-number').value : window.campaignDraft.phone;
                 const tpl = document.getElementById('camp-inline-template') ? document.getElementById('camp-inline-template').value : window.campaignDraft.template;
-                
+
                 if (document.getElementById('summary-whatsapp-number')) {
                     document.getElementById('summary-whatsapp-number').textContent = num;
                 }
@@ -3039,13 +3039,13 @@ function renderWhatsAppCampaigns(container) {
                 }
             };
 
-            window.selectCampaignType = function(type) {
+            window.selectCampaignType = function (type) {
                 window.campaignDraft.type = type;
                 const bBtn = document.getElementById('type-btn-broadcast');
                 const sBtn = document.getElementById('type-btn-sequence');
-                
+
                 if (!bBtn || !sBtn) return;
-                
+
                 if (type === 'broadcast') {
                     bBtn.className = 'flex-grow py-2 rounded-lg text-emerald-600 bg-emerald-50/50 border border-emerald-100/30 font-bold text-center text-xs transition duration-150';
                     sBtn.className = 'flex-grow py-2 rounded-lg text-slate-500 font-semibold text-center text-xs transition duration-150';
@@ -3057,13 +3057,13 @@ function renderWhatsAppCampaigns(container) {
                 }
             };
 
-            window.removeInlineTag = function(button) {
+            window.removeInlineTag = function (button) {
                 const text = button.parentElement.querySelector('span').textContent;
                 window.campaignDraft.tags = window.campaignDraft.tags.filter(t => t !== text);
                 button.parentElement.remove();
             };
 
-            window.handleTagInputInline = function(event) {
+            window.handleTagInputInline = function (event) {
                 const input = event.target;
                 if (event.key === 'Enter' || event.key === ',') {
                     event.preventDefault();
@@ -3083,16 +3083,16 @@ function renderWhatsAppCampaigns(container) {
                 }
             };
 
-            window.cancelCampaignCreate = function() {
+            window.cancelCampaignCreate = function () {
                 window.campaignDraft = null;
                 renderWhatsAppCampaigns(container);
             };
 
-            window.saveCampaignDraftInline = function(e) {
+            window.saveCampaignDraftInline = function (e) {
                 e.preventDefault();
                 const nameVal = document.getElementById('camp-inline-name') ? document.getElementById('camp-inline-name').value.trim() : window.campaignDraft.name;
                 const tplVal = document.getElementById('camp-inline-template') ? document.getElementById('camp-inline-template').value : window.campaignDraft.template;
-                
+
                 const payload = {
                     name: nameVal,
                     template_name: tplVal,
@@ -3110,7 +3110,7 @@ function renderWhatsAppCampaigns(container) {
                     });
             };
 
-            window.handleCampaignSubmitInline = function(e) {
+            window.handleCampaignSubmitInline = function (e) {
                 e.preventDefault();
                 // Sync values
                 window.campaignDraft.name = document.getElementById('camp-inline-name').value.trim();
@@ -3118,15 +3118,15 @@ function renderWhatsAppCampaigns(container) {
                 window.campaignDraft.template = document.getElementById('camp-inline-template').value;
                 window.campaignDraft.category = document.getElementById('camp-inline-category').value;
                 window.campaignDraft.description = document.getElementById('camp-inline-desc').value.trim();
-                
+
                 // Go to step 2
                 openCampaignAudiencePage();
             };
 
             // Define Step 2: Target Audience selection page view creator
-            window.openCampaignAudiencePage = function() {
+            window.openCampaignAudiencePage = function () {
                 const draft = window.campaignDraft;
-                
+
                 // Scan active variables val1 through val10
                 const activeValKeys = [];
                 for (let i = 1; i <= 10; i++) {
@@ -3279,14 +3279,14 @@ function renderWhatsAppCampaigns(container) {
                                                             <td class="p-2.5 pl-4 font-bold text-slate-805">${r.name}</td>
                                                             <td class="p-2.5 font-mono text-[11px] text-slate-500">${r.phone.slice(-10)}</td>
                                                             ${activeValKeys.map(k => {
-                                                                const valStr = r[k] || '-';
-                                                                const badgeBg = k === 'val1' ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50' : 'bg-blue-50/50 text-blue-600 border-blue-100/30';
-                                                                return `
+                    const valStr = r[k] || '-';
+                    const badgeBg = k === 'val1' ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50' : 'bg-blue-50/50 text-blue-600 border-blue-100/30';
+                    return `
                                                                     <td class="p-2.5 select-none hover:bg-slate-50 transition duration-150 cursor-pointer" ondblclick="makeVariableEditable(this, ${draft.recipients.indexOf(r)}, '${k}')">
                                                                         <span class="px-2 py-0.5 ${badgeBg} rounded-md border text-[10px] font-bold inline-block var-cell-display">${valStr}</span>
                                                                     </td>
                                                                 `;
-                                                            }).join('')}
+                }).join('')}
                                                         </tr>
                                                     `).join('')}
                                                     ${draft.recipients.length > 5 ? `
@@ -3376,7 +3376,7 @@ function renderWhatsAppCampaigns(container) {
             };
 
             // Double click variable cell inline editor
-            window.makeVariableEditable = function(cellElement, recipientIndex, varKey) {
+            window.makeVariableEditable = function (cellElement, recipientIndex, varKey) {
                 if (cellElement.querySelector('input')) return;
 
                 const currentVal = window.campaignDraft.recipients[recipientIndex][varKey] || '';
@@ -3390,7 +3390,7 @@ function renderWhatsAppCampaigns(container) {
                 const saveEdit = () => {
                     const newVal = input.value.trim();
                     window.campaignDraft.recipients[recipientIndex][varKey] = newVal;
-                    
+
                     // Re-render Step 2
                     openCampaignAudiencePage();
                 };
@@ -3406,7 +3406,7 @@ function renderWhatsAppCampaigns(container) {
             };
 
             // Dynamic Modal: Select from My Contacts
-            window.openMyContactsPopup = function() {
+            window.openMyContactsPopup = function () {
                 const existing = document.getElementById('audience-picker-modal');
                 if (existing) existing.remove();
 
@@ -3460,7 +3460,7 @@ function renderWhatsAppCampaigns(container) {
                 apiCall('whatsapp/contacts.php?limit=100')
                     .then(res => {
                         const list = res.contacts || [];
-                        
+
                         // Filter "which have valid 10 digit numbers" and remove duplicates
                         const seen = new Set();
                         allLoadedContacts = [];
@@ -3479,7 +3479,7 @@ function renderWhatsAppCampaigns(container) {
                             }
                         });
 
-                        window.filterModalContacts = function(query) {
+                        window.filterModalContacts = function (query) {
                             const container = document.getElementById('contacts-modal-list');
                             if (!container) return;
 
@@ -3507,7 +3507,7 @@ function renderWhatsAppCampaigns(container) {
                                     </label>
                                 `;
                             }).join('');
-                            
+
                             updateModalContactSelectedCount();
                         };
 
@@ -3517,12 +3517,12 @@ function renderWhatsAppCampaigns(container) {
                         document.getElementById('contacts-modal-list').innerHTML = `<div class="text-center text-rose-500 text-xs py-8 font-semibold">Failed to load contacts: ${err.message}</div>`;
                     });
 
-                window.updateModalContactSelectedCount = function() {
+                window.updateModalContactSelectedCount = function () {
                     const checked = document.querySelectorAll('.modal-contact-checkbox:checked').length;
                     document.getElementById('contact-modal-selected-count').textContent = `${checked} contacts selected`;
                 };
 
-                window.confirmMyContactsSelection = function() {
+                window.confirmMyContactsSelection = function () {
                     const checkboxes = document.querySelectorAll('.modal-contact-checkbox:checked');
                     const selected = [];
                     checkboxes.forEach(cb => {
@@ -3535,7 +3535,7 @@ function renderWhatsAppCampaigns(container) {
                             val2: ''
                         });
                     });
-                    
+
                     window.campaignDraft.recipients = selected;
                     document.getElementById('audience-picker-modal').remove();
                     showNotification('success', `Selected ${selected.length} database contacts.`);
@@ -3544,7 +3544,7 @@ function renderWhatsAppCampaigns(container) {
             };
 
             // Dynamic Modal: Select from Tag/Group segments
-            window.openGroupsPopup = function() {
+            window.openGroupsPopup = function () {
                 const existing = document.getElementById('audience-picker-modal');
                 if (existing) existing.remove();
 
@@ -3597,7 +3597,7 @@ function renderWhatsAppCampaigns(container) {
                 document.body.appendChild(modal);
                 lucide.createIcons();
 
-                window.selectGroupSegment = function(groupName, tagValue) {
+                window.selectGroupSegment = function (groupName, tagValue) {
                     apiCall('whatsapp/contacts.php?limit=100')
                         .then(res => {
                             const list = res.contacts || [];
@@ -3641,7 +3641,7 @@ function renderWhatsAppCampaigns(container) {
             };
 
             // Dynamic Modal: Enter Phone Numbers Manually
-            window.openEnterManuallyPopup = function() {
+            window.openEnterManuallyPopup = function () {
                 const existing = document.getElementById('audience-picker-modal');
                 if (existing) existing.remove();
 
@@ -3696,7 +3696,7 @@ function renderWhatsAppCampaigns(container) {
 
                 let validNumbers = [];
 
-                window.countManualNumbers = function() {
+                window.countManualNumbers = function () {
                     const text = document.getElementById('manual-numbers-input').value;
                     const lines = text.split('\n');
                     validNumbers = [];
@@ -3718,7 +3718,7 @@ function renderWhatsAppCampaigns(container) {
                     document.getElementById('manual-numbers-badge').textContent = `${validNumbers.length} valid numbers found`;
                     const listContainer = document.getElementById('manual-numbers-list-box');
                     const listItems = document.getElementById('manual-numbers-list-items');
-                    
+
                     if (validNumbers.length > 0) {
                         listContainer.classList.remove('hidden');
                         listItems.innerHTML = validNumbers.map(n => `
@@ -3730,7 +3730,7 @@ function renderWhatsAppCampaigns(container) {
                     }
                 };
 
-                window.confirmManualNumbersSelection = function() {
+                window.confirmManualNumbersSelection = function () {
                     countManualNumbers();
 
                     if (validNumbers.length === 0) {
@@ -3753,7 +3753,7 @@ function renderWhatsAppCampaigns(container) {
 
             // Dynamic Modal: Import from CSV with variables
             // Dynamic Modal: Import from CSV with variables
-            window.openImportCSVPopup = function() {
+            window.openImportCSVPopup = function () {
                 const existing = document.getElementById('audience-picker-modal');
                 if (existing) existing.remove();
 
@@ -3843,8 +3843,8 @@ function renderWhatsAppCampaigns(container) {
                     handleCSVFile(e.dataTransfer.files[0]);
                 };
 
-                window.downloadSampleCSV = function() {
-                    const csvContent = "Phone,Name,val1,val2,val3,val4,val5,val6,val7,val8,val9,val10\n9876543210,Soumojit Saha,Project Proposal,15% Discount,,,,,,,,\n9593501403,Sayantani,Follow Up,20% Offer,,,,,,,,";
+                window.downloadSampleCSV = function () {
+                    const csvContent = "Phone,Name,val1,val2,val3,val4,val5,val6,val7,val8,val9,val10\n9876543210,Soumojit Saha,Project Proposal,15% Discount,,,,,,,,\n9876543210,Virat Kohli,Follow Up,20% Offer,,,,,,,,";
                     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
                     const link = document.createElement("a");
                     const url = URL.createObjectURL(blob);
@@ -3859,7 +3859,7 @@ function renderWhatsAppCampaigns(container) {
                 function handleCSVFile(file) {
                     if (!file) return;
                     const reader = new FileReader();
-                    reader.onload = function(evt) {
+                    reader.onload = function (evt) {
                         const content = evt.target.result;
                         parseCSVContent(content);
                     };
@@ -3910,7 +3910,7 @@ function renderWhatsAppCampaigns(container) {
                         if (cleanPhone.length !== 10) continue;
 
                         const nameVal = nameIdx !== -1 && cols[nameIdx] ? cols[nameIdx] : 'CSV Contact';
-                        
+
                         const recipient = {
                             phone: '91' + cleanPhone, // Send to backend with 91
                             name: nameVal
@@ -3929,7 +3929,7 @@ function renderWhatsAppCampaigns(container) {
                     document.getElementById('csv-drop-zone').classList.add('hidden');
                     const previewBox = document.getElementById('csv-preview-box');
                     previewBox.classList.remove('hidden');
-                    
+
                     document.getElementById('csv-valid-badge').textContent = `${parsedRecipients.length} valid rows`;
                     const container = document.getElementById('csv-preview-table-container');
 
@@ -3966,9 +3966,9 @@ function renderWhatsAppCampaigns(container) {
                                             <td class="p-2 pl-3 font-mono text-[11px] text-slate-500 font-semibold">${r.phone.slice(-10)}</td>
                                             <td class="p-2 font-bold text-slate-805">${r.name}</td>
                                             ${activeCSVValKeys.map(k => {
-                                                const badgeBg = k === 'val1' ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50' : 'bg-blue-50/50 text-blue-600 border-blue-100/30';
-                                                return `<td class="p-2"><span class="px-1.5 py-0.5 ${badgeBg} rounded text-[9.5px] font-bold border">${r[k] || '-'}</span></td>`;
-                                            }).join('')}
+                            const badgeBg = k === 'val1' ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50' : 'bg-blue-50/50 text-blue-600 border-blue-100/30';
+                            return `<td class="p-2"><span class="px-1.5 py-0.5 ${badgeBg} rounded text-[9.5px] font-bold border">${r[k] || '-'}</span></td>`;
+                        }).join('')}
                                         </tr>
                                     `).join('')}
                                     ${parsedRecipients.length > 5 ? `
@@ -3982,7 +3982,7 @@ function renderWhatsAppCampaigns(container) {
                     }
                 }
 
-                window.confirmCSVSelection = function() {
+                window.confirmCSVSelection = function () {
                     if (parsedRecipients.length === 0) {
                         showNotification('error', 'Please upload a CSV file with valid 10-digit numbers first.');
                         return;
@@ -3996,7 +3996,7 @@ function renderWhatsAppCampaigns(container) {
             };
 
             // Define Step 3: Review & Launch Campaign view creator
-            window.openCampaignReviewPage = function() {
+            window.openCampaignReviewPage = function () {
                 const draft = window.campaignDraft;
                 if (draft.recipients.length === 0) {
                     showNotification('error', 'Please select a target audience before proceeding.');
@@ -4009,7 +4009,7 @@ function renderWhatsAppCampaigns(container) {
                     { name: 'discount_promo', category: 'MARKETING', language: 'en', status: 'APPROVED', components_json: '[{"type":"BODY","text":"Hey {{1}}, check out this exclusive offer! Get 20% off all LinkPilot CRM plans this month. Use code: OUTREACH20."}]' },
                     { name: 'product_launch', category: 'MARKETING', language: 'en', status: 'APPROVED', components_json: '[{"type":"BODY","text":"Exciting news! We just launched our new feature. Check it out at {{1}}!"}]' }
                 ];
-                
+
                 const tplObj = availableTemplates.find(t => t.name === draft.template) || availableTemplates[0];
                 let bodyText = '';
                 try {
@@ -4190,7 +4190,7 @@ function renderWhatsAppCampaigns(container) {
                 lucide.createIcons();
 
                 // Live Trigger Method
-                window.launchWhatsAppCampaignLive = function() {
+                window.launchWhatsAppCampaignLive = function () {
                     const btn = document.getElementById('launch-camp-btn');
                     if (btn) {
                         btn.disabled = true;
@@ -4226,7 +4226,7 @@ function renderWhatsAppCampaigns(container) {
             };
 
             // Custom Template Selector Modal with List view and Live WhatsApp message layout preview
-            window.openTemplateSelectorModal = function() {
+            window.openTemplateSelectorModal = function () {
                 const existing = document.getElementById('template-picker-modal');
                 if (existing) existing.remove();
 
@@ -4325,7 +4325,7 @@ function renderWhatsAppCampaigns(container) {
                 document.body.appendChild(modal);
                 lucide.createIcons();
 
-                window.filterModalTemplates = function(query) {
+                window.filterModalTemplates = function (query) {
                     const listContainer = document.getElementById('modal-tpl-list-container');
                     if (!listContainer) return;
 
@@ -4339,7 +4339,7 @@ function renderWhatsAppCampaigns(container) {
                         const isSelected = t.name === activeTpl.name;
                         const borderClass = isSelected ? 'border-[#00a884] bg-emerald-50/40' : 'border-slate-200 bg-white hover:border-slate-350';
                         const badgeBg = t.category === 'MARKETING' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-600';
-                        
+
                         return `
                             <div onclick="selectModalTemplate('${t.name}')" class="p-3.5 border rounded-2xl cursor-pointer transition ${borderClass} flex items-center justify-between shadow-2xs">
                                 <div class="space-y-1">
@@ -4358,10 +4358,10 @@ function renderWhatsAppCampaigns(container) {
                     }).join('');
                 };
 
-                window.selectModalTemplate = function(name) {
+                window.selectModalTemplate = function (name) {
                     activeTpl = availableTemplates.find(t => t.name === name) || availableTemplates[0];
                     window.filterModalTemplates(document.getElementById('tpl-modal-search').value);
-                    
+
                     let bodyText = '';
                     try {
                         const comps = typeof activeTpl.components_json === 'string' ? JSON.parse(activeTpl.components_json) : (activeTpl.components || []);
@@ -4370,13 +4370,13 @@ function renderWhatsAppCampaigns(container) {
                     } catch (e) {
                         bodyText = 'Error parsing template body component.';
                     }
-                    
+
                     // Replace {{1}}, {{2}} with nice green chips
                     bodyText = bodyText.replace(/\{\{(\d+)\}\}/g, '<strong class="text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-md font-extrabold text-[10px] border border-emerald-200">[Variable $1]</strong>');
                     document.getElementById('wa-preview-message-body').innerHTML = bodyText;
                 };
 
-                window.confirmSelectedTemplate = function() {
+                window.confirmSelectedTemplate = function () {
                     document.getElementById('camp-inline-template').value = activeTpl.name;
                     window.campaignDraft.template = activeTpl.name;
                     document.getElementById('summary-template').textContent = activeTpl.name;
@@ -4387,9 +4387,9 @@ function renderWhatsAppCampaigns(container) {
                 window.selectModalTemplate(activeTpl.name);
             };
 
-            window.triggerBroadcastCampaign = function(campId) {
+            window.triggerBroadcastCampaign = function (campId) {
                 if (!confirm('Are you sure you want to trigger this broadcast campaign? Message targets will be pushed in queue.')) return;
-                
+
                 apiCall('whatsapp/campaigns.php?action=send', 'POST', {
                     campaign_id: campId
                 }).then(res => {
@@ -4416,13 +4416,13 @@ function renderWhatsAppTemplates(container) {
         try {
             const res = await apiCall('whatsapp/templates.php');
             const allTemplates = res.templates || [];
-            
+
             let searchQuery = '';
             let categoryFilter = 'ALL';
             let currentPage = 1;
             const itemsPerPage = 6;
             let selectedTemplate = allTemplates.length > 0 ? allTemplates[0] : null;
-            
+
             contentArea.innerHTML = `
                 <div class="space-y-6">
                     <div class="flex items-center justify-between border-b border-slate-200 pb-4 bg-white p-5 rounded-2xl shadow-sm animate-fade-in">
@@ -4584,30 +4584,30 @@ function renderWhatsAppTemplates(container) {
                     </div>
                 </div>
             `;
-            
+
             // Core Render function for templates list, detail view & preview
             function renderAllTplViews() {
                 const listScrollable = document.getElementById('templates-list-scrollable');
                 const paginationBar = document.getElementById('tpl-pagination-bar');
-                
+
                 if (!listScrollable) return;
-                
+
                 // 1. Filter
                 const filtered = allTemplates.filter(t => {
                     const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase());
                     const matchesCat = (categoryFilter === 'ALL' || t.category === categoryFilter);
                     return matchesSearch && matchesCat;
                 });
-                
+
                 // 2. Pagination
                 const totalItems = filtered.length;
                 const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
                 if (currentPage > totalPages) currentPage = totalPages;
-                
+
                 const startIndex = (currentPage - 1) * itemsPerPage;
                 const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
                 const paginated = filtered.slice(startIndex, endIndex);
-                
+
                 // Inject List HTML
                 if (paginated.length === 0) {
                     listScrollable.innerHTML = `<div class="text-center py-10 text-slate-400 text-[11px]">No message templates found.</div>`;
@@ -4617,7 +4617,7 @@ function renderWhatsAppTemplates(container) {
                         const bodyComp = components.find(c => c.type === 'BODY') || {};
                         const bodyPreview = bodyComp.text || '';
                         const isSelected = selectedTemplate && selectedTemplate.id === t.id;
-                        
+
                         return `
                             <div onclick="selectActiveTemplate(${t.id})" class="p-3.5 rounded-xl border transition cursor-pointer flex justify-between items-center ${isSelected ? 'border-blue-500 bg-blue-50/20 shadow-sm' : 'border-slate-100 hover:border-slate-200 bg-white'}">
                                 <div class="space-y-1.5 flex-grow truncate mr-2">
@@ -4635,7 +4635,7 @@ function renderWhatsAppTemplates(container) {
                         `;
                     }).join('');
                 }
-                
+
                 // Inject Pagination HTML
                 paginationBar.innerHTML = `
                     <span>Showing ${totalItems === 0 ? 0 : startIndex + 1} to ${endIndex} of ${totalItems} templates</span>
@@ -4644,43 +4644,43 @@ function renderWhatsAppTemplates(container) {
                             <i data-lucide="chevron-left" class="h-3 w-3"></i>
                         </button>
                         ${Array.from({ length: totalPages }).map((_, i) => {
-                            const pageNum = i + 1;
-                            return `
+                    const pageNum = i + 1;
+                    return `
                                 <button onclick="setTplPage(${pageNum})" class="px-2 py-0.5 rounded border text-[10px] transition ${currentPage === pageNum ? 'bg-blue-600 text-white border-blue-600 font-bold' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}">
                                     ${pageNum}
                                 </button>
                             `;
-                        }).join('')}
+                }).join('')}
                         <button onclick="setTplPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} class="p-1 border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-40 transition">
                             <i data-lucide="chevron-right" class="h-3 w-3"></i>
                         </button>
                     </div>
                 `;
-                
+
                 // 3. Render Details & Preview Bubble
                 renderDetailsPanel();
                 lucide.createIcons();
             }
-            
+
             // Helper to render preview details panel on the right
             function renderDetailsPanel() {
                 const detailsPanel = document.getElementById('template-details-panel');
                 if (!detailsPanel) return;
-                
+
                 if (!selectedTemplate) {
                     detailsPanel.innerHTML = `<div class="text-center py-20 text-slate-400">Select a template to view details.</div>`;
                     document.getElementById('mock-bubble-text').textContent = 'No template selected.';
                     return;
                 }
-                
+
                 const components = JSON.parse(selectedTemplate.components_json) || [];
                 const headerComp = components.find(c => c.type === 'HEADER') || null;
                 const bodyComp = components.find(c => c.type === 'BODY') || null;
                 const footerComp = components.find(c => c.type === 'FOOTER') || null;
                 const buttonsComp = components.find(c => c.type === 'BUTTONS') || null;
-                
+
                 const headerVal = headerComp ? (headerComp.format || 'Text') : 'None';
-                
+
                 // Match placeholders like {{1}}, {{2}}
                 const fullText = (headerComp?.text || '') + ' ' + (bodyComp?.text || '');
                 const varsFound = [...new Set(fullText.match(/{{[0-9]+}}/g) || [])].sort((a, b) => {
@@ -4688,11 +4688,11 @@ function renderWhatsAppTemplates(container) {
                     const numB = parseInt(b.replace(/[{}]/g, ''));
                     return numA - numB;
                 });
-                
+
                 const varsCountText = varsFound.length > 0 ? `${varsFound.length} variable${varsFound.length > 1 ? 's' : ''}` : 'None';
                 const footerVal = footerComp ? '1 line' : 'None';
                 const buttonsCountText = buttonsComp ? `${buttonsComp.buttons.length} button${buttonsComp.buttons.length > 1 ? 's' : ''}` : 'None';
-                
+
                 detailsPanel.innerHTML = `
                     <h3 class="font-bold text-slate-800 text-xs border-b border-slate-100 pb-2">Template Details</h3>
                     
@@ -4763,29 +4763,29 @@ function renderWhatsAppTemplates(container) {
                             
                             <div class="space-y-2.5">
                                 ${varsFound.map(v => {
-                                    const vNum = parseInt(v.replace(/[{}]/g, ''));
-                                    let label = `Variable ${vNum}`;
-                                    let placeholder = `Example: Value for ${v}`;
-                                    
-                                    // Custom presets matching typical user preview fields in the mockup
-                                    if (vNum === 1) {
-                                        label = `1 Customer Name`;
-                                        placeholder = `Example: Soumojit`;
-                                    } else if (vNum === 2) {
-                                        label = `2 Offer Code`;
-                                        placeholder = `Example: OUTREACH20`;
-                                    } else if (vNum === 3) {
-                                        label = `3 Offer Expiry`;
-                                        placeholder = `Example: 31st July, 2026`;
-                                    }
-                                    
-                                    return `
+                    const vNum = parseInt(v.replace(/[{}]/g, ''));
+                    let label = `Variable ${vNum}`;
+                    let placeholder = `Example: Value for ${v}`;
+
+                    // Custom presets matching typical user preview fields in the mockup
+                    if (vNum === 1) {
+                        label = `1 Customer Name`;
+                        placeholder = `Example: Soumojit`;
+                    } else if (vNum === 2) {
+                        label = `2 Offer Code`;
+                        placeholder = `Example: OUTREACH20`;
+                    } else if (vNum === 3) {
+                        label = `3 Offer Expiry`;
+                        placeholder = `Example: 31st July, 2026`;
+                    }
+
+                    return `
                                         <div>
                                             <label class="block text-slate-500 font-bold text-[9px] mb-1">${label}</label>
                                             <input type="text" data-var="${v}" oninput="updateMockPreviewBubble()" placeholder="${placeholder}" class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500 bg-[#f8fafc]">
                                         </div>
                                     `;
-                                }).join('')}
+                }).join('')}
                             </div>
                         </div>
                         ` : ''}
@@ -4799,19 +4799,19 @@ function renderWhatsAppTemplates(container) {
                         </div>
                     </div>
                 `;
-                
+
                 // Initialize default bubble content preview text
                 updateMockPreviewBubble();
             }
-            
+
             // Helper to dynamically update the mock bubble preview as users fill variables
-            window.updateMockPreviewBubble = function() {
+            window.updateMockPreviewBubble = function () {
                 if (!selectedTemplate) return;
-                
+
                 const components = JSON.parse(selectedTemplate.components_json) || [];
                 const bodyComp = components.find(c => c.type === 'BODY') || {};
                 let bodyText = bodyComp.text || '';
-                
+
                 // Replace variables with user inputs
                 const inputs = document.querySelectorAll('#template-details-panel input[data-var]');
                 inputs.forEach(input => {
@@ -4821,34 +4821,34 @@ function renderWhatsAppTemplates(container) {
                         bodyText = bodyText.replaceAll(varTag, `**${userVal}**`);
                     }
                 });
-                
+
                 // Convert double star markdown **text** to bold tags inside HTML preview
                 let formattedHtml = bodyText
                     .replace(/</g, '&lt;')
                     .replace(/>/g, '&gt;')
                     .replace(/\*\*(.*?)\*\*/g, '<strong class="font-extrabold text-slate-900">$1</strong>');
-                
+
                 const bubble = document.getElementById('mock-bubble-text');
                 if (bubble) {
                     bubble.innerHTML = formattedHtml;
                 }
             };
-            
+
             // Selection / Filter actions
-            window.selectActiveTemplate = function(id) {
+            window.selectActiveTemplate = function (id) {
                 const found = allTemplates.find(t => t.id === id);
                 if (found) {
                     selectedTemplate = found;
                     renderAllTplViews();
                 }
             };
-            
-            window.setTplPage = function(p) {
+
+            window.setTplPage = function (p) {
                 currentPage = p;
                 renderAllTplViews();
             };
-            
-            window.filterTemplatesList = function() {
+
+            window.filterTemplatesList = function () {
                 const searchEl = document.getElementById('tpl-search-input');
                 const catEl = document.getElementById('tpl-category-filter');
                 if (searchEl) searchQuery = searchEl.value.trim();
@@ -4856,7 +4856,7 @@ function renderWhatsAppTemplates(container) {
                 currentPage = 1;
                 renderAllTplViews();
             };
-            
+
             // Bind search and filter events in the DOM
             setTimeout(() => {
                 const searchEl = document.getElementById('tpl-search-input');
@@ -4868,18 +4868,18 @@ function renderWhatsAppTemplates(container) {
                     catEl.addEventListener('change', filterTemplatesList);
                 }
             }, 100);
-            
+
             // Initial Draw
             renderAllTplViews();
-            
+
             // Global Trigger Sync Function
-            window.triggerTemplatesSync = function() {
+            window.triggerTemplatesSync = function () {
                 const btn = document.getElementById('sync-tpl-btn');
                 if (btn) {
                     btn.disabled = true;
                     btn.innerHTML = '<span class="loader-spinner mr-1"></span> Syncing...';
                 }
-                
+
                 apiCall('whatsapp/templates.php?action=sync', 'POST')
                     .then(res => {
                         showNotification('success', res.message);
@@ -4894,15 +4894,15 @@ function renderWhatsAppTemplates(container) {
                         }
                     });
             };
-            
+
             // Link active template to use modal/redirect
-            window.useActiveTemplate = function() {
+            window.useActiveTemplate = function () {
                 if (!selectedTemplate) return;
                 showNotification('info', `Selected template: ${selectedTemplate.name}. Redirecting to Sender Panel...`);
                 localStorage.setItem('wa_send_template_id', selectedTemplate.id);
                 navigateTo('whatsapp-send-template', { templateId: selectedTemplate.id });
             };
-            
+
         } catch (err) {
             showNotification('error', err.message);
         }
@@ -4917,7 +4917,7 @@ function renderWhatsAppBroadcast(container) {
         try {
             const templatesRes = await apiCall('whatsapp/templates.php');
             const templates = templatesRes.templates || [];
-            
+
             contentArea.innerHTML = `
                 <div class="space-y-6">
                     <div class="border-b border-slate-200 pb-4 bg-white p-5 rounded-2xl shadow-sm">
@@ -4948,17 +4948,17 @@ function renderWhatsAppBroadcast(container) {
                 </div>
             `;
             lucide.createIcons();
-            
-            window.triggerQuickBroadcast = function(e) {
+
+            window.triggerQuickBroadcast = function (e) {
                 e.preventDefault();
                 const template = document.getElementById('bcast-tpl').value;
                 const numbers = document.getElementById('bcast-numbers').value.split(',').map(n => n.trim()).filter(n => n.length > 0);
-                
+
                 if (numbers.length === 0) {
                     showNotification('error', 'Please enter at least one recipient number.');
                     return;
                 }
-                
+
                 // Create Campaign draft for quick broadcast
                 apiCall('whatsapp/campaigns.php?action=create', 'POST', {
                     name: 'Quick Broadcast - ' + template + ' - ' + new Date().toLocaleDateString(),
@@ -4966,7 +4966,7 @@ function renderWhatsAppBroadcast(container) {
                     filters: {}
                 }).then(res => {
                     const campId = res.campaign_id;
-                    
+
                     // Hook custom logs manually for quick numbers list
                     // In a production setup, we can write a specific quick broadcast API,
                     // but linking it directly to campaigns makes it immediately visual in the campaigns tab!
@@ -4976,7 +4976,7 @@ function renderWhatsAppBroadcast(container) {
                     showNotification('error', err.message);
                 });
             };
-            
+
         } catch (err) {
             showNotification('error', err.message);
         }
@@ -5036,7 +5036,7 @@ function renderWhatsAppReports(container) {
             const res = await apiCall('whatsapp/reports.php');
             const totals = res.totals;
             const history = res.daily_usage || [];
-            
+
             contentArea.innerHTML = `
                 <div class="space-y-6">
                     <div class="border-b border-slate-200 pb-4 bg-white p-5 rounded-2xl shadow-sm">
@@ -5073,9 +5073,9 @@ function renderWhatsAppReports(container) {
                     </div>
                 </div>
             `;
-            
+
             lucide.createIcons();
-            
+
             // Render Chart
             const ctx = document.getElementById('wa-chart-history').getContext('2d');
             new Chart(ctx, {
@@ -5104,7 +5104,7 @@ function renderWhatsAppReports(container) {
                     }
                 }
             });
-            
+
         } catch (err) {
             showNotification('error', err.message);
         }
@@ -5119,11 +5119,11 @@ function renderWhatsAppSettings(container) {
         try {
             const res = await apiCall('whatsapp/settings.php');
             const set = res.settings;
-            
+
             const setupRes = await apiCall('whatsapp/setup.php');
             const acc = setupRes.account || {};
             const isConnected = setupRes.connected;
-            
+
             contentArea.innerHTML = `
                 <div class="space-y-6 animate-fade-in text-xs">
                     <!-- Card 1: Active Connection Status -->
@@ -5355,9 +5355,9 @@ function renderWhatsAppSettings(container) {
                 </div>
             `;
             lucide.createIcons();
-            
+
             // AI Autopilot Toggle Handler & Privacy Policy Modal
-            window.toggleAiProcessing = function(checkbox) {
+            window.toggleAiProcessing = function (checkbox) {
                 if (checkbox.checked) {
                     checkbox.checked = false; // Keep unchecked until accepted!
                     showPrivacyPolicyModal(checkbox);
@@ -5366,10 +5366,10 @@ function renderWhatsAppSettings(container) {
                 }
             };
 
-            window.showPrivacyPolicyModal = function(checkbox) {
+            window.showPrivacyPolicyModal = function (checkbox) {
                 const existing = document.getElementById('ai-privacy-modal');
                 if (existing) existing.remove();
-                
+
                 const modalHtml = `
                     <div id="ai-privacy-modal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300">
                         <div class="bg-white rounded-3xl w-full max-w-xl p-6 shadow-2xl border border-slate-100 max-h-[85vh] flex flex-col transform transition-all scale-100 duration-300 mx-4">
@@ -5435,11 +5435,11 @@ function renderWhatsAppSettings(container) {
                         </div>
                     </div>
                 `;
-                
+
                 document.body.insertAdjacentHTML('beforeend', modalHtml);
                 lucide.createIcons();
-                
-                window.closePrivacyModal = function(accepted) {
+
+                window.closePrivacyModal = function (accepted) {
                     const modal = document.getElementById('ai-privacy-modal');
                     if (modal) {
                         modal.classList.add('opacity-0');
@@ -5458,7 +5458,7 @@ function renderWhatsAppSettings(container) {
             };
 
             // Auto Save Handler
-            window.autoSaveWaSettings = function() {
+            window.autoSaveWaSettings = function () {
                 const payload = {
                     ai_enabled: document.getElementById('set-ai').checked ? 1 : 0,
                     auto_crm_creation: document.getElementById('set-auto-crm').checked ? 1 : 0,
@@ -5467,11 +5467,11 @@ function renderWhatsAppSettings(container) {
                     media_upload_limit_mb: parseInt(document.getElementById('set-media-limit').value),
                     allowed_file_types: document.getElementById('set-file-types').value.trim()
                 };
-                
+
                 // Save channel quality mockup field to localStorage
                 const quality = document.getElementById('set-channel-quality').value;
                 localStorage.setItem('wa_channel_quality', quality);
-                
+
                 apiCall('whatsapp/settings.php', 'POST', payload)
                     .then(res => {
                         showNotification('success', 'Configurations auto-saved successfully.');
@@ -5480,9 +5480,9 @@ function renderWhatsAppSettings(container) {
                         showNotification('error', 'Auto-save failed: ' + err.message);
                     });
             };
-            
+
             // Optimize Chat Summary Manual Action
-            window.optimizeChatSummary = function(contactId, btn) {
+            window.optimizeChatSummary = function (contactId, btn) {
                 if (btn) {
                     btn.disabled = true;
                     btn.dataset.originalHtml = btn.innerHTML;
@@ -5504,7 +5504,7 @@ function renderWhatsAppSettings(container) {
             };
 
             // Re-Verify Connection
-            window.reVerifyConnection = function() {
+            window.reVerifyConnection = function () {
                 showNotification('info', 'Re-verifying connection health with Meta...');
                 apiCall('whatsapp/setup.php?action=re_verify', 'POST')
                     .then(res => {
@@ -5515,16 +5515,16 @@ function renderWhatsAppSettings(container) {
                         showNotification('error', 'Re-verification failed: ' + err.message);
                     });
             };
-            
+
             // Update Token Modal UI
-            window.openUpdateTokenModal = function() {
+            window.openUpdateTokenModal = function () {
                 const existing = document.getElementById('update-token-modal');
                 if (existing) existing.remove();
-                
+
                 const modal = document.createElement('div');
                 modal.id = 'update-token-modal';
                 modal.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4';
-                
+
                 modal.innerHTML = `
                     <div class="bg-white border border-slate-200 w-full max-w-sm rounded-2xl p-6 relative space-y-4 text-xs shadow-2xl animate-fade-in animate-duration-200">
                         <button onclick="document.getElementById('update-token-modal').remove()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 text-xl font-bold">&times;</button>
@@ -5542,15 +5542,15 @@ function renderWhatsAppSettings(container) {
                 `;
                 document.body.appendChild(modal);
             };
-            
+
             // Submit Updated Token
-            window.submitUpdatedToken = function() {
+            window.submitUpdatedToken = function () {
                 const token = document.getElementById('new-meta-token').value.trim();
                 if (!token) {
                     showNotification('error', 'Token is required.');
                     return;
                 }
-                
+
                 apiCall('whatsapp/setup.php?action=save_connection', 'POST', {
                     access_token: token,
                     business_id: acc.business_id,
@@ -5565,8 +5565,8 @@ function renderWhatsAppSettings(container) {
                     showNotification('error', 'Failed updating token: ' + err.message);
                 });
             };
-            
-            window.saveWhatsAppSettingsForm = function(e) {
+
+            window.saveWhatsAppSettingsForm = function (e) {
                 e.preventDefault();
                 const payload = {
                     ai_enabled: document.getElementById('set-ai').checked ? 1 : 0,
@@ -5575,7 +5575,7 @@ function renderWhatsAppSettings(container) {
                     media_upload_limit_mb: parseInt(document.getElementById('set-media-limit').value),
                     allowed_file_types: document.getElementById('set-file-types').value.trim()
                 };
-                
+
                 apiCall('whatsapp/settings.php', 'POST', payload)
                     .then(res => {
                         showNotification('success', res.message);
@@ -5584,10 +5584,10 @@ function renderWhatsAppSettings(container) {
                         showNotification('error', err.message);
                     });
             };
-            
-            window.disconnectWhatsAppAccount = function() {
+
+            window.disconnectWhatsAppAccount = function () {
                 if (!confirm('WARNING: Disconnecting will erase access tokens, verify webhook endpoints, and disable all automation rules. Proceed?')) return;
-                
+
                 apiCall('whatsapp/setup.php?action=disconnect', 'POST')
                     .then(res => {
                         showNotification('success', res.message);
@@ -5597,7 +5597,7 @@ function renderWhatsAppSettings(container) {
                         showNotification('error', err.message);
                     });
             };
-            
+
         } catch (err) {
             showNotification('error', err.message);
         }
@@ -5607,14 +5607,14 @@ function renderWhatsAppSettings(container) {
 // -------------------------------------------------------------
 // NEW CHAT MODAL AND FLOW (CRM LEADS & MANUAL PHONES)
 // -------------------------------------------------------------
-window.openNewChatModal = function() {
+window.openNewChatModal = function () {
     let modal = document.getElementById('wa-new-chat-modal');
     if (modal) modal.remove();
-    
+
     modal = document.createElement('div');
     modal.id = 'wa-new-chat-modal';
     modal.className = 'fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4';
-    
+
     modal.innerHTML = `
         <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl w-full max-w-md overflow-hidden animate-fade-in text-xs text-slate-700 flex flex-col max-h-[500px]">
             <!-- Header -->
@@ -5666,20 +5666,20 @@ window.openNewChatModal = function() {
             </div>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
     lucide.createIcons();
-    
+
     // Auto load recent leads
     searchNewChatLeads('');
 };
 
-window.switchNewChatTab = function(tab) {
+window.switchNewChatTab = function (tab) {
     const tabCrmBtn = document.getElementById('tab-crm-btn');
     const tabManualBtn = document.getElementById('tab-manual-btn');
     const tabCrmContent = document.getElementById('tab-crm-content');
     const tabManualContent = document.getElementById('tab-manual-content');
-    
+
     if (tab === 'crm') {
         tabCrmBtn.className = "flex-1 py-2 text-center text-blue-600 border-b-2 border-blue-600 focus:outline-none";
         tabManualBtn.className = "flex-1 py-2 text-center text-slate-400 hover:text-slate-600 focus:outline-none";
@@ -5693,28 +5693,28 @@ window.switchNewChatTab = function(tab) {
     }
 };
 
-window.searchNewChatLeads = async function(query) {
+window.searchNewChatLeads = async function (query) {
     const container = document.getElementById('new-chat-leads-results');
     if (!container) return;
-    
+
     container.innerHTML = '<div class="p-4 text-center text-slate-400"><span class="spinner-border spinner-border-sm text-blue-600 me-2" role="status"></span>Searching...</div>';
-    
+
     try {
         const res = await apiCall(`crm/leads.php?search=${encodeURIComponent(query)}&limit=15`);
         const leads = res.leads || [];
-        
+
         if (leads.length === 0) {
             container.innerHTML = '<div class="p-4 text-center text-slate-400">No leads found.</div>';
             return;
         }
-        
+
         container.innerHTML = '';
         leads.forEach(lead => {
             const hasPhone = !!lead.phone;
             const phoneDisplay = hasPhone ? lead.phone : 'No Phone Number';
             const actionAttr = hasPhone ? `onclick="selectLeadForChat('${lead.phone}', '${lead.name.replace(/'/g, "\\'")}')"` : '';
             const opacityClass = hasPhone ? 'hover:bg-slate-50 cursor-pointer' : 'opacity-50 cursor-not-allowed';
-            
+
             container.innerHTML += `
                 <div ${actionAttr} class="p-3 flex justify-between items-center transition ${opacityClass}">
                     <div>
@@ -5725,19 +5725,19 @@ window.searchNewChatLeads = async function(query) {
                 </div>
             `;
         });
-        
+
         lucide.createIcons();
-    } catch(err) {
+    } catch (err) {
         console.error(err);
         container.innerHTML = '<div class="p-4 text-center text-rose-500">Failed loading CRM leads.</div>';
     }
 };
 
-window.selectLeadForChat = async function(phone, name) {
+window.selectLeadForChat = async function (phone, name) {
     await resolveAndOpenNewChat(phone);
 };
 
-window.submitManualNewChat = async function() {
+window.submitManualNewChat = async function () {
     const phoneInput = document.getElementById('new-chat-manual-phone');
     if (!phoneInput) return;
     const phone = phoneInput.value.trim();
@@ -5750,13 +5750,13 @@ window.submitManualNewChat = async function() {
 
 async function resolveAndOpenNewChat(phone) {
     const modal = document.getElementById('wa-new-chat-modal');
-    
+
     try {
         const res = await apiCall('whatsapp/inbox.php?action=resolve_contact', 'POST', { phone: phone });
         if (res.success && res.wa_contact_id) {
             // Close modal
             if (modal) modal.remove();
-            
+
             // Reload thread list and open chat
             await loadWaThreads();
             selectWaThread(res.wa_contact_id);
@@ -5772,14 +5772,14 @@ async function resolveAndOpenNewChat(phone) {
 // -------------------------------------------------------------
 // WHATSAPP TEMPLATE SELECTOR MODAL FOR EXPIRED WINDOWS
 // -------------------------------------------------------------
-window.openTemplateSelectorModal = async function(phone) {
+window.openTemplateSelectorModal = async function (phone) {
     let modal = document.getElementById('wa-template-modal');
     if (modal) modal.remove();
-    
+
     modal = document.createElement('div');
     modal.id = 'wa-template-modal';
     modal.className = 'fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4';
-    
+
     modal.innerHTML = `
         <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl w-full max-w-md overflow-hidden animate-fade-in text-xs text-slate-700 flex flex-col max-h-[500px]">
             <!-- Header -->
@@ -5819,41 +5819,41 @@ window.openTemplateSelectorModal = async function(phone) {
             </div>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
     lucide.createIcons();
-    
+
     // Fetch and populate templates list
     try {
         const res = await apiCall('whatsapp/templates.php');
         const templates = res.templates || [];
         const select = document.getElementById('wa-tpl-select');
-        
+
         if (templates.length === 0) {
             select.innerHTML = '<option value="">No approved templates found. Please sync first.</option>';
             return;
         }
-        
+
         window.activeTemplatesList = templates; // Keep global reference inside modal
         select.innerHTML = '<option value="">-- Select Template --</option>' + templates.map(t => `<option value="${t.name}">${t.name} (${t.language})</option>`).join('');
-    } catch(err) {
+    } catch (err) {
         console.error(err);
         document.getElementById('wa-tpl-select').innerHTML = '<option value="">Failed to load templates.</option>';
     }
 };
 
-window.previewSelectedTemplate = function(tplName) {
+window.previewSelectedTemplate = function (tplName) {
     const previewBox = document.getElementById('wa-tpl-preview-box');
     const langInput = document.getElementById('wa-tpl-lang');
     if (!previewBox || !activeTemplatesList) return;
-    
+
     const tpl = activeTemplatesList.find(t => t.name === tplName);
     if (!tpl) {
         previewBox.textContent = 'Select a template to view details.';
         langInput.value = 'en_US';
         return;
     }
-    
+
     langInput.value = tpl.language;
     previewBox.innerHTML = `
         <div class="space-y-1 text-slate-700 not-italic">
@@ -5863,22 +5863,22 @@ window.previewSelectedTemplate = function(tplName) {
     `;
 };
 
-window.submitTemplateMsg = async function(phone) {
+window.submitTemplateMsg = async function (phone) {
     const select = document.getElementById('wa-tpl-select');
     const langInput = document.getElementById('wa-tpl-lang');
     const btn = document.getElementById('wa-btn-send-template');
-    
+
     if (!select || select.value === '') {
         alert('Please choose a message template first.');
         return;
     }
-    
+
     const tplName = select.value;
     const lang = langInput.value;
-    
+
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm text-white me-2"></span>Sending...';
-    
+
     try {
         const payload = {
             wa_contact_id: activeWaThreadId,
@@ -5898,7 +5898,7 @@ window.submitTemplateMsg = async function(phone) {
             btn.disabled = false;
             btn.innerHTML = '<span>Send Template</span>';
         }
-    } catch(err) {
+    } catch (err) {
         console.error(err);
         alert('Error sending template message: ' + err.message);
         btn.disabled = false;
@@ -5909,29 +5909,29 @@ window.submitTemplateMsg = async function(phone) {
 // ----------------------------------------------------
 // 9. WHATSAPP SEND TEMPLATE PAGE VIEW
 // ----------------------------------------------------
-window.renderWhatsAppSendTemplate = function(container, params = {}) {
+window.renderWhatsAppSendTemplate = function (container, params = {}) {
     checkWaConnectionAndRender('send-template', container, async (contentArea) => {
         try {
             // Find selected template
             let templateId = params.templateId || localStorage.getItem('wa_send_template_id');
             const res = await apiCall('whatsapp/templates.php');
             const allTemplates = res.templates || [];
-            
+
             let selectedTemplate = allTemplates.find(t => t.id == templateId) || allTemplates[0];
             if (!selectedTemplate) {
                 contentArea.innerHTML = `<div class="p-6 text-center text-slate-400">No approved templates found. Please sync templates first.</div>`;
                 return;
             }
-            
+
             // Save selected template to local storage in case of tab reload
             localStorage.setItem('wa_send_template_id', selectedTemplate.id);
-            
+
             const components = JSON.parse(selectedTemplate.components_json) || [];
             const headerComp = components.find(c => c.type === 'HEADER') || null;
             const bodyComp = components.find(c => c.type === 'BODY') || null;
             const footerComp = components.find(c => c.type === 'FOOTER') || null;
             const buttonsComp = components.find(c => c.type === 'BUTTONS') || null;
-            
+
             // Find variables
             const fullText = (headerComp?.text || '') + ' ' + (bodyComp?.text || '');
             const varsFound = [...new Set(fullText.match(/{{[0-9]+}}/g) || [])].sort((a, b) => {
@@ -5939,7 +5939,7 @@ window.renderWhatsAppSendTemplate = function(container, params = {}) {
                 const numB = parseInt(b.replace(/[{}]/g, ''));
                 return numA - numB;
             });
-            
+
             contentArea.innerHTML = `
                 <div class="space-y-6 animate-fade-in text-xs">
                     <!-- Title Bar -->
@@ -5986,26 +5986,26 @@ window.renderWhatsAppSendTemplate = function(container, params = {}) {
                                     <h4 class="text-slate-600 font-bold uppercase tracking-wider text-[10px] mb-2">Template Parameter Variables</h4>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         ${varsFound.map(v => {
-                                            const vNum = parseInt(v.replace(/[{}]/g, ''));
-                                            let label = `Variable ${vNum}`;
-                                            let placeholder = `Value for ${v}`;
-                                            if (vNum === 1) {
-                                                label = `1 Customer Name`;
-                                                placeholder = `e.g. Soumojit`;
-                                            } else if (vNum === 2) {
-                                                label = `2 Offer Code`;
-                                                placeholder = `e.g. OUTREACH20`;
-                                            } else if (vNum === 3) {
-                                                label = `3 Offer Expiry`;
-                                                placeholder = `e.g. 31st July, 2026`;
-                                            }
-                                            return `
+                const vNum = parseInt(v.replace(/[{}]/g, ''));
+                let label = `Variable ${vNum}`;
+                let placeholder = `Value for ${v}`;
+                if (vNum === 1) {
+                    label = `1 Customer Name`;
+                    placeholder = `e.g. Soumojit`;
+                } else if (vNum === 2) {
+                    label = `2 Offer Code`;
+                    placeholder = `e.g. OUTREACH20`;
+                } else if (vNum === 3) {
+                    label = `3 Offer Expiry`;
+                    placeholder = `e.g. 31st July, 2026`;
+                }
+                return `
                                                 <div>
                                                     <label class="block text-slate-500 font-semibold text-[10px] mb-1">${label}</label>
                                                     <input type="text" data-send-var="${v}" oninput="updateSendMockPreview()" placeholder="${placeholder}" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 bg-[#f8fafc]">
                                                 </div>
                                             `;
-                                        }).join('')}
+            }).join('')}
                                     </div>
                                 </div>
                                 ` : ''}
@@ -6114,9 +6114,9 @@ window.renderWhatsAppSendTemplate = function(container, params = {}) {
                 </div>
             `;
             lucide.createIcons();
-            
+
             // Sync preview bubble
-            window.updateSendMockPreview = function() {
+            window.updateSendMockPreview = function () {
                 let bodyText = bodyComp?.text || '';
                 const inputs = document.querySelectorAll('input[data-send-var]');
                 inputs.forEach(input => {
@@ -6126,52 +6126,52 @@ window.renderWhatsAppSendTemplate = function(container, params = {}) {
                         bodyText = bodyText.replaceAll(tag, `**${val}**`);
                     }
                 });
-                
+
                 let formattedHtml = bodyText
                     .replace(/</g, '&lt;')
                     .replace(/>/g, '&gt;')
                     .replace(/\*\*(.*?)\*\*/g, '<strong class="font-extrabold text-slate-900">$1</strong>');
-                
+
                 const bubble = document.getElementById('mock-send-bubble-text');
                 if (bubble) bubble.innerHTML = formattedHtml;
             };
-            
+
             // Initialize preview bubble
             updateSendMockPreview();
-            
+
             // Form Submit handler
-            window.submitSendTemplateForm = async function(e) {
+            window.submitSendTemplateForm = async function (e) {
                 e.preventDefault();
                 const btn = document.getElementById('send-tpl-submit-btn');
                 const rawRecipients = document.getElementById('set-send-recipients').value;
-                
+
                 // Clean numbers
                 const recipients = rawRecipients.split(',')
                     .map(n => n.replace(/[^0-9]/g, '').trim())
                     .filter(n => n.length > 5);
-                
+
                 if (recipients.length === 0) {
                     showNotification('error', 'Please enter at least one valid recipient phone number with country code.');
                     return;
                 }
-                
+
                 // Read variables in order
                 const variables = [];
                 const inputs = document.querySelectorAll('input[data-send-var]');
                 inputs.forEach(input => {
                     variables.push(input.value.trim());
                 });
-                
+
                 if (btn) {
                     btn.disabled = true;
                     btn.innerHTML = '<span class="loader-spinner mr-1.5"></span> Sending...';
                 }
-                
+
                 showNotification('info', `Deploying template to ${recipients.length} contact(s)...`);
-                
+
                 let successCount = 0;
                 let failureCount = 0;
-                
+
                 // Loop send requests sequentially so we can report detail progress!
                 for (let i = 0; i < recipients.length; i++) {
                     const recipient = recipients[i];
@@ -6189,13 +6189,13 @@ window.renderWhatsAppSendTemplate = function(container, params = {}) {
                         failureCount++;
                     }
                 }
-                
+
                 if (btn) {
                     btn.disabled = false;
                     btn.innerHTML = '<i data-lucide="send" class="h-4 w-4"></i><span>Send Template Message</span>';
                     lucide.createIcons();
                 }
-                
+
                 if (successCount > 0) {
                     showNotification('success', `Successfully sent template to ${successCount} recipient(s).` + (failureCount > 0 ? ` (${failureCount} failed)` : ''));
                     // Navigate back to WhatsApp Inbox
@@ -6204,14 +6204,14 @@ window.renderWhatsAppSendTemplate = function(container, params = {}) {
                     showNotification('error', `Failed sending template messages. Please check debug logs.`);
                 }
             };
-            
+
         } catch (err) {
             showNotification('error', 'Failed loading template sender page: ' + err.message);
         }
     });
 };
 
-window.createAndLinkCRMContact = function(waContactId) {
+window.createAndLinkCRMContact = function (waContactId) {
     showNotification('warning', 'Adding contact to CRM...');
     apiCall('whatsapp/inbox.php?action=create_and_link_contact', 'POST', {
         wa_contact_id: waContactId
@@ -6223,7 +6223,7 @@ window.createAndLinkCRMContact = function(waContactId) {
     });
 };
 
-window.openAddLeadFromWa = function() {
+window.openAddLeadFromWa = function () {
     if (!window.activeWaCrmContext || !window.activeWaCrmContext.contact) {
         showNotification('warning', 'Please link this contact to CRM first.');
         return;
@@ -6238,7 +6238,7 @@ window.openAddLeadFromWa = function() {
     createNewLeadModal(prefills);
 };
 
-window.openAddTaskFromWa = function() {
+window.openAddTaskFromWa = function () {
     if (!window.activeWaCrmContext || !window.activeWaCrmContext.contact) {
         showNotification('warning', 'Please link this contact to CRM first.');
         return;
@@ -6250,19 +6250,19 @@ window.openAddTaskFromWa = function() {
     createNewTaskModal(prefills);
 };
 
-window.openLinkCompanyFromWa = function() {
+window.openLinkCompanyFromWa = function () {
     if (!window.activeWaCrmContext || !window.activeWaCrmContext.contact) {
         showNotification('warning', 'Please link this contact to CRM first.');
         return;
     }
-    
+
     const existing = document.getElementById('link-company-modal');
     if (existing) existing.remove();
-    
+
     const modal = document.createElement('div');
     modal.id = 'link-company-modal';
     modal.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4';
-    
+
     modal.innerHTML = `
         <div class="bg-white border border-slate-200 p-6 max-w-md w-full rounded-2xl shadow-2xl relative text-slate-800 text-xs">
             <button onclick="document.getElementById('link-company-modal').remove()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 text-xl font-bold">&times;</button>
@@ -6286,15 +6286,15 @@ window.openLinkCompanyFromWa = function() {
             </form>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
     lucide.createIcons();
-    
-    window.submitLinkCompanyForm = function(e) {
+
+    window.submitLinkCompanyForm = function (e) {
         e.preventDefault();
         const compName = document.getElementById('wa-link-company-name').value.trim();
         if (!compName) return;
-        
+
         showNotification('warning', 'Linking company to contact...');
         apiCall('crm/contacts.php?action=link_company', 'POST', {
             contact_id: window.activeWaCrmContext.contact.id,

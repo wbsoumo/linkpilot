@@ -437,12 +437,15 @@
 
         // Helper to format default sender profile text
         function getSenderDisplay() {
+            if (googleConnectionData && googleConnectionData.connected && googleConnectionData.gmail_connected) {
+                return `${googleConnectionData.name || 'Google User'} &lt;${googleConnectionData.email}&gt; <span class="text-teal-400 font-semibold">(Google Account Active)</span>`;
+            }
             if (accountsList && accountsList.length > 0) {
                 const defaultAcc = accountsList.find(a => a.is_default) || accountsList[0];
                 return `${defaultAcc.sender_name} &lt;${defaultAcc.sender_email}&gt;`;
             }
             if (currentUserData) {
-                return `${currentUserData.name} &lt;${currentUserData.email}&gt; <span class="text-amber-500 font-semibold">(No SMTP Configured)</span>`;
+                return `${currentUserData.name} &lt;${currentUserData.email}&gt; <span class="text-amber-500 font-semibold">(No Connection Configured)</span>`;
             }
             return 'Loading sender...';
         }

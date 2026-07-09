@@ -187,6 +187,12 @@ async function checkSmtpConfig() {
         return isSmtpConfigured;
     }
     try {
+        const gRes = await apiCall('external_apps/status.php');
+        if (gRes && gRes.status === 'success' && gRes.data && gRes.data.connected && gRes.data.gmail_connected) {
+            isSmtpConfigured = true;
+            return true;
+        }
+        
         const res = await apiCall('smtp/list.php');
         isSmtpConfigured = res && res.accounts && res.accounts.length > 0;
     } catch (e) {
@@ -202,6 +208,12 @@ async function checkEmailSyncConfig() {
         return isEmailSyncConfigured;
     }
     try {
+        const gRes = await apiCall('external_apps/status.php');
+        if (gRes && gRes.status === 'success' && gRes.data && gRes.data.connected && gRes.data.gmail_connected) {
+            isEmailSyncConfigured = true;
+            return true;
+        }
+
         const res = await apiCall('crm/email_intelligence/settings.php');
         const conn = res.connection || {};
         isEmailSyncConfigured = !!(conn.smtp_host && conn.imap_host && conn.smtp_username);

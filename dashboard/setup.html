@@ -166,38 +166,74 @@
                                     
                                     <!-- Right Column: Input Form (Slides in) -->
                                     <div id="smtp-form-column" class="col-span-0 w-0 overflow-hidden opacity-0 hidden transition-all duration-500 ease-in-out flex flex-col justify-between space-y-4 shrink-0">
-                                        <form id="setup-smtp-form" class="space-y-4 text-left">
-                                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                <div class="space-y-1.5">
-                                                    <label class="block text-xs font-extrabold text-slate-655 uppercase tracking-wider">Sender Name *</label>
-                                                    <input type="text" id="smtp-sender-name" required placeholder="e.g. John Doe" class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200 shadow-sm">
+                                        
+                                        <!-- Google OAuth Connect Section (Only visible for Gmail) -->
+                                        <div id="google-oauth-connect-section" class="hidden space-y-4 text-left">
+                                            <div class="p-4 bg-blue-50/30 border border-blue-100/50 rounded-2xl flex items-start space-x-3.5">
+                                                <div class="p-1 bg-[#005bf7]/5 text-[#005bf7] rounded-xl shrink-0 mt-0.5">
+                                                    <i data-lucide="sparkles" class="h-4.5 w-4.5"></i>
                                                 </div>
-                                                <div class="space-y-1.5">
-                                                    <label class="block text-xs font-extrabold text-slate-655 uppercase tracking-wider">Sender Email *</label>
-                                                    <input type="email" id="smtp-sender-email" required placeholder="e.g. john@yourdomain.com" class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200 shadow-sm">
-                                                </div>
-                                                
-                                                <div id="custom-host-row" class="sm:col-span-2 grid grid-cols-3 gap-3 hidden">
-                                                    <div class="col-span-2 space-y-1.5">
-                                                        <label class="block text-xs font-extrabold text-slate-655 uppercase tracking-wider">SMTP Host *</label>
-                                                        <input type="text" id="smtp-host" placeholder="smtp.zoho.com" class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200 shadow-sm">
-                                                    </div>
-                                                    <div class="space-y-1.5">
-                                                        <label class="block text-xs font-extrabold text-slate-655 uppercase tracking-wider">Port *</label>
-                                                        <input type="number" id="smtp-port" placeholder="587" class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200 shadow-sm">
-                                                    </div>
-                                                </div>
-
-                                                <div class="space-y-1.5">
-                                                    <label class="block text-xs font-extrabold text-slate-655 uppercase tracking-wider">SMTP Username *</label>
-                                                    <input type="text" id="smtp-username" required placeholder="e.g. john@gmail.com" class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200 shadow-sm">
-                                                </div>
-                                                <div class="space-y-1.5">
-                                                    <label id="smtp-pass-label" class="block text-xs font-extrabold text-slate-655 tracking-wider uppercase">App Password *</label>
-                                                    <input type="password" id="smtp-password" required placeholder="••••••••" class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200 shadow-sm">
+                                                <div>
+                                                    <span class="block text-slate-800 font-extrabold text-xs">Secure OAuth Integration</span>
+                                                    <span class="text-xs text-slate-500 leading-relaxed font-semibold">LinkPilot connects directly with Google to send and read emails securely. No password sharing required.</span>
                                                 </div>
                                             </div>
-                                        </form>
+                                            
+                                            <button type="button" onclick="launchGoogleOAuth()" class="w-full flex items-center justify-center py-3.5 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl text-sm font-bold text-slate-700 shadow-sm transition-all duration-150 cursor-pointer">
+                                                <svg class="h-5 w-5 mr-3" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                                                  <g transform="matrix(1, 0, 0, 1, 0, 0)">
+                                                    <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.04,3.1v2.57h3.3c1.93,-1.78 3.04,-4.4 3.04,-7.43C21.68,11.83 21.56,11.41 21.35,11.1z" fill="#4285F4" />
+                                                    <path d="M12,20.6c2.59,0 4.77,-0.86 6.36,-2.33l-3.3,-2.57c-0.91,0.61 -2.08,0.98 -3.06,0.98 -2.35,0 -4.35,-1.59 -5.06,-3.72H3.53v2.66C5.12,18.78 8.35,20.6 12,20.6z" fill="#34A853" />
+                                                    <path d="M6.94,12.96c-0.18,-0.54 -0.28,-1.11 -0.28,-1.7s0.1,-1.16 0.28,-1.7V6.9H3.53C2.92,8.12 2.57,9.51 2.57,11c0,1.49 0.35,2.88 0.96,4.1L6.94,12.96z" fill="#FBBC05" />
+                                                    <path d="M12,6.12c1.41,0 2.68,0.48 3.68,1.44l2.76,-2.76C16.76,3.22 14.59,2.4 12,2.4c-3.65,0 -6.88,1.82 -8.47,4.5l3.41,2.66c0.71,-2.13 2.71,-3.72 5.06,-3.72z" fill="#EA4335" />
+                                                  </g>
+                                                </svg>
+                                                <span>Continue with Google</span>
+                                            </button>
+                                            
+                                            <div class="pt-2">
+                                                <button type="button" onclick="toggleSmtpManualConfig()" class="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-400 hover:text-slate-600 transition">
+                                                    <i data-lucide="settings" class="h-3.5 w-3.5"></i>
+                                                    <span id="smtp-manual-toggle-text">Or configure manually (Google App Password)</span>
+                                                    <i id="smtp-manual-toggle-icon" data-lucide="chevron-down" class="h-3.5 w-3.5 transform transition-transform duration-300"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div id="smtp-manual-fields-wrapper" class="space-y-4">
+                                            <form id="setup-smtp-form" class="space-y-4 text-left">
+                                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <div class="space-y-1.5">
+                                                        <label class="block text-xs font-extrabold text-slate-655 uppercase tracking-wider">Sender Name *</label>
+                                                        <input type="text" id="smtp-sender-name" placeholder="e.g. John Doe" class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200 shadow-sm">
+                                                    </div>
+                                                    <div class="space-y-1.5">
+                                                        <label class="block text-xs font-extrabold text-slate-655 uppercase tracking-wider">Sender Email *</label>
+                                                        <input type="email" id="smtp-sender-email" placeholder="e.g. john@yourdomain.com" class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200 shadow-sm">
+                                                    </div>
+                                                    
+                                                    <div id="custom-host-row" class="sm:col-span-2 grid grid-cols-3 gap-3 hidden">
+                                                        <div class="col-span-2 space-y-1.5">
+                                                            <label class="block text-xs font-extrabold text-slate-655 uppercase tracking-wider">SMTP Host *</label>
+                                                            <input type="text" id="smtp-host" placeholder="smtp.zoho.com" class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200 shadow-sm">
+                                                        </div>
+                                                        <div class="space-y-1.5">
+                                                            <label class="block text-xs font-extrabold text-slate-655 uppercase tracking-wider">Port *</label>
+                                                            <input type="number" id="smtp-port" placeholder="587" class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200 shadow-sm">
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="space-y-1.5">
+                                                        <label class="block text-xs font-extrabold text-slate-655 uppercase tracking-wider">SMTP Username *</label>
+                                                        <input type="text" id="smtp-username" placeholder="e.g. john@gmail.com" class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200 shadow-sm">
+                                                    </div>
+                                                    <div class="space-y-1.5">
+                                                        <label id="smtp-pass-label" class="block text-xs font-extrabold text-slate-655 tracking-wider uppercase">App Password *</label>
+                                                        <input type="password" id="smtp-password" placeholder="••••••••" class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200 shadow-sm">
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
                                         
                                         <div class="pt-4 flex justify-between items-center border-t border-slate-100">
                                             <button type="button" onclick="closeSmtpFormColumn()" class="px-5 py-2.5 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition flex items-center space-x-1">
@@ -605,6 +641,50 @@
             });
         }
 
+        // Toggle manual config settings and required attribute values
+        let smtpManualConfigExpanded = false;
+        function toggleSmtpManualConfig() {
+            smtpManualConfigExpanded = !smtpManualConfigExpanded;
+            const wrapper = document.getElementById('smtp-manual-fields-wrapper');
+            const txt = document.getElementById('smtp-manual-toggle-text');
+            const icon = document.getElementById('smtp-manual-toggle-icon');
+            const submitBtn = document.getElementById('smtp-verify-submit-btn');
+            
+            if (smtpManualConfigExpanded) {
+                wrapper.classList.remove('hidden');
+                submitBtn.classList.remove('hidden');
+                txt.textContent = "Hide manual SMTP settings";
+                icon.classList.add('rotate-180');
+                setSmtpInputsRequired(true);
+            } else {
+                wrapper.classList.add('hidden');
+                submitBtn.classList.add('hidden');
+                txt.textContent = "Or configure manually (Google App Password)";
+                icon.classList.remove('rotate-180');
+                setSmtpInputsRequired(false);
+            }
+        }
+        
+        function setSmtpInputsRequired(val) {
+            document.getElementById('smtp-sender-name').required = val;
+            document.getElementById('smtp-sender-email').required = val;
+            document.getElementById('smtp-username').required = val;
+            document.getElementById('smtp-password').required = val;
+        }
+
+        async function launchGoogleOAuth() {
+            try {
+                const res = await apiCall('google/auth.php');
+                if (res.status === 'success' && res.data.auth_url) {
+                    window.location.href = res.data.auth_url;
+                } else {
+                    showNotification('error', res.message || 'Failed to initialize Google login.');
+                }
+            } catch (err) {
+                showNotification('error', err.message || 'Failed to contact authentication server.');
+            }
+        }
+
         // Action when an SMTP Provider is chosen from Slide 1
         function selectSmtpProvider(provider) {
             selectedProvider = provider;
@@ -651,6 +731,27 @@
                 customRow.classList.add('hidden');
                 document.getElementById('smtp-host').required = false;
                 document.getElementById('smtp-port').required = false;
+            }
+
+            // Toggle Gmail OAuth connect block vs manual configuration
+            const oauthSection = document.getElementById('google-oauth-connect-section');
+            const manualFieldsWrapper = document.getElementById('smtp-manual-fields-wrapper');
+            const submitBtn = document.getElementById('smtp-verify-submit-btn');
+
+            if (provider === 'gmail') {
+                oauthSection.classList.remove('hidden');
+                manualFieldsWrapper.classList.add('hidden');
+                submitBtn.classList.add('hidden');
+                smtpManualConfigExpanded = false;
+                
+                document.getElementById('smtp-manual-toggle-text').textContent = "Or configure manually (Google App Password)";
+                document.getElementById('smtp-manual-toggle-icon').classList.remove('rotate-180');
+                setSmtpInputsRequired(false);
+            } else {
+                oauthSection.classList.add('hidden');
+                manualFieldsWrapper.classList.remove('hidden');
+                submitBtn.classList.remove('hidden');
+                setSmtpInputsRequired(true);
             }
 
             // Split shift layout: slide options to left, open form on right

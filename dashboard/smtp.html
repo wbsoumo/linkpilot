@@ -161,39 +161,74 @@
                     </div>
                 </div>
 
+                <!-- Google OAuth Connect Section (Only visible for Gmail) -->
+                <div id="google-oauth-connect-section" class="hidden space-y-4 text-left">
+                    <div class="p-4 bg-teal-500/5 border border-teal-500/10 rounded-xl flex items-start space-x-3.5">
+                        <div class="p-1 bg-teal-400/10 text-teal-400 rounded-lg shrink-0 mt-0.5">
+                            <i data-lucide="sparkles" class="h-4.5 w-4.5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-slate-200 font-bold text-xs">Secure OAuth Integration</span>
+                            <span class="text-xs text-slate-400 leading-relaxed font-semibold">LinkPilot connects directly with Google to send and read emails securely. No password sharing required.</span>
+                        </div>
+                    </div>
+                    
+                    <button type="button" onclick="launchGoogleOAuth()" class="w-full flex items-center justify-center py-3 px-4 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-xl text-sm font-semibold text-white shadow-sm transition-all duration-150 cursor-pointer">
+                        <svg class="h-5 w-5 mr-3" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                          <g transform="matrix(1, 0, 0, 1, 0, 0)">
+                            <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.04,3.1v2.57h3.3c1.93,-1.78 3.04,-4.4 3.04,-7.43C21.68,11.83 21.56,11.41 21.35,11.1z" fill="#4285F4" />
+                            <path d="M12,20.6c2.59,0 4.77,-0.86 6.36,-2.33l-3.3,-2.57c-0.91,0.61 -2.08,0.98 -3.06,0.98 -2.35,0 -4.35,-1.59 -5.06,-3.72H3.53v2.66C5.12,18.78 8.35,20.6 12,20.6z" fill="#34A853" />
+                            <path d="M6.94,12.96c-0.18,-0.54 -0.28,-1.11 -0.28,-1.7s0.1,-1.16 0.28,-1.7V6.9H3.53C2.92,8.12 2.57,9.51 2.57,11c0,1.49 0.35,2.88 0.96,4.1L6.94,12.96z" fill="#FBBC05" />
+                            <path d="M12,6.12c1.41,0 2.68,0.48 3.68,1.44l2.76,-2.76C16.76,3.22 14.59,2.4 12,2.4c-3.65,0 -6.88,1.82 -8.47,4.5l3.41,2.66c0.71,-2.13 2.71,-3.72 5.06,-3.72z" fill="#EA4335" />
+                          </g>
+                        </svg>
+                        <span>Continue with Google</span>
+                    </button>
+                    
+                    <div class="pt-2">
+                        <button type="button" onclick="toggleSmtpManualConfig()" class="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-400 hover:text-slate-200 transition">
+                            <i data-lucide="settings" class="h-3.5 w-3.5"></i>
+                            <span id="smtp-manual-toggle-text">Or configure manually (Google App Password)</span>
+                            <i id="smtp-manual-toggle-icon" data-lucide="chevron-down" class="h-3.5 w-3.5 transform transition-transform duration-300"></i>
+                        </button>
+                    </div>
+                </div>
+
                 <form id="smtp-form" class="space-y-5">
                     <input type="hidden" id="account_id" name="id" value="">
                     <input type="hidden" id="smtp_type" name="smtp_type" value="custom">
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="host-port-row">
-                        <div class="md:col-span-2">
-                            <label for="host" class="block text-xs font-semibold text-slate-400 uppercase">SMTP Host *</label>
-                            <input id="host" name="host" type="text" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="smtp.mailgun.org">
+                    <div id="smtp-manual-fields-wrapper" class="space-y-5">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="host-port-row">
+                            <div class="md:col-span-2">
+                                <label for="host" class="block text-xs font-semibold text-slate-400 uppercase">SMTP Host *</label>
+                                <input id="host" name="host" type="text" placeholder="smtp.mailgun.org" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="port" class="block text-xs font-semibold text-slate-400 uppercase">SMTP Port *</label>
+                                <input id="port" name="port" type="number" placeholder="587" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
+                            </div>
                         </div>
+
                         <div>
-                            <label for="port" class="block text-xs font-semibold text-slate-400 uppercase">SMTP Port *</label>
-                            <input id="port" name="port" type="number" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="587">
+                            <label for="username" id="username-label" class="block text-xs font-semibold text-slate-400 uppercase">SMTP Username *</label>
+                            <input id="username" name="username" type="text" placeholder="postmaster@yourdomain.com" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
                         </div>
-                    </div>
 
-                    <div>
-                        <label for="username" id="username-label" class="block text-xs font-semibold text-slate-400 uppercase">SMTP Username *</label>
-                        <input id="username" name="username" type="text" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="postmaster@yourdomain.com">
-                    </div>
-
-                    <div>
-                        <label for="password" id="password-label" class="block text-xs font-semibold text-slate-400 uppercase">SMTP Password *</label>
-                        <input id="password" name="password" type="password" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="••••••••">
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label for="sender_name" class="block text-xs font-semibold text-slate-400 uppercase">Sender Name *</label>
-                            <input id="sender_name" name="sender_name" type="text" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="John Doe">
+                            <label for="password" id="password-label" class="block text-xs font-semibold text-slate-400 uppercase">SMTP Password *</label>
+                            <input id="password" name="password" type="password" placeholder="••••••••" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
                         </div>
-                        <div>
-                            <label for="sender_email" id="sender-email-label" class="block text-xs font-semibold text-slate-400 uppercase">Sender Email *</label>
-                            <input id="sender_email" name="sender_email" type="email" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="john@yourdomain.com">
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="sender_name" class="block text-xs font-semibold text-slate-400 uppercase">Sender Name *</label>
+                                <input id="sender_name" name="sender_name" type="text" placeholder="John Doe" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="sender_email" id="sender-email-label" class="block text-xs font-semibold text-slate-400 uppercase">Sender Email *</label>
+                                <input id="sender_email" name="sender_email" type="email" placeholder="john@yourdomain.com" class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
+                            </div>
                         </div>
                     </div>
 
@@ -201,7 +236,7 @@
                         <button type="button" id="test-connection-btn" class="flex-1 py-3 px-4 rounded-md border border-slate-700 hover:border-teal-500 font-semibold text-sm hover:text-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150">
                             Test Connection
                         </button>
-                        <button type="submit" class="flex-1 py-3 px-4 rounded-md border border-transparent font-semibold text-sm text-slate-950 bg-teal-400 hover:bg-teal-300 focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150">
+                        <button type="submit" id="smtp-save-btn" class="flex-1 py-3 px-4 rounded-md border border-transparent font-semibold text-sm text-slate-950 bg-teal-400 hover:bg-teal-300 focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150">
                             Save Connection
                         </button>
                     </div>
@@ -695,6 +730,54 @@
             document.getElementById('smtp-form-panel').classList.add('hidden');
         }
 
+        // Toggle manual config settings and required attribute values
+        let smtpManualConfigExpanded = false;
+        function toggleSmtpManualConfig() {
+            smtpManualConfigExpanded = !smtpManualConfigExpanded;
+            const wrapper = document.getElementById('smtp-manual-fields-wrapper');
+            const txt = document.getElementById('smtp-manual-toggle-text');
+            const icon = document.getElementById('smtp-manual-toggle-icon');
+            
+            const testBtn = document.getElementById('test-connection-btn');
+            const saveBtn = document.getElementById('smtp-save-btn');
+            
+            if (smtpManualConfigExpanded) {
+                wrapper.classList.remove('hidden');
+                testBtn.classList.remove('hidden');
+                saveBtn.classList.remove('hidden');
+                txt.textContent = "Hide manual SMTP settings";
+                icon.classList.add('rotate-180');
+                setSmtpInputsRequired(true);
+            } else {
+                wrapper.classList.add('hidden');
+                testBtn.classList.add('hidden');
+                saveBtn.classList.add('hidden');
+                txt.textContent = "Or configure manually (Google App Password)";
+                icon.classList.remove('rotate-180');
+                setSmtpInputsRequired(false);
+            }
+        }
+        
+        function setSmtpInputsRequired(val) {
+            document.getElementById('sender_name').required = val;
+            document.getElementById('sender_email').required = val;
+            document.getElementById('username').required = val;
+            document.getElementById('password').required = val;
+        }
+
+        async function launchGoogleOAuth() {
+            try {
+                const res = await apiCall('google/auth.php');
+                if (res.status === 'success' && res.data.auth_url) {
+                    window.location.href = res.data.auth_url;
+                } else {
+                    showNotification('error', res.message || 'Failed to initialize Google login.');
+                }
+            } catch (err) {
+                showNotification('error', err.message || 'Failed to contact authentication server.');
+            }
+        }
+
         // Toggle SMTP configuration display
         function selectSmtpType(type) {
             activeSmtpType = type;
@@ -724,6 +807,11 @@
             const passwordInput = document.getElementById('password');
             const senderEmailInput = document.getElementById('sender_email');
 
+            const oauthSection = document.getElementById('google-oauth-connect-section');
+            const manualFieldsWrapper = document.getElementById('smtp-manual-fields-wrapper');
+            const testBtn = document.getElementById('test-connection-btn');
+            const saveBtn = document.getElementById('smtp-save-btn');
+
             if (type === 'gmail') {
                 gmailGuide.classList.remove('hidden');
                 hostPortRow.classList.add('hidden');
@@ -741,6 +829,16 @@
                 
                 usernameInput.addEventListener('input', syncGmailSenderEmail);
                 syncGmailSenderEmail();
+
+                oauthSection.classList.remove('hidden');
+                manualFieldsWrapper.classList.add('hidden');
+                testBtn.classList.add('hidden');
+                saveBtn.classList.add('hidden');
+                smtpManualConfigExpanded = false;
+                
+                document.getElementById('smtp-manual-toggle-text').textContent = "Or configure manually (Google App Password)";
+                document.getElementById('smtp-manual-toggle-icon').classList.remove('rotate-180');
+                setSmtpInputsRequired(false);
             } else {
                 gmailGuide.classList.add('hidden');
                 hostPortRow.classList.remove('hidden');
@@ -754,6 +852,12 @@
                 senderEmailInput.setAttribute('placeholder', 'john@yourdomain.com');
                 
                 usernameInput.removeEventListener('input', syncGmailSenderEmail);
+
+                oauthSection.classList.add('hidden');
+                manualFieldsWrapper.classList.remove('hidden');
+                testBtn.classList.remove('hidden');
+                saveBtn.classList.remove('hidden');
+                setSmtpInputsRequired(true);
             }
         }
 

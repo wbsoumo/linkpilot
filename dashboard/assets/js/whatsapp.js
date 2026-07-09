@@ -2006,9 +2006,9 @@ function renderWhatsAppCampaigns(container) {
                                 <p class="text-xs text-slate-400 mt-1.5 font-medium">Create, send and track your WhatsApp broadcast campaigns</p>
                             </div>
                         </div>
-                        <button onclick="openCampaignCreateModal()" class="flex items-center space-x-2 px-4 py-2.5 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-500/10">
-                            <i data-lucide="plus" class="h-4 w-4"></i>
-                            <span>New Campaign</span>
+                        <button onclick="openCampaignCreatePage()" class="flex items-center space-x-2 px-4 py-2.5 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-500/10 text-white" style="color: white !important;">
+                            <i data-lucide="plus" class="h-4 w-4 text-white"></i>
+                            <span style="color: white !important;">New Campaign</span>
                         </button>
                     </div>
 

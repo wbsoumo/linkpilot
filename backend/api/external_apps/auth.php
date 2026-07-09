@@ -37,9 +37,11 @@ if (empty($scopes)) {
     sendJsonResponse('error', 'No valid scopes configured internally for type: ' . $type, [], 400);
 }
 
-// Securely encode user state context, appending integration type
+// Securely encode user state context, appending integration type and origin
 $hash = md5($userId . ENCRYPTION_KEY);
-$stateEncoded = $userId . '-' . $hash . '-' . $type;
+$from = $_GET['from'] ?? '';
+$fromClean = preg_replace('/[^a-zA-Z0-9]/', '', $from);
+$stateEncoded = $userId . '-' . $hash . '-' . $type . ($fromClean ? '-' . $fromClean : '');
 
 if (!class_exists('Google\Client')) {
     sendJsonResponse('error', 'Google API Client library is not installed on your server. Please run "composer install" in the "backend" directory on your server to install dependencies.', [], 500);

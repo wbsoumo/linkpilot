@@ -401,12 +401,23 @@
         };
 
         // Load existing SMTP settings and Templates
+        let googleConnectionData = null;
         async function loadPageDetails() {
             try {
                 // Fetch Profile Data
                 const profData = await apiCall('profile/get.php');
                 if (profData.user) {
                     currentUserData = profData.user;
+                }
+
+                // Fetch Google Connection Status (External Apps)
+                try {
+                    const googleStatus = await apiCall('external_apps/status.php');
+                    if (googleStatus && googleStatus.status === 'success') {
+                        googleConnectionData = googleStatus.data;
+                    }
+                } catch (googleErr) {
+                    console.warn('Failed to load Google Integration status:', googleErr);
                 }
 
                 // Fetch Accounts list
@@ -461,34 +472,80 @@
         // Render List of accounts
         function renderAccountsList() {
             const container = document.getElementById('smtp-list-container');
-            if (accountsList.length === 0) {
+            
+            let googleCardHtml = '';
+            const hasActiveOAuth = (googleConnectionData && googleConnectionData.connected && googleConnectionData.gmail_connected);
+            
+            if (hasActiveOAuth) {
+                const borderCls = 'border-teal-500/50 bg-slate-900/80 shadow-lg shadow-teal-500/5 card-active-glow';
+                googleCardHtml = `
+                    <div class="glass-panel p-5 border rounded-xl flex flex-col justify-between space-y-4 hover:bg-slate-900/60 transition-all duration-300 ${borderCls}">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center space-x-3.5 min-w-0">
+                                <div class="p-2.5 bg-slate-800/85 border border-slate-700 text-teal-400 rounded-lg flex-shrink-0">
+                                    <svg class="h-5 w-5" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.04,3.1v2.57h3.3c1.93,-1.78 3.04,-4.4 3.04,-7.43C21.68,11.83 21.56,11.41 21.35,11.1z" fill="#2dd4bf" />
+                                      <path d="M12,20.6c2.59,0 4.77,-0.86 6.36,-2.33l-3.3,-2.57c-0.91,0.61 -2.08,0.98 -3.06,0.98 -2.35,0 -4.35,-1.59 -5.06,-3.72H3.53v2.66C5.12,18.78 8.35,20.6 12,20.6z" fill="#2dd4bf" />
+                                      <path d="M6.94,12.96c-0.18,-0.54 -0.28,-1.11 -0.28,-1.7s0.1,-1.16 0.28,-1.7V6.9H3.53C2.92,8.12 2.57,9.51 2.57,11c0,1.49 0.35,2.88 0.96,4.1L6.94,12.96z" fill="#2dd4bf" />
+                                      <path d="M12,6.12c1.41,0 2.68,0.48 3.68,1.44l2.76,-2.76C16.76,3.22 14.59,2.4 12,2.4c-3.65,0 -6.88,1.82 -8.47,4.5l3.41,2.66c0.71,-2.13 2.71,-3.72 5.06,-3.72z" fill="#2dd4bf" />
+                                    </svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <h4 class="text-sm font-bold text-white truncate" title="${googleConnectionData.name || 'Google Connected'}">${googleConnectionData.name || 'Google Account'}</h4>
+                                    <p class="text-xs text-slate-400 truncate mt-0.5" title="${googleConnectionData.email}">${googleConnectionData.email}</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-end space-y-2 flex-shrink-0 ml-4">
+                                <span class="text-[9px] px-2.5 py-0.5 bg-teal-500/10 text-teal-400 border border-teal-500/20 rounded-full font-bold uppercase tracking-wider flex items-center space-x-1 select-none"><i data-lucide="check" class="h-2.5 w-2.5"></i><span>Default Active (OAuth)</span></span>
+                                <span class="text-[9px] px-2 py-0.5 bg-teal-500/15 text-teal-300 border border-teal-500/25 rounded-full font-bold flex items-center space-x-1 select-none"><span>Gmail API</span></span>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-slate-800/80 pt-3 flex items-center justify-between text-xs">
+                            <span class="text-[10px] text-slate-500 font-mono tracking-wider">OAUTH 2.0 INTEGRATION</span>
+                            <div class="flex items-center space-x-1.5">
+                                <button onclick="disconnectGoogleOAuth()" class="p-2 text-slate-400 hover:text-red-400 rounded-lg hover:bg-slate-800 transition" title="Disconnect Google Account">
+                                    <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (accountsList.length === 0 && !googleCardHtml) {
                 container.innerHTML = `
                     <div class="col-span-full text-center py-10 glass-panel bg-slate-900/40 border-slate-800 rounded-xl space-y-4">
                         <div class="p-3 bg-teal-500/10 text-teal-400 rounded-full inline-block">
                             <i data-lucide="mail-warning" class="h-6 w-6"></i>
                         </div>
                         <div>
-                            <h4 class="text-sm font-bold text-white">No SMTP Connections Connected Yet</h4>
+                            <h4 class="text-sm font-bold text-white">No Email Connections Connected Yet</h4>
                             <p class="text-xs text-slate-400 mt-1">Please set up your first connection to send outreach messages.</p>
                         </div>
-                        <button onclick="showCreateForm()" class="px-4 py-2 bg-teal-400 text-slate-950 rounded-lg text-xs font-bold hover:bg-teal-300 transition">Connect SMTP</button>
+                        <button onclick="showCreateForm()" class="px-4 py-2 bg-teal-400 text-slate-950 rounded-lg text-xs font-bold hover:bg-teal-300 transition">Connect Email</button>
                     </div>
                 `;
                 showCreateForm(); // Open form directly if empty
                 document.getElementById('create-new-btn').classList.add('hidden');
             } else {
                 document.getElementById('create-new-btn').classList.remove('hidden');
-                container.innerHTML = accountsList.map(acc => {
-                    const badge = acc.is_default ? 
+                
+                const accountsHtml = accountsList.map(acc => {
+                    const badge = (!hasActiveOAuth && acc.is_default) ? 
                         `<span class="text-[9px] px-2.5 py-0.5 bg-teal-500/10 text-teal-400 border border-teal-500/20 rounded-full font-bold uppercase tracking-wider flex items-center space-x-1 select-none"><i data-lucide="check" class="h-2.5 w-2.5"></i><span>Default Active</span></span>` : 
-                        `<button onclick="setDefaultAccount(${acc.id})" class="text-[9px] px-2.5 py-1 bg-slate-800 text-slate-400 hover:text-teal-400 border border-slate-700 hover:border-teal-400 rounded-full font-bold transition">Set Default</button>`;
-
+                        (hasActiveOAuth ? 
+                         `<span class="text-[9px] px-2.5 py-1 bg-slate-800/50 text-slate-500 rounded-full font-bold uppercase select-none">Inactive (OAuth Active)</span>` :
+                         `<button onclick="setDefaultAccount(${acc.id})" class="text-[9px] px-2.5 py-1 bg-slate-800 text-slate-400 hover:text-teal-400 border border-slate-700 hover:border-teal-400 rounded-full font-bold transition">Set Default</button>`
+                        );
+ 
                     const typeBadge = acc.smtp_type === 'gmail' ?
                         `<span class="text-[9px] px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/25 rounded-full font-bold flex items-center space-x-1 select-none"><span>Gmail</span></span>` :
-                        `<span class="text-[9px] px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/25 rounded-full font-bold flex items-center space-x-1 select-none"><span>Custom</span></span>`;
-
-                    const borderCls = acc.is_default ? 'border-teal-500/50 bg-slate-900/80 shadow-lg shadow-teal-500/5 card-active-glow' : 'border-slate-800 bg-slate-900/40 hover:border-slate-700';
-
+                        `
+                         <span class="text-[9px] px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/25 rounded-full font-bold flex items-center space-x-1 select-none"><span>Custom</span></span>`;
+ 
+                    const borderCls = (!hasActiveOAuth && acc.is_default) ? 'border-teal-500/50 bg-slate-900/80 shadow-lg shadow-teal-500/5 card-active-glow' : 'border-slate-800 bg-slate-900/40 hover:border-slate-700';
+ 
                     return `
                         <div class="glass-panel p-5 border rounded-xl flex flex-col justify-between space-y-4 hover:bg-slate-900/60 transition-all duration-300 ${borderCls}">
                             <div class="flex items-start justify-between">
@@ -524,6 +581,8 @@
                         </div>
                     `;
                 }).join('');
+                
+                container.innerHTML = googleCardHtml + accountsHtml;
             }
             lucide.createIcons();
         }
@@ -694,6 +753,20 @@
             }
         }
 
+        // Disconnect Google Account integration
+        async function disconnectGoogleOAuth() {
+            const confirmDis = confirm("Are you sure you want to disconnect your Google Workspace outreach connection? LinkPilot will fall back to manual SMTP settings.");
+            if (!confirmDis) return;
+            
+            try {
+                await apiCall('external_apps/disconnect.php', 'POST');
+                showNotification('success', 'Google outreach connection disconnected.');
+                loadPageDetails();
+            } catch (err) {
+                showNotification('error', err.message || 'Failed to disconnect Google connection.');
+            }
+        }
+
         // Test Selected Account Connection
         async function testSelectedConnection(id) {
             const acc = accountsList.find(a => a.id === id);
@@ -767,7 +840,7 @@
 
         async function launchGoogleOAuth() {
             try {
-                const res = await apiCall('google/auth.php');
+                const res = await apiCall('external_apps/auth.php?type=gmail&from=smtp');
                 if (res.status === 'success' && res.data.auth_url) {
                     window.location.href = res.data.auth_url;
                 } else {
@@ -944,6 +1017,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadPageDetails();
             lucide.createIcons();
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('google_connected') === 'true') {
+                showNotification('success', 'Google Workspace Account connected successfully via Secure OAuth!');
+            }
         });
     </script>
 </body>

@@ -155,6 +155,13 @@ try {
     die("Authorization callback error: " . $e->getMessage());
 }
 
-// Redirect back to CRM External Apps marketplace
-header("Location: {$protocol}://{$host}/dashboard/index.html#/external-apps");
+// Redirect back to origin source (e.g. setup, smtp settings) or fallback to marketplace
+$from = $parts[3] ?? '';
+if ($from === 'setup') {
+    header("Location: {$protocol}://{$host}/dashboard/setup.html?google_connected=true");
+} elseif ($from === 'smtp') {
+    header("Location: {$protocol}://{$host}/dashboard/smtp.html?google_connected=true");
+} else {
+    header("Location: {$protocol}://{$host}/dashboard/index.html#/external-apps");
+}
 exit;

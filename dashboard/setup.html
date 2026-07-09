@@ -674,7 +674,7 @@
 
         async function launchGoogleOAuth() {
             try {
-                const res = await apiCall('google/auth.php');
+                const res = await apiCall('external_apps/auth.php?type=gmail&from=setup');
                 if (res.status === 'success' && res.data.auth_url) {
                     window.location.href = res.data.auth_url;
                 } else {
@@ -1388,6 +1388,12 @@
         // Auto-run status check on page load
         document.addEventListener('DOMContentLoaded', () => {
             checkWhatsAppStatus();
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('google_connected') === 'true') {
+                showNotification('success', 'Google Workspace Account connected successfully via Secure OAuth!');
+                slideTo(1); // Advance directly to WhatsApp onboarding slide
+            }
         });
     </script>
 </body>

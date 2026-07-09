@@ -1,6 +1,6 @@
 /* dashboard/assets/css/style.css */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
     --primary: #0F172A; /* Slate 900 for main text */
@@ -20,7 +20,7 @@
     --border-color: #E2E8F0; /* Slate 200 border */
     --radius-card: 16px;
     --radius-button: 8px;
-    --font-sans: 'Inter', 'Outfit', -apple-system, sans-serif;
+    --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
 }
 
 /* Base resets and defaults */

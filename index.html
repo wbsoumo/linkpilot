@@ -6606,13 +6606,58 @@
         <div class="js-demo-block-mobile-panel" data-name="analyze"></div>
       </div>
 
-      <!-- Main Lottie File Model Content -->
-      <div class="flex items-center justify-center" style="display: flex !important; align-items: center !important; justify-content: center !important; width: 100%; height: 100%; min-height: 480px; padding: 1.5rem;">
+      <!-- Tab Content 1: Automation (Lottie) -->
+      <div id="demo-content-capture" class="demo-tab-content flex items-center justify-center" style="display: flex !important; align-items: center !important; justify-content: center !important; width: 100%; height: 100%; min-height: 480px; padding: 1.5rem;">
         <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.14/dist/dotlottie-wc.js" type="module"></script>
         <dotlottie-wc src="https://lottie.host/4c8c121f-ad1e-424f-9065-8d9e37f573de/Cig3lPLtTH.lottie" style="width: 420px; height: 420px; max-width: 100%;" autoplay loop></dotlottie-wc>
       </div>
+
+      <!-- Tab Content 2: Automate (Video: automatic.mp4) -->
+      <div id="demo-content-automate" class="demo-tab-content hidden items-center justify-center" style="display: none; align-items: center !important; justify-content: center !important; width: 100%; height: 100%; min-height: 480px; padding: 1.5rem;">
+        <video src="assets/videos/automatic.mp4" autoplay loop muted playsinline style="pointer-events: none; outline: none; border: none; width: 100%; height: 100%; object-fit: contain; max-height: 480px;"></video>
+      </div>
+
+      <!-- Tab Content 3: Scale (Video: scale.mp4) -->
+      <div id="demo-content-scale" class="demo-tab-content hidden items-center justify-center" style="display: none; align-items: center !important; justify-content: center !important; width: 100%; height: 100%; min-height: 480px; padding: 1.5rem;">
+        <video src="assets/videos/scale.mp4" autoplay loop muted playsinline style="pointer-events: none; outline: none; border: none; width: 100%; height: 100%; object-fit: contain; max-height: 480px;"></video>
+      </div>
+
+      <!-- Tab Content 4: Analyze (Video: analyze.mp4) -->
+      <div id="demo-content-analyze" class="demo-tab-content hidden items-center justify-center" style="display: none; align-items: center !important; justify-content: center !important; width: 100%; height: 100%; min-height: 480px; padding: 1.5rem;">
+        <video src="assets/videos/analyze.mp4" autoplay loop muted playsinline style="pointer-events: none; outline: none; border: none; width: 100%; height: 100%; object-fit: contain; max-height: 480px;"></video>
+      </div>
+
     </div>
   </div>
+
+  <script nonce="e9af510aa1a2">
+    document.addEventListener("DOMContentLoaded", function() {
+      const tabs = document.querySelectorAll(".js-demo-block-tab");
+      const contents = document.querySelectorAll(".demo-tab-content");
+
+      tabs.forEach(tab => {
+        tab.addEventListener("click", function() {
+          tabs.forEach(t => t.classList.remove("active"));
+          tab.classList.add("active");
+
+          contents.forEach(c => {
+            c.style.setProperty("display", "none", "important");
+          });
+
+          const tabName = tab.getAttribute("data-name");
+          const activeContent = document.getElementById("demo-content-" + tabName);
+          if (activeContent) {
+            activeContent.style.setProperty("display", "flex", "important");
+            const video = activeContent.querySelector("video");
+            if (video) {
+              video.currentTime = 0;
+              video.play().catch(err => console.log("Video play interrupted:", err));
+            }
+          }
+        });
+      });
+    });
+  </script>
 
   <div class="hidden">
           <div class="js-demo-block-template relative h-full w-full" data-name="capture">

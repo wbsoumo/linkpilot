@@ -4219,7 +4219,13 @@ function renderWhatsAppCampaigns(container) {
                             if (btn) {
                                 btn.disabled = false;
                                 btn.innerHTML = `<i data-lucide="rocket" class="h-4 w-4 text-white"></i><span>Launch Campaign Live</span>`;
-                                lucide.crea            // Custom Template Selector Modal with List view and Live WhatsApp message layout preview
+                                lucide.createIcons();
+                            }
+                        });
+                };
+            };
+
+            // Custom Template Selector Modal with List view and Live WhatsApp message layout preview
             window.openTemplateSelectorModal = function () {
                 const existing = document.getElementById('template-picker-modal');
                 if (existing) existing.remove();

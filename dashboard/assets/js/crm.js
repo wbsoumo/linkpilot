@@ -1023,8 +1023,47 @@ async function dashboardToggleTask(taskId, currentStatus) {
 // ----------------------------------------------------
 async function renderEmailIntelligence(container) {
     try {
+        let googleConnected = false;
+        try {
+            const gStatus = await apiCall('external_apps/status.php');
+            if (gStatus && gStatus.status === 'success' && gStatus.data && gStatus.data.connected && gStatus.data.gmail_connected) {
+                googleConnected = true;
+            }
+        } catch (gErr) {
+            console.warn("Failed to check Google status in email intelligence", gErr);
+        }
+
         const res = await apiCall('crm/email_intelligence/settings.php');
         
+        if (googleConnected && (!res.settings || !res.settings.is_active)) {
+            // Auto-activate Email Intelligence settings for Gmail API OAuth
+            const defaultPermissions = {
+                read_emails: true,
+                read_attachments: true,
+                store_metadata: true,
+                ai_processing: true,
+                auto_sync: true,
+                background_processing: true
+            };
+            await apiCall('crm/email_intelligence/settings.php', 'POST', {
+                email_provider: 'gmail',
+                is_active: 1,
+                consent_accepted: 1,
+                sync_interval_minutes: 60,
+                business_type: (res.settings && res.settings.business_type) ? res.settings.business_type : 'Software Company',
+                industry: (res.settings && res.settings.industry) ? res.settings.industry : 'Technology',
+                timezone: (res.settings && res.settings.timezone) ? res.settings.timezone : 'Asia/Kolkata',
+                working_hours: (res.settings && res.settings.working_hours) ? res.settings.working_hours : '09:00-18:00',
+                preferred_language: (res.settings && res.settings.preferred_language) ? res.settings.preferred_language : 'en',
+                currency: (res.settings && res.settings.currency) ? res.settings.currency : 'USD',
+                permissions: defaultPermissions
+            });
+            // Re-fetch settings after auto-activation
+            const updatedRes = await apiCall('crm/email_intelligence/settings.php');
+            renderSyncStatus(container, updatedRes);
+            return;
+        }
+
         if (res.settings && res.settings.is_active) {
             // Service is active: render synchronization monitor
             renderSyncStatus(container, res);

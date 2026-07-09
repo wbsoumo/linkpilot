@@ -146,6 +146,32 @@ try {
         ]);
     }
     
+    // Auto-create/activate email intelligence settings for Gmail Sync!
+    if (strpos($scopesStr, 'gmail.modify') !== false) {
+        $stmtSettingsCheck = $db->prepare("SELECT id FROM email_intelligence_settings WHERE user_id = ?");
+        $stmtSettingsCheck->execute([$userId]);
+        if (!$stmtSettingsCheck->fetch()) {
+            $permissionsJson = json_encode([
+                'read_emails' => true,
+                'read_attachments' => true,
+                'store_metadata' => true,
+                'ai_processing' => true,
+                'auto_sync' => true,
+                'background_processing' => true
+            ]);
+            $stmtInsertSettings = $db->prepare("
+                INSERT INTO email_intelligence_settings 
+                    (user_id, is_active, sync_interval_minutes, business_type, industry, permissions_json)
+                VALUES 
+                    (?, 1, 60, 'Software Company', 'Technology', ?)
+            ");
+            $stmtInsertSettings->execute([$userId, $permissionsJson]);
+        } else {
+            $stmtUpdateSettings = $db->prepare("UPDATE email_intelligence_settings SET is_active = 1 WHERE user_id = ?");
+            $stmtUpdateSettings->execute([$userId]);
+        }
+    }
+    
     // Log timeline activity
     $timelineStmt = $db->prepare("INSERT INTO crm_timeline (user_id, activity_type, description) VALUES (?, 'Integration Connected', ?)");
     $timelineStmt->execute([$userId, "Connected Google external application integrations: " . ucfirst($type) . " ($googleEmail)."]);

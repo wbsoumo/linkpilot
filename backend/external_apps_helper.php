@@ -11,9 +11,15 @@ class GoogleOAuthHelper {
             'profile'
         ],
         'calendar' => [
+            'openid',
+            'email',
+            'profile',
             'https://www.googleapis.com/auth/calendar.events'
         ],
         'gmail' => [
+            'openid',
+            'email',
+            'profile',
             'https://www.googleapis.com/auth/gmail.send'
         ]
     ];

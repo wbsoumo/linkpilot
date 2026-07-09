@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full bg-slate-950">
+
 <head>
     <script>
-        (function() {
+        (function () {
             const token = localStorage.getItem('linkpilot_token');
             if (!token) {
                 window.location.replace('login.html');
@@ -24,10 +25,12 @@
     <!-- Lottie Files Animation Integration -->
     <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.14/dist/dotlottie-wc.js" type="module"></script>
 </head>
+
 <body class="h-full bg-[#f8fafc] text-slate-800 flex overflow-hidden">
 
     <!-- 1. LEFT SIDEBAR PANEL -->
-    <aside class="hidden lg:flex flex-col w-64 bg-[#0a1128] border-r border-slate-800/10 shrink-0 h-full justify-between">
+    <aside
+        class="hidden lg:flex flex-col w-64 bg-[#0a1128] border-r border-slate-800/10 shrink-0 h-full justify-between">
         <!-- Logo (Sticky Top) -->
         <div class="p-5 border-b border-slate-800/20">
             <a href="index.html" class="flex items-center space-x-2 text-lg font-extrabold tracking-wider text-white">
@@ -43,55 +46,68 @@
                 <a href="#/dashboard" class="sidebar-nav-link active text-slate-300 transition duration-150">
                     <i data-lucide="grid" class="h-4 w-4 mr-2.5"></i><span>Dashboard</span>
                 </a>
-                <a href="#/inbox" class="sidebar-nav-link text-slate-300 transition duration-150 flex justify-between items-center w-full">
+                <a href="#/inbox"
+                    class="sidebar-nav-link text-slate-300 transition duration-150 flex justify-between items-center w-full">
                     <div class="flex items-center">
                         <i data-lucide="message-square" class="h-4 w-4 mr-2.5"></i><span>Conversations</span>
                     </div>
-                    <span id="sidebar-conversations-unread-badge" class="bg-blue-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full hidden">0</span>
+                    <span id="sidebar-conversations-unread-badge"
+                        class="bg-blue-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full hidden">0</span>
                 </a>
-                
+
                 <!-- WhatsApp Module Collapsible Menu -->
                 <div class="space-y-1 mt-1">
-                    <button onclick="toggleWhatsAppMenu()" class="w-full flex items-center justify-between sidebar-nav-link text-slate-300 transition duration-150 focus:outline-none bg-slate-900/30">
+                    <button onclick="toggleWhatsAppMenu()"
+                        class="w-full flex items-center justify-between sidebar-nav-link text-slate-300 transition duration-150 focus:outline-none bg-slate-900/30">
                         <div class="flex items-center">
                             <img src="assets/img/WhatsApp_icon.png" class="h-4 w-4 mr-2.5 shrink-0" alt="WhatsApp">
                             <span class="font-bold text-slate-200">WhatsApp</span>
                         </div>
-                        <i id="wa-chevron" data-lucide="chevron-down" class="h-3.5 w-3.5 transform transition-transform duration-200"></i>
+                        <i id="wa-chevron" data-lucide="chevron-down"
+                            class="h-3.5 w-3.5 transform transition-transform duration-200"></i>
                     </button>
                     <div id="whatsapp-submenu" class="hidden pl-6 space-y-1 text-[11px]">
-                        <a href="#/whatsapp-dashboard" class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
+                        <a href="#/whatsapp-dashboard"
+                            class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
                             <i data-lucide="layout-dashboard" class="h-3 w-3 mr-2 shrink-0"></i>Dashboard
                         </a>
-                        <a href="#/whatsapp-inbox" class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition justify-between">
+                        <a href="#/whatsapp-inbox"
+                            class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition justify-between">
                             <div class="flex items-center">
                                 <i data-lucide="message-square" class="h-3 w-3 mr-2 shrink-0"></i>Inbox
                             </div>
                         </a>
-                        <a href="#/whatsapp-contacts" class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
+                        <a href="#/whatsapp-contacts"
+                            class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
                             <i data-lucide="users" class="h-3 w-3 mr-2 shrink-0"></i>Contacts
                         </a>
-                        <a href="#/whatsapp-campaigns" class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
+                        <a href="#/whatsapp-campaigns"
+                            class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
                             <i data-lucide="megaphone" class="h-3 w-3 mr-2 shrink-0"></i>Campaigns
                         </a>
-                        <a href="#/whatsapp-templates" class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
+                        <a href="#/whatsapp-templates"
+                            class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
                             <i data-lucide="file-text" class="h-3 w-3 mr-2 shrink-0"></i>Templates
                         </a>
-                        <a href="#/whatsapp-broadcast" class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
+                        <a href="#/whatsapp-broadcast"
+                            class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
                             <i data-lucide="send" class="h-3 w-3 mr-2 shrink-0"></i>Broadcast
                         </a>
-                        <a href="#/whatsapp-automation" class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
+                        <a href="#/whatsapp-automation"
+                            class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
                             <i data-lucide="workflow" class="h-3 w-3 mr-2 shrink-0"></i>Automation
                         </a>
-                        <a href="#/whatsapp-reports" class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
+                        <a href="#/whatsapp-reports"
+                            class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
                             <i data-lucide="line-chart" class="h-3 w-3 mr-2 shrink-0"></i>Reports
                         </a>
-                        <a href="#/whatsapp-settings" class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
+                        <a href="#/whatsapp-settings"
+                            class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
                             <i data-lucide="settings-2" class="h-3 w-3 mr-2 shrink-0"></i>Settings
                         </a>
                     </div>
                 </div>
-                
+
                 <a href="#/leads" class="sidebar-nav-link text-slate-300 transition duration-150">
                     <i data-lucide="user-plus" class="h-4 w-4 mr-2.5"></i><span>Leads</span>
                 </a>
@@ -104,11 +120,13 @@
                 <a href="#/companies" class="sidebar-nav-link text-slate-300 transition duration-150">
                     <i data-lucide="building" class="h-4 w-4 mr-2.5"></i><span>Companies</span>
                 </a>
-                <a href="#/tasks" class="sidebar-nav-link text-slate-300 transition duration-150 flex justify-between items-center w-full">
+                <a href="#/tasks"
+                    class="sidebar-nav-link text-slate-300 transition duration-150 flex justify-between items-center w-full">
                     <div class="flex items-center">
                         <i data-lucide="check-square" class="h-4 w-4 mr-2.5"></i><span>Tasks</span>
                     </div>
-                    <span id="sidebar-tasks-today-badge" class="bg-blue-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full hidden">0</span>
+                    <span id="sidebar-tasks-today-badge"
+                        class="bg-blue-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full hidden">0</span>
                 </a>
                 <a href="#/email-intelligence" class="sidebar-nav-link text-slate-300 transition duration-150">
                     <i data-lucide="mail" class="h-4 w-4 mr-2.5"></i><span>Email Processing</span>
@@ -134,8 +152,9 @@
                 <a href="#/install-extensions" class="sidebar-nav-link text-slate-300 transition duration-150">
                     <i data-lucide="download" class="h-4 w-4 mr-2.5"></i><span>Install Extensions</span>
                 </a>
-                
-                <a href="admin.html?v=3.3" id="admin-nav-link" class="sidebar-nav-link text-rose-400 hover:bg-slate-800 transition duration-150 hidden">
+
+                <a href="admin.html?v=3.3" id="admin-nav-link"
+                    class="sidebar-nav-link text-rose-400 hover:bg-slate-800 transition duration-150 hidden">
                     <i data-lucide="shield-alert" class="h-4 w-4 mr-2.5"></i><span>Admin Portal</span>
                 </a>
             </nav>
@@ -144,7 +163,8 @@
             <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-3.5 space-y-2.5">
                 <div class="text-white text-xs font-bold">Pro Plan</div>
                 <div class="text-slate-500 text-[10px]">Renews on 25 Jun, 2025</div>
-                <button class="w-full flex items-center justify-center space-x-1.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[10px] font-bold transition">
+                <button
+                    class="w-full flex items-center justify-center space-x-1.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[10px] font-bold transition">
                     <i data-lucide="rocket" class="h-3 w-3"></i>
                     <span>Upgrade Plan</span>
                 </button>
@@ -155,7 +175,8 @@
         <div class="p-5 border-t border-slate-800/80 space-y-4 bg-[#0a1128]">
             <!-- Profile Details -->
             <div class="flex items-center space-x-3">
-                <div class="h-9 w-9 rounded-lg bg-blue-600 text-white font-bold flex items-center justify-center border border-blue-400/30" id="user-avatar-initials">
+                <div class="h-9 w-9 rounded-lg bg-blue-600 text-white font-bold flex items-center justify-center border border-blue-400/30"
+                    id="user-avatar-initials">
                     LP
                 </div>
                 <div class="truncate max-w-[140px]">
@@ -163,7 +184,8 @@
                     <div class="text-[10px] text-slate-500 truncate user-email-display">you@email.com</div>
                 </div>
             </div>
-            <button id="logout-action-btn" class="w-full flex items-center justify-center space-x-2 py-2 border border-slate-800 hover:border-red-500/30 hover:text-red-400 rounded-lg text-xs font-semibold transition bg-slate-950/20 text-slate-400">
+            <button id="logout-action-btn"
+                class="w-full flex items-center justify-center space-x-2 py-2 border border-slate-800 hover:border-red-500/30 hover:text-red-400 rounded-lg text-xs font-semibold transition bg-slate-950/20 text-slate-400">
                 <i data-lucide="log-out" class="h-3.5 w-3.5"></i>
                 <span>Log Out</span>
             </button>
@@ -173,67 +195,90 @@
     <!-- 2. RIGHT CONTENT AREA -->
     <div class="flex-grow flex flex-col min-w-0 overflow-hidden">
         <!-- Top bar menu -->
-        <header class="bg-white border-b border-slate-200/80 sticky top-0 z-40 px-6 py-3 flex items-center justify-between shadow-sm">
+        <header
+            class="bg-white border-b border-slate-200/80 sticky top-0 z-40 px-6 py-3 flex items-center justify-between shadow-sm">
             <!-- Left Header -->
             <div class="flex items-center space-x-4 flex-grow max-w-md">
                 <!-- Hamburger on Mobile -->
-                <button class="lg:hidden text-slate-500 hover:text-slate-900"><i data-lucide="menu" class="h-5 w-5"></i></button>
-                
+                <button class="lg:hidden text-slate-500 hover:text-slate-900"><i data-lucide="menu"
+                        class="h-5 w-5"></i></button>
+
                 <!-- Search bar -->
                 <div class="relative w-full hidden md:block" id="global-search-container">
                     <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
                         <i data-lucide="search" class="h-4 w-4"></i>
                     </span>
-                    <input type="text" id="global-search-input" oninput="handleGlobalSearch(this.value)" placeholder="Search leads, contacts, emails..." class="w-full pl-9 pr-12 py-1.5 bg-[#f8fafc] border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500" autocomplete="off">
-                    <span class="absolute right-3 top-2 px-1 py-0.5 border border-slate-200 bg-white text-[9px] text-slate-400 rounded font-semibold">Ctrl + /</span>
-                    
+                    <input type="text" id="global-search-input" oninput="handleGlobalSearch(this.value)"
+                        placeholder="Search leads, contacts, emails..."
+                        class="w-full pl-9 pr-12 py-1.5 bg-[#f8fafc] border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                        autocomplete="off">
+                    <span
+                        class="absolute right-3 top-2 px-1 py-0.5 border border-slate-200 bg-white text-[9px] text-slate-400 rounded font-semibold">Ctrl
+                        + /</span>
+
                     <!-- Autocomplete Dropdown -->
-                    <div id="global-search-dropdown" class="absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-xl hidden max-h-80 overflow-y-auto z-50 text-xs text-slate-800">
+                    <div id="global-search-dropdown"
+                        class="absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-xl hidden max-h-80 overflow-y-auto z-50 text-xs text-slate-800">
                         <div id="global-search-results-list" class="divide-y divide-slate-100"></div>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Right Header -->
             <div class="flex items-center space-x-5 text-slate-500">
                 <!-- Add icon button -->
-                <button onclick="createNewLeadModal()" class="h-8 w-8 rounded-full border border-slate-200 bg-[#f8fafc] hover:bg-slate-100 flex items-center justify-center text-slate-600 transition" title="Create New Lead">
+                <button onclick="createNewLeadModal()"
+                    class="h-8 w-8 rounded-full border border-slate-200 bg-[#f8fafc] hover:bg-slate-100 flex items-center justify-center text-slate-600 transition"
+                    title="Create New Lead">
                     <i data-lucide="plus" class="h-4 w-4"></i>
                 </button>
 
                 <!-- Today's Tasks Badge in Header -->
-                <a href="#/tasks" class="relative h-8 w-8 flex items-center justify-center hover:text-slate-900 transition hover:bg-slate-100 rounded-full" title="Tasks Due Today">
+                <a href="#/tasks"
+                    class="relative h-8 w-8 flex items-center justify-center hover:text-slate-900 transition hover:bg-slate-100 rounded-full"
+                    title="Tasks Due Today">
                     <i data-lucide="check-square" class="h-4.5 w-4.5 text-indigo-600"></i>
-                    <span id="header-tasks-today-badge" class="absolute -top-0.5 -right-0.5 bg-indigo-600 text-white text-[7px] font-extrabold px-1.5 py-0.5 rounded-full hidden">0</span>
+                    <span id="header-tasks-today-badge"
+                        class="absolute -top-0.5 -right-0.5 bg-indigo-600 text-white text-[7px] font-extrabold px-1.5 py-0.5 rounded-full hidden">0</span>
                 </a>
 
                 <!-- Notifications icon -->
-                <a href="#/ai-insights" class="relative h-8 w-8 flex items-center justify-center hover:text-slate-900 transition hover:bg-slate-100 rounded-full" title="AI Alerts & Insights">
+                <a href="#/ai-insights"
+                    class="relative h-8 w-8 flex items-center justify-center hover:text-slate-900 transition hover:bg-slate-100 rounded-full"
+                    title="AI Alerts & Insights">
                     <i data-lucide="bell" class="h-4 w-4 text-slate-600"></i>
-                    <span id="header-notifications-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-extrabold px-1 py-0.5 rounded-full hidden">0</span>
+                    <span id="header-notifications-badge"
+                        class="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-extrabold px-1 py-0.5 rounded-full hidden">0</span>
                 </a>
 
                 <!-- Envelope inbox icon -->
-                <a href="#/inbox" class="relative h-8 w-8 flex items-center justify-center hover:text-slate-900 transition hover:bg-slate-100 rounded-full" title="Conversations Inbox">
+                <a href="#/inbox"
+                    class="relative h-8 w-8 flex items-center justify-center hover:text-slate-900 transition hover:bg-slate-100 rounded-full"
+                    title="Conversations Inbox">
                     <i data-lucide="mail" class="h-4 w-4 text-slate-600"></i>
-                    <span id="header-inbox-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-extrabold px-1 py-0.5 rounded-full hidden">0</span>
+                    <span id="header-inbox-badge"
+                        class="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-extrabold px-1 py-0.5 rounded-full hidden">0</span>
                 </a>
 
                 <!-- WhatsApp AI Auto-Reply Status Badge -->
-                <div id="header-autoreply-status-container" class="hidden items-center space-x-1.5 px-3 py-1.5 rounded-lg text-[10px] font-extrabold cursor-pointer border transition duration-150 hover:bg-slate-100">
+                <div id="header-autoreply-status-container"
+                    class="hidden items-center space-x-1.5 px-3 py-1.5 rounded-lg text-[10px] font-extrabold cursor-pointer border transition duration-150 hover:bg-slate-100">
                     <!-- Dynamic status indicator injected via javascript -->
                 </div>
 
                 <!-- Credits Wallet Badge -->
-                <a href="#/recharge" id="nav-credit-balance-container" class="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-lg text-[10px] font-extrabold hover:bg-blue-600 hover:text-white transition duration-150">
+                <a href="#/recharge" id="nav-credit-balance-container"
+                    class="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-lg text-[10px] font-extrabold hover:bg-blue-600 hover:text-white transition duration-150">
                     <i data-lucide="zap" class="h-3.5 w-3.5"></i>
                     <span>Credits: <span id="nav-credit-balance-value">...</span></span>
                 </a>
 
                 <!-- User profile avatar details -->
                 <div class="relative flex items-center">
-                    <div id="header-profile-trigger" class="flex items-center space-x-2 border-l border-slate-200 pl-4 cursor-pointer hover:opacity-90 transition duration-150">
-                        <div class="h-8 w-8 rounded-full bg-emerald-500 text-white font-bold flex items-center justify-center text-xs" id="header-user-avatar-initials">
+                    <div id="header-profile-trigger"
+                        class="flex items-center space-x-2 border-l border-slate-200 pl-4 cursor-pointer hover:opacity-90 transition duration-150">
+                        <div class="h-8 w-8 rounded-full bg-emerald-500 text-white font-bold flex items-center justify-center text-xs"
+                            id="header-user-avatar-initials">
                             AS
                         </div>
                         <div class="hidden sm:block text-left text-[10px]">
@@ -241,22 +286,29 @@
                             <div class="text-slate-400 user-role-display">Super Admin</div>
                         </div>
                     </div>
-                    
+
                     <!-- Header Profile Dropdown Menu -->
-                    <div id="header-profile-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl py-2 z-50 animate-fade-in glass-panel-dark" style="margin-top: 12px;">
-                        <a href="javascript:void(0)" onclick="headerNavigateToSettings('profile', false)" class="flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150 rounded-t-lg">
+                    <div id="header-profile-dropdown"
+                        class="hidden absolute right-0 top-full mt-2 w-48 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl py-2 z-50 animate-fade-in glass-panel-dark"
+                        style="margin-top: 12px;">
+                        <a href="javascript:void(0)" onclick="headerNavigateToSettings('profile', false)"
+                            class="flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150 rounded-t-lg">
                             <i data-lucide="user" class="h-4 w-4 text-teal-400"></i>
                             <span>View Profile</span>
                         </a>
-                        <a href="javascript:void(0)" onclick="headerNavigateToSettings('profile', true)" class="flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150">
+                        <a href="javascript:void(0)" onclick="headerNavigateToSettings('profile', true)"
+                            class="flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150">
                             <i data-lucide="edit-3" class="h-4 w-4 text-teal-400"></i>
                             <span>Edit Profile</span>
                         </a>
-                        <a href="javascript:void(0)" onclick="headerNavigateToSettings('billing', false)" class="flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150">
+                        <a href="javascript:void(0)" onclick="headerNavigateToSettings('billing', false)"
+                            class="flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150">
                             <i data-lucide="credit-card" class="h-4 w-4 text-amber-400"></i>
                             <span>Plan Details</span>
                         </a>
-                        <button onclick="openExtensionGuide(); document.getElementById('header-profile-dropdown').classList.add('hidden');" class="w-full flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150 text-left border-t border-slate-800 mt-1">
+                        <button
+                            onclick="openExtensionGuide(); document.getElementById('header-profile-dropdown').classList.add('hidden');"
+                            class="w-full flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition duration-150 text-left border-t border-slate-800 mt-1">
                             <i data-lucide="help-circle" class="h-4 w-4 text-teal-400"></i>
                             <span>Help & Support</span>
                         </button>
@@ -274,11 +326,15 @@
     </div>
 
     <!-- AI CRM Chat Assistant Button & Panel -->
-    <button onclick="toggleAIChatAssistant()" class="fixed bottom-6 right-6 z-50 h-[84px] w-[84px] rounded-full bg-white border-2 border-indigo-100/80 shadow-[0_15px_30px_-5px_rgba(99,102,241,0.25)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200 focus:outline-none cursor-pointer" id="ai-chat-trigger-btn">
-        <dotlottie-wc src="https://lottie.host/552e272b-c3ae-421a-ad48-888f5e132fc0/e6lqFrYMMX.lottie" style="width: 76px; height: 76px" autoplay loop></dotlottie-wc>
+    <button onclick="toggleAIChatAssistant()"
+        class="fixed bottom-6 right-6 z-50 h-[84px] w-[84px] rounded-full bg-white border-2 border-indigo-100/80 shadow-[0_15px_30px_-5px_rgba(99,102,241,0.25)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200 focus:outline-none cursor-pointer"
+        id="ai-chat-trigger-btn">
+        <dotlottie-wc src="https://lottie.host/552e272b-c3ae-421a-ad48-888f5e132fc0/e6lqFrYMMX.lottie"
+            style="width: 76px; height: 76px" autoplay loop></dotlottie-wc>
     </button>
 
-    <div id="ai-chat-assistant-drawer" class="fixed top-0 right-0 h-full w-[400px] max-w-full bg-[#f8fafc] border-l border-slate-200 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+    <div id="ai-chat-assistant-drawer"
+        class="fixed top-0 right-0 h-full w-[400px] max-w-full bg-[#f8fafc] border-l border-slate-200 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
         <!-- Header -->
         <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-white">
             <div class="flex items-center space-x-3">
@@ -294,7 +350,8 @@
                     </div>
                 </div>
             </div>
-            <button onclick="toggleAIChatAssistant()" class="h-8 w-8 rounded-full border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-800 flex items-center justify-center transition shadow-sm">
+            <button onclick="toggleAIChatAssistant()"
+                class="h-8 w-8 rounded-full border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-800 flex items-center justify-center transition shadow-sm">
                 <i data-lucide="x" class="h-4 w-4"></i>
             </button>
         </div>
@@ -303,36 +360,44 @@
         <div class="flex-grow p-4 overflow-y-auto space-y-4 bg-[#f8fafc]" id="ai-chat-messages-container">
             <!-- Greeting message -->
             <div class="flex items-start space-x-2.5">
-                <div class="h-7 w-7 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-md border border-indigo-400/20 shrink-0">
+                <div
+                    class="h-7 w-7 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-md border border-indigo-400/20 shrink-0">
                     <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
                 </div>
-                <div class="p-4 bg-white border border-slate-100 rounded-2xl rounded-tl-none max-w-[85%] text-slate-700 text-xs leading-relaxed shadow-sm">
-                    <div class="font-medium text-slate-800">Hello <span class="font-bold text-indigo-600 user-name-display">User</span>! 👋</div>
+                <div
+                    class="p-4 bg-white border border-slate-100 rounded-2xl rounded-tl-none max-w-[85%] text-slate-700 text-xs leading-relaxed shadow-sm">
+                    <div class="font-medium text-slate-800">Hello <span
+                            class="font-bold text-indigo-600 user-name-display">User</span>! 👋</div>
                     <p class="mt-1 text-slate-500">I'm your real-time CRM companion.</p>
-                    <div class="mt-3 font-semibold text-slate-800 text-[10px] uppercase tracking-wider">I can help you with:</div>
-                    
+                    <div class="mt-3 font-semibold text-slate-800 text-[10px] uppercase tracking-wider">I can help you
+                        with:</div>
+
                     <!-- 2x2 Feature Grid -->
                     <div class="grid grid-cols-2 gap-3 mt-2.5">
                         <div class="flex items-center space-x-2">
-                            <div class="h-7 w-7 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                            <div
+                                class="h-7 w-7 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
                                 <i data-lucide="calendar" class="h-3.5 w-3.5"></i>
                             </div>
                             <span class="text-[10px] text-slate-600 leading-tight">Your scheduled meetings today</span>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <div class="h-7 w-7 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                            <div
+                                class="h-7 w-7 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
                                 <i data-lucide="check-square" class="h-3.5 w-3.5"></i>
                             </div>
                             <span class="text-[10px] text-slate-600 leading-tight">Outstanding pipeline tasks</span>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <div class="h-7 w-7 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600 shrink-0">
+                            <div
+                                class="h-7 w-7 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600 shrink-0">
                                 <i data-lucide="users" class="h-3.5 w-3.5"></i>
                             </div>
                             <span class="text-[10px] text-slate-600 leading-tight">Recent leads & contract values</span>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <div class="h-7 w-7 rounded-lg bg-violet-50 flex items-center justify-center text-violet-600 shrink-0">
+                            <div
+                                class="h-7 w-7 rounded-lg bg-violet-50 flex items-center justify-center text-violet-600 shrink-0">
                                 <i data-lucide="mail" class="h-3.5 w-3.5"></i>
                             </div>
                             <span class="text-[10px] text-slate-600 leading-tight">Summary of incoming emails</span>
@@ -346,26 +411,33 @@
         <div class="px-4 py-3 bg-slate-50/50 border-t border-slate-100">
             <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Quick Actions</div>
             <div class="grid grid-cols-2 gap-2" id="ai-chat-quick-actions-grid">
-                <button onclick="sendQuickAIChatQuery('Meetings today?')" class="flex items-center space-x-2 p-2 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl text-left transition shadow-sm">
+                <button onclick="sendQuickAIChatQuery('Meetings today?')"
+                    class="flex items-center space-x-2 p-2 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl text-left transition shadow-sm">
                     <div class="h-6 w-6 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
                         <i data-lucide="calendar" class="h-3.5 w-3.5"></i>
                     </div>
                     <span class="text-[10px] font-semibold text-slate-700">Meetings today?</span>
                 </button>
-                <button onclick="sendQuickAIChatQuery('High priority leads?')" class="flex items-center space-x-2 p-2 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl text-left transition shadow-sm">
-                    <div class="h-6 w-6 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
+                <button onclick="sendQuickAIChatQuery('High priority leads?')"
+                    class="flex items-center space-x-2 p-2 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl text-left transition shadow-sm">
+                    <div
+                        class="h-6 w-6 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
                         <i data-lucide="flame" class="h-3.5 w-3.5"></i>
                     </div>
                     <span class="text-[10px] font-semibold text-slate-700">High priority leads?</span>
                 </button>
-                <button onclick="sendQuickAIChatQuery('Summarize recent emails?')" class="flex items-center space-x-2 p-2 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl text-left transition shadow-sm">
-                    <div class="h-6 w-6 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                <button onclick="sendQuickAIChatQuery('Summarize recent emails?')"
+                    class="flex items-center space-x-2 p-2 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl text-left transition shadow-sm">
+                    <div
+                        class="h-6 w-6 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
                         <i data-lucide="mail" class="h-3.5 w-3.5"></i>
                     </div>
                     <span class="text-[10px] font-semibold text-slate-700">Recent emails?</span>
                 </button>
-                <button onclick="sendQuickAIChatQuery('What are my pending tasks?')" class="flex items-center space-x-2 p-2 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl text-left transition shadow-sm">
-                    <div class="h-6 w-6 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                <button onclick="sendQuickAIChatQuery('What are my pending tasks?')"
+                    class="flex items-center space-x-2 p-2 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl text-left transition shadow-sm">
+                    <div
+                        class="h-6 w-6 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
                         <i data-lucide="check-square" class="h-3.5 w-3.5"></i>
                     </div>
                     <span class="text-[10px] font-semibold text-slate-700">Pending tasks?</span>
@@ -375,15 +447,18 @@
 
         <!-- Footer Input Area -->
         <div class="p-4 border-t border-slate-100 bg-white">
-            <form onsubmit="handleAIChatSubmit(event)" class="relative flex items-center bg-[#f8fafc] border border-slate-200 rounded-2xl p-1.5 focus-within:border-indigo-500 transition-all duration-200">
+            <form onsubmit="handleAIChatSubmit(event)"
+                class="relative flex items-center bg-[#f8fafc] border border-slate-200 rounded-2xl p-1.5 focus-within:border-indigo-500 transition-all duration-200">
                 <button type="button" class="p-2 text-slate-400 hover:text-slate-600 transition">
                     <i data-lucide="paperclip" class="h-4 w-4"></i>
                 </button>
                 <button type="button" class="p-2 text-slate-400 hover:text-indigo-650 transition mr-1">
                     <i data-lucide="sparkles" class="h-4 w-4"></i>
                 </button>
-                <input type="text" id="ai-chat-input-field" placeholder="Ask anything about your CRM..." class="flex-grow bg-transparent border-0 focus:outline-none focus:ring-0 text-xs text-slate-800 placeholder-slate-400 font-medium py-1.5">
-                <button type="submit" class="h-8 w-8 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition shadow flex items-center justify-center shrink-0">
+                <input type="text" id="ai-chat-input-field" placeholder="Ask anything about your CRM..."
+                    class="flex-grow bg-transparent border-0 focus:outline-none focus:ring-0 text-xs text-slate-800 placeholder-slate-400 font-medium py-1.5">
+                <button type="submit"
+                    class="h-8 w-8 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition shadow flex items-center justify-center shrink-0">
                     <i data-lucide="send" class="h-3.5 w-3.5"></i>
                 </button>
             </form>
@@ -392,9 +467,9 @@
 
     <!-- Scripts integrations -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <script src="assets/js/app.js?v=3.9"></script>
-    <script src="assets/js/whatsapp.js?v=3.9"></script>
-    <script src="assets/js/crm.js?v=3.9"></script>
+    <script src="assets/js/app.js?v=4.0"></script>
+    <script src="assets/js/whatsapp.js?v=4.0"></script>
+    <script src="assets/js/crm.js?v=4.0"></script>
     <script>
         function toggleWhatsAppMenu() {
             const menu = document.getElementById('whatsapp-submenu');
@@ -409,4 +484,5 @@
         }
     </script>
 </body>
+
 </html>

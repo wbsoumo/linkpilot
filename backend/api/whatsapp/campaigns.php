@@ -72,6 +72,10 @@ try {
                 $rawPhone = preg_replace('/[^0-9]/', '', $rec['phone'] ?? '');
                 if (empty($rawPhone)) continue;
                 
+                if (strlen($rawPhone) === 10) {
+                    $rawPhone = '91' . $rawPhone;
+                }
+                
                 $matchingContacts[] = [
                     'id' => null,
                     'name' => trim($rec['name'] ?? 'WhatsApp Contact'),
@@ -136,6 +140,10 @@ try {
             foreach ($matchingContacts as $mc) {
                 $rawPhone = preg_replace('/[^0-9]/', '', $mc['phone']);
                 if (empty($rawPhone)) continue;
+                
+                if (strlen($rawPhone) === 10) {
+                    $rawPhone = '91' . $rawPhone;
+                }
                 
                 // Locate or create whatsapp_contacts entry
                 $stmtWCon = $db->prepare("SELECT id FROM whatsapp_contacts WHERE user_id = ? AND wa_id = ?");

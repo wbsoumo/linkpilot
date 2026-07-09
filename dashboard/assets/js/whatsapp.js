@@ -3396,7 +3396,7 @@ function renderWhatsAppCampaigns(container) {
                         const phoneVal = cb.value;
                         const nameVal = cb.getAttribute('data-name');
                         selected.push({
-                            phone: phoneVal,
+                            phone: '91' + phoneVal,
                             name: nameVal,
                             val1: nameVal,
                             val2: ''
@@ -3490,7 +3490,7 @@ function renderWhatsAppCampaigns(container) {
                                 let raw10 = clean;
                                 if (clean.length === 12 && clean.startsWith('91')) raw10 = clean.substring(2);
                                 return {
-                                    phone: raw10,
+                                    phone: '91' + raw10,
                                     name: c.crm_name || c.profile_name || 'Contact',
                                     val1: c.crm_name || c.profile_name || 'Contact',
                                     val2: ''
@@ -3606,7 +3606,7 @@ function renderWhatsAppCampaigns(container) {
                     }
 
                     window.campaignDraft.recipients = validNumbers.map(num => ({
-                        phone: num,
+                        phone: '91' + num,
                         name: 'Manual Contact',
                         val1: 'Customer',
                         val2: ''
@@ -3764,7 +3764,7 @@ function renderWhatsAppCampaigns(container) {
                         const val2Val = val2Idx !== -1 && cols[val2Idx] ? cols[val2Idx] : '';
 
                         parsedRecipients.push({
-                            phone: cleanPhone,
+                            phone: '91' + cleanPhone,
                             name: nameVal,
                             val1: val1Val,
                             val2: val2Val

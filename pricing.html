@@ -47,16 +47,16 @@
             </div>
             
             <!-- Cards Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 items-start">
                 
-                <!-- Starter -->
+                <!-- Base -->
                 <div class="glass-panel p-8 rounded-2xl border-slate-800 space-y-6">
                     <div>
-                        <h4 class="text-lg font-bold text-white">Starter</h4>
+                        <h4 class="text-lg font-bold text-white">Base</h4>
                         <p class="text-xs text-slate-500 mt-1">Essential AI CRM features for small teams starting out.</p>
                     </div>
                     <div class="flex items-baseline">
-                        <span class="text-4xl font-extrabold text-white">$15</span>
+                        <span class="text-4xl font-extrabold text-white">₹1,432</span>
                         <span class="text-xs text-slate-500 ml-2">/ month</span>
                     </div>
                     <ul class="text-xs text-slate-300 space-y-3 border-t border-slate-800/80 pt-6">
@@ -82,14 +82,14 @@
                     </a>
                 </div>
 
-                <!-- Growth -->
-                <div class="glass-panel p-8 rounded-2xl border-teal-500/30 ring-2 ring-teal-500/10 space-y-6">
+                <!-- Advanced -->
+                <div class="glass-panel p-8 rounded-2xl border-slate-800 space-y-6">
                     <div>
-                        <h4 class="text-lg font-bold text-white">Growth</h4>
+                        <h4 class="text-lg font-bold text-white">Advanced</h4>
                         <p class="text-xs text-slate-500 mt-1">For growing brands needing advanced deal tracking.</p>
                     </div>
                     <div class="flex items-baseline">
-                        <span class="text-4xl font-extrabold text-white">$25</span>
+                        <span class="text-4xl font-extrabold text-white">₹2,386</span>
                         <span class="text-xs text-slate-500 ml-2">/ month</span>
                     </div>
                     <ul class="text-xs text-slate-300 space-y-3 border-t border-slate-800/80 pt-6">
@@ -110,19 +110,22 @@
                             <span>Custom Fields, Tags & Segments</span>
                         </li>
                     </ul>
-                    <a href="dashboard/register.html" class="block w-full py-3 text-center text-slate-950 font-bold btn-primary rounded-xl transition">
+                    <a href="dashboard/register.html" class="block w-full py-3 text-center text-slate-300 font-bold bg-slate-900 border border-slate-800 rounded-xl hover:text-white hover:bg-slate-800/80 transition">
                         Start Free Trial
                     </a>
                 </div>
 
                 <!-- Pro -->
-                <div class="glass-panel p-8 rounded-2xl border-slate-800 space-y-6">
+                <div class="glass-panel p-8 rounded-2xl border-teal-500/30 ring-2 ring-teal-500/10 space-y-6 relative">
+                    <div class="absolute -top-3.5 left-8">
+                        <span class="px-3 py-1 bg-teal-500 text-slate-950 text-[10px] font-extrabold uppercase rounded-full tracking-wider">Most Popular</span>
+                    </div>
                     <div>
                         <h4 class="text-lg font-bold text-white">Pro</h4>
                         <p class="text-xs text-slate-500 mt-1">Scale your business with broadcast campaigns.</p>
                     </div>
                     <div class="flex items-baseline">
-                        <span class="text-4xl font-extrabold text-white">$45</span>
+                        <span class="text-4xl font-extrabold text-white">₹4,295</span>
                         <span class="text-xs text-slate-500 ml-2">/ month</span>
                     </div>
                     <ul class="text-xs text-slate-300 space-y-3 border-t border-slate-800/80 pt-6">
@@ -143,8 +146,40 @@
                             <span>Workflow Automation & AI Agents</span>
                         </li>
                     </ul>
-                    <a href="dashboard/register.html" class="block w-full py-3 text-center text-slate-300 font-bold bg-slate-900 border border-slate-800 rounded-xl hover:text-white hover:bg-slate-800/80 transition">
+                    <a href="dashboard/register.html" class="block w-full py-3 text-center text-slate-950 font-bold btn-primary rounded-xl transition">
                         Start Free Trial
+                    </a>
+                </div>
+
+                <!-- Enterprise -->
+                <div class="glass-panel p-8 rounded-2xl border-slate-800 space-y-6">
+                    <div>
+                        <h4 class="text-lg font-bold text-white">Enterprise</h4>
+                        <p class="text-xs text-slate-500 mt-1">Custom configurations for high-volume enterprises.</p>
+                    </div>
+                    <div class="flex items-baseline">
+                        <span class="text-4xl font-extrabold text-white">Custom</span>
+                    </div>
+                    <ul class="text-xs text-slate-300 space-y-3 border-t border-slate-800/80 pt-6">
+                        <li class="flex items-center space-x-2">
+                            <i data-lucide="check" class="h-4 w-4 text-teal-400"></i>
+                            <span>Custom volume discounts</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i data-lucide="check" class="h-4 w-4 text-teal-400"></i>
+                            <span>Dedicated servers & priority API</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i data-lucide="check" class="h-4 w-4 text-teal-400"></i>
+                            <span>Custom SLA & direct support</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i data-lucide="check" class="h-4 w-4 text-teal-400"></i>
+                            <span>On-premise deployment options</span>
+                        </li>
+                    </ul>
+                    <a href="dashboard/register.html" class="block w-full py-3 text-center text-slate-300 font-bold bg-slate-900 border border-slate-800 rounded-xl hover:text-white hover:bg-slate-800/80 transition">
+                        Talk to Sales
                     </a>
                 </div>
             </div>
@@ -157,46 +192,53 @@
                         <thead>
                             <tr class="bg-slate-900/40 border-b border-slate-800 text-slate-400 uppercase font-bold">
                                 <th class="py-4 px-6">Core Feature</th>
-                                <th class="py-4 px-6 text-teal-400">Starter ($15)</th>
-                                <th class="py-4 px-6">Growth ($25)</th>
-                                <th class="py-4 px-6">Pro ($45)</th>
+                                <th class="py-4 px-6">Base (₹1,432)</th>
+                                <th class="py-4 px-6">Advanced (₹2,386)</th>
+                                <th class="py-4 px-6 text-teal-400 font-semibold">Pro (₹4,295)</th>
+                                <th class="py-4 px-6">Enterprise (Custom)</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-800/40 text-slate-300">
                             <tr>
                                 <td class="py-4 px-6 font-semibold">Leads Limit (per user/mo)</td>
-                                <td class="py-4 px-6 text-teal-400">2,500 leads</td>
+                                <td class="py-4 px-6">2,500 leads</td>
                                 <td class="py-4 px-6">5,000 leads</td>
-                                <td class="py-4 px-6">10,000 leads</td>
+                                <td class="py-4 px-6 text-teal-400">10,000 leads</td>
+                                <td class="py-4 px-6">Unlimited</td>
                             </tr>
                             <tr>
                                 <td class="py-4 px-6 font-semibold">WhatsApp Numbers</td>
-                                <td class="py-4 px-6 text-teal-400">1 Number</td>
+                                <td class="py-4 px-6">1 Number</td>
                                 <td class="py-4 px-6">3 Numbers</td>
+                                <td class="py-4 px-6 text-teal-400">Unlimited</td>
                                 <td class="py-4 px-6">Unlimited</td>
                             </tr>
                             <tr>
                                 <td class="py-4 px-6 font-semibold">AI WhatsApp Chatbot</td>
-                                <td class="py-4 px-6 text-teal-400">Standard AI replies</td>
+                                <td class="py-4 px-6">Standard AI replies</td>
                                 <td class="py-4 px-6">Custom instructions</td>
-                                <td class="py-4 px-6">Advanced AI agents</td>
+                                <td class="py-4 px-6 text-teal-400">Advanced AI agents</td>
+                                <td class="py-4 px-6">Enterprise custom flows</td>
                             </tr>
                             <tr>
                                 <td class="py-4 px-6 font-semibold">Broadcast Campaigns</td>
-                                <td class="py-4 px-6 text-teal-400">No</td>
+                                <td class="py-4 px-6">No</td>
                                 <td class="py-4 px-6">WhatsApp Templates only</td>
+                                <td class="py-4 px-6 text-teal-400">Unlimited broadcasts</td>
                                 <td class="py-4 px-6">Unlimited broadcasts</td>
                             </tr>
                             <tr>
                                 <td class="py-4 px-6 font-semibold">Custom Fields & Tags</td>
-                                <td class="py-4 px-6 text-teal-400">Yes (up to 10)</td>
+                                <td class="py-4 px-6">Yes (up to 10)</td>
                                 <td class="py-4 px-6">Unlimited custom fields</td>
+                                <td class="py-4 px-6 text-teal-400">Unlimited + Smart Segments</td>
                                 <td class="py-4 px-6">Unlimited + Smart Segments</td>
                             </tr>
                             <tr>
                                 <td class="py-4 px-6 font-semibold">API & Webhooks</td>
-                                <td class="py-4 px-6 text-teal-400">No</td>
+                                <td class="py-4 px-6">No</td>
                                 <td class="py-4 px-6">Webhooks only</td>
+                                <td class="py-4 px-6 text-teal-400">Full API & Webhooks</td>
                                 <td class="py-4 px-6">Full API & Webhooks</td>
                             </tr>
                         </tbody>

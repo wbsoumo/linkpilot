@@ -28,7 +28,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-[#f8fafc] flex flex-col text-slate-800 antialiased h-full overflow-hidden">
+<body class="min-h-screen bg-[#f8fafc] flex flex-col text-slate-800 antialiased">
 
     <!-- Header / Brand logo -->
     <header class="py-4 px-6 border-b border-slate-200/60 bg-white/80 backdrop-blur-md sticky top-0 z-50 flex justify-between items-center shrink-0">
@@ -45,10 +45,10 @@
     </header>
 
     <!-- Split View Layout Wrapper -->
-    <div class="flex-grow flex flex-col md:flex-row overflow-hidden relative h-full">
+    <div class="flex-grow flex flex-col md:flex-row relative">
         
         <!-- LEFT AREA: Onboarding main wizard card -->
-        <div id="onboarding-main-content" class="flex-grow flex flex-col items-center justify-start p-4 md:p-6 transition-all duration-500 ease-in-out h-full overflow-y-auto">
+        <div id="onboarding-main-content" class="flex-grow flex flex-col items-center justify-start p-4 md:p-6 transition-all duration-500 ease-in-out">
             <div id="setup-card-box" class="w-full max-w-5xl bg-white border border-slate-200/80 rounded-3xl p-6 md:py-6 md:px-8 shadow-xl space-y-6 transition-all duration-500 flex flex-col justify-between min-h-[500px] my-auto">
                 
                 <!-- Step Indicators -->
@@ -88,6 +88,9 @@
                                     
                                     <!-- Left Column: Selection Grid -->
                                     <div id="smtp-selection-column" class="col-span-12 transition-all duration-500 ease-in-out grid grid-cols-1 sm:grid-cols-2 gap-4 shrink-0">
+                                        <!-- Email Connected Status Alert Box -->
+                                        <div id="email-setup-status-box" class="col-span-full hidden"></div>
+                                        
                                         <!-- Gmail -->
                                         <div id="smtp-card-gmail" onclick="selectSmtpProvider('gmail')" class="p-5 border border-slate-200 hover:border-[#005bf7] rounded-2xl hover:bg-slate-50 cursor-pointer transition flex justify-between items-center group text-left relative bg-white">
                                             <div class="flex items-start space-x-4">
@@ -333,11 +336,40 @@
                                                     </li>
                                                 </ul>
 
-                                                <div class="pt-2 flex justify-start">
-                                                    <button type="button" id="wa-embedded-connect-btn" onclick="launchMetaEmbeddedSignup()" class="px-6 py-3 text-xs font-black rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition flex items-center space-x-2 shadow-md shadow-blue-500/10 cursor-pointer animate-pulse" style="color: #ffffff !important;">
-                                                        <i data-lucide="facebook" class="h-4 w-4 text-white"></i>
-                                                        <span>Connect WhatsApp</span>
+                                                <div class="pt-2 flex flex-col items-start space-y-4">
+                                                    <!-- Continue with Facebook Button -->
+                                                    <button type="button" id="wa-embedded-connect-btn" onclick="launchMetaEmbeddedSignup()" class="px-6 py-3 text-sm font-semibold rounded-xl text-white bg-[#1877F2] hover:bg-[#166FE5] transition flex items-center space-x-3 shadow-md shadow-blue-500/10 cursor-pointer select-none border border-transparent" style="color: #ffffff !important;">
+                                                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                                                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                                        </svg>
+                                                        <span>Login with Facebook</span>
                                                     </button>
+                                                    
+                                                    <!-- Info Notice -->
+                                                    <p class="text-xs text-slate-500 font-semibold leading-relaxed">
+                                                        To connect WhatsApp, you need to login with your Facebook Business account.
+                                                    </p>
+                                                    
+                                                    <!-- Help Line -->
+                                                    <div class="pt-3 border-t border-slate-200/60 w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500">
+                                                        <div class="text-left">
+                                                            <span class="font-extrabold block text-slate-700">For any help on setup contact details:</span>
+                                                            <span class="text-slate-400">Call and WhatsApp given below:</span>
+                                                        </div>
+                                                        <div class="flex items-center space-x-2.5 shrink-0">
+                                                            <a href="tel:+918016222991" class="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 hover:border-slate-300 rounded-lg text-slate-700 font-bold transition select-none">
+                                                                <i data-lucide="phone" class="h-3.5 w-3.5 text-slate-500"></i>
+                                                                <span>Call</span>
+                                                            </a>
+                                                            <a href="https://wa.me/918016222991" target="_blank" class="flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 border border-transparent rounded-lg text-white font-bold transition shadow-sm shadow-emerald-500/10 select-none">
+                                                                <!-- SVG WhatsApp Icon -->
+                                                                <svg class="h-3.5 w-3.5 fill-current text-white" viewBox="0 0 24 24">
+                                                                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.1 1.45 4.8 1.45 5.58 0 10.12-4.54 10.12-10.12C21.581 5.33 17.26 1 12.01 1 6.43 1 1.89 5.54 1.89 11.12c0 1.9.5 3.76 1.47 5.36L2.38 21.62l5.21-1.37zM17.43 14.19c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-1.12-.56-1.92-.98-2.68-2.29-.3-.52-.3-.88-.15-1.03.14-.14.3-.35.45-.53.15-.17.2-.3.3-.5.1-.2.05-.38-.02-.53-.07-.15-.67-1.62-.92-2.22-.24-.6-.5-.52-.67-.53l-.58-.01c-.2 0-.53.07-.8.37-.28.3-1.07 1.05-1.07 2.56 0 1.5 1.1 2.97 1.25 3.17.15.2 2.15 3.28 5.2 4.6 1.34.57 2.14.75 2.87.68.73-.07 2.22-.91 2.53-1.79.31-.88.31-1.64.21-1.79-.1-.15-.29-.24-.59-.39z"/>
+                                                                </svg>
+                                                                <span>WhatsApp +91 8016222991</span>
+                                                            </a>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -882,7 +914,7 @@
 
             // Open guide sidebar and expand layout
             sidebar.className = "w-full md:w-[30%] opacity-100 bg-slate-55 border-l border-slate-200/60 transition-all duration-500 ease-in-out flex flex-col justify-start space-y-6 shrink-0 text-left h-full";
-            mainContent.className = "w-full md:w-[70%] flex items-center justify-center p-4 md:p-6 transition-all duration-500 ease-in-out h-full overflow-y-auto";
+            mainContent.className = "w-full md:w-[70%] flex items-center justify-center p-4 md:p-6 transition-all duration-500 ease-in-out";
             cardBox.className = "w-full max-w-4xl bg-white border border-slate-200/80 rounded-3xl p-6 md:py-6 md:px-8 shadow-xl space-y-6 overflow-hidden transition-all duration-500 flex flex-col justify-between min-h-[500px]";
         }
 
@@ -914,9 +946,10 @@
             const mainContent = document.getElementById('onboarding-main-content');
             const cardBox = document.getElementById('setup-card-box');
             
-            sidebar.className = "w-0 overflow-hidden opacity-0 bg-slate-50 border-l border-slate-200/60 transition-all duration-500 ease-in-out flex flex-col justify-start space-y-6 shrink-0 text-left h-full";
-            mainContent.className = "w-full flex-grow flex items-center justify-center p-4 md:p-6 transition-all duration-500 ease-in-out h-full overflow-y-auto";
+            sidebar.className = "w-0 overflow-hidden opacity-0 bg-slate-55 border-l border-slate-200/60 transition-all duration-500 ease-in-out flex flex-col justify-start space-y-6 shrink-0 text-left h-full";
+            mainContent.className = "w-full flex-grow flex items-center justify-center p-4 md:p-6 transition-all duration-500 ease-in-out";
             cardBox.className = "w-full max-w-5xl bg-white border border-slate-200/80 rounded-3xl p-6 md:py-6 md:px-8 shadow-xl space-y-6 overflow-hidden transition-all duration-500 flex flex-col justify-between min-h-[500px]";
+        }[500px]";
         }
 
         // Highlight WhatsApp Yes/No cards
@@ -1048,7 +1081,7 @@
 
             // Open guide sidebar and expand layout
             sidebar.className = "w-full md:w-[30%] opacity-100 bg-slate-55 border-l border-slate-200/60 transition-all duration-500 ease-in-out flex flex-col justify-start space-y-6 shrink-0 text-left h-full";
-            mainContent.className = "w-full md:w-[70%] flex items-center justify-center p-4 md:p-6 transition-all duration-500 ease-in-out h-full overflow-y-auto";
+            mainContent.className = "w-full md:w-[70%] flex items-center justify-center p-4 md:p-6 transition-all duration-500 ease-in-out";
             cardBox.className = "w-full max-w-4xl bg-white border border-slate-200/80 rounded-3xl p-6 md:py-6 md:px-8 shadow-xl space-y-6 overflow-hidden transition-all duration-500 flex flex-col justify-between min-h-[500px]";
         }
 
@@ -1079,7 +1112,7 @@
             const cardBox = document.getElementById('setup-card-box');
             
             sidebar.className = "w-0 overflow-hidden opacity-0 bg-slate-50 border-l border-slate-200/60 transition-all duration-500 ease-in-out flex flex-col justify-start space-y-6 shrink-0 text-left h-full";
-            mainContent.className = "w-full flex-grow flex items-center justify-center p-4 md:p-6 transition-all duration-500 ease-in-out h-full overflow-y-auto";
+            mainContent.className = "w-full flex-grow flex items-center justify-center p-4 md:p-6 transition-all duration-500 ease-in-out";
             cardBox.className = "w-full max-w-5xl bg-white border border-slate-200/80 rounded-3xl p-6 md:py-6 md:px-8 shadow-xl space-y-6 overflow-hidden transition-all duration-500 flex flex-col justify-between min-h-[500px]";
         }
 
@@ -1142,6 +1175,7 @@
                 });
 
                 showNotification('success', 'SMTP credentials saved successfully!');
+                await checkEmailSetupStatus();
                 
                 // 3. Slide left to WhatsApp setup page (Slide 2)
                 slideTo(1);
@@ -1385,9 +1419,75 @@
             }
         }
 
+        async function checkEmailSetupStatus() {
+            try {
+                // 1. Fetch Google external app status
+                const gRes = await apiCall('external_apps/status.php');
+                let connectedEmail = null;
+                let provider = '';
+                let name = '';
+                let connectedAt = '';
+                
+                if (gRes && gRes.status === 'success' && gRes.data && gRes.data.connected && gRes.data.gmail_connected) {
+                    connectedEmail = gRes.data.email;
+                    provider = 'Google Workspace (OAuth)';
+                    name = gRes.data.name;
+                    connectedAt = gRes.data.connected_at || 'Recently';
+                } else {
+                    // 2. Fetch SMTP list
+                    const smtpRes = await apiCall('smtp/list.php');
+                    if (smtpRes && smtpRes.accounts && smtpRes.accounts.length > 0) {
+                        const defaultAcc = smtpRes.accounts.find(a => a.is_default) || smtpRes.accounts[0];
+                        connectedEmail = defaultAcc.sender_email;
+                        provider = defaultAcc.smtp_type === 'gmail' ? 'Gmail SMTP' : 'Custom SMTP';
+                        name = defaultAcc.sender_name;
+                        connectedAt = defaultAcc.created_at || 'Recently';
+                    }
+                }
+                
+                const statusBox = document.getElementById('email-setup-status-box');
+                if (statusBox) {
+                    if (connectedEmail) {
+                        statusBox.innerHTML = `
+                            <div class="col-span-full bg-emerald-50/50 border border-emerald-200/85 rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-left shadow-sm mb-4 w-full">
+                                <div class="flex items-start space-x-3.5">
+                                    <div class="p-2.5 bg-emerald-500/10 text-emerald-600 border border-emerald-200/40 rounded-xl shrink-0 mt-0.5">
+                                        <i data-lucide="check-circle-2" class="h-6 w-6 text-emerald-650"></i>
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center space-x-2">
+                                            <h4 class="text-sm font-extrabold text-slate-800">Email Configuration Completed</h4>
+                                            <span class="text-[9px] px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-extrabold uppercase tracking-wide">Active</span>
+                                        </div>
+                                        <p class="text-xs text-slate-500 font-semibold mt-1">Connected Email: <span class="text-slate-800 font-bold font-mono">${connectedEmail}</span></p>
+                                        <p class="text-[10px] text-slate-450 font-medium mt-0.5">Provider: <span class="capitalize font-bold text-slate-650">${provider}</span> • Name: <span class="font-bold text-slate-650">${name || '--'}</span></p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2 w-full sm:w-auto self-stretch sm:self-center">
+                                    <button type="button" onclick="slideTo(1)" class="flex-1 sm:flex-initial px-4 py-2.5 bg-[#005bf7] text-white rounded-xl text-xs font-bold hover:bg-[#0052cc] transition shadow-sm flex items-center justify-center space-x-1.5" style="color: #ffffff !important;">
+                                        <span>Continue to WhatsApp</span>
+                                        <i data-lucide="arrow-right" class="h-3.5 w-3.5 text-white"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        statusBox.classList.remove('hidden');
+                    } else {
+                        statusBox.classList.add('hidden');
+                    }
+                    if (window.lucide) {
+                        lucide.createIcons();
+                    }
+                }
+            } catch (err) {
+                console.warn('Error checking email setup status:', err);
+            }
+        }
+
         // Auto-run status check on page load
         document.addEventListener('DOMContentLoaded', () => {
             checkWhatsAppStatus();
+            checkEmailSetupStatus();
             
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('google_connected') === 'true') {

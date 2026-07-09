@@ -96,7 +96,7 @@
                 <!-- 1. LOGIN FORM -->
                 <form class="space-y-6 auth-view-transition" id="login-form">
                     <div class="space-y-2">
-                        <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight leading-none">Log in to your Account</h2>
+                        <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight leading-none">Login to Workspace</h2>
                         <p class="text-sm text-slate-500 font-medium">Welcome back! Select method to log in:</p>
                     </div>
 
@@ -166,7 +166,7 @@
 
                     <!-- Log in Button -->
                     <div>
-                        <button type="submit" class="w-full py-3.5 px-4 text-sm font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] active:scale-98 transition-all duration-150 shadow-lg shadow-blue-500/10">
+                        <button type="submit" style="color: #ffffff !important;" class="w-full py-3.5 px-4 text-sm font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] active:scale-98 transition-all duration-150 shadow-lg shadow-blue-500/10">
                             Log in
                         </button>
                     </div>
@@ -207,7 +207,7 @@
 
                     <!-- Actions -->
                     <div class="space-y-3">
-                        <button type="submit" class="w-full py-3.5 px-4 text-sm font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition duration-200 shadow-md">
+                        <button type="submit" style="color: #ffffff !important;" class="w-full py-3.5 px-4 text-sm font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition duration-200 shadow-md">
                             Send Verification OTP
                         </button>
                         <button type="button" onclick="showLoginView(); return false;" class="w-full py-3.5 px-4 text-sm font-bold rounded-xl text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 transition duration-200">
@@ -252,7 +252,7 @@
 
                     <!-- Actions -->
                     <div class="space-y-3">
-                        <button type="submit" class="w-full py-3.5 px-4 text-sm font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition duration-200 shadow-md">
+                        <button type="submit" style="color: #ffffff !important;" class="w-full py-3.5 px-4 text-sm font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition duration-200 shadow-md">
                             Verify OTP Code
                         </button>
                         <div class="flex justify-between items-center px-1">
@@ -282,7 +282,7 @@
                     </div>
 
                     <div>
-                        <button type="submit" class="w-full py-3.5 px-4 text-sm font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition duration-200 shadow-md">
+                        <button type="submit" style="color: #ffffff !important;" class="w-full py-3.5 px-4 text-sm font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition duration-200 shadow-md">
                             Save New Password
                         </button>
                     </div>
@@ -292,7 +292,7 @@
             <!-- Bottom Create Account footnote -->
             <div class="text-center mt-10 lg:mt-16" id="signup-prompt">
                 <span class="text-sm text-slate-500 font-medium">New to LinkPilot? </span>
-                <a href="register.html" class="text-sm font-bold text-[#005bf7] hover:text-[#0052cc] transition">Create an account</a>
+                <a href="register.html" class="text-sm font-bold text-[#005bf7] hover:text-[#0052cc] transition">Create your Workspace</a>
             </div>
         </div>
     </div>
@@ -416,13 +416,13 @@
             </div>
 
             <!-- Slide Text Content -->
-            <div class="space-y-3 px-4">
-                <h3 class="text-2xl font-bold tracking-tight text-white">Connect with every application.</h3>
-                <p class="text-sm text-blue-100 font-medium opacity-90 max-w-sm mx-auto">Everything you need in an easily customizable dashboard.</p>
+            <div class="space-y-3 px-4 min-h-[90px]">
+                <h3 id="slide-title" class="text-2xl font-bold tracking-tight text-white transition-opacity duration-300 ease-in-out" style="color: #ffffff !important;">Connect with every application.</h3>
+                <p id="slide-subtitle" class="text-sm font-medium max-w-sm mx-auto transition-opacity duration-300 ease-in-out" style="color: rgba(255, 255, 255, 0.7) !important;">Everything you need in an easily customizable dashboard.</p>
             </div>
 
             <!-- Slider Pagination indicators -->
-            <div class="flex items-center justify-center space-x-2">
+            <div id="slide-dots" class="flex items-center justify-center space-x-2">
                 <span class="w-6 h-2 bg-white rounded-full transition-all duration-300"></span>
                 <span class="w-2 h-2 bg-white/45 rounded-full transition-all duration-300"></span>
                 <span class="w-2 h-2 bg-white/45 rounded-full transition-all duration-300"></span>
@@ -433,6 +433,59 @@
     <!-- Central JS Handler -->
     <script src="assets/js/app.js"></script>
     <script>
+        // Slides Configuration for Auto-Scrolling
+        const slides = [
+            {
+                title: "Connect with every application.",
+                subtitle: "Everything you need in an easily customizable dashboard."
+            },
+            {
+                title: "Automate LinkedIn outreach.",
+                subtitle: "Send personalized messages and follow-ups automatically."
+            },
+            {
+                title: "Track campaign performance.",
+                subtitle: "Real-time analytics and inbox intelligence at your fingertips."
+            }
+        ];
+
+        let currentSlide = 0;
+        const slideTitleEl = document.getElementById('slide-title');
+        const slideSubtitleEl = document.getElementById('slide-subtitle');
+        const slideDotsEl = document.getElementById('slide-dots').children;
+
+        function rotateSlides() {
+            if (!slideTitleEl || !slideSubtitleEl || !slideDotsEl) return;
+            
+            // Fade out
+            slideTitleEl.style.opacity = '0';
+            slideSubtitleEl.style.opacity = '0';
+            
+            setTimeout(() => {
+                currentSlide = (currentSlide + 1) % slides.length;
+                
+                // Update content
+                slideTitleEl.textContent = slides[currentSlide].title;
+                slideSubtitleEl.textContent = slides[currentSlide].subtitle;
+                
+                // Fade in
+                slideTitleEl.style.opacity = '1';
+                slideSubtitleEl.style.opacity = '1';
+                
+                // Update dots active state
+                for (let i = 0; i < slideDotsEl.length; i++) {
+                    if (i === currentSlide) {
+                        slideDotsEl[i].className = 'w-6 h-2 bg-white rounded-full transition-all duration-300';
+                    } else {
+                        slideDotsEl[i].className = 'w-2 h-2 bg-white/45 rounded-full transition-all duration-300';
+                    }
+                }
+            }, 300);
+        }
+
+        // Rotate slide every 4 seconds
+        setInterval(rotateSlides, 4000);
+
         // Password Visibility Toggle Logic
         function togglePasswordVisibility() {
             const passwordInput = document.getElementById('password');

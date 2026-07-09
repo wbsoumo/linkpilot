@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-[#f8fafc]">
+<html lang="en" class="h-full bg-white">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,154 +9,423 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Custom Style Sheet -->
     <link rel="stylesheet" href="assets/css/style.css?v=2.5">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+        }
+        
+        /* Floating animation keyframes for SVG elements */
+        @keyframes float-slow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes float-medium {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+        @keyframes float-fast {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-7px); }
+        }
+        
+        .float-slack {
+            animation: float-slow 4s ease-in-out infinite;
+            transform-origin: 130px 120px;
+        }
+        .float-brand {
+            animation: float-medium 5s ease-in-out infinite;
+            transform-origin: 90px 225px;
+        }
+        .float-google {
+            animation: float-fast 4.5s ease-in-out infinite;
+            transform-origin: 130px 330px;
+        }
+        
+        /* Custom OTP inputs styling */
+        .forgot-otp-box {
+            width: 3.2rem;
+            height: 3.5rem;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            background-color: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            color: #005bf7;
+            border-radius: 0.75rem;
+            transition: all 0.2s ease-in-out;
+        }
+        .forgot-otp-box:focus {
+            outline: none;
+            border-color: #005bf7;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 4px rgba(0, 91, 247, 0.12);
+        }
+        
+        /* Smooth transitions for forms */
+        .auth-view-transition {
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
-<body class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-[#f8fafc] auth-body">
-    <div class="max-w-md w-full space-y-8 animate-fade-in">
-        <div class="text-center">
-            <h2 class="mt-6 text-3xl font-extrabold text-slate-900 tracking-tight">
-                Log in to <span class="text-blue-600">LinkPilot AI</span>
-            </h2>
-            <p class="mt-2 text-sm text-slate-500">
-                Unlock automated personalized outreach
-            </p>
-        </div>
+<body class="h-full bg-slate-50 flex items-stretch overflow-x-hidden">
+    <!-- Left: Form Area (50% on desktop, 100% on mobile) -->
+    <div class="w-full lg:w-1/2 flex items-center justify-center bg-white px-6 sm:px-12 md:px-20 py-12 relative z-10">
+        <div class="max-w-[400px] w-full flex flex-col min-h-full">
+            
+            <!-- Top brand logo -->
+            <div class="flex items-center space-x-2 mb-10 lg:mb-16">
+                <svg class="h-8 w-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="24" height="24" rx="6" fill="#005bf7"/>
+                    <circle cx="8" cy="8" r="2.5" fill="white"/>
+                    <circle cx="16" cy="16" r="2.5" fill="white"/>
+                </svg>
+                <span class="text-xl font-extrabold text-slate-900 tracking-tight">linkpilot</span>
+            </div>
 
-        <div class="glass-panel p-8 shadow-2xl bg-white border border-slate-200 rounded-2xl">
-            <!-- 1. LOGIN FORM -->
-            <form class="space-y-6" id="login-form">
-                <div>
-                    <label for="email" class="block text-xs font-semibold text-slate-400 uppercase">Email Address</label>
-                    <input id="email" name="email" type="email" autocomplete="email" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="you@example.com">
-                </div>
-
-                <div>
-                    <div class="flex justify-between items-center">
-                        <label for="password" class="block text-xs font-semibold text-slate-400 uppercase">Password</label>
-                        <a href="#" onclick="showForgotPasswordView(); return false;" class="text-xs font-semibold text-teal-400 hover:underline">Forgot password?</a>
+            <!-- Central Form Containers -->
+            <div class="flex-grow flex flex-col justify-center">
+                
+                <!-- 1. LOGIN FORM -->
+                <form class="space-y-6 auth-view-transition" id="login-form">
+                    <div class="space-y-2">
+                        <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight leading-none">Log in to your Account</h2>
+                        <p class="text-sm text-slate-500 font-medium">Welcome back! Select method to log in:</p>
                     </div>
-                    <input id="password" name="password" type="password" autocomplete="current-password" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="••••••••">
-                </div>
 
-                <div class="flex items-center">
-                    <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-teal-500 focus:ring-teal-400 border-slate-700 bg-slate-800 rounded">
-                    <label for="remember-me" class="ml-2 block text-sm text-slate-300">
-                        Remember me
-                    </label>
-                </div>
-
-                <div>
-                    <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-md text-slate-950 bg-teal-400 hover:bg-teal-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition duration-150 ease-in-out">
-                        Log In
-                    </button>
-                </div>
-            </form>
-
-            <!-- 2. FORGOT PASSWORD: REQUEST OTP FORM -->
-            <form class="space-y-6 hidden" id="forgot-password-send-form" onsubmit="handleSendForgotPasswordOtp(event)">
-                <div class="border-b border-slate-800 pb-3">
-                    <h3 class="text-base font-semibold text-white">Reset Password</h3>
-                    <p class="text-xs text-slate-400 mt-0.5">Receive a WhatsApp OTP to securely reset your password.</p>
-                </div>
-
-                <div>
-                    <label for="forgot_phone_number" class="block text-xs font-semibold text-slate-400 uppercase">WhatsApp Number (10-digit, without country code)</label>
-                    <input id="forgot_phone_number" name="phone_number" type="tel" pattern="[6-9][0-9]{9}" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="9876543210">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Verify you are not a robot (Math Captcha)</label>
-                    <div class="flex items-center space-x-3 mb-2 bg-slate-950/40 border border-slate-800 rounded-lg p-3 justify-between">
-                        <span id="captcha-question" class="text-sm font-extrabold text-teal-400 tracking-wider">Loading...</span>
-                        <button type="button" onclick="loadMathCaptcha(); return false;" class="text-xs font-semibold text-teal-400 hover:text-teal-300 transition" title="Refresh Captcha">
-                            🔄 Refresh
+                    <!-- Social Login Buttons -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <button type="button" onclick="showNotification('warning', 'Social sign-in is currently unavailable. Please log in with your email.')" class="flex items-center justify-center py-2.5 px-4 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 bg-white hover:bg-slate-50 active:scale-98 transition-all duration-150">
+                            <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+                            </svg>
+                            Google
+                        </button>
+                        <button type="button" onclick="showNotification('warning', 'Social sign-in is currently unavailable. Please log in with your email.')" class="flex items-center justify-center py-2.5 px-4 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 bg-white hover:bg-slate-50 active:scale-98 transition-all duration-150">
+                            <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="#1877F2">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            </svg>
+                            Facebook
                         </button>
                     </div>
-                    <input id="captcha-answer" type="number" required class="block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="Your answer">
-                    <input id="captcha-token" type="hidden">
-                </div>
 
-                <div>
-                    <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-md text-slate-950 bg-teal-400 hover:bg-teal-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition duration-150 ease-in-out">
-                        Send Verification OTP
-                    </button>
-                </div>
-                
-                <div class="text-center">
-                    <a href="#" onclick="showLoginView(); return false;" class="text-xs font-semibold text-teal-400 hover:underline">Back to Log In</a>
-                </div>
-            </form>
+                    <!-- Divider -->
+                    <div class="relative flex py-2 items-center">
+                        <div class="flex-grow border-t border-slate-200"></div>
+                        <span class="flex-shrink mx-4 text-xs text-slate-400 font-semibold tracking-wide">or continue with email</span>
+                        <div class="flex-grow border-t border-slate-200"></div>
+                    </div>
 
-            <!-- 3. FORGOT PASSWORD: VERIFY OTP FORM -->
-            <form class="space-y-6 hidden" id="forgot-password-verify-form" onsubmit="handleVerifyForgotPasswordOtp(event)">
-                <div class="border-b border-slate-800 pb-3 text-center">
-                    <h3 class="text-base font-semibold text-white">WhatsApp Verification</h3>
-                    <p class="text-xs text-slate-400 mt-1">We have sent a 6-digit verification code to your WhatsApp number <span id="forgot-display-phone" class="text-teal-400 font-bold"></span>.</p>
-                </div>
-                
-                <div class="flex justify-center space-x-2.5 my-6" id="forgot-otp-inputs-container">
-                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="forgot-otp-box w-11 h-12 text-center text-xl font-extrabold bg-slate-800 border border-slate-700 text-teal-400 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:outline-none transition" style="background-color: #1e293b; border-color: #334155;" />
-                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="forgot-otp-box w-11 h-12 text-center text-xl font-extrabold bg-slate-800 border border-slate-700 text-teal-400 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:outline-none transition" style="background-color: #1e293b; border-color: #334155;" />
-                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="forgot-otp-box w-11 h-12 text-center text-xl font-extrabold bg-slate-800 border border-slate-700 text-teal-400 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:outline-none transition" style="background-color: #1e293b; border-color: #334155;" />
-                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="forgot-otp-box w-11 h-12 text-center text-xl font-extrabold bg-slate-800 border border-slate-700 text-teal-400 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:outline-none transition" style="background-color: #1e293b; border-color: #334155;" />
-                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="forgot-otp-box w-11 h-12 text-center text-xl font-extrabold bg-slate-800 border border-slate-700 text-teal-400 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:outline-none transition" style="background-color: #1e293b; border-color: #334155;" />
-                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="forgot-otp-box w-11 h-12 text-center text-xl font-extrabold bg-slate-800 border border-slate-700 text-teal-400 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:outline-none transition" style="background-color: #1e293b; border-color: #334155;" />
-                </div>
+                    <!-- Email Input -->
+                    <div class="relative rounded-xl shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206" />
+                            </svg>
+                        </div>
+                        <input id="email" name="email" type="email" autocomplete="email" required class="block w-full pl-11 pr-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200" placeholder="Email">
+                    </div>
 
-                <div class="text-center bg-slate-950/40 border border-slate-800/80 rounded-xl py-3 px-4 max-w-sm mx-auto my-4">
-                    <p class="text-[11px] text-slate-400 font-medium leading-relaxed">
-                        <span class="inline-block animate-pulse text-teal-400 mr-1">💬</span>
-                        OTP will be received from <span class="text-teal-400 font-bold">Taskbazi (Partner Brand)</span>
-                    </p>
-                </div>
+                    <!-- Password Input -->
+                    <div class="relative rounded-xl shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </div>
+                        <input id="password" name="password" type="password" autocomplete="current-password" required class="block w-full pl-11 pr-11 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200" placeholder="Password">
+                        <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition">
+                            <svg id="password-eye-icon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                            </svg>
+                        </button>
+                    </div>
 
-                <div id="forgot-otp-error" class="text-xs text-red-400 text-center mb-4 hidden"></div>
+                    <!-- Remember me & Forgot Password -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <input id="remember-me" name="remember-me" type="checkbox" class="h-4.5 w-4.5 text-[#005bf7] focus:ring-[#005bf7] border-slate-350 rounded cursor-pointer transition">
+                            <label for="remember-me" class="ml-2 block text-sm text-slate-500 font-medium cursor-pointer select-none">
+                                Remember me
+                            </label>
+                        </div>
+                        <div class="text-sm">
+                            <a href="#" onclick="showForgotPasswordView(); return false;" class="font-bold text-[#005bf7] hover:text-[#0052cc] transition">Forgot Password?</a>
+                        </div>
+                    </div>
 
-                <div class="text-xs text-slate-400 text-center my-4">
-                    Didn't receive the code? 
-                    <button type="button" id="forgot-resend-otp-btn" disabled class="font-semibold text-teal-500 hover:underline disabled:text-slate-500 disabled:no-underline ml-1">
-                        Resend in <span id="forgot-cooldown-timer">60</span>s
-                    </button>
-                </div>
+                    <!-- Log in Button -->
+                    <div>
+                        <button type="submit" class="w-full py-3.5 px-4 text-sm font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] active:scale-98 transition-all duration-150 shadow-lg shadow-blue-500/10">
+                            Log in
+                        </button>
+                    </div>
+                </form>
 
-                <div>
-                    <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-md text-slate-950 bg-teal-400 hover:bg-teal-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition duration-150 ease-in-out">
-                        Verify OTP Code
-                    </button>
-                </div>
-                
-                <div class="flex justify-between items-center text-xs">
-                    <a href="#" onclick="showForgotPasswordView(); return false;" class="font-semibold text-teal-400 hover:underline">Change Number</a>
-                    <a href="#" onclick="showLoginView(); return false;" class="font-semibold text-teal-400 hover:underline">Back to Log In</a>
-                </div>
-            </form>
+                <!-- 2. FORGOT PASSWORD: REQUEST OTP FORM -->
+                <form class="space-y-6 hidden auth-view-transition" id="forgot-password-send-form" onsubmit="handleSendForgotPasswordOtp(event)">
+                    <div>
+                        <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight leading-none">Reset Password</h2>
+                        <p class="text-sm text-slate-500 font-medium mt-2">Receive a WhatsApp OTP to securely reset your password.</p>
+                    </div>
 
-            <!-- 4. FORGOT PASSWORD: SET NEW PASSWORD FORM -->
-            <form class="space-y-6 hidden" id="forgot-password-reset-form" onsubmit="handleResetPassword(event)">
-                <div class="border-b border-slate-800 pb-3">
-                    <h3 class="text-base font-semibold text-white">Set New Password</h3>
-                    <p class="text-xs text-slate-400 mt-0.5">Please choose a strong password that is at least 6 characters long.</p>
-                </div>
+                    <!-- Phone Number -->
+                    <div class="space-y-1">
+                        <label for="forgot_phone_number" class="block text-xs font-bold text-slate-400 uppercase tracking-wider">WhatsApp Number</label>
+                        <div class="relative rounded-xl shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                </svg>
+                            </div>
+                            <input id="forgot_phone_number" name="phone_number" type="tel" pattern="[6-9][0-9]{9}" required class="block w-full pl-11 pr-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200" placeholder="10-digit number (without country code)">
+                        </div>
+                    </div>
 
-                <div>
-                    <label for="new_password" class="block text-xs font-semibold text-slate-400 uppercase">New Password</label>
-                    <input id="new_password" name="password" type="password" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="••••••••">
-                </div>
+                    <!-- Captcha -->
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Verify you are not a robot (Math Captcha)</label>
+                        <div class="flex items-center justify-between p-4 bg-[#f8fafc] border border-slate-200 rounded-xl">
+                            <span id="captcha-question" class="text-sm font-extrabold text-[#005bf7] tracking-wider">Loading...</span>
+                            <button type="button" onclick="loadMathCaptcha(); return false;" class="text-xs font-bold text-[#005bf7] hover:underline transition">
+                                🔄 Refresh
+                            </button>
+                        </div>
+                        <input id="captcha-answer" type="number" required class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200" placeholder="Your answer">
+                        <input id="captcha-token" type="hidden">
+                    </div>
 
-                <div>
-                    <label for="confirm_new_password" class="block text-xs font-semibold text-slate-400 uppercase">Confirm New Password</label>
-                    <input id="confirm_new_password" name="confirm_password" type="password" required class="mt-1 block w-full px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="••••••••">
-                </div>
+                    <!-- Actions -->
+                    <div class="space-y-3">
+                        <button type="submit" class="w-full py-3.5 px-4 text-sm font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition duration-200 shadow-md">
+                            Send Verification OTP
+                        </button>
+                        <button type="button" onclick="showLoginView(); return false;" class="w-full py-3.5 px-4 text-sm font-bold rounded-xl text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 transition duration-200">
+                            Back to Log In
+                        </button>
+                    </div>
+                </form>
 
-                <div>
-                    <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-md text-slate-950 bg-teal-400 hover:bg-teal-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition duration-150 ease-in-out">
-                        Save New Password
-                    </button>
-                </div>
-            </form>
+                <!-- 3. FORGOT PASSWORD: VERIFY OTP FORM -->
+                <form class="space-y-6 hidden auth-view-transition" id="forgot-password-verify-form" onsubmit="handleVerifyForgotPasswordOtp(event)">
+                    <div class="text-center space-y-2">
+                        <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">WhatsApp Verification</h2>
+                        <p class="text-sm text-slate-500 font-medium">We sent a 6-digit verification code to <span id="forgot-display-phone" class="text-[#005bf7] font-bold"></span>.</p>
+                    </div>
+                    
+                    <!-- OTP Inputs -->
+                    <div class="flex justify-between space-x-2 my-4" id="forgot-otp-inputs-container">
+                        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="forgot-otp-box shadow-sm" />
+                        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="forgot-otp-box shadow-sm" />
+                        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="forgot-otp-box shadow-sm" />
+                        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="forgot-otp-box shadow-sm" />
+                        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="forgot-otp-box shadow-sm" />
+                        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="forgot-otp-box shadow-sm" />
+                    </div>
 
-            <div class="mt-6 text-center" id="signup-prompt">
-                <span class="text-sm text-slate-400">New to LinkPilot? </span>
-                <a href="register.html" class="text-sm font-semibold text-teal-400 hover:underline">Create an account</a>
+                    <div class="bg-[#f8fafc] border border-slate-200 rounded-xl p-3.5 text-center">
+                        <p class="text-xs text-slate-500 leading-relaxed font-semibold">
+                            <span class="inline-block animate-pulse text-teal-500 mr-1">💬</span>
+                            OTP will be received from <span class="text-[#005bf7] font-bold">Taskbazi (Partner Brand)</span>
+                        </p>
+                    </div>
+
+                    <div id="forgot-otp-error" class="text-xs text-red-500 text-center font-bold hidden"></div>
+
+                    <!-- Resend OTP -->
+                    <div class="text-xs text-slate-450 text-center font-medium">
+                        Didn't receive the code? 
+                        <button type="button" id="forgot-resend-otp-btn" disabled class="font-bold text-[#005bf7] hover:underline disabled:text-slate-400 disabled:no-underline ml-1">
+                            Resend in <span id="forgot-cooldown-timer">60</span>s
+                        </button>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="space-y-3">
+                        <button type="submit" class="w-full py-3.5 px-4 text-sm font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition duration-200 shadow-md">
+                            Verify OTP Code
+                        </button>
+                        <div class="flex justify-between items-center px-1">
+                            <button type="button" onclick="showForgotPasswordView(); return false;" class="text-xs font-bold text-[#005bf7] hover:underline">Change Number</button>
+                            <button type="button" onclick="showLoginView(); return false;" class="text-xs font-bold text-slate-500 hover:underline">Back to Log In</button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- 4. FORGOT PASSWORD: SET NEW PASSWORD FORM -->
+                <form class="space-y-6 hidden auth-view-transition" id="forgot-password-reset-form" onsubmit="handleResetPassword(event)">
+                    <div>
+                        <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight leading-none">Set New Password</h2>
+                        <p class="text-sm text-slate-500 font-medium mt-2">Please choose a strong password that is at least 6 characters long.</p>
+                    </div>
+
+                    <!-- New Password -->
+                    <div class="space-y-1">
+                        <label for="new_password" class="block text-xs font-bold text-slate-400 uppercase tracking-wider">New Password</label>
+                        <input id="new_password" name="password" type="password" required class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200" placeholder="••••••••">
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="space-y-1">
+                        <label for="confirm_new_password" class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Confirm New Password</label>
+                        <input id="confirm_new_password" name="confirm_password" type="password" required class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200" placeholder="••••••••">
+                    </div>
+
+                    <div>
+                        <button type="submit" class="w-full py-3.5 px-4 text-sm font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition duration-200 shadow-md">
+                            Save New Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Bottom Create Account footnote -->
+            <div class="text-center mt-10 lg:mt-16" id="signup-prompt">
+                <span class="text-sm text-slate-500 font-medium">New to LinkPilot? </span>
+                <a href="register.html" class="text-sm font-bold text-[#005bf7] hover:text-[#0052cc] transition">Create an account</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Marketing Illustration Area (50% width on desktop, hidden on mobile) -->
+    <div class="hidden lg:flex lg:w-1/2 bg-[#005bf7] flex-col items-center justify-center p-12 text-white relative overflow-hidden">
+        <!-- Background spheres/glow elements -->
+        <div class="absolute w-[650px] h-[650px] bg-blue-500 rounded-full blur-[140px] opacity-25 -top-40 -right-40"></div>
+        <div class="absolute w-[500px] h-[500px] bg-indigo-750 rounded-full blur-[120px] opacity-35 -bottom-20 -left-20"></div>
+
+        <!-- Central content wrapper -->
+        <div class="relative z-10 flex flex-col items-center max-w-[500px] w-full text-center space-y-12">
+            
+            <!-- SVG Illustration Container -->
+            <div class="w-full flex justify-center">
+                <svg class="w-full max-w-[460px] h-auto drop-shadow-2xl" viewBox="0 0 600 450" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Definitions -->
+                    <defs>
+                        <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+                            <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#000000" flood-opacity="0.08"/>
+                        </filter>
+                    </defs>
+
+                    <!-- Orbit rings -->
+                    <circle cx="220" cy="225" r="160" stroke="rgba(255, 255, 255, 0.08)" stroke-width="2" stroke-dasharray="6 6" />
+                    <circle cx="220" cy="225" r="110" stroke="rgba(255, 255, 255, 0.04)" stroke-width="1.5" />
+                    
+                    <!-- Static connector lines -->
+                    <path d="M 145 120 C 190 120, 190 225, 210 225" stroke="rgba(255, 255, 255, 0.15)" stroke-width="3" fill="none"/>
+                    <path d="M 115 225 L 210 225" stroke="rgba(255, 255, 255, 0.15)" stroke-width="3" fill="none"/>
+                    <path d="M 145 330 C 190 330, 190 225, 210 225" stroke="rgba(255, 255, 255, 0.15)" stroke-width="3" fill="none"/>
+                    <path d="M 210 225 L 230 225" stroke="rgba(255, 255, 255, 0.15)" stroke-width="3" fill="none"/>
+                    <path d="M 230 225 C 250 225, 250 175, 280 175" stroke="rgba(255, 255, 255, 0.15)" stroke-width="3" fill="none"/>
+                    <path d="M 230 225 C 250 225, 250 245, 280 245" stroke="rgba(255, 255, 255, 0.15)" stroke-width="3" fill="none"/>
+                    <path d="M 230 225 C 250 225, 250 315, 280 315" stroke="rgba(255, 255, 255, 0.15)" stroke-width="3" fill="none"/>
+
+                    <!-- Glowing animated dashes -->
+                    <path d="M 145 120 C 190 120, 190 225, 210 225 L 230 225 C 250 225, 250 175, 280 175" stroke="rgba(255,255,255,0.75)" stroke-width="3" stroke-linecap="round" fill="none" stroke-dasharray="15 90" stroke-dashoffset="0">
+                        <animate attributeName="stroke-dashoffset" values="105;0" dur="2.5s" repeatCount="indefinite" />
+                    </path>
+                    <path d="M 115 225 L 230 225 C 250 225, 250 245, 280 245" stroke="rgba(255,255,255,0.75)" stroke-width="3" stroke-linecap="round" fill="none" stroke-dasharray="15 90" stroke-dashoffset="0">
+                        <animate attributeName="stroke-dashoffset" values="105;0" dur="2s" repeatCount="indefinite" />
+                    </path>
+                    <path d="M 145 330 C 190 330, 190 225, 210 225 L 230 225 C 250 225, 250 315, 280 315" stroke="rgba(255,255,255,0.75)" stroke-width="3" stroke-linecap="round" fill="none" stroke-dasharray="15 90" stroke-dashoffset="0">
+                        <animate attributeName="stroke-dashoffset" values="105;0" dur="2.2s" repeatCount="indefinite" />
+                    </path>
+
+                    <!-- Slack Node -->
+                    <g class="float-slack">
+                        <circle cx="130" cy="120" r="24" fill="white" filter="url(#shadow)"/>
+                        <svg x="117" y="107" width="26" height="26" viewBox="0 0 24 24" fill="none">
+                            <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523 2.528 2.528 0 0 1-2.522-2.523 2.528 2.528 0 0 1 2.522-2.52h2.52v2.52zm1.261 0a2.528 2.528 0 0 1 2.52-2.52h5.043a2.528 2.528 0 0 1 2.522 2.52v5.042a2.528 2.528 0 0 1-2.522 2.52H8.824a2.528 2.528 0 0 1-2.52-2.52v-5.042z" fill="#E01E5A"/>
+                            <path d="M8.824 5.043a2.528 2.528 0 0 1 2.52-2.52 2.528 2.528 0 0 1 2.522 2.52v2.52h-2.522a2.528 2.528 0 0 1-2.52-2.52zm0 1.26a2.528 2.528 0 0 1 2.52 2.522v5.043a2.528 2.528 0 0 1-2.522 2.522H3.782a2.528 2.528 0 0 1-2.52-2.522V8.825a2.528 2.528 0 0 1 2.52-2.522h5.042z" fill="#36C5F0"/>
+                            <path d="M18.958 8.825a2.528 2.528 0 0 1 2.52-2.52 2.528 2.528 0 0 1 2.522 2.52 2.528 2.528 0 0 1-2.522 2.52h-2.52v-2.52zm-1.262 0a2.528 2.528 0 0 1-2.52 2.52h-5.043a2.528 2.528 0 0 1-2.522-2.52V3.783a2.528 2.528 0 0 1 2.522-2.52h5.043a2.528 2.528 0 0 1 2.52 2.52v5.042z" fill="#2EB67D"/>
+                            <path d="M15.176 18.958a2.528 2.528 0 0 1-2.52 2.52 2.528 2.528 0 0 1-2.522-2.52v-2.52h2.522a2.528 2.528 0 0 1 2.52 2.52zm0-1.26a2.528 2.528 0 0 1-2.52-2.522v-5.043a2.528 2.528 0 0 1 2.522-2.522h5.043a2.528 2.528 0 0 1 2.52 2.522v5.043a2.528 2.528 0 0 1-2.52 2.522h-5.043z" fill="#ECB22E"/>
+                        </svg>
+                     </g>
+
+                    <!-- Google Node -->
+                    <g class="float-google">
+                        <circle cx="130" cy="330" r="24" fill="white" filter="url(#shadow)"/>
+                        <svg x="118" y="318" width="24" height="24" viewBox="0 0 24 24">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+                        </svg>
+                    </g>
+
+                    <!-- LinkPilot Brand Node -->
+                    <g class="float-brand">
+                        <circle cx="90" cy="225" r="26" fill="white" filter="url(#shadow)"/>
+                        <svg x="78" y="213" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <rect width="24" height="24" rx="6" fill="#005bf7"/>
+                            <circle cx="8" cy="8" r="2.5" fill="white"/>
+                            <circle cx="16" cy="16" r="2.5" fill="white"/>
+                        </svg>
+                    </g>
+
+                    <!-- Dashboard Window Mockup -->
+                    <g filter="url(#shadow)">
+                        <rect x="280" y="90" width="260" height="270" rx="16" fill="white"/>
+                        <!-- Controls -->
+                        <circle cx="305" cy="112" r="4" fill="#FF5F56"/>
+                        <circle cx="317" cy="112" r="4" fill="#FFBD2E"/>
+                        <circle cx="329" cy="112" r="4" fill="#27C93F"/>
+                        
+                        <!-- Header Search bars -->
+                        <rect x="350" y="109" width="70" height="6" rx="3" fill="#F1F5F9"/>
+                        <rect x="430" y="109" width="35" height="6" rx="3" fill="#F1F5F9"/>
+                        <line x1="280" y1="126" x2="540" y2="126" stroke="#F1F5F9" stroke-width="1.5"/>
+
+                        <!-- Row 1 -->
+                        <g transform="translate(301, 146)">
+                            <circle cx="14" cy="14" r="14" fill="#FFE3D1"/>
+                            <path d="M 6,12 C 6,5 22,5 22,12 C 22,14 20,15 19,13 C 17,11 15,10 14,10 C 13,10 11,11 9,13 C 8,15 6,14 6,12 Z" fill="#8B5A2B"/>
+                            <path d="M 4,28 C 4,22 24,22 24,28 Z" fill="#005bf7"/>
+                        </g>
+                        <rect x="345" y="152" width="120" height="8" rx="4" fill="#E2E8F0"/>
+                        <rect x="345" y="166" width="70" height="6" rx="3" fill="#F1F5F9"/>
+
+                        <!-- Row 2 -->
+                        <g transform="translate(301, 211)">
+                            <circle cx="14" cy="14" r="14" fill="#FFD2B2"/>
+                            <path d="M 7,10 C 7,3 21,3 21,10 C 21,12 20,11 18,10 C 16,9 15,9 14,9 C 13,9 12,9 10,10 C 8,11 7,12 7,10 Z" fill="#2C3E50"/>
+                            <path d="M 4,28 C 4,22 24,22 24,28 Z" fill="#E67E22"/>
+                        </g>
+                        <rect x="345" y="217" width="100" height="8" rx="4" fill="#E2E8F0"/>
+                        <rect x="345" y="231" width="55" height="6" rx="3" fill="#F1F5F9"/>
+
+                        <!-- Row 3 -->
+                        <g transform="translate(301, 276)">
+                            <circle cx="14" cy="14" r="14" fill="#FFF0E0"/>
+                            <path d="M 6,12 C 6,5 22,5 22,12 C 22,16 6,16 6,12 Z" fill="#F1C40F"/>
+                            <path d="M 4,28 C 4,22 24,22 24,28 Z" fill="#2ECC71"/>
+                        </g>
+                        <rect x="345" y="282" width="110" height="8" rx="4" fill="#E2E8F0"/>
+                        <rect x="345" y="296" width="80" height="6" rx="3" fill="#F1F5F9"/>
+                    </g>
+                </svg>
+            </div>
+
+            <!-- Slide Text Content -->
+            <div class="space-y-3 px-4">
+                <h3 class="text-2xl font-bold tracking-tight text-white">Connect with every application.</h3>
+                <p class="text-sm text-blue-100 font-medium opacity-90 max-w-sm mx-auto">Everything you need in an easily customizable dashboard.</p>
+            </div>
+
+            <!-- Slider Pagination indicators -->
+            <div class="flex items-center justify-center space-x-2">
+                <span class="w-6 h-2 bg-white rounded-full transition-all duration-300"></span>
+                <span class="w-2 h-2 bg-white/45 rounded-full transition-all duration-300"></span>
+                <span class="w-2 h-2 bg-white/45 rounded-full transition-all duration-300"></span>
             </div>
         </div>
     </div>
@@ -164,6 +433,24 @@
     <!-- Central JS Handler -->
     <script src="assets/js/app.js"></script>
     <script>
+        // Password Visibility Toggle Logic
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('password-eye-icon');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                `;
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                `;
+            }
+        }
+
         // Main login form handler
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();

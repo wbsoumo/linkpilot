@@ -32,12 +32,18 @@ class SyncHelper {
         
         // 1. Fetch new emails
         $newEmails = [];
+        require_once __DIR__ . '/external_apps_helper.php';
         try {
-            $newEmails = IMAPHelper::fetchNewEmails($userId, 10); // fetch last 10 messages
+            if (ExternalAppsHelper::isGoogleConnected($userId)) {
+                $newEmails = ExternalAppsHelper::fetchGmailEmails($userId, 10);
+            } else {
+                $newEmails = IMAPHelper::fetchNewEmails($userId, 10); // fetch last 10 messages
+            }
         } catch (Throwable $e) {
             // Log sync error
             $errStmt = $db->prepare("INSERT INTO email_processing_logs (user_id, status, message) VALUES (?, 'error', ?)");
-            $errStmt->execute([$userId, 'IMAP Connection Error: ' . $e->getMessage()]);
+            $errText = (ExternalAppsHelper::isGoogleConnected($userId)) ? 'Gmail API Sync Error: ' : 'IMAP Connection Error: ';
+            $errStmt->execute([$userId, $errText . $e->getMessage()]);
             throw $e;
         }
         

@@ -20,7 +20,8 @@ class GoogleOAuthHelper {
             'openid',
             'email',
             'profile',
-            'https://www.googleapis.com/auth/gmail.send'
+            'https://www.googleapis.com/auth/gmail.send',
+            'https://www.googleapis.com/auth/gmail.modify'
         ]
     ];
 
@@ -838,5 +839,169 @@ class ExternalAppsHelper {
             }
         }
         return false;
+    }
+
+    /**
+     * Fetch incoming/new emails from Gmail API using OAuth token
+     */
+    public static function fetchGmailEmails($userId, $limit = 10) {
+        $token = self::getGoogleAccessToken($userId);
+        if (!$token) {
+            throw new Exception("Gmail account not connected or authorization failed.");
+        }
+
+        try {
+            $client = new Google\Client();
+            $client->setAccessToken($token);
+            $service = new Google\Service\Gmail($client);
+
+            // Fetch the list of messages in user's inbox
+            $listParams = [
+                'maxResults' => $limit,
+                'q' => 'label:INBOX' // Only fetch from Inbox
+            ];
+            $messagesResponse = $service->users_messages->listUsersMessages('me', $listParams);
+            $messagesList = $messagesResponse->getMessages();
+            
+            if (empty($messagesList)) {
+                return [];
+            }
+
+            $db = Database::getConnection();
+            $emails = [];
+
+            foreach ($messagesList as $msgSummary) {
+                $messageId = $msgSummary->getId();
+
+                // Check if email already exists in DB
+                $stmtCheck = $db->prepare("SELECT id FROM received_emails WHERE user_id = ? AND message_id = ?");
+                $stmtCheck->execute([$userId, $messageId]);
+                if ($stmtCheck->fetch()) {
+                    continue; // already synced
+                }
+
+                // Get full message details
+                $message = $service->users_messages->get('me', $messageId, ['format' => 'full']);
+                $payload = $message->getPayload();
+                if (!$payload) continue;
+
+                // Extract Headers
+                $headers = $payload->getHeaders();
+                $subject = '(No Subject)';
+                $senderEmail = '';
+                $senderName = '';
+                $recipientEmail = '';
+                $dateStr = date('Y-m-d H:i:s');
+
+                foreach ($headers as $h) {
+                    $name = strtolower($h->getName());
+                    if ($name === 'subject') {
+                        $subject = $h->getValue();
+                    } elseif ($name === 'from') {
+                        $fromRaw = $h->getValue();
+                        if (preg_match('/^(.*?)\s*<(.*?)>$/', $fromRaw, $matches)) {
+                            $senderName = trim($matches[1], ' "\'');
+                            $senderEmail = trim($matches[2]);
+                        } else {
+                            $senderEmail = trim($fromRaw);
+                            $senderName = $senderEmail;
+                        }
+                    } elseif ($name === 'to') {
+                        $toRaw = $h->getValue();
+                        if (preg_match('/<(.*?)>/', $toRaw, $matches)) {
+                            $recipientEmail = trim($matches[1]);
+                        } else {
+                            $recipientEmail = trim($toRaw);
+                        }
+                    } elseif ($name === 'date') {
+                        $dateStr = date('Y-m-d H:i:s', strtotime($h->getValue()));
+                    }
+                }
+
+                // Extract Body parts
+                $bodies = ['text' => '', 'html' => ''];
+                $attachments = [];
+
+                $bodyObj = $payload->getBody();
+                $data = $bodyObj ? $bodyObj->getData() : '';
+                if (!empty($data)) {
+                    $decodedData = base64_decode(str_replace(['-','_'], ['+','/'], $data));
+                    if ($payload->getMimeType() === 'text/plain') {
+                        $bodies['text'] = $decodedData;
+                    } elseif ($payload->getMimeType() === 'text/html') {
+                        $bodies['html'] = $decodedData;
+                    }
+                }
+
+                $parts = $payload->getParts();
+                if (!empty($parts)) {
+                    self::parseGmailMessageParts($parts, $bodies, $attachments);
+                }
+
+                // Fetch attachment contents from Google API
+                foreach ($attachments as &$att) {
+                    try {
+                        $attRes = $service->users_messages_attachments->get('me', $messageId, $att['attachment_id']);
+                        $attData = base64_decode(str_replace(['-','_'], ['+','/'], $attRes->getData()));
+                        $att['content'] = $attData;
+                    } catch (Exception $e) {
+                        error_log("Failed to fetch Gmail attachment content: " . $e->getMessage());
+                        $att['content'] = '';
+                    }
+                    unset($att['attachment_id']);
+                }
+
+                $emails[] = [
+                    'message_id' => $messageId,
+                    'sender_email' => $senderEmail,
+                    'sender_name' => $senderName,
+                    'recipient_email' => $recipientEmail,
+                    'subject' => $subject,
+                    'body_text' => $bodies['text'],
+                    'body_html' => $bodies['html'],
+                    'received_date' => $dateStr,
+                    'attachments' => $attachments
+                ];
+            }
+
+            return $emails;
+
+        } catch (Exception $e) {
+            error_log("fetchGmailEmails API Error: " . $e->getMessage());
+            throw new Exception("Gmail API fetch failed: " . $e->getMessage());
+        }
+    }
+
+    private static function parseGmailMessageParts($parts, &$bodies, &$attachments) {
+        foreach ($parts as $part) {
+            $mimeType = strtolower($part->getMimeType());
+            $body = $part->getBody();
+            $data = $body ? $body->getData() : '';
+            
+            if (!empty($data)) {
+                $decodedData = base64_decode(str_replace(['-','_'], ['+','/'], $data));
+                if ($mimeType === 'text/plain') {
+                    $bodies['text'] = $decodedData;
+                } elseif ($mimeType === 'text/html') {
+                    $bodies['html'] = $decodedData;
+                }
+            }
+            
+            $filename = $part->getFilename();
+            $attachmentId = $body ? $body->getAttachmentId() : '';
+            if (!empty($filename) && !empty($attachmentId)) {
+                $attachments[] = [
+                    'filename' => $filename,
+                    'attachment_id' => $attachmentId,
+                    'file_type' => explode('/', $mimeType)[1] ?? 'bin',
+                    'file_size' => $body->getSize()
+                ];
+            }
+            
+            $subParts = $part->getParts();
+            if (!empty($subParts)) {
+                self::parseGmailMessageParts($subParts, $bodies, $attachments);
+            }
+        }
     }
 }

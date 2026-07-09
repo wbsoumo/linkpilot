@@ -109,11 +109,14 @@ try {
                     'phone' => $rawPhone
                 ];
                 
-                $recipientVars[$rawPhone] = [
-                    'name' => trim($rec['name'] ?? 'WhatsApp Contact'),
-                    'val1' => trim($rec['val1'] ?? ''),
-                    'val2' => trim($rec['val2'] ?? '')
+                $vars = [
+                    'name' => trim($rec['name'] ?? 'WhatsApp Contact')
                 ];
+                for ($j = 1; $j <= 10; $j++) {
+                    $key = 'val' . $j;
+                    $vars[$key] = trim($rec[$key] ?? '');
+                }
+                $recipientVars[$rawPhone] = $vars;
             }
         } else {
             // Fetch matching CRM contacts based on audience filters
@@ -253,11 +256,11 @@ try {
                 
                 if (!empty($vars)) {
                     $parameters = [];
-                    if (!empty($vars['val1'])) {
-                        $parameters[] = ['type' => 'text', 'text' => $vars['val1']];
-                    }
-                    if (!empty($vars['val2'])) {
-                        $parameters[] = ['type' => 'text', 'text' => $vars['val2']];
+                    for ($j = 1; $j <= 10; $j++) {
+                        $key = 'val' . $j;
+                        if (isset($vars[$key]) && $vars[$key] !== '') {
+                            $parameters[] = ['type' => 'text', 'text' => $vars[$key]];
+                        }
                     }
                     if (!empty($parameters)) {
                         $components[] = [

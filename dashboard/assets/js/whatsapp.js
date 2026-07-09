@@ -3126,6 +3126,20 @@ function renderWhatsAppCampaigns(container) {
             // Define Step 2: Target Audience selection page view creator
             window.openCampaignAudiencePage = function() {
                 const draft = window.campaignDraft;
+                
+                // Scan active variables val1 through val10
+                const activeValKeys = [];
+                for (let i = 1; i <= 10; i++) {
+                    const key = 'val' + i;
+                    const hasAny = draft.recipients.some(r => r[key] && r[key].toString().trim() !== '');
+                    if (hasAny) {
+                        activeValKeys.push(key);
+                    }
+                }
+                if (activeValKeys.length === 0) {
+                    activeValKeys.push('val1', 'val2');
+                }
+
                 contentArea.innerHTML = `
                     <div class="space-y-6 text-slate-805 animate-fade-in bg-[#f8fafc] p-6 rounded-3xl border border-slate-200/60">
                         <!-- Header -->
@@ -3245,33 +3259,39 @@ function renderWhatsAppCampaigns(container) {
 
                                     <!-- Recipient List Preview Section -->
                                     <div class="space-y-3 pt-2">
-                                        <h4 class="font-bold text-slate-700 text-xs">Selected Recipients Preview (${draft.recipients.length} total)</h4>
+                                        <h4 class="font-bold text-slate-700 text-xs">Selected Recipients Preview (${draft.recipients.length} total) <span class="text-[10px] text-slate-400 font-normal uppercase tracking-wide ml-1">(Double-click any variable to edit)</span></h4>
                                         <div class="border border-slate-200 rounded-2xl overflow-hidden max-h-[220px] overflow-y-auto bg-slate-50/50">
                                             <table class="w-full text-left text-xs font-semibold text-slate-600">
                                                 <thead class="bg-slate-100/80 text-slate-500 text-[10px] uppercase font-extrabold border-b border-slate-200">
                                                     <tr>
                                                         <th class="p-2.5 pl-4">Name</th>
                                                         <th class="p-2.5">Phone</th>
-                                                        <th class="p-2.5">Variable 1 (val1)</th>
-                                                        <th class="p-2.5 pr-4">Variable 2 (val2)</th>
+                                                        ${activeValKeys.map(k => `<th class="p-2.5">Variable ${k.substring(3)} (${k})</th>`).join('')}
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     ${draft.recipients.length === 0 ? `
                                                         <tr>
-                                                            <td colspan="4" class="p-8 text-center text-slate-400 font-medium bg-white">No recipients selected yet. Click one of the options above to populate.</td>
+                                                            <td colspan="${activeValKeys.length + 2}" class="p-8 text-center text-slate-400 font-medium bg-white">No recipients selected yet. Click one of the options above to populate.</td>
                                                         </tr>
                                                     ` : draft.recipients.slice(0, 5).map(r => `
                                                         <tr class="border-b border-slate-100 last:border-0 bg-white">
                                                             <td class="p-2.5 pl-4 font-bold text-slate-805">${r.name}</td>
-                                                            <td class="p-2.5 font-mono text-[11px] text-slate-500">${r.phone}</td>
-                                                            <td class="p-2.5"><span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-md border border-emerald-100/50 text-[10px] font-bold">${r.val1 || '-'}</span></td>
-                                                            <td class="p-2.5 pr-4"><span class="px-2 py-0.5 bg-blue-50/50 text-blue-600 rounded-md border border-blue-100/30 text-[10px] font-bold">${r.val2 || '-'}</span></td>
+                                                            <td class="p-2.5 font-mono text-[11px] text-slate-500">${r.phone.slice(-10)}</td>
+                                                            ${activeValKeys.map(k => {
+                                                                const valStr = r[k] || '-';
+                                                                const badgeBg = k === 'val1' ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50' : 'bg-blue-50/50 text-blue-600 border-blue-100/30';
+                                                                return `
+                                                                    <td class="p-2.5 select-none hover:bg-slate-50 transition duration-150 cursor-pointer" ondblclick="makeVariableEditable(this, ${draft.recipients.indexOf(r)}, '${k}')">
+                                                                        <span class="px-2 py-0.5 ${badgeBg} rounded-md border text-[10px] font-bold inline-block var-cell-display">${valStr}</span>
+                                                                    </td>
+                                                                `;
+                                                            }).join('')}
                                                         </tr>
                                                     `).join('')}
                                                     ${draft.recipients.length > 5 ? `
                                                         <tr class="bg-slate-50/30">
-                                                            <td colspan="4" class="p-2 text-center text-[10px] text-slate-400 font-medium">Showing top 5 recipients. And ${draft.recipients.length - 5} more...</td>
+                                                            <td colspan="${activeValKeys.length + 2}" class="p-2 text-center text-[10px] text-slate-400 font-medium">Showing top 5 recipients. And ${draft.recipients.length - 5} more...</td>
                                                         </tr>
                                                     ` : ''}
                                                 </tbody>
@@ -3355,6 +3375,36 @@ function renderWhatsAppCampaigns(container) {
                 lucide.createIcons();
             };
 
+            // Double click variable cell inline editor
+            window.makeVariableEditable = function(cellElement, recipientIndex, varKey) {
+                if (cellElement.querySelector('input')) return;
+
+                const currentVal = window.campaignDraft.recipients[recipientIndex][varKey] || '';
+                cellElement.innerHTML = `
+                    <input type="text" class="px-2 py-0.5 border border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/15 rounded-md text-[10px] font-bold text-slate-800 bg-white w-28" value="${currentVal.replace(/"/g, '&quot;')}">
+                `;
+                const input = cellElement.querySelector('input');
+                input.focus();
+                input.select();
+
+                const saveEdit = () => {
+                    const newVal = input.value.trim();
+                    window.campaignDraft.recipients[recipientIndex][varKey] = newVal;
+                    
+                    // Re-render Step 2
+                    openCampaignAudiencePage();
+                };
+
+                input.onblur = saveEdit;
+                input.onkeydown = (e) => {
+                    if (e.key === 'Enter') {
+                        saveEdit();
+                    } else if (e.key === 'Escape') {
+                        openCampaignAudiencePage();
+                    }
+                };
+            };
+
             // Dynamic Modal: Select from My Contacts
             window.openMyContactsPopup = function() {
                 const existing = document.getElementById('audience-picker-modal');
@@ -3411,8 +3461,10 @@ function renderWhatsAppCampaigns(container) {
                     .then(res => {
                         const list = res.contacts || [];
                         
-                        // Filter "which have valid 10 digit numbers"
-                        allLoadedContacts = list.filter(c => {
+                        // Filter "which have valid 10 digit numbers" and remove duplicates
+                        const seen = new Set();
+                        allLoadedContacts = [];
+                        list.forEach(c => {
                             const clean = (c.wa_id || '').replace(/[^0-9]/g, '');
                             let raw10 = clean;
                             if (clean.length === 12 && clean.startsWith('91')) {
@@ -3420,7 +3472,11 @@ function renderWhatsAppCampaigns(container) {
                             } else if (clean.length === 11 && clean.startsWith('0')) {
                                 raw10 = clean.substring(1);
                             }
-                            return raw10.length === 10;
+                            if (raw10.length === 10 && !seen.has(raw10)) {
+                                seen.add(raw10);
+                                c.raw10 = raw10;
+                                allLoadedContacts.push(c);
+                            }
                         });
 
                         window.filterModalContacts = function(query) {
@@ -3429,7 +3485,7 @@ function renderWhatsAppCampaigns(container) {
 
                             const filtered = allLoadedContacts.filter(c => {
                                 const q = query.toLowerCase();
-                                return (c.profile_name || '').toLowerCase().includes(q) || (c.wa_id || '').includes(q) || (c.crm_name || '').toLowerCase().includes(q);
+                                return (c.profile_name || '').toLowerCase().includes(q) || (c.raw10 || '').includes(q) || (c.crm_name || '').toLowerCase().includes(q);
                             });
 
                             if (filtered.length === 0) {
@@ -3438,17 +3494,13 @@ function renderWhatsAppCampaigns(container) {
                             }
 
                             container.innerHTML = filtered.map(c => {
-                                const clean = c.wa_id.replace(/[^0-9]/g, '');
-                                let raw10 = clean;
-                                if (clean.length === 12 && clean.startsWith('91')) raw10 = clean.substring(2);
-                                
                                 return `
                                     <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl bg-white hover:border-emerald-500/50 cursor-pointer transition-all">
                                         <div class="flex items-center space-x-3">
-                                            <input type="checkbox" checked value="${raw10}" data-name="${c.crm_name || c.profile_name || 'Contact'}" class="h-4 w-4 text-emerald-600 border-slate-350 rounded focus:ring-emerald-500 cursor-pointer modal-contact-checkbox" onchange="updateModalContactSelectedCount()">
+                                            <input type="checkbox" checked value="${c.raw10}" data-name="${c.crm_name || c.profile_name || 'Contact'}" class="h-4 w-4 text-emerald-600 border-slate-350 rounded focus:ring-emerald-500 cursor-pointer modal-contact-checkbox" onchange="updateModalContactSelectedCount()">
                                             <div class="space-y-0.5">
-                                                <div class="font-bold text-slate-805 text-xs">${c.crm_name || c.profile_name || 'WhatsApp Contact'}</div>
-                                                <div class="text-[10px] text-slate-400 font-mono">${c.wa_id}</div>
+                                                <div class="font-bold text-slate-850 text-xs">${c.crm_name || c.profile_name || 'WhatsApp Contact'}</div>
+                                                <div class="text-[10px] text-slate-400 font-mono">${c.raw10}</div>
                                             </div>
                                         </div>
                                         <span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100/50 rounded text-[9px] font-extrabold uppercase tracking-wider">Valid 10 Digits</span>
@@ -3700,6 +3752,7 @@ function renderWhatsAppCampaigns(container) {
             };
 
             // Dynamic Modal: Import from CSV with variables
+            // Dynamic Modal: Import from CSV with variables
             window.openImportCSVPopup = function() {
                 const existing = document.getElementById('audience-picker-modal');
                 if (existing) existing.remove();
@@ -3714,7 +3767,7 @@ function renderWhatsAppCampaigns(container) {
                         <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/20 shrink-0">
                             <div>
                                 <h3 class="text-sm font-bold text-slate-805 leading-none">Import Recipients from CSV</h3>
-                                <p class="text-[10px] text-slate-400 font-medium mt-1.5">Upload CSV with clean numbers, val1 and val2 fields</p>
+                                <p class="text-[10px] text-slate-400 font-medium mt-1.5">Upload CSV with clean numbers and variables</p>
                             </div>
                             <button onclick="document.getElementById('audience-picker-modal').remove()" class="h-8 w-8 rounded-full border border-slate-150 hover:border-slate-350 hover:bg-slate-50 flex items-center justify-center text-slate-500 hover:text-slate-800 transition">
                                 <i data-lucide="x" class="h-4 w-4"></i>
@@ -3729,28 +3782,27 @@ function renderWhatsAppCampaigns(container) {
                                     <i data-lucide="upload-cloud" class="h-5 w-5"></i>
                                 </div>
                                 <div class="text-xs font-bold text-slate-700">Click to upload or drag & drop CSV file</div>
-                                <div class="text-[9px] text-slate-400 font-semibold leading-normal">Requires number column (clean without +, 0 or 91 country code prefix), val1 and val2 fields</div>
+                                <div class="text-[9px] text-slate-400 font-semibold leading-normal">Drag and drop file directly here</div>
                                 <input type="file" id="csv-file-input" accept=".csv" class="hidden">
                             </div>
 
+                            <!-- Sample download & description -->
+                            <div class="flex items-center justify-between shrink-0 px-1 bg-slate-50 p-2.5 rounded-xl border border-slate-150">
+                                <div class="text-[9px] text-slate-400 font-semibold leading-normal">Requires phone column and support variables val1 to val10</div>
+                                <button onclick="downloadSampleCSV()" class="text-xs font-bold text-emerald-600 hover:text-emerald-700 transition flex items-center space-x-1">
+                                    <i data-lucide="download" class="h-3.5 w-3.5"></i>
+                                    <span>Download Sample CSV</span>
+                                </button>
+                            </div>
+
                             <!-- Parse Preview list -->
-                            <div id="csv-preview-box" class="flex-grow border border-slate-150 rounded-2xl overflow-hidden bg-slate-50/40 flex flex-col hidden">
+                            <div id="csv-preview-box" class="flex-grow border border-slate-150 rounded-2xl overflow-hidden bg-slate-50/40 flex flex-col hidden animate-fade-in">
                                 <div class="p-2 border-b border-slate-150 bg-slate-100 flex justify-between items-center text-[10px] font-extrabold uppercase text-slate-500 pl-3 shrink-0">
                                     <span>Parsed CSV Preview</span>
                                     <span id="csv-valid-badge" class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-100/50">0 rows found</span>
                                 </div>
-                                <div class="flex-grow overflow-auto bg-white">
-                                    <table class="w-full text-left text-xs font-semibold text-slate-650">
-                                        <thead class="bg-slate-50 text-[10px] uppercase font-extrabold text-slate-450 border-b border-slate-150">
-                                            <tr>
-                                                <th class="p-2 pl-3">Number</th>
-                                                <th class="p-2">Name</th>
-                                                <th class="p-2">Variable 1 (val1)</th>
-                                                <th class="p-2 pr-3">Variable 2 (val2)</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="csv-preview-rows"></tbody>
-                                    </table>
+                                <div class="flex-grow overflow-auto bg-white" id="csv-preview-table-container">
+                                    <!-- Table will render here dynamically with active variables -->
                                 </div>
                             </div>
                         </div>
@@ -3791,6 +3843,19 @@ function renderWhatsAppCampaigns(container) {
                     handleCSVFile(e.dataTransfer.files[0]);
                 };
 
+                window.downloadSampleCSV = function() {
+                    const csvContent = "Phone,Name,val1,val2,val3,val4,val5,val6,val7,val8,val9,val10\n9876543210,Soumojit Saha,Project Proposal,15% Discount,,,,,,,,\n9593501403,Sayantani,Follow Up,20% Offer,,,,,,,,";
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement("a");
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", "linkpilot_whatsapp_campaign_sample.csv");
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                };
+
                 function handleCSVFile(file) {
                     if (!file) return;
                     const reader = new FileReader();
@@ -3811,14 +3876,18 @@ function renderWhatsAppCampaigns(container) {
                     const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
                     let phoneIdx = 0;
                     let nameIdx = -1;
-                    let val1Idx = -1;
-                    let val2Idx = -1;
+                    const valIndices = {};
 
                     headers.forEach((h, idx) => {
                         if (h.includes('phone') || h.includes('num') || h.includes('mobile')) phoneIdx = idx;
-                        if (h.includes('name')) nameIdx = idx;
-                        if (h.includes('val1') || h.includes('var1') || h.includes('param1')) val1Idx = idx;
-                        if (h.includes('val2') || h.includes('var2') || h.includes('param2')) val2Idx = idx;
+                        else if (h.includes('name')) nameIdx = idx;
+                        else {
+                            const match = h.match(/val(\d+)|var(\d+)|param(\d+)/);
+                            if (match) {
+                                const num = match[1] || match[2] || match[3];
+                                valIndices['val' + num] = idx;
+                            }
+                        }
                     });
 
                     parsedRecipients = [];
@@ -3841,15 +3910,20 @@ function renderWhatsAppCampaigns(container) {
                         if (cleanPhone.length !== 10) continue;
 
                         const nameVal = nameIdx !== -1 && cols[nameIdx] ? cols[nameIdx] : 'CSV Contact';
-                        const val1Val = val1Idx !== -1 && cols[val1Idx] ? cols[val1Idx] : '';
-                        const val2Val = val2Idx !== -1 && cols[val2Idx] ? cols[val2Idx] : '';
+                        
+                        const recipient = {
+                            phone: '91' + cleanPhone, // Send to backend with 91
+                            name: nameVal
+                        };
 
-                        parsedRecipients.push({
-                            phone: '91' + cleanPhone,
-                            name: nameVal,
-                            val1: val1Val,
-                            val2: val2Val
-                        });
+                        // Map val1 to val10
+                        for (let j = 1; j <= 10; j++) {
+                            const key = 'val' + j;
+                            const colIdx = valIndices[key];
+                            recipient[key] = (colIdx !== undefined && cols[colIdx]) ? cols[colIdx] : '';
+                        }
+
+                        parsedRecipients.push(recipient);
                     }
 
                     document.getElementById('csv-drop-zone').classList.add('hidden');
@@ -3857,31 +3931,54 @@ function renderWhatsAppCampaigns(container) {
                     previewBox.classList.remove('hidden');
                     
                     document.getElementById('csv-valid-badge').textContent = `${parsedRecipients.length} valid rows`;
-                    const rowsContainer = document.getElementById('csv-preview-rows');
+                    const container = document.getElementById('csv-preview-table-container');
 
                     if (parsedRecipients.length === 0) {
-                        rowsContainer.innerHTML = `
-                            <tr>
-                                <td colspan="4" class="p-4 text-center text-rose-500 font-bold bg-white">No valid 10-digit phone number rows found. Please review CSV format.</td>
-                            </tr>
+                        container.innerHTML = `
+                            <div class="p-8 text-center text-rose-500 font-bold bg-white">No valid 10-digit phone number rows found. Please review CSV format.</div>
                         `;
                     } else {
-                        rowsContainer.innerHTML = parsedRecipients.slice(0, 5).map(r => `
-                            <tr class="border-b border-slate-100 last:border-0 bg-white">
-                                <td class="p-2 pl-3 font-mono text-[11px] text-slate-500 font-semibold">${r.phone}</td>
-                                <td class="p-2 font-bold text-slate-805">${r.name}</td>
-                                <td class="p-2"><span class="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[9.5px] font-bold border border-emerald-100/50">${r.val1 || '-'}</span></td>
-                                <td class="p-2 pr-3"><span class="px-1.5 py-0.5 bg-blue-50/50 text-blue-600 rounded text-[9.5px] font-bold border border-blue-100/30">${r.val2 || '-'}</span></td>
-                            </tr>
-                        `).join('');
-                        
-                        if (parsedRecipients.length > 5) {
-                            rowsContainer.innerHTML += `
-                                <tr class="bg-slate-50/30">
-                                    <td colspan="4" class="p-1.5 text-center text-[9.5px] text-slate-400 font-semibold">And ${parsedRecipients.length - 5} more rows...</td>
-                                </tr>
-                            `;
+                        // Scan active variables in this CSV
+                        const activeCSVValKeys = [];
+                        for (let j = 1; j <= 10; j++) {
+                            const key = 'val' + j;
+                            const hasAny = parsedRecipients.some(r => r[key] && r[key].toString().trim() !== '');
+                            if (hasAny) {
+                                activeCSVValKeys.push(key);
+                            }
                         }
+                        if (activeCSVValKeys.length === 0) {
+                            activeCSVValKeys.push('val1', 'val2');
+                        }
+
+                        container.innerHTML = `
+                            <table class="w-full text-left text-xs font-semibold text-slate-650">
+                                <thead class="bg-slate-50 text-[10px] uppercase font-extrabold text-slate-450 border-b border-slate-150">
+                                    <tr>
+                                        <th class="p-2 pl-3">Number</th>
+                                        <th class="p-2">Name</th>
+                                        ${activeCSVValKeys.map(k => `<th class="p-2">${k}</th>`).join('')}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${parsedRecipients.slice(0, 5).map(r => `
+                                        <tr class="border-b border-slate-100 last:border-0 bg-white">
+                                            <td class="p-2 pl-3 font-mono text-[11px] text-slate-500 font-semibold">${r.phone.slice(-10)}</td>
+                                            <td class="p-2 font-bold text-slate-805">${r.name}</td>
+                                            ${activeCSVValKeys.map(k => {
+                                                const badgeBg = k === 'val1' ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50' : 'bg-blue-50/50 text-blue-600 border-blue-100/30';
+                                                return `<td class="p-2"><span class="px-1.5 py-0.5 ${badgeBg} rounded text-[9.5px] font-bold border">${r[k] || '-'}</span></td>`;
+                                            }).join('')}
+                                        </tr>
+                                    `).join('')}
+                                    ${parsedRecipients.length > 5 ? `
+                                        <tr class="bg-slate-50/30">
+                                            <td colspan="${activeCSVValKeys.length + 2}" class="p-1.5 text-center text-[9.5px] text-slate-400 font-semibold">And ${parsedRecipients.length - 5} more rows...</td>
+                                        </tr>
+                                    ` : ''}
+                                </tbody>
+                            </table>
+                        `;
                     }
                 }
 
@@ -3923,10 +4020,14 @@ function renderWhatsAppCampaigns(container) {
                     bodyText = 'Error parsing template text.';
                 }
 
-                const firstRec = draft.recipients[0] || { name: 'Lead', val1: 'Lead', val2: '' };
+                const firstRec = draft.recipients[0] || { name: 'Lead' };
                 let previewText = bodyText;
-                previewText = previewText.replace(/\{\{1\}\}/g, `<strong class="text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-md font-extrabold text-[10px] border border-emerald-200">${firstRec.val1 || firstRec.name}</strong>`);
-                previewText = previewText.replace(/\{\{2\}\}/g, `<strong class="text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-md font-extrabold text-[10px] border border-emerald-200">${firstRec.val2 || '[Variable 2]'}</strong>`);
+                for (let j = 1; j <= 10; j++) {
+                    const key = 'val' + j;
+                    const val = firstRec[key] || (j === 1 ? firstRec.name : `[Variable ${j}]`);
+                    const regex = new RegExp(`\\{\\{${j}\\}\\}`, 'g');
+                    previewText = previewText.replace(regex, `<strong class="text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-md font-extrabold text-[10px] border border-emerald-200">${val}</strong>`);
+                }
 
                 contentArea.innerHTML = `
                     <div class="space-y-6 text-slate-805 animate-fade-in bg-[#f8fafc] p-6 rounded-3xl border border-slate-200/60">

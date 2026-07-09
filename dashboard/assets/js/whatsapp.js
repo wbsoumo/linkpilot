@@ -1900,6 +1900,10 @@ function renderWhatsAppCampaigns(container) {
 
             let searchQuery = '';
             let statusFilter = 'ALL';
+            let numberFilter = 'ALL';
+            let dateFilter = 'MAY_2026';
+            let minContacts = 0;
+            let campaignType = 'ALL';
             let currentPage = 1;
             let itemsPerPage = 5;
             let sortBy = 'latest';
@@ -2063,7 +2067,7 @@ function renderWhatsAppCampaigns(container) {
                             <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
                                 <div class="flex justify-between items-start">
                                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Messages Read</span>
-                                    <div class="h-7 w-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                                    <div class="h-7 w-7 rounded-lg bg-blue-50 text-blue-650 flex items-center justify-center">
                                         <i data-lucide="eye" class="h-4 w-4 text-blue-600"></i>
                                     </div>
                                 </div>
@@ -2098,7 +2102,7 @@ function renderWhatsAppCampaigns(container) {
                                 </div>
                                 <button onclick="showNotification('info', 'Analytical WhatsApp dashboard loading...')" class="w-full py-1.5 mt-2 bg-white hover:bg-emerald-50/50 border border-emerald-600 text-emerald-600 rounded-xl text-[10px] font-bold transition flex items-center justify-center space-x-1">
                                     <i data-lucide="bar-chart-3" class="h-3.5 w-3.5 text-emerald-600"></i>
-                                    <span class="text-emerald-600 font-bold">View Full Report</span>
+                                    <span class="text-emerald-650 font-bold">View Full Report</span>
                                 </button>
                             </div>
                         </div>
@@ -2132,13 +2136,19 @@ function renderWhatsAppCampaigns(container) {
                                     <option value="919876543210">+91 98765 43210</option>
                                 </select>
                             </div>
-                            <!-- Date Filter Range -->
+                            <!-- Date Filter Range Select -->
                             <div class="relative w-full md:w-60">
-                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                     <i data-lucide="calendar" class="h-4 w-4"></i>
                                 </span>
-                                <input type="text" readonly value="May 01, 2026 - May 31, 2026" class="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 cursor-pointer select-none">
-                                <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
+                                <select id="camp-date-select" class="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 cursor-pointer focus:outline-none appearance-none">
+                                    <option value="MAY_2026">May 01, 2026 - May 31, 2026</option>
+                                    <option value="ALL">All Time Dates</option>
+                                    <option value="TODAY">Today</option>
+                                    <option value="LAST_7_DAYS">Last 7 Days</option>
+                                    <option value="LAST_30_DAYS">Last 30 Days</option>
+                                </select>
+                                <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
                                     <i data-lucide="chevron-down" class="h-4 w-4"></i>
                                 </span>
                             </div>
@@ -2146,13 +2156,35 @@ function renderWhatsAppCampaigns(container) {
 
                         <!-- Right buttons -->
                         <div class="flex items-center space-x-2 shrink-0">
-                            <button onclick="showNotification('info', 'Filters drawer initialized.')" class="px-3.5 py-2 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 text-slate-600 text-xs font-bold flex items-center space-x-1.5 transition shadow-sm">
+                            <button onclick="toggleAdvancedFilters()" class="px-3.5 py-2 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 text-slate-600 text-xs font-bold flex items-center space-x-1.5 transition shadow-sm">
                                 <i data-lucide="sliders-horizontal" class="h-4 w-4 text-slate-600"></i>
                                 <span>Filters</span>
                             </button>
-                            <button onclick="showNotification('success', 'Campaign summary report exported.')" class="px-3.5 py-2 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 text-slate-600 text-xs font-bold flex items-center space-x-1.5 transition shadow-sm">
+                            <button onclick="exportCampaignsCSV()" class="px-3.5 py-2 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 text-slate-600 text-xs font-bold flex items-center space-x-1.5 transition shadow-sm">
                                 <i data-lucide="download" class="h-4 w-4 text-slate-600"></i>
                                 <span>Export</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Filters Expandable Panel -->
+                    <div id="advanced-filters-panel" class="hidden bg-slate-50/70 border border-slate-200 rounded-2xl p-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-semibold animate-fade-in">
+                        <div>
+                            <label class="block text-slate-500 mb-1">Min Target Contacts</label>
+                            <input type="number" id="adv-min-contacts" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500" placeholder="e.g. 100">
+                        </div>
+                        <div>
+                            <label class="block text-slate-500 mb-1">Campaign Type</label>
+                            <select id="adv-campaign-type" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none cursor-pointer">
+                                <option value="ALL">All Types</option>
+                                <option value="REAL">Database Campaigns</option>
+                                <option value="SAMPLE">Sample Campaigns</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="resetAllFilters()" class="w-full py-2 bg-slate-200 hover:bg-slate-350 text-slate-700 rounded-xl font-bold transition flex items-center justify-center space-x-1">
+                                <i data-lucide="rotate-ccw" class="h-3.5 w-3.5 text-slate-700"></i>
+                                <span class="text-slate-700 font-bold">Reset All Filters</span>
                             </button>
                         </div>
                     </div>
@@ -2236,8 +2268,7 @@ function renderWhatsAppCampaigns(container) {
                 <div class="fixed bottom-6 right-6 z-50">
                     <button onclick="showNotification('info', 'Opening live WhatsApp Chat Assistant...')" class="h-14 w-14 rounded-full bg-[#00a884] hover:bg-[#008f6f] text-white flex items-center justify-center shadow-2xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-emerald-500/20">
                         <svg class="h-7 w-7 text-white fill-current" viewBox="0 0 24 24">
-                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.517 2.266 2.27 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.16 1.449 4.887 1.45 5.482.002 9.944-4.461 9.947-9.945.002-2.657-1.03-5.155-2.905-7.03C16.71 1.766 14.215.73 11.555.73c-5.49 0-9.952 4.463-9.955 9.948 0 1.787.483 3.394 1.401 4.938l-.921 3.363 3.567-.935zm12.785-6.853c-.347-.174-2.054-1.014-2.372-1.129-.318-.116-.549-.174-.78.174-.23.348-.895 1.129-1.096 1.361-.202.233-.404.261-.751.087-.348-.174-1.47-.542-2.8-1.728-1.034-.922-1.732-2.06-1.934-2.41-.202-.347-.022-.535.152-.708.156-.156.347-.406.52-.608.174-.203.23-.348.347-.58.117-.232.06-.435-.03-.608-.09-.174-.78-1.884-1.068-2.58-.282-.677-.567-.585-.78-.596-.2-.01-.43-.01-.66-.01-.23 0-.608.087-.925.435-.317.348-1.214 1.188-1.214 2.902 0 1.71 1.244 3.362 1.417 3.593.173.23 2.453 3.746 5.94 5.253.83.358 1.478.57 1.983.731.834.265 1.593.228 2.193.138.669-.1 2.054-.84 2.342-1.652.288-.812.288-1.508.202-1.652-.086-.145-.317-.232-.664-.406z"/>
-                        </svg>
+                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.517 2.266 2.27 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.16 1.449 4.887 1.45 5.482.002 9.944-4.461 9.947-9.945.002-2.657-1.03-5.155-2.905-7.03C16.71 1.766 14.215.73c-5.49 0-9.952 4.463-9.955 9.948 0 1.787.483 3.394 1.401 4.938l-.921 3.363 3.567-.935zm12.785-6.853c-.347-.174-2.054-1.014-2.372-1.129-.318-.116-.549-.174-.78.174-.23.348-.895 1.129-1.096 1.361-.202.233-.404.261-.751.087-.348-.174-1.47-.542-2.8-1.728-1.034-.922-1.732-2.06-1.934-2.41-.202-.347-.022-.535.152-.708.156-.156.347-.406.52-.608.174-.203.23-.348.347-.58.117-.232.06-.435-.03-.608-.09-.174-.78-1.884-1.068-2.58-.282-.677-.567-.585-.78-.596-.2-.01-.43-.01-.66-.01-.23 0-.608.087-.925.435-.317.348-1.214 1.188-1.214 2.902 0 1.71 1.244 3.362 1.417 3.593.173.23 2.453 3.746 5.94 5.253.83.358 1.478.57 1.983.731.834.265 1.593.228 2.193.138.669-.1 2.054-.84 2.342-1.652.288-.812.288-1.508.202-1.652-.086-.145-.317-.232-.664-.406z"/>
                     </button>
                 </div>
             `;
@@ -2284,13 +2315,45 @@ function renderWhatsAppCampaigns(container) {
             function applyFilterAndRender() {
                 const allMerged = getMergedCampaigns();
 
-                // 1. Update stats dynamically
-                const completedOrSent = allMerged.filter(c => c.status === 'completed' || c.status === 'sent');
+                // Perform filtering first to get correct stats dynamically based on criteria
+                let filtered = allMerged.filter(c => {
+                    const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                          c.template_name.toLowerCase().includes(searchQuery.toLowerCase());
+                    const matchesStatus = (statusFilter === 'ALL' || c.status.toLowerCase() === statusFilter.toLowerCase());
+                    const matchesNumber = (numberFilter === 'ALL' || c.wa_number.replace(/\s+/g, '') === numberFilter);
+                    
+                    let matchesDate = true;
+                    const campDate = new Date(c.created_at);
+                    const now = new Date();
+                    if (dateFilter === 'MAY_2026') {
+                        matchesDate = (campDate.getFullYear() === 2026 && campDate.getMonth() === 4);
+                    } else if (dateFilter === 'TODAY') {
+                        matchesDate = (campDate.toDateString() === now.toDateString());
+                    } else if (dateFilter === 'LAST_7_DAYS') {
+                        const diffTime = Math.abs(now - campDate);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        matchesDate = (diffDays <= 7);
+                    } else if (dateFilter === 'LAST_30_DAYS') {
+                        const diffTime = Math.abs(now - campDate);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        matchesDate = (diffDays <= 30);
+                    }
+
+                    const matchesMinContacts = (c.total_contacts >= minContacts);
+                    const matchesCampaignType = (campaignType === 'ALL' || 
+                        (campaignType === 'REAL' && !c.is_sample) || 
+                        (campaignType === 'SAMPLE' && c.is_sample));
+
+                    return matchesSearch && matchesStatus && matchesNumber && matchesDate && matchesMinContacts && matchesCampaignType;
+                });
+
+                // Update Overview stats dynamically
+                const completedOrSent = filtered.filter(c => c.status === 'completed' || c.status === 'sent');
                 const totalSentCampaigns = completedOrSent.length;
-                const totalMessagesSent = allMerged.reduce((acc, c) => acc + c.sent_count, 0);
-                const totalMessagesDelivered = allMerged.reduce((acc, c) => acc + c.delivered_count, 0);
-                const totalMessagesRead = allMerged.reduce((acc, c) => acc + c.read_count, 0);
-                const totalReplies = allMerged.reduce((acc, c) => acc + c.replies_count, 0);
+                const totalMessagesSent = filtered.reduce((acc, c) => acc + c.sent_count, 0);
+                const totalMessagesDelivered = filtered.reduce((acc, c) => acc + c.delivered_count, 0);
+                const totalMessagesRead = filtered.reduce((acc, c) => acc + c.read_count, 0);
+                const totalReplies = filtered.reduce((acc, c) => acc + c.replies_count, 0);
 
                 const delRate = totalMessagesSent > 0 ? ((totalMessagesDelivered / totalMessagesSent) * 100).toFixed(1) : '100';
                 const readRate = totalMessagesSent > 0 ? ((totalMessagesRead / totalMessagesSent) * 100).toFixed(1) : '0';
@@ -2302,14 +2365,6 @@ function renderWhatsAppCampaigns(container) {
                 document.getElementById('stat-messages-read').textContent = totalMessagesRead.toLocaleString('en-US');
                 document.getElementById('stat-read-rate').textContent = readRate + '%';
                 document.getElementById('stat-replies-received').textContent = totalReplies.toLocaleString('en-US');
-
-                // 2. Filter campaigns list
-                let filtered = allMerged.filter(c => {
-                    const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                                          c.template_name.toLowerCase().includes(searchQuery.toLowerCase());
-                    const matchesStatus = (statusFilter === 'ALL' || c.status.toLowerCase() === statusFilter.toLowerCase());
-                    return matchesSearch && matchesStatus;
-                });
 
                 document.getElementById('campaigns-total-count').textContent = `(${filtered.length})`;
 
@@ -2466,6 +2521,88 @@ function renderWhatsAppCampaigns(container) {
                 applyFilterAndRender();
             };
 
+            window.toggleAdvancedFilters = function() {
+                const panel = document.getElementById('advanced-filters-panel');
+                if (panel) {
+                    panel.classList.toggle('hidden');
+                }
+            };
+
+            window.resetAllFilters = function() {
+                document.getElementById('camp-search').value = '';
+                document.getElementById('camp-status-select').value = 'ALL';
+                document.getElementById('camp-number-select').value = 'ALL';
+                document.getElementById('camp-date-select').value = 'MAY_2026';
+                document.getElementById('adv-min-contacts').value = '';
+                document.getElementById('adv-campaign-type').value = 'ALL';
+
+                searchQuery = '';
+                statusFilter = 'ALL';
+                numberFilter = 'ALL';
+                dateFilter = 'MAY_2026';
+                minContacts = 0;
+                campaignType = 'ALL';
+                currentPage = 1;
+
+                applyFilterAndRender();
+                showNotification('info', 'All filters reset.');
+            };
+
+            window.exportCampaignsCSV = function() {
+                const allMerged = getMergedCampaigns();
+                const filtered = allMerged.filter(c => {
+                    const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                          c.template_name.toLowerCase().includes(searchQuery.toLowerCase());
+                    const matchesStatus = (statusFilter === 'ALL' || c.status.toLowerCase() === statusFilter.toLowerCase());
+                    const matchesNumber = (numberFilter === 'ALL' || c.wa_number.replace(/\s+/g, '') === numberFilter);
+                    
+                    let matchesDate = true;
+                    const campDate = new Date(c.created_at);
+                    const now = new Date();
+                    if (dateFilter === 'MAY_2026') {
+                        matchesDate = (campDate.getFullYear() === 2026 && campDate.getMonth() === 4);
+                    } else if (dateFilter === 'TODAY') {
+                        matchesDate = (campDate.toDateString() === now.toDateString());
+                    } else if (dateFilter === 'LAST_7_DAYS') {
+                        const diffTime = Math.abs(now - campDate);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        matchesDate = (diffDays <= 7);
+                    } else if (dateFilter === 'LAST_30_DAYS') {
+                        const diffTime = Math.abs(now - campDate);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        matchesDate = (diffDays <= 30);
+                    }
+
+                    const matchesMinContacts = (c.total_contacts >= minContacts);
+                    const matchesCampaignType = (campaignType === 'ALL' || 
+                        (campaignType === 'REAL' && !c.is_sample) || 
+                        (campaignType === 'SAMPLE' && c.is_sample));
+
+                    return matchesSearch && matchesStatus && matchesNumber && matchesDate && matchesMinContacts && matchesCampaignType;
+                });
+
+                if (filtered.length === 0) {
+                    showNotification('warning', 'No campaigns match the filters to export.');
+                    return;
+                }
+
+                let csv = "Campaign Name,Template,WhatsApp Number,Target,Sent,Delivered,Read,Replies,Status,Created At\n";
+                filtered.forEach(c => {
+                    csv += `"${c.name}","${c.template_name}","+${c.wa_number}",${c.total_contacts},${c.sent_count},${c.delivered_count},${c.read_count},${c.replies_count},"${c.status.toUpperCase()}","${c.created_at}"\n`;
+                });
+
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", `whatsapp_campaigns_${new Date().toISOString().slice(0, 10)}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showNotification('success', `Exported ${filtered.length} campaigns to CSV.`);
+            };
+
             document.getElementById('camp-search').addEventListener('input', (e) => {
                 searchQuery = e.target.value;
                 currentPage = 1;
@@ -2474,6 +2611,30 @@ function renderWhatsAppCampaigns(container) {
 
             document.getElementById('camp-status-select').addEventListener('change', (e) => {
                 statusFilter = e.target.value;
+                currentPage = 1;
+                applyFilterAndRender();
+            });
+
+            document.getElementById('camp-number-select').addEventListener('change', (e) => {
+                numberFilter = e.target.value;
+                currentPage = 1;
+                applyFilterAndRender();
+            });
+
+            document.getElementById('camp-date-select').addEventListener('change', (e) => {
+                dateFilter = e.target.value;
+                currentPage = 1;
+                applyFilterAndRender();
+            });
+
+            document.getElementById('adv-min-contacts').addEventListener('input', (e) => {
+                minContacts = parseInt(e.target.value) || 0;
+                currentPage = 1;
+                applyFilterAndRender();
+            });
+
+            document.getElementById('adv-campaign-type').addEventListener('change', (e) => {
+                campaignType = e.target.value;
                 currentPage = 1;
                 applyFilterAndRender();
             });

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-950">
+<html lang="en" class="h-full bg-[#FAFAFC] font-['Outfit',sans-serif]">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,41 +11,81 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="assets/css/marketing.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-<body class="h-full bg-slate-950 text-slate-100 flex flex-col justify-between antialiased">
+<body class="h-full bg-[#FAFAFC] text-slate-600 flex flex-col justify-between antialiased">
 
     <!-- Navigation -->
-    <nav class="glass-nav w-full px-6 py-4 flex items-center justify-between">
-        <a href="index.html" class="flex items-center space-x-2 text-xl font-bold tracking-wider">
-            <span class="text-teal-400">✨ LinkPilot</span>
-            <span class="text-xs px-2 py-0.5 bg-slate-800 text-teal-400 border border-slate-700 rounded-full font-semibold">AI</span>
-        </a>
+    <!-- Sticky Navigation -->
+    <nav class="sticky top-0 z-50 w-full px-6 py-4 bg-white/80 backdrop-blur-md border-b border-slate-100/80">
+        <div class="max-w-6xl mx-auto w-full flex items-center justify-between">
+            <a href="index.html" class="flex items-center space-x-2 text-xl font-bold tracking-tight text-[#0B0B1E]">
+                <img src="dashboard/assets/img/logo.png" class="h-7 w-7 object-contain" alt="LinkPilot AI">
+                <span class="font-extrabold text-[#0B0B1E]">LinkPilot</span>
+            </a>
+        </div>
     </nav>
 
     <!-- Main Content -->
     <main class="flex-grow flex items-center justify-center p-6 text-center glow-purple">
-        <div class="space-y-6 max-w-md glass-panel p-8 rounded-2xl border-slate-800 shadow-2xl">
-            <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-full text-[10px] font-bold uppercase tracking-wider">
+        <div class="space-y-6 max-w-md bg-white border border-slate-150/80 shadow-md shadow-slate-100/40 p-8 rounded-2xl border-slate-100 shadow-2xl">
+            <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 bg-purple-500/10 text-[#5f43d0] border border-purple-500/20 rounded-full text-[10px] font-bold uppercase tracking-wider">
                 <i data-lucide="cog" class="h-3.5 w-3.5 animate-spin"></i>
                 <span>Under Construction</span>
             </span>
-            <h1 class="text-2xl font-extrabold text-white">Launching New Features</h1>
-            <p class="text-xs text-slate-400 leading-relaxed">
+            <h1 class="text-2xl font-extrabold text-[#0B0B1E]">Launching New Features</h1>
+            <p class="text-xs text-slate-500 leading-relaxed">
                 We are building premium outreach integrations, Outlook setups support, and HubSpot sync hooks. Enter your email to be notified on launch.
             </p>
             <form action="thank-you.html" class="flex space-x-2">
-                <input type="email" required class="flex-grow px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-xs" placeholder="e.g. you@example.com">
-                <button type="submit" class="px-4 py-2 bg-teal-400 hover:bg-teal-300 text-slate-950 font-bold rounded-lg text-xs transition shadow shadow-teal-500/25">Notify Me</button>
+                <input type="email" required class="flex-grow px-3 py-2 bg-slate-50 border border-slate-150 border border-slate-100 rounded-lg text-[#0B0B1E] placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#5f43d0] focus:border-[#5f43d0] text-xs" placeholder="e.g. you@example.com">
+                <button type="submit" class="px-4 py-2 bg-[#5f43d0] hover:bg-[#4f32c0] text-white font-bold rounded-lg text-xs transition shadow shadow-purple-500/10">Notify Me</button>
             </form>
-            <div class="border-t border-slate-850 pt-4 text-center">
-                <a href="index.html" class="text-xs text-slate-500 hover:text-white transition">← Return to Home</a>
+            <div class="border-t border-slate-150 pt-4 text-center">
+                <a href="index.html" class="text-xs text-slate-500 hover:text-[#0B0B1E] transition">← Return to Home</a>
             </div>
         </div>
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-slate-900 bg-slate-950 py-8 text-slate-500 text-xs text-center">
-        <div>© 2026 LinkPilot AI. All rights reserved.</div>
+    <!-- Footer -->
+    <footer class="border-t border-slate-100 bg-[#FAFAFC] py-12 text-slate-400 text-xs">
+        <div class="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-5 gap-8">
+            <div class="col-span-2 space-y-4">
+                <div class="flex items-center space-x-2 text-[#0B0B1E] font-bold text-sm">
+                    <img src="dashboard/assets/img/logo.png" class="h-6 w-6 object-contain" alt="LinkPilot AI">
+                    <span class="font-extrabold text-[#0B0B1E]">LinkPilot AI</span>
+                </div>
+                <p class="max-w-xs text-slate-500 leading-relaxed">AI CRM to automate WhatsApp, Gmail, and Instagram conversations, appointments, and workflows.</p>
+                <div class="text-slate-400">Charge it with Taskbazi 2024 -26. All rights reserved.</div>
+            </div>
+            <div class="space-y-3">
+                <h5 class="text-slate-600 font-bold uppercase tracking-wider text-[10px]">Product</h5>
+                <ul class="space-y-2">
+                    <li><a href="index.html#features" class="hover:text-[#5f43d0] transition">Features</a></li>
+                    <li><a href="pricing.html" class="hover:text-[#5f43d0] transition">Pricing</a></li>
+                    <li><a href="docs.html" class="hover:text-[#5f43d0] transition">Documentation</a></li>
+                </ul>
+            </div>
+            <div class="space-y-3">
+                <h5 class="text-slate-600 font-bold uppercase tracking-wider text-[10px]">Company</h5>
+                <ul class="space-y-2">
+                    <li><a href="about.html" class="hover:text-[#5f43d0] transition">About Us</a></li>
+                    <li><a href="blog.html" class="hover:text-[#5f43d0] transition">Blog & Updates</a></li>
+                    <li><a href="contact.html" class="hover:text-[#5f43d0] transition">Support Contact</a></li>
+                </ul>
+            </div>
+            <div class="space-y-3">
+                <h5 class="text-slate-600 font-bold uppercase tracking-wider text-[10px]">Legal</h5>
+                <ul class="space-y-2">
+                    <li><a href="privacy.html" class="hover:text-[#5f43d0] transition">Privacy Policy</a></li>
+                    <li><a href="terms.html" class="hover:text-[#5f43d0] transition">Terms of Service</a></li>
+                    <li><a href="cookies.html" class="hover:text-[#5f43d0] transition">Cookie Policy</a></li>
+                    <li><a href="disclaimer.html" class="hover:text-[#5f43d0] transition">Disclaimer</a></li>
+                    <li><a href="sitemap.html" class="hover:text-[#5f43d0] transition">Sitemap</a></li>
+                </ul>
+            </div>
+        </div>
     </footer>
 
     <script>

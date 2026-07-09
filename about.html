@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-950">
+<html lang="en" class="h-full bg-[#FAFAFC] font-['Outfit',sans-serif]">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,27 +11,29 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="assets/css/marketing.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-<body class="h-full bg-slate-950 text-slate-100 flex flex-col antialiased">
+<body class="h-full bg-[#FAFAFC] text-slate-600 flex flex-col antialiased">
 
     <!-- Navigation -->
-    <nav class="glass-nav sticky top-0 z-50 w-full px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center space-x-10">
-            <a href="index.html" class="flex items-center space-x-2 text-xl font-bold tracking-wider">
-                <span class="text-teal-400">✨ LinkPilot</span>
-                <span class="text-xs px-2 py-0.5 bg-slate-800 text-teal-400 border border-slate-700 rounded-full font-semibold">AI</span>
+    <!-- Sticky Navigation -->
+    <nav class="sticky top-0 z-50 w-full px-6 py-4 bg-white/80 backdrop-blur-md border-b border-slate-100/80">
+        <div class="max-w-6xl mx-auto w-full flex items-center justify-between">
+            <a href="index.html" class="flex items-center space-x-2 text-xl font-bold tracking-tight text-[#0B0B1E]">
+                <img src="dashboard/assets/img/logo.png" class="h-7 w-7 object-contain" alt="LinkPilot AI">
+                <span class="font-extrabold text-[#0B0B1E]">LinkPilot</span>
             </a>
-            <div class="hidden lg:flex items-center space-x-6 text-sm font-medium text-slate-300">
-                <a href="index.html#features" class="nav-link hover:text-white transition">Features</a>
-                <a href="index.html#solutions" class="nav-link hover:text-white transition">Solutions</a>
-                <a href="pricing.html" class="nav-link hover:text-white transition">Pricing</a>
-                <a href="docs.html" class="nav-link hover:text-white transition">Docs</a>
-                <a href="about.html" class="nav-link-active text-teal-400 transition font-semibold">About</a>
+            <div class="hidden lg:flex items-center space-x-8 text-sm font-medium text-slate-500">
+                <a href="index.html#features" class="hover:text-[#5f43d0] transition">Features</a>
+                <a href="index.html#solutions" class="hover:text-[#5f43d0] transition">Solutions</a>
+                <a href="pricing.html" class="hover:text-[#5f43d0] transition">Pricing</a>
+                <a href="docs.html" class="hover:text-[#5f43d0] transition">Docs</a>
+                <a href="about.html" class="hover:text-[#5f43d0] transition">About</a>
             </div>
-        </div>
-        <div class="hidden sm:flex items-center space-x-4">
-            <a href="dashboard/login.html" class="text-sm font-semibold text-slate-300 hover:text-white transition">Log In</a>
-            <a href="dashboard/register.html" class="px-4 py-2 text-sm font-semibold text-slate-950 btn-primary rounded-lg shadow transition">Get Started</a>
+            <div class="hidden sm:flex items-center space-x-4">
+                <a href="dashboard/login.html" class="text-sm font-semibold text-slate-500 hover:text-[#5f43d0] transition">Log In</a>
+                <a href="dashboard/register.html" class="px-5 py-2.5 text-sm font-bold text-[#0B0B1E] bg-[#5f43d0] hover:bg-[#4f32c0] rounded-xl shadow-sm transition">Get Started</a>
+            </div>
         </div>
     </nav>
 
@@ -41,39 +43,39 @@
             
             <!-- Hero -->
             <div class="text-center space-y-4 max-w-2xl mx-auto">
-                <h1 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">Our Mission</h1>
-                <p class="text-slate-400 text-sm leading-relaxed">We build tools that save professional outreach writers from boring manual tasks. LinkPilot AI is designed to help professionals connect better, faster, and more securely.</p>
+                <h1 class="text-3xl sm:text-5xl font-extrabold text-[#0B0B1E] tracking-tight">Our Mission</h1>
+                <p class="text-slate-500 text-sm leading-relaxed">We build tools that save professional outreach writers from boring manual tasks. LinkPilot AI is designed to help professionals connect better, faster, and more securely.</p>
             </div>
 
             <!-- Vision Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8">
-                <div class="glass-panel p-6 rounded-2xl border-slate-800 space-y-3">
-                    <h3 class="text-sm font-bold text-teal-400 uppercase tracking-wider">Product Vision</h3>
-                    <p class="text-xs text-slate-400 leading-relaxed">Outreach shouldn't feel like a spam engine. By injecting tailored, profile-aware models directly inside your feed, we ensure every pitch feels handwritten, targeted, and relevant.</p>
+                <div class="bg-white border border-slate-150/80 shadow-md shadow-slate-100/40 p-6 rounded-2xl border-slate-100 space-y-3">
+                    <h3 class="text-sm font-bold text-[#5f43d0] uppercase tracking-wider">Product Vision</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">Outreach shouldn't feel like a spam engine. By injecting tailored, profile-aware models directly inside your feed, we ensure every pitch feels handwritten, targeted, and relevant.</p>
                 </div>
-                <div class="glass-panel p-6 rounded-2xl border-slate-800 space-y-3">
-                    <h3 class="text-sm font-bold text-purple-400 uppercase tracking-wider">Developer-First Architecture</h3>
-                    <p class="text-xs text-slate-400 leading-relaxed">Your credentials and keys are private. We encrypt your parameters securely, support open-source OpenRouter and Gemini relays, and keep configurations fully customizable.</p>
+                <div class="bg-white border border-slate-150/80 shadow-md shadow-slate-100/40 p-6 rounded-2xl border-slate-100 space-y-3">
+                    <h3 class="text-sm font-bold text-[#5f43d0] uppercase tracking-wider">Developer-First Architecture</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">Your credentials and keys are private. We encrypt your parameters securely, support open-source OpenRouter and Gemini relays, and keep configurations fully customizable.</p>
                 </div>
             </div>
 
             <!-- Careers section -->
-            <div class="space-y-6 pt-12 border-t border-slate-900">
+            <div class="space-y-6 pt-12 border-t border-slate-100">
                 <div class="text-center space-y-2">
-                    <h3 class="text-xl font-bold text-white">Join Our Team</h3>
+                    <h3 class="text-xl font-bold text-[#0B0B1E]">Join Our Team</h3>
                     <p class="text-xs text-slate-500">Shape the future of browser productivity tools.</p>
                 </div>
                 <div class="grid grid-cols-1 gap-4">
-                    <div class="glass-panel p-5 rounded-xl border-slate-800 flex justify-between items-center">
+                    <div class="bg-white border border-slate-150/80 shadow-md shadow-slate-100/40 p-5 rounded-xl border-slate-100 flex justify-between items-center">
                         <div>
-                            <h4 class="text-xs font-bold text-white">Senior Chrome Extension Engineer</h4>
+                            <h4 class="text-xs font-bold text-[#0B0B1E]">Senior Chrome Extension Engineer</h4>
                             <div class="text-[10px] text-slate-500 mt-1">Remote • Full-time • PHP & JavaScript</div>
                         </div>
-                        <a href="contact.html" class="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-[10px] text-teal-400 hover:border-teal-500 font-bold transition">Apply now</a>
+                        <a href="contact.html" class="px-3 py-1.5 bg-slate-50 border border-slate-150 border border-slate-100 rounded-lg text-[10px] text-[#5f43d0] hover:border-teal-500 font-bold transition">Apply now</a>
                     </div>
-                    <div class="glass-panel p-5 rounded-xl border-slate-800 flex justify-between items-center opacity-75">
+                    <div class="bg-white border border-slate-150/80 shadow-md shadow-slate-100/40 p-5 rounded-xl border-slate-100 flex justify-between items-center opacity-75">
                         <div>
-                            <h4 class="text-xs font-bold text-white">Growth & Marketing Lead</h4>
+                            <h4 class="text-xs font-bold text-[#0B0B1E]">Growth & Marketing Lead</h4>
                             <div class="text-[10px] text-slate-500 mt-1">Remote • Part-time • Outreach Specialist</div>
                         </div>
                         <span class="text-[9px] px-2 py-0.5 bg-slate-800 text-slate-500 rounded border border-slate-700 font-bold uppercase">Coming Soon</span>
@@ -82,19 +84,19 @@
             </div>
 
             <!-- Partners and Press Kit -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-slate-900">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-slate-100">
                 <div class="space-y-3">
-                    <h4 class="text-sm font-bold text-white">Partner Program</h4>
-                    <p class="text-xs text-slate-400 leading-relaxed">Collaborate with LinkPilot AI. Integrate our overlay capabilities into your recruitment pipeline or HR platforms. Contact us to learn about custom OEM configurations.</p>
-                    <a href="contact.html" class="text-xs text-teal-400 hover:underline font-semibold flex items-center space-x-1">
+                    <h4 class="text-sm font-bold text-[#0B0B1E]">Partner Program</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed">Collaborate with LinkPilot AI. Integrate our overlay capabilities into your recruitment pipeline or HR platforms. Contact us to learn about custom OEM configurations.</p>
+                    <a href="contact.html" class="text-xs text-[#5f43d0] hover:underline font-semibold flex items-center space-x-1">
                         <span>Get in touch</span>
                         <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
                     </a>
                 </div>
                 <div class="space-y-3">
-                    <h4 class="text-sm font-bold text-white">Press Kit</h4>
-                    <p class="text-xs text-slate-400 leading-relaxed">Download official brand assets, screenshots, and visual vectors for media releases. For press inquiries, reach out to our media relations contact directly.</p>
-                    <a href="assets/img/logo.png" target="_blank" class="text-xs text-teal-400 hover:underline font-semibold flex items-center space-x-1">
+                    <h4 class="text-sm font-bold text-[#0B0B1E]">Press Kit</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed">Download official brand assets, screenshots, and visual vectors for media releases. For press inquiries, reach out to our media relations contact directly.</p>
+                    <a href="assets/img/logo.png" target="_blank" class="text-xs text-[#5f43d0] hover:underline font-semibold flex items-center space-x-1">
                         <span>Download Logo assets</span>
                         <i data-lucide="download" class="h-3.5 w-3.5"></i>
                     </a>
@@ -105,37 +107,41 @@
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-slate-900 bg-slate-950 py-12 text-slate-500 text-xs">
+    <!-- Footer -->
+    <footer class="border-t border-slate-100 bg-[#FAFAFC] py-12 text-slate-400 text-xs">
         <div class="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-5 gap-8">
             <div class="col-span-2 space-y-4">
-                <div class="text-white font-bold tracking-wider text-sm">✨ LinkPilot AI</div>
-                <p class="max-w-xs text-slate-600 leading-relaxed">Automate personalized outreach emails, comments, and WhatsApp responses straight from your browser.</p>
-                <div class="text-slate-700">© 2026 LinkPilot AI. All rights reserved.</div>
+                <div class="flex items-center space-x-2 text-[#0B0B1E] font-bold text-sm">
+                    <img src="dashboard/assets/img/logo.png" class="h-6 w-6 object-contain" alt="LinkPilot AI">
+                    <span class="font-extrabold text-[#0B0B1E]">LinkPilot AI</span>
+                </div>
+                <p class="max-w-xs text-slate-500 leading-relaxed">AI CRM to automate WhatsApp, Gmail, and Instagram conversations, appointments, and workflows.</p>
+                <div class="text-slate-400">Charge it with Taskbazi 2024 -26. All rights reserved.</div>
             </div>
             <div class="space-y-3">
-                <h5 class="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Product</h5>
+                <h5 class="text-slate-600 font-bold uppercase tracking-wider text-[10px]">Product</h5>
                 <ul class="space-y-2">
-                    <li><a href="index.html#features" class="hover:text-white transition">Features</a></li>
-                    <li><a href="pricing.html" class="hover:text-white transition">Pricing</a></li>
-                    <li><a href="docs.html" class="hover:text-white transition">Documentation</a></li>
+                    <li><a href="index.html#features" class="hover:text-[#5f43d0] transition">Features</a></li>
+                    <li><a href="pricing.html" class="hover:text-[#5f43d0] transition">Pricing</a></li>
+                    <li><a href="docs.html" class="hover:text-[#5f43d0] transition">Documentation</a></li>
                 </ul>
             </div>
             <div class="space-y-3">
-                <h5 class="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Company</h5>
+                <h5 class="text-slate-600 font-bold uppercase tracking-wider text-[10px]">Company</h5>
                 <ul class="space-y-2">
-                    <li><a href="about.html" class="hover:text-white transition">About Us</a></li>
-                    <li><a href="blog.html" class="hover:text-white transition">Blog & Updates</a></li>
-                    <li><a href="contact.html" class="hover:text-white transition">Support Contact</a></li>
+                    <li><a href="about.html" class="hover:text-[#5f43d0] transition">About Us</a></li>
+                    <li><a href="blog.html" class="hover:text-[#5f43d0] transition">Blog & Updates</a></li>
+                    <li><a href="contact.html" class="hover:text-[#5f43d0] transition">Support Contact</a></li>
                 </ul>
             </div>
             <div class="space-y-3">
-                <h5 class="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Legal</h5>
+                <h5 class="text-slate-600 font-bold uppercase tracking-wider text-[10px]">Legal</h5>
                 <ul class="space-y-2">
-                    <li><a href="privacy.html" class="hover:text-white transition">Privacy Policy</a></li>
-                    <li><a href="terms.html" class="hover:text-white transition">Terms of Service</a></li>
-                    <li><a href="cookies.html" class="hover:text-white transition">Cookie Policy</a></li>
-                    <li><a href="disclaimer.html" class="hover:text-white transition">Disclaimer</a></li>
-                    <li><a href="sitemap.html" class="hover:text-white transition">Sitemap</a></li>
+                    <li><a href="privacy.html" class="hover:text-[#5f43d0] transition">Privacy Policy</a></li>
+                    <li><a href="terms.html" class="hover:text-[#5f43d0] transition">Terms of Service</a></li>
+                    <li><a href="cookies.html" class="hover:text-[#5f43d0] transition">Cookie Policy</a></li>
+                    <li><a href="disclaimer.html" class="hover:text-[#5f43d0] transition">Disclaimer</a></li>
+                    <li><a href="sitemap.html" class="hover:text-[#5f43d0] transition">Sitemap</a></li>
                 </ul>
             </div>
         </div>

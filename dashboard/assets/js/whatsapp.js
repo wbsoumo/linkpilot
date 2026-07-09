@@ -2675,10 +2675,25 @@ function renderWhatsAppCampaigns(container) {
                 }
             };
 
-            // Define new full setup page view creator
+            // Initialize dynamic draft state in scope
+            if (!window.campaignDraft) {
+                window.campaignDraft = {
+                    name: 'Follow Up Reminder - 07/07/2026',
+                    phone: '91 98765 43210',
+                    template: templates.length > 0 ? templates[0].name : 'followup_reminder',
+                    category: 'marketing',
+                    type: 'broadcast',
+                    tags: ['followup', 'reminder', 'leads'],
+                    description: 'This campaign is to follow up with interested leads who didn\'t respond to our previous message.',
+                    recipients: []
+                };
+            }
+
+            // Define Step 1: Campaign Setup Page View
             window.openCampaignCreatePage = function() {
+                const draft = window.campaignDraft;
                 contentArea.innerHTML = `
-                    <div class="space-y-6 text-slate-800 animate-fade-in bg-[#f8fafc] p-6 rounded-3xl border border-slate-200/60">
+                    <div class="space-y-6 text-slate-805 animate-fade-in bg-[#f8fafc] p-6 rounded-3xl border border-slate-200/60">
                         <!-- Header -->
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-3">
@@ -2709,7 +2724,7 @@ function renderWhatsAppCampaigns(container) {
                             </div>
                             <div class="h-px bg-slate-100 flex-grow hidden md:block"></div>
                             <div class="flex items-center space-x-2.5 opacity-60">
-                                <div class="h-7 w-7 rounded-full border border-slate-200 flex items-center justify-center text-xs text-slate-400 bg-slate-50">2</div>
+                                <div class="h-7 w-7 rounded-full border border-slate-200 flex items-center justify-center text-xs text-slate-405 bg-slate-50">2</div>
                                 <div>
                                     <div class="text-slate-500 leading-tight">Target Audience</div>
                                     <div class="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Select recipients</div>
@@ -2717,26 +2732,10 @@ function renderWhatsAppCampaigns(container) {
                             </div>
                             <div class="h-px bg-slate-100 flex-grow hidden md:block"></div>
                             <div class="flex items-center space-x-2.5 opacity-60">
-                                <div class="h-7 w-7 rounded-full border border-slate-200 flex items-center justify-center text-xs text-slate-400 bg-slate-50">3</div>
+                                <div class="h-7 w-7 rounded-full border border-slate-200 flex items-center justify-center text-xs text-slate-405 bg-slate-50">3</div>
                                 <div>
-                                    <div class="text-slate-500 leading-tight">Message Content</div>
-                                    <div class="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Create your message</div>
-                                </div>
-                            </div>
-                            <div class="h-px bg-slate-100 flex-grow hidden md:block"></div>
-                            <div class="flex items-center space-x-2.5 opacity-60">
-                                <div class="h-7 w-7 rounded-full border border-slate-200 flex items-center justify-center text-xs text-slate-400 bg-slate-50">4</div>
-                                <div>
-                                    <div class="text-slate-500 leading-tight">Scheduling</div>
-                                    <div class="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Set time & options</div>
-                                </div>
-                            </div>
-                            <div class="h-px bg-slate-100 flex-grow hidden md:block"></div>
-                            <div class="flex items-center space-x-2.5 opacity-60">
-                                <div class="h-7 w-7 rounded-full border border-slate-200 flex items-center justify-center text-xs text-slate-400 bg-slate-50">5</div>
-                                <div>
-                                    <div class="text-slate-505 leading-tight">Review & Launch</div>
-                                    <div class="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Confirm & start</div>
+                                    <div class="text-slate-900 leading-tight">Message Content / Launch</div>
+                                    <div class="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Confirm & launch</div>
                                 </div>
                             </div>
                         </div>
@@ -2754,7 +2753,7 @@ function renderWhatsAppCampaigns(container) {
                                     <form onsubmit="handleCampaignSubmitInline(event)" class="space-y-5 text-xs font-semibold text-slate-700">
                                         <div>
                                             <label class="block text-slate-700 font-bold mb-1.5">Campaign Name <span class="text-rose-500">*</span></label>
-                                            <input type="text" id="camp-inline-name" required value="Follow Up Reminder - 07/07/2026" oninput="updateSummaryCard()" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-xs text-slate-800 font-semibold transition-all duration-150">
+                                            <input type="text" id="camp-inline-name" required value="${draft.name}" oninput="window.campaignDraft.name = this.value; updateSummaryCard()" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-xs text-slate-800 font-semibold transition-all duration-150">
                                             <span class="block text-[10px] text-slate-400 font-medium mt-1">Give a unique name to your campaign</span>
                                         </div>
 
@@ -2765,8 +2764,8 @@ function renderWhatsAppCampaigns(container) {
                                                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                                         <img src="../assets/css/WhatsApp_icon.png" class="h-4 w-4 object-contain" alt="WhatsApp">
                                                     </span>
-                                                    <select id="camp-inline-number" onchange="updateSummaryCard()" class="w-full pl-9 pr-3 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-xs text-slate-800 font-bold cursor-pointer transition-all duration-150">
-                                                        <option value="91 98765 43210">91 98765 43210</option>
+                                                    <select id="camp-inline-number" onchange="window.campaignDraft.phone = this.value; updateSummaryCard()" class="w-full pl-9 pr-3 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-xs text-slate-800 font-bold cursor-pointer transition-all duration-150">
+                                                        <option value="91 98765 43210" ${draft.phone === '91 98765 43210' ? 'selected' : ''}>91 98765 43210</option>
                                                     </select>
                                                 </div>
                                                 <span class="block text-[10px] text-slate-400 font-medium mt-1">Select the WhatsApp number to send messages from</span>
@@ -2775,7 +2774,7 @@ function renderWhatsAppCampaigns(container) {
                                             <div>
                                                 <label class="block text-slate-700 font-bold mb-1.5">Message Template <span class="text-rose-500">*</span></label>
                                                 <div class="relative cursor-pointer" onclick="openTemplateSelectorModal()">
-                                                    <input type="text" id="camp-inline-template" readonly value="followup_reminder" class="w-full pl-3.5 pr-8 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-xs text-slate-805 font-bold cursor-pointer select-none transition-all duration-150">
+                                                    <input type="text" id="camp-inline-template" readonly value="${draft.template}" class="w-full pl-3.5 pr-8 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-xs text-slate-805 font-bold cursor-pointer select-none transition-all duration-150">
                                                     <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
                                                         <i data-lucide="chevron-down" class="h-4 w-4"></i>
                                                     </span>
@@ -2787,10 +2786,10 @@ function renderWhatsAppCampaigns(container) {
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                             <div>
                                                 <label class="block text-slate-700 font-bold mb-1.5">Campaign Category</label>
-                                                <select id="camp-inline-category" class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-xs text-slate-800 font-bold cursor-pointer transition-all duration-150">
-                                                    <option value="marketing">Marketing</option>
-                                                    <option value="utility">Utility</option>
-                                                    <option value="authentication">Authentication</option>
+                                                <select id="camp-inline-category" onchange="window.campaignDraft.category = this.value" class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-xs text-slate-808 font-bold cursor-pointer transition-all duration-150">
+                                                    <option value="marketing" ${draft.category === 'marketing' ? 'selected' : ''}>Marketing</option>
+                                                    <option value="utility" ${draft.category === 'utility' ? 'selected' : ''}>Utility</option>
+                                                    <option value="authentication" ${draft.category === 'authentication' ? 'selected' : ''}>Authentication</option>
                                                 </select>
                                                 <span class="block text-[10px] text-slate-400 font-medium mt-1">Select the category of your campaign</span>
                                             </div>
@@ -2798,8 +2797,8 @@ function renderWhatsAppCampaigns(container) {
                                             <div>
                                                 <label class="block text-slate-700 font-bold mb-1.5">Campaign Type</label>
                                                 <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-white p-0.5 h-[44px] transition-all duration-150 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/15">
-                                                    <button type="button" id="type-btn-broadcast" onclick="selectCampaignType('broadcast')" class="flex-grow py-2 rounded-lg text-emerald-600 bg-emerald-50/50 border border-emerald-100/30 font-bold text-center text-xs transition duration-150">Broadcast</button>
-                                                    <button type="button" id="type-btn-sequence" onclick="selectCampaignType('sequence')" class="flex-grow py-2 rounded-lg text-slate-500 hover:text-slate-800 font-semibold text-center text-xs transition duration-150">Drip / Sequence</button>
+                                                    <button type="button" id="type-btn-broadcast" onclick="selectCampaignType('broadcast')" class="flex-grow py-2 rounded-lg ${draft.type === 'broadcast' ? 'text-emerald-600 bg-emerald-50/50 border border-emerald-100/30 font-bold' : 'text-slate-500 font-semibold'} text-center text-xs transition duration-150">Broadcast</button>
+                                                    <button type="button" id="type-btn-sequence" onclick="selectCampaignType('sequence')" class="flex-grow py-2 rounded-lg ${draft.type === 'sequence' ? 'text-emerald-600 bg-emerald-50/50 border border-emerald-100/30 font-bold' : 'text-slate-500 font-semibold'} text-center text-xs transition duration-150">Drip / Sequence</button>
                                                 </div>
                                                 <span class="block text-[10px] text-slate-400 font-medium mt-1">Send to all at once or in a sequence</span>
                                             </div>
@@ -2809,18 +2808,12 @@ function renderWhatsAppCampaigns(container) {
                                         <div>
                                             <label class="block text-slate-700 font-bold mb-1.5">Tags</label>
                                             <div class="flex flex-wrap items-center gap-1.5 w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl min-h-[44px] transition-all duration-150 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/15">
-                                                <div class="flex items-center space-x-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-bold text-[10px] border border-emerald-100/50">
-                                                    <span>followup</span>
-                                                    <button type="button" onclick="removeInlineTag(this)" class="hover:text-rose-500 text-slate-400 font-black">&times;</button>
-                                                </div>
-                                                <div class="flex items-center space-x-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-bold text-[10px] border border-emerald-100/50">
-                                                    <span>reminder</span>
-                                                    <button type="button" onclick="removeInlineTag(this)" class="hover:text-rose-500 text-slate-400 font-black">&times;</button>
-                                                </div>
-                                                <div class="flex items-center space-x-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-bold text-[10px] border border-emerald-100/50">
-                                                    <span>leads</span>
-                                                    <button type="button" onclick="removeInlineTag(this)" class="hover:text-rose-500 text-slate-400 font-black">&times;</button>
-                                                </div>
+                                                ${draft.tags.map(t => `
+                                                    <div class="flex items-center space-x-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-bold text-[10px] border border-emerald-100/50">
+                                                        <span>${t}</span>
+                                                        <button type="button" onclick="removeInlineTag(this)" class="hover:text-rose-500 text-slate-400 font-black">&times;</button>
+                                                    </div>
+                                                `).join('')}
                                                 <input type="text" placeholder="Add tag..." onkeydown="handleTagInputInline(event)" style="border: none !important; outline: none !important; box-shadow: none !important;" class="bg-transparent text-xs text-slate-800 placeholder-slate-400 min-w-[120px] flex-grow py-1">
                                             </div>
                                             <span class="block text-[10px] text-slate-400 font-medium mt-1">Add tags to organize your campaigns</span>
@@ -2828,7 +2821,7 @@ function renderWhatsAppCampaigns(container) {
 
                                         <div>
                                             <label class="block text-slate-700 font-bold mb-1.5">Campaign Description (Optional)</label>
-                                            <textarea id="camp-inline-desc" placeholder="This campaign is to follow up with interested leads who didn't respond to our previous message." class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-xs text-slate-800 font-semibold h-24 resize-none transition-all duration-150">This campaign is to follow up with interested leads who didn't respond to our previous message.</textarea>
+                                            <textarea id="camp-inline-desc" oninput="window.campaignDraft.description = this.value" placeholder="This campaign is to follow up with interested leads who didn't respond to our previous message." class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-xs text-slate-800 font-semibold h-24 resize-none transition-all duration-150">${draft.description}</textarea>
                                             <span class="block text-[10px] text-slate-400 font-medium mt-1">This helps you and your team identify the purpose of this campaign</span>
                                         </div>
 
@@ -2855,35 +2848,35 @@ function renderWhatsAppCampaigns(container) {
                                                 <i data-lucide="send" class="h-4 w-4"></i>
                                                 <span>Campaign Type</span>
                                             </div>
-                                            <span class="text-slate-800 font-bold" id="summary-campaign-type">Broadcast</span>
+                                            <span class="text-slate-800 font-bold" id="summary-campaign-type">${draft.type === 'broadcast' ? 'Broadcast' : 'Drip / Sequence'}</span>
                                         </div>
                                         <div class="flex justify-between items-center">
                                             <div class="flex items-center space-x-2 text-slate-405">
                                                 <img src="../assets/css/WhatsApp_icon.png" class="h-4 w-4 object-contain" alt="WhatsApp">
                                                 <span>WhatsApp Number</span>
                                             </div>
-                                            <span class="text-slate-800 font-bold" id="summary-whatsapp-number">91 98765 43210</span>
+                                            <span class="text-slate-800 font-bold" id="summary-whatsapp-number">${draft.phone}</span>
                                         </div>
                                         <div class="flex justify-between items-center">
                                             <div class="flex items-center space-x-2 text-slate-400">
                                                 <i data-lucide="file-text" class="h-4 w-4"></i>
                                                 <span>Template</span>
                                             </div>
-                                            <span class="text-slate-800 font-mono text-[11px]" id="summary-template">followup_reminder</span>
+                                            <span class="text-slate-805 font-mono text-[11px]" id="summary-template">${draft.template}</span>
                                         </div>
                                         <div class="flex justify-between items-center">
                                             <div class="flex items-center space-x-2 text-slate-400">
                                                 <i data-lucide="users" class="h-4 w-4"></i>
                                                 <span>Estimated Recipients</span>
                                             </div>
-                                            <span class="text-slate-800 font-bold" id="summary-recipients">120 contacts</span>
+                                            <span class="text-slate-800 font-bold" id="summary-recipients">${draft.recipients.length} contacts</span>
                                         </div>
                                         <div class="flex justify-between items-center">
                                             <div class="flex items-center space-x-2 text-slate-400">
                                                 <i data-lucide="message-square" class="h-4 w-4"></i>
                                                 <span>Estimated Messages</span>
                                             </div>
-                                            <span class="text-slate-800 font-bold" id="summary-messages">~120 messages</span>
+                                            <span class="text-slate-805 font-bold" id="summary-messages">~${draft.recipients.length} messages</span>
                                         </div>
                                     </div>
                                     <div class="text-[10px] text-slate-400 font-medium border-t border-slate-100 pt-3">
@@ -2925,7 +2918,7 @@ function renderWhatsAppCampaigns(container) {
                                     </div>
                                     <div class="space-y-1.5 text-xs">
                                         <h4 class="font-bold text-slate-800 leading-none">Compliance Reminder</h4>
-                                        <p class="text-slate-505 leading-normal font-medium">Ensure you have explicit consent from recipients. Avoid sending promotional content without permission.</p>
+                                        <p class="text-slate-505 leading-normal font-medium font-semibold">Ensure you have explicit consent from recipients. Avoid sending promotional content without permission.</p>
                                         <a href="https://support.linkpilot.com" target="_blank" class="inline-flex items-center text-blue-600 font-bold hover:underline space-x-0.5">
                                             <span>Learn more</span>
                                             <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
@@ -2953,30 +2946,39 @@ function renderWhatsAppCampaigns(container) {
             };
 
             window.updateSummaryCard = function() {
-                const name = document.getElementById('camp-inline-name').value;
-                const num = document.getElementById('camp-inline-number').value;
-                const tpl = document.getElementById('camp-inline-template').value;
+                const name = document.getElementById('camp-inline-name') ? document.getElementById('camp-inline-name').value : window.campaignDraft.name;
+                const num = document.getElementById('camp-inline-number') ? document.getElementById('camp-inline-number').value : window.campaignDraft.phone;
+                const tpl = document.getElementById('camp-inline-template') ? document.getElementById('camp-inline-template').value : window.campaignDraft.template;
                 
-                document.getElementById('summary-whatsapp-number').textContent = num;
-                document.getElementById('summary-template').textContent = tpl;
+                if (document.getElementById('summary-whatsapp-number')) {
+                    document.getElementById('summary-whatsapp-number').textContent = num;
+                }
+                if (document.getElementById('summary-template')) {
+                    document.getElementById('summary-template').textContent = tpl;
+                }
             };
 
             window.selectCampaignType = function(type) {
+                window.campaignDraft.type = type;
                 const bBtn = document.getElementById('type-btn-broadcast');
                 const sBtn = document.getElementById('type-btn-sequence');
                 
+                if (!bBtn || !sBtn) return;
+                
                 if (type === 'broadcast') {
-                    bBtn.className = 'flex-grow py-1.5 rounded-lg text-emerald-600 bg-white border border-slate-200/60 shadow-2xs font-bold text-center text-xs transition duration-150';
-                    sBtn.className = 'flex-grow py-1.5 rounded-lg text-slate-500 hover:text-slate-800 font-semibold text-center text-xs transition duration-150';
+                    bBtn.className = 'flex-grow py-2 rounded-lg text-emerald-600 bg-emerald-50/50 border border-emerald-100/30 font-bold text-center text-xs transition duration-150';
+                    sBtn.className = 'flex-grow py-2 rounded-lg text-slate-500 font-semibold text-center text-xs transition duration-150';
                     document.getElementById('summary-campaign-type').textContent = 'Broadcast';
                 } else {
-                    sBtn.className = 'flex-grow py-1.5 rounded-lg text-emerald-600 bg-white border border-slate-200/60 shadow-2xs font-bold text-center text-xs transition duration-150';
-                    bBtn.className = 'flex-grow py-1.5 rounded-lg text-slate-500 hover:text-slate-800 font-semibold text-center text-xs transition duration-150';
+                    sBtn.className = 'flex-grow py-2 rounded-lg text-emerald-600 bg-emerald-50/50 border border-emerald-100/30 font-bold text-center text-xs transition duration-150';
+                    bBtn.className = 'flex-grow py-2 rounded-lg text-slate-500 font-semibold text-center text-xs transition duration-150';
                     document.getElementById('summary-campaign-type').textContent = 'Drip / Sequence';
                 }
             };
 
             window.removeInlineTag = function(button) {
+                const text = button.parentElement.querySelector('span').textContent;
+                window.campaignDraft.tags = window.campaignDraft.tags.filter(t => t !== text);
                 button.parentElement.remove();
             };
 
@@ -2985,7 +2987,8 @@ function renderWhatsAppCampaigns(container) {
                 if (event.key === 'Enter' || event.key === ',') {
                     event.preventDefault();
                     const tagText = input.value.replace(/,/g, '').trim();
-                    if (tagText) {
+                    if (tagText && !window.campaignDraft.tags.includes(tagText)) {
+                        window.campaignDraft.tags.push(tagText);
                         const container = input.parentElement;
                         const newTag = document.createElement('div');
                         newTag.className = 'flex items-center space-x-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-bold text-[10px] border border-emerald-100/50';
@@ -3000,25 +3003,25 @@ function renderWhatsAppCampaigns(container) {
             };
 
             window.cancelCampaignCreate = function() {
+                window.campaignDraft = null;
                 renderWhatsAppCampaigns(container);
             };
 
             window.saveCampaignDraftInline = function(e) {
                 e.preventDefault();
+                const nameVal = document.getElementById('camp-inline-name') ? document.getElementById('camp-inline-name').value.trim() : window.campaignDraft.name;
+                const tplVal = document.getElementById('camp-inline-template') ? document.getElementById('camp-inline-template').value : window.campaignDraft.template;
+                
                 const payload = {
-                    name: document.getElementById('camp-inline-name').value.trim(),
-                    template_name: document.getElementById('camp-inline-template').value,
-                    filters: {
-                        company: '',
-                        industry: '',
-                        city: '',
-                        tags: Array.from(document.querySelectorAll('.bg-emerald-50 span')).map(span => span.textContent).join(',')
-                    }
+                    name: nameVal,
+                    template_name: tplVal,
+                    recipients: window.campaignDraft.recipients || []
                 };
 
                 apiCall('whatsapp/campaigns.php?action=create', 'POST', payload)
                     .then(res => {
                         showNotification('success', 'Campaign draft saved successfully.');
+                        window.campaignDraft = null;
                         renderWhatsAppCampaigns(container);
                     })
                     .catch(err => {
@@ -3028,25 +3031,1016 @@ function renderWhatsAppCampaigns(container) {
 
             window.handleCampaignSubmitInline = function(e) {
                 e.preventDefault();
-                const payload = {
-                    name: document.getElementById('camp-inline-name').value.trim(),
-                    template_name: document.getElementById('camp-inline-template').value,
-                    filters: {
-                        company: '',
-                        industry: '',
-                        city: '',
-                        tags: Array.from(document.querySelectorAll('.bg-emerald-50 span')).map(span => span.textContent).join(',')
+                // Sync values
+                window.campaignDraft.name = document.getElementById('camp-inline-name').value.trim();
+                window.campaignDraft.phone = document.getElementById('camp-inline-number').value;
+                window.campaignDraft.template = document.getElementById('camp-inline-template').value;
+                window.campaignDraft.category = document.getElementById('camp-inline-category').value;
+                window.campaignDraft.description = document.getElementById('camp-inline-desc').value.trim();
+                
+                // Go to step 2
+                openCampaignAudiencePage();
+            };
+
+            // Define Step 2: Target Audience selection page view creator
+            window.openCampaignAudiencePage = function() {
+                const draft = window.campaignDraft;
+                contentArea.innerHTML = `
+                    <div class="space-y-6 text-slate-805 animate-fade-in bg-[#f8fafc] p-6 rounded-3xl border border-slate-200/60">
+                        <!-- Header -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="h-10 w-10 flex items-center justify-center shrink-0">
+                                    <img src="../assets/css/WhatsApp_icon.png" class="h-10 w-10 object-contain" alt="WhatsApp">
+                                </div>
+                                <div>
+                                    <h1 class="text-xl font-bold tracking-tight text-slate-900 leading-none">Select Target Audience</h1>
+                                    <p class="text-xs text-slate-400 mt-1.5 font-medium">Choose who will receive your personalized WhatsApp broadcast</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="saveCampaignDraftInline(event)" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition shadow-sm bg-white">Save as Draft</button>
+                                <button onclick="cancelCampaignCreate()" class="h-8 w-8 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-800 flex items-center justify-center transition bg-white">
+                                    <i data-lucide="x" class="h-4 w-4"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Stepper Indicator -->
+                        <div class="bg-white border border-slate-200/80 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 text-xs font-bold text-slate-505 shadow-xs">
+                            <div class="flex items-center space-x-2.5 cursor-pointer" onclick="openCampaignCreatePage()">
+                                <div class="h-7 w-7 rounded-full border border-emerald-600 text-emerald-600 flex items-center justify-center text-xs bg-emerald-50">✓</div>
+                                <div>
+                                    <div class="text-slate-900 leading-tight">Campaign Setup</div>
+                                    <div class="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Basic details</div>
+                                </div>
+                            </div>
+                            <div class="h-px bg-slate-100 flex-grow hidden md:block"></div>
+                            <div class="flex items-center space-x-2.5">
+                                <div class="h-7 w-7 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs" style="color: white !important;">2</div>
+                                <div>
+                                    <div class="text-slate-900 leading-tight">Target Audience</div>
+                                    <div class="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Select recipients</div>
+                                </div>
+                            </div>
+                            <div class="h-px bg-slate-100 flex-grow hidden md:block"></div>
+                            <div class="flex items-center space-x-2.5 opacity-60">
+                                <div class="h-7 w-7 rounded-full border border-slate-200 flex items-center justify-center text-xs text-slate-405 bg-slate-50">3</div>
+                                <div>
+                                    <div class="text-slate-900 leading-tight">Message Content / Launch</div>
+                                    <div class="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Confirm & launch</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2-Column Grid -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Left: Options (2 cols) -->
+                            <div class="lg:col-span-2 space-y-6">
+                                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5">
+                                    <div class="space-y-1 border-b border-slate-100 pb-3">
+                                        <h3 class="font-bold text-slate-800 text-sm">Audience Source</h3>
+                                        <p class="text-slate-400 text-xs font-medium">Select one of the four methods to define your recipient list</p>
+                                    </div>
+
+                                    <!-- 4 Cards Grid -->
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <!-- Card 1: My Contacts -->
+                                        <div onclick="openMyContactsPopup()" class="p-5 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/10 rounded-2xl cursor-pointer transition-all duration-200 space-y-3 shadow-2xs group flex flex-col justify-between h-[150px] bg-white">
+                                            <div class="flex justify-between items-start">
+                                                <div class="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-emerald-50 group-hover:text-emerald-600 transition">
+                                                    <i data-lucide="users" class="h-5 w-5"></i>
+                                                </div>
+                                                <span class="text-[9px] font-extrabold bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full border border-blue-100 uppercase tracking-wider group-hover:bg-emerald-50 group-hover:text-emerald-600 group-hover:border-emerald-100 transition">Database</span>
+                                            </div>
+                                            <div>
+                                                <h4 class="font-bold text-slate-800 text-xs leading-none">My Contacts</h4>
+                                                <p class="text-[10px] text-slate-400 font-medium mt-1.5 leading-normal">Choose from your saved CRM/WhatsApp contacts database</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Card 2: Groups -->
+                                        <div onclick="openGroupsPopup()" class="p-5 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/10 rounded-2xl cursor-pointer transition-all duration-200 space-y-3 shadow-2xs group flex flex-col justify-between h-[150px] bg-white">
+                                            <div class="flex justify-between items-start">
+                                                <div class="h-10 w-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:bg-emerald-50 group-hover:text-emerald-600 transition">
+                                                    <i data-lucide="folder-heart" class="h-5 w-5"></i>
+                                                </div>
+                                                <span class="text-[9px] font-extrabold bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full border border-purple-100 uppercase tracking-wider group-hover:bg-emerald-50 group-hover:text-emerald-600 group-hover:border-emerald-100 transition">Segments</span>
+                                            </div>
+                                            <div>
+                                                <h4 class="font-bold text-slate-800 text-xs leading-none">Groups / Tags</h4>
+                                                <p class="text-[10px] text-slate-400 font-medium mt-1.5 leading-normal">Filter contacts categorized by tags or list groupings</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Card 3: Enter Manually -->
+                                        <div onclick="openEnterManuallyPopup()" class="p-5 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/10 rounded-2xl cursor-pointer transition-all duration-200 space-y-3 shadow-2xs group flex flex-col justify-between h-[150px] bg-white">
+                                            <div class="flex justify-between items-start">
+                                                <div class="h-10 w-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:bg-emerald-50 group-hover:text-emerald-600 transition">
+                                                    <i data-lucide="keyboard" class="h-5 w-5"></i>
+                                                </div>
+                                                <span class="text-[9px] font-extrabold bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full border border-amber-100 uppercase tracking-wider group-hover:bg-emerald-50 group-hover:text-emerald-600 group-hover:border-emerald-100 transition">Quick Input</span>
+                                            </div>
+                                            <div>
+                                                <h4 class="font-bold text-slate-800 text-xs leading-none">Enter Manually</h4>
+                                                <p class="text-[10px] text-slate-400 font-medium mt-1.5 leading-normal">Type or paste target numbers directly (one number per line)</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Card 4: Import from CSV -->
+                                        <div onclick="openImportCSVPopup()" class="p-5 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/10 rounded-2xl cursor-pointer transition-all duration-200 space-y-3 shadow-2xs group flex flex-col justify-between h-[150px] bg-white">
+                                            <div class="flex justify-between items-start">
+                                                <div class="h-10 w-10 rounded-xl bg-[#e8fdf4] text-emerald-600 flex items-center justify-center">
+                                                    <i data-lucide="file-spreadsheet" class="h-5 w-5"></i>
+                                                </div>
+                                                <span class="text-[9px] font-extrabold bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full border border-emerald-100 uppercase tracking-wider">Spreadsheet</span>
+                                            </div>
+                                            <div>
+                                                <h4 class="font-bold text-slate-800 text-xs leading-none">Import from CSV</h4>
+                                                <p class="text-[10px] text-slate-400 font-medium mt-1.5 leading-normal">Upload CSV sheet with numbers and template variables</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Recipient List Preview Section -->
+                                    <div class="space-y-3 pt-2">
+                                        <h4 class="font-bold text-slate-700 text-xs">Selected Recipients Preview (${draft.recipients.length} total)</h4>
+                                        <div class="border border-slate-200 rounded-2xl overflow-hidden max-h-[220px] overflow-y-auto bg-slate-50/50">
+                                            <table class="w-full text-left text-xs font-semibold text-slate-600">
+                                                <thead class="bg-slate-100/80 text-slate-500 text-[10px] uppercase font-extrabold border-b border-slate-200">
+                                                    <tr>
+                                                        <th class="p-2.5 pl-4">Name</th>
+                                                        <th class="p-2.5">Phone</th>
+                                                        <th class="p-2.5">Variable 1 (val1)</th>
+                                                        <th class="p-2.5 pr-4">Variable 2 (val2)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    ${draft.recipients.length === 0 ? `
+                                                        <tr>
+                                                            <td colspan="4" class="p-8 text-center text-slate-400 font-medium bg-white">No recipients selected yet. Click one of the options above to populate.</td>
+                                                        </tr>
+                                                    ` : draft.recipients.slice(0, 5).map(r => `
+                                                        <tr class="border-b border-slate-100 last:border-0 bg-white">
+                                                            <td class="p-2.5 pl-4 font-bold text-slate-805">${r.name}</td>
+                                                            <td class="p-2.5 font-mono text-[11px] text-slate-500">${r.phone}</td>
+                                                            <td class="p-2.5"><span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-md border border-emerald-100/50 text-[10px] font-bold">${r.val1 || '-'}</span></td>
+                                                            <td class="p-2.5 pr-4"><span class="px-2 py-0.5 bg-blue-50/50 text-blue-600 rounded-md border border-blue-100/30 text-[10px] font-bold">${r.val2 || '-'}</span></td>
+                                                        </tr>
+                                                    `).join('')}
+                                                    ${draft.recipients.length > 5 ? `
+                                                        <tr class="bg-slate-50/30">
+                                                            <td colspan="4" class="p-2 text-center text-[10px] text-slate-400 font-medium">Showing top 5 recipients. And ${draft.recipients.length - 5} more...</td>
+                                                        </tr>
+                                                    ` : ''}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- Footer Navigation Controls -->
+                                    <div class="flex items-center justify-between border-t border-slate-100 pt-4 mt-6">
+                                        <button type="button" onclick="openCampaignCreatePage()" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition shadow-sm bg-white">Back to Setup</button>
+                                        <button type="button" onclick="openCampaignReviewPage()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md shadow-emerald-500/10" style="color: white !important;">
+                                            <span>Save & Next</span>
+                                            <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right: Summary Sidebar (1 col) -->
+                            <div class="space-y-6">
+                                <!-- Campaign Summary Card -->
+                                <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-4">
+                                    <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider">Campaign Summary</h4>
+                                    <div class="space-y-3.5 text-xs text-slate-600 font-semibold">
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center space-x-2 text-slate-400">
+                                                <i data-lucide="send" class="h-4 w-4"></i>
+                                                <span>Campaign Type</span>
+                                            </div>
+                                            <span class="text-slate-800 font-bold" id="summary-campaign-type">${draft.type === 'broadcast' ? 'Broadcast' : 'Drip / Sequence'}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center space-x-2 text-slate-400">
+                                                <img src="../assets/css/WhatsApp_icon.png" class="h-4 w-4 object-contain" alt="WhatsApp">
+                                                <span>WhatsApp Number</span>
+                                            </div>
+                                            <span class="text-slate-800 font-bold" id="summary-whatsapp-number">${draft.phone}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center space-x-2 text-slate-400">
+                                                <i data-lucide="file-text" class="h-4 w-4"></i>
+                                                <span>Template</span>
+                                            </div>
+                                            <span class="text-slate-805 font-mono text-[11px]" id="summary-template">${draft.template}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center space-x-2 text-slate-400">
+                                                <i data-lucide="users" class="h-4 w-4"></i>
+                                                <span>Estimated Recipients</span>
+                                            </div>
+                                            <span class="text-slate-800 font-bold" id="summary-recipients">${draft.recipients.length} contacts</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center space-x-2 text-slate-400">
+                                                <i data-lucide="message-square" class="h-4 w-4"></i>
+                                                <span>Estimated Messages</span>
+                                            </div>
+                                            <span class="text-slate-808 font-bold" id="summary-messages">~${draft.recipients.length} messages</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 font-medium border-t border-slate-100 pt-3">
+                                        These numbers are estimated and may vary.
+                                    </div>
+                                </div>
+                                
+                                <!-- Compliance check card -->
+                                <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-3.5 flex items-start space-x-3.5">
+                                    <div class="h-7 w-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                                        <i data-lucide="shield-check" class="h-4.5 w-4.5"></i>
+                                    </div>
+                                    <div class="space-y-1.5 text-xs">
+                                        <h4 class="font-bold text-slate-800 leading-none">Compliance check</h4>
+                                        <p class="text-slate-505 leading-normal font-medium font-semibold">Uploading invalid phone number parameters can trigger Meta WABA compliance alerts. Clean all recipient logs.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                lucide.createIcons();
+            };
+
+            // Dynamic Modal: Select from My Contacts
+            window.openMyContactsPopup = function() {
+                const existing = document.getElementById('audience-picker-modal');
+                if (existing) existing.remove();
+
+                const modal = document.createElement('div');
+                modal.id = 'audience-picker-modal';
+                modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4';
+
+                modal.innerHTML = `
+                    <div class="bg-white border border-slate-200 max-w-lg w-full rounded-3xl shadow-2xl relative overflow-hidden flex flex-col h-[520px] animate-fade-in">
+                        <!-- Header -->
+                        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800 leading-none">Select from My Contacts</h3>
+                                <p class="text-[10px] text-slate-400 font-medium mt-1.5">Showing database contacts with valid 10-digit phone numbers</p>
+                            </div>
+                            <button onclick="document.getElementById('audience-picker-modal').remove()" class="h-8 w-8 rounded-full border border-slate-150 hover:border-slate-350 hover:bg-slate-50 flex items-center justify-center text-slate-500 hover:text-slate-800 transition">
+                                <i data-lucide="x" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+
+                        <!-- Search Bar -->
+                        <div class="p-3 border-b border-slate-100 bg-slate-50/40">
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
+                                    <i data-lucide="search" class="h-3.5 w-3.5"></i>
+                                </span>
+                                <input type="text" id="contact-modal-search" placeholder="Search contacts..." oninput="filterModalContacts(this.value)" class="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15">
+                            </div>
+                        </div>
+
+                        <!-- Contacts list (Scrollable) -->
+                        <div class="flex-grow overflow-y-auto p-4 space-y-2.5" id="contacts-modal-list">
+                            <div class="text-center text-slate-400 text-xs py-8 font-medium">Loading contacts...</div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/40 shrink-0">
+                            <span class="text-[10px] text-slate-500 font-semibold" id="contact-modal-selected-count">0 contacts selected</span>
+                            <button onclick="confirmMyContactsSelection()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-emerald-500/10" style="color: white !important;">
+                                Confirm Selection
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+                lucide.createIcons();
+
+                let allLoadedContacts = [];
+
+                apiCall('whatsapp/contacts.php?limit=100')
+                    .then(res => {
+                        const list = res.contacts || [];
+                        
+                        // Filter "which have valid 10 digit numbers"
+                        allLoadedContacts = list.filter(c => {
+                            const clean = (c.wa_id || '').replace(/[^0-9]/g, '');
+                            let raw10 = clean;
+                            if (clean.length === 12 && clean.startsWith('91')) {
+                                raw10 = clean.substring(2);
+                            } else if (clean.length === 11 && clean.startsWith('0')) {
+                                raw10 = clean.substring(1);
+                            }
+                            return raw10.length === 10;
+                        });
+
+                        window.filterModalContacts = function(query) {
+                            const container = document.getElementById('contacts-modal-list');
+                            if (!container) return;
+
+                            const filtered = allLoadedContacts.filter(c => {
+                                const q = query.toLowerCase();
+                                return (c.profile_name || '').toLowerCase().includes(q) || (c.wa_id || '').includes(q) || (c.crm_name || '').toLowerCase().includes(q);
+                            });
+
+                            if (filtered.length === 0) {
+                                container.innerHTML = `<div class="text-center text-slate-400 text-xs py-8 font-medium">No valid contacts found.</div>`;
+                                return;
+                            }
+
+                            container.innerHTML = filtered.map(c => {
+                                const clean = c.wa_id.replace(/[^0-9]/g, '');
+                                let raw10 = clean;
+                                if (clean.length === 12 && clean.startsWith('91')) raw10 = clean.substring(2);
+                                
+                                return `
+                                    <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl bg-white hover:border-emerald-500/50 cursor-pointer transition-all">
+                                        <div class="flex items-center space-x-3">
+                                            <input type="checkbox" checked value="${raw10}" data-name="${c.crm_name || c.profile_name || 'Contact'}" class="h-4 w-4 text-emerald-600 border-slate-350 rounded focus:ring-emerald-500 cursor-pointer modal-contact-checkbox" onchange="updateModalContactSelectedCount()">
+                                            <div class="space-y-0.5">
+                                                <div class="font-bold text-slate-805 text-xs">${c.crm_name || c.profile_name || 'WhatsApp Contact'}</div>
+                                                <div class="text-[10px] text-slate-400 font-mono">${c.wa_id}</div>
+                                            </div>
+                                        </div>
+                                        <span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100/50 rounded text-[9px] font-extrabold uppercase tracking-wider">Valid 10 Digits</span>
+                                    </label>
+                                `;
+                            }).join('');
+                            
+                            updateModalContactSelectedCount();
+                        };
+
+                        filterModalContacts('');
+                    })
+                    .catch(err => {
+                        document.getElementById('contacts-modal-list').innerHTML = `<div class="text-center text-rose-500 text-xs py-8 font-semibold">Failed to load contacts: ${err.message}</div>`;
+                    });
+
+                window.updateModalContactSelectedCount = function() {
+                    const checked = document.querySelectorAll('.modal-contact-checkbox:checked').length;
+                    document.getElementById('contact-modal-selected-count').textContent = `${checked} contacts selected`;
+                };
+
+                window.confirmMyContactsSelection = function() {
+                    const checkboxes = document.querySelectorAll('.modal-contact-checkbox:checked');
+                    const selected = [];
+                    checkboxes.forEach(cb => {
+                        const phoneVal = cb.value;
+                        const nameVal = cb.getAttribute('data-name');
+                        selected.push({
+                            phone: phoneVal,
+                            name: nameVal,
+                            val1: nameVal,
+                            val2: ''
+                        });
+                    });
+                    
+                    window.campaignDraft.recipients = selected;
+                    document.getElementById('audience-picker-modal').remove();
+                    showNotification('success', `Selected ${selected.length} database contacts.`);
+                    openCampaignAudiencePage();
+                };
+            };
+
+            // Dynamic Modal: Select from Tag/Group segments
+            window.openGroupsPopup = function() {
+                const existing = document.getElementById('audience-picker-modal');
+                if (existing) existing.remove();
+
+                const modal = document.createElement('div');
+                modal.id = 'audience-picker-modal';
+                modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4';
+
+                modal.innerHTML = `
+                    <div class="bg-white border border-slate-200 max-w-md w-full rounded-3xl shadow-2xl relative overflow-hidden flex flex-col h-[400px] animate-fade-in">
+                        <!-- Header -->
+                        <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/20 shrink-0">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-805 leading-none">Select from Groups / Segments</h3>
+                                <p class="text-[10px] text-slate-400 font-medium mt-1">Choose a segment to filter recipients list</p>
+                            </div>
+                            <button onclick="document.getElementById('audience-picker-modal').remove()" class="h-8 w-8 rounded-full border border-slate-150 hover:border-slate-350 hover:bg-slate-50 flex items-center justify-center text-slate-500 hover:text-slate-800 transition">
+                                <i data-lucide="x" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+
+                        <!-- Groups list -->
+                        <div class="flex-grow overflow-y-auto p-4 space-y-2.5" id="groups-modal-list">
+                            <div onclick="selectGroupSegment('Warm Leads', 'leads')" class="p-4 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/10 rounded-2xl cursor-pointer transition-all flex items-center justify-between">
+                                <div class="space-y-1">
+                                    <h4 class="font-bold text-slate-805 text-xs">Warm Leads</h4>
+                                    <p class="text-[10px] text-slate-400 font-semibold">Contacts containing 'leads' tag or notes</p>
+                                </div>
+                                <span class="px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-full font-bold text-[10px] border border-emerald-100/50">Tag Segment</span>
+                            </div>
+
+                            <div onclick="selectGroupSegment('VIP Customers', 'vip')" class="p-4 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/10 rounded-2xl cursor-pointer transition-all flex items-center justify-between">
+                                <div class="space-y-1">
+                                    <h4 class="font-bold text-slate-805 text-xs">VIP Customers</h4>
+                                    <p class="text-[10px] text-slate-400 font-semibold">Contacts containing 'vip' tag or notes</p>
+                                </div>
+                                <span class="px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-full font-bold text-[10px] border border-emerald-100/50">Tag Segment</span>
+                            </div>
+
+                            <div onclick="selectGroupSegment('All Contacts', 'all')" class="p-4 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/10 rounded-2xl cursor-pointer transition-all flex items-center justify-between">
+                                <div class="space-y-1">
+                                    <h4 class="font-bold text-slate-850 text-xs">All Contacts</h4>
+                                    <p class="text-[10px] text-slate-400 font-semibold">Broadcast to every contact loaded in directory</p>
+                                </div>
+                                <span class="px-2.5 py-1 bg-blue-50 text-blue-600 rounded-full font-bold text-[10px] border border-blue-100/50">Full List</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+                lucide.createIcons();
+
+                window.selectGroupSegment = function(groupName, tagValue) {
+                    apiCall('whatsapp/contacts.php?limit=100')
+                        .then(res => {
+                            const list = res.contacts || [];
+                            const filtered = list.filter(c => {
+                                const clean = (c.wa_id || '').replace(/[^0-9]/g, '');
+                                let raw10 = clean;
+                                if (clean.length === 12 && clean.startsWith('91')) raw10 = clean.substring(2);
+                                else if (clean.length === 11 && clean.startsWith('0')) raw10 = clean.substring(1);
+                                if (raw10.length !== 10) return false;
+
+                                if (tagValue === 'all') return true;
+                                const tagsStr = ((c.tags || '') + ' ' + (c.notes || '')).toLowerCase();
+                                return tagsStr.includes(tagValue.toLowerCase());
+                            });
+
+                            if (filtered.length === 0) {
+                                showNotification('error', `No contacts matched the segment: ${groupName}`);
+                                return;
+                            }
+
+                            window.campaignDraft.recipients = filtered.map(c => {
+                                const clean = c.wa_id.replace(/[^0-9]/g, '');
+                                let raw10 = clean;
+                                if (clean.length === 12 && clean.startsWith('91')) raw10 = clean.substring(2);
+                                return {
+                                    phone: raw10,
+                                    name: c.crm_name || c.profile_name || 'Contact',
+                                    val1: c.crm_name || c.profile_name || 'Contact',
+                                    val2: ''
+                                };
+                            });
+
+                            document.getElementById('audience-picker-modal').remove();
+                            showNotification('success', `Loaded ${window.campaignDraft.recipients.length} contacts for group: ${groupName}`);
+                            openCampaignAudiencePage();
+                        })
+                        .catch(err => {
+                            showNotification('error', `Failed to load group segment: ${err.message}`);
+                        });
+                };
+            };
+
+            // Dynamic Modal: Enter Phone Numbers Manually
+            window.openEnterManuallyPopup = function() {
+                const existing = document.getElementById('audience-picker-modal');
+                if (existing) existing.remove();
+
+                const modal = document.createElement('div');
+                modal.id = 'audience-picker-modal';
+                modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4';
+
+                modal.innerHTML = `
+                    <div class="bg-white border border-slate-200 max-w-md w-full rounded-3xl shadow-2xl relative overflow-hidden flex flex-col h-[480px] animate-fade-in">
+                        <!-- Header -->
+                        <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/20 shrink-0">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-805 leading-none">Enter Phone Numbers Manually</h3>
+                                <p class="text-[10px] text-slate-400 font-medium mt-1">Paste numbers with one number in one line</p>
+                            </div>
+                            <button onclick="document.getElementById('audience-picker-modal').remove()" class="h-8 w-8 rounded-full border border-slate-150 hover:border-slate-350 hover:bg-slate-50 flex items-center justify-center text-slate-500 hover:text-slate-800 transition">
+                                <i data-lucide="x" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+
+                        <!-- Textarea body -->
+                        <div class="flex-grow p-4 flex flex-col space-y-3 overflow-hidden">
+                            <textarea id="manual-numbers-input" placeholder="e.g.&#10;+91 98765 43210&#10;9876543211&#10;09876543212" class="w-full flex-grow p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-xs text-slate-805 font-mono resize-none bg-white"></textarea>
+                            
+                            <!-- Count button actions -->
+                            <div class="flex items-center justify-between shrink-0">
+                                <button type="button" onclick="countManualNumbers()" id="manual-count-btn" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition flex items-center space-x-1 shadow-sm">
+                                    <i data-lucide="calculator" class="h-3.5 w-3.5 text-slate-505"></i>
+                                    <span>Count Numbers</span>
+                                </button>
+                                <span id="manual-numbers-badge" class="text-[10px] text-slate-400 font-semibold">0 valid numbers found</span>
+                            </div>
+
+                            <!-- List view -->
+                            <div id="manual-numbers-list-box" class="h-28 border border-slate-150 rounded-xl overflow-y-auto p-2 bg-slate-50/50 hidden">
+                                <div class="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider mb-1 px-1">Valid Phone List:</div>
+                                <div id="manual-numbers-list-items" class="space-y-1 px-1"></div>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="p-4 border-t border-slate-100 flex items-center justify-end bg-slate-50/40 shrink-0">
+                            <button onclick="confirmManualNumbersSelection()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-emerald-500/10" style="color: white !important;">
+                                Confirm Recipients
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+                lucide.createIcons();
+
+                let validNumbers = [];
+
+                window.countManualNumbers = function() {
+                    const text = document.getElementById('manual-numbers-input').value;
+                    const lines = text.split('\n');
+                    validNumbers = [];
+
+                    lines.forEach(line => {
+                        const clean = line.replace(/[^0-9]/g, '');
+                        let raw10 = clean;
+                        if (clean.length === 12 && clean.startsWith('91')) {
+                            raw10 = clean.substring(2);
+                        } else if (clean.length === 11 && clean.startsWith('0')) {
+                            raw10 = clean.substring(1);
+                        }
+
+                        if (raw10.length === 10) {
+                            validNumbers.push(raw10);
+                        }
+                    });
+
+                    document.getElementById('manual-numbers-badge').textContent = `${validNumbers.length} valid numbers found`;
+                    const listContainer = document.getElementById('manual-numbers-list-box');
+                    const listItems = document.getElementById('manual-numbers-list-items');
+                    
+                    if (validNumbers.length > 0) {
+                        listContainer.classList.remove('hidden');
+                        listItems.innerHTML = validNumbers.map(n => `
+                            <div class="text-xs font-mono text-slate-600 font-semibold">• ${n}</div>
+                        `).join('');
+                    } else {
+                        listContainer.classList.add('hidden');
+                        listItems.innerHTML = '';
                     }
                 };
 
-                apiCall('whatsapp/campaigns.php?action=create', 'POST', payload)
-                    .then(res => {
-                        showNotification('success', 'Campaign setup completed successfully! Proceeding to target audience.');
-                        renderWhatsAppCampaigns(container);
-                    })
-                    .catch(err => {
-                        showNotification('error', err.message);
+                window.confirmManualNumbersSelection = function() {
+                    countManualNumbers();
+
+                    if (validNumbers.length === 0) {
+                        showNotification('error', 'Please enter at least one valid 10-digit number.');
+                        return;
+                    }
+
+                    window.campaignDraft.recipients = validNumbers.map(num => ({
+                        phone: num,
+                        name: 'Manual Contact',
+                        val1: 'Customer',
+                        val2: ''
+                    }));
+
+                    document.getElementById('audience-picker-modal').remove();
+                    showNotification('success', `Added ${validNumbers.length} recipients manually.`);
+                    openCampaignAudiencePage();
+                };
+            };
+
+            // Dynamic Modal: Import from CSV with variables
+            window.openImportCSVPopup = function() {
+                const existing = document.getElementById('audience-picker-modal');
+                if (existing) existing.remove();
+
+                const modal = document.createElement('div');
+                modal.id = 'audience-picker-modal';
+                modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4';
+
+                modal.innerHTML = `
+                    <div class="bg-white border border-slate-200 max-w-xl w-full rounded-3xl shadow-2xl relative overflow-hidden flex flex-col h-[520px] animate-fade-in">
+                        <!-- Header -->
+                        <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/20 shrink-0">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-805 leading-none">Import Recipients from CSV</h3>
+                                <p class="text-[10px] text-slate-400 font-medium mt-1.5">Upload CSV with clean numbers, val1 and val2 fields</p>
+                            </div>
+                            <button onclick="document.getElementById('audience-picker-modal').remove()" class="h-8 w-8 rounded-full border border-slate-150 hover:border-slate-350 hover:bg-slate-50 flex items-center justify-center text-slate-500 hover:text-slate-800 transition">
+                                <i data-lucide="x" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+
+                        <!-- Upload Body Area -->
+                        <div class="flex-grow p-4 flex flex-col space-y-4 overflow-hidden">
+                            <!-- Drag Drop Box -->
+                            <div id="csv-drop-zone" class="border-2 border-dashed border-slate-200 hover:border-emerald-500 hover:bg-[#e8fdf4]/5 rounded-2xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center space-y-2 shrink-0 bg-white">
+                                <div class="h-10 w-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
+                                    <i data-lucide="upload-cloud" class="h-5 w-5"></i>
+                                </div>
+                                <div class="text-xs font-bold text-slate-700">Click to upload or drag & drop CSV file</div>
+                                <div class="text-[9px] text-slate-400 font-semibold leading-normal">Requires number column (clean without +, 0 or 91 country code prefix), val1 and val2 fields</div>
+                                <input type="file" id="csv-file-input" accept=".csv" class="hidden">
+                            </div>
+
+                            <!-- Parse Preview list -->
+                            <div id="csv-preview-box" class="flex-grow border border-slate-150 rounded-2xl overflow-hidden bg-slate-50/40 flex flex-col hidden">
+                                <div class="p-2 border-b border-slate-150 bg-slate-100 flex justify-between items-center text-[10px] font-extrabold uppercase text-slate-500 pl-3 shrink-0">
+                                    <span>Parsed CSV Preview</span>
+                                    <span id="csv-valid-badge" class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-100/50">0 rows found</span>
+                                </div>
+                                <div class="flex-grow overflow-auto bg-white">
+                                    <table class="w-full text-left text-xs font-semibold text-slate-650">
+                                        <thead class="bg-slate-50 text-[10px] uppercase font-extrabold text-slate-450 border-b border-slate-150">
+                                            <tr>
+                                                <th class="p-2 pl-3">Number</th>
+                                                <th class="p-2">Name</th>
+                                                <th class="p-2">Variable 1 (val1)</th>
+                                                <th class="p-2 pr-3">Variable 2 (val2)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="csv-preview-rows"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="p-4 border-t border-slate-100 flex items-center justify-end bg-slate-50/40 shrink-0">
+                            <button onclick="confirmCSVSelection()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-emerald-500/10" style="color: white !important;">
+                                Confirm Import List
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+                lucide.createIcons();
+
+                const dropZone = document.getElementById('csv-drop-zone');
+                const fileInput = document.getElementById('csv-file-input');
+                let parsedRecipients = [];
+
+                dropZone.onclick = () => fileInput.click();
+
+                fileInput.onchange = (e) => handleCSVFile(e.target.files[0]);
+
+                dropZone.ondragover = (e) => {
+                    e.preventDefault();
+                    dropZone.classList.add('border-emerald-500', 'bg-emerald-50/5');
+                };
+
+                dropZone.ondragleave = (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove('border-emerald-500', 'bg-emerald-50/5');
+                };
+
+                dropZone.ondrop = (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove('border-emerald-500', 'bg-emerald-50/5');
+                    handleCSVFile(e.dataTransfer.files[0]);
+                };
+
+                function handleCSVFile(file) {
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        const content = evt.target.result;
+                        parseCSVContent(content);
+                    };
+                    reader.readAsText(file);
+                }
+
+                function parseCSVContent(csvText) {
+                    const lines = csvText.split('\n');
+                    if (lines.length < 2) {
+                        showNotification('error', 'CSV file is empty or missing rows.');
+                        return;
+                    }
+
+                    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+                    let phoneIdx = 0;
+                    let nameIdx = -1;
+                    let val1Idx = -1;
+                    let val2Idx = -1;
+
+                    headers.forEach((h, idx) => {
+                        if (h.includes('phone') || h.includes('num') || h.includes('mobile')) phoneIdx = idx;
+                        if (h.includes('name')) nameIdx = idx;
+                        if (h.includes('val1') || h.includes('var1') || h.includes('param1')) val1Idx = idx;
+                        if (h.includes('val2') || h.includes('var2') || h.includes('param2')) val2Idx = idx;
                     });
+
+                    parsedRecipients = [];
+
+                    for (let i = 1; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (!line) continue;
+
+                        const cols = line.split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
+                        if (cols.length <= phoneIdx) continue;
+
+                        const rawPhone = cols[phoneIdx].replace(/[^0-9]/g, '');
+                        let cleanPhone = rawPhone;
+                        if (rawPhone.length === 12 && rawPhone.startsWith('91')) {
+                            cleanPhone = rawPhone.substring(2);
+                        } else if (rawPhone.length === 11 && rawPhone.startsWith('0')) {
+                            cleanPhone = rawPhone.substring(1);
+                        }
+
+                        if (cleanPhone.length !== 10) continue;
+
+                        const nameVal = nameIdx !== -1 && cols[nameIdx] ? cols[nameIdx] : 'CSV Contact';
+                        const val1Val = val1Idx !== -1 && cols[val1Idx] ? cols[val1Idx] : '';
+                        const val2Val = val2Idx !== -1 && cols[val2Idx] ? cols[val2Idx] : '';
+
+                        parsedRecipients.push({
+                            phone: cleanPhone,
+                            name: nameVal,
+                            val1: val1Val,
+                            val2: val2Val
+                        });
+                    }
+
+                    document.getElementById('csv-drop-zone').classList.add('hidden');
+                    const previewBox = document.getElementById('csv-preview-box');
+                    previewBox.classList.remove('hidden');
+                    
+                    document.getElementById('csv-valid-badge').textContent = `${parsedRecipients.length} valid rows`;
+                    const rowsContainer = document.getElementById('csv-preview-rows');
+
+                    if (parsedRecipients.length === 0) {
+                        rowsContainer.innerHTML = `
+                            <tr>
+                                <td colspan="4" class="p-4 text-center text-rose-500 font-bold bg-white">No valid 10-digit phone number rows found. Please review CSV format.</td>
+                            </tr>
+                        `;
+                    } else {
+                        rowsContainer.innerHTML = parsedRecipients.slice(0, 5).map(r => `
+                            <tr class="border-b border-slate-100 last:border-0 bg-white">
+                                <td class="p-2 pl-3 font-mono text-[11px] text-slate-500 font-semibold">${r.phone}</td>
+                                <td class="p-2 font-bold text-slate-805">${r.name}</td>
+                                <td class="p-2"><span class="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[9.5px] font-bold border border-emerald-100/50">${r.val1 || '-'}</span></td>
+                                <td class="p-2 pr-3"><span class="px-1.5 py-0.5 bg-blue-50/50 text-blue-600 rounded text-[9.5px] font-bold border border-blue-100/30">${r.val2 || '-'}</span></td>
+                            </tr>
+                        `).join('');
+                        
+                        if (parsedRecipients.length > 5) {
+                            rowsContainer.innerHTML += `
+                                <tr class="bg-slate-50/30">
+                                    <td colspan="4" class="p-1.5 text-center text-[9.5px] text-slate-400 font-semibold">And ${parsedRecipients.length - 5} more rows...</td>
+                                </tr>
+                            `;
+                        }
+                    }
+                }
+
+                window.confirmCSVSelection = function() {
+                    if (parsedRecipients.length === 0) {
+                        showNotification('error', 'Please upload a CSV file with valid 10-digit numbers first.');
+                        return;
+                    }
+
+                    window.campaignDraft.recipients = parsedRecipients;
+                    document.getElementById('audience-picker-modal').remove();
+                    showNotification('success', `Imported ${parsedRecipients.length} recipients from CSV.`);
+                    openCampaignAudiencePage();
+                };
+            };
+
+            // Define Step 3: Review & Launch Campaign view creator
+            window.openCampaignReviewPage = function() {
+                const draft = window.campaignDraft;
+                if (draft.recipients.length === 0) {
+                    showNotification('error', 'Please select a target audience before proceeding.');
+                    return;
+                }
+
+                const availableTemplates = templates.length > 0 ? templates : [
+                    { name: 'followup_reminder', category: 'UTILITY', language: 'en', status: 'APPROVED', components_json: '[{"type":"BODY","text":"Hi {{1}}, just following up on our chat. Let us know if you have any questions about the proposal we sent. Have a great day!"}]' },
+                    { name: 'welcome_message', category: 'UTILITY', language: 'en', status: 'APPROVED', components_json: '[{"type":"BODY","text":"Hello {{1}}, thank you for connecting with us! We have received your inquiry regarding our CRM services and will get back to you shortly."}]' },
+                    { name: 'discount_promo', category: 'MARKETING', language: 'en', status: 'APPROVED', components_json: '[{"type":"BODY","text":"Hey {{1}}, check out this exclusive offer! Get 20% off all LinkPilot CRM plans this month. Use code: OUTREACH20."}]' },
+                    { name: 'product_launch', category: 'MARKETING', language: 'en', status: 'APPROVED', components_json: '[{"type":"BODY","text":"Exciting news! We just launched our new feature. Check it out at {{1}}!"}]' }
+                ];
+                
+                const tplObj = availableTemplates.find(t => t.name === draft.template) || availableTemplates[0];
+                let bodyText = '';
+                try {
+                    const comps = typeof tplObj.components_json === 'string' ? JSON.parse(tplObj.components_json) : (tplObj.components || []);
+                    const bodyComp = comps.find(c => c.type === 'BODY');
+                    bodyText = bodyComp ? bodyComp.text : 'Template text body not found.';
+                } catch (e) {
+                    bodyText = 'Error parsing template text.';
+                }
+
+                const firstRec = draft.recipients[0] || { name: 'Lead', val1: 'Lead', val2: '' };
+                let previewText = bodyText;
+                previewText = previewText.replace(/\{\{1\}\}/g, `<strong class="text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-md font-extrabold text-[10px] border border-emerald-200">${firstRec.val1 || firstRec.name}</strong>`);
+                previewText = previewText.replace(/\{\{2\}\}/g, `<strong class="text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-md font-extrabold text-[10px] border border-emerald-200">${firstRec.val2 || '[Variable 2]'}</strong>`);
+
+                contentArea.innerHTML = `
+                    <div class="space-y-6 text-slate-805 animate-fade-in bg-[#f8fafc] p-6 rounded-3xl border border-slate-200/60">
+                        <!-- Header -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="h-10 w-10 flex items-center justify-center shrink-0">
+                                    <img src="../assets/css/WhatsApp_icon.png" class="h-10 w-10 object-contain" alt="WhatsApp">
+                                </div>
+                                <div>
+                                    <h1 class="text-xl font-bold tracking-tight text-slate-900 leading-none">Review & Launch Campaign</h1>
+                                    <p class="text-xs text-slate-400 mt-1.5 font-medium">Verify your outreach variables and template structure before dispatching</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="cancelCampaignCreate()" class="h-8 w-8 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-800 flex items-center justify-center transition bg-white">
+                                    <i data-lucide="x" class="h-4 w-4"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Stepper Indicator -->
+                        <div class="bg-white border border-slate-200/80 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 text-xs font-bold text-slate-505 shadow-xs">
+                            <div class="flex items-center space-x-2.5 cursor-pointer" onclick="openCampaignCreatePage()">
+                                <div class="h-7 w-7 rounded-full border border-emerald-600 text-emerald-600 flex items-center justify-center text-xs bg-emerald-50">✓</div>
+                                <div>
+                                    <div class="text-slate-900 leading-tight">Campaign Setup</div>
+                                    <div class="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Basic details</div>
+                                </div>
+                            </div>
+                            <div class="h-px bg-slate-100 flex-grow hidden md:block"></div>
+                            <div class="flex items-center space-x-2.5 cursor-pointer" onclick="openCampaignAudiencePage()">
+                                <div class="h-7 w-7 rounded-full border border-emerald-600 text-emerald-600 flex items-center justify-center text-xs bg-emerald-50">✓</div>
+                                <div>
+                                    <div class="text-slate-900 leading-tight">Target Audience</div>
+                                    <div class="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Select recipients</div>
+                                </div>
+                            </div>
+                            <div class="h-px bg-slate-100 flex-grow hidden md:block"></div>
+                            <div class="flex items-center space-x-2.5">
+                                <div class="h-7 w-7 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs" style="color: white !important;">3</div>
+                                <div>
+                                    <div class="text-slate-900 leading-tight">Message Content / Launch</div>
+                                    <div class="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Confirm & launch</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2-Column Review Layout -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Left Content (2 cols) -->
+                            <div class="lg:col-span-2 space-y-6">
+                                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5">
+                                    <div class="space-y-1 border-b border-slate-100 pb-3">
+                                        <h3 class="font-bold text-slate-800 text-sm">Campaign Overview</h3>
+                                        <p class="text-slate-400 text-xs font-medium">Verify basic details and dynamic field parameters</p>
+                                    </div>
+
+                                    <!-- Details summary grid -->
+                                    <div class="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-655">
+                                        <div class="p-3.5 bg-slate-50/50 rounded-xl border border-slate-150 bg-white">
+                                            <div class="text-slate-400 text-[10px] uppercase font-extrabold mb-1">Campaign Name</div>
+                                            <div class="text-slate-800 font-bold">${draft.name}</div>
+                                        </div>
+                                        <div class="p-3.5 bg-slate-50/50 rounded-xl border border-slate-150 bg-white">
+                                            <div class="text-slate-400 text-[10px] uppercase font-extrabold mb-1">Message Template</div>
+                                            <div class="text-slate-800 font-mono text-[11px] font-bold">${draft.template}</div>
+                                        </div>
+                                        <div class="p-3.5 bg-slate-50/50 rounded-xl border border-slate-150 bg-white">
+                                            <div class="text-slate-400 text-[10px] uppercase font-extrabold mb-1">Sender WhatsApp Channel</div>
+                                            <div class="text-slate-800 font-bold">${draft.phone}</div>
+                                        </div>
+                                        <div class="p-3.5 bg-slate-50/50 rounded-xl border border-slate-150 bg-white">
+                                            <div class="text-slate-400 text-[10px] uppercase font-extrabold mb-1">Total Recipients</div>
+                                            <div class="text-emerald-600 font-bold">${draft.recipients.length} contacts</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Live Preview Bubble -->
+                                    <div class="space-y-2.5 pt-2">
+                                        <h4 class="font-bold text-slate-700 text-xs">WhatsApp Message Preview (Recipient 1)</h4>
+                                        
+                                        <div class="rounded-2xl border border-slate-200 p-5 shadow-inner max-w-md relative overflow-hidden" style="background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-size: cover;">
+                                            <!-- WhatsApp Message Bubble -->
+                                            <div class="bg-[#dcf8c6] text-slate-800 p-3.5 rounded-2xl rounded-tr-none max-w-[90%] ml-auto text-xs leading-relaxed shadow-sm border border-emerald-100/50">
+                                                <div class="whitespace-pre-line text-slate-700 font-medium">${previewText}</div>
+                                                <div class="flex items-center justify-end space-x-1 mt-2 text-[8px] text-slate-400 font-bold">
+                                                    <span>Just now</span>
+                                                    <svg class="h-3.5 w-3.5 text-blue-500 fill-current" viewBox="0 0 24 24">
+                                                        <path d="m19.14 7.66-8.59 8.58-3.86-3.86-1.41 1.41 5.27 5.27L20.55 9.07l-1.41-1.41ZM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2Zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8Z"/>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Footer controls -->
+                                    <div class="flex items-center justify-between border-t border-slate-100 pt-4 mt-6">
+                                        <button type="button" onclick="openCampaignAudiencePage()" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition shadow-sm bg-white">Back to Audience</button>
+                                        <button type="button" onclick="launchWhatsAppCampaignLive()" id="launch-camp-btn" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-extrabold transition flex items-center space-x-1.5 shadow-md shadow-emerald-500/20" style="color: white !important;">
+                                            <i data-lucide="rocket" class="h-4 w-4 text-white"></i>
+                                            <span>Launch Campaign Live</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Pane Summary -->
+                            <div class="space-y-6">
+                                <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-4">
+                                    <h4 class="font-bold text-slate-808 text-xs uppercase tracking-wider">Campaign Summary</h4>
+                                    <div class="space-y-3.5 text-xs text-slate-655 font-semibold">
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center space-x-2 text-slate-400">
+                                                <i data-lucide="send" class="h-4 w-4"></i>
+                                                <span>Campaign Type</span>
+                                            </div>
+                                            <span class="text-slate-808 font-bold">Broadcast</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center space-x-2 text-slate-400">
+                                                <img src="../assets/css/WhatsApp_icon.png" class="h-4 w-4 object-contain" alt="WhatsApp">
+                                                <span>WhatsApp Number</span>
+                                            </div>
+                                            <span class="text-slate-800 font-bold">${draft.phone}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center space-x-2 text-slate-400">
+                                                <i data-lucide="users" class="h-4 w-4"></i>
+                                                <span>Estimated Recipients</span>
+                                            </div>
+                                            <span class="text-slate-808 font-bold">${draft.recipients.length} contacts</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Best practices checklist -->
+                                <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-4">
+                                    <h4 class="font-bold text-slate-805 text-xs uppercase tracking-wider">Launch Checklist</h4>
+                                    <ul class="space-y-2 text-xs font-semibold text-slate-600">
+                                        <li class="flex items-start space-x-2">
+                                            <span class="text-emerald-500 font-bold">✓</span>
+                                            <span>All phone numbers validated</span>
+                                        </li>
+                                        <li class="flex items-start space-x-2">
+                                            <span class="text-emerald-500 font-bold">✓</span>
+                                            <span>Dynamic variables set properly</span>
+                                        </li>
+                                        <li class="flex items-start space-x-2">
+                                            <span class="text-emerald-505 font-bold">✓</span>
+                                            <span>Approved Meta WABA template used</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                lucide.createIcons();
+
+                // Live Trigger Method
+                window.launchWhatsAppCampaignLive = function() {
+                    const btn = document.getElementById('launch-camp-btn');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.innerHTML = `<span class="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin shrink-0"></span><span>Launching...</span>`;
+                    }
+
+                    const payload = {
+                        name: draft.name,
+                        template_name: draft.template,
+                        recipients: draft.recipients
+                    };
+
+                    apiCall('whatsapp/campaigns.php?action=create', 'POST', payload)
+                        .then(res => {
+                            const campId = res.campaign_id;
+                            // Trigger sending live
+                            return apiCall('whatsapp/campaigns.php?action=send', 'POST', { campaign_id: campId });
+                        })
+                        .then(res => {
+                            showNotification('success', 'Campaign launched successfully! Background queue started.');
+                            window.campaignDraft = null;
+                            renderWhatsAppCampaigns(container);
+                        })
+                        .catch(err => {
+                            showNotification('error', err.message);
+                            if (btn) {
+                                btn.disabled = false;
+                                btn.innerHTML = `<i data-lucide="rocket" class="h-4 w-4 text-white"></i><span>Launch Campaign Live</span>`;
+                                lucide.createIcons();
+                            }
+                        });
+                };
             };
 
             // Custom Template Selector Modal with List view and Live WhatsApp message layout preview
@@ -3061,7 +4055,7 @@ function renderWhatsAppCampaigns(container) {
                     { name: 'product_launch', category: 'MARKETING', language: 'en', status: 'APPROVED', components_json: '[{"type":"BODY","text":"Exciting news! We just launched our new feature. Check it out at {{1}}!"}]' }
                 ];
 
-                let activeTpl = availableTemplates.find(t => t.name === document.getElementById('camp-inline-template').value) || availableTemplates[0];
+                let activeTpl = availableTemplates.find(t => t.name === (window.campaignDraft ? window.campaignDraft.template : '')) || availableTemplates[0];
 
                 const modal = document.createElement('div');
                 modal.id = 'template-picker-modal';
@@ -3075,7 +4069,7 @@ function renderWhatsAppCampaigns(container) {
                                 <h3 class="text-sm font-bold text-slate-800 leading-none">Select Message Template</h3>
                                 <p class="text-[10px] text-slate-400 font-medium mt-1">Choose a pre-approved template for your campaign</p>
                             </div>
-                            <button onclick="document.getElementById('template-picker-modal').remove()" class="h-8 w-8 rounded-full border border-slate-150 hover:border-slate-350 hover:bg-slate-50 flex items-center justify-center text-slate-500 hover:text-slate-800 transition">
+                            <button onclick="document.getElementById('template-picker-modal').remove()" class="h-8 w-8 rounded-full border border-slate-150 hover:border-slate-355 hover:bg-slate-50 flex items-center justify-center text-slate-505 hover:text-slate-800 transition">
                                 <i data-lucide="x" class="h-4 w-4"></i>
                             </button>
                         </div>
@@ -3202,6 +4196,7 @@ function renderWhatsAppCampaigns(container) {
 
                 window.confirmSelectedTemplate = function() {
                     document.getElementById('camp-inline-template').value = activeTpl.name;
+                    window.campaignDraft.template = activeTpl.name;
                     document.getElementById('summary-template').textContent = activeTpl.name;
                     document.getElementById('template-picker-modal').remove();
                     showNotification('success', `Confirmed template: ${activeTpl.name}`);

@@ -57,39 +57,66 @@ try {
         $templateName = trim($input['template_name'] ?? '');
         $templateLanguage = trim($input['template_language'] ?? 'en');
         $filters = $input['filters'] ?? [];
+        $recipients = $input['recipients'] ?? [];
         
         if (empty($name) || empty($templateName)) {
             sendJsonResponse('error', 'Campaign Name and Template Name are required.', [], 400);
         }
         
-        // 1. Fetch matching CRM contacts based on audience filters
-        $sql = "SELECT DISTINCT c.id, c.name, c.phone FROM crm_contacts c LEFT JOIN crm_companies co ON c.company_id = co.id WHERE c.user_id = :user_id AND c.phone IS NOT NULL AND c.phone != ''";
-        $params = ['user_id' => $userId];
+        $matchingContacts = [];
+        $recipientVars = [];
         
-        if (!empty($filters['company'])) {
-            $sql .= " AND (co.name LIKE :company OR c.notes LIKE :company)";
-            $params['company'] = "%{$filters['company']}%";
+        if (!empty($recipients)) {
+            // Use custom manual / CSV / My Contacts recipients directly
+            foreach ($recipients as $rec) {
+                $rawPhone = preg_replace('/[^0-9]/', '', $rec['phone'] ?? '');
+                if (empty($rawPhone)) continue;
+                
+                $matchingContacts[] = [
+                    'id' => null,
+                    'name' => trim($rec['name'] ?? 'WhatsApp Contact'),
+                    'phone' => $rawPhone
+                ];
+                
+                $recipientVars[$rawPhone] = [
+                    'name' => trim($rec['name'] ?? 'WhatsApp Contact'),
+                    'val1' => trim($rec['val1'] ?? ''),
+                    'val2' => trim($rec['val2'] ?? '')
+                ];
+            }
+        } else {
+            // Fetch matching CRM contacts based on audience filters
+            $sql = "SELECT DISTINCT c.id, c.name, c.phone FROM crm_contacts c LEFT JOIN crm_companies co ON c.company_id = co.id WHERE c.user_id = :user_id AND c.phone IS NOT NULL AND c.phone != ''";
+            $params = ['user_id' => $userId];
+            
+            if (!empty($filters['company'])) {
+                $sql .= " AND (co.name LIKE :company OR c.notes LIKE :company)";
+                $params['company'] = "%{$filters['company']}%";
+            }
+            if (!empty($filters['industry'])) {
+                $sql .= " AND co.industry LIKE :industry";
+                $params['industry'] = "%{$filters['industry']}%";
+            }
+            if (!empty($filters['city'])) {
+                $sql .= " AND (c.location LIKE :city OR co.address LIKE :city)";
+                $params['city'] = "%{$filters['city']}%";
+            }
+            if (!empty($filters['tags'])) {
+                $sql .= " AND (c.notes LIKE :tags OR co.tags LIKE :tags)";
+                $params['tags'] = "%{$filters['tags']}%";
+            }
+            
+            $stmtC = $db->prepare($sql);
+            $stmtC->execute($params);
+            $matchingContacts = $stmtC->fetchAll();
         }
-        if (!empty($filters['industry'])) {
-            $sql .= " AND co.industry LIKE :industry";
-            $params['industry'] = "%{$filters['industry']}%";
-        }
-        if (!empty($filters['city'])) {
-            $sql .= " AND (c.location LIKE :city OR co.address LIKE :city)";
-            $params['city'] = "%{$filters['city']}%";
-        }
-        if (!empty($filters['tags'])) {
-            $sql .= " AND (c.notes LIKE :tags OR co.tags LIKE :tags)";
-            $params['tags'] = "%{$filters['tags']}%";
-        }
-        
-        $stmtC = $db->prepare($sql);
-        $stmtC->execute($params);
-        $matchingContacts = $stmtC->fetchAll();
         
         if (empty($matchingContacts)) {
-            sendJsonResponse('error', 'No CRM contacts matched the selected filters.', [], 400);
+            sendJsonResponse('error', 'No contacts selected or matched the filters.', [], 400);
         }
+        
+        // Merge recipient variables into filters json for storage
+        $filters['recipients_vars'] = $recipientVars;
         
         $db->beginTransaction();
         try {
@@ -116,8 +143,9 @@ try {
                 $waContactId = $stmtWCon->fetchColumn();
                 
                 if (!$waContactId) {
+                    $crmId = !empty($mc['id']) ? $mc['id'] : null;
                     $stmtInsWCon = $db->prepare("INSERT INTO whatsapp_contacts (user_id, contact_id, wa_id, profile_name, last_message_at, unread_count) VALUES (?, ?, ?, ?, NOW(), 0)");
-                    $stmtInsWCon->execute([$userId, $mc['id'], $rawPhone, $mc['name']]);
+                    $stmtInsWCon->execute([$userId, $crmId, $rawPhone, $mc['name']]);
                     $waContactId = $db->lastInsertId();
                 }
                 
@@ -181,11 +209,33 @@ try {
                 VALUES (?, ?, ?, ?, 'template', 'pending')
             ");
             
+            $filters = json_decode($campaign['filters_json'], true) ?: [];
+            $recipientVars = $filters['recipients_vars'] ?? [];
+            
             foreach ($pendingLogs as $pLog) {
+                $components = [];
+                $vars = $recipientVars[$pLog['wa_id']] ?? [];
+                
+                if (!empty($vars)) {
+                    $parameters = [];
+                    if (!empty($vars['val1'])) {
+                        $parameters[] = ['type' => 'text', 'text' => $vars['val1']];
+                    }
+                    if (!empty($vars['val2'])) {
+                        $parameters[] = ['type' => 'text', 'text' => $vars['val2']];
+                    }
+                    if (!empty($parameters)) {
+                        $components[] = [
+                            'type' => 'body',
+                            'parameters' => $parameters
+                        ];
+                    }
+                }
+                
                 $payload = [
                     'template_name' => $campaign['template_name'],
                     'language_code' => $campaign['template_language'],
-                    'components' => [],
+                    'components' => $components,
                     'campaign_log_id' => $pLog['log_id']
                 ];
                 

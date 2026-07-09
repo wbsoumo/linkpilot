@@ -1897,75 +1897,627 @@ function renderWhatsAppCampaigns(container) {
             
             const templatesRes = await apiCall('whatsapp/templates.php');
             const templates = templatesRes.templates || [];
-            
+
+            let searchQuery = '';
+            let statusFilter = 'ALL';
+            let currentPage = 1;
+            let itemsPerPage = 5;
+            let sortBy = 'latest';
+
+            // High-fidelity mock campaign samples matching the provided image
+            const baseSamples = [
+                {
+                    id: 'sample-1',
+                    name: "Follow Up Reminder",
+                    created_at: "2026-05-07T10:30:00Z",
+                    template_name: "followup_reminder",
+                    wa_number: "91 98765 43210",
+                    total_contacts: 120,
+                    sent_count: 120,
+                    delivered_count: 115,
+                    read_count: 78,
+                    replies_count: 18,
+                    status: "completed",
+                    icon: "send",
+                    iconBg: "bg-emerald-50",
+                    iconColor: "text-emerald-500"
+                },
+                {
+                    id: 'sample-2',
+                    name: "Product Launch Offer",
+                    created_at: "2026-05-06T16:15:00Z",
+                    template_name: "product_launch",
+                    wa_number: "91 98765 43210",
+                    total_contacts: 350,
+                    sent_count: 350,
+                    delivered_count: 335,
+                    read_count: 210,
+                    replies_count: 42,
+                    status: "completed",
+                    icon: "tag",
+                    iconBg: "bg-blue-50",
+                    iconColor: "text-blue-500"
+                },
+                {
+                    id: 'sample-3',
+                    name: "Welcome New Leads",
+                    created_at: "2026-05-06T11:20:00Z",
+                    template_name: "welcome_message",
+                    wa_number: "91 98765 43210",
+                    total_contacts: 80,
+                    sent_count: 80,
+                    delivered_count: 76,
+                    read_count: 52,
+                    replies_count: 9,
+                    status: "sent",
+                    icon: "users",
+                    iconBg: "bg-purple-50",
+                    iconColor: "text-purple-500"
+                },
+                {
+                    id: 'sample-4',
+                    name: "Discount Promo",
+                    created_at: "2026-05-06T09:10:00Z",
+                    template_name: "discount_promo",
+                    wa_number: "91 98765 43210",
+                    total_contacts: 200,
+                    sent_count: 200,
+                    delivered_count: 186,
+                    read_count: 120,
+                    replies_count: 25,
+                    status: "sending",
+                    icon: "percent",
+                    iconBg: "bg-amber-50",
+                    iconColor: "text-amber-500"
+                },
+                {
+                    id: 'sample-5',
+                    name: "Weekly Tips & Updates",
+                    created_at: "2026-05-05T18:45:00Z",
+                    template_name: "weekly_tips",
+                    wa_number: "91 98765 43210",
+                    total_contacts: 150,
+                    sent_count: 150,
+                    delivered_count: 142,
+                    read_count: 90,
+                    replies_count: 14,
+                    status: "scheduled",
+                    icon: "bell",
+                    iconBg: "bg-red-50",
+                    iconColor: "text-red-500"
+                }
+            ];
+
+            // Render Layout scaffolding
             contentArea.innerHTML = `
-                <div class="space-y-6">
-                    <div class="flex items-center justify-between border-b border-slate-200 pb-4 bg-white p-5 rounded-2xl shadow-sm">
-                        <div>
-                            <h2 class="text-sm font-bold text-slate-800">Broadcast Campaigns Builder</h2>
-                            <p class="text-[11px] text-slate-400 mt-0.5">Build and target massive approved template messages campaigns to matched leads.</p>
+                <div class="space-y-6 text-slate-800 animate-fade-in">
+                    <!-- Title Bar -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="h-10 w-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/10">
+                                <svg class="h-6 w-6 text-white fill-current" viewBox="0 0 24 24">
+                                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.517 2.266 2.27 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.16 1.449 4.887 1.45 5.482.002 9.944-4.461 9.947-9.945.002-2.657-1.03-5.155-2.905-7.03C16.71 1.766 14.215.73 11.555.73c-5.49 0-9.952 4.463-9.955 9.948 0 1.787.483 3.394 1.401 4.938l-.921 3.363 3.567-.935zm12.785-6.853c-.347-.174-2.054-1.014-2.372-1.129-.318-.116-.549-.174-.78.174-.23.348-.895 1.129-1.096 1.361-.202.233-.404.261-.751.087-.348-.174-1.47-.542-2.8-1.728-1.034-.922-1.732-2.06-1.934-2.41-.202-.347-.022-.535.152-.708.156-.156.347-.406.52-.608.174-.203.23-.348.347-.58.117-.232.06-.435-.03-.608-.09-.174-.78-1.884-1.068-2.58-.282-.677-.567-.585-.78-.596-.2-.01-.43-.01-.66-.01-.23 0-.608.087-.925.435-.317.348-1.214 1.188-1.214 2.902 0 1.71 1.244 3.362 1.417 3.593.173.23 2.453 3.746 5.94 5.253.83.358 1.478.57 1.983.731.834.265 1.593.228 2.193.138.669-.1 2.054-.84 2.342-1.652.288-.812.288-1.508.202-1.652-.086-.145-.317-.232-.664-.406z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h1 class="text-xl font-bold tracking-tight text-slate-900 leading-none">WhatsApp Campaigns</h1>
+                                <p class="text-xs text-slate-400 mt-1.5 font-medium">Create, send and track your WhatsApp broadcast campaigns</p>
+                            </div>
                         </div>
-                        <button onclick="openCampaignCreateModal()" class="flex items-center space-x-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition">
+                        <button onclick="openCampaignCreateModal()" class="flex items-center space-x-2 px-4 py-2.5 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-500/10">
                             <i data-lucide="plus" class="h-4 w-4"></i>
                             <span>New Campaign</span>
                         </button>
                     </div>
 
-                    <!-- Campaigns Grid list -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="campaigns-grid-list">
-                        ${campaigns.length > 0 ? campaigns.map(c => {
-                            const successRate = c.sent_count > 0 ? Math.round((c.delivered_count / c.sent_count) * 100) : 100;
-                            return `
-                                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
-                                    <div class="flex justify-between items-start">
-                                        <div>
-                                            <h3 class="font-extrabold text-slate-800 text-sm">${c.name}</h3>
-                                            <p class="text-[10px] text-slate-400 mt-0.5">Template: <code class="font-mono text-indigo-500">${c.template_name}</code></p>
-                                        </div>
-                                        <span class="px-2.5 py-0.5 rounded-full text-[9px] font-bold ${c.status === 'sending' ? 'bg-blue-50 text-blue-600 animate-pulse' : c.status === 'completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}">
-                                            ${c.status.toUpperCase()}
-                                        </span>
-                                    </div>
-                                    
-                                    <div class="grid grid-cols-4 gap-2 text-center text-xs border-y border-slate-100 py-3">
-                                        <div>
-                                            <div class="text-[9px] font-bold text-slate-400 uppercase">Target</div>
-                                            <div class="font-extrabold text-slate-700">${c.total_contacts}</div>
-                                        </div>
-                                        <div>
-                                            <div class="text-[9px] font-bold text-slate-400 uppercase">Sent</div>
-                                            <div class="font-extrabold text-slate-700">${c.sent_count}</div>
-                                        </div>
-                                        <div>
-                                            <div class="text-[9px] font-bold text-slate-400 uppercase">Read</div>
-                                            <div class="font-extrabold text-slate-700">${c.read_count}</div>
-                                        </div>
-                                        <div>
-                                            <div class="text-[9px] font-bold text-slate-400 uppercase">Success</div>
-                                            <div class="font-extrabold text-emerald-600">${successRate}%</div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="flex items-center justify-between pt-1">
-                                        <span class="text-[10px] text-slate-400">Created: ${new Date(c.created_at).toLocaleDateString()}</span>
-                                        <div class="flex space-x-2">
-                                            ${c.status === 'draft' ? `
-                                                <button onclick="triggerBroadcastCampaign(${c.id})" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded text-[10px] font-bold transition flex items-center space-x-1">
-                                                    <i data-lucide="send" class="h-3 w-3"></i>
-                                                    <span>Send Campaign</span>
-                                                </button>
-                                            ` : ''}
-                                            <button onclick="deleteCampaign(${c.id})" class="px-3 py-1.5 border border-red-200 text-red-500 hover:bg-red-50 rounded text-[10px] font-semibold transition">Delete</button>
-                                        </div>
+                    <!-- Overview Card Panel -->
+                    <div class="space-y-2.5">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Overview <span class="text-slate-350 capitalize font-medium">(This Month)</span></span>
+                        <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                            <!-- Card 1 -->
+                            <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+                                <div class="flex justify-between items-start">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Campaigns Sent</span>
+                                    <div class="h-7 w-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                        <i data-lucide="send" class="h-4 w-4 text-emerald-600"></i>
                                     </div>
                                 </div>
-                            `;
-                        }).join('') : '<div class="md:col-span-2 text-center py-20 text-slate-400">No campaigns built yet. Create one above!</div>'}
+                                <div class="space-y-1 mt-3">
+                                    <div class="text-2xl font-black text-slate-900 leading-none" id="stat-campaigns-sent">18</div>
+                                    <span class="inline-flex items-center text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0.5 rounded mt-1">
+                                        <i data-lucide="arrow-up" class="h-2.5 w-2.5 mr-0.5"></i>
+                                        <span>20% <span class="text-slate-400 font-medium">vs last month</span></span>
+                                    </span>
+                                </div>
+                            </div>
+                            <!-- Card 2 -->
+                            <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+                                <div class="flex justify-between items-start">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Messages Sent</span>
+                                    <div class="h-7 w-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                        <i data-lucide="message-square" class="h-4 w-4 text-emerald-600"></i>
+                                    </div>
+                                </div>
+                                <div class="space-y-1 mt-3">
+                                    <div class="text-2xl font-black text-slate-900 leading-none" id="stat-messages-sent">12,540</div>
+                                    <span class="inline-flex items-center text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0.5 rounded mt-1">
+                                        <i data-lucide="arrow-up" class="h-2.5 w-2.5 mr-0.5"></i>
+                                        <span>24.5% <span class="text-slate-400 font-medium">vs last month</span></span>
+                                    </span>
+                                </div>
+                            </div>
+                            <!-- Card 3 -->
+                            <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+                                <div class="flex justify-between items-start">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Messages Delivered</span>
+                                    <div class="h-7 w-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                        <i data-lucide="check-circle" class="h-4 w-4 text-emerald-600"></i>
+                                    </div>
+                                </div>
+                                <div class="space-y-1 mt-3">
+                                    <div class="text-2xl font-black text-slate-900 leading-none" id="stat-messages-delivered">11,230</div>
+                                    <span class="inline-flex items-center text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded mt-1">
+                                        <span id="stat-delivery-rate">89.5%</span> <span class="text-slate-400 font-medium ml-0.5">delivery rate</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <!-- Card 4 -->
+                            <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+                                <div class="flex justify-between items-start">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Messages Read</span>
+                                    <div class="h-7 w-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                                        <i data-lucide="eye" class="h-4 w-4 text-blue-600"></i>
+                                    </div>
+                                </div>
+                                <div class="space-y-1 mt-3">
+                                    <div class="text-2xl font-black text-slate-900 leading-none" id="stat-messages-read">6,789</div>
+                                    <span class="inline-flex items-center text-[9px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded mt-1">
+                                        <span id="stat-read-rate">60.4%</span> <span class="text-slate-400 font-medium ml-0.5">read rate</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <!-- Card 5 -->
+                            <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+                                <div class="flex justify-between items-start">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Replies Received</span>
+                                    <div class="h-7 w-7 rounded-lg bg-purple-50 text-purple-650 flex items-center justify-center">
+                                        <i data-lucide="reply" class="h-4 w-4 text-purple-600"></i>
+                                    </div>
+                                </div>
+                                <div class="space-y-1 mt-3">
+                                    <div class="text-2xl font-black text-slate-900" id="stat-replies-received">1,245</div>
+                                    <span class="inline-flex items-center text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0.5 rounded mt-1">
+                                        <i data-lucide="arrow-up" class="h-2.5 w-2.5 mr-0.5"></i>
+                                        <span>18.7% <span class="text-slate-400 font-medium">vs last month</span></span>
+                                    </span>
+                                </div>
+                            </div>
+                            <!-- Card 6 -->
+                            <div class="bg-[#ecfdf5] border border-emerald-100 rounded-2xl p-4 flex flex-col justify-between">
+                                <div class="space-y-1.5">
+                                    <span class="text-[10px] font-bold text-[#065f46] uppercase tracking-wider block">Want detailed insights?</span>
+                                    <p class="text-[10px] text-slate-500 font-medium leading-relaxed">View full WhatsApp report with charts, trends and more.</p>
+                                </div>
+                                <button onclick="showNotification('info', 'Analytical WhatsApp dashboard loading...')" class="w-full py-1.5 mt-2 bg-white hover:bg-emerald-50/50 border border-emerald-600 text-emerald-600 rounded-xl text-[10px] font-bold transition flex items-center justify-center space-x-1">
+                                    <i data-lucide="bar-chart-3" class="h-3.5 w-3.5 text-emerald-600"></i>
+                                    <span class="text-emerald-600 font-bold">View Full Report</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filters Control Panel -->
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+                        <div class="flex flex-wrap items-center gap-3 flex-grow max-w-4xl">
+                            <!-- Search query input -->
+                            <div class="relative w-full md:w-56">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                    <i data-lucide="search" class="h-4 w-4"></i>
+                                </span>
+                                <input type="text" id="camp-search" placeholder="Search campaigns..." class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-500">
+                            </div>
+                            <!-- Status filter dropdown -->
+                            <div class="w-full md:w-36">
+                                <select id="camp-status-select" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 focus:outline-none cursor-pointer">
+                                    <option value="ALL">All Status</option>
+                                    <option value="COMPLETED">Completed</option>
+                                    <option value="SENT">Sent</option>
+                                    <option value="SENDING">Sending</option>
+                                    <option value="SCHEDULED">Scheduled</option>
+                                    <option value="DRAFT">Draft</option>
+                                </select>
+                            </div>
+                            <!-- Numbers filter dropdown -->
+                            <div class="w-full md:w-40">
+                                <select id="camp-number-select" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 focus:outline-none cursor-pointer">
+                                    <option value="ALL">All Numbers</option>
+                                    <option value="919876543210">+91 98765 43210</option>
+                                </select>
+                            </div>
+                            <!-- Date Filter Range -->
+                            <div class="relative w-full md:w-60">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                    <i data-lucide="calendar" class="h-4 w-4"></i>
+                                </span>
+                                <input type="text" readonly value="May 01, 2026 - May 31, 2026" class="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 cursor-pointer select-none">
+                                <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <i data-lucide="chevron-down" class="h-4 w-4"></i>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Right buttons -->
+                        <div class="flex items-center space-x-2 shrink-0">
+                            <button onclick="showNotification('info', 'Filters drawer initialized.')" class="px-3.5 py-2 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 text-slate-600 text-xs font-bold flex items-center space-x-1.5 transition shadow-sm">
+                                <i data-lucide="sliders-horizontal" class="h-4 w-4 text-slate-600"></i>
+                                <span>Filters</span>
+                            </button>
+                            <button onclick="showNotification('success', 'Campaign summary report exported.')" class="px-3.5 py-2 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 text-slate-600 text-xs font-bold flex items-center space-x-1.5 transition shadow-sm">
+                                <i data-lucide="download" class="h-4 w-4 text-slate-600"></i>
+                                <span>Export</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Campaigns list table block -->
+                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-5 space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-extrabold text-slate-800 text-sm">
+                                All WhatsApp Campaigns <span class="text-slate-400 font-medium ml-1" id="campaigns-total-count">(18)</span>
+                            </h3>
+                            
+                            <div class="flex items-center space-x-3">
+                                <!-- Sort option dropdown -->
+                                <div class="flex items-center space-x-1.5 text-xs text-slate-500 font-semibold">
+                                    <span>Sort by:</span>
+                                    <select id="camp-sort-select" class="px-2.5 py-1.5 border border-slate-200 rounded-xl bg-white text-slate-800 font-bold focus:outline-none cursor-pointer">
+                                        <option value="latest">Latest</option>
+                                        <option value="oldest">Oldest</option>
+                                        <option value="target">Target Size</option>
+                                    </select>
+                                </div>
+                                <!-- View selectors -->
+                                <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white p-0.5">
+                                    <button class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600" onclick="showNotification('info', 'Grid layout is disabled.')">
+                                        <i data-lucide="grid" class="h-4 w-4 text-slate-400"></i>
+                                    </button>
+                                    <button class="p-1.5 rounded-lg text-emerald-600 bg-emerald-50">
+                                        <i data-lucide="list" class="h-4 w-4 text-emerald-600"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Main Table layout -->
+                        <div class="overflow-x-auto min-h-[300px]">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+                                        <th class="py-3.5 px-4">Campaign Name</th>
+                                        <th class="py-3.5 px-4">Template</th>
+                                        <th class="py-3.5 px-4">WhatsApp Number</th>
+                                        <th class="py-3.5 px-4 text-center">Target</th>
+                                        <th class="py-3.5 px-4 text-center">Sent</th>
+                                        <th class="py-3.5 px-4 text-center">Delivered</th>
+                                        <th class="py-3.5 px-4 text-center">Read</th>
+                                        <th class="py-3.5 px-4 text-center">Replies</th>
+                                        <th class="py-3.5 px-4 text-center">Status</th>
+                                        <th class="py-3.5 px-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="campaigns-table-body" class="divide-y divide-slate-100">
+                                    <!-- Rows populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination Footer -->
+                        <div class="flex flex-col sm:flex-row justify-between items-center border-t border-slate-100 pt-4 gap-3 text-xs font-semibold text-slate-500">
+                            <span id="pagination-summary">Showing 1 to 5 of 18 campaigns</span>
+                            
+                            <div class="flex items-center space-x-3.5">
+                                <!-- dots indicators -->
+                                <div class="flex items-center space-x-1.5" id="paginator-dots-container">
+                                    <!-- buttons populated dynamically -->
+                                </div>
+                                
+                                <!-- items size select -->
+                                <div class="flex items-center space-x-1 text-slate-400">
+                                    <select id="paginator-size-select" class="px-2 py-1 border border-slate-200 rounded-lg text-slate-700 focus:outline-none cursor-pointer">
+                                        <option value="5">5 / page</option>
+                                        <option value="10">10 / page</option>
+                                        <option value="20">20 / page</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Floating Chat Bubble button in the bottom right corner -->
+                <div class="fixed bottom-6 right-6 z-50">
+                    <button onclick="showNotification('info', 'Opening live WhatsApp Chat Assistant...')" class="h-14 w-14 rounded-full bg-[#00a884] hover:bg-[#008f6f] text-white flex items-center justify-center shadow-2xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-emerald-500/20">
+                        <svg class="h-7 w-7 text-white fill-current" viewBox="0 0 24 24">
+                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.517 2.266 2.27 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.16 1.449 4.887 1.45 5.482.002 9.944-4.461 9.947-9.945.002-2.657-1.03-5.155-2.905-7.03C16.71 1.766 14.215.73 11.555.73c-5.49 0-9.952 4.463-9.955 9.948 0 1.787.483 3.394 1.401 4.938l-.921 3.363 3.567-.935zm12.785-6.853c-.347-.174-2.054-1.014-2.372-1.129-.318-.116-.549-.174-.78.174-.23.348-.895 1.129-1.096 1.361-.202.233-.404.261-.751.087-.348-.174-1.47-.542-2.8-1.728-1.034-.922-1.732-2.06-1.934-2.41-.202-.347-.022-.535.152-.708.156-.156.347-.406.52-.608.174-.203.23-.348.347-.58.117-.232.06-.435-.03-.608-.09-.174-.78-1.884-1.068-2.58-.282-.677-.567-.585-.78-.596-.2-.01-.43-.01-.66-.01-.23 0-.608.087-.925.435-.317.348-1.214 1.188-1.214 2.902 0 1.71 1.244 3.362 1.417 3.593.173.23 2.453 3.746 5.94 5.253.83.358 1.478.57 1.983.731.834.265 1.593.228 2.193.138.669-.1 2.054-.84 2.342-1.652.288-.812.288-1.508.202-1.652-.086-.145-.317-.232-.664-.406z"/>
+                        </svg>
+                    </button>
+                </div>
             `;
-            lucide.createIcons();
-            
+
+            function getMergedCampaigns() {
+                const dbCampaigns = campaigns.map(c => {
+                    const dPercent = c.sent_count > 0 ? ((c.delivered_count / c.sent_count) * 100).toFixed(1) : '100';
+                    const rPercent = c.sent_count > 0 ? ((c.read_count / c.sent_count) * 100).toFixed(1) : '0';
+                    const repPercent = c.sent_count > 0 ? ((c.replies_count / c.sent_count) * 100).toFixed(1) : '0';
+                    
+                    return {
+                        id: c.id,
+                        name: c.name,
+                        created_at: c.created_at,
+                        template_name: c.template_name,
+                        wa_number: "91 98765 43210",
+                        total_contacts: c.total_contacts || 0,
+                        sent_count: c.sent_count || 0,
+                        delivered_count: c.delivered_count || 0,
+                        delivered_percent: dPercent,
+                        read_count: c.read_count || 0,
+                        read_percent: rPercent,
+                        replies_count: c.replies_count || 0,
+                        replies_percent: repPercent,
+                        status: c.status || 'draft',
+                        icon: "send",
+                        iconBg: "bg-emerald-50",
+                        iconColor: "text-emerald-500",
+                        is_sample: false
+                    };
+                });
+
+                const samples = baseSamples.map(s => ({
+                    ...s,
+                    delivered_percent: ((s.delivered_count / s.sent_count) * 100).toFixed(1),
+                    read_percent: ((s.read_count / s.sent_count) * 100).toFixed(1),
+                    replies_percent: ((s.replies_count / s.sent_count) * 100).toFixed(1),
+                    is_sample: true
+                }));
+
+                return [...dbCampaigns, ...samples];
+            }
+
+            function applyFilterAndRender() {
+                const allMerged = getMergedCampaigns();
+
+                // 1. Update stats dynamically
+                const completedOrSent = allMerged.filter(c => c.status === 'completed' || c.status === 'sent');
+                const totalSentCampaigns = completedOrSent.length;
+                const totalMessagesSent = allMerged.reduce((acc, c) => acc + c.sent_count, 0);
+                const totalMessagesDelivered = allMerged.reduce((acc, c) => acc + c.delivered_count, 0);
+                const totalMessagesRead = allMerged.reduce((acc, c) => acc + c.read_count, 0);
+                const totalReplies = allMerged.reduce((acc, c) => acc + c.replies_count, 0);
+
+                const delRate = totalMessagesSent > 0 ? ((totalMessagesDelivered / totalMessagesSent) * 100).toFixed(1) : '100';
+                const readRate = totalMessagesSent > 0 ? ((totalMessagesRead / totalMessagesSent) * 100).toFixed(1) : '0';
+
+                document.getElementById('stat-campaigns-sent').textContent = totalSentCampaigns;
+                document.getElementById('stat-messages-sent').textContent = totalMessagesSent.toLocaleString('en-US');
+                document.getElementById('stat-messages-delivered').textContent = totalMessagesDelivered.toLocaleString('en-US');
+                document.getElementById('stat-delivery-rate').textContent = delRate + '%';
+                document.getElementById('stat-messages-read').textContent = totalMessagesRead.toLocaleString('en-US');
+                document.getElementById('stat-read-rate').textContent = readRate + '%';
+                document.getElementById('stat-replies-received').textContent = totalReplies.toLocaleString('en-US');
+
+                // 2. Filter campaigns list
+                let filtered = allMerged.filter(c => {
+                    const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                          c.template_name.toLowerCase().includes(searchQuery.toLowerCase());
+                    const matchesStatus = (statusFilter === 'ALL' || c.status.toLowerCase() === statusFilter.toLowerCase());
+                    return matchesSearch && matchesStatus;
+                });
+
+                document.getElementById('campaigns-total-count').textContent = `(${filtered.length})`;
+
+                // 3. Sort campaigns list
+                filtered.sort((a, b) => {
+                    if (sortBy === 'latest') {
+                        return new Date(b.created_at) - new Date(a.created_at);
+                    } else if (sortBy === 'oldest') {
+                        return new Date(a.created_at) - new Date(b.created_at);
+                    } else if (sortBy === 'target') {
+                        return b.total_contacts - a.total_contacts;
+                    }
+                    return 0;
+                });
+
+                // 4. Paginate campaigns list
+                const totalItems = filtered.length;
+                const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+                if (currentPage > totalPages) currentPage = totalPages;
+
+                const startIdx = (currentPage - 1) * itemsPerPage;
+                const endIdx = Math.min(startIdx + itemsPerPage, totalItems);
+                const paginatedList = filtered.slice(startIdx, endIdx);
+
+                document.getElementById('pagination-summary').textContent = totalItems > 0 ? 
+                    `Showing ${startIdx + 1} to ${endIdx} of ${totalItems} campaigns` : 
+                    `Showing 0 to 0 of 0 campaigns`;
+
+                const tableBody = document.getElementById('campaigns-table-body');
+                if (paginatedList.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="10" class="text-center py-20 text-slate-400 font-medium">
+                                No campaigns match your selection filter.
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    tableBody.innerHTML = paginatedList.map(c => {
+                        const dateFormatted = new Date(c.created_at).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: '2-digit',
+                            year: 'numeric'
+                        });
+                        const timeFormatted = new Date(c.created_at).toLocaleTimeString('en-US', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+
+                        let statusClasses = '';
+                        if (c.status === 'completed') statusClasses = 'bg-emerald-50 text-emerald-600 font-bold';
+                        else if (c.status === 'sent') statusClasses = 'bg-blue-50 text-blue-600 font-bold';
+                        else if (c.status === 'sending') statusClasses = 'bg-amber-50 text-amber-600 font-bold';
+                        else if (c.status === 'scheduled') statusClasses = 'bg-purple-50 text-purple-650 font-bold';
+                        else statusClasses = 'bg-slate-100 text-slate-400 font-semibold';
+
+                        let iconName = 'send';
+                        if (c.name.toLowerCase().includes('launch') || c.name.toLowerCase().includes('offer')) iconName = 'tag';
+                        else if (c.name.toLowerCase().includes('welcome') || c.name.toLowerCase().includes('lead')) iconName = 'users';
+                        else if (c.name.toLowerCase().includes('discount') || c.name.toLowerCase().includes('promo')) iconName = 'percent';
+                        else if (c.name.toLowerCase().includes('bell') || c.name.toLowerCase().includes('tips') || c.name.toLowerCase().includes('weekly')) iconName = 'bell';
+
+                        let circleBg = 'bg-emerald-50 text-emerald-500';
+                        if (iconName === 'tag') circleBg = 'bg-blue-50 text-blue-500';
+                        else if (iconName === 'users') circleBg = 'bg-purple-50 text-purple-500';
+                        else if (iconName === 'percent') circleBg = 'bg-amber-50 text-amber-500';
+                        else if (iconName === 'bell') circleBg = 'bg-red-50 text-red-500';
+
+                        return `
+                            <tr class="hover:bg-slate-50/70 transition-all border-b border-slate-100">
+                                <td class="py-3 px-4 font-bold text-slate-800 flex items-center space-x-3">
+                                    <div class="h-8.5 w-8.5 rounded-xl ${circleBg} flex items-center justify-center shrink-0 border border-slate-100 shadow-2xs">
+                                        <i data-lucide="${iconName}" class="h-4.5 w-4.5"></i>
+                                    </div>
+                                    <div class="space-y-0.5">
+                                        <span class="block font-bold text-slate-805 text-xs">${c.name}</span>
+                                        <span class="block text-[10px] text-slate-400 font-medium">${dateFormatted} • ${timeFormatted}</span>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <code class="font-mono text-indigo-500 font-semibold text-[10.5px] bg-indigo-50/50 px-1.5 py-0.5 rounded">${c.template_name}</code>
+                                </td>
+                                <td class="py-3 px-4 text-slate-600 font-semibold flex items-center space-x-1.5">
+                                    <svg class="h-4 w-4 text-[#25D366] fill-current shrink-0" viewBox="0 0 24 24">
+                                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.517 2.266 2.27 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.16 1.449 4.887 1.45 5.482.002 9.944-4.461 9.947-9.945.002-2.657-1.03-5.155-2.905-7.03C16.71 1.766 14.215.73 11.555.73c-5.49 0-9.952 4.463-9.955 9.948 0 1.787.483 3.394 1.401 4.938l-.921 3.363 3.567-.935zm12.785-6.853c-.347-.174-2.054-1.014-2.372-1.129-.318-.116-.549-.174-.78.174-.23.348-.895 1.129-1.096 1.361-.202.233-.404.261-.751.087-.348-.174-1.47-.542-2.8-1.728-1.034-.922-1.732-2.06-1.934-2.41-.202-.347-.022-.535.152-.708.156-.156.347-.406.52-.608.174-.203.23-.348.347-.58.117-.232.06-.435-.03-.608-.09-.174-.78-1.884-1.068-2.58-.282-.677-.567-.585-.78-.596-.2-.01-.43-.01-.66-.01-.23 0-.608.087-.925.435-.317.348-1.214 1.188-1.214 2.902 0 1.71 1.244 3.362 1.417 3.593.173.23 2.453 3.746 5.94 5.253.83.358 1.478.57 1.983.731.834.265 1.593.228 2.193.138.669-.1 2.054-.84 2.342-1.652.288-.812.288-1.508.202-1.652-.086-.145-.317-.232-.664-.406z" />
+                                    </svg>
+                                    <span class="font-mono text-[11px]">+${c.wa_number}</span>
+                                </td>
+                                <td class="py-3 px-4 text-center font-bold text-slate-800 text-xs">${c.total_contacts}</td>
+                                <td class="py-3 px-4 text-center font-bold text-slate-700 text-xs">${c.sent_count}</td>
+                                <td class="py-3 px-4 text-center font-bold text-slate-700 text-xs">
+                                    <div>${c.delivered_count}</div>
+                                    <span class="text-[10px] text-emerald-600 font-bold">${c.delivered_percent}%</span>
+                                </td>
+                                <td class="py-3 px-4 text-center font-bold text-slate-700 text-xs">
+                                    <div>${c.read_count}</div>
+                                    <span class="text-[10px] text-slate-400 font-semibold">${c.read_percent}%</span>
+                                </td>
+                                <td class="py-3 px-4 text-center font-bold text-slate-700 text-xs">
+                                    <div>${c.replies_count}</div>
+                                    <span class="text-[10px] text-slate-400 font-semibold">${c.replies_percent}%</span>
+                                </td>
+                                <td class="py-3 px-4 text-center">
+                                    <span class="inline-block px-2 py-0.5 rounded-full text-[9px] ${statusClasses}">
+                                        ${c.status.toUpperCase()}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-right">
+                                    <div class="flex items-center justify-end space-x-1.5">
+                                        <button onclick="showNotification('info', 'Opening report dashboard for ${c.name}')" class="p-1.5 border border-slate-200 hover:bg-slate-50 text-slate-500 rounded-lg transition" title="View Report">
+                                            <i data-lucide="bar-chart-2" class="h-3.5 w-3.5 text-slate-500"></i>
+                                        </button>
+                                        <button onclick="showNotification('success', 'Campaign copied to draft.')" class="p-1.5 border border-slate-200 hover:bg-slate-50 text-slate-500 rounded-lg transition" title="Clone Campaign">
+                                            <i data-lucide="copy" class="h-3.5 w-3.5 text-slate-500"></i>
+                                        </button>
+                                        ${c.status === 'draft' ? `
+                                            <button onclick="triggerBroadcastCampaign(${c.id})" class="p-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition" title="Send Campaign">
+                                                <i data-lucide="send" class="h-3.5 w-3.5 text-white"></i>
+                                            </button>
+                                        ` : ''}
+                                        <button onclick="deleteCampaign(${c.is_sample ? "'" + c.id + "'" : c.id})" class="p-1.5 border border-slate-200 hover:bg-red-50 text-slate-500 hover:text-red-650 rounded-lg transition" title="Delete">
+                                            <i data-lucide="more-vertical" class="h-3.5 w-3.5 text-slate-500"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+
+                const paginatorContainer = document.getElementById('paginator-dots-container');
+                let dotsHtml = `
+                    <button class="p-1 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
+                        <i data-lucide="chevron-left" class="h-3.5 w-3.5 text-slate-600"></i>
+                    </button>
+                `;
+                for (let p = 1; p <= totalPages; p++) {
+                    if (p === currentPage) {
+                        dotsHtml += `<button class="h-7 w-7 rounded-lg bg-[#00a884] text-white flex items-center justify-center text-xs font-bold" style="color: white !important;">${p}</button>`;
+                    } else {
+                        dotsHtml += `<button class="h-7 w-7 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 flex items-center justify-center text-xs font-bold" onclick="changePage(${p})">${p}</button>`;
+                    }
+                }
+                dotsHtml += `
+                    <button class="p-1 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
+                        <i data-lucide="chevron-right" class="h-3.5 w-3.5 text-slate-600"></i>
+                    </button>
+                `;
+                paginatorContainer.innerHTML = dotsHtml;
+
+                lucide.createIcons();
+            }
+
+            window.changePage = function(page) {
+                currentPage = page;
+                applyFilterAndRender();
+            };
+
+            document.getElementById('camp-search').addEventListener('input', (e) => {
+                searchQuery = e.target.value;
+                currentPage = 1;
+                applyFilterAndRender();
+            });
+
+            document.getElementById('camp-status-select').addEventListener('change', (e) => {
+                statusFilter = e.target.value;
+                currentPage = 1;
+                applyFilterAndRender();
+            });
+
+            document.getElementById('camp-sort-select').addEventListener('change', (e) => {
+                sortBy = e.target.value;
+                currentPage = 1;
+                applyFilterAndRender();
+            });
+
+            document.getElementById('paginator-size-select').addEventListener('change', (e) => {
+                itemsPerPage = parseInt(e.target.value);
+                currentPage = 1;
+                applyFilterAndRender();
+            });
+
+            // Handle delete action (support sample and real deletion)
+            window.deleteCampaign = function(campId) {
+                if (typeof campId === 'string' && campId.startsWith('sample-')) {
+                    if (confirm('Delete this sample campaign draft?')) {
+                        const idx = baseSamples.findIndex(s => s.id === campId);
+                        if (idx > -1) {
+                            baseSamples.splice(idx, 1);
+                            showNotification('success', 'Sample campaign deleted.');
+                            applyFilterAndRender();
+                        }
+                    }
+                } else {
+                    if (!confirm('Delete this campaign draft permanently?')) return;
+                    apiCall(`whatsapp/campaigns.php?action=delete&campaign_id=${campId}`, 'POST')
+                        .then(res => {
+                            showNotification('success', res.message);
+                            renderWhatsAppCampaigns(container);
+                        })
+                        .catch(err => {
+                            showNotification('error', err.message);
+                        });
+                }
+            };
+
             // Define Modal popup helper
             window.openCampaignCreateModal = function() {
                 const existing = document.getElementById('campaign-modal');
@@ -2016,7 +2568,7 @@ function renderWhatsAppCampaigns(container) {
                                 </div>
                             </div>
                             
-                            <button type="submit" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition mt-4">
+                            <button type="submit" class="w-full py-2.5 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-xl font-bold transition mt-4" style="color: white !important;">
                                 Create Campaign Draft
                             </button>
                         </form>
@@ -2062,20 +2614,9 @@ function renderWhatsAppCampaigns(container) {
                     showNotification('error', err.message);
                 });
             };
-            
-            window.deleteCampaign = function(campId) {
-                if (!confirm('Delete this campaign permanently?')) return;
-                
-                apiCall(`whatsapp/campaigns.php?action=delete&campaign_id=${campId}`, 'POST')
-                    .then(res => {
-                        showNotification('success', res.message);
-                        renderWhatsAppCampaigns(container);
-                    })
-                    .catch(err => {
-                        showNotification('error', err.message);
-                    });
-            };
-            
+
+            // Draw!
+            applyFilterAndRender();
         } catch (err) {
             showNotification('error', err.message);
         }

@@ -2675,90 +2675,541 @@ function renderWhatsAppCampaigns(container) {
                 }
             };
 
-            // Define Modal popup helper
-            window.openCampaignCreateModal = function() {
-                const existing = document.getElementById('campaign-modal');
-                if (existing) existing.remove();
-                
-                const modal = document.createElement('div');
-                modal.id = 'campaign-modal';
-                modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4';
-                
-                modal.innerHTML = `
-                    <div class="bg-white border border-slate-200 p-6 max-w-md w-full rounded-2xl shadow-2xl relative">
-                        <button onclick="document.getElementById('campaign-modal').remove()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 text-xl font-bold">&times;</button>
-                        
-                        <h2 class="text-sm font-bold text-slate-800 mb-4">Create WhatsApp Campaign</h2>
-                        
-                        <form onsubmit="saveNewCampaignDraft(event)" class="space-y-4 text-xs">
-                            <div>
-                                <label class="block text-slate-600 font-semibold mb-1">Campaign Name</label>
-                                <input type="text" id="camp-name" required placeholder="e.g. Promo July 2026" class="w-full px-3 py-2 border border-slate-200 rounded-lg">
+            // Define new full setup page view creator
+            window.openCampaignCreatePage = function() {
+                contentArea.innerHTML = `
+                    <div class="space-y-6 text-slate-800 animate-fade-in bg-[#f8fafc] p-6 rounded-3xl border border-slate-200/60">
+                        <!-- Header -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="h-10 w-10 flex items-center justify-center shrink-0">
+                                    <img src="../assets/css/WhatsApp_icon.png" class="h-10 w-10 object-contain" alt="WhatsApp">
+                                </div>
+                                <div>
+                                    <h1 class="text-xl font-bold tracking-tight text-slate-900 leading-none">Create New WhatsApp Campaign</h1>
+                                    <p class="text-xs text-slate-400 mt-1.5 font-medium">Advanced setup to send targeted and personalized WhatsApp messages</p>
+                                </div>
                             </div>
-                            
-                            <div>
-                                <label class="block text-slate-600 font-semibold mb-1">Target Template</label>
-                                <select id="camp-tpl" required class="w-full px-3 py-2 border border-slate-200 rounded-lg">
-                                    ${templates.map(t => `<option value="${t.name}">${t.name} (${t.language})</option>`).join('')}
-                                </select>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="saveCampaignDraftInline(event)" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition shadow-sm bg-white">Save as Draft</button>
+                                <button onclick="cancelCampaignCreate()" class="h-8 w-8 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-800 flex items-center justify-center transition bg-white">
+                                    <i data-lucide="x" class="h-4 w-4"></i>
+                                </button>
                             </div>
-                            
-                            <div class="border-t border-slate-100 pt-3 space-y-3">
-                                <span class="font-bold text-slate-600 block">Audience Filters (Optional)</span>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block text-slate-500 mb-0.5 text-[10px]">Company Name</label>
-                                        <input type="text" id="filt-comp" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-[11px]">
+                        </div>
+
+                        <!-- Multi-Step Indicator Bar -->
+                        <div class="bg-white border border-slate-200/80 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 text-xs font-bold text-slate-505 shadow-xs">
+                            <div class="flex items-center space-x-2.5">
+                                <div class="h-7 w-7 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs" style="color: white !important;">1</div>
+                                <div>
+                                    <div class="text-slate-900 leading-tight">Campaign Setup</div>
+                                    <div class="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Basic details</div>
+                                </div>
+                            </div>
+                            <div class="h-px bg-slate-100 flex-grow hidden md:block"></div>
+                            <div class="flex items-center space-x-2.5 opacity-60">
+                                <div class="h-7 w-7 rounded-full border border-slate-200 flex items-center justify-center text-xs text-slate-400 bg-slate-50">2</div>
+                                <div>
+                                    <div class="text-slate-500 leading-tight">Target Audience</div>
+                                    <div class="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Select recipients</div>
+                                </div>
+                            </div>
+                            <div class="h-px bg-slate-100 flex-grow hidden md:block"></div>
+                            <div class="flex items-center space-x-2.5 opacity-60">
+                                <div class="h-7 w-7 rounded-full border border-slate-200 flex items-center justify-center text-xs text-slate-400 bg-slate-50">3</div>
+                                <div>
+                                    <div class="text-slate-500 leading-tight">Message Content</div>
+                                    <div class="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Create your message</div>
+                                </div>
+                            </div>
+                            <div class="h-px bg-slate-100 flex-grow hidden md:block"></div>
+                            <div class="flex items-center space-x-2.5 opacity-60">
+                                <div class="h-7 w-7 rounded-full border border-slate-200 flex items-center justify-center text-xs text-slate-400 bg-slate-50">4</div>
+                                <div>
+                                    <div class="text-slate-500 leading-tight">Scheduling</div>
+                                    <div class="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Set time & options</div>
+                                </div>
+                            </div>
+                            <div class="h-px bg-slate-100 flex-grow hidden md:block"></div>
+                            <div class="flex items-center space-x-2.5 opacity-60">
+                                <div class="h-7 w-7 rounded-full border border-slate-200 flex items-center justify-center text-xs text-slate-400 bg-slate-50">5</div>
+                                <div>
+                                    <div class="text-slate-505 leading-tight">Review & Launch</div>
+                                    <div class="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Confirm & start</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Main setup layout (2-Column Grid) -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Form Setup (Left 2 cols) -->
+                            <div class="lg:col-span-2 space-y-6">
+                                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5">
+                                    <div class="space-y-1 border-b border-slate-100 pb-3">
+                                        <h3 class="font-bold text-slate-800 text-sm">Campaign Setup</h3>
+                                        <p class="text-slate-400 text-xs font-medium">Configure the basic details of your WhatsApp campaign</p>
                                     </div>
-                                    <div>
-                                        <label class="block text-slate-500 mb-0.5 text-[10px]">Industry</label>
-                                        <input type="text" id="filt-ind" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-[11px]">
+
+                                    <form onsubmit="handleCampaignSubmitInline(event)" class="space-y-4 text-xs font-semibold text-slate-700">
+                                        <div>
+                                            <label class="block text-slate-600 font-bold mb-1">Campaign Name <span class="text-rose-500">*</span></label>
+                                            <input type="text" id="camp-inline-name" required value="Follow Up Reminder - 07/07/2026" oninput="updateSummaryCard()" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-xs text-slate-800 font-semibold shadow-2xs">
+                                            <span class="block text-[10px] text-slate-400 font-medium mt-1">Give a unique name to your campaign</span>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-slate-600 font-bold mb-1">WhatsApp Number <span class="text-rose-500">*</span></label>
+                                                <div class="relative">
+                                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                                        <img src="../assets/css/WhatsApp_icon.png" class="h-4 w-4 object-contain" alt="WhatsApp">
+                                                    </span>
+                                                    <select id="camp-inline-number" onchange="updateSummaryCard()" class="w-full pl-9 pr-3 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-xs text-slate-800 font-bold shadow-2xs cursor-pointer">
+                                                        <option value="91 98765 43210">91 98765 43210</option>
+                                                    </select>
+                                                </div>
+                                                <span class="block text-[10px] text-slate-400 font-medium mt-1">Select the WhatsApp number to send messages from</span>
+                                            </div>
+
+                                            <div>
+                                                <label class="block text-slate-600 font-bold mb-1">Message Template <span class="text-rose-500">*</span></label>
+                                                <div class="relative cursor-pointer" onclick="openTemplateSelectorModal()">
+                                                    <input type="text" id="camp-inline-template" readonly value="followup_reminder" class="w-full pl-3.5 pr-8 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-xs text-slate-800 font-bold shadow-2xs cursor-pointer select-none">
+                                                    <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
+                                                        <i data-lucide="chevron-down" class="h-3.5 w-3.5"></i>
+                                                    </span>
+                                                </div>
+                                                <span class="block text-[10px] text-slate-400 font-medium mt-1">Choose a pre-approved template</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-slate-600 font-bold mb-1">Campaign Category</label>
+                                                <select id="camp-inline-category" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-xs text-slate-800 font-bold shadow-2xs cursor-pointer">
+                                                    <option value="marketing">Marketing</option>
+                                                    <option value="utility">Utility</option>
+                                                    <option value="authentication">Authentication</option>
+                                                </select>
+                                                <span class="block text-[10px] text-slate-400 font-medium mt-1">Select the category of your campaign</span>
+                                            </div>
+
+                                            <div>
+                                                <label class="block text-slate-600 font-bold mb-1">Campaign Type</label>
+                                                <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-[#f8fafc] p-0.5 shadow-2xs h-[38px]">
+                                                    <button type="button" id="type-btn-broadcast" onclick="selectCampaignType('broadcast')" class="flex-grow py-1.5 rounded-lg text-emerald-600 bg-white border border-slate-200/60 shadow-2xs font-bold text-center text-xs transition duration-150">Broadcast</button>
+                                                    <button type="button" id="type-btn-sequence" onclick="selectCampaignType('sequence')" class="flex-grow py-1.5 rounded-lg text-slate-500 hover:text-slate-800 font-semibold text-center text-xs transition duration-150">Drip / Sequence</button>
+                                                </div>
+                                                <span class="block text-[10px] text-slate-400 font-medium mt-1">Send to all at once or in a sequence</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Tags input box -->
+                                        <div>
+                                            <label class="block text-slate-600 font-bold mb-1">Tags</label>
+                                            <div class="flex flex-wrap items-center gap-1.5 w-full px-3 py-2 bg-[#f8fafc] border border-slate-200 rounded-xl shadow-2xs min-h-[38px]">
+                                                <div class="flex items-center space-x-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-bold text-[10px] border border-emerald-100">
+                                                    <span>followup</span>
+                                                    <button type="button" onclick="removeInlineTag(this)" class="hover:text-rose-500 text-slate-400 font-black">&times;</button>
+                                                </div>
+                                                <div class="flex items-center space-x-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-bold text-[10px] border border-emerald-100">
+                                                    <span>reminder</span>
+                                                    <button type="button" onclick="removeInlineTag(this)" class="hover:text-rose-500 text-slate-400 font-black">&times;</button>
+                                                </div>
+                                                <div class="flex items-center space-x-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-bold text-[10px] border border-emerald-100">
+                                                    <span>leads</span>
+                                                    <button type="button" onclick="removeInlineTag(this)" class="hover:text-rose-500 text-slate-400 font-black">&times;</button>
+                                                </div>
+                                                <input type="text" placeholder="Add tag..." onkeydown="handleTagInputInline(event)" class="bg-transparent border-0 focus:outline-none focus:ring-0 text-[11px] placeholder-slate-400 w-24">
+                                            </div>
+                                            <span class="block text-[10px] text-slate-400 font-medium mt-1">Add tags to organize your campaigns</span>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-slate-600 font-bold mb-1">Campaign Description (Optional)</label>
+                                            <textarea id="camp-inline-desc" placeholder="This campaign is to follow up with interested leads who didn't respond to our previous message." class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-xs text-slate-800 font-semibold h-24 shadow-2xs resize-none">This campaign is to follow up with interested leads who didn't respond to our previous message.</textarea>
+                                            <span class="block text-[10px] text-slate-400 font-medium mt-1">This helps you and your team identify the purpose of this campaign</span>
+                                        </div>
+
+                                        <!-- Footer Controls -->
+                                        <div class="flex items-center justify-between border-t border-slate-100 pt-4 mt-6">
+                                            <button type="button" onclick="cancelCampaignCreate()" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition shadow-sm bg-white">Cancel</button>
+                                            <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md shadow-emerald-500/10" style="color: white !important;">
+                                                <span>Save & Next</span>
+                                                <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Sidebar Setup Info (Right Column) -->
+                            <div class="space-y-6">
+                                <!-- Campaign Summary Card -->
+                                <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-4">
+                                    <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider">Campaign Summary</h4>
+                                    <div class="space-y-3.5 text-xs text-slate-600 font-semibold">
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center space-x-2 text-slate-400">
+                                                <i data-lucide="send" class="h-4 w-4"></i>
+                                                <span>Campaign Type</span>
+                                            </div>
+                                            <span class="text-slate-800 font-bold" id="summary-campaign-type">Broadcast</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center space-x-2 text-slate-405">
+                                                <img src="../assets/css/WhatsApp_icon.png" class="h-4 w-4 object-contain" alt="WhatsApp">
+                                                <span>WhatsApp Number</span>
+                                            </div>
+                                            <span class="text-slate-800 font-bold" id="summary-whatsapp-number">91 98765 43210</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center space-x-2 text-slate-400">
+                                                <i data-lucide="file-text" class="h-4 w-4"></i>
+                                                <span>Template</span>
+                                            </div>
+                                            <span class="text-slate-800 font-mono text-[11px]" id="summary-template">followup_reminder</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center space-x-2 text-slate-400">
+                                                <i data-lucide="users" class="h-4 w-4"></i>
+                                                <span>Estimated Recipients</span>
+                                            </div>
+                                            <span class="text-slate-800 font-bold" id="summary-recipients">120 contacts</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center space-x-2 text-slate-400">
+                                                <i data-lucide="message-square" class="h-4 w-4"></i>
+                                                <span>Estimated Messages</span>
+                                            </div>
+                                            <span class="text-slate-800 font-bold" id="summary-messages">~120 messages</span>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label class="block text-slate-500 mb-0.5 text-[10px]">City/Location</label>
-                                        <input type="text" id="filt-city" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-[11px]">
+                                    <div class="text-[10px] text-slate-400 font-medium border-t border-slate-100 pt-3">
+                                        These numbers are estimated and may vary.
                                     </div>
-                                    <div>
-                                        <label class="block text-slate-500 mb-0.5 text-[10px]">Notes Keywords/Tags</label>
-                                        <input type="text" id="filt-tags" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-[11px]">
+                                </div>
+
+                                <!-- Best Practices Card -->
+                                <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-4">
+                                    <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider">Best Practices</h4>
+                                    <ul class="space-y-2 text-xs font-semibold text-slate-600">
+                                        <li class="flex items-start space-x-2">
+                                            <span class="text-emerald-500 font-bold">✓</span>
+                                            <span>Use approved templates only</span>
+                                        </li>
+                                        <li class="flex items-start space-x-2">
+                                            <span class="text-emerald-500 font-bold">✓</span>
+                                            <span>Personalize your messages</span>
+                                        </li>
+                                        <li class="flex items-start space-x-2">
+                                            <span class="text-emerald-500 font-bold">✓</span>
+                                            <span>Send at the right time</span>
+                                        </li>
+                                        <li class="flex items-start space-x-2">
+                                            <span class="text-emerald-500 font-bold">✓</span>
+                                            <span>Avoid excessive emojis</span>
+                                        </li>
+                                        <li class="flex items-start space-x-2">
+                                            <span class="text-emerald-500 font-bold">✓</span>
+                                            <span>Provide value in your message</span>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <!-- Compliance Reminder Card -->
+                                <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-3.5 flex items-start space-x-3.5">
+                                    <div class="h-7 w-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                                        <i data-lucide="shield-check" class="h-4.5 w-4.5"></i>
+                                    </div>
+                                    <div class="space-y-1.5 text-xs">
+                                        <h4 class="font-bold text-slate-800 leading-none">Compliance Reminder</h4>
+                                        <p class="text-slate-505 leading-normal font-medium">Ensure you have explicit consent from recipients. Avoid sending promotional content without permission.</p>
+                                        <a href="https://support.linkpilot.com" target="_blank" class="inline-flex items-center text-blue-600 font-bold hover:underline space-x-0.5">
+                                            <span>Learn more</span>
+                                            <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+                                        </a>
                                     </div>
                                 </div>
                             </div>
-                            
-                            <button type="submit" class="w-full py-2.5 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-xl font-bold transition mt-4" style="color: white !important;">
-                                Create Campaign Draft
-                            </button>
-                        </form>
+                        </div>
+
+                        <!-- Bottom Help Banner -->
+                        <div class="bg-[#f0fdf4] border border-emerald-100 rounded-2xl p-4 flex items-center justify-between text-xs font-semibold text-slate-700">
+                            <div class="flex items-center space-x-2.5">
+                                <div class="h-6 w-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">i</div>
+                                <span class="text-slate-600 font-medium">Not sure what to do next? Check our detailed guide to create high-performing WhatsApp campaigns.</span>
+                            </div>
+                            <a href="https://support.linkpilot.com" target="_blank" class="text-emerald-700 font-bold hover:underline flex items-center space-x-0.5 shrink-0">
+                                <span>View Guide</span>
+                                <i data-lucide="external-link" class="h-3.5 w-3.5"></i>
+                            </a>
+                        </div>
                     </div>
                 `;
-                
-                document.body.appendChild(modal);
+
+                lucide.createIcons();
             };
-            
-            window.saveNewCampaignDraft = function(e) {
+
+            window.updateSummaryCard = function() {
+                const name = document.getElementById('camp-inline-name').value;
+                const num = document.getElementById('camp-inline-number').value;
+                const tpl = document.getElementById('camp-inline-template').value;
+                
+                document.getElementById('summary-whatsapp-number').textContent = num;
+                document.getElementById('summary-template').textContent = tpl;
+            };
+
+            window.selectCampaignType = function(type) {
+                const bBtn = document.getElementById('type-btn-broadcast');
+                const sBtn = document.getElementById('type-btn-sequence');
+                
+                if (type === 'broadcast') {
+                    bBtn.className = 'flex-grow py-1.5 rounded-lg text-emerald-600 bg-white border border-slate-200/60 shadow-2xs font-bold text-center text-xs transition duration-150';
+                    sBtn.className = 'flex-grow py-1.5 rounded-lg text-slate-500 hover:text-slate-800 font-semibold text-center text-xs transition duration-150';
+                    document.getElementById('summary-campaign-type').textContent = 'Broadcast';
+                } else {
+                    sBtn.className = 'flex-grow py-1.5 rounded-lg text-emerald-600 bg-white border border-slate-200/60 shadow-2xs font-bold text-center text-xs transition duration-150';
+                    bBtn.className = 'flex-grow py-1.5 rounded-lg text-slate-500 hover:text-slate-800 font-semibold text-center text-xs transition duration-150';
+                    document.getElementById('summary-campaign-type').textContent = 'Drip / Sequence';
+                }
+            };
+
+            window.removeInlineTag = function(button) {
+                button.parentElement.remove();
+            };
+
+            window.handleTagInputInline = function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    const input = event.target;
+                    const tagText = input.value.trim();
+                    if (tagText) {
+                        const container = input.parentElement;
+                        const newTag = document.createElement('div');
+                        newTag.className = 'flex items-center space-x-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-bold text-[10px] border border-emerald-100';
+                        newTag.innerHTML = `
+                            <span>${tagText}</span>
+                            <button type="button" onclick="removeInlineTag(this)" class="hover:text-rose-500 text-slate-400 font-black">&times;</button>
+                        `;
+                        container.insertBefore(newTag, input);
+                        input.value = '';
+                    }
+                }
+            };
+
+            window.cancelCampaignCreate = function() {
+                renderWhatsAppCampaigns(container);
+            };
+
+            window.saveCampaignDraftInline = function(e) {
                 e.preventDefault();
                 const payload = {
-                    name: document.getElementById('camp-name').value.trim(),
-                    template_name: document.getElementById('camp-tpl').value,
+                    name: document.getElementById('camp-inline-name').value.trim(),
+                    template_name: document.getElementById('camp-inline-template').value,
                     filters: {
-                        company: document.getElementById('filt-comp').value.trim(),
-                        industry: document.getElementById('filt-ind').value.trim(),
-                        city: document.getElementById('filt-city').value.trim(),
-                        tags: document.getElementById('filt-tags').value.trim()
+                        company: '',
+                        industry: '',
+                        city: '',
+                        tags: Array.from(document.querySelectorAll('.bg-emerald-50 span')).map(span => span.textContent).join(',')
                     }
                 };
-                
+
                 apiCall('whatsapp/campaigns.php?action=create', 'POST', payload)
                     .then(res => {
-                        showNotification('success', 'Campaign draft created successfully.');
-                        document.getElementById('campaign-modal').remove();
+                        showNotification('success', 'Campaign draft saved successfully.');
                         renderWhatsAppCampaigns(container);
                     })
                     .catch(err => {
                         showNotification('error', err.message);
                     });
             };
-            
+
+            window.handleCampaignSubmitInline = function(e) {
+                e.preventDefault();
+                const payload = {
+                    name: document.getElementById('camp-inline-name').value.trim(),
+                    template_name: document.getElementById('camp-inline-template').value,
+                    filters: {
+                        company: '',
+                        industry: '',
+                        city: '',
+                        tags: Array.from(document.querySelectorAll('.bg-emerald-50 span')).map(span => span.textContent).join(',')
+                    }
+                };
+
+                apiCall('whatsapp/campaigns.php?action=create', 'POST', payload)
+                    .then(res => {
+                        showNotification('success', 'Campaign setup completed successfully! Proceeding to target audience.');
+                        renderWhatsAppCampaigns(container);
+                    })
+                    .catch(err => {
+                        showNotification('error', err.message);
+                    });
+            };
+
+            // Custom Template Selector Modal with List view and Live WhatsApp message layout preview
+            window.openTemplateSelectorModal = function() {
+                const existing = document.getElementById('template-picker-modal');
+                if (existing) existing.remove();
+
+                const availableTemplates = templates.length > 0 ? templates : [
+                    { name: 'followup_reminder', category: 'UTILITY', language: 'en', status: 'APPROVED', components_json: '[{"type":"BODY","text":"Hi {{1}}, just following up on our chat. Let us know if you have any questions about the proposal we sent. Have a great day!"}]' },
+                    { name: 'welcome_message', category: 'UTILITY', language: 'en', status: 'APPROVED', components_json: '[{"type":"BODY","text":"Hello {{1}}, thank you for connecting with us! We have received your inquiry regarding our CRM services and will get back to you shortly."}]' },
+                    { name: 'discount_promo', category: 'MARKETING', language: 'en', status: 'APPROVED', components_json: '[{"type":"BODY","text":"Hey {{1}}, check out this exclusive offer! Get 20% off all LinkPilot CRM plans this month. Use code: OUTREACH20."}]' },
+                    { name: 'product_launch', category: 'MARKETING', language: 'en', status: 'APPROVED', components_json: '[{"type":"BODY","text":"Exciting news! We just launched our new feature. Check it out at {{1}}!"}]' }
+                ];
+
+                let activeTpl = availableTemplates.find(t => t.name === document.getElementById('camp-inline-template').value) || availableTemplates[0];
+
+                const modal = document.createElement('div');
+                modal.id = 'template-picker-modal';
+                modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4';
+
+                modal.innerHTML = `
+                    <div class="bg-white border border-slate-200 max-w-4xl w-full rounded-3xl shadow-2xl relative overflow-hidden flex flex-col h-[580px] animate-fade-in">
+                        <!-- Header -->
+                        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800 leading-none">Select Message Template</h3>
+                                <p class="text-[10px] text-slate-400 font-medium mt-1">Choose a pre-approved template for your campaign</p>
+                            </div>
+                            <button onclick="document.getElementById('template-picker-modal').remove()" class="h-8 w-8 rounded-full border border-slate-150 hover:border-slate-350 hover:bg-slate-50 flex items-center justify-center text-slate-500 hover:text-slate-800 transition">
+                                <i data-lucide="x" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+
+                        <!-- Body Grid -->
+                        <div class="flex-grow grid grid-cols-1 md:grid-cols-5 overflow-hidden">
+                            <!-- Left: Template List (3 cols) -->
+                            <div class="md:col-span-3 border-r border-slate-100 flex flex-col overflow-hidden bg-slate-50/40">
+                                <div class="p-3 border-b border-slate-100">
+                                    <div class="relative">
+                                        <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
+                                            <i data-lucide="search" class="h-3.5 w-3.5"></i>
+                                        </span>
+                                        <input type="text" id="tpl-modal-search" placeholder="Search templates..." oninput="filterModalTemplates(this.value)" class="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-blue-500">
+                                    </div>
+                                </div>
+
+                                <!-- Scrollable list -->
+                                <div class="flex-grow overflow-y-auto p-3 space-y-2" id="modal-tpl-list-container">
+                                    <!-- populated below -->
+                                </div>
+                            </div>
+
+                            <!-- Right: Mobile Preview (2 cols) -->
+                            <div class="md:col-span-2 p-5 flex flex-col justify-between bg-slate-100/70 overflow-hidden relative">
+                                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">WhatsApp Preview</div>
+                                
+                                <!-- WhatsApp Mobile Shell -->
+                                <div class="flex-grow flex flex-col rounded-3xl border-4 border-slate-800 bg-[#efeae2] shadow-lg max-h-[360px] overflow-hidden relative">
+                                    <!-- Mobile Top Header Bar -->
+                                    <div class="bg-[#075e54] text-white p-3 flex items-center space-x-2 shrink-0">
+                                        <div class="h-7 w-7 rounded-full bg-emerald-500 border border-emerald-400 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
+                                            LP
+                                        </div>
+                                        <div class="truncate">
+                                            <div class="text-[11px] font-extrabold leading-none">LinkPilot Outbox</div>
+                                            <span class="text-[9px] font-semibold opacity-85 leading-none">Active Outreach</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Chat Area with WhatsApp background -->
+                                    <div class="flex-grow p-3 overflow-y-auto space-y-3 flex flex-col justify-end" id="wa-preview-chat-area" style="background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-size: cover;">
+                                        <!-- WhatsApp message bubble -->
+                                        <div class="bg-[#dcf8c6] text-slate-805 p-3 rounded-2xl rounded-tr-none max-w-[90%] self-end text-xs leading-relaxed shadow-sm relative border border-emerald-100/50">
+                                            <div id="wa-preview-message-body" class="font-medium whitespace-pre-line text-slate-700">
+                                                <!-- body text populated dynamically -->
+                                            </div>
+                                            <div class="flex items-center justify-end space-x-1 mt-1 text-[8px] text-slate-400 font-bold">
+                                                <span>20:10</span>
+                                                <!-- double blue checks -->
+                                                <svg class="h-3.5 w-3.5 text-blue-500 fill-current" viewBox="0 0 24 24">
+                                                    <path d="m19.14 7.66-8.59 8.58-3.86-3.86-1.41 1.41 5.27 5.27L20.55 9.07l-1.41-1.41ZM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2Zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8Z"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Footer Action -->
+                                <div class="pt-4 shrink-0">
+                                    <button onclick="confirmSelectedTemplate()" class="w-full py-2.5 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-md shadow-emerald-500/10" style="color: white !important;">
+                                        <i data-lucide="check-circle-2" class="h-4 w-4 text-white"></i>
+                                        <span>Confirm Template Selection</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+                lucide.createIcons();
+
+                window.filterModalTemplates = function(query) {
+                    const listContainer = document.getElementById('modal-tpl-list-container');
+                    if (!listContainer) return;
+
+                    const filtered = availableTemplates.filter(t => t.name.toLowerCase().includes(query.toLowerCase()));
+                    if (filtered.length === 0) {
+                        listContainer.innerHTML = `<div class="text-center text-slate-400 text-xs py-8 font-medium">No templates match search query.</div>`;
+                        return;
+                    }
+
+                    listContainer.innerHTML = filtered.map(t => {
+                        const isSelected = t.name === activeTpl.name;
+                        const borderClass = isSelected ? 'border-[#00a884] bg-emerald-50/40' : 'border-slate-200 bg-white hover:border-slate-350';
+                        const badgeBg = t.category === 'MARKETING' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-600';
+                        
+                        return `
+                            <div onclick="selectModalTemplate('${t.name}')" class="p-3.5 border rounded-2xl cursor-pointer transition ${borderClass} flex items-center justify-between shadow-2xs">
+                                <div class="space-y-1">
+                                    <div class="font-extrabold text-slate-800 text-xs">${t.name}</div>
+                                    <div class="flex items-center space-x-2 text-[9px] font-bold">
+                                        <span class="px-1.5 py-0.5 rounded ${badgeBg}">${t.category}</span>
+                                        <span class="text-slate-405 font-medium">Language: ${t.language}</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-1 text-emerald-600 text-[10px] font-extrabold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                                    <span class="h-1.5 w-1.5 bg-emerald-500 rounded-full"></span>
+                                    <span>Approved</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                };
+
+                window.selectModalTemplate = function(name) {
+                    activeTpl = availableTemplates.find(t => t.name === name) || availableTemplates[0];
+                    window.filterModalTemplates(document.getElementById('tpl-modal-search').value);
+                    
+                    let bodyText = '';
+                    try {
+                        const comps = typeof activeTpl.components_json === 'string' ? JSON.parse(activeTpl.components_json) : (activeTpl.components || []);
+                        const bodyComp = comps.find(c => c.type === 'BODY');
+                        bodyText = bodyComp ? bodyComp.text : 'Template body text not found.';
+                    } catch (e) {
+                        bodyText = 'Error parsing template body component.';
+                    }
+                    
+                    // Replace {{1}}, {{2}} with nice green chips
+                    bodyText = bodyText.replace(/\{\{(\d+)\}\}/g, '<strong class="text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-md font-extrabold text-[10px] border border-emerald-200">[Variable $1]</strong>');
+                    document.getElementById('wa-preview-message-body').innerHTML = bodyText;
+                };
+
+                window.confirmSelectedTemplate = function() {
+                    document.getElementById('camp-inline-template').value = activeTpl.name;
+                    document.getElementById('summary-template').textContent = activeTpl.name;
+                    document.getElementById('template-picker-modal').remove();
+                    showNotification('success', `Confirmed template: ${activeTpl.name}`);
+                };
+
+                window.selectModalTemplate(activeTpl.name);
+            };
+
             window.triggerBroadcastCampaign = function(campId) {
                 if (!confirm('Are you sure you want to trigger this broadcast campaign? Message targets will be pushed in queue.')) return;
                 

@@ -1892,6 +1892,11 @@ function renderWhatsAppContacts(container) {
 function renderWhatsAppCampaigns(container) {
     checkWaConnectionAndRender('campaigns', container, async (contentArea) => {
         try {
+            const setupRes = await apiCall('whatsapp/setup.php');
+            const acc = setupRes.account || {};
+            const displayPhone = acc.display_phone_number || '91 98765 43210';
+            window.connectedWhatsAppNumber = displayPhone;
+
             const res = await apiCall('whatsapp/campaigns.php');
             const campaigns = res.campaigns || [];
             
@@ -1901,7 +1906,7 @@ function renderWhatsAppCampaigns(container) {
             let searchQuery = '';
             let statusFilter = 'ALL';
             let numberFilter = 'ALL';
-            let dateFilter = 'MAY_2026';
+            let dateFilter = 'ALL';
             let minContacts = 0;
             let campaignType = 'ALL';
             let currentPage = 1;
@@ -1909,88 +1914,7 @@ function renderWhatsAppCampaigns(container) {
             let sortBy = 'latest';
 
             // High-fidelity mock campaign samples matching the provided image
-            const baseSamples = [
-                {
-                    id: 'sample-1',
-                    name: "Follow Up Reminder",
-                    created_at: "2026-05-07T10:30:00Z",
-                    template_name: "followup_reminder",
-                    wa_number: "91 98765 43210",
-                    total_contacts: 120,
-                    sent_count: 120,
-                    delivered_count: 115,
-                    read_count: 78,
-                    replies_count: 18,
-                    status: "completed",
-                    icon: "send",
-                    iconBg: "bg-emerald-50",
-                    iconColor: "text-emerald-500"
-                },
-                {
-                    id: 'sample-2',
-                    name: "Product Launch Offer",
-                    created_at: "2026-05-06T16:15:00Z",
-                    template_name: "product_launch",
-                    wa_number: "91 98765 43210",
-                    total_contacts: 350,
-                    sent_count: 350,
-                    delivered_count: 335,
-                    read_count: 210,
-                    replies_count: 42,
-                    status: "completed",
-                    icon: "tag",
-                    iconBg: "bg-blue-50",
-                    iconColor: "text-blue-500"
-                },
-                {
-                    id: 'sample-3',
-                    name: "Welcome New Leads",
-                    created_at: "2026-05-06T11:20:00Z",
-                    template_name: "welcome_message",
-                    wa_number: "91 98765 43210",
-                    total_contacts: 80,
-                    sent_count: 80,
-                    delivered_count: 76,
-                    read_count: 52,
-                    replies_count: 9,
-                    status: "sent",
-                    icon: "users",
-                    iconBg: "bg-purple-50",
-                    iconColor: "text-purple-500"
-                },
-                {
-                    id: 'sample-4',
-                    name: "Discount Promo",
-                    created_at: "2026-05-06T09:10:00Z",
-                    template_name: "discount_promo",
-                    wa_number: "91 98765 43210",
-                    total_contacts: 200,
-                    sent_count: 200,
-                    delivered_count: 186,
-                    read_count: 120,
-                    replies_count: 25,
-                    status: "sending",
-                    icon: "percent",
-                    iconBg: "bg-amber-50",
-                    iconColor: "text-amber-500"
-                },
-                {
-                    id: 'sample-5',
-                    name: "Weekly Tips & Updates",
-                    created_at: "2026-05-05T18:45:00Z",
-                    template_name: "weekly_tips",
-                    wa_number: "91 98765 43210",
-                    total_contacts: 150,
-                    sent_count: 150,
-                    delivered_count: 142,
-                    read_count: 90,
-                    replies_count: 14,
-                    status: "scheduled",
-                    icon: "bell",
-                    iconBg: "bg-red-50",
-                    iconColor: "text-red-500"
-                }
-            ];
+            const baseSamples = [];
 
             // Render Layout scaffolding
             contentArea.innerHTML = `
@@ -2133,7 +2057,7 @@ function renderWhatsAppCampaigns(container) {
                             <div class="w-full md:w-40">
                                 <select id="camp-number-select" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 focus:outline-none cursor-pointer">
                                     <option value="ALL">All Numbers</option>
-                                    <option value="919876543210">+91 98765 43210</option>
+                                    <option value="${displayPhone.replace(/\s+/g, '')}">+${displayPhone}</option>
                                 </select>
                             </div>
                             <!-- Date Filter Range Select -->
@@ -2284,7 +2208,7 @@ function renderWhatsAppCampaigns(container) {
                         name: c.name,
                         created_at: c.created_at,
                         template_name: c.template_name,
-                        wa_number: "91 98765 43210",
+                        wa_number: displayPhone,
                         total_contacts: c.total_contacts || 0,
                         sent_count: c.sent_count || 0,
                         delivered_count: c.delivered_count || 0,
@@ -2301,15 +2225,7 @@ function renderWhatsAppCampaigns(container) {
                     };
                 });
 
-                const samples = baseSamples.map(s => ({
-                    ...s,
-                    delivered_percent: ((s.delivered_count / s.sent_count) * 100).toFixed(1),
-                    read_percent: ((s.read_count / s.sent_count) * 100).toFixed(1),
-                    replies_percent: ((s.replies_count / s.sent_count) * 100).toFixed(1),
-                    is_sample: true
-                }));
-
-                return [...dbCampaigns, ...samples];
+                return dbCampaigns;
             }
 
             function applyFilterAndRender() {
@@ -2472,7 +2388,7 @@ function renderWhatsAppCampaigns(container) {
                                 </td>
                                 <td class="py-3 px-4 text-right">
                                     <div class="flex items-center justify-end space-x-1.5">
-                                        <button onclick="showNotification('info', 'Opening report dashboard for ${c.name}')" class="p-1.5 border border-slate-200 hover:bg-slate-50 text-slate-500 rounded-lg transition" title="View Report">
+                                        <button onclick="openCampaignReportPopup(${c.id}, '${c.name.replace(/'/g, "\\'")}')" class="p-1.5 border border-slate-200 hover:bg-slate-50 text-slate-500 rounded-lg transition" title="View Report">
                                             <i data-lucide="bar-chart-2" class="h-3.5 w-3.5 text-slate-500"></i>
                                         </button>
                                         <button onclick="showNotification('success', 'Campaign copied to draft.')" class="p-1.5 border border-slate-200 hover:bg-slate-50 text-slate-500 rounded-lg transition" title="Clone Campaign">
@@ -2675,11 +2591,176 @@ function renderWhatsAppCampaigns(container) {
                 }
             };
 
+            // View detailed number-wise logs report
+            window.openCampaignReportPopup = function(campaignId, campaignName) {
+                const existing = document.getElementById('campaign-report-modal');
+                if (existing) existing.remove();
+
+                const modal = document.createElement('div');
+                modal.id = 'campaign-report-modal';
+                modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4';
+
+                modal.innerHTML = `
+                    <div class="bg-white border border-slate-200 max-w-2xl w-full rounded-3xl shadow-2xl relative overflow-hidden flex flex-col h-[560px] animate-fade-in text-xs font-semibold text-slate-700">
+                        <!-- Header -->
+                        <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/20 shrink-0">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800 leading-none">Campaign Details: ${campaignName}</h3>
+                                <p class="text-[10px] text-slate-400 font-medium mt-1">Number-wise delivery and read status log</p>
+                            </div>
+                            <button onclick="document.getElementById('campaign-report-modal').remove()" class="h-8 w-8 rounded-full border border-slate-150 hover:border-slate-350 hover:bg-slate-50 flex items-center justify-center text-slate-500 hover:text-slate-800 transition">
+                                <i data-lucide="x" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+
+                        <!-- Stats Bar -->
+                        <div class="bg-slate-50/50 p-4 border-b border-slate-100 grid grid-cols-5 gap-2 text-center shrink-0">
+                            <div class="bg-white p-2 rounded-xl border border-slate-150">
+                                <div class="text-[9px] font-bold text-slate-400 uppercase">Target</div>
+                                <div class="text-sm font-black text-slate-800 mt-0.5" id="rep-stat-total">-</div>
+                            </div>
+                            <div class="bg-white p-2 rounded-xl border border-slate-150">
+                                <div class="text-[9px] font-bold text-blue-500 uppercase">Sent</div>
+                                <div class="text-sm font-black text-blue-600 mt-0.5" id="rep-stat-sent">-</div>
+                            </div>
+                            <div class="bg-white p-2 rounded-xl border border-slate-150">
+                                <div class="text-[9px] font-bold text-indigo-500 uppercase">Delivered</div>
+                                <div class="text-sm font-black text-indigo-600 mt-0.5" id="rep-stat-delivered">-</div>
+                            </div>
+                            <div class="bg-white p-2 rounded-xl border border-slate-150">
+                                <div class="text-[9px] font-bold text-emerald-500 uppercase">Read</div>
+                                <div class="text-sm font-black text-emerald-600 mt-0.5" id="rep-stat-read">-</div>
+                            </div>
+                            <div class="bg-white p-2 rounded-xl border border-slate-150">
+                                <div class="text-[9px] font-bold text-rose-500 uppercase">Failed</div>
+                                <div class="text-sm font-black text-rose-600 mt-0.5" id="rep-stat-failed">-</div>
+                            </div>
+                        </div>
+
+                        <!-- Search Area -->
+                        <div class="p-3 border-b border-slate-100 flex items-center bg-white shrink-0">
+                            <div class="relative flex-grow">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                    <i data-lucide="search" class="h-3.5 w-3.5"></i>
+                                </span>
+                                <input type="text" id="report-search-input" placeholder="Search by recipient name or phone..." class="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#00a884] focus:ring-2 focus:ring-[#00a884]/15 text-xs text-slate-805">
+                            </div>
+                        </div>
+
+                        <!-- Logs list -->
+                        <div class="flex-grow overflow-y-auto bg-white">
+                            <table class="w-full text-left text-xs font-semibold text-slate-650">
+                                <thead class="bg-slate-50 text-[10px] uppercase font-extrabold text-slate-450 border-b border-slate-150 sticky top-0 z-10">
+                                    <tr>
+                                        <th class="p-2.5 pl-4">Recipient Name</th>
+                                        <th class="p-2.5">Phone Number</th>
+                                        <th class="p-2.5 text-center">Status</th>
+                                        <th class="p-2.5 pr-4">Details / Timestamp</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="report-table-rows">
+                                    <tr>
+                                        <td colspan="4" class="p-8 text-center text-slate-400 font-medium">Loading report logs...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+                lucide.createIcons();
+
+                apiCall(`whatsapp/campaigns.php?id=${campaignId}`)
+                    .then(res => {
+                        const campaign = res.campaign || {};
+                        const logs = campaign.logs || [];
+
+                        // Update stats
+                        const total = logs.length;
+                        const sent = logs.filter(l => ['sent', 'delivered', 'read'].includes(l.status)).length;
+                        const del = logs.filter(l => ['delivered', 'read'].includes(l.status)).length;
+                        const read = logs.filter(l => l.status === 'read').length;
+                        const failed = logs.filter(l => l.status === 'failed').length;
+
+                        document.getElementById('rep-stat-total').textContent = total;
+                        document.getElementById('rep-stat-sent').textContent = sent;
+                        document.getElementById('rep-stat-delivered').textContent = del;
+                        document.getElementById('rep-stat-read').textContent = read;
+                        document.getElementById('rep-stat-failed').textContent = failed;
+
+                        function renderReportLogs(filterText = '') {
+                            const filtered = logs.filter(l => {
+                                const cleanPhone = (l.wa_id || '').replace(/[^0-9]/g, '');
+                                return (l.profile_name || '').toLowerCase().includes(filterText.toLowerCase()) ||
+                                       cleanPhone.includes(filterText);
+                            });
+
+                            const tbody = document.getElementById('report-table-rows');
+                            if (filtered.length === 0) {
+                                tbody.innerHTML = `
+                                    <tr>
+                                        <td colspan="4" class="p-8 text-center text-slate-400 font-medium">No recipient logs match search.</td>
+                                    </tr>
+                                `;
+                                return;
+                            }
+
+                            tbody.innerHTML = filtered.map(l => {
+                                let pillClass = 'bg-slate-100 text-slate-400 border-slate-200/50';
+                                if (l.status === 'read') pillClass = 'bg-emerald-50 text-emerald-650 border-emerald-100/50';
+                                else if (l.status === 'delivered') pillClass = 'bg-blue-50 text-blue-600 border-blue-100/50';
+                                else if (l.status === 'sent') pillClass = 'bg-sky-50 text-sky-650 border-sky-100/50';
+                                else if (l.status === 'failed') pillClass = 'bg-rose-50 text-rose-655 border-rose-100/50';
+                                else if (l.status === 'queued') pillClass = 'bg-amber-50 text-amber-605 border-amber-100/50';
+
+                                let details = '-';
+                                if (l.status === 'failed' && l.error_message) {
+                                    details = `<span class="text-rose-500 font-medium block max-w-[200px] truncate" title="${l.error_message}">${l.error_message}</span>`;
+                                } else if (l.sent_at) {
+                                    details = new Date(l.sent_at).toLocaleDateString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    });
+                                }
+
+                                return `
+                                    <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50/40">
+                                        <td class="p-2.5 pl-4 font-bold text-slate-805">${l.profile_name || 'Contact'}</td>
+                                        <td class="p-2.5 font-mono text-[11px] text-slate-500">+${l.wa_id}</td>
+                                        <td class="p-2.5 text-center">
+                                            <span class="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold border ${pillClass}">
+                                                ${l.status.toUpperCase()}
+                                            </span>
+                                        </td>
+                                        <td class="p-2.5 pr-4 text-slate-400 font-medium text-[10.5px]">${details}</td>
+                                    </tr>
+                                `;
+                            }).join('');
+                        }
+
+                        renderReportLogs();
+
+                        document.getElementById('report-search-input').oninput = (e) => {
+                            renderReportLogs(e.target.value);
+                        };
+                    })
+                    .catch(err => {
+                        document.getElementById('report-table-rows').innerHTML = `
+                            <tr>
+                                <td colspan="4" class="p-8 text-center text-rose-500 font-bold">Failed to load campaign report: ${err.message}</td>
+                            </tr>
+                        `;
+                    });
+            };
+
             // Initialize dynamic draft state in scope
             if (!window.campaignDraft) {
                 window.campaignDraft = {
                     name: 'Follow Up Reminder - 07/07/2026',
-                    phone: '91 98765 43210',
+                    phone: window.connectedWhatsAppNumber || '91 98765 43210',
                     template: templates.length > 0 ? templates[0].name : 'followup_reminder',
                     category: 'marketing',
                     type: 'broadcast',
@@ -2764,8 +2845,8 @@ function renderWhatsAppCampaigns(container) {
                                                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                                         <img src="../assets/css/WhatsApp_icon.png" class="h-4 w-4 object-contain" alt="WhatsApp">
                                                     </span>
-                                                    <select id="camp-inline-number" onchange="window.campaignDraft.phone = this.value; updateSummaryCard()" class="w-full pl-9 pr-3 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-xs text-slate-800 font-bold cursor-pointer transition-all duration-150">
-                                                        <option value="91 98765 43210" ${draft.phone === '91 98765 43210' ? 'selected' : ''}>91 98765 43210</option>
+                                                    <select id="camp-inline-number" onchange="window.campaignDraft.phone = this.value; updateSummaryCard()" class="w-full pl-9 pr-3 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-xs text-slate-805 font-bold cursor-pointer transition-all duration-150">
+                                                        <option value="${window.connectedWhatsAppNumber || '91 98765 43210'}" selected>${window.connectedWhatsAppNumber || '91 98765 43210'}</option>
                                                     </select>
                                                 </div>
                                                 <span class="block text-[10px] text-slate-400 font-medium mt-1">Select the WhatsApp number to send messages from</span>

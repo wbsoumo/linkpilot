@@ -20,8 +20,21 @@ try {
         if (isset($_GET['id'])) {
             $campaignId = (int)$_GET['id'];
             
-            // Fetch campaign details
-            $stmt = $db->prepare("SELECT * FROM whatsapp_campaigns WHERE id = ? AND user_id = ?");
+            // Fetch campaign details with dynamic replies_count
+            $stmt = $db->prepare("
+                SELECT c.*,
+                       COALESCE((
+                           SELECT COUNT(DISTINCT m.wa_contact_id)
+                           FROM whatsapp_messages m
+                           JOIN whatsapp_campaign_logs l ON m.wa_contact_id = l.wa_contact_id
+                           WHERE l.campaign_id = c.id
+                             AND m.direction = 'inbound'
+                             AND l.sent_at IS NOT NULL
+                             AND m.created_at >= l.sent_at
+                       ), 0) as replies_count
+                FROM whatsapp_campaigns c
+                WHERE c.id = ? AND c.user_id = ?
+            ");
             $stmt->execute([$campaignId, $userId]);
             $campaign = $stmt->fetch();
             if (!$campaign) {
@@ -41,8 +54,22 @@ try {
             sendJsonResponse('success', 'Campaign retrieved successfully.', ['campaign' => $campaign]);
             
         } else {
-            // List campaigns
-            $stmt = $db->prepare("SELECT * FROM whatsapp_campaigns WHERE user_id = ? ORDER BY id DESC");
+            // List campaigns with dynamic replies_count
+            $stmt = $db->prepare("
+                SELECT c.*,
+                       COALESCE((
+                           SELECT COUNT(DISTINCT m.wa_contact_id)
+                           FROM whatsapp_messages m
+                           JOIN whatsapp_campaign_logs l ON m.wa_contact_id = l.wa_contact_id
+                           WHERE l.campaign_id = c.id
+                             AND m.direction = 'inbound'
+                             AND l.sent_at IS NOT NULL
+                             AND m.created_at >= l.sent_at
+                       ), 0) as replies_count
+                FROM whatsapp_campaigns c
+                WHERE c.user_id = ?
+                ORDER BY c.id DESC
+            ");
             $stmt->execute([$userId]);
             $campaigns = $stmt->fetchAll();
             

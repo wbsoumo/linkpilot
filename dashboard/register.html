@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-[#f8fafc] h-full">
+<html lang="en" class="h-full bg-white">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,141 +7,101 @@
     <title>Create Account - LinkPilot AI</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Custom Style Sheet -->
     <link rel="stylesheet" href="assets/css/style.css?v=2.5">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
         }
+        
+        /* Floating animation keyframes for SVG elements */
+        @keyframes float-slow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes float-medium {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+        @keyframes float-fast {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-7px); }
+        }
+        
+        .float-slack {
+            animation: float-slow 4s ease-in-out infinite;
+            transform-origin: 130px 120px;
+        }
+        .float-brand {
+            animation: float-medium 5s ease-in-out infinite;
+            transform-origin: 90px 225px;
+        }
+        .float-google {
+            animation: float-fast 4.5s ease-in-out infinite;
+            transform-origin: 130px 330px;
+        }
+        
+        /* Custom OTP inputs styling */
         .otp-box {
-            background-color: #ffffff !important;
-            border-color: #cbd5e1 !important;
-            color: #1e293b !important;
+            width: 3.2rem;
+            height: 3.5rem;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            background-color: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            color: #005bf7;
+            border-radius: 0.75rem;
+            transition: all 0.2s ease-in-out;
         }
         .otp-box:focus {
-            border-color: #3b82f6 !important;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15) !important;
+            outline: none;
+            border-color: #005bf7;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 4px rgba(0, 91, 247, 0.12);
+        }
+        
+        /* Smooth transitions for forms */
+        .auth-view-transition {
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
-<body class="min-h-screen bg-[#f8fafc] flex flex-col md:flex-row text-slate-800 antialiased">
-
-    <!-- Split Wrapper -->
-    <div class="flex-1 flex flex-col md:flex-row min-h-screen">
-        
-        <!-- Left Sidebar: Branding & Features -->
-        <div class="w-full md:w-[38%] bg-slate-50/50 border-r border-slate-200/60 p-8 md:p-12 flex flex-col justify-between space-y-12">
-            <!-- Header Logo -->
-            <div class="flex items-center space-x-2.5">
-                <img src="assets/img/logo.png" alt="LinkPilot AI" class="h-6 w-6">
-                <span class="text-lg font-black text-slate-900 tracking-tight">LinkPilot AI</span>
-            </div>
-
-            <!-- Features list block -->
-            <div class="space-y-8 flex-grow flex flex-col justify-center">
-                <div class="space-y-4">
-                    <div>
-                        <span class="inline-flex items-center space-x-1.5 px-3 py-1 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-full text-[10px] font-bold">
-                            <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
-                            <span>Smart Outreach Starts Here</span>
-                        </span>
-                    </div>
-                    <h2 class="text-3xl font-black text-slate-900 tracking-tight leading-tight">
-                        Create your <br><span class="text-blue-600">LinkPilot AI</span> Account
-                    </h2>
-                    <p class="text-slate-500 text-xs font-semibold leading-relaxed max-w-sm">
-                        Set up your account in just a few minutes and start building meaningful conversations with AI.
-                    </p>
-                </div>
-
-                <!-- Features list -->
-                <div class="space-y-6 pt-4">
-                    <!-- AI-Powered Outreach -->
-                    <div class="flex items-start space-x-3.5">
-                        <div class="h-9 w-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 shadow-sm border border-purple-100">
-                            <i data-lucide="bot" class="h-4.5 w-4.5"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-extrabold text-slate-800 text-xs">AI-Powered Outreach</h4>
-                            <p class="text-slate-500 text-[10px] font-semibold mt-0.5 leading-relaxed">Automate personalized conversations that convert leads into customers.</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Smart Insights -->
-                    <div class="flex items-start space-x-3.5">
-                        <div class="h-9 w-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 shadow-sm border border-emerald-100">
-                            <i data-lucide="trending-up" class="h-4.5 w-4.5"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-extrabold text-slate-800 text-xs">Smart Insights</h4>
-                            <p class="text-slate-500 text-[10px] font-semibold mt-0.5 leading-relaxed">Track performance and get actionable insights in real-time.</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Seamless Integrations -->
-                    <div class="flex items-start space-x-3.5">
-                        <div class="h-9 w-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 shadow-sm border border-amber-100">
-                            <i data-lucide="zap" class="h-4.5 w-4.5"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-extrabold text-slate-800 text-xs">Seamless Integrations</h4>
-                            <p class="text-slate-500 text-[10px] font-semibold mt-0.5 leading-relaxed">Connect your favorite tools and streamline your workflow.</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Enterprise Grade Security -->
-                    <div class="flex items-start space-x-3.5">
-                        <div class="h-9 w-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 shadow-sm border border-blue-100">
-                            <i data-lucide="shield" class="h-4.5 w-4.5"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-extrabold text-slate-800 text-xs">Enterprise Grade Security</h4>
-                            <p class="text-slate-500 text-[10px] font-semibold mt-0.5 leading-relaxed">Your data is secure with our advanced encryption and compliance.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Trust Badge Social Proof -->
-            <div class="pt-6 border-t border-slate-200 max-w-sm">
-                <div class="flex items-center space-x-4 bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm">
-                    <!-- Overlapping avatars -->
-                    <div class="flex -space-x-2.5 overflow-hidden">
-                        <img class="inline-block h-7 w-7 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80" alt="Avatar 1">
-                        <img class="inline-block h-7 w-7 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&h=100&q=80" alt="Avatar 2">
-                        <img class="inline-block h-7 w-7 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&h=100&q=80" alt="Avatar 3">
-                        <img class="inline-block h-7 w-7 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&h=100&q=80" alt="Avatar 4">
-                    </div>
-                    <div>
-                        <!-- Five stars -->
-                        <div class="flex text-amber-400">
-                            <i data-lucide="star" class="h-3 w-3 fill-current"></i>
-                            <i data-lucide="star" class="h-3 w-3 fill-current"></i>
-                            <i data-lucide="star" class="h-3 w-3 fill-current"></i>
-                            <i data-lucide="star" class="h-3 w-3 fill-current"></i>
-                            <i data-lucide="star" class="h-3 w-3 fill-current"></i>
-                        </div>
-                        <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Trusted by 10,000+ businesses worldwide</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Column: Registration Card -->
-        <div class="flex-grow p-6 md:p-12 flex items-center justify-center">
+<body class="h-full bg-slate-50 flex items-stretch overflow-x-hidden">
+    <!-- Left: Form Area (50% on desktop, 100% on mobile) -->
+    <div class="w-full lg:w-1/2 flex items-center justify-center bg-white px-6 sm:px-12 md:px-16 py-12 relative z-10">
+        <div class="max-w-[480px] w-full flex flex-col min-h-full justify-between">
             
-            <div class="w-full max-w-2xl bg-white border border-slate-200/80 rounded-3xl p-6 md:p-10 shadow-xl space-y-8">
-                <!-- Step progress wizard -->
-                <div class="flex items-center justify-between max-w-lg mx-auto relative px-4">
+            <!-- Top brand logo -->
+            <div class="flex items-center space-x-2 mb-8 lg:mb-12">
+                <svg class="h-8 w-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="24" height="24" rx="6" fill="#005bf7"/>
+                    <circle cx="8" cy="8" r="2.5" fill="white"/>
+                    <circle cx="16" cy="16" r="2.5" fill="white"/>
+                </svg>
+                <span class="text-xl font-extrabold text-slate-900 tracking-tight">linkpilot</span>
+            </div>
+
+            <!-- Central Wizard Containers -->
+            <div class="flex-grow flex flex-col justify-center space-y-6">
+                <!-- Step progress wizard indicator -->
+                <div class="flex items-center justify-between max-w-sm mx-auto relative px-4 w-full">
                     <!-- Progress Line background -->
-                    <div class="absolute top-4 left-10 right-10 height-[2px] bg-slate-100 z-0"></div>
+                    <div class="absolute top-4 left-10 right-10 h-[2px] bg-slate-100 z-0"></div>
                     
                     <div class="step-indicator flex flex-col items-center z-10" id="ind-1">
-                        <span class="w-8 h-8 rounded-full bg-blue-600 text-white font-extrabold flex items-center justify-center text-xs shadow-md shadow-blue-500/10 transition-all duration-300">1</span>
-                        <span class="text-[10px] text-blue-600 font-bold mt-1.5">Account</span>
+                        <span class="w-8 h-8 rounded-full bg-[#005bf7] text-white font-extrabold flex items-center justify-center text-xs shadow-md shadow-blue-500/10 transition-all duration-300">1</span>
+                        <span class="text-[10px] text-[#005bf7] font-bold mt-1.5">Account</span>
                     </div>
                     <div class="flex-grow border-t-2 border-slate-100 mx-2 z-0" id="line-1"></div>
                     
@@ -177,10 +137,10 @@
                             <div class="space-y-1.5 text-left">
                                 <label for="name" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Full Name *</label>
                                 <div class="relative">
-                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
                                         <i data-lucide="user" class="h-4 w-4"></i>
                                     </span>
-                                    <input id="name" name="name" type="text" class="block w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="Enter your full name">
+                                    <input id="name" name="name" type="text" class="block w-full pl-10 pr-3 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] text-xs font-semibold shadow-sm transition-all" placeholder="Enter your full name">
                                 </div>
                             </div>
                             
@@ -188,10 +148,10 @@
                             <div class="space-y-1.5 text-left">
                                 <label for="email" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Email Address *</label>
                                 <div class="relative">
-                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
                                         <i data-lucide="mail" class="h-4 w-4"></i>
                                     </span>
-                                    <input id="email" name="email" type="text" class="block w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="Enter your email address">
+                                    <input id="email" name="email" type="text" class="block w-full pl-10 pr-3 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] text-xs font-semibold shadow-sm transition-all" placeholder="Enter your email address">
                                 </div>
                             </div>
                             
@@ -199,10 +159,10 @@
                             <div class="md:col-span-2 space-y-1.5 text-left">
                                 <label for="phone_number" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">WhatsApp Number * (10-digit, without country code)</label>
                                 <div class="relative">
-                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
                                         <i data-lucide="message-circle" class="h-4 w-4"></i>
                                     </span>
-                                    <input id="phone_number" name="phone_number" type="text" class="block w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="Enter your WhatsApp number">
+                                    <input id="phone_number" name="phone_number" type="text" class="block w-full pl-10 pr-3 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] text-xs font-semibold shadow-sm transition-all" placeholder="Enter your WhatsApp number">
                                 </div>
                             </div>
                             
@@ -210,11 +170,11 @@
                             <div class="space-y-1.5 text-left">
                                 <label for="password" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Password * (min 6 characters)</label>
                                 <div class="relative">
-                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
                                         <i data-lucide="lock" class="h-4 w-4"></i>
                                     </span>
-                                    <input id="password" name="password" type="password" class="block w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="Enter password">
-                                    <span onclick="togglePasswordVisibility('password', 'toggle-pass-icon-1')" class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-slate-400 hover:text-slate-655">
+                                    <input id="password" name="password" type="password" class="block w-full pl-10 pr-10 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] text-xs font-semibold shadow-sm transition-all" placeholder="Enter password">
+                                    <span onclick="togglePasswordVisibility('password', 'toggle-pass-icon-1')" class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-slate-450 hover:text-slate-655">
                                         <i data-lucide="eye" id="toggle-pass-icon-1" class="h-4 w-4"></i>
                                     </span>
                                 </div>
@@ -224,11 +184,11 @@
                             <div class="space-y-1.5 text-left">
                                 <label for="confirm_password" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Confirm Password *</label>
                                 <div class="relative">
-                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
                                         <i data-lucide="lock" class="h-4 w-4"></i>
                                     </span>
-                                    <input id="confirm_password" name="confirm_password" type="password" class="block w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="Confirm password">
-                                    <span onclick="togglePasswordVisibility('confirm_password', 'toggle-pass-icon-2')" class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-slate-400 hover:text-slate-655">
+                                    <input id="confirm_password" name="confirm_password" type="password" class="block w-full pl-10 pr-10 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] text-xs font-semibold shadow-sm transition-all" placeholder="Confirm password">
+                                    <span onclick="togglePasswordVisibility('confirm_password', 'toggle-pass-icon-2')" class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-slate-450 hover:text-slate-655">
                                         <i data-lucide="eye" id="toggle-pass-icon-2" class="h-4 w-4"></i>
                                     </span>
                                 </div>
@@ -236,19 +196,19 @@
                         </div>
                         
                         <!-- Safe Note Alert Box -->
-                        <div class="p-4 bg-blue-50/55 border border-blue-100 rounded-2xl flex items-center space-x-3.5 text-left">
+                        <div class="p-4 bg-blue-50/50 border border-blue-100 rounded-2xl flex items-center space-x-3.5 text-left">
                             <div class="h-9 w-9 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
                                 <i data-lucide="shield-check" class="h-5 w-5"></i>
                             </div>
                             <div>
                                 <span class="block text-slate-800 font-extrabold text-[11px]">Your data is safe with us</span>
-                                <span class="text-[10px] text-slate-500 leading-normal font-semibold">We use industry-standard encryption to protect your information and never share your data with anyone.</span>
+                                <span class="text-[10px] text-slate-500 leading-normal font-semibold">We use industry-standard encryption to protect your information.</span>
                             </div>
                         </div>
                         
                         <!-- Button footer -->
                         <div class="pt-4 flex justify-end">
-                            <button type="button" onclick="nextStep(2)" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-500 transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10" style="color: #ffffff !important;">
+                            <button type="button" onclick="nextStep(2)" style="color: #ffffff !important;" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10">
                                 <span style="color: #ffffff !important;">Next: Profile</span>
                                 <i data-lucide="arrow-right" class="h-4 w-4" style="color: #ffffff !important;"></i>
                             </button>
@@ -266,8 +226,8 @@
                             <!-- User Type -->
                             <div class="space-y-1.5 text-left">
                                 <label for="user_type" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">User Type *</label>
-                                <select id="user_type" name="user_type" class="block w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm">
-                                    <option value="" class="text-slate-400">Select User Type</option>
+                                <select id="user_type" name="user_type" class="block w-full px-3 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] text-xs font-semibold shadow-sm transition-all">
+                                    <option value="" class="text-slate-450">Select User Type</option>
                                     <option value="Job Seeker">Job Seeker</option>
                                     <option value="Freelancer">Freelancer</option>
                                     <option value="Agency">Agency</option>
@@ -280,25 +240,25 @@
                             <!-- Job Title -->
                             <div class="space-y-1.5 text-left">
                                 <label for="job_title" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Current Job Title</label>
-                                <input id="job_title" name="job_title" type="text" class="block w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="Software Engineer">
+                                <input id="job_title" name="job_title" type="text" class="block w-full px-3 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] text-xs font-semibold shadow-sm transition-all" placeholder="Software Engineer">
                             </div>
                             
                             <!-- Experience Years -->
                             <div class="space-y-1.5 text-left">
                                 <label for="experience_years" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Years of Experience</label>
-                                <input id="experience_years" name="experience_years" type="number" min="0" class="block w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="3">
+                                <input id="experience_years" name="experience_years" type="number" min="0" class="block w-full px-3 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] text-xs font-semibold shadow-sm transition-all" placeholder="3">
                             </div>
                             
                             <!-- Company Name -->
                             <div class="space-y-1.5 text-left">
                                 <label for="company_name" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Company Name</label>
-                                <input id="company_name" name="company_name" type="text" class="block w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="Acme Corp">
+                                <input id="company_name" name="company_name" type="text" class="block w-full px-3 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] text-xs font-semibold shadow-sm transition-all" placeholder="Acme Corp">
                             </div>
                             
                             <!-- Skills -->
                             <div class="md:col-span-2 space-y-1.5 text-left">
                                 <label for="skills" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Skills (Comma Separated)</label>
-                                <input id="skills" name="skills" type="text" class="block w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="PHP, JavaScript, React, System Design">
+                                <input id="skills" name="skills" type="text" class="block w-full px-3 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] text-xs font-semibold shadow-sm transition-all" placeholder="PHP, JavaScript, React, System Design">
                             </div>
                         </div>
                         
@@ -307,7 +267,7 @@
                                 <i data-lucide="arrow-left" class="h-4 w-4"></i>
                                 <span>Back</span>
                             </button>
-                            <button type="button" onclick="nextStep(3)" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-500 transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10" style="color: #ffffff !important;">
+                            <button type="button" onclick="nextStep(3)" style="color: #ffffff !important;" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10">
                                 <span style="color: #ffffff !important;">Next: Bio & Links</span>
                                 <i data-lucide="arrow-right" class="h-4 w-4" style="color: #ffffff !important;"></i>
                             </button>
@@ -325,25 +285,25 @@
                             <!-- Website URL -->
                             <div class="space-y-1.5 text-left">
                                 <label for="website" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Website URL</label>
-                                <input id="website" name="website" type="text" class="block w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="https://example.com">
+                                <input id="website" name="website" type="text" class="block w-full px-3 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] text-xs font-semibold shadow-sm transition-all" placeholder="https://example.com">
                             </div>
                             
                             <!-- Portfolio URL -->
                             <div class="space-y-1.5 text-left">
                                 <label for="portfolio_url" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Portfolio URL</label>
-                                <input id="portfolio_url" name="portfolio_url" type="text" class="block w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="https://portfolio.com">
+                                <input id="portfolio_url" name="portfolio_url" type="text" class="block w-full px-3 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] text-xs font-semibold shadow-sm transition-all" placeholder="https://portfolio.com">
                             </div>
                             
                             <!-- LinkedIn URL -->
                             <div class="md:col-span-2 space-y-1.5 text-left">
                                 <label for="linkedin_url" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">LinkedIn Profile URL</label>
-                                <input id="linkedin_url" name="linkedin_url" type="text" class="block w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="https://linkedin.com/in/username">
+                                <input id="linkedin_url" name="linkedin_url" type="text" class="block w-full px-3 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] text-xs font-semibold shadow-sm transition-all" placeholder="https://linkedin.com/in/username">
                             </div>
                             
                             <!-- About Me -->
                             <div class="md:col-span-2 space-y-1.5 text-left">
                                 <label for="about_me" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">About Yourself</label>
-                                <textarea id="about_me" name="about_me" rows="3" class="block w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-850 focus:outline-none focus:border-blue-500 text-xs font-semibold shadow-sm" placeholder="Tell us about your professional background..."></textarea>
+                                <textarea id="about_me" name="about_me" rows="3" class="block w-full px-3 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-855 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] text-xs font-semibold shadow-sm transition-all" placeholder="Tell us about your professional background..."></textarea>
                             </div>
                         </div>
                         
@@ -352,7 +312,7 @@
                                 <i data-lucide="arrow-left" class="h-4 w-4"></i>
                                 <span>Back</span>
                             </button>
-                            <button type="button" id="send-otp-trigger-btn" onclick="triggerOtpSend()" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-500 transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10" style="color: #ffffff !important;">
+                            <button type="button" id="send-otp-trigger-btn" onclick="triggerOtpSend()" style="color: #ffffff !important;" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10">
                                 <span style="color: #ffffff !important;">Send Verification OTP</span>
                                 <i data-lucide="send" class="h-4 w-4" style="color: #ffffff !important;"></i>
                             </button>
@@ -363,24 +323,24 @@
                     <div class="step-container space-y-5 hidden" id="step-4">
                         <div class="border-b border-slate-100 pb-3 text-center">
                             <h3 class="text-base font-extrabold text-slate-800">WhatsApp Verification</h3>
-                            <p class="text-xs text-slate-500 mt-1 font-semibold leading-relaxed">We have sent a 6-digit verification code to your WhatsApp number <span id="display-phone" class="text-blue-600 font-bold"></span>.</p>
+                            <p class="text-xs text-slate-500 mt-1 font-semibold leading-relaxed">We sent a 6-digit verification code to <span id="display-phone" class="text-[#005bf7] font-bold"></span>.</p>
                         </div>
                         
                         <!-- 6-digit input boxes -->
-                        <div class="flex justify-center space-x-2.5 my-6" id="otp-inputs-container">
-                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-white border border-slate-350 text-slate-800 rounded-xl focus:outline-none transition shadow-sm" />
-                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-white border border-slate-350 text-slate-800 rounded-xl focus:outline-none transition shadow-sm" />
-                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-white border border-slate-350 text-slate-800 rounded-xl focus:outline-none transition shadow-sm" />
-                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-white border border-slate-350 text-slate-800 rounded-xl focus:outline-none transition shadow-sm" />
-                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-white border border-slate-350 text-slate-800 rounded-xl focus:outline-none transition shadow-sm" />
-                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box w-11 h-12 text-center text-xl font-extrabold bg-white border border-slate-350 text-slate-800 rounded-xl focus:outline-none transition shadow-sm" />
+                        <div class="flex justify-between space-x-2.5 my-6" id="otp-inputs-container">
+                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box shadow-sm" />
+                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box shadow-sm" />
+                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box shadow-sm" />
+                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box shadow-sm" />
+                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box shadow-sm" />
+                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box shadow-sm" />
                         </div>
 
                         <!-- Under whatsapp OTP enter box notice -->
-                        <div class="text-center bg-blue-50/50 border border-blue-100 rounded-xl py-3 px-4 max-w-sm mx-auto my-4">
+                        <div class="text-center bg-[#f8fafc] border border-slate-200 rounded-xl py-3 px-4 max-w-sm mx-auto my-4">
                             <p class="text-[11px] text-slate-500 font-semibold leading-relaxed">
                                 <span class="inline-block text-blue-500 mr-1">💬</span>
-                                OTP will be received from <span class="text-blue-600 font-bold">Taskbazi (Partner Brand)</span>
+                                OTP will be received from <span class="text-[#005bf7] font-bold">Taskbazi (Partner Brand)</span>
                             </p>
                         </div>
 
@@ -388,7 +348,7 @@
 
                         <div class="text-xs text-slate-500 text-center my-4 font-semibold">
                             Didn't receive the code? 
-                            <button type="button" id="resend-otp-btn" disabled class="font-bold text-blue-600 hover:underline disabled:text-slate-400 disabled:no-underline ml-1">
+                            <button type="button" id="resend-otp-btn" disabled class="font-bold text-[#005bf7] hover:underline disabled:text-slate-400 disabled:no-underline ml-1">
                                 Resend in <span id="cooldown-timer">60</span>s
                             </button>
                         </div>
@@ -398,7 +358,7 @@
                                 <i data-lucide="arrow-left" class="h-4 w-4"></i>
                                 <span>Back</span>
                             </button>
-                            <button type="submit" id="verify-otp-submit-btn" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-500 transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10" style="color: #ffffff !important;">
+                            <button type="submit" id="verify-otp-submit-btn" style="color: #ffffff !important;" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10">
                                 <span style="color: #ffffff !important;">Verify & Register</span>
                                 <i data-lucide="check" class="h-4 w-4" style="color: #ffffff !important;"></i>
                             </button>
@@ -406,11 +366,141 @@
                     </div>
 
                 </form>
+            </div>
 
-                <div class="mt-6 text-center border-t border-slate-100 pt-6">
-                    <span class="text-xs font-semibold text-slate-500">Already have an account? </span>
-                    <a href="login.html" class="text-xs font-bold text-blue-600 hover:underline">Log in here</a>
-                </div>
+            <!-- Bottom Create Account footnote -->
+            <div class="text-center mt-8 lg:mt-12" id="signup-prompt">
+                <span class="text-sm text-slate-500 font-medium">Already have an account? </span>
+                <a href="login.html" class="text-sm font-bold text-[#005bf7] hover:text-[#0052cc] transition">Log in here</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Marketing Illustration Area (50% width on desktop, hidden on mobile) -->
+    <div class="hidden lg:flex lg:w-1/2 bg-[#005bf7] flex-col items-center justify-center p-12 text-white relative overflow-hidden">
+        <!-- Background spheres/glow elements -->
+        <div class="absolute w-[650px] h-[650px] bg-blue-500 rounded-full blur-[140px] opacity-25 -top-40 -right-40"></div>
+        <div class="absolute w-[500px] h-[500px] bg-indigo-750 rounded-full blur-[120px] opacity-35 -bottom-20 -left-20"></div>
+
+        <!-- Central content wrapper -->
+        <div class="relative z-10 flex flex-col items-center max-w-[500px] w-full text-center space-y-12">
+            
+            <!-- SVG Illustration Container -->
+            <div class="w-full flex justify-center">
+                <svg class="w-full max-w-[460px] h-auto drop-shadow-2xl" viewBox="0 0 600 450" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Definitions -->
+                    <defs>
+                        <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+                            <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#000000" flood-opacity="0.08"/>
+                        </filter>
+                    </defs>
+
+                    <!-- Orbit rings -->
+                    <circle cx="220" cy="225" r="160" stroke="rgba(255, 255, 255, 0.08)" stroke-width="2" stroke-dasharray="6 6" />
+                    <circle cx="220" cy="225" r="110" stroke="rgba(255, 255, 255, 0.04)" stroke-width="1.5" />
+                    
+                    <!-- Static connector lines -->
+                    <path d="M 145 120 C 190 120, 190 225, 210 225" stroke="rgba(255, 255, 255, 0.15)" stroke-width="3" fill="none"/>
+                    <path d="M 115 225 L 210 225" stroke="rgba(255, 255, 255, 0.15)" stroke-width="3" fill="none"/>
+                    <path d="M 145 330 C 190 330, 190 225, 210 225" stroke="rgba(255, 255, 255, 0.15)" stroke-width="3" fill="none"/>
+                    <path d="M 210 225 L 230 225" stroke="rgba(255, 255, 255, 0.15)" stroke-width="3" fill="none"/>
+                    <path d="M 230 225 C 250 225, 250 175, 280 175" stroke="rgba(255, 255, 255, 0.15)" stroke-width="3" fill="none"/>
+                    <path d="M 230 225 C 250 225, 250 245, 280 245" stroke="rgba(255, 255, 255, 0.15)" stroke-width="3" fill="none"/>
+                    <path d="M 230 225 C 250 225, 250 315, 280 315" stroke="rgba(255, 255, 255, 0.15)" stroke-width="3" fill="none"/>
+
+                    <!-- Glowing animated dashes -->
+                    <path d="M 145 120 C 190 120, 190 225, 210 225 L 230 225 C 250 225, 250 175, 280 175" stroke="rgba(255,255,255,0.75)" stroke-width="3" stroke-linecap="round" fill="none" stroke-dasharray="15 90" stroke-dashoffset="0">
+                        <animate attributeName="stroke-dashoffset" values="105;0" dur="2.5s" repeatCount="indefinite" />
+                    </path>
+                    <path d="M 115 225 L 230 225 C 250 225, 250 245, 280 245" stroke="rgba(255,255,255,0.75)" stroke-width="3" stroke-linecap="round" fill="none" stroke-dasharray="15 90" stroke-dashoffset="0">
+                        <animate attributeName="stroke-dashoffset" values="105;0" dur="2s" repeatCount="indefinite" />
+                    </path>
+                    <path d="M 145 330 C 190 330, 190 225, 210 225 L 230 225 C 250 225, 250 315, 280 315" stroke="rgba(255,255,255,0.75)" stroke-width="3" stroke-linecap="round" fill="none" stroke-dasharray="15 90" stroke-dashoffset="0">
+                        <animate attributeName="stroke-dashoffset" values="105;0" dur="2.2s" repeatCount="indefinite" />
+                    </path>
+
+                    <!-- LinkedIn Node -->
+                    <g class="float-slack">
+                        <circle cx="130" cy="120" r="24" fill="white" filter="url(#shadow)"/>
+                        <svg x="118" y="108" width="24" height="24" viewBox="0 0 24 24">
+                            <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" fill="#0A66C2"/>
+                        </svg>
+                    </g>
+
+                    <!-- Gmail Node -->
+                    <g class="float-google">
+                        <circle cx="130" cy="330" r="24" fill="white" filter="url(#shadow)"/>
+                        <svg x="118" y="318" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z" fill="#F2F5F8"/>
+                            <path d="M2 6v12c0 1.1.9 2 2 2h3V8l-5-4v2z" fill="#4285F4"/>
+                            <path d="M22 6v12c0 1.1-.9 2-2 2h-3V8l5-4v2z" fill="#34A853"/>
+                            <path d="M20 4H4c-1.1 0-2 .9-2 2l10 7.5L22 6c0-1.1-.9-2-2-2z" fill="#EA4335"/>
+                            <path d="M12 13.5l5-3.75V8l-5 4-5-4v1.75l5 3.75z" fill="#FBBC05"/>
+                        </svg>
+                    </g>
+
+                    <!-- WhatsApp Node -->
+                    <g class="float-brand">
+                        <circle cx="90" cy="225" r="26" fill="white" filter="url(#shadow)"/>
+                        <svg x="77" y="212" width="26" height="26" viewBox="0 0 24 24" fill="none">
+                            <path d="M19.007 4.93A9.88 9.88 0 0 0 12.008 2c-5.46 0-9.904 4.444-9.906 9.906a9.866 9.866 0 0 0 1.328 4.938L2 22l5.244-1.377a9.852 9.852 0 0 0 4.76 1.23h.004c5.462 0 9.907-4.445 9.91-9.907a9.877 9.877 0 0 0-2.91-7.016zm-7.002 15.34a8.163 8.163 0 0 1-4.168-1.146l-.3-.178-3.097.812.827-3.02-.195-.31a8.172 8.172 0 0 1-1.254-4.398c.002-4.512 3.678-8.188 8.196-8.188a8.14 8.14 0 0 1 5.79 2.404 8.146 8.146 0 0 1 2.398 5.799c-.002 4.514-3.678 8.19-8.197 8.19zm4.486-6.136c-.246-.123-1.455-.718-1.68-.8a.423.423 0 0 0-.307-.123c-.108 0-.207.054-.3.185-.2.27-.777.98-.95 1.177-.174.196-.347.22-.593.097a7.481 7.481 0 0 1-2.203-1.36 8.243 8.243 0 0 1-1.524-1.898c-.146-.25-.015-.386.11-.51a8.96 8.96 0 0 0 .5-.678.334.334 0 0 0-.016-.328c-.04-.082-.3-.728-.413-1.004-.11-.266-.23-.23-.3-.234h-.262a.5.5 0 0 0-.36.164 2.05 2.05 0 0 0-.64 1.524 3.565 3.565 0 0 0 .746 1.89c.147.197 2.046 3.125 4.957 4.382.693.3 1.233.48 1.655.613.697.22 1.33.19 1.83.115.558-.082 1.713-.7 1.955-1.378.242-.676.242-1.258.17-1.377-.072-.12-.266-.197-.512-.32z" fill="#25D366"/>
+                        </svg>
+                    </g>
+
+                    <!-- Dashboard Window Mockup -->
+                    <g filter="url(#shadow)">
+                        <rect x="280" y="90" width="260" height="270" rx="16" fill="white"/>
+                        <!-- Controls -->
+                        <circle cx="305" cy="112" r="4" fill="#FF5F56"/>
+                        <circle cx="317" cy="112" r="4" fill="#FFBD2E"/>
+                        <circle cx="329" cy="112" r="4" fill="#27C93F"/>
+                        
+                        <!-- Header Search bars -->
+                        <rect x="350" y="109" width="70" height="6" rx="3" fill="#F1F5F9"/>
+                        <rect x="430" y="109" width="35" height="6" rx="3" fill="#F1F5F9"/>
+                        <line x1="280" y1="126" x2="540" y2="126" stroke="#F1F5F9" stroke-width="1.5"/>
+
+                        <!-- Row 1 -->
+                        <g transform="translate(301, 146)">
+                            <circle cx="14" cy="14" r="14" fill="#FFE3D1"/>
+                            <path d="M 6,12 C 6,5 22,5 22,12 C 22,14 20,15 19,13 C 17,11 15,10 14,10 C 13,10 11,11 9,13 C 8,15 6,14 6,12 Z" fill="#8B5A2B"/>
+                            <path d="M 4,28 C 4,22 24,22 24,28 Z" fill="#005bf7"/>
+                        </g>
+                        <rect x="345" y="152" width="120" height="8" rx="4" fill="#E2E8F0"/>
+                        <rect x="345" y="166" width="70" height="6" rx="3" fill="#F1F5F9"/>
+
+                        <!-- Row 2 -->
+                        <g transform="translate(301, 211)">
+                            <circle cx="14" cy="14" r="14" fill="#FFD2B2"/>
+                            <path d="M 7,10 C 7,3 21,3 21,10 C 21,12 20,11 18,10 C 16,9 15,9 14,9 C 13,9 12,9 10,10 C 8,11 7,12 7,10 Z" fill="#2C3E50"/>
+                            <path d="M 4,28 C 4,22 24,22 24,28 Z" fill="#E67E22"/>
+                        </g>
+                        <rect x="345" y="217" width="100" height="8" rx="4" fill="#E2E8F0"/>
+                        <rect x="345" y="231" width="55" height="6" rx="3" fill="#F1F5F9"/>
+
+                        <!-- Row 3 -->
+                        <g transform="translate(301, 276)">
+                            <circle cx="14" cy="14" r="14" fill="#FFF0E0"/>
+                            <path d="M 6,12 C 6,5 22,5 22,12 C 22,16 6,16 6,12 Z" fill="#F1C40F"/>
+                            <path d="M 4,28 C 4,22 24,22 24,28 Z" fill="#2ECC71"/>
+                        </g>
+                        <rect x="345" y="282" width="110" height="8" rx="4" fill="#E2E8F0"/>
+                        <rect x="345" y="296" width="80" height="6" rx="3" fill="#F1F5F9"/>
+                    </g>
+                </svg>
+            </div>
+
+            <!-- Slide Text Content -->
+            <div class="space-y-3 px-4 min-h-[90px]">
+                <h3 id="slide-title" class="text-2xl font-bold tracking-tight text-white transition-opacity duration-300 ease-in-out" style="color: #ffffff !important;">Connect with every application.</h3>
+                <p id="slide-subtitle" class="text-sm font-medium max-w-sm mx-auto transition-opacity duration-300 ease-in-out" style="color: rgba(255, 255, 255, 0.7) !important;">Everything you need in an easily customizable dashboard.</p>
+            </div>
+
+            <!-- Slider Pagination indicators -->
+            <div id="slide-dots" class="flex items-center justify-center space-x-2">
+                <span class="w-6 h-2 bg-white rounded-full transition-all duration-300"></span>
+                <span class="w-2 h-2 bg-white/45 rounded-full transition-all duration-300"></span>
+                <span class="w-2 h-2 bg-white/45 rounded-full transition-all duration-300"></span>
             </div>
         </div>
     </div>
@@ -436,6 +526,59 @@
     <!-- Central JS Handler -->
     <script src="assets/js/app.js"></script>
     <script>
+        // Slides Configuration for Auto-Scrolling
+        const slides = [
+            {
+                title: "Connect with every application.",
+                subtitle: "Everything you need in an easily customizable dashboard."
+            },
+            {
+                title: "Automate LinkedIn outreach.",
+                subtitle: "Send personalized messages and follow-ups automatically."
+            },
+            {
+                title: "Track campaign performance.",
+                subtitle: "Real-time analytics and inbox intelligence at your fingertips."
+            }
+        ];
+
+        let currentSlide = 0;
+        const slideTitleEl = document.getElementById('slide-title');
+        const slideSubtitleEl = document.getElementById('slide-subtitle');
+        const slideDotsEl = document.getElementById('slide-dots').children;
+
+        function rotateSlides() {
+            if (!slideTitleEl || !slideSubtitleEl || !slideDotsEl) return;
+            
+            // Fade out
+            slideTitleEl.style.opacity = '0';
+            slideSubtitleEl.style.opacity = '0';
+            
+            setTimeout(() => {
+                currentSlide = (currentSlide + 1) % slides.length;
+                
+                // Update content
+                slideTitleEl.textContent = slides[currentSlide].title;
+                slideSubtitleEl.textContent = slides[currentSlide].subtitle;
+                
+                // Fade in
+                slideTitleEl.style.opacity = '1';
+                slideSubtitleEl.style.opacity = '1';
+                
+                // Update dots active state
+                for (let i = 0; i < slideDotsEl.length; i++) {
+                    if (i === currentSlide) {
+                        slideDotsEl[i].className = 'w-6 h-2 bg-white rounded-full transition-all duration-300';
+                    } else {
+                        slideDotsEl[i].className = 'w-2 h-2 bg-white/45 rounded-full transition-all duration-300';
+                    }
+                }
+            }, 300);
+        }
+
+        // Rotate slide every 4 seconds
+        setInterval(rotateSlides, 4000);
+
         // Initialize Lucide Icons
         if (window.lucide) {
             lucide.createIcons();
@@ -458,11 +601,11 @@
                 const line = document.getElementById(`line-${i}`);
                 
                 if (i === step) {
-                    circle.className = "w-8 h-8 rounded-full bg-blue-600 text-white font-extrabold flex items-center justify-center text-xs shadow-md shadow-blue-500/10 transition-all duration-300";
-                    label.className = "text-[10px] text-blue-600 font-bold mt-1.5";
+                    circle.className = "w-8 h-8 rounded-full bg-[#005bf7] text-white font-extrabold flex items-center justify-center text-xs shadow-md shadow-blue-500/10 transition-all duration-300";
+                    label.className = "text-[10px] text-[#005bf7] font-bold mt-1.5";
                 } else if (i < step) {
-                    circle.className = "w-8 h-8 rounded-full bg-blue-50 text-blue-600 border border-blue-200 font-extrabold flex items-center justify-center text-xs transition-all duration-300";
-                    label.className = "text-[10px] text-blue-600/80 font-bold mt-1.5";
+                    circle.className = "w-8 h-8 rounded-full bg-blue-50 text-[#005bf7] border border-blue-200 font-extrabold flex items-center justify-center text-xs transition-all duration-300";
+                    label.className = "text-[10px] text-[#005bf7]/80 font-bold mt-1.5";
                 } else {
                     circle.className = "w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 font-extrabold flex items-center justify-center text-xs transition-all duration-300";
                     label.className = "text-[10px] text-slate-400 font-semibold mt-1.5";
@@ -471,10 +614,10 @@
                 // Color connecting lines
                 if (line) {
                     if (i < step) {
-                        line.classList.add('border-blue-600');
+                        line.classList.add('border-[#005bf7]');
                         line.classList.remove('border-slate-100');
                     } else {
-                        line.classList.remove('border-blue-600');
+                        line.classList.remove('border-[#005bf7]');
                         line.classList.add('border-slate-100');
                     }
                 }

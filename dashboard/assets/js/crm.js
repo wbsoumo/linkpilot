@@ -308,6 +308,11 @@ async function navigateTo(view, params = {}) {
         
         if (view !== 'automation' || !window.wfState.activeWorkflow) {
             toggleSidebarCollapsed(false);
+            const assistantBtn = document.getElementById('ai-chat-trigger-btn');
+            if (assistantBtn) assistantBtn.classList.remove('hidden');
+        } else {
+            const assistantBtn = document.getElementById('ai-chat-trigger-btn');
+            if (assistantBtn) assistantBtn.classList.add('hidden');
         }
         
         // Clear WhatsApp CRM context if navigating away from whatsapp views
@@ -8674,6 +8679,8 @@ function renderVisualCanvas(container) {
     const wf = window.wfState.activeWorkflow;
     const activeTab = window.wfState.activeTab || 'builder';
     toggleSidebarCollapsed(true);
+    const assistantBtn = document.getElementById('ai-chat-trigger-btn');
+    if (assistantBtn) assistantBtn.classList.add('hidden');
     
     // Top Tabs HTML
     const tabsHTML = `
@@ -9415,6 +9422,8 @@ function backToWorkflowList() {
     stopBuilderAutoSave();
     window.wfState.activeWorkflow = null;
     toggleSidebarCollapsed(false);
+    const assistantBtn = document.getElementById('ai-chat-trigger-btn');
+    if (assistantBtn) assistantBtn.classList.remove('hidden');
     navigateTo('automation');
 }
 
@@ -16140,19 +16149,65 @@ function formatTime(date) {
     return hours + ':' + minutes + ' ' + ampm;
 }
 
+function typeMessageEffect(messageObj, callback) {
+    const fullText = messageObj.text;
+    messageObj.text = "";
+    messageObj.isTyping = true;
+    
+    window.wfState.aiChatMessages.push(messageObj);
+    renderAIChatMessages();
+    
+    const container = document.getElementById('ai-chat-messages-container');
+    if (!container) {
+        messageObj.text = fullText;
+        delete messageObj.isTyping;
+        callback();
+        return;
+    }
+    
+    const messages = container.querySelectorAll('.chat-message.ai');
+    const targetBubble = messages[messages.length - 1];
+    if (!targetBubble) {
+        messageObj.text = fullText;
+        delete messageObj.isTyping;
+        callback();
+        return;
+    }
+    
+    let currentIdx = 0;
+    const typingSpeed = 10; // ms per char
+    
+    function typeNextChar() {
+        if (currentIdx < fullText.length) {
+            if (fullText.substr(currentIdx, 4) === "<br>") {
+                messageObj.text += "<br>";
+                currentIdx += 4;
+            } else if (fullText.substr(currentIdx, 5) === "<br/>") {
+                messageObj.text += "<br/>";
+                currentIdx += 5;
+            } else {
+                messageObj.text += fullText[currentIdx];
+                currentIdx++;
+            }
+            targetBubble.innerHTML = messageObj.text;
+            container.scrollTop = container.scrollHeight;
+            setTimeout(typeNextChar, typingSpeed);
+        } else {
+            delete messageObj.isTyping;
+            callback();
+        }
+    }
+    typeNextChar();
+}
+
 function processAIStep(userText) {
     const now = formatTime(new Date());
     
     if (window.wfState.aiStep === 0) {
         // Initial state -> prompt clarification questions
-        window.wfState.aiChatMessages.push({
+        const messageObj = {
             sender: 'ai',
-            text: `Got it! I'll create a workflow for you.<br/><br/>
-            I just need a few details to make it perfect:<br/>
-            • Which email account should I monitor?<br/>
-            • Which nurture campaign should I add the lead to?<br/>
-            • Who should receive the task if the lead exists?<br/>
-            • Do you want a welcome email template?`,
+            text: `Got it! I'll create a workflow for you.<br/><br/>I just need a few details to make it perfect:<br/>• Which email account should I monitor?<br/>• Which nurture campaign should I add the lead to?<br/>• Who should receive the task if the lead exists?<br/>• Do you want a welcome email template?`,
             time: now,
             chips: [
                 "Monitor hello@linkpilot.app",
@@ -16160,21 +16215,25 @@ function processAIStep(userText) {
                 "Task for Sales Team",
                 "Yes, use 'Welcome Email 1' template"
             ]
+        };
+        typeMessageEffect(messageObj, () => {
+            renderAIChatMessages();
+            window.wfState.aiStep = 1;
         });
-        window.wfState.aiStep = 1;
     } else if (window.wfState.aiStep === 1) {
         // Questions answered -> show Workflow Summary and review buttons
-        window.wfState.aiChatMessages.push({
+        const messageObj = {
             sender: 'ai',
             text: `Perfect! Here is the workflow summary.`,
             time: now,
             summary: true,
             buttons: true
+        };
+        typeMessageEffect(messageObj, () => {
+            renderAIChatMessages();
+            window.wfState.aiStep = 2;
         });
-        window.wfState.aiStep = 2;
     }
-    
-    renderAIChatMessages();
 }
 
 window.selectAIChip = function(option) {
@@ -16219,7 +16278,7 @@ function renderAIChatMessages() {
                         <span class="text-[8px] text-slate-400 ml-1 mb-2">${msg.time}</span>
                         
                         <!-- Choice chips if any -->
-                        ${msg.chips ? `
+                        ${(msg.chips && !msg.isTyping) ? `
                             <div class="flex flex-wrap gap-1.5 max-w-[90%] mb-3">
                                 ${msg.chips.map(chip => `
                                     <button onclick="selectAIChip('${chip.replace(/'/g, "\\'")}')" class="ai-choice-chip">
@@ -16230,7 +16289,7 @@ function renderAIChatMessages() {
                         ` : ''}
                         
                         <!-- Summary Card if any -->
-                        ${msg.summary ? `
+                        ${(msg.summary && !msg.isTyping) ? `
                             <div class="wf-preview-summary w-[90%] space-y-2 border border-slate-200 shadow-sm bg-white mb-2 text-left">
                                 <div class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Workflow Summary</div>
                                 <div class="space-y-1.5 text-[10px] text-slate-700">
@@ -16246,7 +16305,7 @@ function renderAIChatMessages() {
                         ` : ''}
                         
                         <!-- Actions button cards if any -->
-                        ${msg.buttons ? `
+                        ${(msg.buttons && !msg.isTyping) ? `
                             <div class="flex items-center space-x-2 w-[90%] mt-1.5 mb-2 shrink-0">
                                 <button onclick="approveAIWorkflow()" class="flex-grow py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[10px] font-bold transition shadow-xs">Approve</button>
                                 <button onclick="cancelAIWorkflow()" class="py-2 px-3 bg-red-600 hover:bg-red-500 text-white rounded-xl text-[10px] font-bold transition shadow-xs">Deny</button>

@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkfrontend=self.webpackChunkfrontend||[]).push([[815],{40815:(e,n,t)=>{t.d(n,{x:()=>c});var c="#go-to-account"}}]);

@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkfrontend=self.webpackChunkfrontend||[]).push([[9043],{79043:(t,n,e)=>{e.d(n,{E:()=>c,oN:()=>r});var r=function(){return(arguments.length>0&&void 0!==arguments[0]?arguments[0]:"").toString().replace(/(<([^>]+)>)/gi,"")},c=function(t){return/^https?:\/\//i.test(t)?t:"https://".concat(t)}}}]);

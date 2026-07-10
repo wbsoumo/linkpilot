@@ -33,18 +33,67 @@ class SyncHelper {
         // 1. Fetch new emails
         $newEmails = [];
         require_once __DIR__ . '/external_apps_helper.php';
-        try {
-            if (ExternalAppsHelper::isGoogleConnected($userId)) {
-                $newEmails = ExternalAppsHelper::fetchGmailEmails($userId, 10);
-            } else {
-                $newEmails = IMAPHelper::fetchNewEmails($userId, 10); // fetch last 10 messages
+        
+        $attemptedCount = 0;
+        $successCount = 0;
+        $lastError = null;
+
+        // Try Google/Gmail API if connected
+        if (ExternalAppsHelper::isGoogleConnected($userId)) {
+            $attemptedCount++;
+            try {
+                $gmailEmails = ExternalAppsHelper::fetchGmailEmails($userId, 10);
+                if (is_array($gmailEmails)) {
+                    $newEmails = array_merge($newEmails, $gmailEmails);
+                    $successCount++;
+                }
+            } catch (Throwable $e) {
+                $lastError = $e;
+                $errStmt = $db->prepare("INSERT INTO email_processing_logs (user_id, status, message) VALUES (?, 'error', ?)");
+                $errStmt->execute([$userId, 'Gmail API Sync Error: ' . $e->getMessage()]);
             }
-        } catch (Throwable $e) {
-            // Log sync error
-            $errStmt = $db->prepare("INSERT INTO email_processing_logs (user_id, status, message) VALUES (?, 'error', ?)");
-            $errText = (ExternalAppsHelper::isGoogleConnected($userId)) ? 'Gmail API Sync Error: ' : 'IMAP Connection Error: ';
-            $errStmt->execute([$userId, $errText . $e->getMessage()]);
-            throw $e;
+        }
+
+        // Check if IMAP is configured
+        $stmtImap = $db->prepare("SELECT id FROM imap_smtp_configurations WHERE user_id = ? AND imap_host IS NOT NULL AND imap_host != ''");
+        $stmtImap->execute([$userId]);
+        $hasImap = (bool)$stmtImap->fetch();
+
+        // If IMAP is explicitly configured, or if no other provider is connected (fallback to standard behavior)
+        if ($hasImap || (!ExternalAppsHelper::isGoogleConnected($userId))) {
+            $attemptedCount++;
+            try {
+                $imapEmails = IMAPHelper::fetchNewEmails($userId, 10);
+                if (is_array($imapEmails)) {
+                    // Deduplicate messages if they were already fetched via Gmail API
+                    foreach ($imapEmails as $ie) {
+                        $duplicate = false;
+                        foreach ($newEmails as $ne) {
+                            if ($ne['message_id'] === $ie['message_id']) {
+                                $duplicate = true;
+                                break;
+                            }
+                        }
+                        if (!$duplicate) {
+                            $newEmails[] = $ie;
+                        }
+                    }
+                    $successCount++;
+                }
+            } catch (Throwable $e) {
+                $lastError = $e;
+                $errStmt = $db->prepare("INSERT INTO email_processing_logs (user_id, status, message) VALUES (?, 'error', ?)");
+                $errStmt->execute([$userId, 'IMAP Connection Error: ' . $e->getMessage()]);
+            }
+        }
+
+        // If we attempted to synchronize but ALL attempted services failed, throw the last error
+        if ($attemptedCount > 0 && $successCount === 0) {
+            if ($lastError) {
+                throw $lastError;
+            } else {
+                throw new Exception("All connected sync services failed to synchronize.");
+            }
         }
         
         // Fetch spam filters

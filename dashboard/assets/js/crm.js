@@ -288,6 +288,13 @@ async function navigateTo(view, params = {}) {
     const contentArea = document.getElementById('main-content-viewport');
     if (!contentArea) return;
     
+    // Dynamically manage full-bleed for inbox
+    if (view === 'inbox' || view === 'whatsapp-inbox') {
+        contentArea.className = "flex-grow overflow-hidden w-full h-[calc(100vh-61px)] flex flex-col";
+    } else {
+        contentArea.className = "flex-grow p-6 md:p-8 overflow-y-auto max-w-7xl w-full mx-auto";
+    }
+
     // Show skeleton loader
     contentArea.innerHTML = getSkeletonLoader(view);
 
@@ -2033,8 +2040,38 @@ async function syncNowFromDashboard(btn) {
     }
 }
 
-// ----------------------------------------------------
-// 3. INBOX VIEW (AI SUGGESTED REPLY / FILTERS)
+// ---------------------------------------------// 3. INBOX VIEW (AI SUGGESTED REPLY / FILTERS)
+const getEmailDomain = (emailStr) => {
+    if (!emailStr) return 'globe';
+    const parts = emailStr.split('@');
+    return parts.length > 1 ? parts[1].toLowerCase() : 'globe';
+};
+
+const formatInboxDate = (dateStr) => {
+    const d = new Date(dateStr);
+    const today = new Date();
+    if (d.toDateString() === today.toDateString()) {
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+    }
+    return d.toLocaleDateString([], { day: 'numeric', month: 'short' });
+};
+
+window.switchInboxDetailTab = function(tabName) {
+    document.querySelectorAll('.inbox-detail-tab-pane').forEach(el => el.classList.add('hidden'));
+    const activePane = document.getElementById(`inbox-detail-tab-${tabName}`);
+    if (activePane) activePane.classList.remove('hidden');
+    
+    document.querySelectorAll('.inbox-detail-tab-btn').forEach(btn => {
+        btn.classList.remove('text-blue-600', 'border-blue-600', 'font-bold');
+        btn.classList.add('text-slate-500', 'border-transparent');
+    });
+    const activeBtn = document.getElementById(`inbox-detail-tab-btn-${tabName}`);
+    if (activeBtn) {
+        activeBtn.classList.add('text-blue-600', 'border-blue-600', 'font-bold');
+        activeBtn.classList.remove('text-slate-500', 'border-transparent');
+    }
+};
+
 async function renderInbox(container, targetEmailId = null) {
     try {
         window.inboxFilters = {
@@ -2053,57 +2090,94 @@ async function renderInbox(container, targetEmailId = null) {
         }
         
         container.innerHTML = `
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fade-in pt-4 h-[80vh]">
-                <!-- Sidebar Email filters -->
-                <div class="lg:col-span-3 flex flex-col space-y-4">
-                    <div class="glass-panel p-4 bg-slate-900/40 flex-grow overflow-y-auto max-h-[75vh]">
-                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Folders</h3>
-                        <div class="space-y-1 text-xs">
-                            <button onclick="filterInbox('inbox', this)" class="w-full flex items-center justify-between px-3 py-2 rounded-lg font-bold text-indigo-400 bg-indigo-500/10 hover:bg-slate-800 transition">
-                                <span class="flex items-center"><i data-lucide="inbox" class="h-4 w-4 mr-2"></i>Inbox</span>
-                                <span id="inbox-unread-count" class="px-1.5 py-0.5 bg-indigo-600 text-white rounded-full text-[9px]">${listData.unread_count || 0}</span>
-                            </button>
-                            <button onclick="filterInbox('starred', this)" class="w-full flex items-center px-3 py-2 rounded-lg font-medium text-slate-400 hover:bg-slate-800 transition">
-                                <i data-lucide="star" class="h-4 w-4 mr-2"></i>Starred
-                            </button>
-                            <button onclick="filterInbox('archived', this)" class="w-full flex items-center px-3 py-2 rounded-lg font-medium text-slate-400 hover:bg-slate-800 transition">
-                                <i data-lucide="archive" class="h-4 w-4 mr-2"></i>Archived
-                            </button>
-                            <button onclick="filterInbox('spam', this)" class="w-full flex items-center px-3 py-2 rounded-lg font-medium text-slate-400 hover:bg-slate-800 transition">
-                                <i data-lucide="alert-triangle" class="h-4 w-4 mr-2"></i>Spam Queue
-                            </button>
+            <div class="flex flex-row w-full h-full bg-white divide-x divide-slate-150 animate-fade-in overflow-hidden">
+                <!-- Column 1: Mailboxes Filters -->
+                <div class="w-[230px] shrink-0 flex flex-col justify-between h-full bg-white p-4 overflow-y-auto">
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-3 px-3">Mailboxes</h3>
+                            <div class="space-y-1 text-xs" id="inbox-folder-menu">
+                                <button onclick="filterInbox('inbox', this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold text-blue-600 bg-blue-50/70 transition text-left">
+                                    <span class="flex items-center"><i data-lucide="inbox" class="h-4 w-4 mr-2.5"></i>Inbox</span>
+                                    <span id="inbox-unread-count" class="px-2 py-0.5 bg-blue-600 text-white rounded-full text-[9px] font-extrabold">${listData.unread_count || 0}</span>
+                                </button>
+                                <button onclick="filterInbox('starred', this)" class="w-full flex items-center px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left">
+                                    <i data-lucide="star" class="h-4 w-4 mr-2.5"></i>Starred
+                                </button>
+                                <button onclick="filterInbox('snoozed', this)" class="w-full flex items-center px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left">
+                                    <i data-lucide="clock" class="h-4 w-4 mr-2.5"></i>Snoozed
+                                </button>
+                                <button onclick="filterInbox('sent', this)" class="w-full flex items-center px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left">
+                                    <i data-lucide="send" class="h-4 w-4 mr-2.5"></i>Sent
+                                </button>
+                                <button onclick="filterInbox('drafts', this)" class="w-full flex items-center px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left">
+                                    <i data-lucide="file-text" class="h-4 w-4 mr-2.5"></i>Drafts
+                                </button>
+                                <button onclick="filterInbox('archived', this)" class="w-full flex items-center px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left">
+                                    <i data-lucide="archive" class="h-4 w-4 mr-2.5"></i>Archived
+                                </button>
+                                <button onclick="filterInbox('spam', this)" class="w-full flex items-center px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left">
+                                    <i data-lucide="trash-2" class="h-4 w-4 mr-2.5"></i>Trash
+                                </button>
+                            </div>
                         </div>
 
-                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mt-6 mb-3">Categories</h3>
-                        <div class="space-y-1 text-xs" id="inbox-category-filters">
-                            <button onclick="filterInboxByCat('New Lead', this)" class="w-full flex items-center px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800 transition"><span class="h-2 w-2 rounded-full bg-teal-400 mr-2"></span>New Lead</button>
-                            <button onclick="filterInboxByCat('Existing Client', this)" class="w-full flex items-center px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800 transition"><span class="h-2 w-2 rounded-full bg-blue-500 mr-2"></span>Existing Client</button>
-                            <button onclick="filterInboxByCat('Support Request', this)" class="w-full flex items-center px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800 transition"><span class="h-2 w-2 rounded-full bg-red-400 mr-2"></span>Support Request</button>
-                            <button onclick="filterInboxByCat('Meeting Request', this)" class="w-full flex items-center px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800 transition"><span class="h-2 w-2 rounded-full bg-yellow-400 mr-2"></span>Meeting Request</button>
-                            <button onclick="filterInboxByCat('Invoice', this)" class="w-full flex items-center px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800 transition"><span class="h-2 w-2 rounded-full bg-emerald-400 mr-2"></span>Invoice</button>
+                        <div>
+                            <div class="flex justify-between items-center mb-3 px-3">
+                                <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Labels</h3>
+                                <button class="text-slate-400 hover:text-slate-700"><i data-lucide="plus" class="h-3.5 w-3.5"></i></button>
+                            </div>
+                            <div class="space-y-1 text-xs" id="inbox-category-filters">
+                                <button onclick="filterInboxByCat('New Lead', this)" class="w-full flex items-center px-3 py-2.5 rounded-xl text-slate-500 hover:bg-slate-50 transition text-left"><span class="h-2 w-2 rounded-full bg-emerald-450 mr-2.5" style="background-color: #10b981;"></span>New Lead</button>
+                                <button onclick="filterInboxByCat('Existing Client', this)" class="w-full flex items-center px-3 py-2.5 rounded-xl text-slate-500 hover:bg-slate-50 transition text-left"><span class="h-2 w-2 rounded-full bg-blue-500 mr-2.5" style="background-color: #3b82f6;"></span>Existing Client</button>
+                                <button onclick="filterInboxByCat('Support Request', this)" class="w-full flex items-center px-3 py-2.5 rounded-xl text-slate-500 hover:bg-slate-50 transition text-left"><span class="h-2 w-2 rounded-full bg-red-400 mr-2.5" style="background-color: #ef4444;"></span>Support Request</button>
+                                <button onclick="filterInboxByCat('Meeting Request', this)" class="w-full flex items-center px-3 py-2.5 rounded-xl text-slate-500 hover:bg-slate-50 transition text-left"><span class="h-2 w-2 rounded-full bg-yellow-400 mr-2.5" style="background-color: #eab308;"></span>Meeting Request</button>
+                                <button onclick="filterInboxByCat('Invoice', this)" class="w-full flex items-center px-3 py-2.5 rounded-xl text-slate-500 hover:bg-slate-50 transition text-left"><span class="h-2 w-2 rounded-full bg-purple-400 mr-2.5" style="background-color: #a855f7;"></span>Invoice</button>
+                            </div>
                         </div>
+                    </div>
+
+                    <!-- Storage usage widget -->
+                    <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-2 mt-auto">
+                        <div class="flex justify-between items-center text-[10px] text-slate-500 font-semibold">
+                            <span>Storage</span>
+                            <span>56%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-blue-600 h-full rounded-full" style="width: 56%"></div>
+                        </div>
+                        <div class="text-[9px] text-slate-400 font-semibold">8.4 GB of 15 GB used</div>
                     </div>
                 </div>
 
-                <!-- Inbox List pane -->
-                <div class="lg:col-span-4 glass-panel bg-slate-900/40 overflow-hidden flex flex-col h-full max-h-[75vh]">
-                    <div class="p-3 border-b border-slate-800/80 flex items-center space-x-2">
-                        <input type="text" oninput="handleInboxInlineSearch(this.value)" placeholder="Search emails..." class="flex-grow px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white">
-                        <button onclick="syncInboxFromInboxView(this)" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition border border-slate-750 flex items-center justify-center" title="Sync Inbox">
+                <!-- Column 2: Inbox List pane -->
+                <div class="w-[360px] shrink-0 bg-white flex flex-col h-full overflow-hidden">
+                    <div class="p-3.5 border-b border-slate-150 flex items-center space-x-2 bg-white">
+                        <div class="relative flex-grow">
+                            <i data-lucide="search" class="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400"></i>
+                            <input type="text" oninput="handleInboxInlineSearch(this.value)" placeholder="Search emails..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                        </div>
+                        <button class="p-2 border border-slate-250 hover:bg-slate-50 rounded-xl text-slate-500 transition"><i data-lucide="sliders-horizontal" class="h-4 w-4"></i></button>
+                        <button onclick="syncInboxFromInboxView(this)" class="p-2 border border-slate-250 hover:bg-slate-50 rounded-xl text-slate-500 transition" title="Sync Inbox">
                             <i data-lucide="refresh-cw" class="h-4 w-4"></i>
                         </button>
                     </div>
-                    <div class="flex-grow overflow-y-auto divide-y divide-slate-800/40" id="inbox-emails-list-container">
-                        <div class="p-6 text-center text-slate-500 text-xs">Loading inbox...</div>
+                    <div class="flex-grow overflow-y-auto divide-y divide-slate-100" id="inbox-emails-list-container">
+                        <div class="p-6 text-center text-slate-400 text-xs">Loading inbox...</div>
                     </div>
                     <!-- Pagination Controls -->
-                    <div class="p-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 bg-slate-950/20" id="inbox-pagination-container">
+                    <div class="p-3.5 border-t border-slate-150 flex items-center justify-between text-[11px] text-slate-500 bg-white" id="inbox-pagination-container">
                     </div>
                 </div>
 
-                <!-- Email detail panel with AI Reply Assistant -->
-                <div class="lg:col-span-5 glass-panel bg-slate-900/40 p-5 flex flex-col h-full max-h-[75vh] overflow-y-auto" id="inbox-email-detail-container">
-                    <p class="text-xs text-slate-500 text-center py-20">Select an email from the list to display details and generate suggested AI replies.</p>
+                <!-- Column 3: Email detail panel with AI Reply Assistant -->
+                <div class="flex-grow bg-white flex flex-col h-full overflow-hidden" id="inbox-email-detail-container">
+                    <div class="flex-grow flex flex-col items-center justify-center p-8 text-center bg-[#f8fafc]/30">
+                        <div class="h-14 w-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 mb-3.5">
+                            <i data-lucide="mail-open" class="h-6 w-6"></i>
+                        </div>
+                        <p class="text-xs text-slate-400 font-semibold max-w-xs leading-relaxed">Select an email from the list to display details and generate suggested AI replies.</p>
+                    </div>
                 </div>
             </div>
         `;
@@ -2122,12 +2196,14 @@ async function selectInboxEmail(emailId) {
     selectedReplyAttachments = []; // reset reply attachments
     
     // Set active style in list
-    document.querySelectorAll('[id^="inbox-mail-card-"]').forEach(c => c.classList.remove('bg-slate-900/40', 'card-active-glow'));
+    document.querySelectorAll('[id^="inbox-mail-card-"]').forEach(c => {
+        c.classList.remove('bg-[#f8fafc]', 'border-l-4', 'border-l-blue-600');
+        c.classList.add('bg-white');
+    });
     const activeCard = document.getElementById(`inbox-mail-card-${emailId}`);
     if (activeCard) {
-        activeCard.classList.add('bg-slate-900/40', 'card-active-glow');
-        // remove unread indicator border
-        activeCard.classList.remove('border-l-4', 'border-l-indigo-500', 'bg-slate-900/10');
+        activeCard.classList.add('bg-[#f8fafc]', 'border-l-4', 'border-l-blue-600');
+        activeCard.classList.remove('bg-white');
     }
     
     const container = document.getElementById('inbox-email-detail-container');
@@ -2144,220 +2220,315 @@ async function selectInboxEmail(emailId) {
         const accounts = smtpData.accounts || [];
         const meta = email.extracted_data_json ? JSON.parse(email.extracted_data_json) : {};
         
-        const date = new Date(email.received_date).toLocaleString();
+        const date = new Date(email.received_date).toLocaleString('en-US', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
         
         // Render detailed panel
         container.innerHTML = `
-            <div class="space-y-6 animate-fade-in text-xs">
-                <!-- Action headers -->
-                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                    <div class="flex space-x-2">
-                        <button onclick="toggleStarredEmail(${email.id}, ${email.is_starred ? 0 : 1})" class="p-1.5 border border-slate-800 hover:border-slate-700 rounded-md transition ${email.is_starred ? 'text-yellow-400 border-yellow-500/20 bg-yellow-500/10' : 'text-slate-400'}" title="Star Email">
-                            <i data-lucide="star" class="h-4 w-4"></i>
+            <div class="flex flex-col h-full overflow-hidden text-xs bg-white">
+                <!-- Action headers / Toolbar -->
+                <div class="flex justify-between items-center px-6 py-3.5 border-b border-slate-150 bg-white shrink-0">
+                    <div class="flex items-center space-x-2">
+                        <button onclick="navigateTo('inbox')" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 transition mr-2 md:hidden" title="Go Back">
+                            <i data-lucide="arrow-left" class="h-4 w-4"></i>
                         </button>
-                        <button onclick="toggleArchivedEmail(${email.id}, ${email.is_archived ? 0 : 1})" class="p-1.5 border border-slate-800 hover:border-slate-700 text-slate-400 rounded-md transition" title="Archive Email">
+                        <button onclick="toggleArchivedEmail(${email.id}, ${email.is_archived ? 0 : 1})" class="p-1.5 hover:bg-slate-100 text-slate-500 hover:text-slate-800 rounded-lg transition" title="Archive Email">
                             <i data-lucide="archive" class="h-4 w-4"></i>
                         </button>
-                        <button onclick="deleteInboxEmail(${email.id})" class="p-1.5 border border-slate-800 hover:border-red-500 hover:text-red-400 text-slate-400 rounded-md transition" title="Delete Permanent">
-                            <i data-lucide="trash" class="h-4 w-4"></i>
+                        <button onclick="deleteInboxEmail(${email.id})" class="p-1.5 hover:bg-slate-100 text-slate-550 hover:text-red-650 rounded-lg transition" title="Delete Permanent">
+                            <i data-lucide="trash-2" class="h-4 w-4"></i>
                         </button>
-                        <div class="h-7 w-[1px] bg-slate-800 self-center"></div>
+                        <button onclick="toggleStarredEmail(${email.id}, ${email.is_starred ? 0 : 1})" class="p-1.5 hover:bg-slate-100 rounded-lg transition ${email.is_starred ? 'text-amber-500 bg-amber-50' : 'text-slate-400 hover:text-slate-700'}" title="Star Email">
+                            <i data-lucide="star" class="h-4 w-4"></i>
+                        </button>
+                        <button onclick="markEmailAsSpamPromo(${email.id}, 'Spam')" class="p-1.5 hover:bg-slate-100 text-slate-500 hover:text-amber-600 rounded-lg transition" title="Mark Spam">
+                            <i data-lucide="shield-alert" class="h-4 w-4"></i>
+                        </button>
+                        <button onclick="markEmailAsSpamPromo(${email.id}, 'Promotion')" class="p-1.5 hover:bg-slate-100 text-slate-500 hover:text-blue-500 rounded-lg transition" title="Mark as Promotion">
+                            <i data-lucide="tag" class="h-4 w-4"></i>
+                        </button>
                         
-                        ${(email.category === 'Spam' || email.category === 'Promotion' || parseInt(email.is_spam) === 1) ? `
-                            <button onclick="unblockEmailSender(${email.id})" class="p-1.5 border border-green-500 hover:bg-green-500 hover:text-white text-green-600 rounded-md transition flex items-center space-x-1.5" title="Unblock Sender & Move to General">
-                                <i data-lucide="shield-check" class="h-3.5 w-3.5 text-green-500"></i>
-                                <span class="text-[9px] font-bold text-green-600">Unblock & Restore</span>
-                            </button>
+                        <div class="h-5 w-[1px] bg-slate-200 self-center mx-1"></div>
+                        
+                        <select class="bg-transparent border-0 font-bold text-slate-550 hover:text-slate-800 text-[10px] focus:outline-none cursor-pointer">
+                            <option>Mark as</option>
+                            <option>Unread</option>
+                            <option>Read</option>
+                        </select>
+                        
+                        <select class="bg-transparent border-0 font-bold text-slate-550 hover:text-slate-800 text-[10px] focus:outline-none cursor-pointer">
+                            <option>More</option>
+                            <option>Add Task</option>
+                            <option>Add Deal</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex-grow overflow-y-auto px-6 py-5 space-y-5">
+                    <!-- Title and Category -->
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-800 leading-tight">${email.subject}</h2>
+                            <span class="inline-block mt-2 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-purple-50 text-purple-600 border border-purple-100">${email.category || 'Inbox'}</span>
+                        </div>
+                    </div>
+
+                    <!-- Sender Info Row -->
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                        <div class="flex items-center space-x-3">
+                            <img src="https://img.logo.dev/${getEmailDomain(email.sender_email)}?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-10 w-10 object-contain rounded-xl border border-slate-100 bg-white shrink-0" alt="Logo" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(email.sender_name || email.sender_email)}&background=random&color=fff';">
+                            <div>
+                                <div class="font-extrabold text-slate-800 text-sm flex items-center space-x-1.5">
+                                    <span>${email.sender_name || email.sender_email}</span>
+                                    <span class="text-slate-400 font-normal text-xs">&lt;${email.sender_email}&gt;</span>
+                                </div>
+                                <div class="text-[10px] text-slate-400 font-bold mt-0.5 flex items-center cursor-pointer hover:text-slate-650">
+                                    <span>to me</span>
+                                    <i data-lucide="chevron-down" class="h-3 w-3 ml-1 text-slate-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="flex items-center justify-end space-x-2">
+                                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center space-x-1">
+                                    <i data-lucide="shield" class="h-2.5 w-2.5"></i>
+                                    <span>Low Priority</span>
+                                </span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 font-semibold block mt-2">${date}</span>
+                        </div>
+                    </div>
+
+                    <!-- Tabs Select Bar -->
+                    <div class="flex border-b border-slate-150 text-xs shrink-0 bg-white">
+                        <button id="inbox-detail-tab-btn-overview" onclick="switchInboxDetailTab('overview')" class="inbox-detail-tab-btn px-4 py-2.5 border-b-2 font-bold text-blue-600 border-blue-600 transition">Overview</button>
+                        <button id="inbox-detail-tab-btn-ai_summary" onclick="switchInboxDetailTab('ai_summary')" class="inbox-detail-tab-btn px-4 py-2.5 border-b-2 font-semibold text-slate-500 border-transparent hover:text-slate-800 transition">AI Summary</button>
+                        <button id="inbox-detail-tab-btn-headers" onclick="switchInboxDetailTab('headers')" class="inbox-detail-tab-btn px-4 py-2.5 border-b-2 font-semibold text-slate-500 border-transparent hover:text-slate-800 transition">Headers</button>
+                        <button id="inbox-detail-tab-btn-attachments" onclick="switchInboxDetailTab('attachments')" class="inbox-detail-tab-btn px-4 py-2.5 border-b-2 font-semibold text-slate-500 border-transparent hover:text-slate-800 transition">Attachments (${email.attachments ? email.attachments.length : 0})</button>
+                    </div>
+
+                    <!-- Tab Contents Panes -->
+                    <div class="space-y-4">
+                        <!-- Overview Tab Pane -->
+                        <div id="inbox-detail-tab-overview" class="inbox-detail-tab-pane space-y-4">
+                            <!-- AI Contact & Intelligence Card -->
+                            <div class="bg-indigo-50/25 border border-indigo-100/60 rounded-2xl p-5 space-y-4 shadow-sm">
+                                <div class="flex items-center space-x-2 text-indigo-750 font-extrabold text-[11px] uppercase tracking-wider">
+                                    <i data-lucide="sparkles" class="h-4 w-4 text-indigo-600"></i>
+                                    <span>AI Contact & Intelligence</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <span class="text-slate-400 block uppercase text-[9px] font-bold">Contact Name</span>
+                                        <span class="text-slate-800 font-extrabold text-xs">${meta.person_name || 'Not detected'}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-400 block uppercase text-[9px] font-bold">Company</span>
+                                        <span class="text-slate-800 font-extrabold text-xs">${meta.company_name || 'Not detected'}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-400 block uppercase text-[9px] font-bold">Email</span>
+                                        <span class="text-slate-800 font-extrabold text-xs">${email.sender_email}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-400 block uppercase text-[9px] font-bold">Domain</span>
+                                        <span class="text-slate-800 font-extrabold text-xs">${getEmailDomain(email.sender_email)}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-400 block uppercase text-[9px] font-bold">Phone</span>
+                                        <span class="text-slate-800 font-extrabold text-xs">${meta.phone_number || 'Not detected'}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-400 block uppercase text-[9px] font-bold">Priority / Sentiment</span>
+                                        <span class="text-slate-800 font-extrabold text-xs capitalize">${email.priority} / ${email.sentiment || 'neutral'}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- AI Summary Card -->
+                            <div class="bg-slate-50 border border-slate-100 rounded-2xl p-5 space-y-2">
+                                <div class="flex items-center space-x-2 text-slate-600 font-extrabold text-[11px] uppercase tracking-wider">
+                                    <i data-lucide="cpu" class="h-4 w-4"></i>
+                                    <span>AI Summary</span>
+                                </div>
+                                <p class="text-slate-700 leading-relaxed text-xs">${email.ai_summary || 'No AI summary generated.'}</p>
+                            </div>
+                        </div>
+
+                        <!-- AI Summary Tab Pane (More details + action items) -->
+                        <div id="inbox-detail-tab-ai_summary" class="inbox-detail-tab-pane space-y-4 hidden">
+                            <div class="bg-slate-50 border border-slate-100 rounded-2xl p-5 space-y-3">
+                                <h4 class="font-bold text-slate-800 text-xs">Detailed Analysis</h4>
+                                <p class="text-slate-700 leading-relaxed text-xs">${email.ai_summary || 'No detailed summary available.'}</p>
+                                ${meta.action_items && meta.action_items.length > 0 ? `
+                                    <div class="border-t border-slate-200 pt-3 mt-2">
+                                        <span class="text-slate-550 font-bold block uppercase text-[9px] mb-1.5">Action Items</span>
+                                        <ul class="list-disc pl-4 space-y-1.5 text-slate-700 text-xs">
+                                            ${meta.action_items.map(act => `<li>${act}</li>`).join('')}
+                                        </ul>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Headers Tab Pane -->
+                        <div id="inbox-detail-tab-headers" class="inbox-detail-tab-pane space-y-4 hidden">
+                            <div class="bg-slate-50 border border-slate-100 rounded-2xl p-5">
+                                <pre class="text-[10px] font-mono text-slate-650 overflow-x-auto whitespace-pre-wrap leading-normal select-text">Subject: ${email.subject}
+From: ${email.sender_name} <${email.sender_email}>
+To: ${email.recipient_email}
+Date: ${email.received_date}
+Message-ID: ${email.message_id || 'N/A'}
+Priority: ${email.priority}
+Sentiment: ${email.sentiment}</pre>
+                            </div>
+                        </div>
+
+                        <!-- Attachments Tab Pane -->
+                        <div id="inbox-detail-tab-attachments" class="inbox-detail-tab-pane space-y-4 hidden">
+                            ${email.attachments && email.attachments.length > 0 ? `
+                                <div class="grid grid-cols-2 gap-3">
+                                    ${email.attachments.map(att => `
+                                        <a href="../${att.file_path}" download class="p-3 border border-slate-200 hover:border-blue-500 hover:bg-blue-50/10 rounded-xl flex items-center justify-between text-slate-700 transition text-xs bg-white">
+                                            <span class="truncate max-w-[150px] font-bold" title="${att.filename}">${att.filename}</span>
+                                            <i data-lucide="download" class="h-4 w-4 text-blue-600"></i>
+                                        </a>
+                                    `).join('')}
+                                </div>
+                            ` : `
+                                <p class="text-slate-400 text-center py-6">No attachments on this email.</p>
+                            `}
+                        </div>
+                    </div>
+
+                    <!-- Email Message Body Content -->
+                    <div class="border border-slate-150 rounded-2xl overflow-hidden bg-white shadow-sm mt-4">
+                        ${(email.body_html && email.body_html.trim() !== '') ? `
+                            <iframe id="inbox-email-body-iframe" class="w-full h-96 bg-white border-0 block" sandbox="allow-same-origin allow-popups"></iframe>
                         ` : `
-                            <button onclick="markEmailAsSpamPromo(${email.id}, 'Spam')" class="p-1.5 border border-slate-800 hover:border-amber-600 hover:text-amber-500 text-slate-400 rounded-md transition flex items-center space-x-1.5" title="Block Sender & Mark Spam">
-                                <i data-lucide="shield-alert" class="h-3.5 w-3.5"></i>
-                                <span class="text-[9px] font-bold">Spam</span>
-                            </button>
-                            <button onclick="markEmailAsSpamPromo(${email.id}, 'Promotion')" class="p-1.5 border border-slate-800 hover:border-blue-500 hover:text-blue-400 text-slate-400 rounded-md transition flex items-center space-x-1.5" title="Mark as Promotion">
-                                <i data-lucide="tag" class="h-3.5 w-3.5"></i>
-                                <span class="text-[9px] font-bold">Promo</span>
-                            </button>
+                            <div class="p-5 bg-slate-50 text-slate-800 leading-relaxed font-sans whitespace-pre-line text-xs max-h-96 overflow-y-auto">
+                                ${email.body_text}
+                            </div>
                         `}
                     </div>
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">${email.category}</span>
-                </div>
 
-                <!-- Subject and Sender -->
-                <div>
-                    <h2 class="text-sm font-bold text-white leading-relaxed">${email.subject}</h2>
-                    <div class="flex justify-between text-slate-400 mt-2">
-                        <span><strong>From:</strong> ${email.sender_name} &lt;${email.sender_email}&gt;</span>
-                        <span class="text-[10px]">${date}</span>
-                    </div>
-                </div>
-
-                <!-- AI Summarization Accordions -->
-                ${email.ai_status === 'pending' ? `
-                <div class="glass-panel p-4 bg-slate-900/50 space-y-4 border-l-4 border-l-teal-500 animate-pulse">
-                    <div class="flex items-center space-x-2 text-teal-400 font-bold">
-                        <i data-lucide="sparkles" class="h-4 w-4 text-teal-400 animate-pulse"></i>
-                        <span>AI Analyst Extracting Insights...</span>
-                    </div>
-                    <div class="space-y-3 mt-1">
-                        <div class="h-3 bg-slate-800 rounded w-1/3"></div>
-                        <div class="h-3 bg-slate-800 rounded w-1/2"></div>
-                        <div class="h-8 bg-slate-800 rounded w-full"></div>
-                    </div>
-                </div>
-                ` : `
-                <div class="glass-panel p-4 bg-slate-900/50 space-y-3 border-l-4 border-l-indigo-500">
-                    <div class="flex items-center space-x-2 text-indigo-400 font-bold">
-                        <i data-lucide="cpu" class="h-4 w-4"></i>
-                        <span>AI Contact & Intelligence Breakdown</span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3 mt-1">
-                        <div>
-                            <span class="text-slate-500 block uppercase text-[9px] font-bold">Contact Name</span>
-                            <span class="text-slate-300 font-semibold">${meta.person_name || 'Not detected'}</span>
-                        </div>
-                        <div>
-                            <span class="text-slate-500 block uppercase text-[9px] font-bold">Company</span>
-                            <span class="text-slate-300 font-semibold">${meta.company_name || 'Not detected'}</span>
-                        </div>
-                        <div>
-                            <span class="text-slate-500 block uppercase text-[9px] font-bold">Phone</span>
-                            <span class="text-slate-300 font-semibold">${meta.phone_number || 'Not detected'}</span>
-                        </div>
-                        <div>
-                            <span class="text-slate-500 block uppercase text-[9px] font-bold">Priority / Sentiment</span>
-                            <span class="text-slate-300 font-semibold capitalize">${email.priority} / ${email.sentiment}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="border-t border-slate-800 pt-2.5 mt-2">
-                        <span class="text-slate-500 font-bold block uppercase text-[9px]">AI Summary</span>
-                        <p class="text-slate-300 leading-relaxed mt-1">${email.ai_summary}</p>
-                    </div>
-
-                    ${meta.action_items && meta.action_items.length > 0 ? `
-                        <div class="border-t border-slate-800 pt-2.5 mt-2">
-                            <span class="text-slate-500 font-bold block uppercase text-[9px]">Suggested Action Items</span>
-                            <ul class="list-disc pl-4 space-y-0.5 text-slate-300 mt-1">
-                                ${meta.action_items.map(act => `<li>${act}</li>`).join('')}
-                            </ul>
+                    <!-- Conversation Replies Thread -->
+                    ${(email.replies && email.replies.length > 0) ? `
+                        <div class="space-y-4 border-t border-slate-100 pt-5 mt-5">
+                            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Conversation History</h4>
+                            <div class="space-y-3">
+                                ${email.replies.map(r => {
+                                    const rDate = new Date(r.received_date).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                                    return `
+                                        <div class="p-4 bg-slate-50 border border-slate-100 rounded-2xl ml-6">
+                                            <div class="flex justify-between text-slate-450 text-[10px] mb-1.5 font-bold">
+                                                <span class="text-blue-600">Reply from: ${r.sender_name || r.sender_email}</span>
+                                                <span>${rDate}</span>
+                                            </div>
+                                            <div class="text-slate-700 leading-relaxed font-sans whitespace-pre-line text-xs">${r.body_text}</div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
                         </div>
                     ` : ''}
-                </div>
-                `}
 
-                <!-- Email Message Body Content -->
-                <div class="border border-slate-200 rounded-xl overflow-hidden bg-white">
-                    ${(email.body_html && email.body_html.trim() !== '') ? `
-                        <iframe id="inbox-email-body-iframe" class="w-full h-80 bg-white border-0 block" sandbox="allow-same-origin allow-popups"></iframe>
-                    ` : `
-                        <div class="p-4 bg-slate-50 text-slate-800 leading-relaxed font-sans whitespace-pre-line text-[11px] max-h-80 overflow-y-auto">
-                            ${email.body_text}
-                        </div>
-                    `}
-                </div>
-
-                <!-- Conversation Replies Thread -->
-                ${(email.replies && email.replies.length > 0) ? `
-                    <div class="space-y-4 border-t border-slate-800 pt-4">
-                        <h4 class="text-xs font-bold text-white uppercase tracking-wider">Conversation History</h4>
-                        <div class="space-y-3">
-                            ${email.replies.map(r => {
-                                const rDate = new Date(r.received_date).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-                                return `
-                                    <div class="p-4 bg-slate-950/40 border border-slate-850 rounded-xl ml-6">
-                                        <div class="flex justify-between text-slate-400 text-[10px] mb-1.5 font-bold">
-                                            <span class="text-teal-400">Reply from: ${r.sender_name || r.sender_email}</span>
-                                            <span>${rDate}</span>
-                                        </div>
-                                        <div class="text-slate-200 leading-relaxed font-sans whitespace-pre-line text-[11px]">${r.body_text}</div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    </div>
-                ` : ''}
-
-                <!-- Attachments section -->
-                ${email.attachments && email.attachments.length > 0 ? `
-                    <div class="space-y-2">
-                        <span class="text-slate-500 font-bold uppercase text-[9px]">Attachments (${email.attachments.length})</span>
-                        <div class="grid grid-cols-2 gap-2">
-                            ${email.attachments.map(att => `
-                                <a href="../${att.file_path}" download class="p-2 border border-slate-800 hover:border-indigo-500 bg-slate-900/30 rounded-lg flex items-center justify-between text-slate-300 transition text-[11px]">
-                                    <span class="truncate max-w-[120px]" title="${att.filename}">${att.filename}</span>
-                                    <i data-lucide="download" class="h-3.5 w-3.5 text-indigo-400"></i>
-                                </a>
-                            `).join('')}
-                        </div>
-                    </div>
-                ` : ''}
-
-                <!-- AI Suggested Reply & Editor -->
-                <div class="border-t border-slate-800 pt-4 space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-900/50 p-3 rounded-lg border border-slate-800/80">
-                        <!-- Reply From Account Selector -->
-                        <div class="flex flex-col space-y-1">
-                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Reply From Account</span>
-                            <select id="reply-sender-account-select" class="w-full px-2 py-1 bg-slate-950 border border-slate-800 text-slate-300 rounded text-[10px] focus:outline-none focus:border-teal-400">
-                                ${accounts.map(acc => {
-                                    const isSelected = (acc.sender_email.toLowerCase() === email.recipient_email.toLowerCase()) ? 'selected' : '';
-                                    return `<option value="${acc.sender_email}" ${isSelected}>${acc.sender_name} (${acc.sender_email}) ${acc.is_default ? '[Default]' : ''}</option>`;
-                                }).join('')}
-                            </select>
-                        </div>
-                        
-                        <!-- Tone selection -->
-                        <div class="flex flex-col space-y-1">
-                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">AI Reply Tone</span>
-                            <select id="inbox-reply-tone" class="w-full px-2 py-1 bg-slate-950 border border-slate-800 text-slate-300 rounded text-[10px] focus:outline-none focus:border-teal-400" onchange="generateToneDraft(${email.id}, this.value)">
-                                <option value="Professional">Professional (Default)</option>
-                                <option value="Friendly">Friendly Tone</option>
-                                <option value="Sales">Sales Pitch</option>
-                                <option value="Support">Support Response</option>
-                                <option value="Proposal">Send Proposal</option>
-                                <option value="Meeting Confirmation">Confirm Meeting</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="relative">
-                        ${(!email.ai_suggested_reply || email.ai_suggested_reply.trim() === '') ? `
-                            <div id="ai-reply-generation-container" class="flex flex-col items-center justify-center py-8 border border-dashed border-slate-200 rounded-xl bg-slate-50/50 space-y-2">
-                                <i data-lucide="sparkles" class="h-5 w-5 text-indigo-500 animate-pulse"></i>
-                                <p class="text-[10px] text-slate-500 font-medium">Automatic draft reply generation skipped for this category.</p>
-                                <button type="button" onclick="generateReplyOnDemand(${email.id})" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[10px] font-bold transition flex items-center space-x-1.5 shadow">
-                                    <i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i>
-                                    <span>Generate AI Reply Now</span>
-                                </button>
+                    <!-- AI Suggested Reply & Editor -->
+                    <div class="border-t border-slate-100 pt-5 space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <!-- Reply From Account Selector -->
+                            <div class="flex flex-col space-y-1">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Reply From Account</span>
+                                <select id="reply-sender-account-select" class="w-full px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-lg text-xs focus:outline-none focus:border-blue-500 cursor-pointer">
+                                    ${accounts.map(acc => {
+                                        const isSelected = (acc.sender_email.toLowerCase() === email.recipient_email.toLowerCase()) ? 'selected' : '';
+                                        return `<option value="${acc.sender_email}" ${isSelected}>${acc.sender_name} (${acc.sender_email}) ${acc.is_default ? '[Default]' : ''}</option>`;
+                                    }).join('')}
+                                </select>
                             </div>
-                            <textarea id="inbox-reply-textarea" rows="8" class="hidden w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-300 focus:outline-none focus:ring-1 focus:ring-teal-400 leading-relaxed font-sans text-[11px]" placeholder="Drafting reply..."></textarea>
-                        ` : `
-                            <textarea id="inbox-reply-textarea" rows="8" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-300 focus:outline-none focus:ring-1 focus:ring-teal-400 leading-relaxed font-sans text-[11px]" placeholder="Drafting reply...">${email.ai_suggested_reply || ''}</textarea>
-                        `}
-                        <button onclick="copyReplyText()" class="absolute top-2 right-2 p-1.5 bg-slate-800 hover:bg-teal-500 hover:text-slate-950 rounded-md border border-slate-700 transition" title="Copy Reply">
-                            <i data-lucide="copy" class="h-3.5 w-3.5"></i>
-                        </button>
-                    </div>
-
-                    <!-- File attachment selector -->
-                    <div class="space-y-2 border-t border-slate-100 pt-3">
-                        <div class="flex items-center justify-between text-[11px] text-slate-500">
-                            <label class="flex items-center space-x-1.5 cursor-pointer hover:text-indigo-600 transition">
-                                <i data-lucide="paperclip" class="h-3.5 w-3.5"></i>
-                                <span class="font-semibold">Attach files...</span>
-                                <input type="file" id="inbox-reply-attachments" multiple class="hidden" onchange="handleReplyAttachmentChange(this)" accept=".pdf,.jpg,.jpeg,.png,.webp,.mp3,.mp4,.m4a">
-                            </label>
-                            <span id="inbox-reply-attachments-count" class="font-bold text-slate-400">No files attached</span>
+                            
+                            <!-- Tone selection -->
+                            <div class="flex flex-col space-y-1">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">AI Reply Tone</span>
+                                <select id="inbox-reply-tone" class="w-full px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-lg text-xs focus:outline-none focus:border-blue-500 cursor-pointer" onchange="generateToneDraft(${email.id}, this.value)">
+                                    <option value="Professional">Professional (Default)</option>
+                                    <option value="Friendly">Friendly Tone</option>
+                                    <option value="Sales">Sales Pitch</option>
+                                    <option value="Support">Support Response</option>
+                                    <option value="Proposal">Send Proposal</option>
+                                    <option value="Meeting Confirmation">Confirm Meeting</option>
+                                </select>
+                            </div>
                         </div>
-                        <div id="inbox-reply-attachments-list" class="flex flex-wrap gap-1.5"></div>
-                    </div>
 
-                    <div class="flex justify-end space-x-3 pt-2">
-                        <button onclick="dispatchSmtpReply(${email.id}, this, \`${email.subject.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" class="px-4 py-2 bg-teal-400 hover:bg-teal-300 text-slate-950 rounded-lg font-bold transition flex items-center space-x-1.5 shadow-lg shadow-teal-500/10">
-                            <i data-lucide="send" class="h-3.5 w-3.5"></i>
-                            <span>Send Reply Now</span>
-                        </button>
+                        <div class="relative">
+                            ${(!email.ai_suggested_reply || email.ai_suggested_reply.trim() === '') ? `
+                                <div id="ai-reply-generation-container" class="flex flex-col items-center justify-center py-8 border border-dashed border-slate-200 rounded-2xl bg-slate-50 space-y-2">
+                                    <i data-lucide="sparkles" class="h-5 w-5 text-indigo-500 animate-pulse"></i>
+                                    <p class="text-[10px] text-slate-500 font-medium">Automatic draft reply generation skipped for this category.</p>
+                                    <button type="button" onclick="generateReplyOnDemand(${email.id})" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow">
+                                        <i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i>
+                                        <span>Generate AI Reply Now</span>
+                                    </button>
+                                </div>
+                                <textarea id="inbox-reply-textarea" rows="8" class="hidden w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 leading-relaxed font-sans text-xs" placeholder="Drafting reply..."></textarea>
+                            ` : `
+                                <textarea id="inbox-reply-textarea" rows="8" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 leading-relaxed font-sans text-xs" placeholder="Drafting reply...">${email.ai_suggested_reply || ''}</textarea>
+                            `}
+                            <button onclick="copyReplyText()" class="absolute top-3 right-3 p-1.5 bg-slate-50 hover:bg-blue-55 text-slate-500 hover:text-blue-600 rounded-lg border border-slate-200 transition" title="Copy Reply">
+                                <i data-lucide="copy" class="h-3.5 w-3.5"></i>
+                            </button>
+                        </div>
+
+                        <!-- File attachment selector -->
+                        <div class="space-y-2 border-t border-slate-100 pt-3">
+                            <div class="flex items-center justify-between text-xs text-slate-500">
+                                <label class="flex items-center space-x-1.5 cursor-pointer hover:text-blue-600 transition">
+                                    <i data-lucide="paperclip" class="h-3.5 w-3.5"></i>
+                                    <span class="font-bold">Attach files...</span>
+                                    <input type="file" id="inbox-reply-attachments" multiple class="hidden" onchange="handleReplyAttachmentChange(this)" accept=".pdf,.jpg,.jpeg,.png,.webp,.mp3,.mp4,.m4a">
+                                </label>
+                                <span id="inbox-reply-attachments-count" class="font-bold text-slate-400">No files attached</span>
+                            </div>
+                            <div id="inbox-reply-attachments-list" class="flex flex-wrap gap-1.5"></div>
+                        </div>
+
+                        <div class="flex justify-end space-x-3 pt-2">
+                            <button onclick="dispatchSmtpReply(${email.id}, this, \`${email.subject.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" class="px-5 py-2.5 bg-blue-650 text-white rounded-xl font-bold transition flex items-center space-x-1.5 shadow-lg shadow-blue-500/10 hover:bg-blue-500" style="background-color: rgb(59, 130, 246) !important;">
+                                <i data-lucide="send" class="h-3.5 w-3.5 text-white"></i>
+                                <span class="text-white">Send Reply Now</span>
+                            </button>
+                        </div>
                     </div>
+                </div>
+            </div>
+        `;
+        if (typeof refreshUnreadBadgeCount === 'function') {
+            refreshUnreadBadgeCount();
+        }
+        if (email.body_html && email.body_html.trim() !== '') {
+            setTimeout(() => {
+                const iframe = document.getElementById('inbox-email-body-iframe');
+                if (iframe) {
+                    const doc = iframe.contentDocument || iframe.contentWindow.document;
+                    doc.open();
+                    doc.write(email.body_html);
+                    doc.close();
+                }
+            }, 50);
+        }
+        lucide.createIcons();
+    } catch (err) {
+        showNotification('error', 'Error rendering details: ' + err.message);
+    }
+}iv>
                 </div>
             </div>
         `;
@@ -10276,14 +10447,12 @@ async function filterInbox(type, btn) {
         window.inboxFilters.is_archived = 0;
     }
     
-    document.querySelectorAll('.lg\\:col-span-3 button').forEach(el => {
-        el.classList.remove('text-indigo-400', 'bg-indigo-500/10', 'font-bold');
-        el.classList.add('text-slate-400', 'font-medium');
+    document.querySelectorAll('#inbox-folder-menu button').forEach(el => {
+        el.className = "w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left";
     });
     
     if (btn) {
-        btn.classList.add('text-indigo-400', 'bg-indigo-500/10', 'font-bold');
-        btn.classList.remove('text-slate-400', 'font-medium');
+        btn.className = "w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold text-blue-600 bg-blue-50/70 transition text-left";
     }
     
     await refreshInboxList();
@@ -10295,14 +10464,14 @@ async function filterInboxByCat(catName, btn) {
     window.inboxFilters.is_starred = null;
     window.inboxFilters.category = catName;
     
-    document.querySelectorAll('.lg\\:col-span-3 button').forEach(el => {
-        el.classList.remove('text-indigo-400', 'bg-indigo-500/10', 'font-bold');
-        el.classList.add('text-slate-400', 'font-medium');
+    document.querySelectorAll('#inbox-folder-menu button, #inbox-category-filters button').forEach(el => {
+        el.classList.remove('text-blue-600', 'bg-blue-50/70', 'font-bold');
+        el.classList.add('text-slate-500');
     });
     
     if (btn) {
-        btn.classList.add('text-indigo-400', 'bg-indigo-500/10', 'font-bold');
-        btn.classList.remove('text-slate-400', 'font-medium');
+        btn.classList.add('text-blue-600', 'bg-blue-50/70', 'font-bold');
+        btn.classList.remove('text-slate-500');
     }
     
     await refreshInboxList();
@@ -10338,38 +10507,82 @@ async function refreshInboxList(page = 1) {
         activeEmailId = initialEmailId;
         
         container.innerHTML = emails.length > 0 ? emails.map(m => {
-            const date = new Date(m.received_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+            const date = formatInboxDate(m.received_date);
             const isUnread = !m.is_read;
-            const priorityColor = m.priority === 'high' ? 'bg-red-500/10 text-red-400 border-red-500/20' : m.priority === 'medium' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+            const priorityBadge = m.priority === 'high' ? 'bg-red-50 text-red-600 border-red-100' : m.priority === 'medium' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100';
+            const isActive = m.id === activeEmailId;
             
             return `
-                <div onclick="selectInboxEmail(${m.id})" id="inbox-mail-card-${m.id}" class="p-4 border-b border-slate-800/60 hover:bg-slate-900/30 cursor-pointer transition flex flex-col justify-between ${isUnread ? 'border-l-4 border-l-indigo-500 bg-slate-900/10' : ''} ${m.id === activeEmailId ? 'bg-slate-900/40 card-active-glow' : ''}">
-                    <div class="flex justify-between items-start">
-                        <span class="font-bold text-xs truncate max-w-[140px] text-white">${m.sender_name || m.sender_email}</span>
-                        <span class="text-[10px] text-slate-500">${date}</span>
-                    </div>
-                    <div class="text-xs font-semibold text-slate-200 mt-1 truncate" title="${m.subject}">${m.subject}</div>
-                    ${m.ai_status === 'pending' ? 
-                      `<p class="text-[11px] text-teal-400 animate-pulse flex items-center mt-1"><i data-lucide="sparkles" class="h-3.5 w-3.5 mr-1 text-teal-400 animate-pulse"></i>AI Analyst is analyzing...</p>` : 
-                      `<p class="text-[11px] text-slate-500 truncate mt-1">${m.ai_summary || 'Click to read summary...'}</p>`}
-                    <div class="flex space-x-2 mt-2">
-                        <span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${priorityColor}">${m.priority}</span>
-                        ${m.ai_status === 'pending' ? 
-                          `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase bg-teal-500/10 text-teal-400 border border-teal-500/20 animate-pulse">Processing...</span>` : 
-                          `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">${m.category}</span>`}
+                <div onclick="selectInboxEmail(${m.id})" id="inbox-mail-card-${m.id}" class="p-4 border-b border-slate-100 cursor-pointer transition flex flex-col justify-between bg-white relative ${isActive ? 'bg-[#f8fafc] border-l-4 border-l-blue-600' : ''} ${isUnread && !isActive ? 'border-l-4 border-l-indigo-400 bg-blue-50/10' : ''}">
+                    <div class="flex items-start space-x-3">
+                        <img src="https://img.logo.dev/${getEmailDomain(m.sender_email)}?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-9 w-9 object-contain rounded-xl border border-slate-100 bg-white shrink-0 mt-0.5" alt="${m.sender_name}" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(m.sender_name || m.sender_email)}&background=random&color=fff';">
+                        <div class="min-w-0 flex-grow">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-xs truncate text-slate-800 max-w-[130px]">${m.sender_name || m.sender_email}</span>
+                                <span class="text-[10px] text-slate-450 font-semibold shrink-0">${date}</span>
+                            </div>
+                            <div class="flex justify-between items-center mt-1">
+                                <div class="text-xs font-bold text-slate-700 truncate pr-2" title="${m.subject}">${m.subject}</div>
+                                <i data-lucide="star" class="h-3.5 w-3.5 ${m.is_starred ? 'text-amber-500 fill-amber-500' : 'text-slate-350'} hover:text-amber-500 shrink-0"></i>
+                            </div>
+                            ${m.ai_status === 'pending' ? 
+                              `<p class="text-[10px] text-teal-500 font-semibold animate-pulse flex items-center mt-1"><i data-lucide="sparkles" class="h-3 w-3 mr-1 text-teal-500 animate-pulse"></i>AI is analyzing...</p>` : 
+                              `<p class="text-[10px] text-slate-450 font-semibold truncate mt-1 leading-normal">${m.ai_summary || 'Click to read summary...'}</p>`}
+                            <div class="flex space-x-2 mt-2.5">
+                                <span class="px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase border ${priorityBadge}">${m.priority || 'low'}</span>
+                                ${m.ai_status === 'pending' ? 
+                                  `<span class="px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase bg-teal-50 text-teal-600 border border-teal-100 animate-pulse">Processing...</span>` : 
+                                  `<span class="px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase bg-purple-50 text-purple-600 border border-purple-100">${m.category || 'Inbox'}</span>`}
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
-        }).join('') : `<div class="p-6 text-center text-slate-500 text-xs">Folder/Category is empty.</div>`;
+        }).join('') : `<div class="p-6 text-center text-slate-400 text-xs font-semibold">Folder/Category is empty.</div>`;
         
         // Render Pagination UI
-        const totalPages = Math.ceil(listData.total / listData.limit) || 1;
+        const limit = listData.limit || 20;
+        const total = listData.total || 0;
+        const startItem = total > 0 ? (page - 1) * limit + 1 : 0;
+        const endItem = Math.min(page * limit, total);
+        const totalPages = Math.ceil(total / limit) || 1;
+        
         const paginationContainer = document.getElementById('inbox-pagination-container');
         if (paginationContainer) {
+            let pageButtons = '';
+            
+            // Limit page count buttons displayed
+            let startPage = Math.max(1, page - 1);
+            let endPage = Math.min(totalPages, startPage + 2);
+            if (endPage - startPage < 2) {
+                startPage = Math.max(1, endPage - 2);
+            }
+            
+            for (let p = startPage; p <= endPage; p++) {
+                const isActive = (p === page);
+                pageButtons += `
+                    <button onclick="changeInboxPage(${p})" class="h-6 w-6 flex items-center justify-center rounded-md text-[10px] font-extrabold transition ${isActive ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'}">${p}</button>
+                `;
+            }
+            
+            if (endPage < totalPages) {
+                pageButtons += `
+                    <span class="text-slate-400 px-0.5">...</span>
+                    <button onclick="changeInboxPage(${totalPages})" class="h-6 w-6 flex items-center justify-center rounded-md text-[10px] font-extrabold text-slate-500 hover:bg-slate-100 hover:text-slate-800">${totalPages}</button>
+                `;
+            }
+            
             paginationContainer.innerHTML = `
-                <button onclick="changeInboxPage(${page - 1})" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-white font-bold transition disabled:opacity-50 disabled:cursor-not-allowed select-none" ${page <= 1 ? 'disabled' : ''}>Prev</button>
-                <span class="font-semibold text-slate-400">Page ${page} of ${totalPages}</span>
-                <button onclick="changeInboxPage(${page + 1})" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-white font-bold transition disabled:opacity-50 disabled:cursor-not-allowed select-none" ${page >= totalPages ? 'disabled' : ''}>Next</button>
+                <span class="font-bold text-slate-450">${startItem}-${endItem} of ${total}</span>
+                <div class="flex items-center space-x-1">
+                    <button onclick="changeInboxPage(${page - 1})" class="h-6 w-6 flex items-center justify-center rounded-md border border-slate-200 text-slate-500 hover:bg-slate-50 transition disabled:opacity-40 disabled:cursor-not-allowed select-none" ${page <= 1 ? 'disabled' : ''}>
+                        <i data-lucide="chevron-left" class="h-3.5 w-3.5"></i>
+                    </button>
+                    ${pageButtons}
+                    <button onclick="changeInboxPage(${page + 1})" class="h-6 w-6 flex items-center justify-center rounded-md border border-slate-200 text-slate-500 hover:bg-slate-50 transition disabled:opacity-40 disabled:cursor-not-allowed select-none" ${page >= totalPages ? 'disabled' : ''}>
+                        <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i>
+                    </button>
+                </div>
             `;
         }
 
@@ -10379,7 +10592,14 @@ async function refreshInboxList(page = 1) {
         } else {
             const detailContainer = document.getElementById('inbox-email-detail-container');
             if (detailContainer) {
-                detailContainer.innerHTML = `<p class="text-xs text-slate-500 text-center py-20">Select an email from the list to display details and generate suggested AI replies.</p>`;
+                detailContainer.innerHTML = `
+                    <div class="flex-grow flex flex-col items-center justify-center p-8 text-center bg-[#f8fafc]/30">
+                        <div class="h-14 w-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 mb-3.5">
+                            <i data-lucide="mail-open" class="h-6 w-6"></i>
+                        </div>
+                        <p class="text-xs text-slate-400 font-semibold max-w-xs leading-relaxed">Select an email from the list to display details and generate suggested AI replies.</p>
+                    </div>
+                `;
             }
         }
     } catch (err) {

@@ -8822,6 +8822,11 @@ function renderVisualCanvas(container) {
                             </div>
                         </div>
 
+                        <!-- AI Builder floating trigger button -->
+                        <button onclick="toggleAIBuilderDrawer(true)" class="absolute bottom-16 left-4 z-20 px-3.5 py-2 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl shadow-lg flex items-center space-x-1.5 text-xs font-bold transition hover:scale-105 active:scale-95 select-none animate-pulse" style="color: #ffffff !important;">
+                            <span>✨ AI Builder</span>
+                        </button>
+
                         <!-- Bottom Left Canvas Overlay Tools -->
                         <div class="absolute bottom-4 left-4 z-20 bg-white/95 border border-slate-200 rounded-xl p-1.5 flex items-center space-x-1.5 shadow-md">
                             <button class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="expand" class="h-3.5 w-3.5"></i></button>
@@ -8844,6 +8849,58 @@ function renderVisualCanvas(container) {
                     <!-- Right Configuration Panel -->
                     <div class="w-80 bg-white border-l border-slate-200 flex flex-col h-full overflow-hidden text-left shrink-0" id="wf-config-sidebar">
                         ${renderConfigSidebarHTML()}
+                    </div>
+
+                    <!-- AI Builder Sliding Resizable Drawer -->
+                    <div id="ai-builder-drawer" class="hidden absolute top-0 right-0 h-full bg-white/95 border-l border-slate-200 shadow-2xl z-40 flex flex-col transition-all duration-300" style="width: 480px; border-top-left-radius: 16px; border-bottom-left-radius: 16px;">
+                        <div id="ai-builder-resize-handle" class="absolute top-0 left-0 w-1.5 h-full cursor-ew-resize hover:bg-indigo-500/30 transition"></div>
+                        <div id="ai-builder-inner-content" class="flex flex-col h-full overflow-hidden">
+                            <!-- Header -->
+                            <div class="p-4 border-b border-slate-200 flex items-center justify-between shrink-0 bg-white">
+                                <div class="flex items-center space-x-2 text-xs">
+                                    <i data-lucide="sparkles" class="h-4.5 w-4.5 text-purple-600"></i>
+                                    <span class="font-extrabold text-slate-800 text-sm">AI Automation Builder</span>
+                                    <span class="px-1.5 py-0.5 rounded bg-purple-50 border border-purple-100 text-purple-600 text-[8px] font-bold uppercase tracking-wide">Beta</span>
+                                </div>
+                                <div class="flex items-center space-x-1.5">
+                                    <button onclick="toggleAIBuilderDrawer(false)" class="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition"><i data-lucide="minus" class="h-4.5 w-4.5"></i></button>
+                                    <button onclick="toggleAIBuilderDrawer(false)" class="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition"><i data-lucide="x" class="h-4.5 w-4.5"></i></button>
+                                </div>
+                            </div>
+                            <!-- Tabs Navigation -->
+                            <div class="h-10 border-b border-slate-200 flex shrink-0 bg-white">
+                                <button onclick="switchAIBuilderTab('chat')" id="ai-tab-btn-chat" class="flex-grow text-xs font-bold border-b-2 border-indigo-600 text-indigo-600 transition">Chat</button>
+                                <button onclick="switchAIBuilderTab('history')" id="ai-tab-btn-history" class="flex-grow text-xs font-semibold border-b border-slate-200 text-slate-500 hover:text-slate-700 transition">History</button>
+                            </div>
+                            
+                            <!-- Drawer body container -->
+                            <div id="ai-drawer-body" class="flex-grow flex flex-col overflow-hidden relative">
+                                <!-- Chat tab content -->
+                                <div id="ai-chat-tab-panel" class="flex-grow flex flex-col overflow-hidden">
+                                    <!-- Messages feed wrapper -->
+                                    <div id="ai-chat-messages-container" class="flex-grow overflow-y-auto p-4 space-y-4 flex flex-col bg-slate-50/30">
+                                        <!-- Initial state will render here -->
+                                    </div>
+                                    <!-- Inputs wrapper -->
+                                    <div class="p-4 border-t border-slate-200 bg-white shrink-0">
+                                        <div id="ai-input-form-container" class="space-y-3">
+                                            <div class="relative">
+                                                <textarea id="ai-chat-text-input" placeholder="Describe your workflow..." class="w-full border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-indigo-500 resize-none h-20 shadow-xs" onkeydown="handleAIChatKeyDown(event)"></textarea>
+                                                <button onclick="submitAIChat()" class="absolute bottom-2.5 right-3 h-7 w-7 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center transition shadow-sm">
+                                                    <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
+                                                </button>
+                                            </div>
+                                            <div class="text-[9px] text-slate-400 text-center">AI can make mistakes. Please review before applying.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- History tab panel -->
+                                <div id="ai-history-tab-panel" class="hidden flex-grow overflow-y-auto p-5 space-y-3 bg-slate-50/20">
+                                    <!-- Rendered dynamically -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -15899,3 +15956,715 @@ window.startRazorpayPayment = async function() {
         rechargeBtn.innerHTML = oldTxt;
     }
 };
+
+// ==========================================
+// AI CONVERSATIONAL AUTOMATION BUILDER
+// ==========================================
+
+window.wfState.aiHistory = JSON.parse(localStorage.getItem('linkpilot_ai_history') || '[]');
+window.wfState.aiChatMessages = [];
+window.wfState.aiStep = 0; // 0: empty state, 1: initial prompt sent (clarification questions), 2: answers sent (workflow summary), 3: approved/building
+window.wfState.aiResponses = {}; // collects user choices
+
+window.toggleAIBuilderDrawer = function(show) {
+    const drawer = document.getElementById('ai-builder-drawer');
+    if (!drawer) return;
+    if (show) {
+        drawer.classList.remove('hidden');
+        // Trigger small reflow before adding open class to play transition
+        drawer.offsetWidth;
+        drawer.classList.add('open');
+        initAIBuilderResizer();
+        if (window.wfState.aiChatMessages.length === 0) {
+            renderAIEmptyState();
+        } else {
+            renderAIChatMessages();
+        }
+    } else {
+        drawer.classList.remove('open');
+        setTimeout(() => {
+            drawer.classList.add('hidden');
+        }, 250);
+    }
+    // force layout reflow on canvas connection lines
+    if (typeof drawConnections === 'function') {
+        setTimeout(drawConnections, 300);
+    }
+};
+
+function initAIBuilderResizer() {
+    const handle = document.getElementById('ai-builder-resize-handle');
+    const drawer = document.getElementById('ai-builder-drawer');
+    if (!handle || !drawer || handle.dataset.initialized) return;
+    
+    handle.dataset.initialized = "true";
+    let startX, startWidth;
+    
+    const onMouseMove = (e) => {
+        const width = startWidth + (startX - e.clientX);
+        if (width >= 360 && width <= 800) {
+            drawer.style.width = width + 'px';
+        }
+    };
+    
+    const onMouseUp = () => {
+        handle.classList.remove('resizing');
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        if (typeof drawConnections === 'function') {
+            drawConnections();
+        }
+    };
+    
+    handle.addEventListener('mousedown', (e) => {
+        startX = e.clientX;
+        startWidth = drawer.offsetWidth;
+        handle.classList.add('resizing');
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+        e.preventDefault();
+    });
+}
+
+window.switchAIBuilderTab = function(tab) {
+    const chatBtn = document.getElementById('ai-tab-btn-chat');
+    const historyBtn = document.getElementById('ai-tab-btn-history');
+    const chatPanel = document.getElementById('ai-chat-tab-panel');
+    const historyPanel = document.getElementById('ai-history-tab-panel');
+    
+    if (!chatBtn || !historyBtn || !chatPanel || !historyPanel) return;
+    
+    if (tab === 'chat') {
+        chatBtn.className = "flex-grow text-xs font-bold border-b-2 border-indigo-600 text-indigo-600 transition";
+        historyBtn.className = "flex-grow text-xs font-semibold border-b border-slate-200 text-slate-500 hover:text-slate-700 transition";
+        chatPanel.classList.remove('hidden');
+        historyPanel.classList.add('hidden');
+        renderAIChatMessages();
+    } else {
+        historyBtn.className = "flex-grow text-xs font-bold border-b-2 border-indigo-600 text-indigo-600 transition";
+        chatBtn.className = "flex-grow text-xs font-semibold border-b border-slate-200 text-slate-500 hover:text-slate-700 transition";
+        chatPanel.classList.add('hidden');
+        historyPanel.classList.remove('hidden');
+        renderAIHistoryPanel();
+    }
+};
+
+function renderAIEmptyState() {
+    const container = document.getElementById('ai-chat-messages-container');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="flex-grow flex flex-col items-center justify-center p-6 text-center space-y-5 select-none my-auto">
+            <!-- Sparkles SVG Illustration -->
+            <div class="h-16 w-16 bg-gradient-to-tr from-purple-100 to-indigo-100 rounded-3xl flex items-center justify-center border border-purple-200/50 shadow-xs animate-bounce">
+                <i data-lucide="sparkles" class="h-8 w-8 text-indigo-600"></i>
+            </div>
+            
+            <div class="space-y-1.5">
+                <h4 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Create automations with AI</h4>
+                <p class="text-[10px] text-slate-500 leading-relaxed max-w-[280px]">
+                    Describe your workflow in plain English. I'll ask questions, design the logic, and generate the workflow automatically.
+                </p>
+            </div>
+            
+            <div class="w-full space-y-2 pt-2">
+                <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider text-left pl-1">Suggestions</div>
+                <div class="grid grid-cols-1 gap-2">
+                    <button onclick="selectAISuggestion('Create a welcome email campaign for new website form leads, checking for duplicate accounts first.')" class="ai-suggestion-card flex items-center space-x-2">
+                        <i data-lucide="mail" class="h-3.5 w-3.5 text-indigo-500 shrink-0"></i>
+                        <span>• Follow up new leads with welcome emails</span>
+                    </button>
+                    <button onclick="selectAISuggestion('Categorize all incoming email requests using AI and route tickets based on sentiment.')" class="ai-suggestion-card flex items-center space-x-2">
+                        <i data-lucide="sparkles" class="h-3.5 w-3.5 text-purple-500 shrink-0"></i>
+                        <span>• Categorize incoming emails using AI</span>
+                    </button>
+                    <button onclick="selectAISuggestion('Send a customized WhatsApp confirmation message immediately after form submission.')" class="ai-suggestion-card flex items-center space-x-2">
+                        <i data-lucide="message-square" class="h-3.5 w-3.5 text-emerald-500 shrink-0"></i>
+                        <span>• Send WhatsApp after form submission</span>
+                    </button>
+                    <button onclick="selectAISuggestion('Assign leads automatically to sales reps based on regional zip codes and country values.')" class="ai-suggestion-card flex items-center space-x-2">
+                        <i data-lucide="users" class="h-3.5 w-3.5 text-blue-500 shrink-0"></i>
+                        <span>• Assign sales rep based on country</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    lucide.createIcons();
+}
+
+window.selectAISuggestion = function(promptText) {
+    const input = document.getElementById('ai-chat-text-input');
+    if (input) {
+        input.value = promptText;
+        submitAIChat();
+    }
+};
+
+window.handleAIChatKeyDown = function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        submitAIChat();
+    }
+};
+
+window.submitAIChat = function() {
+    const input = document.getElementById('ai-chat-text-input');
+    if (!input) return;
+    const text = input.value.trim();
+    if (!text) return;
+    
+    // Add user message
+    window.wfState.aiChatMessages.push({
+        sender: 'user',
+        text: text,
+        time: formatTime(new Date())
+    });
+    
+    input.value = '';
+    renderAIChatMessages();
+    
+    // Process step response
+    setTimeout(() => {
+        processAIStep(text);
+    }, 800);
+};
+
+function formatTime(date) {
+    let hours = date.getHours();
+    let minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    minutes = minutes < 10 ? '0' + minutes : minutes;
+    return hours + ':' + minutes + ' ' + ampm;
+}
+
+function processAIStep(userText) {
+    const now = formatTime(new Date());
+    
+    if (window.wfState.aiStep === 0) {
+        // Initial state -> prompt clarification questions
+        window.wfState.aiChatMessages.push({
+            sender: 'ai',
+            text: `Got it! I'll create a workflow for you.<br/><br/>
+            I just need a few details to make it perfect:<br/>
+            • Which email account should I monitor?<br/>
+            • Which nurture campaign should I add the lead to?<br/>
+            • Who should receive the task if the lead exists?<br/>
+            • Do you want a welcome email template?`,
+            time: now,
+            chips: [
+                "Monitor hello@linkpilot.app",
+                "Add to 'Nurture Campaign 1'",
+                "Task for Sales Team",
+                "Yes, use 'Welcome Email 1' template"
+            ]
+        });
+        window.wfState.aiStep = 1;
+    } else if (window.wfState.aiStep === 1) {
+        // Questions answered -> show Workflow Summary and review buttons
+        window.wfState.aiChatMessages.push({
+            sender: 'ai',
+            text: `Perfect! Here is the workflow summary.`,
+            time: now,
+            summary: true,
+            buttons: true
+        });
+        window.wfState.aiStep = 2;
+    }
+    
+    renderAIChatMessages();
+}
+
+window.selectAIChip = function(option) {
+    const input = document.getElementById('ai-chat-text-input');
+    if (input) {
+        input.value = option;
+        submitAIChat();
+    }
+};
+
+function renderAIChatMessages() {
+    const container = document.getElementById('ai-chat-messages-container');
+    if (!container) return;
+    
+    if (window.wfState.aiChatMessages.length === 0) {
+        renderAIEmptyState();
+        return;
+    }
+    
+    let html = '';
+    window.wfState.aiChatMessages.forEach((msg, idx) => {
+        if (msg.sender === 'user') {
+            html += `
+                <div class="flex items-start justify-end space-x-2.5 w-full">
+                    <div class="flex flex-col items-end">
+                        <div class="chat-message user">${msg.text}</div>
+                        <span class="text-[8px] text-slate-400 mr-1">${msg.time}</span>
+                    </div>
+                    <div class="h-7 w-7 rounded-full bg-blue-600 text-white font-extrabold flex items-center justify-center text-[10px] shrink-0 border border-blue-400/20 shadow-xs">
+                        SS
+                    </div>
+                </div>
+            `;
+        } else {
+            html += `
+                <div class="flex items-start justify-start space-x-2.5 w-full">
+                    <div class="h-7 w-7 rounded-full bg-indigo-50 border border-indigo-200/50 flex items-center justify-center shrink-0 shadow-xs">
+                        <i data-lucide="sparkles" class="h-3.5 w-3.5 text-indigo-600"></i>
+                    </div>
+                    <div class="flex flex-col items-start w-full">
+                        <div class="chat-message ai">${msg.text}</div>
+                        <span class="text-[8px] text-slate-400 ml-1 mb-2">${msg.time}</span>
+                        
+                        <!-- Choice chips if any -->
+                        ${msg.chips ? `
+                            <div class="flex flex-wrap gap-1.5 max-w-[90%] mb-3">
+                                ${msg.chips.map(chip => `
+                                    <button onclick="selectAIChip('${chip.replace(/'/g, "\\'")}')" class="ai-choice-chip">
+                                        <span>${chip}</span>
+                                    </button>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                        
+                        <!-- Summary Card if any -->
+                        ${msg.summary ? `
+                            <div class="wf-preview-summary w-[90%] space-y-2 border border-slate-200 shadow-sm bg-white mb-2 text-left">
+                                <div class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Workflow Summary</div>
+                                <div class="space-y-1.5 text-[10px] text-slate-700">
+                                    <div class="flex items-center space-x-1"><span class="font-bold text-slate-900">1. Trigger:</span> <span>Email Received (hello@linkpilot.app)</span></div>
+                                    <div class="flex items-center space-x-1"><span class="font-bold text-slate-900">2. Condition:</span> <span>Check if Lead Exists?</span></div>
+                                    <div class="pl-3 border-l-2 border-indigo-200 space-y-1">
+                                        <div><span class="text-emerald-600 font-extrabold">3.A. If No →</span> Add to Nurture Campaign 1 → Send Welcome Email</div>
+                                        <div><span class="text-amber-500 font-extrabold">3.B. If Yes →</span> Create Task for Sales Team</div>
+                                    </div>
+                                    <div class="flex items-center space-x-1"><span class="font-bold text-slate-900">4. Action:</span> <span>Send Slack Notification (Completed status)</span></div>
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <!-- Actions button cards if any -->
+                        ${msg.buttons ? `
+                            <div class="flex items-center space-x-2 w-[90%] mt-1.5 mb-2 shrink-0">
+                                <button onclick="approveAIWorkflow()" class="flex-grow py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[10px] font-bold transition shadow-xs">Approve</button>
+                                <button onclick="cancelAIWorkflow()" class="py-2 px-3 bg-red-600 hover:bg-red-500 text-white rounded-xl text-[10px] font-bold transition shadow-xs">Deny</button>
+                                <button onclick="addChangesAIWorkflow()" class="py-2 px-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[10px] font-bold transition shadow-xs">Add Changes</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+    });
+    
+    container.innerHTML = html;
+    lucide.createIcons();
+    
+    // Auto scroll to bottom
+    container.scrollTop = container.scrollHeight;
+}
+
+window.cancelAIWorkflow = function() {
+    window.wfState.aiChatMessages = [];
+    window.wfState.aiStep = 0;
+    renderAIEmptyState();
+    showNotification('info', 'AI workflow builder session discarded.');
+};
+
+window.addChangesAIWorkflow = function() {
+    const now = formatTime(new Date());
+    window.wfState.aiChatMessages.push({
+        sender: 'ai',
+        text: `Understood. What would you like to modify? (e.g. "Instead of Slack, send a Telegram alert" or "Assign to support rep").`,
+        time: now
+    });
+    renderAIChatMessages();
+};
+
+// Stream Nodes Live Animation Creation
+window.approveAIWorkflow = function() {
+    // Disable inputs and show loading state
+    const inputArea = document.getElementById('ai-input-form-container');
+    if (inputArea) {
+        inputArea.innerHTML = `
+            <div class="flex items-center justify-center space-x-2 py-4 text-xs font-bold text-indigo-600">
+                <span class="loader-spinner !w-4 !h-4 border-indigo-600 border-t-transparent"></span>
+                <span>Building your workflow...</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                <div id="ai-builder-progress" class="bg-indigo-600 h-1.5 transition-all duration-300" style="width: 0%"></div>
+            </div>
+        `;
+    }
+    
+    // Backup active nodes for Undo support
+    window.wfState.previousActiveWorkflow = JSON.parse(JSON.stringify(window.wfState.activeWorkflow));
+    
+    // Set up canvas blur overlay
+    const canvasWrap = document.getElementById('workflow-canvas');
+    if (canvasWrap) {
+        canvasWrap.classList.add('wf-canvas-container-blur');
+    }
+    
+    // Show AI progress overlay top center
+    const body = document.body;
+    const progressOverlay = document.createElement('div');
+    progressOverlay.id = 'ai-progress-overlay';
+    progressOverlay.className = "fixed top-20 left-1/2 transform -translate-x-1/2 bg-white/95 border border-slate-200 px-6 py-4 rounded-2xl shadow-xl z-50 flex flex-col space-y-2 w-80 animate-fade-in";
+    progressOverlay.innerHTML = `
+        <div class="flex items-center space-x-2 text-xs font-bold text-indigo-700 justify-center">
+            <span class="loader-spinner !w-3.5 !h-3.5 border-indigo-600 border-t-transparent"></span>
+            <span>AI Building Workflow Live</span>
+        </div>
+        <div id="ai-progress-steps" class="space-y-1 text-[10px] text-slate-500 font-semibold pl-2">
+            <div id="ai-step-trigger" class="flex items-center space-x-1"><span>• Creating Trigger...</span></div>
+            <div id="ai-step-condition" class="flex items-center space-x-1 hidden"><span>• Adding Condition...</span></div>
+            <div id="ai-step-yes" class="flex items-center space-x-1 hidden"><span>• Adding YES Action...</span></div>
+            <div id="ai-step-no" class="flex items-center space-x-1 hidden"><span>• Adding NO Action...</span></div>
+            <div id="ai-step-slack" class="flex items-center space-x-1 hidden"><span>• Adding Slack Notification...</span></div>
+            <div id="ai-step-final" class="flex items-center space-x-1 hidden"><span>• Finalizing...</span></div>
+        </div>
+    `;
+    body.appendChild(progressOverlay);
+    
+    // Empty nodes and connections to start clean
+    window.wfState.activeWorkflow.nodes = [];
+    window.wfState.activeWorkflow.connections = [];
+    refreshBuilderCanvasInline();
+    
+    // Stream steps
+    const steps = [
+        {
+            name: "Trigger Node",
+            action: () => {
+                window.wfState.activeWorkflow.nodes.push({
+                    id: "node-trigger",
+                    type: "email_received",
+                    name: "Email Received",
+                    desc: "Triggers when incoming email meets filter limits.",
+                    x: 320,
+                    y: 80,
+                    execStatus: "success",
+                    execTime: "58ms"
+                });
+                document.getElementById('ai-step-trigger').innerHTML = `<span class="text-emerald-500 font-bold">✔ Created Trigger Node</span>`;
+                document.getElementById('ai-step-condition').classList.remove('hidden');
+                appendAINarration("✔ Created Trigger Node (Email Received)");
+            }
+        },
+        {
+            name: "Condition Node",
+            action: () => {
+                window.wfState.activeWorkflow.nodes.push({
+                    id: "node-condition",
+                    type: "condition",
+                    name: "Lead Exists?",
+                    desc: "Checks if lead email matches CRM records.",
+                    x: 320,
+                    y: 220,
+                    execStatus: "success",
+                    execTime: "75ms"
+                });
+                window.wfState.activeWorkflow.connections.push({
+                    fromId: "node-trigger",
+                    toId: "node-condition"
+                });
+                document.getElementById('ai-step-condition').innerHTML = `<span class="text-emerald-500 font-bold">✔ Created Condition Node</span>`;
+                document.getElementById('ai-step-yes').classList.remove('hidden');
+                appendAINarration("✔ Added Condition Node (Check Lead Exists)");
+            }
+        },
+        {
+            name: "YES Branch Node",
+            action: () => {
+                window.wfState.activeWorkflow.nodes.push({
+                    id: "node-nurture",
+                    type: "nurture_campaign",
+                    name: "Add to Nurture Campaign",
+                    desc: "Enroll lead in automated drip outreach.",
+                    x: 120,
+                    y: 360,
+                    execStatus: "success",
+                    execTime: "87ms"
+                });
+                window.wfState.activeWorkflow.connections.push({
+                    fromId: "node-condition",
+                    toId: "node-nurture",
+                    label: "Yes"
+                });
+                document.getElementById('ai-step-yes').innerHTML = `<span class="text-emerald-500 font-bold">✔ Created YES Outreach Node</span>`;
+                document.getElementById('ai-step-no').classList.remove('hidden');
+                appendAINarration("✔ Configured branch YES (Nurture Campaign)");
+            }
+        },
+        {
+            name: "NO Branch Node",
+            action: () => {
+                window.wfState.activeWorkflow.nodes.push({
+                    id: "node-task",
+                    type: "create_task",
+                    name: "Create Task for Sales",
+                    desc: "Assign outreach item to active sales representative.",
+                    x: 520,
+                    y: 360,
+                    execStatus: "success",
+                    execTime: "80ms"
+                });
+                window.wfState.activeWorkflow.connections.push({
+                    fromId: "node-condition",
+                    toId: "node-task",
+                    label: "No"
+                });
+                document.getElementById('ai-step-no').innerHTML = `<span class="text-emerald-500 font-bold">✔ Created NO Task Node</span>`;
+                document.getElementById('ai-step-slack').classList.remove('hidden');
+                appendAINarration("✔ Configured branch NO (Create Sales Task)");
+            }
+        },
+        {
+            name: "Slack Merge Node",
+            action: () => {
+                window.wfState.activeWorkflow.nodes.push({
+                    id: "node-slack",
+                    type: "send_slack",
+                    name: "Send Slack Notification",
+                    desc: "Post alert message to workspace notifications channel.",
+                    x: 320,
+                    y: 500,
+                    execStatus: "success",
+                    execTime: "64ms"
+                });
+                window.wfState.activeWorkflow.connections.push({
+                    fromId: "node-nurture",
+                    toId: "node-slack"
+                });
+                window.wfState.activeWorkflow.connections.push({
+                    fromId: "node-task",
+                    toId: "node-slack"
+                });
+                document.getElementById('ai-step-slack').innerHTML = `<span class="text-emerald-500 font-bold">✔ Created Slack Action Node</span>`;
+                document.getElementById('ai-step-final').classList.remove('hidden');
+                appendAINarration("✔ Merged outputs to Slack Alert Action Node");
+            }
+        },
+        {
+            name: "Finalize Layout",
+            action: () => {
+                document.getElementById('ai-step-final').innerHTML = `<span class="text-emerald-500 font-bold">✔ Alignment connection nodes arranged</span>`;
+                appendAINarration("✔ Arranged workflow nodes visual graph layout successfully");
+            }
+        }
+    ];
+    
+    let currentStep = 0;
+    
+    function runNextStep() {
+        if (currentStep < steps.length) {
+            // Apply step action
+            steps[currentStep].action();
+            
+            // Increment progress UI
+            const pct = Math.round(((currentStep + 1) / steps.length) * 100);
+            const prg = document.getElementById('ai-builder-progress');
+            if (prg) prg.style.width = pct + '%';
+            
+            // Refresh canvas
+            refreshBuilderCanvasInline();
+            
+            // Zoom to fit node coordinates
+            zoomToFit();
+            
+            currentStep++;
+            setTimeout(runNextStep, 1300);
+        } else {
+            finalizeWorkflowCreation();
+        }
+    }
+    
+    setTimeout(runNextStep, 1000);
+};
+
+function appendAINarration(narrationText) {
+    const container = document.getElementById('ai-chat-messages-container');
+    if (!container) return;
+    
+    const now = formatTime(new Date());
+    const wrap = document.createElement('div');
+    wrap.className = "flex items-start justify-start space-x-2.5 w-full";
+    wrap.innerHTML = `
+        <div class="h-7 w-7 rounded-full bg-emerald-50 border border-emerald-250 flex items-center justify-center shrink-0 shadow-xs">
+            <i data-lucide="check-circle" class="h-3.5 w-3.5 text-emerald-600"></i>
+        </div>
+        <div class="flex flex-col items-start w-full">
+            <div class="chat-message ai bg-emerald-50/50 border border-emerald-150 text-emerald-800 font-semibold py-1.5 px-3 text-[10px]">${narrationText}</div>
+            <span class="text-[8px] text-slate-400 ml-1 mb-2">${now}</span>
+        </div>
+    `;
+    container.appendChild(wrap);
+    lucide.createIcons();
+    container.scrollTop = container.scrollHeight;
+}
+
+function finalizeWorkflowCreation() {
+    // Remove blur
+    const canvasWrap = document.getElementById('workflow-canvas');
+    if (canvasWrap) {
+        canvasWrap.classList.remove('wf-canvas-container-blur');
+    }
+    
+    // Remove overlay
+    const overlay = document.getElementById('ai-progress-overlay');
+    if (overlay) overlay.remove();
+    
+    // Show toast celebration
+    showConfettiCelebration();
+    
+    // Show completion notification card inside chat
+    const inputArea = document.getElementById('ai-input-form-container');
+    if (inputArea) {
+        inputArea.innerHTML = `
+            <div class="p-3 bg-emerald-50 border border-emerald-150 rounded-xl space-y-2 text-center text-xs">
+                <div class="font-bold text-emerald-800">✨ Workflow Built Successfully!</div>
+                <div class="text-[10px] text-emerald-600">Constructed 5 nodes and 5 connection routing links. Generation time: 8.2s</div>
+                <div class="flex items-center space-x-2 pt-1 shrink-0">
+                    <button onclick="toggleAIBuilderDrawer(false)" class="flex-grow py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold transition">Open Builder</button>
+                    <button onclick="runWorkflowSimulation(this)" class="py-1.5 px-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition">Run Test</button>
+                    <button onclick="undoAIGeneration()" class="py-1.5 px-3 bg-slate-700 hover:bg-slate-650 text-white rounded-lg font-bold transition">Undo</button>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Save generated workflow history
+    saveWorkflowToHistory();
+    
+    showNotification('success', 'Workflow created successfully by AI!');
+}
+
+function saveWorkflowToHistory() {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString();
+    
+    window.wfState.aiHistory.push({
+        id: "ai-sess-" + now.getTime(),
+        title: "Welcome Email Campaign Flow",
+        date: dateStr,
+        nodes: JSON.parse(JSON.stringify(window.wfState.activeWorkflow.nodes)),
+        connections: JSON.parse(JSON.stringify(window.wfState.activeWorkflow.connections))
+    });
+    localStorage.setItem('linkpilot_ai_history', JSON.stringify(window.wfState.aiHistory));
+}
+
+window.undoAIGeneration = function() {
+    if (window.wfState.previousActiveWorkflow) {
+        window.wfState.activeWorkflow = window.wfState.previousActiveWorkflow;
+        refreshBuilderCanvasInline();
+        showNotification('info', 'AI workflow generation rolled back.');
+        toggleAIBuilderDrawer(false);
+    }
+};
+
+function renderAIHistoryPanel() {
+    const panel = document.getElementById('ai-history-tab-panel');
+    if (!panel) return;
+    
+    if (window.wfState.aiHistory.length === 0) {
+        panel.innerHTML = `
+            <div class="flex-grow flex flex-col items-center justify-center p-6 text-center text-slate-400 space-y-2 select-none my-auto h-full">
+                <i data-lucide="history" class="h-8 w-8 text-slate-300"></i>
+                <div class="text-xs font-bold uppercase tracking-wider text-slate-500">No History Available</div>
+                <div class="text-[10px] leading-relaxed max-w-[200px]">Any workflows successfully built by AI will appear here for restore/rollback.</div>
+            </div>
+        `;
+        lucide.createIcons();
+        return;
+    }
+    
+    let html = `
+        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider text-left pl-1">Generated Session Log</div>
+        <div class="space-y-2.5">
+    `;
+    window.wfState.aiHistory.forEach(sess => {
+        html += `
+            <div class="p-3 bg-white border border-slate-200 rounded-xl space-y-2 text-left shadow-xs">
+                <div class="flex items-center justify-between shrink-0">
+                    <div class="font-extrabold text-slate-800 text-xs">${sess.title}</div>
+                    <span class="text-[8px] font-bold text-slate-400">${sess.date}</span>
+                </div>
+                <div class="text-[9px] text-slate-500 flex items-center space-x-2">
+                    <span class="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 font-bold border border-indigo-100 uppercase tracking-wide">AI Build</span>
+                    <span>${sess.nodes.length} Nodes • ${sess.connections.length} Links</span>
+                </div>
+                <div class="flex items-center space-x-1.5 pt-1 shrink-0">
+                    <button onclick="restoreAIHistorySession('${sess.id}')" class="flex-grow py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg text-[9px] font-extrabold transition">Restore</button>
+                    <button onclick="duplicateAIHistorySession('${sess.id}')" class="py-1 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-lg text-[9px] font-bold transition">Duplicate</button>
+                    <button onclick="deleteAIHistorySession('${sess.id}')" class="py-1 px-2.5 bg-red-550 hover:bg-red-500 text-white rounded-lg text-[9px] font-bold transition"><i data-lucide="trash" class="h-3 w-3"></i></button>
+                </div>
+            </div>
+        `;
+    });
+    html += `</div>`;
+    panel.innerHTML = html;
+    lucide.createIcons();
+}
+
+window.restoreAIHistorySession = function(sessId) {
+    const found = window.wfState.aiHistory.find(s => s.id === sessId);
+    if (found) {
+        window.wfState.previousActiveWorkflow = JSON.parse(JSON.stringify(window.wfState.activeWorkflow));
+        window.wfState.activeWorkflow.nodes = JSON.parse(JSON.stringify(found.nodes));
+        window.wfState.activeWorkflow.connections = JSON.parse(JSON.stringify(found.connections));
+        refreshBuilderCanvasInline();
+        zoomToFit();
+        showNotification('success', 'Workflow restored from AI session log.');
+        toggleAIBuilderDrawer(false);
+    }
+};
+
+window.duplicateAIHistorySession = function(sessId) {
+    const found = window.wfState.aiHistory.find(s => s.id === sessId);
+    if (found) {
+        const copy = JSON.parse(JSON.stringify(found));
+        copy.id = "ai-sess-" + new Date().getTime();
+        copy.title += " (Copy)";
+        window.wfState.aiHistory.push(copy);
+        localStorage.setItem('linkpilot_ai_history', JSON.stringify(window.wfState.aiHistory));
+        renderAIHistoryPanel();
+        showNotification('success', 'AI session template duplicated.');
+    }
+};
+
+window.deleteAIHistorySession = function(sessId) {
+    window.wfState.aiHistory = window.wfState.aiHistory.filter(s => s.id !== sessId);
+    localStorage.setItem('linkpilot_ai_history', JSON.stringify(window.wfState.aiHistory));
+    renderAIHistoryPanel();
+    showNotification('info', 'AI session template removed.');
+};
+
+function showConfettiCelebration() {
+    const container = document.body;
+    const colors = ['#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6'];
+    
+    for (let i = 0; i < 40; i++) {
+        const p = document.createElement('div');
+        p.className = 'confetti-piece';
+        p.style.left = Math.random() * 100 + 'vw';
+        p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        p.style.animationDelay = Math.random() * 1.5 + 's';
+        p.style.transform = `rotate(${Math.random() * 360}deg)`;
+        
+        // Random dimensions
+        const size = Math.random() * 6 + 6;
+        p.style.width = size + 'px';
+        p.style.height = size + 'px';
+        p.style.borderRadius = Math.random() > 0.5 ? '50%' : '0%';
+        
+        container.appendChild(p);
+        
+        // Cleanup after animation completes
+        setTimeout(() => {
+            p.remove();
+        }, 4000);
+    }
+}

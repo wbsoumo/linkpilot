@@ -531,16 +531,16 @@ window.loadHeaderAutoReplyStatus = function() {
                 container.onclick = () => showAutoReplyStatusModal(res);
                 
                 if (res.live) {
-                    container.className = "flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-lg text-[10px] font-extrabold hover:bg-emerald-600 hover:text-white transition duration-150 cursor-pointer shadow-sm";
+                    container.className = "flex items-center justify-center space-x-1.5 h-8 w-8 md:w-auto md:h-auto md:px-3 md:py-1.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full md:rounded-lg text-[10px] font-extrabold hover:bg-emerald-600 hover:text-white transition duration-150 cursor-pointer shadow-sm";
                     container.innerHTML = `
                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
-                        <span>Auto-Reply Live</span>
+                        <span class="hidden md:inline">Auto-Reply Live</span>
                     `;
                 } else {
-                    container.className = "flex items-center space-x-1.5 px-3 py-1.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-lg text-[10px] font-extrabold hover:bg-rose-600 hover:text-white transition duration-150 cursor-pointer shadow-sm";
+                    container.className = "flex items-center justify-center space-x-1.5 h-8 w-8 md:w-auto md:h-auto md:px-3 md:py-1.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-full md:rounded-lg text-[10px] font-extrabold hover:bg-rose-600 hover:text-white transition duration-150 cursor-pointer shadow-sm";
                     container.innerHTML = `
                         <span class="h-1.5 w-1.5 rounded-full bg-rose-500 shrink-0"></span>
-                        <span>Auto-Reply Inactive</span>
+                        <span class="hidden md:inline">Auto-Reply Inactive</span>
                     `;
                 }
             }

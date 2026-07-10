@@ -1,5 +1,10 @@
 <?php
 // backend/api/debug_log.php
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../jwt_helper.php';
+
+// Require Auth
+JWTHelper::requireAuth();
 
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: Content-Type');

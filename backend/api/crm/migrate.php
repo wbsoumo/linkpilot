@@ -10,6 +10,23 @@ ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
 $db = Database::getConnection();
+
+// Secure migrations: Require admin check if an admin user already exists.
+$hasAdmin = false;
+try {
+    $stmtAdminCheck = $db->query("SELECT COUNT(*) FROM users WHERE role = 'admin' AND is_verified = 1");
+    if ($stmtAdminCheck && (int)$stmtAdminCheck->fetchColumn() > 0) {
+        $hasAdmin = true;
+    }
+} catch (Exception $e) {
+    // Normal if tables do not exist yet on fresh installations
+}
+
+if ($hasAdmin) {
+    require_once __DIR__ . '/../../jwt_helper.php';
+    JWTHelper::requireAdmin();
+}
+
 $messages = [];
 
 try {

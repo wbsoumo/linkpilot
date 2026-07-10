@@ -1,5 +1,10 @@
 <?php
 // backend/api/read_log.php
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../jwt_helper.php';
+
+// Require Admin authorization
+JWTHelper::requireAdmin();
 
 header('Content-Type: text/plain');
 $logFile = __DIR__ . '/debug.log';

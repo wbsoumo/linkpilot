@@ -86,8 +86,11 @@ try {
             $params = ['user_id' => $userId];
             
             if ($search !== '') {
-                $query .= " AND (name LIKE :search OR website LIKE :search OR tags LIKE :search OR industry LIKE :search)";
-                $params['search'] = '%' . $search . '%';
+                $query .= " AND (name LIKE :search_name OR website LIKE :search_web OR tags LIKE :search_tags OR industry LIKE :search_ind)";
+                $params['search_name'] = '%' . $search . '%';
+                $params['search_web'] = '%' . $search . '%';
+                $params['search_tags'] = '%' . $search . '%';
+                $params['search_ind'] = '%' . $search . '%';
             }
             if ($industry !== '') {
                 $query .= " AND industry = :industry";
@@ -114,7 +117,12 @@ try {
             // Fetch records
             $dataStmt = $db->prepare("SELECT * " . $query . " ORDER BY name ASC LIMIT :limit OFFSET :offset");
             $dataStmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-            if ($search !== '') $dataStmt->bindValue(':search', '%' . $search . '%', PDO::PARAM_STR);
+            if ($search !== '') {
+                $dataStmt->bindValue(':search_name', '%' . $search . '%', PDO::PARAM_STR);
+                $dataStmt->bindValue(':search_web', '%' . $search . '%', PDO::PARAM_STR);
+                $dataStmt->bindValue(':search_tags', '%' . $search . '%', PDO::PARAM_STR);
+                $dataStmt->bindValue(':search_ind', '%' . $search . '%', PDO::PARAM_STR);
+            }
             if ($industry !== '') $dataStmt->bindValue(':industry', $industry, PDO::PARAM_STR);
             if ($status !== '') $dataStmt->bindValue(':status', $status, PDO::PARAM_STR);
             if ($owner !== '') $dataStmt->bindValue(':owner', $owner, PDO::PARAM_STR);

@@ -79,8 +79,12 @@ try {
             $params = ['user_id' => $userId];
             
             if ($search !== '') {
-                $query .= " AND (c.name LIKE :search OR c.email LIKE :search OR c.phone LIKE :search OR c.designation LIKE :search OR co.name LIKE :search)";
-                $params['search'] = '%' . $search . '%';
+                $query .= " AND (c.name LIKE :search_name OR c.email LIKE :search_email OR c.phone LIKE :search_phone OR c.designation LIKE :search_desig OR co.name LIKE :search_comp)";
+                $params['search_name'] = '%' . $search . '%';
+                $params['search_email'] = '%' . $search . '%';
+                $params['search_phone'] = '%' . $search . '%';
+                $params['search_desig'] = '%' . $search . '%';
+                $params['search_comp'] = '%' . $search . '%';
             }
             if ($companyId > 0) {
                 $query .= " AND c.company_id = :company_id";
@@ -104,7 +108,13 @@ try {
             
             $dataStmt = $db->prepare("SELECT c.*, co.name as company_name, co.website as company_website " . $query . " ORDER BY c.name ASC LIMIT :limit OFFSET :offset");
             $dataStmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-            if ($search !== '') $dataStmt->bindValue(':search', '%' . $search . '%', PDO::PARAM_STR);
+            if ($search !== '') {
+                $dataStmt->bindValue(':search_name', '%' . $search . '%', PDO::PARAM_STR);
+                $dataStmt->bindValue(':search_email', '%' . $search . '%', PDO::PARAM_STR);
+                $dataStmt->bindValue(':search_phone', '%' . $search . '%', PDO::PARAM_STR);
+                $dataStmt->bindValue(':search_desig', '%' . $search . '%', PDO::PARAM_STR);
+                $dataStmt->bindValue(':search_comp', '%' . $search . '%', PDO::PARAM_STR);
+            }
             if ($companyId > 0) $dataStmt->bindValue(':company_id', $companyId, PDO::PARAM_INT);
             if ($designation !== '') $dataStmt->bindValue(':designation', $designation, PDO::PARAM_STR);
             $dataStmt->bindValue(':limit', $limit, PDO::PARAM_INT);

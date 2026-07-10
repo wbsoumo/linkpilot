@@ -16200,38 +16200,111 @@ function typeMessageEffect(messageObj, callback) {
     typeNextChar();
 }
 
-function processAIStep(userText) {
+function getNodeTypeFromLabel(label, stepType) {
+    const l = (label || '').toLowerCase();
+    const t = (stepType || '').toLowerCase();
+    
+    if (t.includes('trigger')) {
+        if (l.includes('email')) return 'email_received';
+        if (l.includes('lead')) return 'new_lead';
+        if (l.includes('whatsapp')) return 'whatsapp_received';
+        return 'webhook';
+    }
+    
+    if (t.includes('condition')) {
+        return 'condition';
+    }
+    
+    if (l.includes('nurture') || l.includes('campaign')) return 'nurture_campaign';
+    if (l.includes('send email') || l.includes('email outreach') || l.includes('welcome email')) return 'send_email';
+    if (l.includes('task')) return 'create_task';
+    if (l.includes('slack')) return 'send_slack';
+    if (l.includes('whatsapp')) return 'whatsapp_outbound';
+    
+    return 'send_email';
+}
+
+function getNodeDescFromLabel(type, label) {
+    if (type === 'email_received') return 'Triggers when incoming email meets filter limits.';
+    if (type === 'new_lead') return 'Triggers when a new lead is captured in the CRM.';
+    if (type === 'whatsapp_received') return 'Triggers when a WhatsApp message is received.';
+    if (type === 'webhook') return 'Triggers when web hook API payload is received.';
+    if (type === 'condition') return 'Checks criteria and branches into Yes/No paths.';
+    if (type === 'nurture_campaign') return 'Enroll lead in automated drip outreach.';
+    if (type === 'send_email') return 'Send an outbound email template to the contact.';
+    if (type === 'create_task') return 'Assign outreach item to active sales representative.';
+    if (type === 'send_slack') return 'Post alert message to workspace notifications channel.';
+    if (type === 'whatsapp_outbound') return 'Send automated WhatsApp message template.';
+    return 'Automated action node.';
+}
+
+async function processAIStep(userText) {
     const now = formatTime(new Date());
     
-    if (window.wfState.aiStep === 0) {
-        // Initial state -> prompt clarification questions
-        const messageObj = {
-            sender: 'ai',
-            text: `Got it! I'll create a workflow for you.<br/><br/>I just need a few details to make it perfect:<br/>• Which email account should I monitor?<br/>• Which nurture campaign should I add the lead to?<br/>• Who should receive the task if the lead exists?<br/>• Do you want a welcome email template?`,
-            time: now,
-            chips: [
-                "Monitor hello@linkpilot.app",
-                "Add to 'Nurture Campaign 1'",
-                "Task for Sales Team",
-                "Yes, use 'Welcome Email 1' template"
-            ]
-        };
-        typeMessageEffect(messageObj, () => {
-            renderAIChatMessages();
-            window.wfState.aiStep = 1;
+    const historyPayload = window.wfState.aiChatMessages.map(msg => ({
+        role: msg.sender === 'user' ? 'user' : 'assistant',
+        content: msg.text
+    }));
+    
+    const placeholderMsg = {
+        sender: 'ai',
+        text: 'Thinking...',
+        time: now,
+        isTyping: true
+    };
+    window.wfState.aiChatMessages.push(placeholderMsg);
+    renderAIChatMessages();
+    
+    try {
+        const data = await apiCall('crm/ai_builder.php', 'POST', {
+            message: userText,
+            history: historyPayload
         });
-    } else if (window.wfState.aiStep === 1) {
-        // Questions answered -> show Workflow Summary and review buttons
-        const messageObj = {
+        
+        // Remove thinking placeholder
+        window.wfState.aiChatMessages.pop();
+        
+        if (data && data.status === 'success') {
+            const aiReply = data.reply || '';
+            const isReady = !!data.ready;
+            const summaryData = data.summary || null;
+            
+            const messageObj = {
+                sender: 'ai',
+                text: aiReply,
+                time: formatTime(new Date())
+            };
+            
+            if (isReady && summaryData) {
+                messageObj.summary = true;
+                messageObj.buttons = true;
+                window.wfState.aiSummarySteps = summaryData.steps || [];
+                window.wfState.aiStep = 2;
+            }
+            
+            typeMessageEffect(messageObj, () => {
+                renderAIChatMessages();
+            });
+            
+        } else {
+            const errorMsg = {
+                sender: 'ai',
+                text: data.reply || 'I encountered an error processing your request.',
+                time: formatTime(new Date())
+            };
+            typeMessageEffect(errorMsg, () => {
+                renderAIChatMessages();
+            });
+        }
+    } catch (err) {
+        window.wfState.aiChatMessages.pop();
+        const errorMsg = {
             sender: 'ai',
-            text: `Perfect! Here is the workflow summary.`,
-            time: now,
-            summary: true,
-            buttons: true
+            text: 'Connection failed: ' + err.message,
+            time: formatTime(new Date())
         };
-        typeMessageEffect(messageObj, () => {
+        typeMessageEffect(errorMsg, () => {
             renderAIChatMessages();
-            window.wfState.aiStep = 2;
         });
     }
 }
@@ -16293,13 +16366,15 @@ function renderAIChatMessages() {
                             <div class="wf-preview-summary w-[90%] space-y-2 border border-slate-200 shadow-sm bg-white mb-2 text-left">
                                 <div class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Workflow Summary</div>
                                 <div class="space-y-1.5 text-[10px] text-slate-700">
-                                    <div class="flex items-center space-x-1"><span class="font-bold text-slate-900">1. Trigger:</span> <span>Email Received (hello@linkpilot.app)</span></div>
-                                    <div class="flex items-center space-x-1"><span class="font-bold text-slate-900">2. Condition:</span> <span>Check if Lead Exists?</span></div>
-                                    <div class="pl-3 border-l-2 border-indigo-200 space-y-1">
-                                        <div><span class="text-emerald-600 font-extrabold">3.A. If No →</span> Add to Nurture Campaign 1 → Send Welcome Email</div>
-                                        <div><span class="text-amber-500 font-extrabold">3.B. If Yes →</span> Create Task for Sales Team</div>
-                                    </div>
-                                    <div class="flex items-center space-x-1"><span class="font-bold text-slate-900">4. Action:</span> <span>Send Slack Notification (Completed status)</span></div>
+                                    ${(window.wfState.aiSummarySteps || []).map(step => {
+                                        let prefix = `<span class="font-bold text-slate-900">${step.step}. ${step.type}:</span>`;
+                                        if (step.type.includes('(YES)')) {
+                                            prefix = `<span class="text-emerald-600 font-extrabold">→ If Yes:</span>`;
+                                        } else if (step.type.includes('(NO)')) {
+                                            prefix = `<span class="text-amber-500 font-extrabold">→ If No:</span>`;
+                                        }
+                                        return `<div class="flex items-center space-x-1">${prefix} <span>${step.label}</span></div>`;
+                                    }).join('')}
                                 </div>
                             </div>
                         ` : ''}
@@ -16320,31 +16395,76 @@ function renderAIChatMessages() {
     
     container.innerHTML = html;
     lucide.createIcons();
-    
-    // Auto scroll to bottom
     container.scrollTop = container.scrollHeight;
+    
+    // Replace input form with tip if there are active review buttons
+    const hasButtons = window.wfState.aiChatMessages.some(m => m.buttons && !m.isTyping);
+    const inputArea = document.getElementById('ai-input-form-container');
+    if (inputArea) {
+        if (hasButtons) {
+            inputArea.innerHTML = `
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-center text-[10px] text-slate-500 font-semibold shadow-xs">
+                    Please approve or request changes to the workflow summary above.
+                </div>
+            `;
+        } else {
+            if (!document.getElementById('ai-chat-text-input')) {
+                inputArea.innerHTML = `
+                    <div class="relative flex items-center">
+                        <textarea id="ai-chat-text-input" placeholder="Describe your workflow..." class="w-full border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-indigo-500 resize-none h-20 shadow-xs" onkeydown="handleAIChatKeyDown(event)"></textarea>
+                        <button onclick="submitAIChat()" class="absolute right-3 bottom-3 h-7 w-7 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center transition shadow-md hover:scale-105 active:scale-95">
+                            <i data-lucide="send" class="h-3.5 w-3.5"></i>
+                        </button>
+                    </div>
+                    <p class="text-[9px] text-slate-400 mt-2 text-center select-none">AI can make mistakes. Please review before applying.</p>
+                `;
+                lucide.createIcons();
+            }
+        }
+    }
 }
 
 window.cancelAIWorkflow = function() {
     window.wfState.aiChatMessages = [];
     window.wfState.aiStep = 0;
+    window.wfState.aiSummarySteps = [];
     renderAIEmptyState();
+    
+    const inputArea = document.getElementById('ai-input-form-container');
+    if (inputArea) {
+        inputArea.innerHTML = `
+            <div class="relative flex items-center">
+                <textarea id="ai-chat-text-input" placeholder="Describe your workflow..." class="w-full border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-indigo-500 resize-none h-20 shadow-xs" onkeydown="handleAIChatKeyDown(event)"></textarea>
+                <button onclick="submitAIChat()" class="absolute right-3 bottom-3 h-7 w-7 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center transition shadow-md hover:scale-105 active:scale-95">
+                    <i data-lucide="send" class="h-3.5 w-3.5"></i>
+                </button>
+            </div>
+            <p class="text-[9px] text-slate-400 mt-2 text-center select-none">AI can make mistakes. Please review before applying.</p>
+        `;
+        lucide.createIcons();
+    }
     showNotification('info', 'AI workflow builder session discarded.');
 };
 
 window.addChangesAIWorkflow = function() {
     const now = formatTime(new Date());
+    
+    const lastMsg = window.wfState.aiChatMessages[window.wfState.aiChatMessages.length - 1];
+    if (lastMsg) {
+        lastMsg.buttons = false;
+        lastMsg.summary = false;
+    }
+    
     window.wfState.aiChatMessages.push({
         sender: 'ai',
         text: `Understood. What would you like to modify? (e.g. "Instead of Slack, send a Telegram alert" or "Assign to support rep").`,
         time: now
     });
+    
     renderAIChatMessages();
 };
 
-// Stream Nodes Live Animation Creation
 window.approveAIWorkflow = function() {
-    // Disable inputs and show loading state
     const inputArea = document.getElementById('ai-input-form-container');
     if (inputArea) {
         inputArea.innerHTML = `
@@ -16358,17 +16478,106 @@ window.approveAIWorkflow = function() {
         `;
     }
     
-    // Backup active nodes for Undo support
     window.wfState.previousActiveWorkflow = JSON.parse(JSON.stringify(window.wfState.activeWorkflow));
     
-    // Set up canvas blur overlay
     const canvasWrap = document.getElementById('workflow-canvas');
     if (canvasWrap) {
         canvasWrap.classList.add('wf-canvas-container-blur');
     }
     
-    // Show AI progress overlay top center
+    let stepsData = window.wfState.aiSummarySteps;
+    if (!stepsData || stepsData.length === 0) {
+        stepsData = [
+           { step: 1, type: "Trigger", label: "Email Received" },
+           { step: 2, type: "Condition", label: "Check if Lead Exists?" },
+           { step: 3, type: "Action (YES)", label: "Create CRM Task" },
+           { step: 4, type: "Action (NO)", label: "Add to Nurture Campaign" },
+           { step: 5, type: "Action", label: "Send Slack Alert" }
+        ];
+    }
+    
+    const dynamicSteps = [];
+    let conditionNodeId = null;
+    let yesNodeId = null;
+    let noNodeId = null;
+    
+    stepsData.forEach((step, idx) => {
+        const type = getNodeTypeFromLabel(step.label || '', step.type || '');
+        const desc = getNodeDescFromLabel(type, step.label || '');
+        const nodeId = 'node-' + type + '-' + step.step;
+        
+        let x = 320;
+        let y = 80 + idx * 140;
+        
+        if (step.type.toLowerCase().includes('condition')) {
+            conditionNodeId = nodeId;
+        }
+        
+        if (step.type.toLowerCase().includes('(yes)') && conditionNodeId) {
+            x = 120;
+            y = 360;
+            yesNodeId = nodeId;
+        } else if (step.type.toLowerCase().includes('(no)') && conditionNodeId) {
+            x = 520;
+            y = 360;
+            noNodeId = nodeId;
+        } else if (idx > 1 && conditionNodeId) {
+            x = 320;
+            y = 500;
+        }
+        
+        dynamicSteps.push({
+            id: nodeId,
+            type: type,
+            name: step.label,
+            desc: desc,
+            x: x,
+            y: y,
+            stepType: step.type
+        });
+    });
+    
+    const connections = [];
+    for (let i = 0; i < dynamicSteps.length; i++) {
+        const curr = dynamicSteps[i];
+        if (i === 0) continue;
+        
+        const prev = dynamicSteps[i - 1];
+        
+        if (curr.stepType.toLowerCase().includes('(yes)') && conditionNodeId) {
+            connections.push({
+                fromId: conditionNodeId,
+                toId: curr.id,
+                label: "Yes"
+            });
+        } else if (curr.stepType.toLowerCase().includes('(no)') && conditionNodeId) {
+            connections.push({
+                fromId: conditionNodeId,
+                toId: curr.id,
+                label: "No"
+            });
+        } else if (conditionNodeId && !curr.stepType.toLowerCase().includes('condition') && i > 1) {
+            if (yesNodeId) {
+                connections.push({ fromId: yesNodeId, toId: curr.id });
+            }
+            if (noNodeId) {
+                connections.push({ fromId: noNodeId, toId: curr.id });
+            }
+        } else {
+            connections.push({
+                fromId: prev.id,
+                toId: curr.id
+            });
+        }
+    }
+    
     const body = document.body;
+    let stepsHTML = '';
+    dynamicSteps.forEach((node, idx) => {
+        stepsHTML += `<div id="ai-step-${idx}" class="flex items-center space-x-1 ${idx > 0 ? 'hidden' : ''}"><span>• Creating ${node.name}...</span></div>`;
+    });
+    stepsHTML += `<div id="ai-step-final" class="flex items-center space-x-1 hidden"><span>• Finalizing...</span></div>`;
+    
     const progressOverlay = document.createElement('div');
     progressOverlay.id = 'ai-progress-overlay';
     progressOverlay.className = "fixed top-20 left-1/2 transform -translate-x-1/2 bg-white/95 border border-slate-200 px-6 py-4 rounded-2xl shadow-xl z-50 flex flex-col space-y-2 w-80 animate-fade-in";
@@ -16378,160 +16587,76 @@ window.approveAIWorkflow = function() {
             <span>AI Building Workflow Live</span>
         </div>
         <div id="ai-progress-steps" class="space-y-1 text-[10px] text-slate-500 font-semibold pl-2">
-            <div id="ai-step-trigger" class="flex items-center space-x-1"><span>• Creating Trigger...</span></div>
-            <div id="ai-step-condition" class="flex items-center space-x-1 hidden"><span>• Adding Condition...</span></div>
-            <div id="ai-step-yes" class="flex items-center space-x-1 hidden"><span>• Adding YES Action...</span></div>
-            <div id="ai-step-no" class="flex items-center space-x-1 hidden"><span>• Adding NO Action...</span></div>
-            <div id="ai-step-slack" class="flex items-center space-x-1 hidden"><span>• Adding Slack Notification...</span></div>
-            <div id="ai-step-final" class="flex items-center space-x-1 hidden"><span>• Finalizing...</span></div>
+            ${stepsHTML}
         </div>
     `;
     body.appendChild(progressOverlay);
     
-    // Empty nodes and connections to start clean
     window.wfState.activeWorkflow.nodes = [];
     window.wfState.activeWorkflow.connections = [];
     refreshBuilderCanvasInline();
     
-    // Stream steps
-    const steps = [
-        {
-            name: "Trigger Node",
+    const stepsAnimation = [];
+    
+    dynamicSteps.forEach((node, idx) => {
+        stepsAnimation.push({
+            name: node.name,
             action: () => {
                 window.wfState.activeWorkflow.nodes.push({
-                    id: "node-trigger",
-                    type: "email_received",
-                    name: "Email Received",
-                    desc: "Triggers when incoming email meets filter limits.",
-                    x: 320,
-                    y: 80,
+                    id: node.id,
+                    type: node.type,
+                    name: node.name,
+                    desc: node.desc,
+                    x: node.x,
+                    y: node.y,
                     execStatus: "success",
-                    execTime: "58ms"
+                    execTime: Math.floor(Math.random() * 40 + 50) + "ms"
                 });
-                document.getElementById('ai-step-trigger').innerHTML = `<span class="text-emerald-500 font-bold">✔ Created Trigger Node</span>`;
-                document.getElementById('ai-step-condition').classList.remove('hidden');
-                appendAINarration("✔ Created Trigger Node (Email Received)");
+                
+                connections.forEach(conn => {
+                    if (conn.toId === node.id) {
+                        const exists = window.wfState.activeWorkflow.connections.some(c => c.fromId === conn.fromId && c.toId === conn.toId);
+                        if (!exists) {
+                            window.wfState.activeWorkflow.connections.push(conn);
+                        }
+                    }
+                });
+                
+                const stepEl = document.getElementById('ai-step-' + idx);
+                if (stepEl) {
+                    stepEl.innerHTML = `<span class="text-emerald-500 font-bold">✔ Created ${node.name}</span>`;
+                }
+                const nextStepEl = document.getElementById('ai-step-' + (idx + 1));
+                if (nextStepEl) {
+                    nextStepEl.classList.remove('hidden');
+                }
+                
+                appendAINarration(`✔ Created ${node.name} (${node.desc})`);
             }
-        },
-        {
-            name: "Condition Node",
-            action: () => {
-                window.wfState.activeWorkflow.nodes.push({
-                    id: "node-condition",
-                    type: "condition",
-                    name: "Lead Exists?",
-                    desc: "Checks if lead email matches CRM records.",
-                    x: 320,
-                    y: 220,
-                    execStatus: "success",
-                    execTime: "75ms"
-                });
-                window.wfState.activeWorkflow.connections.push({
-                    fromId: "node-trigger",
-                    toId: "node-condition"
-                });
-                document.getElementById('ai-step-condition').innerHTML = `<span class="text-emerald-500 font-bold">✔ Created Condition Node</span>`;
-                document.getElementById('ai-step-yes').classList.remove('hidden');
-                appendAINarration("✔ Added Condition Node (Check Lead Exists)");
+        });
+    });
+    
+    stepsAnimation.push({
+        name: "Finalize Layout",
+        action: () => {
+            const finalEl = document.getElementById('ai-step-final');
+            if (finalEl) {
+                finalEl.innerHTML = `<span class="text-emerald-500 font-bold">✔ Alignment connection nodes arranged</span>`;
             }
-        },
-        {
-            name: "YES Branch Node",
-            action: () => {
-                window.wfState.activeWorkflow.nodes.push({
-                    id: "node-nurture",
-                    type: "nurture_campaign",
-                    name: "Add to Nurture Campaign",
-                    desc: "Enroll lead in automated drip outreach.",
-                    x: 120,
-                    y: 360,
-                    execStatus: "success",
-                    execTime: "87ms"
-                });
-                window.wfState.activeWorkflow.connections.push({
-                    fromId: "node-condition",
-                    toId: "node-nurture",
-                    label: "Yes"
-                });
-                document.getElementById('ai-step-yes').innerHTML = `<span class="text-emerald-500 font-bold">✔ Created YES Outreach Node</span>`;
-                document.getElementById('ai-step-no').classList.remove('hidden');
-                appendAINarration("✔ Configured branch YES (Nurture Campaign)");
-            }
-        },
-        {
-            name: "NO Branch Node",
-            action: () => {
-                window.wfState.activeWorkflow.nodes.push({
-                    id: "node-task",
-                    type: "create_task",
-                    name: "Create Task for Sales",
-                    desc: "Assign outreach item to active sales representative.",
-                    x: 520,
-                    y: 360,
-                    execStatus: "success",
-                    execTime: "80ms"
-                });
-                window.wfState.activeWorkflow.connections.push({
-                    fromId: "node-condition",
-                    toId: "node-task",
-                    label: "No"
-                });
-                document.getElementById('ai-step-no').innerHTML = `<span class="text-emerald-500 font-bold">✔ Created NO Task Node</span>`;
-                document.getElementById('ai-step-slack').classList.remove('hidden');
-                appendAINarration("✔ Configured branch NO (Create Sales Task)");
-            }
-        },
-        {
-            name: "Slack Merge Node",
-            action: () => {
-                window.wfState.activeWorkflow.nodes.push({
-                    id: "node-slack",
-                    type: "send_slack",
-                    name: "Send Slack Notification",
-                    desc: "Post alert message to workspace notifications channel.",
-                    x: 320,
-                    y: 500,
-                    execStatus: "success",
-                    execTime: "64ms"
-                });
-                window.wfState.activeWorkflow.connections.push({
-                    fromId: "node-nurture",
-                    toId: "node-slack"
-                });
-                window.wfState.activeWorkflow.connections.push({
-                    fromId: "node-task",
-                    toId: "node-slack"
-                });
-                document.getElementById('ai-step-slack').innerHTML = `<span class="text-emerald-500 font-bold">✔ Created Slack Action Node</span>`;
-                document.getElementById('ai-step-final').classList.remove('hidden');
-                appendAINarration("✔ Merged outputs to Slack Alert Action Node");
-            }
-        },
-        {
-            name: "Finalize Layout",
-            action: () => {
-                document.getElementById('ai-step-final').innerHTML = `<span class="text-emerald-500 font-bold">✔ Alignment connection nodes arranged</span>`;
-                appendAINarration("✔ Arranged workflow nodes visual graph layout successfully");
-            }
+            appendAINarration("✔ Arranged workflow nodes visual graph layout successfully");
         }
-    ];
+    });
     
     let currentStep = 0;
     
     function runNextStep() {
-        if (currentStep < steps.length) {
-            // Apply step action
-            steps[currentStep].action();
-            
-            // Increment progress UI
-            const pct = Math.round(((currentStep + 1) / steps.length) * 100);
+        if (currentStep < stepsAnimation.length) {
+            stepsAnimation[currentStep].action();
+            const pct = Math.round(((currentStep + 1) / stepsAnimation.length) * 100);
             const prg = document.getElementById('ai-builder-progress');
             if (prg) prg.style.width = pct + '%';
             
-            // Refresh canvas
             refreshBuilderCanvasInline();
-            
-            // Zoom to fit node coordinates
             zoomToFit();
             
             currentStep++;
@@ -16566,26 +16691,22 @@ function appendAINarration(narrationText) {
 }
 
 function finalizeWorkflowCreation() {
-    // Remove blur
     const canvasWrap = document.getElementById('workflow-canvas');
     if (canvasWrap) {
         canvasWrap.classList.remove('wf-canvas-container-blur');
     }
     
-    // Remove overlay
     const overlay = document.getElementById('ai-progress-overlay');
     if (overlay) overlay.remove();
     
-    // Show toast celebration
     showConfettiCelebration();
     
-    // Show completion notification card inside chat
     const inputArea = document.getElementById('ai-input-form-container');
     if (inputArea) {
         inputArea.innerHTML = `
             <div class="p-3 bg-emerald-50 border border-emerald-150 rounded-xl space-y-2 text-center text-xs">
                 <div class="font-bold text-emerald-800">✨ Workflow Built Successfully!</div>
-                <div class="text-[10px] text-emerald-600">Constructed 5 nodes and 5 connection routing links. Generation time: 8.2s</div>
+                <div class="text-[10px] text-emerald-600">Constructed all dynamic nodes andconnection routing links.</div>
                 <div class="flex items-center space-x-2 pt-1 shrink-0">
                     <button onclick="toggleAIBuilderDrawer(false)" class="flex-grow py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold transition">Open Builder</button>
                     <button onclick="runWorkflowSimulation(this)" class="py-1.5 px-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition">Run Test</button>
@@ -16595,9 +16716,7 @@ function finalizeWorkflowCreation() {
         `;
     }
     
-    // Save generated workflow history
     saveWorkflowToHistory();
-    
     showNotification('success', 'Workflow created successfully by AI!');
 }
 
@@ -16607,7 +16726,7 @@ function saveWorkflowToHistory() {
     
     window.wfState.aiHistory.push({
         id: "ai-sess-" + now.getTime(),
-        title: "Welcome Email Campaign Flow",
+        title: window.wfState.activeWorkflow.name || "AI Generated Campaign Flow",
         date: dateStr,
         nodes: JSON.parse(JSON.stringify(window.wfState.activeWorkflow.nodes)),
         connections: JSON.parse(JSON.stringify(window.wfState.activeWorkflow.connections))

@@ -89,7 +89,7 @@ try {
             $countStmt->execute($params);
             $totalCount = (int)$countStmt->fetchColumn();
             
-            $dataStmt = $db->prepare("SELECT c.*, co.name as company_name " . $query . " ORDER BY c.name ASC LIMIT :limit OFFSET :offset");
+            $dataStmt = $db->prepare("SELECT c.*, co.name as company_name, co.website as company_website " . $query . " ORDER BY c.name ASC LIMIT :limit OFFSET :offset");
             $dataStmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
             if ($search !== '') $dataStmt->bindValue(':search', '%' . $search . '%', PDO::PARAM_STR);
             if ($companyId > 0) $dataStmt->bindValue(':company_id', $companyId, PDO::PARAM_INT);
@@ -98,12 +98,19 @@ try {
             $dataStmt->execute();
             
             $contacts = $dataStmt->fetchAll();
+
+            // Fetch logo.dev API Key from admin settings
+            $logoApiKey = '';
+            $stmtLogo = $db->prepare("SELECT setting_value FROM admin_settings WHERE setting_key = 'logo_dev_api_key' LIMIT 1");
+            $stmtLogo->execute();
+            $logoApiKey = $stmtLogo->fetchColumn() ?: '';
             
             sendJsonResponse('success', 'Contacts listed successfully', [
                 'contacts' => $contacts,
                 'total' => $totalCount,
                 'page' => $page,
-                'limit' => $limit
+                'limit' => $limit,
+                'logo_dev_api_key' => $logoApiKey
             ]);
         }
     } 

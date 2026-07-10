@@ -3805,19 +3805,47 @@ async function renderContacts(container) {
     try {
         const res = await apiCall('crm/contacts.php?limit=1000');
         const conts = res.contacts || [];
+        const logoApiKey = res.logo_dev_api_key || '';
         
-        let contRows = conts.map(c => `
-            <tr class="hover:bg-slate-900/40">
-                <td class="py-3 px-4 font-bold text-white">${c.name}</td>
-                <td class="py-3 px-4 text-slate-300 font-medium">${c.company_name || '-'}</td>
-                <td class="py-3 px-4 text-slate-400 font-mono text-[11px]">${c.email || '-'}</td>
-                <td class="py-3 px-4 text-slate-300">${c.phone || '-'}</td>
-                <td class="py-3 px-4 text-slate-400">${c.designation || '-'}</td>
-                <td class="py-3 px-4 text-right">
-                    <button onclick="openInspectContactModal(${c.id})" class="text-xs px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-md hover:border-teal-400 hover:text-teal-400 transition">Inspect</button>
-                </td>
-            </tr>
-        `).join('');
+        let contRows = conts.map(c => {
+            // Default letter monogram
+            let logoHtml = `<div class="h-7 w-7 rounded-lg bg-slate-800 text-white font-bold flex items-center justify-center border border-slate-700/60 uppercase text-[10px] shadow-sm select-none">${c.name ? c.name.charAt(0) : 'C'}</div>`;
+            
+            // Resolve company website domain or email domain for logo lookup
+            let domain = null;
+            if (c.company_website) {
+                let cleaned = c.company_website.replace(/^(https?:\/\/)?(www\.)?/, '');
+                cleaned = cleaned.split('/')[0].trim();
+                if (cleaned) domain = cleaned;
+            }
+            if (!domain && c.email) {
+                const emailDomain = c.email.split('@')[1];
+                if (emailDomain) {
+                    const publicProviders = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com', 'aol.com', 'zoho.com', 'protonmail.com'];
+                    if (!publicProviders.includes(emailDomain.toLowerCase().trim())) {
+                        domain = emailDomain.trim();
+                    }
+                }
+            }
+
+            if (domain && logoApiKey) {
+                logoHtml = `<img src="https://img.logo.dev/${domain}?token=${logoApiKey}&size=64&fallback=monogram" class="h-7 w-7 rounded-lg object-contain bg-white border border-slate-700/30 shadow-sm" alt="${c.company_name || 'Logo'}" onerror="this.onerror=null; this.outerHTML='<div class=&quot;h-7 w-7 rounded-lg bg-slate-800 text-white font-bold flex items-center justify-center border border-slate-700/60 uppercase text-[10px] shadow-sm select-none&quot;>${c.name ? c.name.charAt(0) : 'C'}</div>';">`;
+            }
+
+            return `
+                <tr class="hover:bg-slate-900/40">
+                    <td class="py-3 px-4">${logoHtml}</td>
+                    <td class="py-3 px-4 font-bold text-white">${c.name}</td>
+                    <td class="py-3 px-4 text-slate-300 font-medium">${c.company_name || '-'}</td>
+                    <td class="py-3 px-4 text-slate-400 font-mono text-[11px]">${c.email || '-'}</td>
+                    <td class="py-3 px-4 text-slate-300">${c.phone || '-'}</td>
+                    <td class="py-3 px-4 text-slate-400">${c.designation || '-'}</td>
+                    <td class="py-3 px-4 text-right">
+                        <button onclick="openInspectContactModal(${c.id})" class="text-xs px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-md hover:border-teal-400 hover:text-teal-400 transition">Inspect</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
 
         container.innerHTML = `
             <div class="space-y-6 animate-fade-in pt-4">
@@ -3833,6 +3861,7 @@ async function renderContacts(container) {
                         <table class="w-full text-left border-collapse custom-table text-xs">
                             <thead>
                                 <tr class="border-b border-slate-800">
+                                    <th class="py-3 px-4 w-12">Logo</th>
                                     <th class="py-3 px-4">Contact Name</th>
                                     <th class="py-3 px-4">Company</th>
                                     <th class="py-3 px-4">Email Address</th>
@@ -3842,7 +3871,7 @@ async function renderContacts(container) {
                                 </tr>
                             </thead>
                             <tbody>
-                                ${contRows || `<tr><td colspan="6" class="text-center py-10 text-slate-500">No contact profiles found.</td></tr>`}
+                                ${contRows || `<tr><td colspan="7" class="text-center py-10 text-slate-500">No contact profiles found.</td></tr>`}
                             </tbody>
                         </table>
                     </div>

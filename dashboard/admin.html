@@ -148,6 +148,10 @@
                                 <input type="number" id="global_sync_interval" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
                             </div>
                             <div>
+                                <label class="block text-slate-500 font-semibold mb-1">Logo.dev API Key (Publishable Key)</label>
+                                <input type="text" id="logo_dev_api_key" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800" placeholder="pk_...">
+                            </div>
+                            <div>
                                 <label class="block text-slate-500 font-semibold mb-1">AI Prompt Overrides</label>
                                 <textarea id="ai_system_prompt_overrides" rows="6" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 font-mono" placeholder="Default system prompts..."></textarea>
                             </div>
@@ -596,6 +600,7 @@
                 // Populate AI prompts forms values
                 const settings = res.settings || {};
                 document.getElementById('global_sync_interval').value = settings.global_sync_interval || 60;
+                document.getElementById('logo_dev_api_key').value = settings.logo_dev_api_key || '';
                 document.getElementById('ai_system_prompt_overrides').value = settings.ai_system_prompt_overrides || '';
 
             } catch (err) {
@@ -650,6 +655,7 @@
             e.preventDefault();
             const payload = {
                 global_sync_interval: document.getElementById('global_sync_interval').value,
+                logo_dev_api_key: document.getElementById('logo_dev_api_key').value.trim(),
                 ai_system_prompt_overrides: document.getElementById('ai_system_prompt_overrides').value
             };
             try {
@@ -927,6 +933,7 @@
                 const resSettings = await apiCall('admin/crm_settings.php');
                 const settings = resSettings.settings || {};
                 document.getElementById('global_sync_interval').value = settings.global_sync_interval || 60;
+                document.getElementById('logo_dev_api_key').value = settings.logo_dev_api_key || '';
                 document.getElementById('ai_system_prompt_overrides').value = settings.ai_system_prompt_overrides || '';
 
                 // Fetch central AI API Keys

@@ -41,7 +41,34 @@ Rules:
 2. If they provide some details but miss others, ask them for the missing details. Keep the conversation interactive and focused.
 3. Once they have answered your questions and you both agree on the logic, set the 'ready' field to true and supply the structured 'summary' JSON details.
 4. If you are still in Q&A mode, set 'ready' to false and 'summary' to null.
-5. Extract any specific user inputs (like phone numbers, specific email bodies, subjects, Slack channels, etc.) from the conversation history and place them inside the 'config' object key for the corresponding step (e.g. {\"to\": \"+918016222991\", \"message\": \"Email Summary: {{body}}\"} for WhatsApp action; {\"toEmail\": \"{{contact.email}}\", \"subject\": \"Hello\", \"body\": \"...\"} for Email action).
+5. You MUST extract specific user inputs (like phone numbers, email bodies, subject lines, channels, etc.) from the conversation history and place them inside the 'config' object key for the corresponding step.
+
+Here is the NODE FIELDS dictionary for your 'config' properties. You MUST use these exact keys when populating the config object for a step:
+- email_received:
+  * folder: (string, e.g. \"Inbox\", \"Sent\")
+  * unreadOnly: (boolean)
+  * subjectFilter: (string)
+  * senderEmail: (string)
+  * senderDomain: (string)
+  * priority: (string, \"Any\"|\"High\"|\"Normal\"|\"Low\")
+- whatsapp_received:
+  * phone: (string, e.g. \"+918016222991\")
+  * messageContains: (string)
+- whatsapp_outbound:
+  * to: (string, e.g. \"+918016222991\" or \"{{contact.phone}}\")
+  * message: (string, the WhatsApp message text)
+- send_email:
+  * toEmail: (string, e.g. \"{{contact.email}}\")
+  * subject: (string, the email subject line)
+  * body: (string, the email body text)
+- create_task:
+  * taskTitle: (string)
+  * taskDesc: (string)
+  * dueDate: (int, offset in days)
+  * priority: (string, \"Normal\"|\"High\"|\"Low\")
+- send_slack:
+  * slackChannel: (string, e.g. \"#sales-notifications\")
+  * slackMsg: (string)
 
 You MUST respond ONLY with a raw JSON object matching this schema:
 {
@@ -55,8 +82,8 @@ Or, if ready is true:
   \"reply\": \"Fantastic! I have formulated the complete workflow logic for you. Here is the summary:\",
   \"ready\": true,
   \"summary\": {
-    \"title\": \"Email Lead Router & Task Creator\",
-    \"description\": \"Monitors incoming emails, verifies lead existence, assigns sales tasks, and alerts the team on Slack.\",
+    \"title\": \"Email received to WhatsApp outreach\",
+    \"description\": \"Monitors incoming emails and triggers a WhatsApp message alert.\",
     \"steps\": [
        { 
          \"step\": 1, 
@@ -70,7 +97,7 @@ Or, if ready is true:
          \"label\": \"Send WhatsApp Message\",
          \"config\": { 
             \"to\": \"+918016222991\", 
-            \"message\": \"We received a new email from {{sender_name}} regarding {{subject}}. Summary: {{body}}\" 
+            \"message\": \"We received a new email from {{sender_name}} regarding {{subject}}.\" 
          }
        }
     ]

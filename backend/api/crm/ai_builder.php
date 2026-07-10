@@ -41,6 +41,7 @@ Rules:
 2. If they provide some details but miss others, ask them for the missing details. Keep the conversation interactive and focused.
 3. Once they have answered your questions and you both agree on the logic, set the 'ready' field to true and supply the structured 'summary' JSON details.
 4. If you are still in Q&A mode, set 'ready' to false and 'summary' to null.
+5. Extract any specific user inputs (like phone numbers, specific email bodies, subjects, Slack channels, etc.) from the conversation history and place them inside the 'config' object key for the corresponding step (e.g. {\"to\": \"+918016222991\", \"message\": \"Email Summary: {{body}}\"} for WhatsApp action; {\"toEmail\": \"{{contact.email}}\", \"subject\": \"Hello\", \"body\": \"...\"} for Email action).
 
 You MUST respond ONLY with a raw JSON object matching this schema:
 {
@@ -57,11 +58,21 @@ Or, if ready is true:
     \"title\": \"Email Lead Router & Task Creator\",
     \"description\": \"Monitors incoming emails, verifies lead existence, assigns sales tasks, and alerts the team on Slack.\",
     \"steps\": [
-       { \"step\": 1, \"type\": \"Trigger\", \"label\": \"Email Received\" },
-       { \"step\": 2, \"type\": \"Condition\", \"label\": \"Check if Lead Exists?\" },
-       { \"step\": 3, \"type\": \"Action (YES)\", \"label\": \"Create CRM Task\" },
-       { \"step\": 4, \"type\": \"Action (NO)\", \"label\": \"Add to Nurture Campaign\" },
-       { \"step\": 5, \"type\": \"Action\", \"label\": \"Send Slack Alert\" }
+       { 
+         \"step\": 1, 
+         \"type\": \"Trigger\", 
+         \"label\": \"Email Received\",
+         \"config\": { \"folder\": \"Inbox\", \"unreadOnly\": true }
+       },
+       { 
+         \"step\": 2, 
+         \"type\": \"Action\", 
+         \"label\": \"Send WhatsApp Message\",
+         \"config\": { 
+            \"to\": \"+918016222991\", 
+            \"message\": \"We received a new email from {{sender_name}} regarding {{subject}}. Summary: {{body}}\" 
+         }
+       }
     ]
   }
 }

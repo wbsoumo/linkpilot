@@ -2612,7 +2612,7 @@ async function dispatchSmtpReply(emailId, btn, originalSubject) {
     }
 }
 
-async function toggleStarredEmail(emailId, starState) {
+window.toggleStarredEmail = async function(emailId, starState) {
     try {
         await apiCall('crm/email_intelligence/emails.php?action=star', 'POST', { id: emailId, is_starred: starState });
         showNotification('success', starState ? 'Email Starred' : 'Email Unstarred');
@@ -2622,7 +2622,7 @@ async function toggleStarredEmail(emailId, starState) {
     }
 }
 
-async function toggleArchivedEmail(emailId, archiveState) {
+window.toggleArchivedEmail = async function(emailId, archiveState) {
     try {
         await apiCall('crm/email_intelligence/emails.php?action=archive', 'POST', { id: emailId, is_archived: archiveState });
         showNotification('success', archiveState ? 'Email Archived' : 'Email Restored');
@@ -2632,7 +2632,7 @@ async function toggleArchivedEmail(emailId, archiveState) {
     }
 }
 
-async function deleteInboxEmail(emailId) {
+window.deleteInboxEmail = async function(emailId) {
     if (!confirm('Are you sure you want to permanently delete this email log? This cannot be undone.')) return;
     try {
         await apiCall('crm/email_intelligence/emails.php?action=delete', 'POST', { id: emailId });
@@ -2643,7 +2643,7 @@ async function deleteInboxEmail(emailId) {
     }
 }
 
-async function markEmailAsSpamPromo(emailId, category) {
+window.markEmailAsSpamPromo = async function(emailId, category) {
     if (!confirm(`Mark this email and all future emails from this sender as ${category}?`)) return;
     try {
         const res = await apiCall('crm/email_intelligence/spam_rules.php?action=mark_spam_promo', 'POST', {
@@ -2657,7 +2657,7 @@ async function markEmailAsSpamPromo(emailId, category) {
     }
 }
 
-function copyReplyText() {
+window.copyReplyText = function() {
     const area = document.getElementById('inbox-reply-textarea');
     area.select();
     navigator.clipboard.writeText(area.value).then(() => {
@@ -10253,7 +10253,7 @@ async function triggerManualEmailSync(btn) {
 // Global state for reply attachments
 let selectedReplyAttachments = [];
 
-function handleReplyAttachmentChange(input) {
+window.handleReplyAttachmentChange = function(input) {
     const list = document.getElementById('inbox-reply-attachments-list');
     const countEl = document.getElementById('inbox-reply-attachments-count');
     if (!list || !countEl) return;
@@ -10267,7 +10267,7 @@ function handleReplyAttachmentChange(input) {
     list.innerHTML = selectedReplyAttachments.map((f, idx) => `
         <span class="inline-flex items-center space-x-1 px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-700 text-[10px]">
             <span class="truncate max-w-[120px] font-semibold">${f.name}</span>
-            <button type="button" onclick="removeReplyAttachment(${idx})" class="text-slate-400 hover:text-red-500 font-bold ml-1">&times;</button>
+            <button type="button" onclick="window.removeReplyAttachment(${idx})" class="text-slate-400 hover:text-red-500 font-bold ml-1">&times;</button>
         </span>
     `).join('');
     
@@ -10276,12 +10276,12 @@ function handleReplyAttachmentChange(input) {
         : 'No files attached';
 }
 
-function removeReplyAttachment(index) {
+window.removeReplyAttachment = function(index) {
     selectedReplyAttachments.splice(index, 1);
-    handleReplyAttachmentChange({ files: [] });
+    window.handleReplyAttachmentChange({ files: [] });
 }
 
-async function unblockEmailSender(emailId) {
+window.unblockEmailSender = async function(emailId) {
     if (!confirm('Are you sure you want to unblock this sender and restore their emails?')) return;
     try {
         const res = await apiCall('crm/email_intelligence/spam_rules.php?action=unblock', 'POST', {
@@ -10297,7 +10297,7 @@ async function unblockEmailSender(emailId) {
     }
 }
 
-async function generateReplyOnDemand(emailId) {
+window.generateReplyOnDemand = async function(emailId) {
     const tone = document.getElementById('inbox-reply-tone')?.value || 'Professional';
     const container = document.getElementById('ai-reply-generation-container');
     const textarea = document.getElementById('inbox-reply-textarea');

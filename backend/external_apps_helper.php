@@ -550,9 +550,30 @@ class ExternalAppsHelper {
             ];
         }
 
+        $db = Database::getConnection();
+        $senderEmail = '';
+        $senderName = '';
+        try {
+            $stmt = $db->prepare("SELECT connected_email, connected_name FROM external_app_connections WHERE user_id = ? AND provider = 'google' LIMIT 1");
+            $stmt->execute([$userId]);
+            $conn = $stmt->fetch();
+            if ($conn) {
+                $senderEmail = $conn['connected_email'] ?? '';
+                $senderName = $conn['connected_name'] ?? '';
+            }
+        } catch (Exception $e) {}
+
         // Build raw RFC2822 email headers and body
         $boundary = uniqid('np', true);
-        $rawMessage = "To: $recipientEmail\r\n";
+        $rawMessage = "";
+        if (!empty($senderEmail)) {
+            if (!empty($senderName)) {
+                $rawMessage .= "From: =?utf-8?B?" . base64_encode($senderName) . "?= <$senderEmail>\r\n";
+            } else {
+                $rawMessage .= "From: $senderEmail\r\n";
+            }
+        }
+        $rawMessage .= "To: $recipientEmail\r\n";
         $rawMessage .= "Subject: =?utf-8?B?" . base64_encode($subject) . "?=\r\n";
         $rawMessage .= "MIME-Version: 1.0\r\n";
         

@@ -2528,28 +2528,6 @@ Sentiment: ${email.sentiment}</pre>
     } catch (err) {
         showNotification('error', 'Error rendering details: ' + err.message);
     }
-}iv>
-                </div>
-            </div>
-        `;
-        if (typeof refreshUnreadBadgeCount === 'function') {
-            refreshUnreadBadgeCount();
-        }
-        if (email.body_html && email.body_html.trim() !== '') {
-            setTimeout(() => {
-                const iframe = document.getElementById('inbox-email-body-iframe');
-                if (iframe) {
-                    const doc = iframe.contentDocument || iframe.contentWindow.document;
-                    doc.open();
-                    doc.write(email.body_html);
-                    doc.close();
-                }
-            }, 50);
-        }
-        lucide.createIcons();
-    } catch (err) {
-        showNotification('error', 'Error rendering details: ' + err.message);
-    }
 }
 
 async function generateToneDraft(emailId, tone) {

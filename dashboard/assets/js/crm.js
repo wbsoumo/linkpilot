@@ -4056,17 +4056,16 @@ function openImportContactsModal() {
     document.body.insertAdjacentHTML('beforeend', modalHTML);
     lucide.createIcons();
 }
-
 function handleImportFileChange(event) {
     const file = event.target.files[0];
     if (!file) return;
 
     const content = document.getElementById('import-modal-content');
     content.innerHTML = `
-        <div class="flex flex-col items-center justify-center py-10 space-y-4">
-            <div class="h-10 w-10 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-            <span class="font-bold text-slate-700 animate-pulse text-xs">Analyzing and parsing contact file...</span>
-            <span class="text-[10px] text-slate-400">Verifying file structures and fields</span>
+        <div class="flex flex-col items-center justify-center py-6 space-y-3 text-center">
+            <dotlottie-wc src="https://lottie.host/84140ec0-d043-44f2-ad03-0851264ce760/EAb0eZ26cj.lottie" style="width: 250px; height: 250px" autoplay loop></dotlottie-wc>
+            <span class="font-extrabold text-sm text-slate-800 animate-pulse">Analyzing and parsing contact file...</span>
+            <span class="text-xs text-slate-500 font-medium">Verifying file structures and columns</span>
         </div>
     `;
 
@@ -4113,7 +4112,7 @@ function handleImportFileChange(event) {
             } catch (err) {
                 showImportErrorScreen(err.message);
             }
-        }, 1200);
+        }, 2200);
     };
     reader.readAsText(file);
 }

@@ -3821,11 +3821,228 @@ async function renderCompanies(container) {
     }
 }
 
+function formatContactDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '-';
+    const options = { day: '2-digit', month: 'short', year: 'numeric' };
+    return date.toLocaleDateString('en-GB', options);
+}
+
+if (!window.contactsFilterState) {
+    window.contactsFilterState = {
+        search: '',
+        companyId: 0,
+        designation: '',
+        status: '',
+        page: 1,
+        limit: 10
+    };
+}
+
+let contactsSearchTimeout = null;
+function handleContactsSearch(val) {
+    if (contactsSearchTimeout) clearTimeout(contactsSearchTimeout);
+    contactsSearchTimeout = setTimeout(() => {
+        window.contactsFilterState.search = val.trim();
+        window.contactsFilterState.page = 1;
+        const container = document.getElementById('crm-main-content-viewport') || document.querySelector('.flex-grow.overflow-y-auto');
+        if (container) renderContacts(container);
+    }, 300);
+}
+
+function handleContactsCompanyFilter(val) {
+    window.contactsFilterState.companyId = parseInt(val) || 0;
+    window.contactsFilterState.page = 1;
+    const container = document.getElementById('crm-main-content-viewport') || document.querySelector('.flex-grow.overflow-y-auto');
+    if (container) renderContacts(container);
+}
+
+function handleContactsDesignationFilter(val) {
+    window.contactsFilterState.designation = val;
+    window.contactsFilterState.page = 1;
+    const container = document.getElementById('crm-main-content-viewport') || document.querySelector('.flex-grow.overflow-y-auto');
+    if (container) renderContacts(container);
+}
+
+function handleContactsStatusFilter(val) {
+    window.contactsFilterState.status = val;
+    window.contactsFilterState.page = 1;
+    const container = document.getElementById('crm-main-content-viewport') || document.querySelector('.flex-grow.overflow-y-auto');
+    if (container) renderContacts(container);
+}
+
+function changeContactsPage(p) {
+    window.contactsFilterState.page = p;
+    const container = document.getElementById('crm-main-content-viewport') || document.querySelector('.flex-grow.overflow-y-auto');
+    if (container) renderContacts(container);
+}
+
+function changeContactsLimit(l) {
+    window.contactsFilterState.limit = parseInt(l) || 10;
+    window.contactsFilterState.page = 1;
+    const container = document.getElementById('crm-main-content-viewport') || document.querySelector('.flex-grow.overflow-y-auto');
+    if (container) renderContacts(container);
+}
+
+function toggleSelectAllContacts(masterCheckbox) {
+    const checkboxes = document.querySelectorAll('.contact-row-checkbox');
+    checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
+}
+
+function triggerContactsCSVSelect() {
+    const fileInput = document.getElementById('contacts-csv-import-input');
+    if (fileInput) fileInput.click();
+}
+
+function handleContactsCSVImport(fileInput) {
+    if (!fileInput.files || fileInput.files.length === 0) return;
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('csv_file', file);
+    formData.append('action', 'import');
+
+    showNotification('info', 'Importing contacts CSV. Please wait...');
+    
+    const token = localStorage.getItem('linkpilot_token');
+    fetch('backend/api/crm/contacts.php?action=import', {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(res => {
+        if (res.status === 'success') {
+            showNotification('success', res.message);
+            const container = document.getElementById('crm-main-content-viewport') || document.querySelector('.flex-grow.overflow-y-auto');
+            if (container) renderContacts(container);
+        } else {
+            showNotification('error', res.message || 'Import failed.');
+        }
+        fileInput.value = '';
+    })
+    .catch(err => {
+        showNotification('error', 'Network error importing CSV: ' + err.message);
+        fileInput.value = '';
+    });
+}
+
+function openAddContactModal() {
+    const existing = document.getElementById('crm-add-contact-modal');
+    if (existing) existing.remove();
+
+    apiCall('crm/companies.php?limit=1000')
+        .then(res => {
+            const comps = res.companies || [];
+            const companyOptions = comps.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+            const modalHTML = `
+                <div id="crm-add-contact-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm animate-fade-in">
+                    <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-lg p-6 text-slate-800 text-xs space-y-4 shadow-2xl relative">
+                        <button onclick="document.getElementById('crm-add-contact-modal').remove()" class="absolute top-4 right-4 h-7 w-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
+                            <i data-lucide="x" class="h-4 w-4"></i>
+                        </button>
+                        
+                        <h2 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+                            <i data-lucide="user-plus" class="h-4.5 w-4.5 text-indigo-655 mr-1"></i>
+                            <span>Create New Contact Profile</span>
+                        </h2>
+                        
+                        <form onsubmit="submitAddContactForm(event)" class="space-y-3.5">
+                            <div>
+                                <label class="block text-slate-500 font-semibold mb-1">Full Name *</label>
+                                <input type="text" id="add-contact-name" required placeholder="John Doe" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-slate-500 font-semibold mb-1">Email Address</label>
+                                    <input type="email" id="add-contact-email" placeholder="john@example.com" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
+                                </div>
+                                <div>
+                                    <label class="block text-slate-500 font-semibold mb-1">Phone Number</label>
+                                    <input type="text" id="add-contact-phone" placeholder="+91 99999 99999" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-slate-500 font-semibold mb-1">Associated Company</label>
+                                    <select id="add-contact-company-id" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
+                                        <option value="">-- Select Company --</option>
+                                        ${companyOptions}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-slate-500 font-semibold mb-1">Designation</label>
+                                    <input type="text" id="add-contact-designation" placeholder="Product Manager" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-slate-500 font-semibold mb-1">Department</label>
+                                    <input type="text" id="add-contact-department" placeholder="Engineering" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
+                                </div>
+                                <div>
+                                    <label class="block text-slate-500 font-semibold mb-1">Location</label>
+                                    <input type="text" id="add-contact-location" placeholder="Bengaluru, India" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-slate-500 font-semibold mb-1">Remarks / Notes</label>
+                                <textarea id="add-contact-notes" rows="2" placeholder="Acquired via event networking..." class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800"></textarea>
+                            </div>
+                            
+                            <div class="flex justify-end space-x-2 pt-2">
+                                <button type="button" onclick="document.getElementById('crm-add-contact-modal').remove()" class="px-4 py-2 border border-slate-200 rounded-lg text-slate-650 hover:bg-slate-50 transition">Cancel</button>
+                                <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition shadow-sm">Save Contact</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            lucide.createIcons();
+        });
+}
+
+function submitAddContactForm(e) {
+    e.preventDefault();
+    const payload = {
+        name: document.getElementById('add-contact-name').value.trim(),
+        email: document.getElementById('add-contact-email').value.trim(),
+        phone: document.getElementById('add-contact-phone').value.trim(),
+        company_id: document.getElementById('add-contact-company-id').value,
+        designation: document.getElementById('add-contact-designation').value.trim(),
+        department: document.getElementById('add-contact-department').value.trim(),
+        location: document.getElementById('add-contact-location').value.trim(),
+        notes: document.getElementById('add-contact-notes').value.trim()
+    };
+
+    apiCall('crm/contacts.php', 'POST', payload)
+        .then(res => {
+            showNotification('success', 'Contact profile created successfully.');
+            document.getElementById('crm-add-contact-modal').remove();
+            const container = document.getElementById('crm-main-content-viewport') || document.querySelector('.flex-grow.overflow-y-auto');
+            if (container) renderContacts(container);
+        })
+        .catch(err => {
+            showNotification('error', err.message);
+        });
+}
+
 async function renderContacts(container) {
     try {
-        const res = await apiCall('crm/contacts.php?limit=1000');
+        const filterState = window.contactsFilterState;
+        const res = await apiCall(`crm/contacts.php?limit=${filterState.limit}&page=${filterState.page}&search=${encodeURIComponent(filterState.search)}&company_id=${filterState.companyId}&designation=${encodeURIComponent(filterState.designation)}&status=${filterState.status}`);
         const conts = res.contacts || [];
         const logoApiKey = res.logo_dev_api_key || '';
+        const stats = res.stats || { total: 0, active: 0, with_email: 0, with_phone: 0, designations: 0 };
+        const filterOpts = res.filter_options || { companies: [], designations: [] };
         
         let contRows = conts.map(c => {
             // Default letter monogram
@@ -3853,47 +4070,265 @@ async function renderContacts(container) {
             }
 
             return `
-                <tr class="hover:bg-slate-900/40">
-                    <td class="py-3 px-4">${logoHtml}</td>
-                    <td class="py-3 px-4 font-bold text-white">${c.name}</td>
-                    <td class="py-3 px-4 text-slate-300 font-medium">${c.company_name || '-'}</td>
-                    <td class="py-3 px-4 text-slate-400 font-mono text-[11px]">${c.email || '-'}</td>
-                    <td class="py-3 px-4 text-slate-300">${c.phone || '-'}</td>
-                    <td class="py-3 px-4 text-slate-400">${c.designation || '-'}</td>
-                    <td class="py-3 px-4 text-right">
-                        <button onclick="openInspectContactModal(${c.id})" class="text-xs px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-md hover:border-teal-400 hover:text-teal-400 transition">Inspect</button>
+                <tr class="bg-white border-b border-slate-100 hover:bg-slate-50/80 transition text-slate-700 text-xs">
+                    <td class="py-3.5 px-4 w-8"><input type="checkbox" class="contact-row-checkbox rounded border-slate-300 text-indigo-650 focus:ring-indigo-500 h-3.5 w-3.5"></td>
+                    <td class="py-3.5 px-4 font-semibold text-slate-900 flex items-center space-x-2.5">
+                        ${logoHtml}
+                        <span>${c.name}</span>
+                    </td>
+                    <td class="py-3.5 px-4 text-slate-600 font-medium">${c.company_name || '-'}</td>
+                    <td class="py-3.5 px-4 text-slate-500 font-mono text-[11px]">${c.email || '-'}</td>
+                    <td class="py-3.5 px-4 text-slate-500">${c.phone || '-'}</td>
+                    <td class="py-3.5 px-4 text-slate-500">${c.designation || '-'}</td>
+                    <td class="py-3.5 px-4 text-slate-450">${formatContactDate(c.created_at)}</td>
+                    <td class="py-3.5 px-4 text-right">
+                        <div class="inline-flex items-center space-x-1">
+                            <button onclick="openInspectContactModal(${c.id})" class="px-2.5 py-1 text-[11px] font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-350 transition flex items-center space-x-1 shadow-xs">
+                                <i data-lucide="eye" class="h-3 w-3 text-slate-400 mr-0.5"></i>
+                                <span>Inspect</span>
+                            </button>
+                            <button class="p-1 hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-lg transition">
+                                <i data-lucide="more-vertical" class="h-4 w-4"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `;
         }).join('');
 
+        // Generate Filter drop-down HTML strings
+        const companyFilterOptions = (filterOpts.companies || []).map(c => `
+            <option value="${c.id}" ${filterState.companyId === c.id ? 'selected' : ''}>${c.name}</option>
+        `).join('');
+
+        const designationFilterOptions = (filterOpts.designations || []).map(d => `
+            <option value="${d}" ${filterState.designation === d ? 'selected' : ''}>${d}</option>
+        `).join('');
+
+        // Generate Pagination statistics and buttons
+        const totalPages = Math.ceil(res.total / filterState.limit) || 1;
+        const startRecord = res.total === 0 ? 0 : (filterState.page - 1) * filterState.limit + 1;
+        const endRecord = Math.min(filterState.page * filterState.limit, res.total);
+
+        let pageBtns = '';
+        pageBtns += `<button onclick="changeContactsPage(1)" ${filterState.page === 1 ? 'disabled' : ''} class="px-2 py-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white text-[11px] transition">«</button>`;
+        pageBtns += `<button onclick="changeContactsPage(${filterState.page - 1})" ${filterState.page === 1 ? 'disabled' : ''} class="px-2 py-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white text-[11px] transition">‹</button>`;
+
+        let startPage = Math.max(1, filterState.page - 1);
+        let endPage = Math.min(totalPages, filterState.page + 1);
+
+        if (startPage > 1) {
+            pageBtns += `<button onclick="changeContactsPage(1)" class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-[11px] transition">1</button>`;
+            if (startPage > 2) {
+                pageBtns += `<span class="px-2 text-slate-400">...</span>`;
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            pageBtns += `<button onclick="changeContactsPage(${i})" class="px-3 py-1.5 rounded-lg text-[11px] font-bold transition ${filterState.page === i ? 'bg-indigo-50 border border-indigo-200 text-indigo-650' : 'border border-slate-200 text-slate-600 hover:bg-slate-50'}">${i}</button>`;
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                pageBtns += `<span class="px-2 text-slate-400">...</span>`;
+            }
+            pageBtns += `<button onclick="changeContactsPage(${totalPages})" class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-[11px] transition">${totalPages}</button>`;
+        }
+
+        pageBtns += `<button onclick="changeContactsPage(${filterState.page + 1})" ${filterState.page === totalPages ? 'disabled' : ''} class="px-2 py-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white text-[11px] transition">›</button>`;
+        pageBtns += `<button onclick="changeContactsPage(${totalPages})" ${filterState.page === totalPages ? 'disabled' : ''} class="px-2 py-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white text-[11px] transition">»</button>`;
+
         container.innerHTML = `
-            <div class="space-y-6 animate-fade-in pt-4">
-                <div class="flex justify-between items-center border-b border-slate-850 pb-4">
-                    <div>
-                        <h1 class="text-2xl font-extrabold text-white">Contacts CRM</h1>
-                        <p class="text-slate-400 text-xs mt-1">Individual profiles and communication details linked to institutions.</p>
+            <div class="space-y-5 animate-fade-in pt-4 pb-12">
+                <!-- CSV Hidden File Input -->
+                <input type="file" id="contacts-csv-import-input" class="hidden" accept=".csv" onchange="handleContactsCSVImport(this)">
+                
+                <!-- Title Row -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="h-10 w-10 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-150 flex items-center justify-center shrink-0 shadow-xs">
+                            <i data-lucide="contact" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-extrabold text-slate-900 leading-tight">Contacts CRM</h1>
+                            <p class="text-slate-450 text-xs mt-0.5 font-medium">Individual profiles and communication details linked to institutions.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2 shrink-0">
+                        <button onclick="triggerContactsCSVSelect()" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-650 bg-white transition flex items-center space-x-1.5 shadow-xs">
+                            <i data-lucide="upload" class="h-3.5 w-3.5 text-slate-450"></i>
+                            <span>Import Contacts</span>
+                        </button>
+                        
+                        <div class="inline-flex rounded-xl shadow-xs">
+                            <button onclick="openAddContactModal()" class="px-4 py-2 bg-indigo-650 hover:bg-indigo-600 text-white rounded-l-xl font-bold text-xs flex items-center space-x-1.5 transition select-none">
+                                <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                                <span>Add Contact</span>
+                            </button>
+                            <button onclick="openAddContactModal()" class="px-2.5 py-2 bg-indigo-650 hover:bg-indigo-600 text-white rounded-r-xl border-l border-indigo-700/50 transition select-none">
+                                <i data-lucide="chevron-down" class="h-3.5 w-3.5"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="glass-panel p-5 bg-slate-900/40">
+                <!-- Metrics Grid row -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <!-- Total Contacts -->
+                    <div class="bg-white border border-slate-200/85 rounded-xl p-4 shadow-xs flex items-center space-x-3.5">
+                        <div class="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+                            <i data-lucide="users" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-[9px] font-bold text-slate-450 uppercase tracking-widest leading-none">Total Contacts</span>
+                            <span class="block text-lg font-extrabold text-slate-800 mt-1.5 leading-none">${(stats.total || 0).toLocaleString()}</span>
+                            <span class="block text-[9px] font-semibold text-slate-400 mt-1.5 leading-none">Across all companies</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Active Contacts -->
+                    <div class="bg-white border border-slate-200/85 rounded-xl p-4 shadow-xs flex items-center space-x-3.5">
+                        <div class="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+                            <i data-lucide="user-check" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-[9px] font-bold text-slate-450 uppercase tracking-widest leading-none">Active Contacts</span>
+                            <span class="block text-lg font-extrabold text-slate-800 mt-1.5 leading-none">${(stats.active || 0).toLocaleString()}</span>
+                            <span class="block text-[9px] font-semibold text-slate-400 mt-1.5 leading-none">${stats.total ? Math.round((stats.active/stats.total)*100) : 0}% of total contacts</span>
+                        </div>
+                    </div>
+
+                    <!-- With Email -->
+                    <div class="bg-white border border-slate-200/85 rounded-xl p-4 shadow-xs flex items-center space-x-3.5">
+                        <div class="h-10 w-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100">
+                            <i data-lucide="mail" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-[9px] font-bold text-slate-450 uppercase tracking-widest leading-none">With Email</span>
+                            <span class="block text-lg font-extrabold text-slate-800 mt-1.5 leading-none">${(stats.with_email || 0).toLocaleString()}</span>
+                            <span class="block text-[9px] font-semibold text-slate-400 mt-1.5 leading-none">${stats.total ? ((stats.with_email/stats.total)*100).toFixed(1) : 0}% have email</span>
+                        </div>
+                    </div>
+
+                    <!-- With Phone -->
+                    <div class="bg-white border border-slate-200/85 rounded-xl p-4 shadow-xs flex items-center space-x-3.5">
+                        <div class="h-10 w-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
+                            <i data-lucide="phone" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-[9px] font-bold text-slate-450 uppercase tracking-widest leading-none">With Phone</span>
+                            <span class="block text-lg font-extrabold text-slate-800 mt-1.5 leading-none">${(stats.with_phone || 0).toLocaleString()}</span>
+                            <span class="block text-[9px] font-semibold text-slate-400 mt-1.5 leading-none">${stats.total ? ((stats.with_phone/stats.total)*100).toFixed(1) : 0}% have phone</span>
+                        </div>
+                    </div>
+
+                    <!-- Designations -->
+                    <div class="bg-white border border-slate-200/85 rounded-xl p-4 shadow-xs flex items-center space-x-3.5">
+                        <div class="h-10 w-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0 border border-sky-100">
+                            <i data-lucide="award" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-[9px] font-bold text-slate-450 uppercase tracking-widest leading-none">Designations</span>
+                            <span class="block text-lg font-extrabold text-slate-800 mt-1.5 leading-none">${(stats.designations || 0).toLocaleString()}</span>
+                            <span class="block text-[9px] font-semibold text-slate-400 mt-1.5 leading-none">Unique designations</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters Control Bar -->
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-white p-3 border border-slate-200 rounded-xl shadow-xs">
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <!-- Search Box -->
+                        <div class="relative w-full md:w-80">
+                            <i data-lucide="search" class="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400"></i>
+                            <input type="text" id="contacts-search-input" value="${filterState.search}" oninput="handleContactsSearch(this.value)" placeholder="Search contacts by name, email, company..." class="w-full pl-9 pr-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-1 focus:ring-indigo-500/30 transition">
+                        </div>
+
+                        <!-- Company Filter -->
+                        <div class="relative select-container">
+                            <select id="contacts-company-filter" onchange="handleContactsCompanyFilter(this.value)" class="pl-8 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-650 font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/30 appearance-none cursor-pointer">
+                                <option value="0">All Companies</option>
+                                ${companyFilterOptions}
+                            </select>
+                            <i data-lucide="building" class="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400"></i>
+                            <i data-lucide="chevron-down" class="absolute right-2.5 top-2.5 h-3.5 w-3.5 text-slate-400 pointer-events-none"></i>
+                        </div>
+
+                        <!-- Designation Filter -->
+                        <div class="relative select-container">
+                            <select id="contacts-designation-filter" onchange="handleContactsDesignationFilter(this.value)" class="pl-8 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-650 font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/30 appearance-none cursor-pointer">
+                                <option value="">All Designations</option>
+                                ${designationFilterOptions}
+                            </select>
+                            <i data-lucide="user" class="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400"></i>
+                            <i data-lucide="chevron-down" class="absolute right-2.5 top-2.5 h-3.5 w-3.5 text-slate-400 pointer-events-none"></i>
+                        </div>
+
+                        <!-- Status Filter -->
+                        <div class="relative select-container">
+                            <select id="contacts-status-filter" onchange="handleContactsStatusFilter(this.value)" class="pl-8 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-650 font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/30 appearance-none cursor-pointer">
+                                <option value="">All Status</option>
+                                <option value="active" ${filterState.status === 'active' ? 'selected' : ''}>Active</option>
+                                <option value="has_email" ${filterState.status === 'has_email' ? 'selected' : ''}>With Email</option>
+                                <option value="has_phone" ${filterState.status === 'has_phone' ? 'selected' : ''}>With Phone</option>
+                            </select>
+                            <i data-lucide="circle-dot" class="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400"></i>
+                            <i data-lucide="chevron-down" class="absolute right-2.5 top-2.5 h-3.5 w-3.5 text-slate-400 pointer-events-none"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2 shrink-0">
+                        <button class="px-3.5 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-650 hover:bg-slate-50 transition flex items-center space-x-1.5 shadow-xs">
+                            <i data-lucide="filter" class="h-3.5 w-3.5 text-slate-400"></i>
+                            <span>More Filters</span>
+                        </button>
+                        <button class="p-2 bg-white border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition shadow-xs">
+                            <i data-lucide="sliders-horizontal" class="h-3.5 w-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Contacts Vault Table -->
+                <div class="glass-panel p-0 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse custom-table text-xs">
+                        <table class="w-full text-left border-collapse text-xs">
                             <thead>
-                                <tr class="border-b border-slate-800">
-                                    <th class="py-3 px-4 w-12">Logo</th>
-                                    <th class="py-3 px-4">Contact Name</th>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-450 font-bold uppercase tracking-wider text-[10px]">
+                                    <th class="py-3 px-4 w-8"><input type="checkbox" onchange="toggleSelectAllContacts(this)" class="rounded border-slate-350 text-indigo-650 focus:ring-indigo-500 h-3.5 w-3.5"></th>
+                                    <th class="py-3 px-4">Contact</th>
                                     <th class="py-3 px-4">Company</th>
                                     <th class="py-3 px-4">Email Address</th>
                                     <th class="py-3 px-4">Phone</th>
                                     <th class="py-3 px-4">Designation</th>
+                                    <th class="py-3 px-4">Added On</th>
                                     <th class="py-3 px-4 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                ${contRows || `<tr><td colspan="7" class="text-center py-10 text-slate-500">No contact profiles found.</td></tr>`}
+                                ${contRows || `<tr><td colspan="8" class="text-center py-12 text-slate-500 font-medium">No contact profiles found matching filter selections.</td></tr>`}
                             </tbody>
                         </table>
+                    </div>
+                </div>
+
+                <!-- Pagination footer row -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">
+                    <span class="text-slate-500 text-[11px] font-medium">Showing ${startRecord} to ${endRecord} of ${(res.total || 0).toLocaleString()} contacts</span>
+                    
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-1.5 text-xs text-slate-650">
+                            <select onchange="changeContactsLimit(this.value)" class="px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none text-[11px] font-semibold cursor-pointer">
+                                <option value="5" ${filterState.limit === 5 ? 'selected' : ''}>5 per page</option>
+                                <option value="10" ${filterState.limit === 10 ? 'selected' : ''}>10 per page</option>
+                                <option value="25" ${filterState.limit === 25 ? 'selected' : ''}>25 per page</option>
+                                <option value="50" ${filterState.limit === 50 ? 'selected' : ''}>50 per page</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex items-center space-x-1">
+                            ${pageBtns}
+                        </div>
                     </div>
                 </div>
             </div>

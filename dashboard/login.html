@@ -16,8 +16,8 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <!-- Google reCAPTCHA v2 -->
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <!-- Google reCAPTCHA v3 -->
+    <script src="https://www.google.com/recaptcha/api.js?render=6LfdZEwtAAAAALLWow5ktOTluD8wW3Di_S0EY2Kh"></script>
     <style>
         body {
             font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
@@ -270,11 +270,7 @@
                         </div>
                     </div>
 
-                    <!-- Captcha -->
-                    <div class="space-y-2 flex flex-col items-center">
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider self-start">Verify you are not a robot</label>
-                        <div class="g-recaptcha shadow-sm rounded-xl overflow-hidden" data-sitekey="6LfdZEwtAAAAALLWow5ktOTluD8wW3Di_S0EY2Kh"></div>
-                    </div>
+
 
                     <!-- Actions -->
                     <div class="space-y-3">
@@ -678,9 +674,6 @@
             document.getElementById('forgot-password-send-form').classList.remove('hidden');
             document.getElementById('forgot-password-verify-form').classList.add('hidden');
             document.getElementById('forgot-password-reset-form').classList.add('hidden');
-            if (window.grecaptcha) {
-                grecaptcha.reset();
-            }
         }
 
         function showVerifyOtpView() {
@@ -715,43 +708,42 @@
                 return;
             }
 
-            let recaptchaResponse = '';
-            if (window.grecaptcha) {
-                recaptchaResponse = grecaptcha.getResponse();
-            }
-
-            if (!recaptchaResponse) {
-                showNotification('error', 'Please verify that you are not a robot.');
-                return;
-            }
-
             setFormLoading('forgot-password-send-form', true);
 
-            try {
-                const payload = {
-                    phone_number: phone,
-                    recaptcha_response: recaptchaResponse
-                };
+            if (typeof grecaptcha !== 'undefined') {
+                grecaptcha.ready(function() {
+                    grecaptcha.execute('6LfdZEwtAAAAALLWow5ktOTluD8wW3Di_S0EY2Kh', {action: 'forgot_password'}).then(async function(token) {
+                        try {
+                            const payload = {
+                                phone_number: phone,
+                                recaptcha_response: token
+                            };
 
-                const data = await apiCall('auth/forgot_password_send_otp.php', 'POST', payload);
+                            const data = await apiCall('auth/forgot_password_send_otp.php', 'POST', payload);
 
-                showNotification('success', data.message || 'OTP sent successfully via WhatsApp!');
+                            showNotification('success', data.message || 'OTP sent successfully via WhatsApp!');
 
-                if (data.dev_mode && data.mock_otp) {
-                    console.log("Mock OTP for development:", data.mock_otp);
-                    showNotification('warning', `[DEV MODE] Mock OTP: ${data.mock_otp}`);
-                }
+                            if (data.dev_mode && data.mock_otp) {
+                                console.log("Mock OTP for development:", data.mock_otp);
+                                showNotification('warning', `[DEV MODE] Mock OTP: ${data.mock_otp}`);
+                            }
 
-                document.getElementById('forgot-display-phone').textContent = phone;
-                showVerifyOtpView();
-                startForgotResendTimer();
+                            document.getElementById('forgot-display-phone').textContent = phone;
+                            showVerifyOtpView();
+                            startForgotResendTimer();
 
-            } catch (err) {
-                showNotification('error', err.message || 'Failed to send OTP.');
-                if (window.grecaptcha) {
-                    grecaptcha.reset();
-                }
-            } finally {
+                        } catch (err) {
+                            showNotification('error', err.message || 'Failed to send OTP.');
+                        } finally {
+                            setFormLoading('forgot-password-send-form', false);
+                        }
+                    }).catch(function(err) {
+                        showNotification('error', 'reCAPTCHA execution failed.');
+                        setFormLoading('forgot-password-send-form', false);
+                    });
+                });
+            } else {
+                showNotification('error', 'reCAPTCHA is not loaded. Please try again.');
                 setFormLoading('forgot-password-send-form', false);
             }
         }

@@ -16683,6 +16683,29 @@ window.approveAIWorkflow = function() {
         stepsAnimation.push({
             name: node.name,
             action: () => {
+                let config = {};
+                if (node.type === 'whatsapp_outbound') {
+                    config = {
+                        to: '{{contact.phone}}',
+                        message: 'Hi {{contact.name}}, thanks for reaching out! We received your message and will get back to you shortly.'
+                    };
+                } else if (node.type === 'send_email') {
+                    config = {
+                        toEmail: '{{contact.email}}',
+                        subject: 'Inquiry Received',
+                        body: 'Hi {{contact.name}},\n\nThank you for reaching out to us. We have received your message and our team will get back to you shortly.\n\nBest regards,\nLinkPilot Team'
+                    };
+                } else if (node.type === 'email_received') {
+                    config = {
+                        folder: 'Inbox',
+                        unreadOnly: true
+                    };
+                } else if (node.type === 'whatsapp_received') {
+                    config = {
+                        phone: 'All'
+                    };
+                }
+
                 window.wfState.activeWorkflow.nodes.push({
                     id: node.id,
                     type: node.type,
@@ -16690,6 +16713,7 @@ window.approveAIWorkflow = function() {
                     desc: node.desc,
                     x: node.x,
                     y: node.y,
+                    config: config,
                     execStatus: "success",
                     execTime: Math.floor(Math.random() * 40 + 50) + "ms"
                 });

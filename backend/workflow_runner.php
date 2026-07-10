@@ -96,8 +96,33 @@ class WorkflowRunner {
         $config = $node['config'] ?? [];
 
         // Helper for variable replacement
-        $replaceVars = function($txt) use ($context) {
+        $replaceVars = function($txt) use (&$context, $db, $userId) {
             if (empty($txt)) return $txt;
+            
+            // Load contact details dynamically if referenced
+            if (strpos($txt, '{{contact.') !== false && !empty($context['contact_id'])) {
+                $stmtC = $db->prepare("SELECT * FROM crm_contacts WHERE id = ? AND user_id = ?");
+                $stmtC->execute([$context['contact_id'], $userId]);
+                $cRow = $stmtC->fetch(PDO::FETCH_ASSOC);
+                if ($cRow) {
+                    foreach ($cRow as $ck => $cv) {
+                        $context['contact.' . $ck] = $cv;
+                    }
+                }
+            }
+            
+            // Load lead details dynamically if referenced
+            if (strpos($txt, '{{lead.') !== false && !empty($context['lead_id'])) {
+                $stmtL = $db->prepare("SELECT * FROM crm_leads WHERE id = ? AND user_id = ?");
+                $stmtL->execute([$context['lead_id'], $userId]);
+                $lRow = $stmtL->fetch(PDO::FETCH_ASSOC);
+                if ($lRow) {
+                    foreach ($lRow as $lk => $lv) {
+                        $context['lead.' . $lk] = $lv;
+                    }
+                }
+            }
+
             foreach ($context as $key => $val) {
                 if (is_scalar($val)) {
                     $txt = str_replace('{{' . $key . '}}', $val, $txt);

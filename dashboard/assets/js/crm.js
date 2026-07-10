@@ -16609,25 +16609,43 @@ window.approveAIWorkflow = function() {
         
         if (curr.stepType.toLowerCase().includes('(yes)') && conditionNodeId) {
             connections.push({
+                from: conditionNodeId,
+                to: curr.id,
                 fromId: conditionNodeId,
                 toId: curr.id,
+                handle: "output-yes",
                 label: "Yes"
             });
         } else if (curr.stepType.toLowerCase().includes('(no)') && conditionNodeId) {
             connections.push({
+                from: conditionNodeId,
+                to: curr.id,
                 fromId: conditionNodeId,
                 toId: curr.id,
+                handle: "output-no",
                 label: "No"
             });
         } else if (conditionNodeId && !curr.stepType.toLowerCase().includes('condition') && i > 1) {
             if (yesNodeId) {
-                connections.push({ fromId: yesNodeId, toId: curr.id });
+                connections.push({
+                    from: yesNodeId,
+                    to: curr.id,
+                    fromId: yesNodeId,
+                    toId: curr.id
+                });
             }
             if (noNodeId) {
-                connections.push({ fromId: noNodeId, toId: curr.id });
+                connections.push({
+                    from: noNodeId,
+                    to: curr.id,
+                    fromId: noNodeId,
+                    toId: curr.id
+                });
             }
         } else {
             connections.push({
+                from: prev.id,
+                to: curr.id,
                 fromId: prev.id,
                 toId: curr.id
             });

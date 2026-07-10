@@ -76,6 +76,8 @@ try {
                 header("Location: {$protocol}://{$host}/dashboard/setup.html?google_error=" . $errParam);
             } elseif ($from === 'smtp') {
                 header("Location: {$protocol}://{$host}/dashboard/smtp.html?google_error=" . $errParam);
+            } elseif ($from === 'email-intelligence') {
+                header("Location: {$protocol}://{$host}/dashboard/index.html?google_error=" . $errParam . "#/email-intelligence");
             } else {
                 header("Location: {$protocol}://{$host}/dashboard/index.html#/external-apps?google_error=" . $errParam);
             }
@@ -213,6 +215,8 @@ if ($from === 'setup') {
     header("Location: {$protocol}://{$host}/dashboard/setup.html?google_connected=true");
 } elseif ($from === 'smtp') {
     header("Location: {$protocol}://{$host}/dashboard/smtp.html?google_connected=true");
+} elseif ($from === 'email-intelligence') {
+    header("Location: {$protocol}://{$host}/dashboard/index.html?google_connected=true#/email-intelligence");
 } else {
     header("Location: {$protocol}://{$host}/dashboard/index.html#/external-apps");
 }

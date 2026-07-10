@@ -1147,20 +1147,42 @@ function renderSetupWizard(container, data) {
                         <div class="border-b border-slate-800 pb-3"><h3 class="text-sm font-bold text-white uppercase tracking-wider">Step 1: Choose Email Provider</h3></div>
                         <div class="grid grid-cols-2 gap-4">
                             <label class="p-4 bg-slate-950/40 border border-slate-800 rounded-xl cursor-pointer hover:border-indigo-500 block relative">
-                                <input type="radio" name="email_provider" value="gmail" class="absolute top-4 right-4" ${conn.email_provider === 'gmail' ? 'checked' : ''}>
+                                <input type="radio" name="email_provider" value="gmail" class="absolute top-4 right-4" ${conn.email_provider === 'gmail' ? 'checked' : ''} onchange="toggleWizProvider(this.value)">
                                 <div class="font-bold text-white">Gmail / Workspace</div>
                                 <div class="text-[10px] text-slate-500 mt-1">Connect Gmail SMTP & IMAP</div>
                             </label>
                             <label class="p-4 bg-slate-950/40 border border-slate-800 rounded-xl cursor-pointer hover:border-indigo-500 block relative">
-                                <input type="radio" name="email_provider" value="outlook" class="absolute top-4 right-4" ${conn.email_provider === 'outlook' ? 'checked' : ''}>
+                                <input type="radio" name="email_provider" value="outlook" class="absolute top-4 right-4" ${conn.email_provider === 'outlook' ? 'checked' : ''} onchange="toggleWizProvider(this.value)">
                                 <div class="font-bold text-white">Microsoft Outlook</div>
                                 <div class="text-[10px] text-slate-500 mt-1">Office 365 or Outlook Mail</div>
                             </label>
                             <label class="p-4 bg-slate-950/40 border border-slate-850 rounded-xl cursor-pointer hover:border-indigo-500 block relative col-span-2">
-                                <input type="radio" name="email_provider" value="custom" class="absolute top-4 right-4" ${conn.email_provider !== 'gmail' && conn.email_provider !== 'outlook' ? 'checked' : ''}>
+                                <input type="radio" name="email_provider" value="custom" class="absolute top-4 right-4" ${conn.email_provider !== 'gmail' && conn.email_provider !== 'outlook' ? 'checked' : ''} onchange="toggleWizProvider(this.value)">
                                 <div class="font-bold text-white">Custom SMTP/IMAP Server</div>
                                 <div class="text-[10px] text-slate-500 mt-1">Configure standard host server credentials</div>
                             </label>
+                        </div>
+
+                        <!-- Gmail OAuth Block -->
+                        <div id="wiz-gmail-oauth-block" class="hidden p-5 bg-teal-500/5 border border-teal-500/10 rounded-2xl space-y-4">
+                            <div class="flex items-start space-x-3.5">
+                                <div class="p-2 bg-teal-400/10 text-teal-400 rounded-lg shrink-0">
+                                    <i data-lucide="sparkles" class="h-5 w-5"></i>
+                                </div>
+                                <div class="text-left">
+                                    <span class="block text-slate-200 font-bold text-xs">Secure Google OAuth Integration</span>
+                                    <span class="text-[11px] text-slate-400 leading-relaxed font-semibold">LinkPilot connects directly with Google to read and sync your emails securely. No manual SMTP/IMAP password configuration is needed.</span>
+                                </div>
+                            </div>
+                            <button type="button" onclick="launchWizGoogleOAuth()" class="w-full flex items-center justify-center py-3 px-4 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-xl text-xs font-bold text-white shadow-sm transition-all duration-150 cursor-pointer">
+                                <svg class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                    <path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.08H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.92l2.85-2.22.81-.6z" fill="#FBBC05"/>
+                                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.08l3.66 2.84c.87-2.6 3.3-4.54 6.16-4.54z" fill="#EA4335"/>
+                                </svg>
+                                <span>Continue with Google</span>
+                            </button>
                         </div>
                     </div>
 
@@ -1355,7 +1377,36 @@ function renderSetupWizard(container, data) {
         </div>
     `;
     previewDynamicFields(document.getElementById('wiz_business_type')?.value || 'Software Company');
+    toggleWizProvider(conn.email_provider || 'custom');
 }
+
+window.toggleWizProvider = function(val) {
+    const oauthBlock = document.getElementById('wiz-gmail-oauth-block');
+    const actionBtn = document.getElementById('wiz-action-btn-container');
+    if (!oauthBlock) return;
+    
+    if (val === 'gmail') {
+        oauthBlock.classList.remove('hidden');
+        if (actionBtn) actionBtn.classList.add('hidden');
+    } else {
+        oauthBlock.classList.add('hidden');
+        if (actionBtn) actionBtn.classList.remove('hidden');
+    }
+};
+
+window.launchWizGoogleOAuth = async function() {
+    try {
+        showNotification('info', 'Constructing secure Google auth request URL...');
+        const res = await apiCall('external_apps/auth.php?type=gmail&from=email-intelligence');
+        if (res.status === 'success' && res.auth_url) {
+            window.location.href = res.auth_url;
+        } else {
+            showNotification('error', res.message || 'Failed to initialize Google login.');
+        }
+    } catch (err) {
+        showNotification('error', 'OAuth URL creation failed: ' + err.message);
+    }
+};
 
 function adjustWizardStep(dir) {
     const nextStep = Math.max(1, Math.min(6, wizardStep + dir));

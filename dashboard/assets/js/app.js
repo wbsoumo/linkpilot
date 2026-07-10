@@ -462,6 +462,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (urlParams.get('setup_smtp') === 'true') {
         showNotification('warning', 'Please configure your SMTP server first to access action pages.');
     }
+    if (urlParams.get('google_connected') === 'true') {
+        showNotification('success', 'Google Workspace Account connected successfully via Secure OAuth!');
+    }
+    if (urlParams.get('google_error')) {
+        showNotification('error', decodeURIComponent(urlParams.get('google_error')));
+    }
     
     // Refresh user profile details asynchronously to sync roles securely if token is present
     const token = getAuthToken();

@@ -4212,14 +4212,14 @@ function handleCompanyImportFileChange(event) {
                 
                 const headers = rows[0].map(h => h.trim().toLowerCase().replace(/[^a-z0-9]/g, ''));
                 
-                const colIndexName = headers.indexOf('companyname') !== -1 ? headers.indexOf('companyname') : (headers.indexOf('name') !== -1 ? headers.indexOf('name') : headers.indexOf('company'));
+                const colIndexName = headers.indexOf('companyname') !== -1 ? headers.indexOf('companyname') : (headers.indexOf('company') !== -1 ? headers.indexOf('company') : headers.indexOf('name'));
                 const colIndexIndustry = headers.indexOf('industry');
                 const colIndexWebsite = headers.indexOf('website');
                 const colIndexOwner = headers.indexOf('owner');
                 const colIndexStatus = headers.indexOf('status');
                 
                 if (colIndexName === -1) {
-                    throw new Error("Could not find a 'Company Name' or 'Name' column in the headers.");
+                    throw new Error("Could not find a 'Company Name', 'Company' or 'Name' column in the headers.");
                 }
 
                 const parsedCompanies = [];

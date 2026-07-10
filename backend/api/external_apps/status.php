@@ -30,7 +30,7 @@ try {
             'scopes' => $scopesArray,
             'profile_connected' => in_array('openid', $scopesArray) || in_array('email', $scopesArray) || in_array('profile', $scopesArray),
             'calendar_connected' => in_array('https://www.googleapis.com/auth/calendar.events', $scopesArray),
-            'gmail_connected' => in_array('https://www.googleapis.com/auth/gmail.send', $scopesArray)
+            'gmail_connected' => in_array('https://www.googleapis.com/auth/gmail.send', $scopesArray) && in_array('https://www.googleapis.com/auth/gmail.modify', $scopesArray)
         ]);
     } else {
         sendJsonResponse('success', 'No active Google connection found.', [

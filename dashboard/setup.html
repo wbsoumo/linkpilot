@@ -1437,10 +1437,16 @@
                     const smtpRes = await apiCall('smtp/list.php');
                     if (smtpRes && smtpRes.accounts && smtpRes.accounts.length > 0) {
                         const defaultAcc = smtpRes.accounts.find(a => a.is_default) || smtpRes.accounts[0];
-                        connectedEmail = defaultAcc.sender_email;
-                        provider = defaultAcc.smtp_type === 'gmail' ? 'Gmail SMTP' : 'Custom SMTP';
-                        name = defaultAcc.sender_name;
-                        connectedAt = defaultAcc.created_at || 'Recently';
+                        const emailLower = (defaultAcc.sender_email || '').toLowerCase();
+                        if (defaultAcc.smtp_type === 'gmail' || emailLower.endsWith('@gmail.com')) {
+                            // Gmail accounts must connect via Google OAuth (with read/send scopes) to show as active
+                            connectedEmail = null;
+                        } else {
+                            connectedEmail = defaultAcc.sender_email;
+                            provider = defaultAcc.smtp_type === 'gmail' ? 'Gmail SMTP' : 'Custom SMTP';
+                            name = defaultAcc.sender_name;
+                            connectedAt = defaultAcc.created_at || 'Recently';
+                        }
                     }
                 }
                 

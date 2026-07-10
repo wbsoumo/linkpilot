@@ -13036,25 +13036,11 @@ function stopBuilderAutoSave() {
 // INSTALL EXTENSIONS VIEW
 // ----------------------------------------------------
 async function renderInstallExtensions(container) {
-    window.toggleExtensionOptions = function() {
-        const installBtnBlock = container.querySelector('#extension-install-actions');
-        const optionsBlock = container.querySelector('#extension-options-block');
-        if (installBtnBlock && optionsBlock) {
-            if (installBtnBlock.classList.contains('hidden')) {
-                installBtnBlock.classList.remove('hidden');
-                optionsBlock.classList.add('hidden');
-            } else {
-                installBtnBlock.classList.add('hidden');
-                optionsBlock.classList.remove('hidden');
-            }
-        }
-    };
-
     container.innerHTML = `
-        <div class="space-y-8 animate-fade-in text-slate-800">
+        <div class="space-y-8 animate-fade-in text-slate-800 font-sans">
             <div>
-                <h1 class="text-3xl font-extrabold text-white">Browser Extensions Hub</h1>
-                <p class="text-slate-400 text-sm mt-1">Supercharge your daily workflow with our productivity extensions.</p>
+                <h1 class="text-3xl font-extrabold text-white font-sans">Browser Extensions Hub</h1>
+                <p class="text-slate-400 text-sm mt-1 font-sans">Supercharge your daily workflow with our productivity extensions.</p>
             </div>
 
             <!-- 3 Columns Extensions Grid -->
@@ -13062,7 +13048,7 @@ async function renderInstallExtensions(container) {
                 <!-- 1. Active Extension -->
                 <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-6 flex flex-col justify-between hover:border-blue-500/35 transition duration-200 shadow-xl relative overflow-hidden group">
                     <!-- Badge -->
-                    <div class="absolute top-4 right-4 bg-teal-500/10 text-teal-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-teal-500/20">
+                    <div class="absolute top-4 right-4 bg-teal-500/10 text-teal-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-teal-500/20 font-sans">
                         Active
                     </div>
                     
@@ -13073,8 +13059,8 @@ async function renderInstallExtensions(container) {
                         </div>
                         
                         <div>
-                            <h3 class="text-lg font-bold text-white group-hover:text-blue-400 transition">LinkedIn Outreach Assistant</h3>
-                            <p class="text-slate-400 text-xs mt-1.5 leading-relaxed">
+                            <h3 class="text-lg font-bold text-white group-hover:text-blue-400 transition font-sans">LinkedIn Outreach Assistant</h3>
+                            <p class="text-slate-400 text-xs mt-1.5 leading-relaxed font-sans">
                                 Contextualizes LinkedIn posts, extracts verified email addresses from the Clearbit database, and drafts personalized outreach emails, comments, and WhatsApp messages.
                             </p>
                         </div>
@@ -13082,42 +13068,10 @@ async function renderInstallExtensions(container) {
 
                     <!-- Install Actions Block -->
                     <div class="mt-6 pt-4 border-t border-slate-800/50 space-y-4 text-center" id="extension-install-actions">
-                        <button onclick="toggleExtensionOptions()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-xs transition flex items-center justify-center space-x-1.5">
-                            <i data-lucide="download" class="h-3.5 w-3.5"></i>
+                        <a href="https://chromewebstore.google.com/detail/gnemddfomigfkpidiakgcdpighonkjga?utm_source=item-share-cb" target="_blank" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-xs transition flex items-center justify-center space-x-1.5 font-sans">
+                            <i data-lucide="chrome" class="h-3.5 w-3.5 mr-1.5"></i>
                             <span>Install Extension</span>
-                        </button>
-                    </div>
-                    
-                    <!-- Hidden State with 2 Options -->
-                    <div class="mt-6 pt-4 border-t border-slate-800/50 space-y-4 hidden" id="extension-options-block">
-                        <div class="text-slate-355 text-[11px] font-bold uppercase tracking-wider mb-2">Select Installation Method:</div>
-                        <div class="grid grid-cols-1 gap-2.5">
-                            <!-- Option 1: Web Store -->
-                            <a href="https://chromewebstore.google.com/detail/gnemddfomigfkpidiakgcdpighonkjga?utm_source=item-share-cb" target="_blank" class="flex items-start p-3 bg-slate-950 hover:bg-slate-900 border border-slate-800 rounded-xl transition group/item">
-                                <div class="h-8 w-8 rounded-lg bg-teal-500/10 text-teal-400 flex items-center justify-center shrink-0 mr-3">
-                                    <i data-lucide="chrome" class="h-4.5 w-4.5"></i>
-                                </div>
-                                <div>
-                                    <div class="text-xs font-bold text-white group-hover/item:text-teal-400 transition">1. Install Released Version</div>
-                                    <div class="text-[10px] text-slate-500 mt-0.5">Download officially from Chrome Web Store (Recommended).</div>
-                                </div>
-                            </a>
-                            
-                            <!-- Option 2: Download Directly -->
-                            <a href="../linkpilot-extension.zip?t=${Date.now()}" download class="flex items-start p-3 bg-slate-950 hover:bg-slate-900 border border-slate-800 rounded-xl transition group/item">
-                                <div class="h-8 w-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0 mr-3">
-                                    <i data-lucide="file-archive" class="h-4.5 w-4.5"></i>
-                                </div>
-                                <div>
-                                    <div class="text-xs font-bold text-white group-hover/item:text-blue-400 transition">2. Download Unreleased ZIP</div>
-                                    <div class="text-[10px] text-slate-500 mt-0.5">Download directly and install via Developer Mode.</div>
-                                </div>
-                            </a>
-                        </div>
-                        
-                        <button onclick="toggleExtensionOptions()" class="w-full py-1.5 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white rounded-lg text-[10px] font-bold transition">
-                            ← Back to Overview
-                        </button>
+                        </a>
                     </div>
                 </div>
 
@@ -13128,14 +13082,14 @@ async function renderInstallExtensions(container) {
                             <i data-lucide="mail" class="h-6 w-6"></i>
                         </div>
                         <div>
-                            <h3 class="text-lg font-bold text-slate-400">Gmail Sync & Lead Extractor</h3>
-                            <p class="text-slate-500 text-xs mt-1.5 leading-relaxed">
+                            <h3 class="text-lg font-bold text-slate-400 font-sans">Gmail Sync & Lead Extractor</h3>
+                            <p class="text-slate-500 text-xs mt-1.5 leading-relaxed font-sans">
                                 Connect with Google Workspace to automatically capture CRM leads, sync email communications, and search contact details directly inside Gmail.
                             </p>
                         </div>
                     </div>
                     <div class="mt-6 pt-4 border-t border-slate-800/50">
-                        <span class="inline-block text-[10px] font-bold text-slate-600 uppercase tracking-widest">Coming Soon</span>
+                        <span class="inline-block text-[10px] font-bold text-slate-600 uppercase tracking-widest font-sans">Coming Soon</span>
                     </div>
                 </div>
 
@@ -13146,47 +13100,44 @@ async function renderInstallExtensions(container) {
                             <i data-lucide="phone-call" class="h-6 w-6"></i>
                         </div>
                         <div>
-                            <h3 class="text-lg font-bold text-slate-400">CRM Sales Dialer</h3>
-                            <p class="text-slate-500 text-xs mt-1.5 leading-relaxed">
+                            <h3 class="text-lg font-bold text-slate-400 font-sans">CRM Sales Dialer</h3>
+                            <p class="text-slate-500 text-xs mt-1.5 leading-relaxed font-sans">
                                 Automate outbound calling, log calls directly inside the lead timeline, and capture call recordings for subsequent AI processing.
                             </p>
                         </div>
                     </div>
                     <div class="mt-6 pt-4 border-t border-slate-800/50">
-                        <span class="inline-block text-[10px] font-bold text-slate-600 uppercase tracking-widest">Coming Soon</span>
+                        <span class="inline-block text-[10px] font-bold text-slate-600 uppercase tracking-widest font-sans">Coming Soon</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Developer Mode Installation Guide -->
+            <!-- Chrome Web Store Installation Guide -->
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 mt-8 space-y-4 shadow-xl">
-                <div class="flex items-center space-x-2 text-white font-bold text-base">
-                    <i data-lucide="terminal" class="h-5 w-5 text-blue-500"></i>
-                    <span>Guide: Installing Extension in Chrome Developer Mode</span>
+                <div class="flex items-center space-x-2 text-white font-bold text-base font-sans">
+                    <i data-lucide="chrome" class="h-5 w-5 text-blue-500"></i>
+                    <span>Guide: Installing Extension from the Chrome Web Store</span>
                 </div>
                 
-                <div class="text-slate-300 text-xs space-y-3 leading-relaxed">
-                    <p>If you downloaded the <strong>Unreleased ZIP version</strong> directly, follow these steps to load it into Google Chrome:</p>
+                <div class="text-slate-300 text-xs space-y-3 leading-relaxed font-sans">
+                    <p>To install LinkPilot AI directly on Google Chrome or any Chromium-based browser (such as Edge or Brave):</p>
                     <ol class="list-decimal list-inside space-y-2.5 text-slate-400 pl-2">
                         <li>
-                            <strong class="text-white">Unzip the archive:</strong> Locate the downloaded <code class="bg-slate-950 px-1.5 py-0.5 rounded text-blue-400 font-mono">linkpilot-extension.zip</code> file on your computer and extract it to a folder.
+                            <strong class="text-white">Open the Web Store Page:</strong> Click the <strong class="text-white">Install Extension</strong> button above to visit the official listing on the Chrome Web Store.
                         </li>
                         <li>
-                            <strong class="text-white">Open Extensions Manager:</strong> In Google Chrome, open a new tab and navigate to <code class="bg-slate-950 px-1.5 py-0.5 rounded text-teal-400 font-mono">chrome://extensions/</code> (or click the puzzle icon in the top right and select <strong class="text-white">Manage Extensions</strong>).
+                            <strong class="text-white">Add to Chrome:</strong> On the Chrome Web Store page, click the blue <strong class="text-white">Add to Chrome</strong> button.
                         </li>
                         <li>
-                            <strong class="text-white">Enable Developer Mode:</strong> Toggle the switch labeled <strong class="text-white">Developer mode</strong> in the top-right corner of the Extensions page.
+                            <strong class="text-white">Confirm Installation:</strong> In the browser pop-up prompt, click <strong class="text-white">Add extension</strong> to confirm.
                         </li>
                         <li>
-                            <strong class="text-white">Load Unpacked Extension:</strong> Click the <strong class="text-white">Load unpacked</strong> button that appears in the top-left toolbar.
-                        </li>
-                        <li>
-                            <strong class="text-white">Select Folder:</strong> Choose the extracted folder (make sure the folder contains the <code class="bg-slate-950 px-1.5 py-0.5 rounded text-blue-400 font-mono">manifest.json</code> file at its root).
+                            <strong class="text-white">Pin the Extension:</strong> Click the Extensions icon (puzzle piece) in the top-right corner of Chrome, locate LinkPilot, and click the pushpin icon next to it to pin it to your toolbar.
                         </li>
                     </ol>
                     <div class="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-start space-x-3">
                         <i data-lucide="info" class="h-5 w-5 text-blue-500 shrink-0 mt-0.5"></i>
-                        <p class="text-[11px] text-slate-400">Once loaded, the extension icon will appear in your browser toolbar. Navigate to LinkedIn, click the <strong>AI Action</strong> button on any post, and log in with your CRM credentials to start generating outreach.</p>
+                        <p class="text-[11px] text-slate-400">Once pinned, click the LinkPilot icon in your toolbar, log in with your CRM credentials, and navigate to LinkedIn to start generating smart post outreach immediately.</p>
                     </div>
                 </div>
             </div>

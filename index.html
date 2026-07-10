@@ -1,6 +1,48 @@
 <!DOCTYPE html>
 <html lang="en" class="EuclidCircularA en ">
 <head>
+<style>
+.account-list-modal-variant {
+    display: none !important;
+}
+</style>
+<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function() {
+    function replaceKommoBranding(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            if (node.nodeValue.includes("Kommo")) {
+                node.nodeValue = node.nodeValue.replace(/Kommo/g, "LinkPilot");
+            }
+            if (node.nodeValue.includes("kommo")) {
+                node.nodeValue = node.nodeValue.replace(/kommo/g, "linkpilot");
+            }
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+            if (node.getAttribute("alt") && node.getAttribute("alt").includes("Kommo")) {
+                node.setAttribute("alt", node.getAttribute("alt").replace(/Kommo/g, "LinkPilot"));
+            }
+            if (node.getAttribute("title") && node.getAttribute("title").includes("Kommo")) {
+                node.setAttribute("title", node.getAttribute("title").replace(/Kommo/g, "LinkPilot"));
+            }
+            for (let child of node.childNodes) {
+                replaceKommoBranding(child);
+            }
+        }
+    }
+    replaceKommoBranding(document.body);
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+                replaceKommoBranding(node);
+            });
+        });
+    });
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+});
+</script>
+
 <meta charset="UTF-8">
 <script nonce="e9af510aa1a2">
         (function (params) {

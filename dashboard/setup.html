@@ -95,7 +95,7 @@
                                         <!-- Gmail -->
                                         <div id="smtp-card-gmail" onclick="selectSmtpProvider('gmail')" class="p-5 border border-slate-200 hover:border-[#005bf7] rounded-2xl hover:bg-slate-50 cursor-pointer transition flex justify-between items-center group text-left relative bg-white">
                                             <div class="flex items-start space-x-4">
-                                                <img src="https://img.icons8.com/color/48/gmail-new.png" class="h-8 w-8 object-contain mt-0.5" alt="Gmail">
+                                                <img src="https://img.logo.dev/gmail.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-8 w-8 object-contain mt-0.5" alt="Gmail" onerror="this.onerror=null; this.src='https://img.icons8.com/color/48/gmail-new.png';">
                                                 <div>
                                                     <div class="flex items-center space-x-2">
                                                         <span class="font-extrabold text-slate-855 text-sm">Gmail / Google Workspace</span>
@@ -114,7 +114,7 @@
                                         <!-- Outlook -->
                                         <div id="smtp-card-outlook" onclick="selectSmtpProvider('outlook')" class="p-5 border border-slate-200 hover:border-[#005bf7] rounded-2xl hover:bg-slate-50 cursor-pointer transition flex justify-between items-center group text-left relative bg-white">
                                             <div class="flex items-start space-x-4">
-                                                <img src="https://img.icons8.com/color/48/microsoft-outlook-2019.png" class="h-8 w-8 object-contain mt-0.5" alt="Outlook">
+                                                <img src="https://img.logo.dev/outlook.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-8 w-8 object-contain mt-0.5" alt="Outlook" onerror="this.onerror=null; this.src='https://img.icons8.com/color/48/microsoft-outlook-2019.png';">
                                                 <div>
                                                     <div class="flex items-center space-x-2">
                                                         <span class="font-extrabold text-slate-855 text-sm">Outlook / Office 365</span>
@@ -132,7 +132,7 @@
                                         <!-- Yahoo -->
                                         <div id="smtp-card-yahoo" onclick="selectSmtpProvider('yahoo')" class="p-5 border border-slate-200 hover:border-[#005bf7] rounded-2xl hover:bg-slate-50 cursor-pointer transition flex justify-between items-center group text-left relative bg-white">
                                             <div class="flex items-start space-x-4">
-                                                <img src="https://img.icons8.com/color/48/yahoo.png" class="h-8 w-8 object-contain mt-0.5" alt="Yahoo">
+                                                <img src="https://img.logo.dev/yahoo.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-8 w-8 object-contain mt-0.5" alt="Yahoo" onerror="this.onerror=null; this.src='https://img.icons8.com/color/48/yahoo.png';">
                                                 <div>
                                                     <div class="flex items-center space-x-2">
                                                         <span class="font-extrabold text-slate-855 text-sm">Yahoo Mail</span>
@@ -607,47 +607,55 @@
         let activeConnectedEmail = null;
 
         const smtpProvidersList = [
-            { id: 'gmail', name: 'Gmail / Google Workspace', host: 'smtp.gmail.com', port: 587, logo: 'https://img.icons8.com/color/48/gmail-new.png' },
-            { id: 'outlook', name: 'Microsoft Outlook / Office 365', host: 'smtp.office365.com', port: 587, logo: 'https://img.icons8.com/color/48/microsoft-outlook-2019.png' },
-            { id: 'yahoo', name: 'Yahoo Mail', host: 'smtp.mail.yahoo.com', port: 587, logo: 'https://img.icons8.com/color/48/yahoo.png' },
-            { id: 'zoho', name: 'Zoho Mail', host: 'smtp.zoho.com', port: 465, logo: 'https://img.icons8.com/color/48/zoho.png' },
-            { id: 'hostinger', name: 'Hostinger Mail', host: 'smtp.hostinger.com', port: 465, logo: 'https://img.icons8.com/fluent/48/domain.png' },
-            { id: 'mailgun', name: 'Mailgun', host: 'smtp.mailgun.org', port: 587, logo: 'https://img.icons8.com/color/48/mailgun.png' },
-            { id: 'sendgrid', name: 'SendGrid', host: 'smtp.sendgrid.net', port: 587, logo: 'https://img.icons8.com/color/48/sendgrid.png' },
-            { id: 'ses', name: 'Amazon SES', host: 'email-smtp.us-east-1.amazonaws.com', port: 587, logo: 'https://img.icons8.com/color/48/amazon-web-services.png' },
-            { id: 'brevo', name: 'Brevo (Sendinblue)', host: 'smtp-relay.brevo.com', port: 587, logo: 'https://img.icons8.com/external-flatart-icons-flat-flatarticons/64/external-email-web-design-and-development-flatart-icons-flat-flatarticons.png' },
-            { id: 'postmark', name: 'Postmark', host: 'smtp.postmarkapp.com', port: 587, logo: 'https://img.icons8.com/color/48/mail-delivered.png' },
-            { id: 'yandex', name: 'Yandex Mail', host: 'smtp.yandex.com', port: 465, logo: 'https://img.icons8.com/color/48/yandex-international.png' },
-            { id: 'icloud', name: 'iCloud Mail', host: 'smtp.mail.me.com', port: 587, logo: 'https://img.icons8.com/color/48/icloud.png' },
-            { id: 'aol', name: 'AOL Mail', host: 'smtp.aol.com', port: 587, logo: 'https://img.icons8.com/color/48/aol.png' },
-            { id: 'gmx', name: 'GMX Mail', host: 'mail.gmx.com', port: 587, logo: 'https://img.icons8.com/color/48/letter.png' },
-            { id: 'mail_com', name: 'Mail.com', host: 'smtp.mail.com', port: 587, logo: 'https://img.icons8.com/color/48/new-post.png' },
-            { id: 'fastmail', name: 'Fastmail', host: 'smtp.fastmail.com', port: 465, logo: 'https://img.icons8.com/color/48/incoming-mail.png' },
-            { id: 'protonmail', name: 'ProtonMail Bridge', host: '127.0.0.1', port: 1025, logo: 'https://img.icons8.com/color/48/protonmail.png' },
-            { id: 'namecheap', name: 'Namecheap Private Email', host: 'mail.privateemail.com', port: 465, logo: 'https://img.icons8.com/color/48/namecheap.png' },
-            { id: 'godaddy', name: 'GoDaddy Professional Email', host: 'smtpout.secureserver.net', port: 465, logo: 'https://img.icons8.com/color/48/godaddy.png' },
-            { id: 'bluehost', name: 'Bluehost SMTP', host: 'box.bluehost.com', port: 465, logo: 'https://img.icons8.com/color/48/server.png' },
-            { id: 'hostgator', name: 'HostGator SMTP', host: 'mail.hostgator.com', port: 465, logo: 'https://img.icons8.com/color/48/crocodile.png' },
-            { id: 'dreamhost', name: 'DreamHost SMTP', host: 'smtp.dreamhost.com', port: 465, logo: 'https://img.icons8.com/color/48/cloud.png' },
-            { id: 'siteground', name: 'SiteGround SMTP', host: 'mail.siteground.com', port: 465, logo: 'https://img.icons8.com/color/48/dns.png' },
-            { id: 'a2hosting', name: 'A2 Hosting SMTP', host: 'mail.a2hosting.com', port: 465, logo: 'https://img.icons8.com/color/48/rocket.png' },
-            { id: 'inmotion', name: 'InMotion Hosting', host: 'mail.inmotionhosting.com', port: 465, logo: 'https://img.icons8.com/color/48/data-configuration.png' },
-            { id: 'one_com', name: 'One.com SMTP', host: 'send.one.com', port: 465, logo: 'https://img.icons8.com/color/48/number-one.png' },
-            { id: 'web_com', name: 'Web.com SMTP', host: 'smtp.web.com', port: 587, logo: 'https://img.icons8.com/color/48/web.png' },
-            { id: 'ionos', name: '1&1 IONOS Email', host: 'smtp.ionos.com', port: 587, logo: 'https://img.icons8.com/color/48/globe.png' },
-            { id: 'sparkpost', name: 'SparkPost', host: 'smtp.sparkpostmail.com', port: 587, logo: 'https://img.icons8.com/color/48/flash-bang.png' },
-            { id: 'mailjet', name: 'Mailjet', host: 'in-v3.mailjet.com', port: 587, logo: 'https://img.icons8.com/color/48/paper-plane.png' },
-            { id: 'smtp_com', name: 'SMTP.com', host: 'send.smtp.com', port: 2525, logo: 'https://img.icons8.com/color/48/forward-message.png' },
-            { id: 'elasticemail', name: 'Elastic Email', host: 'smtp.elasticemail.com', port: 2525, logo: 'https://img.icons8.com/color/48/mailbox-opened-flag-up.png' },
-            { id: 'socketlabs', name: 'SocketLabs', host: 'smtp.socketlabs.com', port: 587, logo: 'https://img.icons8.com/color/48/electrical-connection.png' },
-            { id: 'netcore', name: 'Netcore Cloud (Pepipost)', host: 'smtp.pepipost.com', port: 587, logo: 'https://img.icons8.com/color/48/upload-database.png' },
-            { id: 'mailtrap', name: 'Mailtrap', host: 'sandbox.smtp.mailtrap.io', port: 2525, logo: 'https://img.icons8.com/color/48/cheburashka.png' },
-            { id: 'sendpulse', name: 'SendPulse', host: 'smtp-pulse.com', port: 587, logo: 'https://img.icons8.com/color/48/pulse.png' },
-            { id: 'mailerlite', name: 'MailerLite', host: 'smtp.mailerlite.com', port: 587, logo: 'https://img.icons8.com/color/48/sent.png' },
-            { id: 'scaleway', name: 'Scaleway SMTP', host: 'smtp.scaleway.com', port: 587, logo: 'https://img.icons8.com/color/48/medium-risk-tactile-sensor.png' },
-            { id: 'ovh', name: 'OVHcloud SMTP', host: 'ssl0.ovh.net', port: 465, logo: 'https://img.icons8.com/color/48/root-server.png' },
-            { id: 'custom', name: 'Custom / Other SMTP Server', host: '', port: 587, logo: 'https://img.icons8.com/color/48/globe--v1.png' }
+            { id: 'gmail', name: 'Gmail / Google Workspace', host: 'smtp.gmail.com', port: 587, domain: 'gmail.com' },
+            { id: 'outlook', name: 'Microsoft Outlook / Office 365', host: 'smtp.office365.com', port: 587, domain: 'outlook.com' },
+            { id: 'yahoo', name: 'Yahoo Mail', host: 'smtp.mail.yahoo.com', port: 587, domain: 'yahoo.com' },
+            { id: 'zoho', name: 'Zoho Mail', host: 'smtp.zoho.com', port: 465, domain: 'zoho.com' },
+            { id: 'hostinger', name: 'Hostinger Mail', host: 'smtp.hostinger.com', port: 465, domain: 'hostinger.com' },
+            { id: 'milesweb', name: 'MilesWeb SMTP', host: 'mail.milesweb.com', port: 465, domain: 'milesweb.com' },
+            { id: 'mailgun', name: 'Mailgun', host: 'smtp.mailgun.org', port: 587, domain: 'mailgun.com' },
+            { id: 'sendgrid', name: 'SendGrid', host: 'smtp.sendgrid.net', port: 587, domain: 'sendgrid.com' },
+            { id: 'ses', name: 'Amazon SES', host: 'email-smtp.us-east-1.amazonaws.com', port: 587, domain: 'aws.amazon.com' },
+            { id: 'brevo', name: 'Brevo (Sendinblue)', host: 'smtp-relay.brevo.com', port: 587, domain: 'brevo.com' },
+            { id: 'postmark', name: 'Postmark', host: 'smtp.postmarkapp.com', port: 587, domain: 'postmarkapp.com' },
+            { id: 'yandex', name: 'Yandex Mail', host: 'smtp.yandex.com', port: 465, domain: 'yandex.com' },
+            { id: 'icloud', name: 'iCloud Mail', host: 'smtp.mail.me.com', port: 587, domain: 'icloud.com' },
+            { id: 'aol', name: 'AOL Mail', host: 'smtp.aol.com', port: 587, domain: 'aol.com' },
+            { id: 'gmx', name: 'GMX Mail', host: 'mail.gmx.com', port: 587, domain: 'gmx.com' },
+            { id: 'mail_com', name: 'Mail.com', host: 'smtp.mail.com', port: 587, domain: 'mail.com' },
+            { id: 'fastmail', name: 'Fastmail', host: 'smtp.fastmail.com', port: 465, domain: 'fastmail.com' },
+            { id: 'protonmail', name: 'ProtonMail Bridge', host: '127.0.0.1', port: 1025, domain: 'proton.me' },
+            { id: 'namecheap', name: 'Namecheap Private Email', host: 'mail.privateemail.com', port: 465, domain: 'namecheap.com' },
+            { id: 'godaddy', name: 'GoDaddy Professional Email', host: 'smtpout.secureserver.net', port: 465, domain: 'godaddy.com' },
+            { id: 'bluehost', name: 'Bluehost SMTP', host: 'box.bluehost.com', port: 465, domain: 'bluehost.com' },
+            { id: 'hostgator', name: 'HostGator SMTP', host: 'mail.hostgator.com', port: 465, domain: 'hostgator.com' },
+            { id: 'dreamhost', name: 'DreamHost SMTP', host: 'smtp.dreamhost.com', port: 465, domain: 'dreamhost.com' },
+            { id: 'siteground', name: 'SiteGround SMTP', host: 'mail.siteground.com', port: 465, domain: 'siteground.com' },
+            { id: 'a2hosting', name: 'A2 Hosting SMTP', host: 'mail.a2hosting.com', port: 465, domain: 'a2hosting.com' },
+            { id: 'inmotion', name: 'InMotion Hosting', host: 'mail.inmotionhosting.com', port: 465, domain: 'inmotionhosting.com' },
+            { id: 'one_com', name: 'One.com SMTP', host: 'send.one.com', port: 465, domain: 'one.com' },
+            { id: 'web_com', name: 'Web.com SMTP', host: 'smtp.web.com', port: 587, domain: 'web.com' },
+            { id: 'ionos', name: '1&1 IONOS Email', host: 'smtp.ionos.com', port: 587, domain: 'ionos.com' },
+            { id: 'sparkpost', name: 'SparkPost', host: 'smtp.sparkpostmail.com', port: 587, domain: 'sparkpost.com' },
+            { id: 'mailjet', name: 'Mailjet', host: 'in-v3.mailjet.com', port: 587, domain: 'mailjet.com' },
+            { id: 'smtp_com', name: 'SMTP.com', host: 'send.smtp.com', port: 2525, domain: 'smtp.com' },
+            { id: 'elasticemail', name: 'Elastic Email', host: 'smtp.elasticemail.com', port: 2525, domain: 'elasticemail.com' },
+            { id: 'socketlabs', name: 'SocketLabs', host: 'smtp.socketlabs.com', port: 587, domain: 'socketlabs.com' },
+            { id: 'netcore', name: 'Netcore Cloud (Pepipost)', host: 'smtp.pepipost.com', port: 587, domain: 'netcorecloud.com' },
+            { id: 'mailtrap', name: 'Mailtrap', host: 'sandbox.smtp.mailtrap.io', port: 2525, domain: 'mailtrap.io' },
+            { id: 'sendpulse', name: 'SendPulse', host: 'smtp-pulse.com', port: 587, domain: 'sendpulse.com' },
+            { id: 'mailerlite', name: 'MailerLite', host: 'smtp.mailerlite.com', port: 587, domain: 'mailerlite.com' },
+            { id: 'scaleway', name: 'Scaleway SMTP', host: 'smtp.scaleway.com', port: 587, domain: 'scaleway.com' },
+            { id: 'ovh', name: 'OVHcloud SMTP', host: 'ssl0.ovh.net', port: 465, domain: 'ovhcloud.com' },
+            { id: 'custom', name: 'Custom / Other SMTP Server', host: '', port: 587, domain: 'custom' }
         ];
+
+        window.getProviderLogoUrl = function(item) {
+            if (!item || item.domain === 'custom') {
+                return 'https://img.icons8.com/color/48/globe--v1.png';
+            }
+            return `https://img.logo.dev/${item.domain}?token=pk_N-oU80_cR4CQ8ojWxHTECA`;
+        };
 
         window.toggleCustomProviderDropdown = function() {
             const options = document.getElementById('custom-provider-dropdown-options');
@@ -685,14 +693,14 @@
             if (!listEl) return;
             
             listEl.innerHTML = list.map(item => `
-                <div onclick="selectCustomSmtpProvider('${item.id}', '${item.host}', ${item.port}, '${item.logo}')" class="flex items-center space-x-3.5 px-4 py-3.5 hover:bg-slate-50 cursor-pointer transition">
-                    <img src="${item.logo}" class="h-6 w-6 object-contain shrink-0" alt="${item.name}" onerror="this.src='https://img.icons8.com/color/48/globe--v1.png'">
+                <div onclick="selectCustomSmtpProvider('${item.id}', '${item.host}', ${item.port})" class="flex items-center space-x-3.5 px-4 py-3.5 hover:bg-slate-50 cursor-pointer transition">
+                    <img src="${getProviderLogoUrl(item)}" class="h-6 w-6 object-contain shrink-0" alt="${item.name}" onerror="this.onerror=null; this.src='https://img.icons8.com/color/48/globe--v1.png';">
                     <span class="font-extrabold text-slate-800 text-sm">${item.name}</span>
                 </div>
             `).join('');
         };
 
-        window.selectCustomSmtpProvider = function(val, host, port, logo) {
+        window.selectCustomSmtpProvider = function(val, host, port) {
             const display = document.getElementById('selected-provider-display');
             const options = document.getElementById('custom-provider-dropdown-options');
             
@@ -722,7 +730,7 @@
             const providerItem = smtpProvidersList.find(p => p.id === val) || smtpProvidersList[smtpProvidersList.length - 1];
             if (display) {
                 display.innerHTML = `
-                    <img src="${providerItem.logo}" class="h-6 w-6 object-contain shrink-0" alt="${providerItem.name}" onerror="this.src='https://img.icons8.com/color/48/globe--v1.png'">
+                    <img src="${getProviderLogoUrl(providerItem)}" class="h-6 w-6 object-contain shrink-0" alt="${providerItem.name}" onerror="this.onerror=null; this.src='https://img.icons8.com/color/48/globe--v1.png';">
                     <span class="font-extrabold text-slate-800 text-sm">${providerItem.name}</span>
                 `;
             }
@@ -895,9 +903,9 @@
             
             // Sync custom provider dropdown selector UI
             if (provider !== 'custom') {
-                selectCustomSmtpProvider(provider, meta.host, meta.port, provider);
+                selectCustomSmtpProvider(provider, meta.host, meta.port);
             } else {
-                selectCustomSmtpProvider('custom', '', 587, 'globe');
+                selectCustomSmtpProvider('custom', '', 587);
             }
             
             // Highlight selected card and hide others

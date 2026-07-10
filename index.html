@@ -12812,6 +12812,43 @@
     });
   </script>
 
+
+<div id="layout-diagnostics" style="position: fixed; top: 0; left: 0; right: 0; background: rgba(220, 38, 38, 0.95); color: white; font-family: monospace; font-size: 11px; padding: 4px 12px; z-index: 999999; display: flex; gap: 20px; justify-content: center; align-items: center; border-bottom: 2px solid white; pointer-events: none;">
+  <span id="diag-nav">Nav: --</span>
+  <span id="diag-logo">Logo: --</span>
+  <span id="diag-wrapper">Wrapper: --</span>
+  <span id="diag-buttons">Buttons: --</span>
+  <span id="diag-window">Window: --</span>
+</div>
+<script>
+function updateDiagnostics() {
+    var nav = document.querySelector("header nav");
+    var logo = document.querySelector("header nav > a");
+    var wrapper = document.querySelector(".navigation__wrapper");
+    var buttons = document.querySelector("header nav > div.hidden.md\\:flex");
+    
+    if (nav) {
+        var r = nav.getBoundingClientRect();
+        document.getElementById("diag-nav").innerText = "Nav: w=" + Math.round(r.width) + " h=" + Math.round(r.height);
+    }
+    if (logo) {
+        var r = logo.getBoundingClientRect();
+        document.getElementById("diag-logo").innerText = "Logo: w=" + Math.round(r.width) + " y=" + Math.round(logo.offsetTop);
+    }
+    if (wrapper) {
+        var r = wrapper.getBoundingClientRect();
+        document.getElementById("diag-wrapper").innerText = "Wrapper: w=" + Math.round(r.width) + " y=" + Math.round(wrapper.offsetTop);
+    }
+    if (buttons) {
+        var r = buttons.getBoundingClientRect();
+        document.getElementById("diag-buttons").innerText = "Buttons: w=" + Math.round(r.width) + " y=" + Math.round(buttons.offsetTop);
+    }
+    document.getElementById("diag-window").innerText = "Window: " + window.innerWidth + "x" + window.innerHeight;
+}
+window.addEventListener("load", updateDiagnostics);
+window.addEventListener("resize", updateDiagnostics);
+setInterval(updateDiagnostics, 1000);
+</script>
 </body>
 
 </html>

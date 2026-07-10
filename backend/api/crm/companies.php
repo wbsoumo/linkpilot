@@ -76,6 +76,7 @@ try {
             $search = trim($_GET['search'] ?? '');
             $industry = trim($_GET['industry'] ?? '');
             $status = trim($_GET['status'] ?? '');
+            $owner = trim($_GET['owner'] ?? '');
             $source = trim($_GET['source'] ?? '');
             $page = max(1, (int)($_GET['page'] ?? 1));
             $limit = max(1, (int)($_GET['limit'] ?? 10));
@@ -96,6 +97,10 @@ try {
                 $query .= " AND status = :status";
                 $params['status'] = $status;
             }
+            if ($owner !== '') {
+                $query .= " AND owner = :owner";
+                $params['owner'] = $owner;
+            }
             if ($source !== '') {
                 $query .= " AND source = :source";
                 $params['source'] = $source;
@@ -112,6 +117,7 @@ try {
             if ($search !== '') $dataStmt->bindValue(':search', '%' . $search . '%', PDO::PARAM_STR);
             if ($industry !== '') $dataStmt->bindValue(':industry', $industry, PDO::PARAM_STR);
             if ($status !== '') $dataStmt->bindValue(':status', $status, PDO::PARAM_STR);
+            if ($owner !== '') $dataStmt->bindValue(':owner', $owner, PDO::PARAM_STR);
             if ($source !== '') $dataStmt->bindValue(':source', $source, PDO::PARAM_STR);
             $dataStmt->bindValue(':limit', $limit, PDO::PARAM_INT);
             $dataStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
@@ -119,7 +125,7 @@ try {
             
             $companies = $dataStmt->fetchAll();
             
-            // Get distinct industries and statuses for quick filter drop-downs
+            // Get distinct industries, statuses and owners for quick filter drop-downs
             $distinctIndustries = $db->prepare("SELECT DISTINCT industry FROM crm_companies WHERE user_id = ? AND industry IS NOT NULL AND industry != '' ORDER BY industry");
             $distinctIndustries->execute([$userId]);
             $industries = $distinctIndustries->fetchAll(PDO::FETCH_COLUMN);
@@ -127,6 +133,34 @@ try {
             $distinctStatuses = $db->prepare("SELECT DISTINCT status FROM crm_companies WHERE user_id = ? AND status IS NOT NULL AND status != '' ORDER BY status");
             $distinctStatuses->execute([$userId]);
             $statuses = $distinctStatuses->fetchAll(PDO::FETCH_COLUMN);
+
+            $distinctOwners = $db->prepare("SELECT DISTINCT owner FROM crm_companies WHERE user_id = ? AND owner IS NOT NULL AND owner != '' ORDER BY owner");
+            $distinctOwners->execute([$userId]);
+            $owners = $distinctOwners->fetchAll(PDO::FETCH_COLUMN);
+            
+            // Calculate detailed real-time statistics
+            // 1. Total Companies
+            $sTotal = $totalCount;
+            
+            // 2. Active Companies (meaning companies with status = 'Active')
+            $stmtAct = $db->prepare("SELECT COUNT(*) FROM crm_companies WHERE user_id = ? AND status = 'Active'");
+            $stmtAct->execute([$userId]);
+            $sActive = (int)$stmtAct->fetchColumn();
+            
+            // 3. With Website (meaning website is not null and not empty)
+            $stmtWeb = $db->prepare("SELECT COUNT(*) FROM crm_companies WHERE user_id = ? AND website IS NOT NULL AND website != ''");
+            $stmtWeb->execute([$userId]);
+            $sWithWebsite = (int)$stmtWeb->fetchColumn();
+            
+            // 4. Active Status (meaning companies with linked contacts)
+            $stmtActStat = $db->prepare("SELECT COUNT(DISTINCT company_id) FROM crm_contacts WHERE user_id = ? AND company_id IS NOT NULL");
+            $stmtActStat->execute([$userId]);
+            $sActiveStatus = (int)$stmtActStat->fetchColumn();
+            
+            // 5. Unique industries
+            $stmtInds = $db->prepare("SELECT COUNT(DISTINCT industry) FROM crm_companies WHERE user_id = ? AND industry IS NOT NULL AND industry != ''");
+            $stmtInds->execute([$userId]);
+            $sUniqueIndustries = (int)$stmtInds->fetchColumn();
             
             // Fetch logo.dev API Key from admin settings
             $logoApiKey = '';
@@ -140,9 +174,17 @@ try {
                 'page' => $page,
                 'limit' => $limit,
                 'logo_dev_api_key' => $logoApiKey,
+                'stats' => [
+                    'total' => $sTotal,
+                    'active' => $sActive,
+                    'with_website' => $sWithWebsite,
+                    'active_status' => $sActiveStatus,
+                    'industries' => $sUniqueIndustries
+                ],
                 'filters' => [
                     'industries' => $industries,
-                    'statuses' => $statuses
+                    'statuses' => $statuses,
+                    'owners' => $owners
                 ]
             ]);
         }
@@ -270,6 +312,65 @@ try {
         $stmt->execute([$companyId, $userId]);
         
         sendJsonResponse('success', "Company '{$company['name']}' deleted successfully.");
+    }
+    
+    elseif ($method === 'BATCH_INSERT') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $companiesInput = $input['companies'] ?? [];
+        if (!is_array($companiesInput)) {
+            sendJsonResponse('error', 'Invalid companies payload.', [], 400);
+        }
+        
+        $importedCount = 0;
+        $duplicateCount = 0;
+        
+        $db->beginTransaction();
+        try {
+            foreach ($companiesInput as $c) {
+                $name = trim($c['name'] ?? '');
+                if (empty($name)) continue;
+                
+                // Prevent duplicate companies by name
+                $stmtDup = $db->prepare("SELECT id FROM crm_companies WHERE name = ? AND user_id = ?");
+                $stmtDup->execute([$name, $userId]);
+                if ($stmtDup->fetch()) {
+                    $duplicateCount++;
+                    continue;
+                }
+                
+                $industry = trim($c['industry'] ?? '');
+                $website = trim($c['website'] ?? '');
+                $owner = trim($c['owner'] ?? '');
+                $status = trim($c['status'] ?? 'Active');
+                
+                $stmt = $db->prepare("INSERT INTO crm_companies (user_id, name, industry, website, owner, status) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt->execute([
+                    $userId, $name, $industry, $website, $owner, $status
+                ]);
+                $companyId = $db->lastInsertId();
+                
+                // Log to timeline
+                $timelineStmt = $db->prepare("INSERT INTO crm_timeline (user_id, company_id, activity_type, description) VALUES (?, ?, 'Company Created', ?)");
+                $timelineStmt->execute([$userId, $companyId, "Company '$name' was imported into CRM."]);
+                
+                $importedCount++;
+            }
+            
+            $db->commit();
+            
+            $msg = "Imported $importedCount companies successfully.";
+            if ($duplicateCount > 0) {
+                $msg .= " Skipped $duplicateCount duplicates.";
+            }
+            
+            sendJsonResponse('success', $msg, [
+                'imported' => $importedCount,
+                'duplicates' => $duplicateCount
+            ]);
+        } catch (Exception $ex) {
+            $db->rollBack();
+            throw $ex;
+        }
     }
     
     else {

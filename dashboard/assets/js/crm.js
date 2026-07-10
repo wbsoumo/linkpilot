@@ -3746,14 +3746,27 @@ window.submitDealRemark = async function(dealId) {
 // 6. COMPANIES & OTHER CRM VIEWS (STUBS / LISTS)
 // ----------------------------------------------------
 async function renderCompanies(container) {
+    if (window.companiesCurrentPage === undefined) window.companiesCurrentPage = 1;
+    if (window.companiesPageLimit === undefined) window.companiesPageLimit = 10;
+    if (window.companiesSearchQuery === undefined) window.companiesSearchQuery = '';
+    if (window.companiesFilterIndustry === undefined) window.companiesFilterIndustry = '';
+    if (window.companiesFilterStatus === undefined) window.companiesFilterStatus = '';
+    if (window.companiesFilterOwner === undefined) window.companiesFilterOwner = '';
+
     try {
-        const res = await apiCall('crm/companies.php?limit=1000');
-        const comps = res.companies || [];
-        const logoApiKey = res.logo_dev_api_key || '';
+        const offset = (window.companiesCurrentPage - 1) * window.companiesPageLimit;
+        const url = `crm/companies.php?page=${window.companiesCurrentPage}&limit=${window.companiesPageLimit}&search=${encodeURIComponent(window.companiesSearchQuery)}&industry=${encodeURIComponent(window.companiesFilterIndustry)}&status=${encodeURIComponent(window.companiesFilterStatus)}&owner=${encodeURIComponent(window.companiesFilterOwner)}`;
+        const res = await apiCall(url);
         
+        const comps = res.companies || [];
+        const total = res.total || 0;
+        const logoApiKey = res.logo_dev_api_key || '';
+        const stats = res.stats || { total: 0, active: 0, with_website: 0, active_status: 0, industries: 0 };
+        const filterOptions = res.filters || { industries: [], statuses: [], owners: [] };
+
         let compRows = comps.map(c => {
             // Default letter monogram
-            let logoHtml = `<div class="h-7 w-7 rounded-lg bg-slate-800 text-white font-bold flex items-center justify-center border border-slate-700/60 uppercase text-[10px] shadow-sm select-none">${c.name ? c.name.charAt(0) : 'C'}</div>`;
+            let logoHtml = `<div class="h-7 w-7 rounded-lg bg-slate-800 text-white font-bold flex items-center justify-center border border-slate-700/60 uppercase text-[10px] shadow-sm select-none" style="color: #ffffff !important;">${c.name ? c.name.charAt(0) : 'C'}</div>`;
             
             // Resolve company website domain for logo lookup
             let domain = null;
@@ -3764,21 +3777,44 @@ async function renderCompanies(container) {
             }
 
             if (domain && logoApiKey) {
-                logoHtml = `<img src="https://img.logo.dev/${domain}?token=${logoApiKey}&size=64&fallback=monogram" class="h-7 w-7 rounded-lg object-contain bg-white border border-slate-700/30 shadow-sm" alt="${c.name || 'Logo'}" onerror="this.onerror=null; this.outerHTML='<div class=&quot;h-7 w-7 rounded-lg bg-slate-800 text-white font-bold flex items-center justify-center border border-slate-700/60 uppercase text-[10px] shadow-sm select-none&quot;>${c.name ? c.name.charAt(0) : 'C'}</div>';">`;
+                logoHtml = `<img src="https://img.logo.dev/${domain}?token=${logoApiKey}&size=64&fallback=monogram" class="h-7 w-7 rounded-lg object-contain bg-white border border-slate-200 shadow-sm" alt="${c.name || 'Logo'}" onerror="this.onerror=null; this.outerHTML='<div class=&quot;h-7 w-7 rounded-lg bg-slate-800 text-white font-bold flex items-center justify-center border border-slate-700/60 uppercase text-[10px] shadow-sm select-none&quot; style=&quot;color: #ffffff !important;&quot;>${c.name ? c.name.charAt(0) : 'C'}</div>';">`;
             }
 
             return `
-                <tr class="hover:bg-slate-900/40">
-                    <td class="py-3 px-4">${logoHtml}</td>
-                    <td class="py-3 px-4 font-bold text-white">${c.name}</td>
-                    <td class="py-3 px-4 text-slate-300 font-medium">${c.industry || '-'}</td>
-                    <td class="py-3 px-4 text-slate-400 font-mono text-[11px]">${c.website || '-'}</td>
-                    <td class="py-3 px-4">${c.owner || '-'}</td>
-                    <td class="py-3 px-4">
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-green-500/10 text-green-400 border border-green-500/20">${c.status}</span>
+                <tr class="hover:bg-slate-50/50 border-b border-slate-100 text-slate-700 text-[11px]">
+                    <td class="py-2.5 px-4 w-8 text-center">
+                        <input type="checkbox" class="company-row-checkbox rounded border-slate-300 text-indigo-650 focus:ring-indigo-500 h-3.5 w-3.5">
                     </td>
-                    <td class="py-3 px-4 text-right">
-                        <button onclick="openInspectCompanyModal(${c.id})" class="text-xs px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-md hover:border-teal-400 hover:text-teal-400 transition">View Portal</button>
+                    <td class="py-2.5 px-4 font-semibold text-slate-800 flex items-center space-x-2.5">
+                        ${logoHtml}
+                        <span class="font-bold text-slate-800 text-[11px]">${c.name}</span>
+                    </td>
+                    <td class="py-2.5 px-4">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-600">${c.industry || '-'}</span>
+                    </td>
+                    <td class="py-2.5 px-4">
+                        ${c.website ? `
+                            <a href="${c.website.startsWith('http') ? c.website : 'https://' + c.website}" target="_blank" class="text-slate-500 hover:text-indigo-600 flex items-center space-x-1 hover:underline transition">
+                                <span>${c.website.replace(/^(https?:\/\/)?(www\.)?/, '')}</span>
+                                <i data-lucide="external-link" class="h-3 w-3 text-slate-400 shrink-0"></i>
+                            </a>
+                        ` : '-'}
+                    </td>
+                    <td class="py-2.5 px-4 text-slate-500 font-medium">${c.owner || '-'}</td>
+                    <td class="py-2.5 px-4">
+                        <span class="px-2 py-0.5 rounded-full text-[9px] font-bold inline-flex items-center space-x-1 ${c.status === 'Active' ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-650'}">
+                            <span class="h-1.5 w-1.5 rounded-full ${c.status === 'Active' ? 'bg-green-500' : 'bg-slate-400'}"></span>
+                            <span>${c.status || 'Active'}</span>
+                        </span>
+                    </td>
+                    <td class="py-2.5 px-4 text-slate-500 font-medium">${c.created_at ? formatContactDate(c.created_at) : '-'}</td>
+                    <td class="py-2.5 px-4 text-right">
+                        <div class="flex items-center justify-end space-x-2">
+                            <button onclick="openInspectCompanyModal(${c.id})" class="px-3 py-1 border border-slate-200 rounded-md text-slate-650 hover:bg-slate-50 hover:text-slate-900 transition text-[10px] font-semibold shadow-2xs">View Portal</button>
+                            <button class="h-6 w-6 rounded-md hover:bg-slate-150 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
+                                <i data-lucide="more-vertical" class="h-3.5 w-3.5"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `;
@@ -3786,31 +3822,179 @@ async function renderCompanies(container) {
 
         container.innerHTML = `
             <div class="space-y-6 animate-fade-in pt-4">
-                <div class="flex justify-between items-center border-b border-slate-850 pb-4">
-                    <div>
-                        <h1 class="text-2xl font-extrabold text-white">Companies Vault</h1>
-                        <p class="text-slate-400 text-xs mt-1">Manage institutional and client accounts.</p>
+                <!-- Header -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-100 pb-4 gap-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="h-10 w-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100 shadow-sm shrink-0">
+                            <i data-lucide="building-2" class="h-5 w-5" style="stroke: #4f46e5 !important;"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold text-slate-900 leading-tight">Companies Vault</h1>
+                            <p class="text-slate-450 text-[11px] font-medium mt-0.5">Manage institutional and client accounts in one place.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2 w-full md:w-auto">
+                        <button onclick="openImportCompaniesModal()" class="px-4 py-2 border border-slate-200 rounded-lg text-slate-700 bg-white hover:bg-slate-50 font-bold flex items-center space-x-1.5 transition text-[11px] shadow-xs">
+                            <i data-lucide="upload" class="h-3.5 w-3.5 text-slate-500"></i>
+                            <span>Import Companies</span>
+                        </button>
+                        
+                        <button onclick="openAddCompanyModal()" class="px-4 py-2 bg-[#4f46e5] hover:bg-indigo-600 rounded-lg font-bold flex items-center space-x-1.5 transition text-[11px] shadow-sm" style="color: #ffffff !important;">
+                            <i data-lucide="plus" class="h-3.5 w-3.5" style="stroke: #ffffff !important;"></i>
+                            <span style="color: #ffffff !important;">Add Company</span>
+                        </button>
                     </div>
                 </div>
 
-                <div class="glass-panel p-5 bg-slate-900/40">
+                <!-- Stats Cards Grid -->
+                <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div class="bg-white border border-slate-100 rounded-[20px] p-4 flex items-center space-x-3.5 shadow-sm transition hover:shadow-md">
+                        <div class="h-11 w-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100/50 shrink-0">
+                            <i data-lucide="building" class="h-5 w-5" style="stroke: #4f46e5 !important;"></i>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] text-slate-450 font-bold uppercase tracking-wider">Total Companies</span>
+                            <span class="block text-lg font-extrabold text-slate-800 leading-none mt-1">${stats.total.toLocaleString()}</span>
+                            <span class="block text-[9px] text-slate-400 mt-1 font-medium">Across all industries</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white border border-slate-100 rounded-[20px] p-4 flex items-center space-x-3.5 shadow-sm transition hover:shadow-md">
+                        <div class="h-11 w-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100/50 shrink-0">
+                            <i data-lucide="shield-check" class="h-5 w-5" style="stroke: #10b981 !important;"></i>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] text-slate-450 font-bold uppercase tracking-wider">Active Companies</span>
+                            <span class="block text-lg font-extrabold text-slate-800 leading-none mt-1">${stats.active.toLocaleString()}</span>
+                            <span class="block text-[9px] text-emerald-600 mt-1 font-semibold">${stats.total > 0 ? ((stats.active / stats.total) * 100).toFixed(1) : 0}% of total</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white border border-slate-100 rounded-[20px] p-4 flex items-center space-x-3.5 shadow-sm transition hover:shadow-md">
+                        <div class="h-11 w-11 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center border border-violet-100/50 shrink-0">
+                            <i data-lucide="globe" class="h-5 w-5" style="stroke: #7c3aed !important;"></i>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] text-slate-450 font-bold uppercase tracking-wider">With Website</span>
+                            <span class="block text-lg font-extrabold text-slate-800 leading-none mt-1">${stats.with_website.toLocaleString()}</span>
+                            <span class="block text-[9px] text-violet-600 mt-1 font-semibold">${stats.total > 0 ? ((stats.with_website / stats.total) * 100).toFixed(1) : 0}% have website</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white border border-slate-100 rounded-[20px] p-4 flex items-center space-x-3.5 shadow-sm transition hover:shadow-md">
+                        <div class="h-11 w-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100/50 shrink-0">
+                            <i data-lucide="activity" class="h-5 w-5" style="stroke: #3b82f6 !important;"></i>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] text-slate-450 font-bold uppercase tracking-wider">Active Status</span>
+                            <span class="block text-lg font-extrabold text-slate-800 leading-none mt-1">${stats.active_status.toLocaleString()}</span>
+                            <span class="block text-[9px] text-blue-600 mt-1 font-semibold">${stats.total > 0 ? ((stats.active_status / stats.total) * 100).toFixed(1) : 0}% have contacts</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white border border-slate-100 rounded-[20px] p-4 flex items-center space-x-3.5 shadow-sm transition hover:shadow-md">
+                        <div class="h-11 w-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100/50 shrink-0">
+                            <i data-lucide="pie-chart" class="h-5 w-5" style="stroke: #d97706 !important;"></i>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] text-slate-450 font-bold uppercase tracking-wider">Industries</span>
+                            <span class="block text-lg font-extrabold text-slate-800 leading-none mt-1">${stats.industries}</span>
+                            <span class="block text-[9px] text-slate-400 mt-1 font-medium">Unique industries</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters Control Bar -->
+                <div class="flex flex-col md:flex-row gap-2.5 items-center justify-between">
+                    <div class="relative w-full md:w-80 shrink-0">
+                        <i data-lucide="search" class="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400"></i>
+                        <input type="text" 
+                               id="companies-search-input" 
+                               placeholder="Search companies by name, industry, owner..." 
+                               value="${window.companiesSearchQuery || ''}" 
+                               oninput="handleCompaniesSearchInput(event)" 
+                               class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-slate-800 bg-white placeholder-slate-400 text-[11px] focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-2xs">
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center gap-2 w-full md:w-auto md:justify-end">
+                        <div class="relative">
+                            <select onchange="window.companiesFilterIndustry=this.value; window.companiesCurrentPage=1; renderCompanies(document.getElementById('main-content-viewport'))" 
+                                    class="pl-8 pr-6 py-2 border border-slate-200 rounded-lg text-slate-700 bg-white text-[11px] appearance-none focus:ring-1 focus:ring-indigo-500 shadow-2xs cursor-pointer">
+                                <option value="">All Industries</option>
+                                ${filterOptions.industries.map(i => `<option value="${i}" ${window.companiesFilterIndustry === i ? 'selected' : ''}>${i}</option>`).join('')}
+                            </select>
+                            <i data-lucide="building" class="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400 pointer-events-none"></i>
+                        </div>
+                        
+                        <div class="relative">
+                            <select onchange="window.companiesFilterStatus=this.value; window.companiesCurrentPage=1; renderCompanies(document.getElementById('main-content-viewport'))" 
+                                    class="pl-8 pr-6 py-2 border border-slate-200 rounded-lg text-slate-700 bg-white text-[11px] appearance-none focus:ring-1 focus:ring-indigo-500 shadow-2xs cursor-pointer">
+                                <option value="">All Status</option>
+                                ${filterOptions.statuses.map(s => `<option value="${s}" ${window.companiesFilterStatus === s ? 'selected' : ''}>${s}</option>`).join('')}
+                            </select>
+                            <i data-lucide="circle-dot" class="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400 pointer-events-none"></i>
+                        </div>
+                        
+                        <div class="relative">
+                            <select onchange="window.companiesFilterOwner=this.value; window.companiesCurrentPage=1; renderCompanies(document.getElementById('main-content-viewport'))" 
+                                    class="pl-8 pr-6 py-2 border border-slate-200 rounded-lg text-slate-700 bg-white text-[11px] appearance-none focus:ring-1 focus:ring-indigo-500 shadow-2xs cursor-pointer">
+                                <option value="">All Owners</option>
+                                ${filterOptions.owners.map(o => `<option value="${o}" ${window.companiesFilterOwner === o ? 'selected' : ''}>${o}</option>`).join('')}
+                            </select>
+                            <i data-lucide="user" class="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400 pointer-events-none"></i>
+                        </div>
+                        
+                        <button class="px-3 py-2 border border-slate-200 rounded-lg text-slate-650 bg-white hover:bg-slate-50 font-bold flex items-center space-x-1.5 transition text-[11px] shadow-xs">
+                            <i data-lucide="filter" class="h-3.5 w-3.5"></i>
+                            <span>More Filters</span>
+                        </button>
+                        
+                        <button class="h-8 w-8 border border-slate-200 rounded-lg text-slate-650 bg-white hover:bg-slate-50 flex items-center justify-center transition shadow-xs">
+                            <i data-lucide="sliders-horizontal" class="h-3.5 w-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Companies Table -->
+                <div class="bg-white border border-slate-100 rounded-[20px] p-5 shadow-sm">
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse custom-table text-xs">
+                        <table class="w-full text-left border-collapse text-xs">
                             <thead>
-                                <tr class="border-b border-slate-800">
-                                    <th class="py-3 px-4 w-12">Logo</th>
-                                    <th class="py-3 px-4">Company Name</th>
-                                    <th class="py-3 px-4">Industry</th>
-                                    <th class="py-3 px-4">Website</th>
-                                    <th class="py-3 px-4">Owner</th>
-                                    <th class="py-3 px-4">Status</th>
-                                    <th class="py-3 px-4 text-right">Actions</th>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-450 font-bold uppercase tracking-wider text-[9px]">
+                                    <th class="py-2.5 px-4 w-8 text-center"><input type="checkbox" onchange="toggleSelectAllCompanies(this)" class="rounded border-slate-350 text-indigo-650 focus:ring-indigo-500 h-3.5 w-3.5"></th>
+                                    <th class="py-2.5 px-4">Company</th>
+                                    <th class="py-2.5 px-4">Industry</th>
+                                    <th class="py-2.5 px-4">Website</th>
+                                    <th class="py-2.5 px-4">Owner</th>
+                                    <th class="py-2.5 px-4">Status</th>
+                                    <th class="py-2.5 px-4">Added On</th>
+                                    <th class="py-2.5 px-4 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                ${compRows || `<tr><td colspan="7" class="text-center py-10 text-slate-500">No companies cataloged.</td></tr>`}
+                                ${compRows || `<tr><td colspan="8" class="text-center py-12 text-slate-400">No companies found match your criteria.</td></tr>`}
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="flex flex-col md:flex-row items-center justify-between pt-4 border-t border-slate-100 gap-4">
+                        <span class="text-[11px] text-slate-450 font-medium">Showing ${total === 0 ? 0 : offset + 1} to ${Math.min(offset + window.companiesPageLimit, total)} of ${total.toLocaleString()} companies</span>
+                        
+                        <div class="flex items-center space-x-4">
+                            <div class="relative flex items-center space-x-1.5">
+                                <select onchange="window.companiesPageLimit=parseInt(this.value); window.companiesCurrentPage=1; renderCompanies(document.getElementById('main-content-viewport'))" 
+                                        class="pl-2 pr-6 py-1 border border-slate-200 rounded-lg text-slate-700 bg-white text-[11px] appearance-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-2xs">
+                                    <option value="10" ${window.companiesPageLimit === 10 ? 'selected' : ''}>10 per page</option>
+                                    <option value="25" ${window.companiesPageLimit === 25 ? 'selected' : ''}>25 per page</option>
+                                    <option value="50" ${window.companiesPageLimit === 50 ? 'selected' : ''}>50 per page</option>
+                                </select>
+                            </div>
+                            
+                            <div class="flex items-center space-x-1">
+                                ${renderCompaniesPaginationControls(total, window.companiesPageLimit, window.companiesCurrentPage)}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3819,6 +4003,390 @@ async function renderCompanies(container) {
     } catch (err) {
         showNotification('error', err.message);
     }
+}
+
+function toggleSelectAllCompanies(master) {
+    const checkboxes = document.querySelectorAll('.company-row-checkbox');
+    checkboxes.forEach(cb => cb.checked = master.checked);
+}
+
+let companiesSearchTimeout = null;
+function handleCompaniesSearchInput(event) {
+    window.companiesSearchQuery = event.target.value;
+    clearTimeout(companiesSearchTimeout);
+    companiesSearchTimeout = setTimeout(() => {
+        window.companiesCurrentPage = 1;
+        renderCompanies(document.getElementById('main-content-viewport'));
+    }, 400);
+}
+
+function renderCompaniesPaginationControls(total, limit, currentPage) {
+    const totalPages = Math.ceil(total / limit) || 1;
+    let html = '';
+    
+    html += `
+        <button onclick="changeCompaniesPage(1)" ${currentPage === 1 ? 'disabled' : ''} class="h-7 w-7 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 flex items-center justify-center transition disabled:opacity-40 disabled:hover:bg-transparent">
+            <i data-lucide="chevrons-left" class="h-3.5 w-3.5"></i>
+        </button>
+        <button onclick="changeCompaniesPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} class="h-7 w-7 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 flex items-center justify-center transition disabled:opacity-40 disabled:hover:bg-transparent">
+            <i data-lucide="chevron-left" class="h-3.5 w-3.5"></i>
+        </button>
+    `;
+    
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, startPage + 4);
+    
+    for (let p = startPage; p <= endPage; p++) {
+        html += `
+            <button onclick="changeCompaniesPage(${p})" class="h-7 px-2.5 rounded-lg border text-[11px] font-bold transition ${p === currentPage ? 'bg-indigo-50 border-indigo-200 text-indigo-650' : 'border-slate-200 text-slate-650 hover:bg-slate-50'}">${p}</button>
+        `;
+    }
+    
+    html += `
+        <button onclick="changeCompaniesPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} class="h-7 w-7 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 flex items-center justify-center transition disabled:opacity-40 disabled:hover:bg-transparent">
+            <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i>
+        </button>
+        <button onclick="changeCompaniesPage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''} class="h-7 w-7 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 flex items-center justify-center transition disabled:opacity-40 disabled:hover:bg-transparent">
+            <i data-lucide="chevrons-right" class="h-3.5 w-3.5"></i>
+        </button>
+    `;
+    
+    return html;
+}
+
+function changeCompaniesPage(newPage) {
+    window.companiesCurrentPage = newPage;
+    renderCompanies(document.getElementById('main-content-viewport'));
+}
+
+function downloadSampleCompaniesCSV() {
+    const csvContent = "data:text/csv;charset=utf-8,Company Name,Industry,Website,Owner,Status\nGoogle,Technology,google.com,John Doe,Active\nAcme Corp,Manufacturing,,Jane Smith,Active\n";
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "sample_companies.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function openImportCompaniesModal() {
+    const existing = document.getElementById('crm-import-companies-modal');
+    if (existing) existing.remove();
+
+    const modalHTML = `
+        <div id="crm-import-companies-modal" class="fixed inset-0 z-[100] flex flex-col items-center justify-center animate-fade-in p-4" style="background-color: rgba(15, 23, 42, 0.65) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
+            <div class="bg-white border border-slate-100 rounded-[24px] w-full max-w-2xl p-6 text-slate-800 text-xs space-y-6 shadow-2xl relative" id="import-companies-modal-content">
+                <button onclick="document.getElementById('crm-import-companies-modal').remove()" class="absolute top-6 right-6 h-8 w-8 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-400 hover:text-slate-700 flex items-center justify-center transition shadow-xs">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+                
+                <div class="flex items-center space-x-3.5">
+                    <div class="h-11 w-11 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100/50 shadow-xs">
+                        <i data-lucide="upload-cloud" class="h-5 w-5" style="stroke: #4f46e5 !important;"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900 leading-tight">Import Companies</h2>
+                        <p class="text-slate-450 text-[11px] mt-0.5 font-medium">Upload a CSV file to import your companies vault quickly.</p>
+                    </div>
+                </div>
+                
+                <div id="drag-drop-zone-companies" class="p-8 border-2 border-dashed border-indigo-200 hover:border-indigo-400 rounded-[16px] bg-indigo-50/5 hover:bg-indigo-50/15 transition cursor-pointer flex flex-col items-center justify-center space-y-3 relative group"
+                     onclick="document.getElementById('companies-import-file-input').click()"
+                     ondragover="handleCompanyImportDragOver(event)"
+                     ondragleave="handleCompanyImportDragLeave(event)"
+                     ondrop="handleCompanyImportDrop(event)">
+                    
+                    <input type="file" id="companies-import-file-input" class="hidden" accept=".csv" onchange="handleCompanyImportFileChange(event)">
+                    
+                    <div class="relative flex flex-col items-center justify-center">
+                        <svg class="h-16 w-16 text-indigo-500" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M14 6C14 3.79086 15.7909 2 18 2H38L50 14V58C50 60.2091 48.2091 62 46 62H18C15.7909 62 14 60.2091 14 58V6Z" fill="#F1F3FF" stroke="#818CF8" stroke-width="2"/>
+                            <path d="M38 2V14H50" fill="#E0E7FF" stroke="#818CF8" stroke-width="2"/>
+                            <rect x="18" y="34" width="28" height="14" rx="4" fill="#4F46E5"/>
+                            <text x="32" y="44" fill="white" font-size="8" font-family="sans-serif" font-weight="bold" text-anchor="middle">CSV</text>
+                        </svg>
+                        <div class="absolute -top-1 -right-2 text-indigo-400 animate-pulse text-sm">✦</div>
+                        <div class="absolute top-8 -left-3 text-indigo-400 animate-pulse text-xs">✦</div>
+                        <div class="absolute bottom-4 -right-3 text-indigo-400 animate-pulse text-xs">✦</div>
+                    </div>
+                    
+                    <span class="font-bold text-slate-800 text-[13px] group-hover:text-indigo-600 transition">Drag and drop your CSV file here</span>
+                    <span class="text-[10px] text-slate-400">or</span>
+                    
+                    <button class="px-4 py-2 bg-[#4f46e5] hover:bg-indigo-600 rounded-lg font-bold text-xs flex items-center space-x-1.5 transition shadow-sm pointer-events-none" style="color: #ffffff !important;">
+                        <i data-lucide="upload" class="h-3.5 w-3.5" style="stroke: #ffffff !important;"></i>
+                        <span style="color: #ffffff !important;">Choose CSV File</span>
+                    </button>
+                </div>
+                
+                <div class="p-3 border border-emerald-100 bg-[#f0fdf4]/60 rounded-xl flex items-center space-x-3 text-slate-700">
+                    <i data-lucide="check-circle-2" class="h-5 w-5 text-emerald-500 shrink-0"></i>
+                    <div>
+                        <span class="block font-bold text-[11px] text-emerald-800">Supported format</span>
+                        <span class="block text-[10px] text-slate-500 mt-0.5">CSV file with columns: <strong class="text-slate-650">Company Name, Industry, Website, Owner, Status</strong></span>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                    <button onclick="downloadSampleCompaniesCSV()" class="px-4 py-2 bg-slate-600 hover:bg-slate-700 rounded-lg font-bold flex items-center space-x-1.5 transition text-[11px] shadow-xs" style="color: #ffffff !important;">
+                        <i data-lucide="help-circle" class="h-3.5 w-3.5" style="stroke: #ffffff !important;"></i>
+                        <span style="color: #ffffff !important;">Download Sample CSV</span>
+                    </button>
+                    
+                    <div class="flex items-center space-x-2">
+                        <button onclick="document.getElementById('crm-import-companies-modal').remove()" class="px-4 py-2 bg-slate-500 hover:bg-slate-600 rounded-lg font-bold transition text-[11px] shadow-xs" style="color: #ffffff !important;">
+                            <span style="color: #ffffff !important;">Cancel</span>
+                        </button>
+                        <button onclick="document.getElementById('companies-import-file-input').click()" class="px-4 py-2 bg-[#4f46e5] hover:bg-indigo-650 rounded-lg font-bold flex items-center space-x-1.5 transition text-[11px] shadow-sm" style="color: #ffffff !important;">
+                            <span style="color: #ffffff !important;">Import Companies</span>
+                            <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    lucide.createIcons();
+}
+
+function handleCompanyImportDragOver(e) {
+    e.preventDefault();
+    const zone = document.getElementById('drag-drop-zone-companies');
+    if (zone) {
+        zone.classList.add('border-indigo-500', 'bg-indigo-50/20');
+    }
+}
+
+function handleCompanyImportDragLeave(e) {
+    e.preventDefault();
+    const zone = document.getElementById('drag-drop-zone-companies');
+    if (zone) {
+        zone.classList.remove('border-indigo-500', 'bg-indigo-50/20');
+    }
+}
+
+function handleCompanyImportDrop(e) {
+    e.preventDefault();
+    const zone = document.getElementById('drag-drop-zone-companies');
+    if (zone) {
+        zone.classList.remove('border-indigo-500', 'bg-indigo-50/20');
+    }
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        const file = e.dataTransfer.files[0];
+        const input = document.getElementById('companies-import-file-input');
+        if (input) {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            input.files = dataTransfer.files;
+            handleCompanyImportFileChange({ target: input });
+        }
+    }
+}
+
+function handleCompanyImportFileChange(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const content = document.getElementById('import-companies-modal-content');
+    content.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-6 space-y-3 text-center">
+            <dotlottie-wc src="https://lottie.host/84140ec0-d043-44f2-ad03-0851264ce760/EAb0eZ26cj.lottie" style="width: 250px; height: 250px" autoplay loop></dotlottie-wc>
+            <span class="font-extrabold text-sm text-slate-800 animate-pulse">Analyzing and parsing company file...</span>
+            <span class="text-xs text-slate-500 font-medium">Verifying file structures and columns</span>
+        </div>
+    `;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const text = e.target.result;
+        
+        setTimeout(() => {
+            try {
+                const rows = parseCSV(text);
+                if (rows.length < 2) {
+                    throw new Error("File is empty or contains no headers.");
+                }
+                
+                const headers = rows[0].map(h => h.trim().toLowerCase().replace(/[^a-z0-9]/g, ''));
+                
+                const colIndexName = headers.indexOf('companyname') !== -1 ? headers.indexOf('companyname') : (headers.indexOf('name') !== -1 ? headers.indexOf('name') : headers.indexOf('company'));
+                const colIndexIndustry = headers.indexOf('industry');
+                const colIndexWebsite = headers.indexOf('website');
+                const colIndexOwner = headers.indexOf('owner');
+                const colIndexStatus = headers.indexOf('status');
+                
+                if (colIndexName === -1) {
+                    throw new Error("Could not find a 'Company Name' or 'Name' column in the headers.");
+                }
+
+                const parsedCompanies = [];
+                for (let i = 1; i < rows.length; i++) {
+                    const r = rows[i];
+                    if (r.length === 0 || (r.length === 1 && r[0] === '')) continue;
+                    const name = r[colIndexName]?.trim();
+                    if (!name) continue;
+
+                    parsedCompanies.push({
+                        name: name,
+                        industry: colIndexIndustry !== -1 ? r[colIndexIndustry]?.trim() : '',
+                        website: colIndexWebsite !== -1 ? r[colIndexWebsite]?.trim() : '',
+                        owner: colIndexOwner !== -1 ? r[colIndexOwner]?.trim() : '',
+                        status: colIndexStatus !== -1 ? r[colIndexStatus]?.trim() : 'Active'
+                    });
+                }
+
+                showCompanyImportPreviewScreen(parsedCompanies);
+            } catch (err) {
+                showCompanyImportErrorScreen(err.message);
+            }
+        }, 2200);
+    };
+    reader.readAsText(file);
+}
+
+window.parsedImportCompanies = [];
+function showCompanyImportPreviewScreen(companies) {
+    window.parsedImportCompanies = companies;
+    const content = document.getElementById('import-companies-modal-content');
+    
+    let rowsHtml = companies.map((c, index) => `
+        <tr class="border-b border-slate-100 hover:bg-slate-50 transition text-slate-700 text-[11px]">
+            <td class="py-2.5 px-3 w-8 text-center">
+                <input type="checkbox" data-index="${index}" class="preview-import-company-checkbox rounded border-slate-300 text-indigo-650 focus:ring-indigo-500 h-3.5 w-3.5" checked>
+            </td>
+            <td class="py-2.5 px-3 font-semibold text-slate-800">${c.name}</td>
+            <td class="py-2.5 px-3 text-slate-650">${c.industry || '-'}</td>
+            <td class="py-2.5 px-3 text-slate-500 font-mono text-[10px]">${c.website || '-'}</td>
+            <td class="py-2.5 px-3 text-slate-500">${c.owner || '-'}</td>
+            <td class="py-2.5 px-3 text-slate-500">${c.status || 'Active'}</td>
+        </tr>
+    `).join('');
+
+    content.innerHTML = `
+        <button onclick="document.getElementById('crm-import-companies-modal').remove()" class="absolute top-4 right-4 h-7 w-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
+            <i data-lucide="x" class="h-4 w-4"></i>
+        </button>
+        
+        <h2 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+            <i data-lucide="list-checks" class="h-4.5 w-4.5 text-indigo-650 mr-1"></i>
+            <span>Parsed Companies Preview</span>
+        </h2>
+        
+        <p class="text-[11px] text-slate-500">Found <strong class="text-slate-700">${companies.length}</strong> companies. Uncheck any row to exclude it from the import.</p>
+        
+        <div class="max-h-60 overflow-y-auto border border-slate-200 rounded-xl bg-white">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-450 font-bold uppercase tracking-wider text-[9px] sticky top-0">
+                        <th class="py-2 px-3 w-8 text-center"><input type="checkbox" onchange="toggleSelectAllCompanyImportPreviews(this)" class="rounded border-slate-350 text-indigo-650 focus:ring-indigo-500 h-3.5 w-3.5" checked></th>
+                        <th class="py-2 px-3">Company</th>
+                        <th class="py-2 px-3">Industry</th>
+                        <th class="py-2 px-3">Website</th>
+                        <th class="py-2 px-3">Owner</th>
+                        <th class="py-2 px-3">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rowsHtml || `<tr><td colspan="6" class="text-center py-6 text-slate-400">No importable records parsed.</td></tr>`}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+            <button onclick="openImportCompaniesModal()" class="px-4 py-2 bg-slate-500 hover:bg-slate-600 rounded-lg font-bold transition" style="color: #ffffff !important;">
+                <span style="color: #ffffff !important;">Back</span>
+            </button>
+            <button onclick="submitFinalCompanyImport()" class="px-4 py-2 bg-[#4f46e5] hover:bg-indigo-600 rounded-lg font-bold transition shadow-sm" id="import-company-submit-btn" style="color: #ffffff !important;">
+                <span style="color: #ffffff !important;">Import Selected (${companies.length})</span>
+            </button>
+        </div>
+    `;
+    lucide.createIcons();
+}
+
+function toggleSelectAllCompanyImportPreviews(master) {
+    const checkboxes = document.querySelectorAll('.preview-import-company-checkbox');
+    checkboxes.forEach(cb => cb.checked = master.checked);
+}
+
+function showCompanyImportErrorScreen(msg) {
+    const content = document.getElementById('import-companies-modal-content');
+    content.innerHTML = `
+        <button onclick="document.getElementById('crm-import-companies-modal').remove()" class="absolute top-4 right-4 h-7 w-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
+            <i data-lucide="x" class="h-4 w-4"></i>
+        </button>
+        
+        <div class="flex flex-col items-center justify-center py-6 space-y-3">
+            <i data-lucide="alert-triangle" class="h-10 w-10 text-red-500"></i>
+            <span class="font-bold text-slate-800 text-sm">Failed to Parse File</span>
+            <span class="text-xs text-slate-500 text-center max-w-xs">${msg}</span>
+        </div>
+        
+        <div class="flex justify-end pt-4 border-t border-slate-100">
+            <button onclick="openImportCompaniesModal()" class="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg font-bold transition" style="color: #ffffff !important;">
+                <span style="color: #ffffff !important;">Try Another File</span>
+            </button>
+        </div>
+    `;
+    lucide.createIcons();
+}
+
+function submitFinalCompanyImport() {
+    const checkboxes = document.querySelectorAll('.preview-import-company-checkbox');
+    const selectedCompanies = [];
+    checkboxes.forEach(cb => {
+        if (cb.checked) {
+            const index = parseInt(cb.getAttribute('data-index'));
+            selectedCompanies.push(window.parsedImportCompanies[index]);
+        }
+    });
+
+    if (selectedCompanies.length === 0) {
+        showNotification('warning', 'Please select at least one company to import.');
+        return;
+    }
+
+    const content = document.getElementById('import-companies-modal-content');
+    content.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-6 space-y-3 text-center">
+            <dotlottie-wc src="https://lottie.host/84140ec0-d043-44f2-ad03-0851264ce760/EAb0eZ26cj.lottie" style="width: 250px; height: 250px" autoplay loop></dotlottie-wc>
+            <span class="font-extrabold text-sm text-slate-800">Importing selected companies...</span>
+            <span class="text-xs text-slate-500 font-medium">Writing profiles and cataloging indices</span>
+        </div>
+    `;
+
+    apiCall('crm/companies.php?action=batch_insert', 'POST', { companies: selectedCompanies })
+        .then(res => {
+            if (res.status === 'success') {
+                content.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-6 space-y-3 text-center">
+                        <dotlottie-wc src="https://lottie.host/b719c456-9268-4dea-80e8-dfc060f53604/4pgT4yhNjy.lottie" style="width: 250px; height: 250px" autoplay></dotlottie-wc>
+                        <span class="font-extrabold text-sm text-indigo-650">Import Complete!</span>
+                        <span class="text-xs text-slate-500 font-semibold">${res.imported} companies imported successfully.</span>
+                        
+                        <button onclick="closeCompanyImportAndReload()" class="mt-4 px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition shadow-sm" style="color: #ffffff !important;">
+                            <span style="color: #ffffff !important;">Done</span>
+                        </button>
+                    </div>
+                `;
+            } else {
+                showCompanyImportErrorScreen(res.message || 'Import failed.');
+            }
+        })
+        .catch(err => {
+            showCompanyImportErrorScreen(err.message);
+        });
+}
+
+function closeCompanyImportAndReload() {
+    const modal = document.getElementById('crm-import-companies-modal');
+    if (modal) modal.remove();
+    
+    const container = document.getElementById('main-content-viewport');
+    if (container) renderCompanies(container);
 }
 
 function formatContactDate(dateString) {

@@ -3846,7 +3846,7 @@ function handleContactsSearch(val) {
     contactsSearchTimeout = setTimeout(() => {
         window.contactsFilterState.search = val.trim();
         window.contactsFilterState.page = 1;
-        const container = document.getElementById('crm-main-content-viewport') || document.querySelector('.flex-grow.overflow-y-auto');
+        const container = document.getElementById('main-content-viewport');
         if (container) renderContacts(container);
     }, 300);
 }
@@ -3854,34 +3854,34 @@ function handleContactsSearch(val) {
 function handleContactsCompanyFilter(val) {
     window.contactsFilterState.companyId = parseInt(val) || 0;
     window.contactsFilterState.page = 1;
-    const container = document.getElementById('crm-main-content-viewport') || document.querySelector('.flex-grow.overflow-y-auto');
+    const container = document.getElementById('main-content-viewport');
     if (container) renderContacts(container);
 }
 
 function handleContactsDesignationFilter(val) {
     window.contactsFilterState.designation = val;
     window.contactsFilterState.page = 1;
-    const container = document.getElementById('crm-main-content-viewport') || document.querySelector('.flex-grow.overflow-y-auto');
+    const container = document.getElementById('main-content-viewport');
     if (container) renderContacts(container);
 }
 
 function handleContactsStatusFilter(val) {
     window.contactsFilterState.status = val;
     window.contactsFilterState.page = 1;
-    const container = document.getElementById('crm-main-content-viewport') || document.querySelector('.flex-grow.overflow-y-auto');
+    const container = document.getElementById('main-content-viewport');
     if (container) renderContacts(container);
 }
 
 function changeContactsPage(p) {
     window.contactsFilterState.page = p;
-    const container = document.getElementById('crm-main-content-viewport') || document.querySelector('.flex-grow.overflow-y-auto');
+    const container = document.getElementById('main-content-viewport');
     if (container) renderContacts(container);
 }
 
 function changeContactsLimit(l) {
     window.contactsFilterState.limit = parseInt(l) || 10;
     window.contactsFilterState.page = 1;
-    const container = document.getElementById('crm-main-content-viewport') || document.querySelector('.flex-grow.overflow-y-auto');
+    const container = document.getElementById('main-content-viewport');
     if (container) renderContacts(container);
 }
 
@@ -3916,7 +3916,7 @@ function handleContactsCSVImport(fileInput) {
     .then(res => {
         if (res.status === 'success') {
             showNotification('success', res.message);
-            const container = document.getElementById('crm-main-content-viewport') || document.querySelector('.flex-grow.overflow-y-auto');
+            const container = document.getElementById('main-content-viewport');
             if (container) renderContacts(container);
         } else {
             showNotification('error', res.message || 'Import failed.');
@@ -4027,7 +4027,7 @@ function submitAddContactForm(e) {
         .then(res => {
             showNotification('success', 'Contact profile created successfully.');
             document.getElementById('crm-add-contact-modal').remove();
-            const container = document.getElementById('crm-main-content-viewport') || document.querySelector('.flex-grow.overflow-y-auto');
+            const container = document.getElementById('main-content-viewport');
             if (container) renderContacts(container);
         })
         .catch(err => {
@@ -4156,17 +4156,17 @@ async function renderContacts(container) {
                     </div>
                     
                     <div class="flex items-center space-x-2 shrink-0">
-                        <button onclick="triggerContactsCSVSelect()" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-650 bg-white transition flex items-center space-x-1.5 shadow-xs">
+                        <button onclick="triggerContactsCSVSelect()" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-lg text-xs font-semibold text-slate-650 bg-white transition flex items-center space-x-1.5 shadow-xs">
                             <i data-lucide="upload" class="h-3.5 w-3.5 text-slate-450"></i>
                             <span>Import Contacts</span>
                         </button>
                         
-                        <div class="inline-flex rounded-xl shadow-xs">
-                            <button onclick="openAddContactModal()" class="px-4 py-2 bg-indigo-650 hover:bg-indigo-600 text-white rounded-l-xl font-bold text-xs flex items-center space-x-1.5 transition select-none">
+                        <div class="inline-flex rounded-lg shadow-xs">
+                            <button onclick="openAddContactModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-l-lg font-bold text-xs flex items-center space-x-1.5 transition select-none">
                                 <i data-lucide="plus" class="h-3.5 w-3.5"></i>
                                 <span>Add Contact</span>
                             </button>
-                            <button onclick="openAddContactModal()" class="px-2.5 py-2 bg-indigo-650 hover:bg-indigo-600 text-white rounded-r-xl border-l border-indigo-700/50 transition select-none">
+                            <button onclick="openAddContactModal()" class="px-2.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-r-lg border-l border-indigo-700/50 transition select-none">
                                 <i data-lucide="chevron-down" class="h-3.5 w-3.5"></i>
                             </button>
                         </div>

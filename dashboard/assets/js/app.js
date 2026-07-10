@@ -396,7 +396,7 @@ function openExtensionGuide() {
             
             <div class="space-y-4">
                 <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 flex flex-col items-center text-center">
-                    <img src="assets/img/logo.png" class="h-16 w-16 mb-3 object-contain" alt="LinkPilot Logo" onerror="this.onerror=null; this.src='../dashboard/assets/img/logo.png';">
+                    <img src="assets/img/logo.png" class="h-16 w-16 mb-3 object-contain rounded-[22%] overflow-hidden" alt="LinkPilot Logo" onerror="this.onerror=null; this.src='../dashboard/assets/img/logo.png';">
                     <h3 class="text-sm font-semibold text-white">LinkPilot AI - LinkedIn Outreach</h3>
                     <p class="text-[11px] text-slate-400 mt-1 max-w-xs">Available on the official Chrome Web Store. Clean, secure, and receives automated updates.</p>
                     

@@ -4571,7 +4571,7 @@ function renderWhatsAppTemplates(container) {
                                         <div class="flex items-center space-x-1.5">
                                             <i data-lucide="arrow-left" class="h-4 w-4 text-white hover:opacity-80 cursor-pointer"></i>
                                             <div class="h-8 w-8 rounded-full bg-white flex items-center justify-center overflow-hidden shrink-0 border border-white/20 p-1">
-                                                <img src="assets/img/logo.png" class="h-full w-full object-contain" alt="">
+                                                <img src="assets/img/logo.png" class="h-full w-full object-contain rounded-[22%] overflow-hidden" alt="">
                                             </div>
                                             <div>
                                                 <div class="text-[11px] font-bold flex items-center">
@@ -6076,7 +6076,7 @@ window.renderWhatsAppSendTemplate = function (container, params = {}) {
                                         <div class="flex items-center space-x-1.5">
                                             <i data-lucide="arrow-left" class="h-4 w-4 text-white hover:opacity-80 cursor-pointer"></i>
                                             <div class="h-8 w-8 rounded-full bg-white flex items-center justify-center overflow-hidden shrink-0 border border-white/20 p-1">
-                                                <img src="assets/img/logo.png" class="h-full w-full object-contain" alt="">
+                                                <img src="assets/img/logo.png" class="h-full w-full object-contain rounded-[22%] overflow-hidden" alt="">
                                             </div>
                                             <div>
                                                 <div class="text-[11px] font-bold flex items-center">

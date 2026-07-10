@@ -15,8 +15,7 @@ if (!$input) {
 }
 
 $phoneNumber = trim($input['phone_number'] ?? '');
-$captchaToken = trim($input['captcha_token'] ?? '');
-$captchaAnswer = isset($input['captcha_answer']) ? (int)$input['captcha_answer'] : null;
+$recaptchaResponse = trim($input['recaptcha_response'] ?? '');
 $isResend = isset($input['is_resend']) && $input['is_resend'] === true;
 
 // Validate basic inputs
@@ -25,27 +24,36 @@ if (empty($phoneNumber)) {
 }
 
 if (!$isResend) {
-    if (empty($captchaToken) || $captchaAnswer === null) {
-        sendJsonResponse('error', 'Please solve the math captcha to verify you are not a robot.', [], 400);
+    if (empty($recaptchaResponse)) {
+        sendJsonResponse('error', 'Please complete the reCAPTCHA verification to prove you are not a robot.', [], 400);
     }
 
-    // Validate captcha token
-    $decrypted = decryptData($captchaToken);
-    if (!$decrypted) {
-        sendJsonResponse('error', 'Invalid captcha token. Please refresh the captcha.', [], 400);
+    // Validate Google reCAPTCHA
+    $secretKey = '6LfdZEwtAAAAAMZ2rqsH76pFis2pG64F2kfIJd6E';
+    $ipAddress = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    
+    $ch = curl_init('https://www.google.com/recaptcha/api/siteverify');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, [
+        'secret' => $secretKey,
+        'response' => $recaptchaResponse,
+        'remoteip' => $ipAddress
+    ]);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    
+    $verifyResponse = curl_exec($ch);
+    $error = curl_error($ch);
+    curl_close($ch);
+
+    if ($error) {
+        sendJsonResponse('error', 'reCAPTCHA service connection failed: ' . $error, [], 500);
     }
 
-    $captchaData = json_decode($decrypted, true);
-    if (!$captchaData || !isset($captchaData['answer']) || !isset($captchaData['expiry'])) {
-        sendJsonResponse('error', 'Invalid captcha token data. Please refresh.', [], 400);
-    }
-
-    if (time() > $captchaData['expiry']) {
-        sendJsonResponse('error', 'Captcha has expired. Please refresh the captcha.', [], 400);
-    }
-
-    if ($captchaAnswer !== (int)$captchaData['answer']) {
-        sendJsonResponse('error', 'Incorrect captcha answer. Please try again.', [], 400);
+    $responseData = json_decode($verifyResponse, true);
+    if (!$responseData || !isset($responseData['success']) || $responseData['success'] !== true) {
+        sendJsonResponse('error', 'reCAPTCHA verification failed. Please try again.', [], 400);
     }
 }
 

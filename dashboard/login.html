@@ -16,6 +16,8 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
+    <!-- Google reCAPTCHA v2 -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         body {
             font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
@@ -269,22 +271,9 @@
                     </div>
 
                     <!-- Captcha -->
-                    <div class="space-y-2">
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Verify you are
-                            not a robot (Math Captcha)</label>
-                        <div
-                            class="flex items-center justify-between p-4 bg-[#f8fafc] border border-slate-200 rounded-xl">
-                            <span id="captcha-question"
-                                class="text-sm font-extrabold text-[#005bf7] tracking-wider">Loading...</span>
-                            <button type="button" onclick="loadMathCaptcha(); return false;"
-                                class="text-xs font-bold text-[#005bf7] hover:underline transition">
-                                🔄 Refresh
-                            </button>
-                        </div>
-                        <input id="captcha-answer" type="number" required
-                            class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200"
-                            placeholder="Your answer">
-                        <input id="captcha-token" type="hidden">
+                    <div class="space-y-2 flex flex-col items-center">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider self-start">Verify you are not a robot</label>
+                        <div class="g-recaptcha shadow-sm rounded-xl overflow-hidden" data-sitekey="6LfdZEwtAAAAALLWow5ktOTIuD8wW3Di_S0EY2Kh"></div>
                     </div>
 
                     <!-- Actions -->
@@ -689,7 +678,9 @@
             document.getElementById('forgot-password-send-form').classList.remove('hidden');
             document.getElementById('forgot-password-verify-form').classList.add('hidden');
             document.getElementById('forgot-password-reset-form').classList.add('hidden');
-            loadMathCaptcha();
+            if (window.grecaptcha) {
+                grecaptcha.reset();
+            }
         }
 
         function showVerifyOtpView() {
@@ -713,45 +704,24 @@
             document.getElementById('forgot-password-reset-form').classList.remove('hidden');
         }
 
-        // Fetch dynamic Math Captcha
-        async function loadMathCaptcha() {
-            const questionEl = document.getElementById('captcha-question');
-            const tokenEl = document.getElementById('captcha-token');
-            const answerEl = document.getElementById('captcha-answer');
-
-            questionEl.textContent = 'Loading Captcha...';
-            answerEl.value = '';
-            tokenEl.value = '';
-
-            try {
-                const data = await apiCall('auth/get_captcha.php', 'GET');
-                if (data.status === 'success') {
-                    questionEl.textContent = data.question;
-                    tokenEl.value = data.captcha_token;
-                } else {
-                    questionEl.textContent = 'Failed to load captcha.';
-                }
-            } catch (err) {
-                questionEl.textContent = 'Error loading captcha.';
-                showNotification('error', 'Could not fetch math captcha.');
-            }
-        }
-
         // Send OTP Handler
         async function handleSendForgotPasswordOtp(e) {
             e.preventDefault();
 
             const phone = document.getElementById('forgot_phone_number').value.trim();
-            const captchaToken = document.getElementById('captcha-token').value;
-            const captchaAnswer = document.getElementById('captcha-answer').value.trim();
 
             if (!/^[6-9]\d{9}$/.test(phone)) {
                 showNotification('error', 'Please enter a valid 10-digit mobile number.');
                 return;
             }
 
-            if (!captchaToken || captchaAnswer === '') {
-                showNotification('error', 'Please solve the math captcha.');
+            let recaptchaResponse = '';
+            if (window.grecaptcha) {
+                recaptchaResponse = grecaptcha.getResponse();
+            }
+
+            if (!recaptchaResponse) {
+                showNotification('error', 'Please verify that you are not a robot.');
                 return;
             }
 
@@ -760,8 +730,7 @@
             try {
                 const payload = {
                     phone_number: phone,
-                    captcha_token: captchaToken,
-                    captcha_answer: parseInt(captchaAnswer, 10)
+                    recaptcha_response: recaptchaResponse
                 };
 
                 const data = await apiCall('auth/forgot_password_send_otp.php', 'POST', payload);
@@ -779,7 +748,9 @@
 
             } catch (err) {
                 showNotification('error', err.message || 'Failed to send OTP.');
-                loadMathCaptcha();
+                if (window.grecaptcha) {
+                    grecaptcha.reset();
+                }
             } finally {
                 setFormLoading('forgot-password-send-form', false);
             }

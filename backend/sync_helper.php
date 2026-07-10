@@ -53,7 +53,7 @@ class SyncHelper {
             } catch (Throwable $e) {
                 $errorMsg = 'IMAP Connection Error: ' . $e->getMessage();
             }
-        } elseif (ExternalAppsHelper::isGoogleConnected($userId)) {
+        } elseif (ExternalAppsHelper::isGoogleGmailConnected($userId)) {
             // Fallback to Google OAuth Gmail API
             try {
                 $gmailEmails = ExternalAppsHelper::fetchGmailEmails($userId, 10);

@@ -203,6 +203,22 @@ class ExternalAppsHelper {
     }
 
     /**
+     * Checks if user has a connected Google account with active Gmail sync scopes
+     */
+    public static function isGoogleGmailConnected($userId) {
+        self::checkDatabaseSchema();
+        $db = Database::getConnection();
+        $stmt = $db->prepare("SELECT scopes, status FROM external_app_connections WHERE user_id = ? AND provider = 'google' LIMIT 1");
+        $stmt->execute([$userId]);
+        $row = $stmt->fetch();
+        if (!$row || $row['status'] !== 'connected') {
+            return false;
+        }
+        $scopes = $row['scopes'] ?? '';
+        return (strpos($scopes, 'gmail.modify') !== false || strpos($scopes, 'mail.google.com') !== false);
+    }
+
+    /**
      * Helper to perform cURL requests to Google API
      */
     public static function makeCurlRequest($url, $method = 'GET', $body = null, $headers = []) {

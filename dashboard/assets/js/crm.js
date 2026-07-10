@@ -13778,6 +13778,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     navigateTo(view, params);
+
+    // Automated background email & visual workflow execution cron trigger
+    const triggerBackgroundCronSync = () => {
+        if (typeof API_BASE_URL !== 'undefined') {
+            const baseCronUrl = API_BASE_URL.replace('/api', '') + '/cron_sync.php?token=LP_CRON_SYNC_KEY_5a4c98';
+            fetch(baseCronUrl).catch(() => {});
+        }
+    };
+    triggerBackgroundCronSync();
+    setInterval(triggerBackgroundCronSync, 30000); // Trigger sync every 30 seconds
 });
 
 // --- EXTERNAL APPS SaaS INTEGRATION MARKETPLACE ---

@@ -1079,6 +1079,11 @@ async function renderEmailIntelligence(container) {
 function renderSetupWizard(container, data) {
     const conn = data.connection || {};
     
+    // Default to 'gmail' as it is recommended
+    if (!conn.email_provider) {
+        conn.email_provider = 'gmail';
+    }
+    
     // Auto pre-fill if not already configured
     if (conn.email_provider === 'gmail') {
         if (!conn.smtp_host) conn.smtp_host = 'smtp.gmail.com';
@@ -1119,7 +1124,7 @@ function renderSetupWizard(container, data) {
                 <div class="flex flex-col items-center flex-1 relative wizard-step">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300
                         ${wizardStep >= 1 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white border border-slate-200 text-slate-400'}">
-                        <i data-lucide="mail" class="h-5 w-5"></i>
+                        <i data-lucide="mail" class="h-5 w-5 ${wizardStep >= 1 ? 'text-white' : 'text-slate-400'}"></i>
                     </div>
                     <span class="text-[10px] font-extrabold uppercase mt-2 tracking-wider ${wizardStep >= 1 ? 'text-blue-600' : 'text-slate-400'}">Connect</span>
                 </div>
@@ -1128,7 +1133,7 @@ function renderSetupWizard(container, data) {
                 <div class="flex flex-col items-center flex-1 relative wizard-step">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300
                         ${wizardStep >= 2 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white border border-slate-200 text-slate-400'}">
-                        <i data-lucide="server" class="h-5 w-5"></i>
+                        <i data-lucide="server" class="h-5 w-5 ${wizardStep >= 2 ? 'text-white' : 'text-slate-400'}"></i>
                     </div>
                     <span class="text-[10px] font-extrabold uppercase mt-2 tracking-wider ${wizardStep >= 2 ? 'text-blue-600' : 'text-slate-400'}">SMTP</span>
                 </div>
@@ -1137,7 +1142,7 @@ function renderSetupWizard(container, data) {
                 <div class="flex flex-col items-center flex-1 relative wizard-step">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300
                         ${wizardStep >= 3 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white border border-slate-200 text-slate-400'}">
-                        <i data-lucide="download" class="h-5 w-5"></i>
+                        <i data-lucide="download" class="h-5 w-5 ${wizardStep >= 3 ? 'text-white' : 'text-slate-400'}"></i>
                     </div>
                     <span class="text-[10px] font-extrabold uppercase mt-2 tracking-wider ${wizardStep >= 3 ? 'text-blue-600' : 'text-slate-400'}">IMAP</span>
                 </div>
@@ -1146,7 +1151,7 @@ function renderSetupWizard(container, data) {
                 <div class="flex flex-col items-center flex-1 relative wizard-step">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300
                         ${wizardStep >= 4 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white border border-slate-200 text-slate-400'}">
-                        <i data-lucide="shield-check" class="h-5 w-5"></i>
+                        <i data-lucide="shield-check" class="h-5 w-5 ${wizardStep >= 4 ? 'text-white' : 'text-slate-400'}"></i>
                     </div>
                     <span class="text-[10px] font-extrabold uppercase mt-2 tracking-wider ${wizardStep >= 4 ? 'text-blue-600' : 'text-slate-400'}">Perms</span>
                 </div>
@@ -1155,7 +1160,7 @@ function renderSetupWizard(container, data) {
                 <div class="flex flex-col items-center flex-1 relative wizard-step">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300
                         ${wizardStep >= 5 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white border border-slate-200 text-slate-400'}">
-                        <i data-lucide="user" class="h-5 w-5"></i>
+                        <i data-lucide="user" class="h-5 w-5 ${wizardStep >= 5 ? 'text-white' : 'text-slate-400'}"></i>
                     </div>
                     <span class="text-[10px] font-extrabold uppercase mt-2 tracking-wider ${wizardStep >= 5 ? 'text-blue-600' : 'text-slate-400'}">Profile</span>
                 </div>
@@ -1164,7 +1169,7 @@ function renderSetupWizard(container, data) {
                 <div class="flex flex-col items-center flex-1 relative wizard-step">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300
                         ${wizardStep >= 6 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white border border-slate-200 text-slate-400'}">
-                        <i data-lucide="lock" class="h-5 w-5"></i>
+                        <i data-lucide="lock" class="h-5 w-5 ${wizardStep >= 6 ? 'text-white' : 'text-slate-400'}"></i>
                     </div>
                     <span class="text-[10px] font-extrabold uppercase mt-2 tracking-wider ${wizardStep >= 6 ? 'text-blue-600' : 'text-slate-400'}">Privacy</span>
                 </div>
@@ -1510,7 +1515,7 @@ function renderSetupWizard(container, data) {
 
                     <!-- Action buttons (White background, light borders) -->
                     <div class="pt-6 border-t border-slate-100 flex justify-between mt-8">
-                        <button type="button" id="wiz-back-btn" onclick="adjustWizardStep(-1)" class="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-extrabold text-slate-600 transition shadow-sm ${wizardStep === 1 ? 'invisible' : ''}">
+                        <button type="button" id="wiz-back-btn" onclick="adjustWizardStep(-1)" class="px-5 py-2.5 bg-slate-600 hover:bg-slate-700 text-white rounded-xl text-xs font-extrabold transition shadow-sm ${wizardStep === 1 ? 'invisible' : ''}">
                             Back
                         </button>
                         

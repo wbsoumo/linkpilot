@@ -18,6 +18,7 @@ if ($method === 'POST' && !empty($action)) {
 }
 
 try {
+    file_put_contents(__DIR__ . '/reply_debug.log', "Method = " . $_SERVER['REQUEST_METHOD'] . " | Action = " . $action . " | POST = " . json_encode($_POST) . " | FILES = " . json_encode($_FILES) . "\n", FILE_APPEND);
     if ($method === 'POST') {
         $input = json_decode(file_get_contents('php://input'), true);
         if (!$input) {

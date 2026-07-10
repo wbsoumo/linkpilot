@@ -142,7 +142,7 @@ try {
         }
     } 
     
-    elseif ($method === 'POST' || $method === 'PUT') {
+    elseif ($method === 'POST' || $method === 'PUT' || in_array($method, ['STAR', 'ARCHIVE', 'DELETE', 'GENERATE_REPLY'])) {
         // Toggle read/starred/archived states
         $input = json_decode(file_get_contents('php://input'), true);
         if (!$input) {

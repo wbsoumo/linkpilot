@@ -1493,6 +1493,9 @@
                 showNotification('success', 'Google Workspace Account connected successfully via Secure OAuth!');
                 slideTo(1); // Advance directly to WhatsApp onboarding slide
             }
+            if (urlParams.get('google_error')) {
+                showNotification('error', decodeURIComponent(urlParams.get('google_error')));
+            }
         });
     </script>
 </body>

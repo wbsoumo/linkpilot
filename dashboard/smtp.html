@@ -1117,6 +1117,9 @@
             if (urlParams.get('google_connected') === 'true') {
                 showNotification('success', 'Google Workspace Account connected successfully via Secure OAuth!');
             }
+            if (urlParams.get('google_error')) {
+                showNotification('error', decodeURIComponent(urlParams.get('google_error')));
+            }
         });
     </script>
 </body>

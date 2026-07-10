@@ -57,6 +57,32 @@ try {
         throw new Exception("Google Token Exchange failure: " . ($token['error_description'] ?? $token['error']));
     }
     
+    // Check if the user checked the permission boxes for the requested scope
+    $grantedScopesStr = $token['scope'] ?? '';
+    $grantedScopesList = array_map('trim', explode(' ', $grantedScopesStr));
+    
+    if ($type === 'gmail') {
+        $hasGmailScope = false;
+        foreach ($grantedScopesList as $gs) {
+            if ($gs === 'https://www.googleapis.com/auth/gmail.modify' || $gs === 'https://mail.google.com/') {
+                $hasGmailScope = true;
+                break;
+            }
+        }
+        if (!$hasGmailScope) {
+            $from = $parts[3] ?? '';
+            $errParam = urlencode("Scope permission denied: You must check the Gmail permission box on the Google Sign-in screen to allow LinkPilot to access your emails.");
+            if ($from === 'setup') {
+                header("Location: {$protocol}://{$host}/dashboard/setup.html?google_error=" . $errParam);
+            } elseif ($from === 'smtp') {
+                header("Location: {$protocol}://{$host}/dashboard/smtp.html?google_error=" . $errParam);
+            } else {
+                header("Location: {$protocol}://{$host}/dashboard/index.html#/external-apps?google_error=" . $errParam);
+            }
+            exit;
+        }
+    }
+    
     $accessToken = $token['access_token'];
     $refreshToken = $token['refresh_token'] ?? null;
     $expiresIn = $token['expires_in'] ?? 3600;

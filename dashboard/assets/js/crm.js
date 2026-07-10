@@ -306,6 +306,10 @@ async function navigateTo(view, params = {}) {
         currentView = view;
         window.location.hash = `#/${view}`;
         
+        if (view !== 'automation' || !window.wfState.activeWorkflow) {
+            toggleSidebarCollapsed(false);
+        }
+        
         // Clear WhatsApp CRM context if navigating away from whatsapp views
         if (!view.startsWith('whatsapp-')) {
             window.activeWaCrmContext = null;
@@ -531,7 +535,7 @@ async function renderDashboard(container) {
                             <span class="p-1.5 bg-indigo-500/10 text-indigo-400 rounded-md"><i data-lucide="mail" class="h-4 w-4"></i></span>
                         </div>
                         <div class="mt-3">
-                            <span class="text-2xl font-extrabold text-white" id="stat-emails-recd">${stats.statistics.emails_received || 0}</span>
+                            <span class="text-2xl font-extrabold text-white" id="stat-emails-recd">0</span>
                             <span class="text-[10px] text-emerald-400 block mt-0.5"><i data-lucide="trending-up" class="h-3 w-3 inline mr-0.5"></i> +12% today</span>
                         </div>
                     </div>
@@ -542,7 +546,7 @@ async function renderDashboard(container) {
                             <span class="p-1.5 bg-teal-500/10 text-teal-400 rounded-md"><i data-lucide="cpu" class="h-4 w-4"></i></span>
                         </div>
                         <div class="mt-3">
-                            <span class="text-2xl font-extrabold text-white" id="stat-emails-ai">${stats.statistics.emails_processed || 0}</span>
+                            <span class="text-2xl font-extrabold text-white" id="stat-emails-ai">0</span>
                             <span class="text-[10px] text-emerald-400 block mt-0.5"><i data-lucide="trending-up" class="h-3 w-3 inline mr-0.5"></i> +8% today</span>
                         </div>
                     </div>
@@ -730,6 +734,8 @@ async function renderDashboard(container) {
             if (el) el.innerHTML = html;
         };
 
+        countValue('stat-emails-recd', parseInt(stats.statistics.emails_received) || 0);
+        countValue('stat-emails-ai', parseInt(stats.statistics.emails_processed) || 0);
         countValue('stat-total-leads', parseInt(leadsData.total) || 0);
         countValue('stat-total-companies', parseInt(companiesData.total) || 0);
         
@@ -776,6 +782,7 @@ async function renderDashboard(container) {
         });
         countValue('stat-tasks-today', pendingTodayTasks.length);
         countValue('stat-followups-due', tasksData.tasks.filter(t => t.status === 'pending').length);
+        countValue('stat-meetings', meetingsData.meetings ? meetingsData.meetings.length : 0);
         
         const tasksContainer = document.getElementById('dash-tasks-today-list');
         if (tasksContainer) {
@@ -6579,7 +6586,57 @@ function submitEditCompanyForm(e, companyId) {
         });
 }
 
-// Simple implementations for secondary view states (Tasks, Meetings, Automation, Settings, Reports, AI Insights)
+window.getTaskChannelLogoHTML = function(title, description, category) {
+    const lowerTitle = (title || '').toLowerCase();
+    const lowerDesc = (description || '').toLowerCase();
+    const lowerCat = (category || '').toLowerCase();
+    
+    if (lowerTitle.includes('whatsapp') || lowerDesc.includes('whatsapp') || lowerCat === 'whatsapp') {
+        return `<img src="assets/img/WhatsApp_icon.png" class="h-4.5 w-4.5 object-contain shrink-0" alt="WhatsApp">`;
+    }
+    if (lowerTitle.includes('slack') || lowerDesc.includes('slack') || lowerCat === 'slack') {
+        return `<img src="https://logo.clearbit.com/slack.com" class="h-4.5 w-4.5 rounded-sm object-contain shrink-0" alt="Slack">`;
+    }
+    if (lowerTitle.includes('email') || lowerTitle.includes('reply') || lowerDesc.includes('email') || lowerCat === 'email') {
+        return `<img src="https://logo.clearbit.com/gmail.com" class="h-4.5 w-4.5 object-contain shrink-0" alt="Email">`;
+    }
+    if (lowerTitle.includes('meeting') || lowerTitle.includes('meet') || lowerDesc.includes('meeting')) {
+        return `<div class="h-4.5 w-4.5 bg-blue-50 text-blue-600 rounded flex items-center justify-center shrink-0"><i data-lucide="video" class="h-3 w-3"></i></div>`;
+    }
+    if (lowerTitle.includes('phone') || lowerTitle.includes('call') || lowerDesc.includes('call')) {
+        return `<div class="h-4.5 w-4.5 bg-emerald-50 text-emerald-600 rounded flex items-center justify-center shrink-0"><i data-lucide="phone" class="h-3 w-3"></i></div>`;
+    }
+    return `<div class="h-4.5 w-4.5 bg-slate-50 text-slate-500 rounded flex items-center justify-center shrink-0"><i data-lucide="check-square" class="h-3 w-3"></i></div>`;
+};
+
+window.getTasksForTab = function(tasks, tab) {
+    if (tab === 'all') return tasks;
+    
+    return tasks.filter(t => {
+        const title = (t.title || '').toLowerCase();
+        const desc = (t.description || '').toLowerCase();
+        const cat = (t.category || '').toLowerCase();
+        
+        const isComm = cat.includes('communication') || cat.includes('email') || cat.includes('whatsapp') || cat.includes('reply') ||
+                       title.includes('email') || title.includes('whatsapp') || title.includes('slack') || title.includes('reply') || title.includes('call') ||
+                       desc.includes('email') || desc.includes('whatsapp') || desc.includes('slack') || desc.includes('reply') || desc.includes('call');
+                       
+        const isCrm = cat.includes('crm') || cat.includes('deal') || cat.includes('lead') || cat.includes('meeting') || cat.includes('contact') || cat.includes('company') ||
+                     title.includes('crm') || title.includes('deal') || title.includes('lead') || title.includes('meeting') || title.includes('contact') || title.includes('company') ||
+                     title.includes('arrange') || desc.includes('meeting') || desc.includes('deal') || desc.includes('lead');
+                     
+        const isMarketing = cat.includes('marketing') || cat.includes('campaign') || cat.includes('automation') || cat.includes('template') ||
+                            title.includes('marketing') || title.includes('campaign') || title.includes('automation') || title.includes('template') ||
+                            desc.includes('marketing') || desc.includes('campaign') || desc.includes('automation') || desc.includes('template');
+                            
+        if (tab === 'communications') return isComm;
+        if (tab === 'crm') return isCrm;
+        if (tab === 'marketing') return isMarketing;
+        if (tab === 'general') return !isComm && !isCrm && !isMarketing;
+        return true;
+    });
+};
+
 async function renderTasks(container) {
     container.innerHTML = `
         <div class="flex items-center justify-center py-12">
@@ -6592,61 +6649,30 @@ async function renderTasks(container) {
         const res = await apiCall('crm/tasks.php');
         const tasks = res.tasks || [];
         
-        // Buckets for grouping
-        const categories = {
-            'Follow-up': [],
-            'Reply': [],
-            'Meeting': [],
-            'Arrange': [],
-            'General': []
+        window.taskState = {
+            tasks: tasks,
+            activeTab: 'all'
         };
         
-        tasks.forEach(t => {
-            const title = t.title || '';
-            let category = 'General';
-            let cleanTitle = title;
+        window.filterTasksView = function(tabName) {
+            window.taskState.activeTab = tabName;
             
-            if (title.startsWith('[Follow-up]')) {
-                category = 'Follow-up';
-                cleanTitle = title.replace('[Follow-up] ', '');
-            } else if (title.startsWith('[Reply]')) {
-                category = 'Reply';
-                cleanTitle = title.replace('[Reply] ', '');
-            } else if (title.startsWith('[Meeting]')) {
-                category = 'Meeting';
-                cleanTitle = title.replace('[Meeting] ', '');
-            } else if (title.startsWith('[Arrange]')) {
-                category = 'Arrange';
-                cleanTitle = title.replace('[Arrange] ', '');
-            } else {
-                // Fallback to keyword matching
-                const lower = title.toLowerCase() + ' ' + (t.description || '').toLowerCase();
-                if (lower.includes('follow') || lower.includes('call')) {
-                    category = 'Follow-up';
-                } else if (lower.includes('reply') || lower.includes('email') || lower.includes('respond')) {
-                    category = 'Reply';
-                } else if (lower.includes('meeting') || lower.includes('setted') || lower.includes('appointment')) {
-                    category = 'Meeting';
-                } else if (lower.includes('arrange') || lower.includes('schedule') || lower.includes('prep')) {
-                    category = 'Arrange';
-                }
+            // Highlight active tab button
+            document.querySelectorAll('.task-filter-tab').forEach(btn => {
+                btn.className = 'task-filter-tab px-4 py-2 border-b-2 border-transparent font-bold text-xs text-slate-500 hover:text-slate-800 transition duration-200';
+            });
+            const activeBtn = document.getElementById(`task-tab-${tabName}`);
+            if (activeBtn) {
+                activeBtn.className = 'task-filter-tab px-4 py-2 border-b-2 border-indigo-600 font-bold text-xs text-indigo-600 transition duration-200';
             }
             
-            t.displayTitle = cleanTitle;
-            categories[category].push(t);
-        });
-
-        // Sort each category by priority (high -> medium -> low)
-        const priorityWeight = { 'high': 3, 'medium': 2, 'low': 1 };
-        Object.keys(categories).forEach(cat => {
-            categories[cat].sort((a, b) => {
-                // Pending first, then priority weight
-                if (a.status !== b.status) {
-                    return a.status === 'completed' ? 1 : -1;
-                }
-                return (priorityWeight[b.priority] || 2) - (priorityWeight[a.priority] || 2);
-            });
-        });
+            // Re-render task columns
+            const gridContainer = document.getElementById('tasks-grid-columns-container');
+            if (gridContainer) {
+                gridContainer.innerHTML = getTasksGridHTML();
+                lucide.createIcons();
+            }
+        };
 
         const getCategoryHTML = (catName, catTasks, icon, colorClass, borderClass) => {
             const listItems = catTasks.length > 0 ? catTasks.map(t => {
@@ -6691,6 +6717,7 @@ async function renderTasks(container) {
                          oncontextmenu="handleTaskRightClick(event, ${t.id}, '${t.status}', '${t.title.replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${(t.description || '').replace(/\r?\n/g, ' ').replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${(t.meet_link || '').replace(/'/g, "\\'")}', '${(t.remarks || '').replace(/\r?\n/g, ' ').replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${t.category || ''}', '${t.due_date || ''}', '${t.due_time || ''}', '${t.priority || ''}')">
                         <div class="flex items-start space-x-2.5">
                             <input type="checkbox" ${isCompleted ? 'checked' : ''} onclick="toggleTaskStatus(${t.id}, '${t.status}')" class="mt-0.5 h-3.5 w-3.5 border-slate-300 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
+                            ${getTaskChannelLogoHTML(t.title, t.description, t.category)}
                             <div class="flex-grow text-left">
                                 <h5 class="font-bold text-slate-800 leading-tight ${isCompleted ? 'line-through text-slate-400' : ''}">${t.displayTitle}</h5>
                                 <p class="text-[10px] text-slate-500 mt-1 line-clamp-2">${t.description || 'No extra description.'}</p>
@@ -6740,34 +6767,77 @@ async function renderTasks(container) {
             `;
         };
 
-        container.innerHTML = `
-            <div class="space-y-6 pt-4 animate-fade-in text-xs max-w-7xl mx-auto">
-                <div class="flex justify-between items-center border-b border-slate-150 pb-4">
-                    <div>
-                        <h1 class="text-2xl font-extrabold text-slate-800">Tasks Hub</h1>
-                        <p class="text-slate-500 text-xs mt-1">Manage, categorize, and complete tasks ordered by priority metrics.</p>
-                    </div>
-                    <button onclick="createNewTaskModal()" class="px-4 py-2 bg-indigo-650 hover:bg-indigo-600 text-white rounded-lg text-xs font-bold transition flex items-center space-x-1.5 shadow-sm">
-                        <i data-lucide="plus" class="h-3.5 w-3.5"></i>
-                        <span>Add New Task</span>
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    ${getCategoryHTML('Follow-ups', categories['Follow-up'], 'phone-call', 'bg-indigo-50 text-indigo-600', 'border-indigo-500')}
-                    ${getCategoryHTML('Replies / Email', categories['Reply'], 'mail', 'bg-emerald-50 text-emerald-600', 'border-emerald-500')}
-                    ${getCategoryHTML('Meetings Set', categories['Meeting'], 'calendar', 'bg-blue-50 text-blue-600', 'border-blue-500')}
-                    ${getCategoryHTML('Need to Arrange', categories['Arrange'], 'sliders', 'bg-amber-50 text-amber-600', 'border-amber-500')}
+        function getTasksGridHTML() {
+            const tabTasks = getTasksForTab(window.taskState.tasks, window.taskState.activeTab);
+            
+            const cats = {
+                'Follow-up': [],
+                'Reply': [],
+                'Meeting': [],
+                'Arrange': [],
+                'General': []
+            };
+            
+            tabTasks.forEach(t => {
+                const title = t.title || '';
+                let category = 'General';
+                let cleanTitle = title;
+                
+                if (title.startsWith('[Follow-up]')) {
+                    category = 'Follow-up';
+                    cleanTitle = title.replace('[Follow-up] ', '');
+                } else if (title.startsWith('[Reply]')) {
+                    category = 'Reply';
+                    cleanTitle = title.replace('[Reply] ', '');
+                } else if (title.startsWith('[Meeting]')) {
+                    category = 'Meeting';
+                    cleanTitle = title.replace('[Meeting] ', '');
+                } else if (title.startsWith('[Arrange]')) {
+                    category = 'Arrange';
+                    cleanTitle = title.replace('[Arrange] ', '');
+                } else {
+                    const lower = title.toLowerCase() + ' ' + (t.description || '').toLowerCase();
+                    if (lower.includes('follow') || lower.includes('call')) {
+                        category = 'Follow-up';
+                    } else if (lower.includes('reply') || lower.includes('email') || lower.includes('respond')) {
+                        category = 'Reply';
+                    } else if (lower.includes('meeting') || lower.includes('setted') || lower.includes('appointment')) {
+                        category = 'Meeting';
+                    } else if (lower.includes('arrange') || lower.includes('schedule') || lower.includes('prep')) {
+                        category = 'Arrange';
+                    }
+                }
+                
+                t.displayTitle = cleanTitle;
+                cats[category].push(t);
+            });
+            
+            const priorityWeight = { 'high': 3, 'medium': 2, 'low': 1 };
+            Object.keys(cats).forEach(cat => {
+                cats[cat].sort((a, b) => {
+                    if (a.status !== b.status) {
+                        return a.status === 'completed' ? 1 : -1;
+                    }
+                    return (priorityWeight[b.priority] || 2) - (priorityWeight[a.priority] || 2);
+                });
+            });
+            
+            return `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+                    ${getCategoryHTML('Follow-ups', cats['Follow-up'], 'phone-call', 'bg-indigo-50 text-indigo-600', 'border-indigo-500')}
+                    ${getCategoryHTML('Replies / Email', cats['Reply'], 'mail', 'bg-emerald-50 text-emerald-600', 'border-emerald-500')}
+                    ${getCategoryHTML('Meetings Set', cats['Meeting'], 'calendar', 'bg-blue-50 text-blue-600', 'border-blue-500')}
+                    ${getCategoryHTML('Need to Arrange', cats['Arrange'], 'sliders', 'bg-amber-50 text-amber-600', 'border-amber-500')}
                 </div>
                 
-                ${categories['General'].length > 0 ? `
+                ${cats['General'].length > 0 ? `
                     <div class="mt-8">
                         <div class="font-bold text-slate-800 text-xs mb-3 flex items-center space-x-1 text-left">
                             <i data-lucide="clipboard-list" class="h-4 w-4 text-slate-600"></i>
                             <span>General Tasks</span>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            ${categories['General'].map(t => {
+                            ${cats['General'].map(t => {
                                 const isCompleted = t.status === 'completed';
                                 const priority = t.priority || 'medium';
                                 let priorityBadge = '';
@@ -6802,12 +6872,13 @@ async function renderTasks(container) {
                                         </button>
                                     `;
                                 }
-
+                                
                                 return `
                                     <div class="task-card-contextable bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-2.5 transition hover:shadow-md cursor-context-menu ${borderAccent} ${isCompleted ? 'opacity-65' : ''}"
                                          oncontextmenu="handleTaskRightClick(event, ${t.id}, '${t.status}', '${t.title.replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${(t.description || '').replace(/\r?\n/g, ' ').replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${(t.meet_link || '').replace(/'/g, "\\'")}', '${(t.remarks || '').replace(/\r?\n/g, ' ').replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${t.category || ''}', '${t.due_date || ''}', '${t.due_time || ''}', '${t.priority || ''}')">
                                         <div class="flex items-start space-x-2.5">
                                             <input type="checkbox" ${isCompleted ? 'checked' : ''} onclick="toggleTaskStatus(${t.id}, '${t.status}')" class="mt-0.5 h-3.5 w-3.5 border-slate-300 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
+                                            ${getTaskChannelLogoHTML(t.title, t.description, t.category)}
                                             <div class="flex-grow text-left">
                                                 <h5 class="font-bold text-slate-800 leading-tight ${isCompleted ? 'line-through text-slate-400' : ''}">${t.displayTitle}</h5>
                                                 <p class="text-[10px] text-slate-500 mt-1 line-clamp-2">${t.description || 'No extra description.'}</p>
@@ -6839,6 +6910,41 @@ async function renderTasks(container) {
                         </div>
                     </div>
                 ` : ''}
+            `;
+        }
+
+        container.innerHTML = `
+            <div class="space-y-6 pt-4 animate-fade-in text-xs max-w-7xl mx-auto">
+                <div class="flex flex-col md:flex-row md:justify-between md:items-center border-b border-slate-150 pb-4 gap-4">
+                    <div>
+                        <h1 class="text-2xl font-extrabold text-slate-800">Tasks Hub</h1>
+                        <p class="text-slate-500 text-xs mt-1">Manage, categorize, and complete tasks ordered by priority metrics.</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="showQuickTaskModal()" class="px-4 py-2 border border-indigo-650 hover:bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 shadow-sm hover:shadow-indigo-100/50">
+                            <i data-lucide="sparkles" class="h-3.5 w-3.5 text-indigo-650"></i>
+                            <span>Quick Task (Ctrl+K)</span>
+                        </button>
+                        <button onclick="createNewTaskModal()" class="px-4 py-2 bg-indigo-650 hover:bg-indigo-600 text-white rounded-lg text-xs font-bold transition flex items-center space-x-1.5 shadow-sm">
+                            <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                            <span>Add New Task</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabs filtering row -->
+                <div class="flex items-center space-x-1 border-b border-slate-200 pb-px text-left w-full overflow-x-auto">
+                    <button onclick="filterTasksView('all')" id="task-tab-all" class="task-filter-tab px-4 py-2 border-b-2 border-indigo-600 font-bold text-xs text-indigo-600 transition duration-200">All</button>
+                    <button onclick="filterTasksView('communications')" id="task-tab-communications" class="task-filter-tab px-4 py-2 border-b-2 border-transparent font-bold text-xs text-slate-500 hover:text-slate-800 transition duration-200">Communications</button>
+                    <button onclick="filterTasksView('crm')" id="task-tab-crm" class="task-filter-tab px-4 py-2 border-b-2 border-transparent font-bold text-xs text-slate-500 hover:text-slate-800 transition duration-200">CRM Tasks</button>
+                    <button onclick="filterTasksView('marketing')" id="task-tab-marketing" class="task-filter-tab px-4 py-2 border-b-2 border-transparent font-bold text-xs text-slate-500 hover:text-slate-800 transition duration-200">Marketing Tasks</button>
+                    <button onclick="filterTasksView('general')" id="task-tab-general" class="task-filter-tab px-4 py-2 border-b-2 border-transparent font-bold text-xs text-slate-500 hover:text-slate-800 transition duration-200">General</button>
+                </div>
+
+                <!-- columns container -->
+                <div id="tasks-grid-columns-container" class="space-y-4">
+                    ${getTasksGridHTML()}
+                </div>
             </div>
         `;
         lucide.createIcons();
@@ -7061,6 +7167,168 @@ async function submitNewTaskForm(btn) {
         lucide.createIcons();
     }
 }
+
+window.showQuickTaskModal = function() {
+    const existing = document.getElementById('quick-task-modal');
+    if (existing) {
+        existing.remove();
+        return;
+    }
+    
+    const modalHTML = `
+        <div id="quick-task-modal" class="fixed inset-0 z-[150] flex items-start justify-center pt-24 bg-slate-955/80 backdrop-blur-md animate-fade-in" onclick="event.target.id === 'quick-task-modal' && closeQuickTaskModal()">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col text-slate-100 animate-slide-up transform duration-300 hover:shadow-indigo-500/10">
+                <!-- Top search-style bar -->
+                <div class="px-6 py-4 border-b border-slate-800 flex items-center space-x-3 bg-slate-900/50">
+                    <i data-lucide="sparkles" class="h-5 w-5 text-indigo-400 animate-pulse"></i>
+                    <input type="text" id="quick-task-title" placeholder="Create a new task..." autofocus class="bg-transparent text-sm w-full text-slate-100 placeholder-slate-500 focus:outline-none font-bold" onkeydown="handleQuickTaskKey(event)">
+                    <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-slate-800 border border-slate-750 text-slate-450 tracking-wider shrink-0 uppercase shadow-inner">ESC to Close</span>
+                </div>
+                
+                <!-- Inputs Section -->
+                <div class="p-6 space-y-4 text-xs text-left">
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-455 uppercase tracking-wider mb-2">Category</label>
+                        <div class="flex flex-wrap gap-2" id="quick-task-category-pills">
+                            <button onclick="selectQuickCategory('Follow-up')" class="quick-cat-pill px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-850 text-slate-300 hover:bg-slate-800 font-bold transition flex items-center space-x-1" id="quick-pill-Follow-up">
+                                <span>📞</span> <span>Follow-up</span>
+                            </button>
+                            <button onclick="selectQuickCategory('Reply')" class="quick-cat-pill px-3 py-1.5 rounded-lg border border-indigo-650 bg-indigo-900/30 text-indigo-400 font-bold transition flex items-center space-x-1" id="quick-pill-Reply">
+                                <span>✉️</span> <span>Reply</span>
+                            </button>
+                            <button onclick="selectQuickCategory('Meeting')" class="quick-cat-pill px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-850 text-slate-300 hover:bg-slate-800 font-bold transition flex items-center space-x-1" id="quick-pill-Meeting">
+                                <span>📅</span> <span>Meeting</span>
+                            </button>
+                            <button onclick="selectQuickCategory('Arrange')" class="quick-cat-pill px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-850 text-slate-300 hover:bg-slate-800 font-bold transition flex items-center space-x-1" id="quick-pill-Arrange">
+                                <span>⚙️</span> <span>Arrange</span>
+                            </button>
+                            <button onclick="selectQuickCategory('General')" class="quick-cat-pill px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-850 text-slate-300 hover:bg-slate-800 font-bold transition flex items-center space-x-1" id="quick-pill-General">
+                                <span>📋</span> <span>General</span>
+                            </button>
+                        </div>
+                        <input type="hidden" id="quick-task-category-val" value="Reply">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[9px] font-bold text-slate-455 uppercase tracking-wider mb-1.5">Due Date</label>
+                            <input type="date" id="quick-task-duedate" class="w-full px-3 py-2 bg-slate-850 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-bold text-slate-455 uppercase tracking-wider mb-1.5">Priority</label>
+                            <select id="quick-task-priority" class="w-full px-3 py-2 bg-slate-850 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-455 uppercase tracking-wider mb-1.5">Description</label>
+                        <textarea id="quick-task-desc" rows="2" placeholder="Brief notes (optional)..." class="w-full px-3 py-2 bg-slate-850 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 font-sans"></textarea>
+                    </div>
+                </div>
+                
+                <!-- Footer buttons -->
+                <div class="px-6 py-4 border-t border-slate-800 bg-slate-900/80 flex justify-end space-x-2.5">
+                    <button onclick="closeQuickTaskModal()" class="px-4 py-2 text-slate-455 hover:text-slate-200 bg-transparent rounded-lg font-bold transition">Cancel</button>
+                    <button onclick="submitQuickTask(this)" class="px-5 py-2 bg-indigo-650 hover:bg-indigo-600 text-white rounded-lg font-bold transition flex items-center space-x-1.5 shadow-md shadow-indigo-650/10 hover:shadow-indigo-500/20">
+                        <i data-lucide="check" class="h-4 w-4"></i>
+                        <span>Create Task</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    document.getElementById('quick-task-duedate').valueAsDate = new Date();
+    document.getElementById('quick-task-title').focus();
+    lucide.createIcons();
+};
+
+window.selectQuickCategory = function(cat) {
+    document.getElementById('quick-task-category-val').value = cat;
+    document.querySelectorAll('.quick-cat-pill').forEach(btn => {
+        btn.className = 'quick-cat-pill px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-850 text-slate-300 hover:bg-slate-800 font-bold transition flex items-center space-x-1';
+    });
+    const selectedBtn = document.getElementById(`quick-pill-${cat}`);
+    if (selectedBtn) {
+        selectedBtn.className = 'quick-cat-pill px-3 py-1.5 rounded-lg border border-indigo-600 bg-indigo-900/30 text-indigo-400 font-bold transition flex items-center space-x-1';
+    }
+};
+
+window.closeQuickTaskModal = function() {
+    const el = document.getElementById('quick-task-modal');
+    if (el) el.remove();
+};
+
+window.handleQuickTaskKey = function(e) {
+    if (e.key === 'Escape') {
+        closeQuickTaskModal();
+    } else if (e.key === 'Enter') {
+        submitQuickTask(null);
+    }
+};
+
+window.submitQuickTask = async function(btn) {
+    const rawTitle = document.getElementById('quick-task-title').value.trim();
+    if (!rawTitle) {
+        showNotification('error', 'Task Title is required.');
+        return;
+    }
+    
+    const category = document.getElementById('quick-task-category-val').value;
+    const dueDate = document.getElementById('quick-task-duedate').value;
+    const priority = document.getElementById('quick-task-priority').value;
+    const description = document.getElementById('quick-task-desc').value.trim();
+    
+    let title = rawTitle;
+    if (category !== 'General') {
+        title = `[${category}] ${rawTitle}`;
+    }
+    
+    const payload = {
+        title,
+        due_date: dueDate,
+        priority,
+        status: 'pending',
+        description
+    };
+    
+    try {
+        const data = await apiCall('crm/tasks.php', 'POST', payload);
+        if (data.status === 'success') {
+            showNotification('success', 'Task added successfully.');
+            closeQuickTaskModal();
+            updateGlobalTaskBadges();
+            const viewport = document.getElementById('main-content-viewport');
+            if (viewport) {
+                if (currentView === 'dashboard') {
+                    renderDashboard(viewport);
+                } else {
+                    renderTasks(viewport);
+                }
+            }
+        } else {
+            showNotification('error', data.message);
+        }
+    } catch (e) {
+        showNotification('error', e.message);
+    }
+};
+
+// Global keydown handler
+document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        showQuickTaskModal();
+    }
+    if (e.key === 'Escape') {
+        closeQuickTaskModal();
+    }
+});
 
 // Edit Task Modal Overlay
 async function editCrmTask(taskId) {
@@ -8135,16 +8403,16 @@ const AVAILABLE_NODES = [
     { type: "merge", name: "Merge", category: "LOGIC", icon: "git-pull-request", desc: "Join multiple paths." },
     { type: "filter", name: "Filter", category: "LOGIC", icon: "filter", desc: "Keep matching criteria." },
 
-    // FILES
-    { type: "upload_file", name: "Upload File", category: "FILES", icon: "upload", desc: "Store file attachment." },
-    { type: "download_file", name: "Download File", category: "FILES", icon: "download", desc: "Retrieve static file URL." },
-    { type: "generate_pdf", name: "Generate PDF", category: "FILES", icon: "file", desc: "Create PDF doc template." },
-    { type: "read_csv", name: "Read CSV", category: "FILES", icon: "file-spreadsheet", desc: "Parse raw CSV columns." },
-    { type: "read_excel", name: "Read Excel", category: "FILES", icon: "file-spreadsheet", desc: "Parse spreadsheet sheets." },
+    // FILES (under UTILITY)
+    { type: "upload_file", name: "Upload File", category: "UTILITY", icon: "upload", desc: "Store file attachment." },
+    { type: "download_file", name: "Download File", category: "UTILITY", icon: "download", desc: "Retrieve static file URL." },
+    { type: "generate_pdf", name: "Generate PDF", category: "UTILITY", icon: "file", desc: "Create PDF doc template." },
+    { type: "read_csv", name: "Read CSV", category: "UTILITY", icon: "file-spreadsheet", desc: "Parse raw CSV columns." },
+    { type: "read_excel", name: "Read Excel", category: "UTILITY", icon: "file-spreadsheet", desc: "Parse spreadsheet sheets." },
 
-    // REPORTING
-    { type: "generate_report", name: "Generate Report", category: "REPORTING", icon: "bar-chart-2", desc: "Produce analytics dashboard." },
-    { type: "export_data", name: "Export Data", category: "REPORTING", icon: "download", desc: "Export CSV or PDF reports." },
+    // REPORTING (under UTILITY)
+    { type: "generate_report", name: "Generate Report", category: "UTILITY", icon: "bar-chart-2", desc: "Produce analytics dashboard." },
+    { type: "export_data", name: "Export Data", category: "UTILITY", icon: "download", desc: "Export CSV or PDF reports." },
 
     // UTILITY
     { type: "delay", name: "Delay", category: "UTILITY", icon: "clock", desc: "Wait helper block." },
@@ -8154,6 +8422,30 @@ const AVAILABLE_NODES = [
     { type: "get_variable", name: "Get Variable", category: "UTILITY", icon: "sliders", desc: "Fetch temporary state." },
     { type: "logger", name: "Logger", category: "UTILITY", icon: "info", desc: "Print system debug logs." }
 ];
+
+window.toggleSidebarCollapsed = function(collapsed) {
+    const sidebar = document.getElementById('sidebar-panel');
+    if (!sidebar) return;
+    if (collapsed) {
+        sidebar.classList.add('lg:hidden', 'hidden');
+    } else {
+        sidebar.classList.remove('lg:hidden', 'hidden');
+    }
+};
+
+window.getNodeIconHTML = function(type, icon) {
+    if (type === 'send_slack' || icon === 'slack') {
+        return `<img src="https://logo.clearbit.com/slack.com" class="h-4 w-4 rounded-sm object-contain" alt="Slack">`;
+    }
+    if (type === 'send_whatsapp' || type === 'whatsapp_message' || icon === 'whatsapp' || icon === 'message-circle') {
+        return `<img src="assets/img/WhatsApp_icon.png" class="h-4 w-4 object-contain" alt="WhatsApp">`;
+    }
+    if (type === 'email_received' || type === 'send_email' || icon === 'mail' || icon === 'gmail') {
+        return `<img src="https://logo.clearbit.com/gmail.com" class="h-4 w-4 object-contain" alt="Gmail">`;
+    }
+    return `<i data-lucide="${icon || 'circle'}" class="h-3.5 w-3.5"></i>`;
+};
+
 
 async function renderAutomation(container) {
     injectVisualBuilderStyles();
@@ -8376,9 +8668,9 @@ function installWorkflowTemplate(idx) {
     navigateTo('automation');
 }
 
-// -------------------------------------
 function renderVisualCanvas(container) {
     const wf = window.wfState.activeWorkflow;
+    toggleSidebarCollapsed(true);
     
     // Group nodes by category
     const groups = {};
@@ -8399,7 +8691,7 @@ function renderVisualCanvas(container) {
             <div draggable="true" ondragstart="handleNodeDragStart(event, '${n.type}')" class="p-2 bg-white border border-slate-200 hover:border-indigo-500 rounded-xl space-y-0.5 transition cursor-grab select-none text-left hover:shadow-md">
                 <div class="flex items-center space-x-2">
                     <div class="h-6 w-6 bg-slate-100 rounded-md flex items-center justify-center text-indigo-650 shrink-0">
-                        <i data-lucide="${n.icon}" class="h-3.5 w-3.5"></i>
+                        ${getNodeIconHTML(n.type, n.icon)}
                     </div>
                     <div class="overflow-hidden">
                         <h5 class="font-bold text-slate-800 text-[10px] leading-tight truncate">${n.name}</h5>
@@ -8409,15 +8701,15 @@ function renderVisualCanvas(container) {
         `).join('');
         
         let displayCatName = catName;
-        if (catName === 'TRIGGERS') displayCatName = '📩 Trigger Nodes';
-        else if (catName === 'AI ACTIONS') displayCatName = '🤖 AI Nodes';
-        else if (catName === 'CRM ACTIONS') displayCatName = '👤 CRM Nodes';
-        else if (catName === 'COMMUNICATION') displayCatName = '📧 Communication Nodes';
-        else if (catName === 'INTEGRATIONS') displayCatName = '🌐 Integration Nodes';
-        else if (catName === 'LOGIC') displayCatName = '🔀 Logic Nodes';
-        else if (catName === 'FILES') displayCatName = '📂 File Nodes';
-        else if (catName === 'REPORTING') displayCatName = '📊 Reporting Nodes';
-        else if (catName === 'UTILITY') displayCatName = '⚙️ Utility Nodes';
+        if (catName === 'TRIGGERS') displayCatName = '⚡ Triggers';
+        else if (catName === 'AI ACTIONS') displayCatName = '🤖 AI Actions';
+        else if (catName === 'CRM ACTIONS') displayCatName = '👤 CRM Actions';
+        else if (catName === 'COMMUNICATION') displayCatName = '📧 Communication';
+        else if (catName === 'INTEGRATIONS') displayCatName = '🌐 Integrations';
+        else if (catName === 'LOGIC') displayCatName = '🔀 Logic';
+        else if (catName === 'FILES') displayCatName = '📂 Files';
+        else if (catName === 'REPORTING') displayCatName = '📊 Reporting';
+        else if (catName === 'UTILITY') displayCatName = '⚙️ Utility';
         
         groupsHTML += `
             <div class="space-y-1.5">
@@ -8435,42 +8727,45 @@ function renderVisualCanvas(container) {
             <div class="h-14 border-b border-slate-200 bg-white flex items-center justify-between px-6 select-none shrink-0 w-full overflow-x-auto overflow-y-hidden">
                 <!-- Left: Path and Edit -->
                 <div class="flex items-center space-x-2 text-xs shrink-0">
-                    <button onclick="backToWorkflowList()" class="h-7 w-7 rounded-lg hover:bg-slate-100 text-slate-500 flex items-center justify-center transition mr-1" title="Back to List">
+                    <button onclick="backToWorkflowList()" class="h-8 w-8 rounded-xl hover:bg-slate-100 text-slate-700 flex items-center justify-center transition mr-1" title="Back to List">
                         <i data-lucide="arrow-left" class="h-4.5 w-4.5"></i>
                     </button>
                     <div class="flex items-center space-x-1.5 text-slate-500">
                         <i data-lucide="folder" class="h-3.5 w-3.5 text-slate-400"></i>
-                        <span class="text-[10px] font-bold uppercase tracking-wider">Personal</span>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Automations</span>
                         <span class="text-slate-350">/</span>
                     </div>
-                    <input type="text" id="workflow-rename-input" onblur="renameWorkflow(this.value)" value="${wf.name}" class="bg-transparent text-slate-800 font-bold focus:outline-none border-b border-transparent focus:border-indigo-500 px-1 py-0.5 text-xs w-40">
-                    <button onclick="document.getElementById('workflow-rename-input').focus()" class="text-slate-450 hover:text-slate-650 p-0.5"><i data-lucide="pencil" class="h-3 w-3"></i></button>
-                    <button class="px-2 py-0.5 border border-slate-200 rounded text-[9px] font-bold text-slate-500 hover:bg-slate-50 transition">+ Add tag</button>
+                    <input type="text" id="workflow-rename-input" onblur="renameWorkflow(this.value)" value="${wf.name}" class="bg-transparent text-slate-800 font-extrabold focus:outline-none border-b border-transparent focus:border-indigo-500 px-1 py-0.5 text-xs w-44">
+                    <button onclick="document.getElementById('workflow-rename-input').focus()" class="text-slate-400 hover:text-slate-650 p-0.5"><i data-lucide="pencil" class="h-3 w-3"></i></button>
+                    
+                    <span class="ml-3 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center space-x-1">
+                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>Active</span>
+                    </span>
+                    <span class="text-[9px] text-slate-400 ml-2">Last updated 2 hours ago</span>
                 </div>
 
                 <!-- Center: Navigation Tabs -->
-                <div class="flex items-center bg-slate-100 rounded-lg p-0.5 text-[10px] font-bold shrink-0 mx-4">
-                    <button class="px-3.5 py-1 bg-white text-slate-800 rounded-md shadow-sm">Editor</button>
-                    <button class="px-3.5 py-1 text-slate-500 hover:text-slate-800 transition">Executions</button>
-                    <button class="px-3.5 py-1 text-slate-500 hover:text-slate-800 transition">Evaluations</button>
+                <div class="flex items-center bg-slate-100 rounded-xl p-0.5 text-[10px] font-bold shrink-0 mx-4 border border-slate-200">
+                    <button class="px-4 py-1.5 bg-white text-slate-800 rounded-lg shadow-sm border border-slate-200/50">Builder</button>
+                    <button class="px-4 py-1.5 text-slate-500 hover:text-slate-800 transition">Executions</button>
+                    <button class="px-4 py-1.5 text-slate-500 hover:text-slate-800 transition">Logs</button>
+                    <button class="px-4 py-1.5 text-slate-500 hover:text-slate-800 transition">Analytics</button>
                 </div>
 
                 <!-- Right: Actions -->
-                <div class="flex items-center space-x-3 text-[10px] shrink-0">
-                    <span class="text-slate-400 font-bold">0 / 1</span>
-                    <div class="flex items-center rounded-lg overflow-hidden shadow-sm">
-                        <button onclick="toggleWorkflowActiveState()" class="px-3.5 py-1.5 bg-indigo-650 hover:bg-indigo-600 text-white font-bold transition">Publish</button>
-                        <button onclick="toggleWorkflowActiveState()" class="px-2 py-1.5 bg-indigo-700 hover:bg-indigo-650 text-white border-l border-indigo-500 transition"><i data-lucide="chevron-down" class="h-3 w-3"></i></button>
+                <div class="flex items-center space-x-2.5 text-[10px] shrink-0">
+                    <button onclick="runWorkflowSimulation(this)" class="px-4 py-2 border border-blue-600 text-blue-600 hover:bg-blue-50 rounded-xl text-xs font-bold transition flex items-center space-x-1">
+                        <i data-lucide="play" class="h-3.5 w-3.5 mr-0.5"></i>
+                        <span>Test Workflow</span>
+                    </button>
+                    <div class="flex items-center rounded-xl overflow-hidden shadow-sm">
+                        <button onclick="toggleWorkflowActiveState()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition">Publish</button>
+                        <button onclick="toggleWorkflowActiveState()" class="px-2.5 py-2 bg-blue-700 hover:bg-blue-600 text-white border-l border-blue-500 transition"><i data-lucide="chevron-down" class="h-3.5 w-3.5"></i></button>
                     </div>
-                    <button onclick="openLogsHistoryDrawer()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 transition" title="History"><i data-lucide="history" class="h-4 w-4"></i></button>
-                    <button class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="more-horizontal" class="h-4 w-4"></i></button>
-                    <div class="hidden lg:flex items-center border border-slate-200 rounded-lg overflow-hidden text-[9px] font-bold bg-white">
-                        <span class="px-2 py-1 bg-slate-50 border-r border-slate-200 text-slate-650 flex items-center space-x-1">
-                            <i data-lucide="star" class="h-3 w-3 text-amber-500 fill-amber-500"></i>
-                            <span>Star</span>
-                        </span>
-                        <span class="px-2.5 py-1 bg-white text-slate-700">195,281</span>
-                    </div>
+                    <button class="h-8 w-8 border border-slate-200 hover:bg-slate-50 rounded-xl flex items-center justify-center text-slate-500 transition">
+                        <i data-lucide="more-horizontal" class="h-4.5 w-4.5"></i>
+                    </button>
                 </div>
             </div>
 
@@ -8491,48 +8786,52 @@ function renderVisualCanvas(container) {
                     <!-- Category Groups -->
                     <div class="flex-grow overflow-y-auto p-4 space-y-4 bg-slate-50/10">
                         ${groupsHTML}
-                        <div class="pt-2">
-                            <button class="w-full py-2 border border-dashed border-indigo-200 hover:border-indigo-400 rounded-xl text-[10px] font-bold text-indigo-650 hover:text-indigo-800 bg-indigo-50/10 transition flex items-center justify-center space-x-1">
-                                <i data-lucide="plus" class="h-3.5 w-3.5"></i>
-                                <span>More Nodes</span>
-                            </button>
-                        </div>
+                    </div>
+
+                    <!-- Bottom AI Assistant Button -->
+                    <div class="p-3 border-t border-slate-200 bg-white select-none shrink-0">
+                        <button onclick="toggleAIPromptBuilder()" class="w-full py-2 px-3 bg-indigo-55/60 hover:bg-indigo-100 text-indigo-700 hover:text-indigo-800 rounded-xl text-[10px] font-bold transition flex items-center justify-between shadow-sm border border-indigo-100">
+                            <div class="flex items-center space-x-1.5">
+                                <i data-lucide="sparkles" class="h-3.5 w-3.5 text-indigo-650 animate-pulse"></i>
+                                <span>AI Assistant</span>
+                            </div>
+                            <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i>
+                        </button>
                     </div>
                 </div>
 
                 <!-- Center Canvas -->
                 <div class="flex-grow flex flex-col h-full relative overflow-hidden wf-canvas-container" id="wf-canvas-container" onwheel="handleCanvasScroll(event)" onmousedown="handleCanvasMouseDown(event)" ondragover="event.preventDefault()" ondrop="handleNodeDrop(event)">
                     <!-- Canvas Floating Toolbar -->
-                    <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 bg-white/95 border border-slate-200 rounded-xl p-1.5 flex items-center space-x-1 shadow-md text-[9px] font-bold text-slate-550 select-none">
-                        <button onclick="undoWorkflowChange()" class="flex flex-col items-center px-2 py-0.5 rounded-lg hover:bg-slate-100 transition">
-                            <i data-lucide="undo" class="h-3.5 w-3.5 mb-0.5 text-slate-500"></i>
+                    <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 bg-white/95 border border-slate-200 rounded-xl p-1.5 flex items-center space-x-1.5 shadow-md text-[9px] font-bold text-slate-550 select-none">
+                        <button onclick="undoWorkflowChange()" class="flex items-center space-x-1 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">
+                            <i data-lucide="undo" class="h-3.5 w-3.5 text-slate-500"></i>
                             <span>Undo</span>
                         </button>
-                        <button onclick="redoWorkflowChange()" class="flex flex-col items-center px-2 py-0.5 rounded-lg hover:bg-slate-100 transition">
-                            <i data-lucide="redo" class="h-3.5 w-3.5 mb-0.5 text-slate-500"></i>
+                        <button onclick="redoWorkflowChange()" class="flex items-center space-x-1 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">
+                            <i data-lucide="redo" class="h-3.5 w-3.5 text-slate-500"></i>
                             <span>Redo</span>
                         </button>
                         <div class="h-6 w-px bg-slate-200 mx-1"></div>
-                        <button onclick="zoomWorkflow(-0.1)" class="flex flex-col items-center px-1.5 py-0.5 rounded-lg hover:bg-slate-100 transition">
-                            <i data-lucide="zoom-out" class="h-3.5 w-3.5 mb-0.5 text-slate-500"></i>
+                        <button onclick="zoomWorkflow(-0.1)" class="flex items-center space-x-1 px-2 py-1 rounded-lg hover:bg-slate-100 transition">
+                            <i data-lucide="zoom-out" class="h-3.5 w-3.5 text-slate-500"></i>
                             <span>Zoom Out</span>
                         </button>
-                        <div class="flex flex-col items-center px-1.5">
+                        <div class="flex items-center px-2">
                             <span class="text-slate-800 font-bold">${Math.round(window.wfState.zoom * 100)}%</span>
-                            <span class="text-[6px] text-slate-400">Scale</span>
                         </div>
-                        <button onclick="zoomWorkflow(0.1)" class="flex flex-col items-center px-1.5 py-0.5 rounded-lg hover:bg-slate-100 transition">
-                            <i data-lucide="zoom-in" class="h-3.5 w-3.5 mb-0.5 text-slate-500"></i>
+                        <button onclick="zoomWorkflow(0.1)" class="flex items-center space-x-1 px-2 py-1 rounded-lg hover:bg-slate-100 transition">
+                            <i data-lucide="zoom-in" class="h-3.5 w-3.5 text-slate-500"></i>
                             <span>Zoom In</span>
                         </button>
                         <div class="h-6 w-px bg-slate-200 mx-1"></div>
-                        <button onclick="zoomToFit()" class="flex flex-col items-center px-2 py-0.5 rounded-lg hover:bg-slate-100 transition">
-                            <i data-lucide="maximize" class="h-3.5 w-3.5 mb-0.5 text-slate-500"></i>
+                        <button onclick="zoomToFit()" class="flex items-center space-x-1 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">
+                            <i data-lucide="maximize" class="h-3.5 w-3.5 text-slate-500"></i>
                             <span>Fit</span>
                         </button>
-                        <button onclick="autoArrangeCanvas()" class="flex flex-col items-center px-2 py-0.5 rounded-lg hover:bg-slate-100 transition">
-                            <i data-lucide="layout-grid" class="h-3.5 w-3.5 mb-0.5 text-slate-500"></i>
-                            <span>Auto Layout</span>
+                        <button onclick="autoArrangeCanvas()" class="flex items-center space-x-1 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">
+                            <i data-lucide="layout-grid" class="h-3.5 w-3.5 text-slate-500"></i>
+                            <span>Auto Arrange</span>
                         </button>
                     </div>
 
@@ -8540,12 +8839,12 @@ function renderVisualCanvas(container) {
                     <div id="workflow-canvas" class="wf-canvas" style="transform: translate(${window.wfState.panX}px, ${window.wfState.panY}px) scale(${window.wfState.zoom});">
                         <svg id="workflow-svg" class="wf-svg-lines">
                             <defs>
-                                <linearGradient id="conn-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" stop-color="#4f46e5" />
+                                <linearGradient id="conn-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stop-color="#3b82f6" />
                                     <stop offset="100%" stop-color="#6366f1" />
                                 </linearGradient>
                                 <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#6366f1" />
+                                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" />
                                 </marker>
                             </defs>
                         </svg>
@@ -8556,29 +8855,20 @@ function renderVisualCanvas(container) {
 
                     <!-- Bottom Left Canvas Overlay Tools -->
                     <div class="absolute bottom-4 left-4 z-20 bg-white/95 border border-slate-200 rounded-xl p-1.5 flex items-center space-x-1.5 shadow-md">
-                        <button class="p-1 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="expand" class="h-3.5 w-3.5"></i></button>
-                        <button class="p-1 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="hand" class="h-3.5 w-3.5"></i></button>
-                        <button onclick="zoomWorkflow(-0.1)" class="p-1 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="minus" class="h-3.5 w-3.5"></i></button>
-                        <button onclick="zoomWorkflow(0.1)" class="p-1 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="plus" class="h-3.5 w-3.5"></i></button>
-                        <button onclick="zoomToFit()" class="p-1 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="maximize-2" class="h-3.5 w-3.5"></i></button>
-                        <button onclick="autoArrangeCanvas()" class="p-1 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="layout" class="h-3.5 w-3.5"></i></button>
+                        <button class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="expand" class="h-3.5 w-3.5"></i></button>
+                        <button class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="hand" class="h-3.5 w-3.5"></i></button>
+                        <button onclick="zoomWorkflow(-0.1)" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="minus" class="h-3.5 w-3.5"></i></button>
+                        <button onclick="zoomWorkflow(0.1)" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="plus" class="h-3.5 w-3.5"></i></button>
+                        <button onclick="zoomToFit()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="maximize-2" class="h-3.5 w-3.5"></i></button>
+                        <button onclick="autoArrangeCanvas()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="layout" class="h-3.5 w-3.5"></i></button>
                     </div>
 
                     <!-- Bottom Center Action Button -->
-                    <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex items-center bg-orange-650 hover:bg-orange-600 text-white rounded-xl shadow-lg overflow-hidden text-[10px] font-bold">
-                        <button onclick="runWorkflowSimulation(this)" class="px-5 py-2 flex items-center space-x-1.5 transition">
+                    <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex items-center bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-lg overflow-hidden text-[10px] font-bold">
+                        <button onclick="runWorkflowSimulation(this)" class="px-5 py-2.5 flex items-center space-x-1.5 transition">
                             <i data-lucide="play-circle" class="h-4 w-4"></i>
                             <span>Execute Workflow</span>
                         </button>
-                        <button onclick="runWorkflowSimulation(this)" class="px-2 py-2 border-l border-orange-550 hover:bg-orange-550 transition">
-                            <i data-lucide="chevron-up" class="h-3.5 w-3.5"></i>
-                        </button>
-                    </div>
-
-                    <!-- Bottom Right Action Button -->
-                    <div class="absolute bottom-4 right-4 z-20 bg-white/95 border border-slate-200 hover:bg-slate-50 rounded-xl px-4 py-2 shadow-md flex items-center space-x-1.5 text-[10px] font-bold text-slate-700 cursor-pointer transition" onclick="runWorkflowSimulation(this)">
-                        <i data-lucide="play" class="h-3.5 w-3.5 text-indigo-650"></i>
-                        <span>Test Workflow</span>
                     </div>
                 </div>
 
@@ -8627,6 +8917,7 @@ function searchBuilderNodes(query) {
 function backToWorkflowList() {
     stopBuilderAutoSave();
     window.wfState.activeWorkflow = null;
+    toggleSidebarCollapsed(false);
     navigateTo('automation');
 }
 
@@ -8713,23 +9004,25 @@ function injectVisualBuilderStyles() {
             background: #4f46e5;
         }
         .wf-node-handle.input {
-            left: -5px;
-            top: 50%;
-            transform: translateY(-50%);
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
         }
         .wf-node-handle.output {
-            right: -5px;
-            top: 50%;
-            transform: translateY(-50%);
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
         }
         .wf-node-handle.output-yes {
-            right: -5px;
-            top: 35%;
+            bottom: -5px;
+            left: 25%;
+            transform: translateX(-50%);
             background: #10b981;
         }
         .wf-node-handle.output-no {
-            right: -5px;
-            top: 65%;
+            bottom: -5px;
+            left: 75%;
+            transform: translateX(-50%);
             background: #ef4444;
         }
         .wf-svg-lines {
@@ -11323,8 +11616,8 @@ function renderCanvasNodesHTML() {
                  onmousedown="handleNodeMouseDown(event, '${n.id}')" oncontextmenu="handleNodeContextMenu(event, '${n.id}')">
                 ${badge}
                 <div class="flex items-center space-x-2">
-                    <div class="wf-node-icon bg-slate-100 text-indigo-600 p-1 rounded-md flex items-center justify-center shrink-0">
-                        <i data-lucide="${n.icon || 'circle'}" class="h-3.5 w-3.5"></i>
+                    <div class="wf-node-icon bg-slate-100 text-indigo-650 p-1.5 rounded-md flex items-center justify-center shrink-0">
+                        ${getNodeIconHTML(n.type, n.icon)}
                     </div>
                     <div class="text-left overflow-hidden w-full select-none">
                         <h5 class="font-bold text-slate-800 text-[10px] leading-tight truncate">${n.name}</h5>
@@ -11774,7 +12067,7 @@ function renderConfigSidebarHTML() {
         <div class="p-4 space-y-4 flex-grow overflow-y-auto text-xs text-slate-600 bg-white">
             <div class="flex items-center space-x-2 pb-2 border-b border-slate-200">
                 <div class="h-7 w-7 bg-slate-100 rounded-md flex items-center justify-center text-indigo-650 shrink-0">
-                    <i data-lucide="${selectedNode.icon}" class="h-4 w-4"></i>
+                    ${getNodeIconHTML(selectedNode.type, selectedNode.icon)}
                 </div>
                 <div>
                     <h5 class="font-bold text-slate-800 text-[11px] leading-tight truncate">${selectedNode.name}</h5>
@@ -11924,21 +12217,23 @@ function handleConnectionMouseDown(e, nodeId, handleType) {
     window.wfState.isConnecting = true;
     
     const nodeObj = window.wfState.activeWorkflow.nodes.find(n => n.id === nodeId);
+    const nodeEl = document.getElementById(nodeId);
+    const nodeHeight = nodeEl ? nodeEl.offsetHeight : 54;
     let startX = nodeObj.x;
     let startY = nodeObj.y;
     
     if (handleType === 'input') {
-        startX += 0;
-        startY += 20;
+        startX += 100;
+        startY += 0;
     } else if (handleType === 'output-yes') {
-        startX += 190;
-        startY += 15;
+        startX += 50;
+        startY += nodeHeight;
     } else if (handleType === 'output-no') {
-        startX += 190;
-        startY += 30;
+        startX += 150;
+        startY += nodeHeight;
     } else {
-        startX += 190;
-        startY += 20;
+        startX += 100;
+        startY += nodeHeight;
     }
     
     const onMouseMove = (ev) => {
@@ -11994,55 +12289,58 @@ function drawConnections(tempX1, tempY1, tempX2, tempY2) {
         const toNode = wf.nodes.find(n => n.id === c.to);
         if (!fromNode || !toNode) return;
         
+        const fromEl = document.getElementById(fromNode.id);
+        const fromHeight = fromEl ? fromEl.offsetHeight : 54;
+        
         let x1 = fromNode.x;
         let y1 = fromNode.y;
         let x2 = toNode.x;
         let y2 = toNode.y;
         
         if (c.handle === 'output-yes') {
-            x1 += 190;
-            y1 += 15;
+            x1 += 50;
+            y1 += fromHeight;
         } else if (c.handle === 'output-no') {
-            x1 += 190;
-            y1 += 30;
+            x1 += 150;
+            y1 += fromHeight;
         } else {
-            x1 += 190;
-            y1 += 20;
+            x1 += 100;
+            y1 += fromHeight;
         }
         
-        // Input handle is on the left
-        x2 += 0;
-        y2 += 20;
+        // Input handle is on the top center
+        x2 += 100;
+        y2 += 0;
         
-        const dx = Math.abs(x2 - x1) * 0.5;
-        const pathStr = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+        const dy = Math.abs(y2 - y1) * 0.5;
+        const pathStr = `M ${x1} ${y1} C ${x1} ${y1 + dy}, ${x2} ${y2 - dy}, ${x2} ${y2}`;
         const pulsing = fromNode.execStatus === 'executing' ? 'pulsing' : '';
         
         pathsHTML += `<path d="${pathStr}" class="connection-path ${pulsing}" marker-end="url(#arrow)" />`;
         
         // Draw labels for Yes/No branches
         if (c.handle === 'output-yes') {
-            pathsHTML += `<text x="${x1 + 15}" y="${y1 - 5}" fill="#10b981" font-size="8" font-family="sans-serif" font-weight="bold">Yes</text>`;
+            pathsHTML += `<text x="${x1 - 15}" y="${y1 + 12}" fill="#10b981" font-size="8" font-family="sans-serif" font-weight="bold">Yes</text>`;
         } else if (c.handle === 'output-no') {
-            pathsHTML += `<text x="${x1 + 15}" y="${y1 + 15}" fill="#ef4444" font-size="8" font-family="sans-serif" font-weight="bold">No</text>`;
+            pathsHTML += `<text x="${x1 + 5}" y="${y1 + 12}" fill="#ef4444" font-size="8" font-family="sans-serif" font-weight="bold">No</text>`;
         }
     });
     
     // Draw temporary connection line if user is dragging
     if (tempX1 !== undefined) {
-        const dx = Math.abs(tempX2 - tempX1) * 0.5;
-        const pathStr = `M ${tempX1} ${tempY1} C ${tempX1 + dx} ${tempY1}, ${tempX2 - dx} ${tempY2}, ${tempX2} ${tempY2}`;
+        const dy = Math.abs(tempY2 - tempY1) * 0.5;
+        const pathStr = `M ${tempX1} ${tempY1} C ${tempX1} ${tempY1 + dy}, ${tempX2} ${tempY2 - dy}, ${tempX2} ${tempY2}`;
         pathsHTML += `<path d="${pathStr}" class="connection-path pulsing" />`;
     }
     
     svg.innerHTML = `
         <defs>
-            <linearGradient id="conn-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#4f46e5" />
+            <linearGradient id="conn-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#3b82f6" />
                 <stop offset="100%" stop-color="#6366f1" />
             </linearGradient>
             <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 0 L 10 5 L 0 10 z" fill="#6366f1" />
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" />
             </marker>
         </defs>
         ${pathsHTML}
@@ -12521,6 +12819,7 @@ async function runWorkflowSimulation(btn) {
                 badgeContainer.innerHTML = renderCanvasNodesHTML();
                 // Re-render nodes container
                 document.getElementById('canvas-nodes-container').innerHTML = badgeContainer.innerHTML;
+                lucide.createIcons();
             }
             drawConnections();
         }

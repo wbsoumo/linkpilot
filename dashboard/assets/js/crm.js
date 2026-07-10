@@ -3749,21 +3749,40 @@ async function renderCompanies(container) {
     try {
         const res = await apiCall('crm/companies.php?limit=1000');
         const comps = res.companies || [];
+        const logoApiKey = res.logo_dev_api_key || '';
         
-        let compRows = comps.map(c => `
-            <tr class="hover:bg-slate-900/40">
-                <td class="py-3 px-4 font-bold text-white">${c.name}</td>
-                <td class="py-3 px-4 text-slate-300 font-medium">${c.industry || '-'}</td>
-                <td class="py-3 px-4 text-slate-400 font-mono text-[11px]">${c.website || '-'}</td>
-                <td class="py-3 px-4">${c.owner || '-'}</td>
-                <td class="py-3 px-4">
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-green-500/10 text-green-400 border border-green-500/20">${c.status}</span>
-                </td>
-                <td class="py-3 px-4 text-right">
-                    <button onclick="openInspectCompanyModal(${c.id})" class="text-xs px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-md hover:border-teal-400 hover:text-teal-400 transition">View Portal</button>
-                </td>
-            </tr>
-        `).join('');
+        let compRows = comps.map(c => {
+            // Default letter monogram
+            let logoHtml = `<div class="h-7 w-7 rounded-lg bg-slate-800 text-white font-bold flex items-center justify-center border border-slate-700/60 uppercase text-[10px] shadow-sm select-none">${c.name ? c.name.charAt(0) : 'C'}</div>`;
+            
+            // Resolve company website domain for logo lookup
+            let domain = null;
+            if (c.website) {
+                let cleaned = c.website.replace(/^(https?:\/\/)?(www\.)?/, '');
+                cleaned = cleaned.split('/')[0].trim();
+                if (cleaned) domain = cleaned;
+            }
+
+            if (domain && logoApiKey) {
+                logoHtml = `<img src="https://img.logo.dev/${domain}?token=${logoApiKey}&size=64&fallback=monogram" class="h-7 w-7 rounded-lg object-contain bg-white border border-slate-700/30 shadow-sm" alt="${c.name || 'Logo'}" onerror="this.onerror=null; this.outerHTML='<div class=&quot;h-7 w-7 rounded-lg bg-slate-800 text-white font-bold flex items-center justify-center border border-slate-700/60 uppercase text-[10px] shadow-sm select-none&quot;>${c.name ? c.name.charAt(0) : 'C'}</div>';">`;
+            }
+
+            return `
+                <tr class="hover:bg-slate-900/40">
+                    <td class="py-3 px-4">${logoHtml}</td>
+                    <td class="py-3 px-4 font-bold text-white">${c.name}</td>
+                    <td class="py-3 px-4 text-slate-300 font-medium">${c.industry || '-'}</td>
+                    <td class="py-3 px-4 text-slate-400 font-mono text-[11px]">${c.website || '-'}</td>
+                    <td class="py-3 px-4">${c.owner || '-'}</td>
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-green-500/10 text-green-400 border border-green-500/20">${c.status}</span>
+                    </td>
+                    <td class="py-3 px-4 text-right">
+                        <button onclick="openInspectCompanyModal(${c.id})" class="text-xs px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-md hover:border-teal-400 hover:text-teal-400 transition">View Portal</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
 
         container.innerHTML = `
             <div class="space-y-6 animate-fade-in pt-4">
@@ -3779,6 +3798,7 @@ async function renderCompanies(container) {
                         <table class="w-full text-left border-collapse custom-table text-xs">
                             <thead>
                                 <tr class="border-b border-slate-800">
+                                    <th class="py-3 px-4 w-12">Logo</th>
                                     <th class="py-3 px-4">Company Name</th>
                                     <th class="py-3 px-4">Industry</th>
                                     <th class="py-3 px-4">Website</th>
@@ -3788,7 +3808,7 @@ async function renderCompanies(container) {
                                 </tr>
                             </thead>
                             <tbody>
-                                ${compRows || `<tr><td colspan="6" class="text-center py-10 text-slate-500">No companies cataloged.</td></tr>`}
+                                ${compRows || `<tr><td colspan="7" class="text-center py-10 text-slate-500">No companies cataloged.</td></tr>`}
                             </tbody>
                         </table>
                     </div>

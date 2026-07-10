@@ -128,11 +128,18 @@ try {
             $distinctStatuses->execute([$userId]);
             $statuses = $distinctStatuses->fetchAll(PDO::FETCH_COLUMN);
             
+            // Fetch logo.dev API Key from admin settings
+            $logoApiKey = '';
+            $stmtLogo = $db->prepare("SELECT setting_value FROM admin_settings WHERE setting_key = 'logo_dev_api_key' LIMIT 1");
+            $stmtLogo->execute();
+            $logoApiKey = $stmtLogo->fetchColumn() ?: '';
+            
             sendJsonResponse('success', 'Companies listed successfully', [
                 'companies' => $companies,
                 'total' => $totalCount,
                 'page' => $page,
                 'limit' => $limit,
+                'logo_dev_api_key' => $logoApiKey,
                 'filters' => [
                     'industries' => $industries,
                     'statuses' => $statuses

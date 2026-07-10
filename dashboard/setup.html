@@ -83,13 +83,14 @@
                                     <p class="text-sm text-slate-500 mt-1">Choose your email provider to integrate with LinkPilot for seamless outbound communication.</p>
                                 </div>
                                 
+                                <!-- Email Connected Status Alert Box -->
+                                <div id="email-setup-status-box" class="w-full hidden"></div>
+
                                 <!-- Split Wrapper -->
                                 <div id="smtp-split-wrapper" class="grid grid-cols-1 md:grid-cols-12 gap-6 relative items-start transition-all duration-500 w-full">
                                     
                                     <!-- Left Column: Selection Grid -->
                                     <div id="smtp-selection-column" class="col-span-12 transition-all duration-500 ease-in-out grid grid-cols-1 sm:grid-cols-2 gap-4 shrink-0">
-                                        <!-- Email Connected Status Alert Box -->
-                                        <div id="email-setup-status-box" class="col-span-full hidden"></div>
                                         
                                         <!-- Gmail -->
                                         <div id="smtp-card-gmail" onclick="selectSmtpProvider('gmail')" class="p-5 border border-slate-200 hover:border-[#005bf7] rounded-2xl hover:bg-slate-50 cursor-pointer transition flex justify-between items-center group text-left relative bg-white">
@@ -206,6 +207,68 @@
                                         <div id="smtp-manual-fields-wrapper" class="space-y-4">
                                             <form id="setup-smtp-form" class="space-y-4 text-left">
                                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <!-- Custom Provider Selection Dropdown -->
+                                                    <div class="space-y-1.5 sm:col-span-2 relative select-none">
+                                                        <label class="block text-xs font-extrabold text-slate-655 uppercase tracking-wider">Select SMTP Provider</label>
+                                                        <div class="relative">
+                                                            <button type="button" id="custom-provider-dropdown-btn" onclick="toggleCustomProviderDropdown()" class="w-full flex items-center justify-between px-4 py-3 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#005bf7] sm:text-sm transition shadow-sm">
+                                                                <div class="flex items-center space-x-3.5" id="selected-provider-display">
+                                                                    <div class="w-7 h-7 flex items-center justify-center shrink-0 text-slate-400">
+                                                                        <i data-lucide="globe" class="h-5 w-5"></i>
+                                                                    </div>
+                                                                    <span class="font-extrabold text-slate-800 text-sm">Custom / Other</span>
+                                                                </div>
+                                                                <i data-lucide="chevron-down" class="h-4 w-4 text-slate-450"></i>
+                                                            </button>
+                                                            
+                                                            <!-- Options Menu -->
+                                                            <div id="custom-provider-dropdown-options" class="absolute left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 max-h-60 overflow-y-auto hidden divide-y divide-slate-100">
+                                                                <div onclick="selectCustomSmtpProvider('gmail', 'smtp.gmail.com', 587, 'gmail')" class="flex items-center space-x-3.5 px-4 py-3.5 hover:bg-slate-50 cursor-pointer transition">
+                                                                    <div class="w-7 h-7 flex items-center justify-center shrink-0">
+                                                                        <svg style="width: 18px; height: 18px;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.08H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.92l2.85-2.22.81-.6z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.08l3.66 2.84c.87-2.6 3.3-4.54 6.16-4.54z" fill="#EA4335"/></svg>
+                                                                    </div>
+                                                                    <span class="font-extrabold text-slate-805 text-sm">Gmail / Google Workspace</span>
+                                                                </div>
+                                                                <div onclick="selectCustomSmtpProvider('outlook', 'smtp.office365.com', 587, 'outlook')" class="flex items-center space-x-3.5 px-4 py-3.5 hover:bg-slate-50 cursor-pointer transition">
+                                                                    <div class="w-7 h-7 flex items-center justify-center shrink-0">
+                                                                        <svg style="width: 20px; height: 20px;" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="8" width="20" height="16" rx="2" fill="#0078d4"/><path d="M6 10l10 7 10-7" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M6 22V11" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M26 22V11" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/><circle cx="9" cy="20" r="6" fill="#106ebe" stroke="#ffffff" stroke-width="1.5"/><text x="6" y="24" fill="#ffffff" font-family="Segoe UI, sans-serif" font-weight="900" font-size="11">O</text></svg>
+                                                                    </div>
+                                                                    <span class="font-extrabold text-slate-805 text-sm">Microsoft Outlook</span>
+                                                                </div>
+                                                                <div onclick="selectCustomSmtpProvider('yahoo', 'smtp.mail.yahoo.com', 465, 'yahoo')" class="flex items-center space-x-3.5 px-4 py-3.5 hover:bg-slate-50 cursor-pointer transition">
+                                                                    <div class="w-7 h-7 flex items-center justify-center shrink-0">
+                                                                        <img src="https://img.icons8.com/color/48/yahoo.png" class="h-6 w-6 object-contain" alt="Yahoo">
+                                                                    </div>
+                                                                    <span class="font-extrabold text-slate-805 text-sm">Yahoo Mail</span>
+                                                                </div>
+                                                                <div onclick="selectCustomSmtpProvider('zoho', 'smtp.zoho.com', 465, 'zoho')" class="flex items-center space-x-3.5 px-4 py-3.5 hover:bg-slate-50 cursor-pointer transition">
+                                                                    <div class="w-7 h-7 flex items-center justify-center shrink-0">
+                                                                        <img src="https://img.icons8.com/color/48/zoho.png" class="h-6 w-6 object-contain" alt="Zoho">
+                                                                    </div>
+                                                                    <span class="font-extrabold text-slate-805 text-sm">Zoho Mail</span>
+                                                                </div>
+                                                                <div onclick="selectCustomSmtpProvider('hostinger', 'smtp.hostinger.com', 465, 'hostinger')" class="flex items-center space-x-3.5 px-4 py-3.5 hover:bg-slate-50 cursor-pointer transition">
+                                                                    <div class="w-7 h-7 flex items-center justify-center shrink-0">
+                                                                        <img src="https://img.icons8.com/fluent/48/domain.png" class="h-6 w-6 object-contain" alt="Hostinger">
+                                                                    </div>
+                                                                    <span class="font-extrabold text-slate-805 text-sm">Hostinger</span>
+                                                                </div>
+                                                                <div onclick="selectCustomSmtpProvider('mailgun', 'smtp.mailgun.org', 587, 'mailgun')" class="flex items-center space-x-3.5 px-4 py-3.5 hover:bg-slate-50 cursor-pointer transition">
+                                                                    <div class="w-7 h-7 flex items-center justify-center shrink-0 text-red-500">
+                                                                        <i data-lucide="send" class="h-5 w-5"></i>
+                                                                    </div>
+                                                                    <span class="font-extrabold text-slate-805 text-sm">Mailgun</span>
+                                                                </div>
+                                                                <div onclick="selectCustomSmtpProvider('custom', '', 587, 'globe')" class="flex items-center space-x-3.5 px-4 py-3.5 hover:bg-slate-50 cursor-pointer transition">
+                                                                    <div class="w-7 h-7 flex items-center justify-center shrink-0 text-slate-400">
+                                                                        <i data-lucide="globe" class="h-5 w-5"></i>
+                                                                    </div>
+                                                                    <span class="font-extrabold text-slate-805 text-sm">Custom / Other</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
                                                     <div class="space-y-1.5">
                                                         <label class="block text-xs font-extrabold text-slate-655 uppercase tracking-wider">Sender Name *</label>
                                                         <input type="text" id="smtp-sender-name" placeholder="e.g. John Doe" class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200 shadow-sm">
@@ -570,6 +633,99 @@
         }
 
         let selectedProvider = '';
+        let activeConnectedEmail = null;
+
+        window.toggleCustomProviderDropdown = function() {
+            const options = document.getElementById('custom-provider-dropdown-options');
+            if (options) options.classList.toggle('hidden');
+        };
+
+        window.selectCustomSmtpProvider = function(val, host, port, icon) {
+            const display = document.getElementById('selected-provider-display');
+            const options = document.getElementById('custom-provider-dropdown-options');
+            
+            // Auto fill host and port
+            const hostInput = document.getElementById('smtp-host');
+            const portInput = document.getElementById('smtp-port');
+            if (hostInput) hostInput.value = host;
+            if (portInput) portInput.value = port;
+            
+            // Toggle host-row visibility
+            const customRow = document.getElementById('custom-host-row');
+            if (customRow && hostInput && portInput) {
+                if (val === 'custom') {
+                    customRow.classList.remove('hidden');
+                    hostInput.required = true;
+                    portInput.required = true;
+                } else {
+                    customRow.classList.add('hidden');
+                    hostInput.required = false;
+                    portInput.required = false;
+                }
+            }
+
+            // Update password label & placeholder
+            const passLabel = document.getElementById('smtp-pass-label');
+            const passInput = document.getElementById('smtp-password');
+            if (passLabel && passInput) {
+                if (val === 'gmail') {
+                    passLabel.textContent = 'Google App Password *';
+                    passInput.placeholder = 'Enter 16-digit app password';
+                } else if (val === 'outlook' || val === 'yahoo') {
+                    passLabel.textContent = 'App Password *';
+                    passInput.placeholder = 'Enter app password';
+                } else {
+                    passLabel.textContent = 'SMTP Password *';
+                    passInput.placeholder = 'Enter SMTP password';
+                }
+            }
+            
+            // Update selected display
+            let iconHtml = '';
+            let nameText = '';
+            if (val === 'gmail') {
+                iconHtml = `<svg style="width: 18px; height: 18px;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.08H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.92l2.85-2.22.81-.6z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.08l3.66 2.84c.87-2.6 3.3-4.54 6.16-4.54z" fill="#EA4335"/></svg>`;
+                nameText = 'Gmail / Google Workspace';
+            } else if (val === 'outlook') {
+                iconHtml = `<svg style="width: 20px; height: 20px;" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="8" width="20" height="16" rx="2" fill="#0078d4"/><path d="M6 10l10 7 10-7" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M6 22V11" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M26 22V11" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/><circle cx="9" cy="20" r="6" fill="#106ebe" stroke="#ffffff" stroke-width="1.5"/><text x="6" y="24" fill="#ffffff" font-family="Segoe UI, sans-serif" font-weight="900" font-size="11">O</text></svg>`;
+                nameText = 'Microsoft Outlook';
+            } else if (val === 'yahoo') {
+                iconHtml = `<img src="https://img.icons8.com/color/48/yahoo.png" class="h-6 w-6 object-contain" alt="Yahoo">`;
+                nameText = 'Yahoo Mail';
+            } else if (val === 'zoho') {
+                iconHtml = `<img src="https://img.icons8.com/color/48/zoho.png" class="h-6 w-6 object-contain" alt="Zoho">`;
+                nameText = 'Zoho Mail';
+            } else if (val === 'hostinger') {
+                iconHtml = `<img src="https://img.icons8.com/fluent/48/domain.png" class="h-6 w-6 object-contain" alt="Hostinger">`;
+                nameText = 'Hostinger';
+            } else if (val === 'mailgun') {
+                iconHtml = `<i data-lucide="send" class="h-5 w-5 text-red-500"></i>`;
+                nameText = 'Mailgun';
+            } else {
+                iconHtml = `<i data-lucide="globe" class="h-5 w-5 text-slate-400"></i>`;
+                nameText = 'Custom / Other';
+            }
+            
+            if (display) {
+                display.innerHTML = `
+                    <div class="w-7 h-7 flex items-center justify-center shrink-0">
+                        ${iconHtml}
+                    </div>
+                    <span class="font-extrabold text-slate-800 text-sm">${nameText}</span>
+                `;
+            }
+            if (options) options.classList.add('hidden');
+            if (window.lucide) lucide.createIcons();
+        };
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const btn = document.getElementById('custom-provider-dropdown-btn');
+            const options = document.getElementById('custom-provider-dropdown-options');
+            if (btn && options && !btn.contains(e.target) && !options.contains(e.target)) {
+                options.classList.add('hidden');
+            }
+        });
 
         // Provider configuration mappings
         const providersMeta = {
@@ -721,6 +877,17 @@
         function selectSmtpProvider(provider) {
             selectedProvider = provider;
             const meta = providersMeta[provider];
+            
+            // Hide status box while configuring to avoid layout squeezes
+            const statusBox = document.getElementById('email-setup-status-box');
+            if (statusBox) statusBox.classList.add('hidden');
+            
+            // Sync custom provider dropdown selector UI
+            if (provider !== 'custom') {
+                selectCustomSmtpProvider(provider, meta.host, meta.port, provider);
+            } else {
+                selectCustomSmtpProvider('custom', '', 587, 'globe');
+            }
             
             // Highlight selected card and hide others
             highlightSelectedCard(provider);
@@ -1450,6 +1617,7 @@
                     }
                 }
                 
+                activeConnectedEmail = connectedEmail;
                 const statusBox = document.getElementById('email-setup-status-box');
                 if (statusBox) {
                     if (connectedEmail) {

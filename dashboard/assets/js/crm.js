@@ -8356,6 +8356,7 @@ const WORKFLOW_TEMPLATES = [
 const AVAILABLE_NODES = [
     // TRIGGERS
     { type: "email_received", name: "Email Received", category: "TRIGGERS", icon: "mail", desc: "Triggers on incoming email." },
+    { type: "whatsapp_received", name: "WhatsApp Received", category: "TRIGGERS", icon: "whatsapp", desc: "Triggers on inbound WhatsApp." },
     { type: "lead_created", name: "Lead Created", category: "TRIGGERS", icon: "user-plus", desc: "Triggers on lead insertion." },
     { type: "contact_created", name: "Contact Created", category: "TRIGGERS", icon: "contact", desc: "Triggers on contact insertion." },
     { type: "company_created", name: "Company Created", category: "TRIGGERS", icon: "briefcase", desc: "Triggers on company insertion." },
@@ -8387,6 +8388,7 @@ const AVAILABLE_NODES = [
 
     // COMMUNICATION
     { type: "send_email", name: "Send Email", category: "COMMUNICATION", icon: "send", desc: "Send SMTP mail." },
+    { type: "whatsapp_outbound", name: "Send WhatsApp", category: "COMMUNICATION", icon: "whatsapp", desc: "Send WhatsApp message." },
     { type: "send_notification", name: "Send Notification", category: "COMMUNICATION", icon: "bell", desc: "System toast popup." },
     { type: "send_slack", name: "Send Slack", category: "COMMUNICATION", icon: "slack", desc: "Slack channel hook." },
     { type: "send_discord", name: "Send Discord", category: "COMMUNICATION", icon: "hash", desc: "Discord channel payload." },
@@ -8442,7 +8444,7 @@ window.getNodeIconHTML = function(type, icon) {
     if (type === 'send_slack' || icon === 'slack') {
         return `<img src="https://img.logo.dev/slack.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-4 w-4 rounded-sm object-contain" alt="Slack">`;
     }
-    if (type === 'send_whatsapp' || type === 'whatsapp_message' || icon === 'whatsapp' || icon === 'message-circle') {
+    if (type === 'send_whatsapp' || type === 'whatsapp_message' || type === 'whatsapp_received' || type === 'whatsapp_outbound' || icon === 'whatsapp' || icon === 'message-circle') {
         return `<img src="assets/img/WhatsApp_icon.png" class="h-4 w-4 object-contain" alt="WhatsApp">`;
     }
     if (type === 'email_received' || type === 'send_email' || icon === 'mail' || icon === 'gmail') {
@@ -8610,12 +8612,20 @@ async function editVisualWorkflow(id) {
         const found = workflows.find(w => (w.id === id));
         if (found) {
             let actions = found.actions || {};
-            // If it is in old format, convert or fallback
             if (!actions.nodes) {
+                const trType = found.trigger_type || 'email_received';
+                const trNode = {
+                    id: "node-trigger",
+                    type: trType,
+                    name: trType === 'whatsapp_received' ? 'WhatsApp Received' : 'Email Received',
+                    category: "TRIGGERS",
+                    icon: trType === 'whatsapp_received' ? 'message-square' : 'mail',
+                    x: 250,
+                    y: 80,
+                    config: trType === 'whatsapp_received' ? { phone: found.trigger_value || "All" } : { folder: found.trigger_value || "Inbox" }
+                };
                 actions = {
-                    nodes: [
-                        { id: "node-trigger", type: "email_received", name: "Email Received", category: "TRIGGERS", icon: "mail", x: 250, y: 80, config: { folder: found.trigger_value || "Inbox" } }
-                    ],
+                    nodes: [trNode],
                     connections: []
                 };
             }
@@ -12097,7 +12107,8 @@ function renderCanvasNodesHTML() {
         const isCondition = n.type === 'if_branch' || n.type === 'if_score';
         
         let handlesHTML = '';
-        if (n.id !== 'node-trigger' && n.type !== 'email_received') {
+        const isTriggerNode = n.id === 'node-trigger' || n.category === 'TRIGGERS' || n.type === 'email_received' || n.type === 'whatsapp_received';
+        if (!isTriggerNode) {
             handlesHTML += `<div class="wf-node-handle input" data-node-id="${n.id}" data-handle-type="input" onmousedown="handleConnectionMouseDown(event, '${n.id}', 'input')"></div>`;
         }
         
@@ -12179,6 +12190,10 @@ const NODE_FIELDS_MAP = {
     meeting_scheduled: [
         { key: 'calendar', label: 'Calendar Integration', type: 'select', options: ['Google Calendar', 'Outlook Calendar', 'LinkPilot Calendar'] },
         { key: 'meetingType', label: 'Meeting Type', type: 'select', options: ['Introduction', 'Demo Call', 'Follow Up', 'Negotiation'] }
+    ],
+    whatsapp_received: [
+        { key: 'phone', label: 'Sender Phone Filter', type: 'text', placeholder: 'e.g. +1234567890 (or empty for all)' },
+        { key: 'messageContains', label: 'Message Contains', type: 'text', placeholder: 'e.g. hello, help' }
     ],
 
     // AI
@@ -12301,6 +12316,10 @@ const NODE_FIELDS_MAP = {
         { key: 'body', label: 'Email Body Content', type: 'textarea', placeholder: 'Supports HTML...' },
         { key: 'templateName', label: 'Design Template', type: 'select', options: ['None (Plain Text)', 'Modern Corporate', 'Elegant Blue Theme'] },
         { key: 'attachments', label: 'Attach File Variable', type: 'text', placeholder: 'e.g. {{file}}' }
+    ],
+    whatsapp_outbound: [
+        { key: 'to', label: 'Recipient Phone', type: 'text', placeholder: 'e.g. +1234567890 or {{contact.phone}}' },
+        { key: 'message', label: 'WhatsApp Message Body', type: 'textarea', placeholder: 'Type your WhatsApp message content here...' }
     ],
     send_notification: [
         { key: 'targetUser', label: 'Target System User', type: 'select', options: ['All Active Admins', 'Soumojit Saha'] },
@@ -13077,7 +13096,7 @@ function autoArrangeCanvas() {
     let visited = new Set();
     
     // Find trigger node
-    const trigger = wf.nodes.find(n => n.id === 'node-trigger' || n.type === 'email_received') || wf.nodes[0];
+    const trigger = wf.nodes.find(n => n.id === 'node-trigger' || n.category === 'TRIGGERS' || n.type === 'email_received' || n.type === 'whatsapp_received') || wf.nodes[0];
     
     const assignLevel = (nodeId, lvl) => {
         if (visited.has(nodeId)) return;
@@ -13135,9 +13154,10 @@ function showTestDetailsModal(onConfirm) {
     let formFieldsHTML = '';
     
     const hasEmailTrigger = wf.nodes.some(n => n.type === 'email_received');
+    const hasWhatsappTrigger = wf.nodes.some(n => n.type === 'whatsapp_received');
     const hasSendEmail = wf.nodes.some(n => n.type === 'send_email');
     const hasCreateLead = wf.nodes.some(n => n.type === 'create_lead');
-    const hasSendWhatsapp = wf.nodes.some(n => n.type === 'send_whatsapp');
+    const hasSendWhatsapp = wf.nodes.some(n => n.type === 'send_whatsapp' || n.type === 'whatsapp_outbound');
     
     if (hasEmailTrigger) {
         formFieldsHTML += `
@@ -13156,6 +13176,28 @@ function showTestDetailsModal(onConfirm) {
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-slate-500 uppercase">Test Email Body Content</label>
                     <textarea id="test-sender-body" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-800 focus:outline-none focus:border-indigo-500 font-sans">Hi there, we would love to know more about your CRM integration pricing plans.</textarea>
+                </div>
+            </div>
+        `;
+    }
+    
+    if (hasWhatsappTrigger) {
+        formFieldsHTML += `
+            <div class="space-y-3 pb-3 border-b border-slate-100">
+                <h6 class="text-[10px] font-bold text-indigo-650 uppercase tracking-wider">Trigger: WhatsApp Received Details</h6>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-bold text-slate-500 uppercase">Test Sender Phone</label>
+                        <input type="text" id="test-sender-phone" value="+19999999999" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-800 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-bold text-slate-500 uppercase">Test Sender Name</label>
+                        <input type="text" id="test-sender-name" value="Jane Cooper" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-800 focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase">Test Message Body</label>
+                    <textarea id="test-sender-message" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-800 focus:outline-none focus:border-indigo-500 font-sans">Hello, I am interested in setting up a demo for our company Acme Corp.</textarea>
                 </div>
             </div>
         `;
@@ -13282,7 +13324,7 @@ async function runWorkflowSimulation(btn) {
         refreshBuilderCanvasInline();
         
         // Walk through execution pathway
-        const startNode = wf.nodes.find(n => n.id === 'node-trigger' || n.type === 'email_received') || wf.nodes[0];
+        const startNode = wf.nodes.find(n => n.id === 'node-trigger' || n.category === 'TRIGGERS' || n.type === 'email_received' || n.type === 'whatsapp_received') || wf.nodes[0];
         
         let path = [];
         const traverse = (nodeId) => {
@@ -13321,6 +13363,20 @@ async function runWorkflowSimulation(btn) {
                     });
                 } catch (err) {
                     console.error('Failed to dispatch test email', err);
+                }
+            }
+            
+            // If the node type is 'whatsapp_outbound', trigger backend whatsapp delivery
+            if (node.type === 'whatsapp_outbound' && details.phone) {
+                try {
+                    const waConfig = node.config || {};
+                    await apiCall('whatsapp/inbox.php', 'POST', {
+                        recipient: details.phone,
+                        body: waConfig.message || details.senderMessage || 'This is a test WhatsApp message from LinkPilot Workflow Builder.',
+                        type: 'text'
+                    });
+                } catch (err) {
+                    console.error('Failed to dispatch test WhatsApp', err);
                 }
             }
             
@@ -13369,14 +13425,21 @@ async function saveActiveWorkflow() {
     
     try {
         // Find trigger value inside the nodes config to keep database compatible
-        const triggerNode = wf.nodes.find(n => n.id === 'node-trigger' || n.type === 'email_received');
-        const triggerValue = triggerNode && triggerNode.config ? triggerNode.config.folder : 'Inbox';
+        const triggerNode = wf.nodes.find(n => n.id === 'node-trigger' || n.category === 'TRIGGERS' || n.type === 'email_received' || n.type === 'whatsapp_received');
+        let triggerValue = 'Inbox';
+        if (triggerNode) {
+            if (triggerNode.type === 'whatsapp_received') {
+                triggerValue = (triggerNode.config && triggerNode.config.phone) ? triggerNode.config.phone : 'All';
+            } else if (triggerNode.config) {
+                triggerValue = triggerNode.config.folder || triggerNode.config.pipeline || 'Inbox';
+            }
+        }
         
         const payload = {
             id: wf.id,
             name: wf.name,
-            trigger_type: 'visual_workflow',
-            trigger_value: triggerValue || 'Inbox',
+            trigger_type: triggerNode ? triggerNode.type : 'visual_workflow',
+            trigger_value: triggerValue,
             is_active: wf.is_active,
             actions: {
                 nodes: wf.nodes,

@@ -662,6 +662,37 @@ TODAY'S DATE AND TIME: $currentDate $currentTime (relative offsets like 'tomorro
                        ->execute([$userId, $crmContactId, "Received WhatsApp message from '$profileName': " . substr($bodyText, 0, 100)]);
                     
                     $db->commit();
+
+                    // Trigger active visual workflows for whatsapp_received
+                    try {
+                        require_once __DIR__ . '/../../workflow_runner.php';
+                        $stmtWfs = $db->prepare("SELECT * FROM automation_workflows WHERE user_id = ? AND trigger_type = 'whatsapp_received' AND is_active = 1");
+                        $stmtWfs->execute([$userId]);
+                        $wfs = $stmtWfs->fetchAll();
+                        
+                        $wfContext = [
+                            'sender_phone' => $fromWaId,
+                            'sender_name' => $profileName,
+                            'message_body' => $bodyText,
+                            'message' => $bodyText,
+                            'contact_id' => $crmContactId
+                        ];
+                        
+                        foreach ($wfs as $wf) {
+                            $trVal = trim($wf['trigger_value'] ?? '');
+                            if (!empty($trVal) && strtolower($trVal) !== 'all') {
+                                // Clean both numbers for comparison
+                                $cleanTrVal = preg_replace('/[^0-9]/', '', $trVal);
+                                $cleanFrom = preg_replace('/[^0-9]/', '', $fromWaId);
+                                if (!empty($cleanTrVal) && $cleanTrVal !== $cleanFrom) {
+                                    continue; // Filter on specific sender phone number
+                                }
+                            }
+                            WorkflowRunner::execute($userId, $wf, $wfContext);
+                        }
+                    } catch (Throwable $wfEx) {
+                        WhatsAppMetaService::logDebug("WhatsApp visual workflow execution error: " . $wfEx->getMessage());
+                    }
                 } catch (Exception $trxEx) {
                     $db->rollBack();
                     throw $trxEx;

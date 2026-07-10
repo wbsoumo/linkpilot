@@ -301,6 +301,33 @@ You MUST return your response as a valid, parsable JSON block with the following
                 $logStmt->execute([$userId, $subject, $sender, "Email successfully processed. AI confidence: $confidence%.", $tokensUsed]);
                 
                 $db->commit();
+
+                // Trigger active visual workflows for email_received
+                try {
+                    require_once __DIR__ . '/workflow_runner.php';
+                    $stmtVisual = $db->prepare("SELECT * FROM automation_workflows WHERE user_id = ? AND trigger_type = 'email_received' AND is_active = 1");
+                    $stmtVisual->execute([$userId]);
+                    $visualWfs = $stmtVisual->fetchAll();
+                    
+                    $vContext = [
+                        'sender_email' => $sender,
+                        'sender_name' => $senderName,
+                        'subject' => $subject,
+                        'email_body' => $bodyText,
+                        'body' => $bodyText,
+                        'category' => $category,
+                        'priority' => $priority,
+                        'lead_id' => $leadId,
+                        'contact_id' => $contactId
+                    ];
+                    
+                    foreach ($visualWfs as $vwf) {
+                        WorkflowRunner::execute($userId, $vwf, $vContext);
+                    }
+                } catch (Throwable $vEx) {
+                    // Suppress workflow errors to keep worker robust
+                }
+
                 $processedCount++;
             } catch (Throwable $trxError) {
                 $db->rollBack();

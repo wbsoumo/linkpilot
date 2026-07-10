@@ -5666,9 +5666,6 @@ async function openInspectCompanyModal(companyId) {
         const modal = document.getElementById('crm-company-inspect-modal');
         if (!modal) return;
 
-        const modal = document.getElementById('crm-company-inspect-modal');
-        if (!modal) return;
-
         modal.innerHTML = `
             <div class="bg-white border border-slate-100 rounded-[24px] w-full max-w-4xl text-slate-700 text-xs shadow-2xl relative flex flex-col max-h-[90vh] p-6 space-y-5 animate-scale-up">
                 
@@ -6054,13 +6051,6 @@ function submitEditCompanyForm(e, companyId) {
         .catch(err => {
             showNotification('error', err.message);
         });
-}
-        `;
-        lucide.createIcons();
-    } catch (e) {
-        showNotification('error', 'Failed to retrieve company details: ' + e.message);
-        document.getElementById('crm-company-inspect-modal').remove();
-    }
 }
 
 // Simple implementations for secondary view states (Tasks, Meetings, Automation, Settings, Reports, AI Insights)

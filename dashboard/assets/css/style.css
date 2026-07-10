@@ -790,7 +790,12 @@ body .bg-\[\#4f46e5\], body .bg-\[\#4f46e5\] * {
 }
 
 /* Custom Popup Modals Dark Blurred Backdrop Rule */
-.backdrop-blur-sm, .backdrop-blur-md, .backdrop-blur {
+body :not(aside) .backdrop-blur-sm,
+body :not(aside) .backdrop-blur-md,
+body :not(aside) .backdrop-blur,
+.backdrop-blur-sm,
+.backdrop-blur-md,
+.backdrop-blur {
     background-color: rgba(15, 23, 42, 0.65) !important;
     backdrop-filter: blur(8px) !important;
     -webkit-backdrop-filter: blur(8px) !important;

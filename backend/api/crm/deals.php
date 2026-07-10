@@ -180,7 +180,7 @@ try {
         }
         
         // Check ownership
-        $stmtCheck = $db->prepare("SELECT id, title, stage, company_id, contact_id FROM crm_deals WHERE id = ? AND user_id = ?");
+        $stmtCheck = $db->prepare("SELECT id, title, stage, company_id, contact_id, lead_id, expected_revenue, probability, owner, closing_date FROM crm_deals WHERE id = ? AND user_id = ?");
         $stmtCheck->execute([$dealId, $userId]);
         $deal = $stmtCheck->fetch();
         if (!$deal) {

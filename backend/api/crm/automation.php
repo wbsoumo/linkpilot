@@ -17,7 +17,7 @@ $db = Database::getConnection();
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
-if ($method === 'POST' && !empty($action)) {
+if (!empty($action)) {
     $method = strtoupper($action);
 }
 

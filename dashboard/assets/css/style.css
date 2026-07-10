@@ -914,7 +914,7 @@ aside h6 {
     #sidebar-panel.collapsed .flex.items-center.space-x-3 > div:not(#user-avatar-initials) {
         display: none !important;
     }
-    #sidebar-panel.collapsed .bg-slate-900\/60.border.border-slate-800.rounded-xl.p-3\.5 {
+    #sidebar-panel.collapsed #sidebar-pro-card {
         display: none !important;
     }
     #sidebar-panel.collapsed a.flex.items-center.space-x-2.text-lg.font-extrabold.tracking-wider.text-white span {

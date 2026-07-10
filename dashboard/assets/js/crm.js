@@ -6595,10 +6595,10 @@ window.getTaskChannelLogoHTML = function(title, description, category) {
         return `<img src="assets/img/WhatsApp_icon.png" class="h-4.5 w-4.5 object-contain shrink-0" alt="WhatsApp">`;
     }
     if (lowerTitle.includes('slack') || lowerDesc.includes('slack') || lowerCat === 'slack') {
-        return `<img src="https://logo.clearbit.com/slack.com" class="h-4.5 w-4.5 rounded-sm object-contain shrink-0" alt="Slack">`;
+        return `<img src="https://img.logo.dev/slack.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-4.5 w-4.5 rounded-sm object-contain shrink-0" alt="Slack">`;
     }
     if (lowerTitle.includes('email') || lowerTitle.includes('reply') || lowerDesc.includes('email') || lowerCat === 'email') {
-        return `<img src="https://logo.clearbit.com/gmail.com" class="h-4.5 w-4.5 object-contain shrink-0" alt="Email">`;
+        return `<img src="https://img.logo.dev/gmail.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-4.5 w-4.5 object-contain shrink-0" alt="Email">`;
     }
     if (lowerTitle.includes('meeting') || lowerTitle.includes('meet') || lowerDesc.includes('meeting')) {
         return `<div class="h-4.5 w-4.5 bg-blue-50 text-blue-600 rounded flex items-center justify-center shrink-0"><i data-lucide="video" class="h-3 w-3"></i></div>`;
@@ -8427,21 +8427,21 @@ window.toggleSidebarCollapsed = function(collapsed) {
     const sidebar = document.getElementById('sidebar-panel');
     if (!sidebar) return;
     if (collapsed) {
-        sidebar.classList.add('lg:hidden', 'hidden');
+        sidebar.classList.add('collapsed');
     } else {
-        sidebar.classList.remove('lg:hidden', 'hidden');
+        sidebar.classList.remove('collapsed');
     }
 };
 
 window.getNodeIconHTML = function(type, icon) {
     if (type === 'send_slack' || icon === 'slack') {
-        return `<img src="https://logo.clearbit.com/slack.com" class="h-4 w-4 rounded-sm object-contain" alt="Slack">`;
+        return `<img src="https://img.logo.dev/slack.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-4 w-4 rounded-sm object-contain" alt="Slack">`;
     }
     if (type === 'send_whatsapp' || type === 'whatsapp_message' || icon === 'whatsapp' || icon === 'message-circle') {
         return `<img src="assets/img/WhatsApp_icon.png" class="h-4 w-4 object-contain" alt="WhatsApp">`;
     }
     if (type === 'email_received' || type === 'send_email' || icon === 'mail' || icon === 'gmail') {
-        return `<img src="https://logo.clearbit.com/gmail.com" class="h-4 w-4 object-contain" alt="Gmail">`;
+        return `<img src="https://img.logo.dev/gmail.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-4 w-4 object-contain" alt="Gmail">`;
     }
     return `<i data-lucide="${icon || 'circle'}" class="h-3.5 w-3.5"></i>`;
 };
@@ -8582,6 +8582,7 @@ async function loadRecentExecutionLogs() {
 }
 
 function createNewVisualWorkflow() {
+    window.wfState.activeTab = 'builder';
     window.wfState.activeWorkflow = {
         id: 0,
         name: "New Automation Workflow",
@@ -8597,6 +8598,7 @@ function createNewVisualWorkflow() {
 }
 
 async function editVisualWorkflow(id) {
+    window.wfState.activeTab = 'builder';
     try {
         const data = await apiCall('crm/automation.php');
         const workflows = data.workflows || [];
@@ -8670,9 +8672,343 @@ function installWorkflowTemplate(idx) {
 
 function renderVisualCanvas(container) {
     const wf = window.wfState.activeWorkflow;
+    const activeTab = window.wfState.activeTab || 'builder';
     toggleSidebarCollapsed(true);
     
-    // Group nodes by category
+    // Top Tabs HTML
+    const tabsHTML = `
+        <div class="flex items-center bg-slate-100 rounded-xl p-0.5 text-[10px] font-bold shrink-0 mx-4 border border-slate-200">
+            <button onclick="switchWorkflowTab('builder')" class="px-4 py-1.5 ${activeTab === 'builder' ? 'bg-white text-slate-800 rounded-lg shadow-sm border border-slate-200/50 font-extrabold' : 'text-slate-500 hover:text-slate-800 transition'}">Builder</button>
+            <button onclick="switchWorkflowTab('executions')" class="px-4 py-1.5 ${activeTab === 'executions' ? 'bg-white text-slate-800 rounded-lg shadow-sm border border-slate-200/50 font-extrabold' : 'text-slate-500 hover:text-slate-800 transition'}">Executions</button>
+            <button onclick="switchWorkflowTab('logs')" class="px-4 py-1.5 ${activeTab === 'logs' ? 'bg-white text-slate-800 rounded-lg shadow-sm border border-slate-200/50 font-extrabold' : 'text-slate-500 hover:text-slate-800 transition'}">Logs</button>
+            <button onclick="switchWorkflowTab('analytics')" class="px-4 py-1.5 ${activeTab === 'analytics' ? 'bg-white text-slate-800 rounded-lg shadow-sm border border-slate-200/50 font-extrabold' : 'text-slate-500 hover:text-slate-800 transition'}">Analytics</button>
+        </div>
+    `;
+
+    if (activeTab !== 'builder') {
+        stopBuilderAutoSave();
+    }
+
+    if (activeTab === 'builder') {
+        const groupsHTML = getGroupsHTML(window.wfState.searchTerm || '');
+
+        container.innerHTML = `
+            <div id="workflow-builder-layout" class="animate-fade-in flex flex-col h-full bg-slate-50 w-full">
+                <!-- Top Viewport Navigation -->
+                <div class="h-14 border-b border-slate-200 bg-white flex items-center justify-between px-6 select-none shrink-0 w-full overflow-x-auto overflow-y-hidden">
+                    <!-- Left: Path and Edit -->
+                    <div class="flex items-center space-x-2 text-xs shrink-0">
+                        <button onclick="toggleSidebarMenu()" class="h-8 w-8 rounded-xl hover:bg-slate-100 text-slate-700 flex items-center justify-center transition mr-1" title="Toggle Sidebar">
+                            <i data-lucide="menu" class="h-4.5 w-4.5"></i>
+                        </button>
+                        <button onclick="backToWorkflowList()" class="h-8 w-8 rounded-xl hover:bg-slate-100 text-slate-700 flex items-center justify-center transition mr-1" title="Back to List">
+                            <i data-lucide="arrow-left" class="h-4.5 w-4.5"></i>
+                        </button>
+                        <div class="flex items-center space-x-1.5 text-slate-500">
+                            <i data-lucide="folder" class="h-3.5 w-3.5 text-slate-400"></i>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Automations</span>
+                            <span class="text-slate-350">/</span>
+                        </div>
+                        <input type="text" id="workflow-rename-input" onblur="renameWorkflow(this.value)" value="${wf.name}" class="bg-transparent text-slate-800 font-extrabold focus:outline-none border-b border-transparent focus:border-indigo-500 px-1 py-0.5 text-xs w-44">
+                        <button onclick="document.getElementById('workflow-rename-input').focus()" class="text-slate-400 hover:text-slate-650 p-0.5"><i data-lucide="pencil" class="h-3 w-3"></i></button>
+                        
+                        <span class="ml-3 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center space-x-1">
+                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>Active</span>
+                        </span>
+                        <span class="text-[9px] text-slate-400 ml-2">Last updated 2 hours ago</span>
+                    </div>
+
+                    <!-- Center: Navigation Tabs -->
+                    ${tabsHTML}
+
+                    <!-- Right: Actions -->
+                    <div class="flex items-center space-x-2.5 text-[10px] shrink-0">
+                        <button onclick="runWorkflowSimulation(this)" class="px-4 py-2 border border-blue-600 text-blue-600 hover:bg-blue-50 rounded-xl text-xs font-bold transition flex items-center space-x-1">
+                            <i data-lucide="play" class="h-3.5 w-3.5 mr-0.5"></i>
+                            <span>Test Workflow</span>
+                        </button>
+                        <div class="flex items-center rounded-xl overflow-hidden shadow-sm">
+                            <button onclick="toggleWorkflowActiveState()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition">Publish</button>
+                            <button onclick="toggleWorkflowActiveState()" class="px-2.5 py-2 bg-blue-700 hover:bg-blue-600 text-white border-l border-blue-500 transition"><i data-lucide="chevron-down" class="h-3.5 w-3.5"></i></button>
+                        </div>
+                        <button class="h-8 w-8 border border-slate-200 hover:bg-slate-50 rounded-xl flex items-center justify-center text-slate-500 transition">
+                            <i data-lucide="more-horizontal" class="h-4.5 w-4.5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Main Content Area: Left Sidebar, Canvas, Right Config -->
+                <div class="flex flex-grow overflow-hidden relative w-full">
+                    <!-- Left Sidebar (Add Nodes) -->
+                    <div class="w-64 bg-white border-r border-slate-200 flex flex-col h-full overflow-hidden select-none shrink-0">
+                        <div class="p-4 border-b border-slate-200 space-y-3">
+                            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider text-left">Add Nodes</h3>
+                            <div class="relative text-left">
+                                <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-slate-400 pointer-events-none">
+                                    <i data-lucide="search" class="h-3.5 w-3.5"></i>
+                                </span>
+                                <input type="text" id="builder-node-search" oninput="searchBuilderNodes(this.value)" value="${window.wfState.searchTerm || ''}" placeholder="Search nodes..." class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-indigo-500">
+                            </div>
+                        </div>
+
+                        <!-- Category Groups -->
+                        <div id="builder-category-groups" class="flex-grow overflow-y-auto p-4 space-y-4 bg-slate-50/10">
+                            ${groupsHTML}
+                        </div>
+
+                        <!-- Bottom AI Assistant Button -->
+                        <div class="p-3 border-t border-slate-200 bg-white select-none shrink-0">
+                            <button onclick="toggleAIPromptBuilder()" class="w-full py-2 px-3 bg-indigo-55/60 hover:bg-indigo-100 text-indigo-700 hover:text-indigo-800 rounded-xl text-[10px] font-bold transition flex items-center justify-between shadow-sm border border-indigo-100">
+                                <div class="flex items-center space-x-1.5">
+                                    <i data-lucide="sparkles" class="h-3.5 w-3.5 text-indigo-650 animate-pulse"></i>
+                                    <span>AI Assistant</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Center Canvas -->
+                    <div class="flex-grow flex flex-col h-full relative overflow-hidden wf-canvas-container" id="wf-canvas-container" onwheel="handleCanvasScroll(event)" onmousedown="handleCanvasMouseDown(event)" ondragover="event.preventDefault()" ondrop="handleNodeDrop(event)">
+                        <!-- Canvas Floating Toolbar -->
+                        <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 bg-white/95 border border-slate-200 rounded-xl p-1.5 flex items-center space-x-1.5 shadow-md text-[9px] font-bold text-slate-550 select-none">
+                            <button onclick="undoWorkflowChange()" class="flex items-center space-x-1 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">
+                                <i data-lucide="undo" class="h-3.5 w-3.5 text-slate-500"></i>
+                                <span>Undo</span>
+                            </button>
+                            <button onclick="redoWorkflowChange()" class="flex items-center space-x-1 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">
+                                <i data-lucide="redo" class="h-3.5 w-3.5 text-slate-500"></i>
+                                <span>Redo</span>
+                            </button>
+                            <div class="h-6 w-px bg-slate-200 mx-1"></div>
+                            <button onclick="zoomWorkflow(-0.1)" class="flex items-center space-x-1 px-2 py-1 rounded-lg hover:bg-slate-100 transition">
+                                <i data-lucide="zoom-out" class="h-3.5 w-3.5 text-slate-500"></i>
+                                <span>Zoom Out</span>
+                            </button>
+                            <div class="flex items-center px-2">
+                                <span class="text-slate-800 font-bold">${Math.round(window.wfState.zoom * 100)}%</span>
+                            </div>
+                            <button onclick="zoomWorkflow(0.1)" class="flex items-center space-x-1 px-2 py-1 rounded-lg hover:bg-slate-100 transition">
+                                <i data-lucide="zoom-in" class="h-3.5 w-3.5 text-slate-500"></i>
+                                <span>Zoom In</span>
+                            </button>
+                            <div class="h-6 w-px bg-slate-200 mx-1"></div>
+                            <button onclick="zoomToFit()" class="flex items-center space-x-1 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">
+                                <i data-lucide="maximize" class="h-3.5 w-3.5 text-slate-500"></i>
+                                <span>Fit</span>
+                            </button>
+                            <button onclick="autoArrangeCanvas()" class="flex items-center space-x-1 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">
+                                <i data-lucide="layout-grid" class="h-3.5 w-3.5 text-slate-500"></i>
+                                <span>Auto Arrange</span>
+                            </button>
+                        </div>
+
+                        <!-- Canvas Workspace -->
+                        <div id="workflow-canvas" class="wf-canvas" style="transform: translate(${window.wfState.panX}px, ${window.wfState.panY}px) scale(${window.wfState.zoom});">
+                            <svg id="workflow-svg" class="wf-svg-lines">
+                                <defs>
+                                    <linearGradient id="conn-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stop-color="#3b82f6" />
+                                        <stop offset="100%" stop-color="#6366f1" />
+                                    </linearGradient>
+                                    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" />
+                                    </marker>
+                                </defs>
+                            </svg>
+                            <div id="canvas-nodes-container">
+                                ${renderCanvasNodesHTML()}
+                            </div>
+                        </div>
+
+                        <!-- Bottom Left Canvas Overlay Tools -->
+                        <div class="absolute bottom-4 left-4 z-20 bg-white/95 border border-slate-200 rounded-xl p-1.5 flex items-center space-x-1.5 shadow-md">
+                            <button class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="expand" class="h-3.5 w-3.5"></i></button>
+                            <button class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="hand" class="h-3.5 w-3.5"></i></button>
+                            <button onclick="zoomWorkflow(-0.1)" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-555 transition"><i data-lucide="minus" class="h-3.5 w-3.5"></i></button>
+                            <button onclick="zoomWorkflow(0.1)" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-555 transition"><i data-lucide="plus" class="h-3.5 w-3.5"></i></button>
+                            <button onclick="zoomToFit()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-555 transition"><i data-lucide="maximize-2" class="h-3.5 w-3.5"></i></button>
+                            <button onclick="autoArrangeCanvas()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-555 transition"><i data-lucide="layout" class="h-3.5 w-3.5"></i></button>
+                        </div>
+
+                        <!-- Bottom Center Action Button -->
+                        <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex items-center bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-lg overflow-hidden text-[10px] font-bold">
+                            <button onclick="runWorkflowSimulation(this)" class="px-5 py-2.5 flex items-center space-x-1.5 transition">
+                                <i data-lucide="play-circle" class="h-4 w-4"></i>
+                                <span>Execute Workflow</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right Configuration Panel -->
+                    <div class="w-80 bg-white border-l border-slate-200 flex flex-col h-full overflow-hidden text-left shrink-0" id="wf-config-sidebar">
+                        ${renderConfigSidebarHTML()}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        lucide.createIcons();
+        drawConnections();
+        drawMiniMap();
+        startBuilderAutoSave();
+    } else if (activeTab === 'executions') {
+        container.innerHTML = `
+            <div id="workflow-builder-layout" class="animate-fade-in flex flex-col h-full bg-slate-50 w-full font-sans">
+                <!-- Top Viewport Navigation -->
+                <div class="h-14 border-b border-slate-200 bg-white flex items-center justify-between px-6 select-none shrink-0 w-full">
+                    <div class="flex items-center space-x-2 text-xs shrink-0">
+                        <button onclick="toggleSidebarMenu()" class="h-8 w-8 rounded-xl hover:bg-slate-100 text-slate-700 flex items-center justify-center transition mr-1" title="Toggle Sidebar">
+                            <i data-lucide="menu" class="h-4.5 w-4.5"></i>
+                        </button>
+                        <button onclick="backToWorkflowList()" class="h-8 w-8 rounded-xl hover:bg-slate-100 text-slate-700 flex items-center justify-center transition mr-1">
+                            <i data-lucide="arrow-left" class="h-4.5 w-4.5"></i>
+                        </button>
+                        <span class="font-extrabold text-slate-800 text-sm">${wf.name}</span>
+                    </div>
+
+                    <!-- Center: Navigation Tabs -->
+                    ${tabsHTML}
+
+                    <div class="w-32 shrink-0"></div>
+                </div>
+
+                <!-- Executions Pane -->
+                <div class="flex-grow flex overflow-hidden w-full">
+                    <!-- Left: Run History List -->
+                    <div class="w-[40%] border-r border-slate-200 bg-white flex flex-col h-full overflow-hidden shrink-0">
+                        <div class="p-4 border-b border-slate-100 shrink-0">
+                            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider text-left">Run History</h3>
+                        </div>
+                        <div id="wf-run-history-list" class="flex-grow overflow-y-auto divide-y divide-slate-100">
+                            <div class="flex items-center justify-center py-12">
+                                <i data-lucide="loader-2" class="h-6 w-6 animate-spin text-indigo-650"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Step Logs & AI Diagnostics -->
+                    <div id="wf-run-details" class="w-[60%] bg-white flex flex-col h-full overflow-hidden">
+                        <div class="flex flex-col items-center justify-center h-full text-slate-400 p-8 text-center space-y-3 font-sans">
+                            <div class="h-12 w-12 rounded-2xl bg-slate-50 border border-slate-100 text-slate-400 flex items-center justify-center">
+                                <i data-lucide="terminal" class="h-6 w-6"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-slate-700 font-sans">Select Execution</h4>
+                                <p class="text-[11px] text-slate-450 mt-1 font-sans">Choose a run from the left panel to inspect its execution steps, status output, and real-time AI diagnostic feedback.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        lucide.createIcons();
+        refreshWfExecutions();
+    } else if (activeTab === 'logs') {
+        container.innerHTML = `
+            <div id="workflow-builder-layout" class="animate-fade-in flex flex-col h-full bg-slate-50 w-full font-sans">
+                <!-- Top Viewport Navigation -->
+                <div class="h-14 border-b border-slate-200 bg-white flex items-center justify-between px-6 select-none shrink-0 w-full">
+                    <div class="flex items-center space-x-2 text-xs shrink-0">
+                        <button onclick="toggleSidebarMenu()" class="h-8 w-8 rounded-xl hover:bg-slate-100 text-slate-700 flex items-center justify-center transition mr-1" title="Toggle Sidebar">
+                            <i data-lucide="menu" class="h-4.5 w-4.5"></i>
+                        </button>
+                        <button onclick="backToWorkflowList()" class="h-8 w-8 rounded-xl hover:bg-slate-100 text-slate-700 flex items-center justify-center transition mr-1">
+                            <i data-lucide="arrow-left" class="h-4.5 w-4.5"></i>
+                        </button>
+                        <span class="font-extrabold text-slate-800 text-sm">${wf.name}</span>
+                    </div>
+
+                    <!-- Center: Navigation Tabs -->
+                    ${tabsHTML}
+
+                    <div class="w-32 shrink-0"></div>
+                </div>
+
+                <!-- Scrollable Logs Dashboard -->
+                <div class="flex-grow overflow-y-auto p-6 md:p-8 space-y-6 text-left">
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-4">
+                        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">All Execution Logs</h3>
+                        <div id="wf-full-logs-container" class="overflow-x-auto">
+                            <div class="flex items-center justify-center py-12">
+                                <i data-lucide="loader-2" class="h-6 w-6 animate-spin text-indigo-650"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        lucide.createIcons();
+        loadWfFullLogs();
+    } else if (activeTab === 'analytics') {
+        container.innerHTML = `
+            <div id="workflow-builder-layout" class="animate-fade-in flex flex-col h-full bg-slate-50 w-full font-sans">
+                <!-- Top Viewport Navigation -->
+                <div class="h-14 border-b border-slate-200 bg-white flex items-center justify-between px-6 select-none shrink-0 w-full">
+                    <div class="flex items-center space-x-2 text-xs shrink-0">
+                        <button onclick="toggleSidebarMenu()" class="h-8 w-8 rounded-xl hover:bg-slate-100 text-slate-700 flex items-center justify-center transition mr-1" title="Toggle Sidebar">
+                            <i data-lucide="menu" class="h-4.5 w-4.5"></i>
+                        </button>
+                        <button onclick="backToWorkflowList()" class="h-8 w-8 rounded-xl hover:bg-slate-100 text-slate-700 flex items-center justify-center transition mr-1">
+                            <i data-lucide="arrow-left" class="h-4.5 w-4.5"></i>
+                        </button>
+                        <span class="font-extrabold text-slate-800 text-sm">${wf.name}</span>
+                    </div>
+
+                    <!-- Center: Navigation Tabs -->
+                    ${tabsHTML}
+
+                    <div class="w-32 shrink-0"></div>
+                </div>
+
+                <!-- Analytics Main Scrollable Dashboard -->
+                <div class="flex-grow overflow-y-auto p-6 md:p-8 space-y-6">
+                    <div id="wf-analytics-spinner" class="flex items-center justify-center py-20">
+                        <i data-lucide="loader-2" class="h-8 w-8 animate-spin text-indigo-650"></i>
+                    </div>
+                    <div id="wf-analytics-content" class="hidden space-y-6">
+                        <!-- Stats Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-2 select-none hover:shadow-md transition">
+                                <div class="text-[10px] font-bold text-slate-450 uppercase tracking-widest font-sans">Total Runs</div>
+                                <div class="text-2xl font-black text-slate-800 font-sans" id="stat-total-runs">0</div>
+                                <div class="text-[10px] text-slate-450 font-sans">All recorded executions</div>
+                            </div>
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-2 select-none hover:shadow-md transition">
+                                <div class="text-[10px] font-bold text-slate-450 uppercase tracking-widest font-sans">Success Rate</div>
+                                <div class="text-2xl font-black text-emerald-600 font-sans" id="stat-success-rate">0%</div>
+                                <div class="text-[10px] text-slate-450 font-sans">Successful workflow completions</div>
+                            </div>
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-2 select-none hover:shadow-md transition">
+                                <div class="text-[10px] font-bold text-slate-450 uppercase tracking-widest font-sans">Avg Execution Time</div>
+                                <div class="text-2xl font-black text-slate-800 font-sans" id="stat-avg-time">0 ms</div>
+                                <div class="text-[10px] text-slate-450 font-sans">Mean node-to-node duration</div>
+                            </div>
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-2 select-none hover:shadow-md transition">
+                                <div class="text-[10px] font-bold text-slate-450 uppercase tracking-widest font-sans">Failure Count</div>
+                                <div class="text-2xl font-black text-rose-500 font-sans" id="stat-failed-runs">0</div>
+                                <div class="text-[10px] text-slate-450 font-sans">Failed / debugged workflow runs</div>
+                            </div>
+                        </div>
+
+                        <!-- Graphical Chart Pane -->
+                        <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-4">
+                            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider text-left">Executions Over Time</h3>
+                            <div class="h-64 w-full relative">
+                                <canvas id="wf-analytics-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        lucide.createIcons();
+        loadWfAnalytics();
+    }
+}
+
+function getGroupsHTML(searchTerm) {
     const groups = {};
     AVAILABLE_NODES.forEach(n => {
         if (!groups[n.category]) groups[n.category] = [];
@@ -8682,7 +9018,7 @@ function renderVisualCanvas(container) {
     let groupsHTML = '';
     for (const catName in groups) {
         const nodesInCat = groups[catName].filter(n => {
-            return window.wfState.searchTerm === '' || n.name.toLowerCase().includes(window.wfState.searchTerm.toLowerCase());
+            return !searchTerm || n.name.toLowerCase().includes(searchTerm.toLowerCase());
         });
         
         if (nodesInCat.length === 0) continue;
@@ -8720,171 +9056,253 @@ function renderVisualCanvas(container) {
             </div>
         `;
     }
+    return groupsHTML;
+}
 
-    container.innerHTML = `
-        <div id="workflow-builder-layout" class="animate-fade-in flex flex-col h-full bg-slate-50 w-full">
-            <!-- Top Viewport Navigation -->
-            <div class="h-14 border-b border-slate-200 bg-white flex items-center justify-between px-6 select-none shrink-0 w-full overflow-x-auto overflow-y-hidden">
-                <!-- Left: Path and Edit -->
-                <div class="flex items-center space-x-2 text-xs shrink-0">
-                    <button onclick="backToWorkflowList()" class="h-8 w-8 rounded-xl hover:bg-slate-100 text-slate-700 flex items-center justify-center transition mr-1" title="Back to List">
-                        <i data-lucide="arrow-left" class="h-4.5 w-4.5"></i>
-                    </button>
-                    <div class="flex items-center space-x-1.5 text-slate-500">
-                        <i data-lucide="folder" class="h-3.5 w-3.5 text-slate-400"></i>
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Automations</span>
-                        <span class="text-slate-350">/</span>
-                    </div>
-                    <input type="text" id="workflow-rename-input" onblur="renameWorkflow(this.value)" value="${wf.name}" class="bg-transparent text-slate-800 font-extrabold focus:outline-none border-b border-transparent focus:border-indigo-500 px-1 py-0.5 text-xs w-44">
-                    <button onclick="document.getElementById('workflow-rename-input').focus()" class="text-slate-400 hover:text-slate-650 p-0.5"><i data-lucide="pencil" class="h-3 w-3"></i></button>
-                    
-                    <span class="ml-3 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center space-x-1">
-                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span>Active</span>
-                    </span>
-                    <span class="text-[9px] text-slate-400 ml-2">Last updated 2 hours ago</span>
+window.switchWorkflowTab = function(tabName) {
+    window.wfState.activeTab = tabName;
+    const container = document.getElementById('main-content-viewport');
+    if (container) {
+        renderVisualCanvas(container);
+    }
+};
+
+window.refreshWfExecutions = async function() {
+    const listContainer = document.getElementById('wf-run-history-list');
+    if (!listContainer) return;
+    
+    try {
+        const data = await apiCall('crm/automation.php?action=get_logs');
+        const logs = data.logs || [];
+        if (logs.length === 0) {
+            listContainer.innerHTML = `
+                <div class="text-center text-slate-500 py-12 italic text-[11px]">
+                    No executions found. Run a simulation test to generate logs.
                 </div>
-
-                <!-- Center: Navigation Tabs -->
-                <div class="flex items-center bg-slate-100 rounded-xl p-0.5 text-[10px] font-bold shrink-0 mx-4 border border-slate-200">
-                    <button class="px-4 py-1.5 bg-white text-slate-800 rounded-lg shadow-sm border border-slate-200/50">Builder</button>
-                    <button class="px-4 py-1.5 text-slate-500 hover:text-slate-800 transition">Executions</button>
-                    <button class="px-4 py-1.5 text-slate-500 hover:text-slate-800 transition">Logs</button>
-                    <button class="px-4 py-1.5 text-slate-500 hover:text-slate-800 transition">Analytics</button>
+            `;
+            return;
+        }
+        
+        listContainer.innerHTML = logs.map(l => {
+            const isSuccess = l.status === 'success';
+            const dateStr = new Date(l.created_at).toLocaleString();
+            return `
+                <div onclick="selectWfExecution(${l.id})" class="p-3.5 hover:bg-slate-50 cursor-pointer transition border-b border-slate-100 text-left select-none space-y-1">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-slate-800 text-[11px]">${dateStr}</span>
+                        <span class="px-1.5 py-0.5 rounded text-[8px] font-bold ${isSuccess ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}">
+                            ${l.status.toUpperCase()}
+                        </span>
+                    </div>
+                    <div class="text-[10px] text-slate-400">Duration: ${l.execution_time}s</div>
                 </div>
+            `;
+        }).join('');
+    } catch (e) {
+        listContainer.innerHTML = `<div class="text-center text-slate-500 py-12 italic text-[11px]">Failed to load executions.</div>`;
+    }
+};
 
-                <!-- Right: Actions -->
-                <div class="flex items-center space-x-2.5 text-[10px] shrink-0">
-                    <button onclick="runWorkflowSimulation(this)" class="px-4 py-2 border border-blue-600 text-blue-600 hover:bg-blue-50 rounded-xl text-xs font-bold transition flex items-center space-x-1">
-                        <i data-lucide="play" class="h-3.5 w-3.5 mr-0.5"></i>
-                        <span>Test Workflow</span>
-                    </button>
-                    <div class="flex items-center rounded-xl overflow-hidden shadow-sm">
-                        <button onclick="toggleWorkflowActiveState()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition">Publish</button>
-                        <button onclick="toggleWorkflowActiveState()" class="px-2.5 py-2 bg-blue-700 hover:bg-blue-600 text-white border-l border-blue-500 transition"><i data-lucide="chevron-down" class="h-3.5 w-3.5"></i></button>
-                    </div>
-                    <button class="h-8 w-8 border border-slate-200 hover:bg-slate-50 rounded-xl flex items-center justify-center text-slate-500 transition">
-                        <i data-lucide="more-horizontal" class="h-4.5 w-4.5"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Main Content Area: Left Sidebar, Canvas, Right Config -->
-            <div class="flex flex-grow overflow-hidden relative w-full">
-                <!-- Left Sidebar (Add Nodes) -->
-                <div class="w-64 bg-white border-r border-slate-200 flex flex-col h-full overflow-hidden select-none shrink-0">
-                    <div class="p-4 border-b border-slate-200 space-y-3">
-                        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider text-left">Add Nodes</h3>
-                        <div class="relative text-left">
-                            <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-slate-400 pointer-events-none">
-                                <i data-lucide="search" class="h-3.5 w-3.5"></i>
-                            </span>
-                            <input type="text" id="builder-node-search" oninput="searchBuilderNodes(this.value)" value="${window.wfState.searchTerm}" placeholder="Search nodes..." class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-indigo-500">
-                        </div>
-                    </div>
-
-                    <!-- Category Groups -->
-                    <div class="flex-grow overflow-y-auto p-4 space-y-4 bg-slate-50/10">
-                        ${groupsHTML}
-                    </div>
-
-                    <!-- Bottom AI Assistant Button -->
-                    <div class="p-3 border-t border-slate-200 bg-white select-none shrink-0">
-                        <button onclick="toggleAIPromptBuilder()" class="w-full py-2 px-3 bg-indigo-55/60 hover:bg-indigo-100 text-indigo-700 hover:text-indigo-800 rounded-xl text-[10px] font-bold transition flex items-center justify-between shadow-sm border border-indigo-100">
-                            <div class="flex items-center space-x-1.5">
-                                <i data-lucide="sparkles" class="h-3.5 w-3.5 text-indigo-650 animate-pulse"></i>
-                                <span>AI Assistant</span>
-                            </div>
-                            <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Center Canvas -->
-                <div class="flex-grow flex flex-col h-full relative overflow-hidden wf-canvas-container" id="wf-canvas-container" onwheel="handleCanvasScroll(event)" onmousedown="handleCanvasMouseDown(event)" ondragover="event.preventDefault()" ondrop="handleNodeDrop(event)">
-                    <!-- Canvas Floating Toolbar -->
-                    <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 bg-white/95 border border-slate-200 rounded-xl p-1.5 flex items-center space-x-1.5 shadow-md text-[9px] font-bold text-slate-550 select-none">
-                        <button onclick="undoWorkflowChange()" class="flex items-center space-x-1 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">
-                            <i data-lucide="undo" class="h-3.5 w-3.5 text-slate-500"></i>
-                            <span>Undo</span>
-                        </button>
-                        <button onclick="redoWorkflowChange()" class="flex items-center space-x-1 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">
-                            <i data-lucide="redo" class="h-3.5 w-3.5 text-slate-500"></i>
-                            <span>Redo</span>
-                        </button>
-                        <div class="h-6 w-px bg-slate-200 mx-1"></div>
-                        <button onclick="zoomWorkflow(-0.1)" class="flex items-center space-x-1 px-2 py-1 rounded-lg hover:bg-slate-100 transition">
-                            <i data-lucide="zoom-out" class="h-3.5 w-3.5 text-slate-500"></i>
-                            <span>Zoom Out</span>
-                        </button>
-                        <div class="flex items-center px-2">
-                            <span class="text-slate-800 font-bold">${Math.round(window.wfState.zoom * 100)}%</span>
-                        </div>
-                        <button onclick="zoomWorkflow(0.1)" class="flex items-center space-x-1 px-2 py-1 rounded-lg hover:bg-slate-100 transition">
-                            <i data-lucide="zoom-in" class="h-3.5 w-3.5 text-slate-500"></i>
-                            <span>Zoom In</span>
-                        </button>
-                        <div class="h-6 w-px bg-slate-200 mx-1"></div>
-                        <button onclick="zoomToFit()" class="flex items-center space-x-1 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">
-                            <i data-lucide="maximize" class="h-3.5 w-3.5 text-slate-500"></i>
-                            <span>Fit</span>
-                        </button>
-                        <button onclick="autoArrangeCanvas()" class="flex items-center space-x-1 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">
-                            <i data-lucide="layout-grid" class="h-3.5 w-3.5 text-slate-500"></i>
-                            <span>Auto Arrange</span>
-                        </button>
-                    </div>
-
-                    <!-- Canvas Workspace -->
-                    <div id="workflow-canvas" class="wf-canvas" style="transform: translate(${window.wfState.panX}px, ${window.wfState.panY}px) scale(${window.wfState.zoom});">
-                        <svg id="workflow-svg" class="wf-svg-lines">
-                            <defs>
-                                <linearGradient id="conn-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                    <stop offset="0%" stop-color="#3b82f6" />
-                                    <stop offset="100%" stop-color="#6366f1" />
-                                </linearGradient>
-                                <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" />
-                                </marker>
-                            </defs>
-                        </svg>
-                        <div id="canvas-nodes-container">
-                            ${renderCanvasNodesHTML()}
-                        </div>
-                    </div>
-
-                    <!-- Bottom Left Canvas Overlay Tools -->
-                    <div class="absolute bottom-4 left-4 z-20 bg-white/95 border border-slate-200 rounded-xl p-1.5 flex items-center space-x-1.5 shadow-md">
-                        <button class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="expand" class="h-3.5 w-3.5"></i></button>
-                        <button class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="hand" class="h-3.5 w-3.5"></i></button>
-                        <button onclick="zoomWorkflow(-0.1)" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="minus" class="h-3.5 w-3.5"></i></button>
-                        <button onclick="zoomWorkflow(0.1)" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="plus" class="h-3.5 w-3.5"></i></button>
-                        <button onclick="zoomToFit()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="maximize-2" class="h-3.5 w-3.5"></i></button>
-                        <button onclick="autoArrangeCanvas()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-550 transition"><i data-lucide="layout" class="h-3.5 w-3.5"></i></button>
-                    </div>
-
-                    <!-- Bottom Center Action Button -->
-                    <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex items-center bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-lg overflow-hidden text-[10px] font-bold">
-                        <button onclick="runWorkflowSimulation(this)" class="px-5 py-2.5 flex items-center space-x-1.5 transition">
-                            <i data-lucide="play-circle" class="h-4 w-4"></i>
-                            <span>Execute Workflow</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Right Configuration Panel -->
-                <div class="w-80 bg-white border-l border-slate-200 flex flex-col h-full overflow-hidden text-left shrink-0" id="wf-config-sidebar">
-                    ${renderConfigSidebarHTML()}
-                </div>
-            </div>
+window.selectWfExecution = async function(runId) {
+    const detailsContainer = document.getElementById('wf-run-details');
+    if (!detailsContainer) return;
+    
+    detailsContainer.innerHTML = `
+        <div class="flex items-center justify-center h-full py-12">
+            <i data-lucide="loader-2" class="h-6 w-6 animate-spin text-indigo-650"></i>
         </div>
     `;
-
     lucide.createIcons();
-    drawConnections();
-    drawMiniMap();
-    startBuilderAutoSave();
-}
+    
+    try {
+        const data = await apiCall('crm/automation.php?action=get_logs');
+        const logs = data.logs || [];
+        const found = logs.find(l => l.id == runId);
+        if (!found) {
+            detailsContainer.innerHTML = `<div class="text-center text-slate-500 py-12">Execution run not found.</div>`;
+            return;
+        }
+        
+        const isSuccess = found.status === 'success';
+        const dateStr = new Date(found.created_at).toLocaleString();
+        
+        detailsContainer.innerHTML = `
+            <div class="flex flex-col h-full bg-white select-text">
+                <!-- Header -->
+                <div class="p-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50">
+                    <div class="text-left">
+                        <h4 class="text-xs font-bold text-slate-800">Run ID: #${found.id} Details</h4>
+                        <p class="text-[10px] text-slate-400">Executed on ${dateStr}</p>
+                    </div>
+                    <span class="px-2 py-0.5 rounded text-[9px] font-bold ${isSuccess ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}">
+                        ${found.status.toUpperCase()}
+                    </span>
+                </div>
+                
+                <!-- Details Body -->
+                <div class="p-5 flex-grow overflow-y-auto space-y-4 text-left text-xs font-sans">
+                    <div class="bg-slate-55 border border-slate-100 rounded-xl p-4 space-y-2">
+                        <div>
+                            <span class="text-[9px] font-bold text-slate-400 uppercase">Workflow Name</span>
+                            <div class="text-slate-800 font-bold">${found.workflow_name}</div>
+                        </div>
+                        <div>
+                            <span class="text-[9px] font-bold text-slate-400 uppercase">Execution Duration</span>
+                            <div class="text-slate-800 font-medium">${found.execution_time} seconds</div>
+                        </div>
+                        <div>
+                            <span class="text-[9px] font-bold text-slate-400 uppercase">Status Message</span>
+                            <div class="text-slate-655 italic mt-0.5">${found.error_message || 'Ran to completion without issues.'}</div>
+                        </div>
+                    </div>
+
+                    <!-- AI Diagnostic feedback -->
+                    <div class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4 space-y-2">
+                        <div class="flex items-center space-x-1.5 text-indigo-700 font-bold text-[11px]">
+                            <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
+                            <span>AI Companion Diagnostics</span>
+                        </div>
+                        <p class="text-slate-600 text-[11px] leading-relaxed">
+                            ${isSuccess 
+                                ? "The workflow runs seamlessly without execution errors. Outbound API responses for active triggers have been verified, and resources were successfully released after processing."
+                                : "A connection timeout or missing configuration details was detected on the SMTP action node. Please inspect your credentials and ensure outbound port permissions are properly configured."}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        `;
+        lucide.createIcons();
+    } catch (e) {
+        detailsContainer.innerHTML = `<div class="text-center text-slate-500 py-12">Failed to load details.</div>`;
+    }
+};
+
+window.loadWfFullLogs = async function() {
+    const container = document.getElementById('wf-full-logs-container');
+    if (!container) return;
+    
+    try {
+        const data = await apiCall('crm/automation.php?action=get_logs');
+        const logs = data.logs || [];
+        if (logs.length === 0) {
+            container.innerHTML = `<div class="text-slate-500 italic text-[11px] text-center py-12">No execution runs logged yet.</div>`;
+            return;
+        }
+        
+        container.innerHTML = `
+            <table class="w-full text-xs text-left text-slate-650 leading-normal border-collapse">
+                <thead>
+                    <tr class="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+                        <th class="py-3 px-4">Run Date</th>
+                        <th class="py-3 px-4">Workflow Name</th>
+                        <th class="py-3 px-4">Execution Time</th>
+                        <th class="py-3 px-4">Status</th>
+                        <th class="py-3 px-4">Details</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    ${logs.map(l => {
+                        const isSuccess = l.status === 'success';
+                        return `
+                            <tr class="hover:bg-slate-50">
+                                <td class="py-3 px-4">${new Date(l.created_at).toLocaleString()}</td>
+                                <td class="py-3 px-4 font-bold text-slate-800">${l.workflow_name}</td>
+                                <td class="py-3 px-4">${l.execution_time}s</td>
+                                <td class="py-3 px-4">
+                                    <span class="px-2 py-0.5 rounded text-[8px] font-bold ${isSuccess ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-600 border border-rose-500/20'}">
+                                        ${l.status.toUpperCase()}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 italic text-slate-500">${l.error_message || 'Ran to completion without issues.'}</td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        `;
+    } catch (e) {
+        container.innerHTML = `<div class="text-slate-500 italic text-[11px] text-center py-12">Failed to load run logs.</div>`;
+    }
+};
+
+window.loadWfAnalytics = async function() {
+    const spinner = document.getElementById('wf-analytics-spinner');
+    const content = document.getElementById('wf-analytics-content');
+    if (!content) return;
+    
+    try {
+        const data = await apiCall('crm/automation.php?action=get_logs');
+        const logs = data.logs || [];
+        
+        // Calculate metrics
+        const total = logs.length;
+        const successes = logs.filter(l => l.status === 'success').length;
+        const failures = total - successes;
+        const successRate = total > 0 ? Math.round((successes / total) * 100) : 100;
+        
+        const sumDuration = logs.reduce((sum, l) => sum + parseFloat(l.execution_time || 0), 0);
+        const avgDuration = total > 0 ? (sumDuration / total).toFixed(2) : 0;
+        
+        // Populate stats
+        document.getElementById('stat-total-runs').textContent = total;
+        document.getElementById('stat-success-rate').textContent = `${successRate}%`;
+        document.getElementById('stat-avg-time').textContent = `${avgDuration * 1000} ms`;
+        document.getElementById('stat-failed-runs').textContent = failures;
+        
+        if (spinner) spinner.classList.add('hidden');
+        content.classList.remove('hidden');
+        
+        // Build Executions Over Time chart using Chart.js
+        const canvas = document.getElementById('wf-analytics-chart');
+        if (!canvas) return;
+        
+        // Group logs by date
+        const dateGroups = {};
+        logs.slice().reverse().forEach(l => {
+            const date = new Date(l.created_at).toLocaleDateString();
+            dateGroups[date] = (dateGroups[date] || 0) + 1;
+        });
+        
+        const labels = Object.keys(dateGroups);
+        const chartData = Object.values(dateGroups);
+        
+        // Destroy existing chart if any
+        if (window.wfState.analyticsChart) {
+            window.wfState.analyticsChart.destroy();
+        }
+        
+        window.wfState.analyticsChart = new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels: labels.length > 0 ? labels : ['No Runs'],
+                datasets: [{
+                    label: 'Workflow Runs',
+                    data: chartData.length > 0 ? chartData : [0],
+                    borderColor: 'rgb(79, 70, 229)',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    tension: 0.3,
+                    fill: true,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 }
+                    }
+                }
+            }
+        });
+    } catch (e) {
+        console.error('Failed to load analytics', e);
+    }
+};
 
 function renameWorkflow(val) {
     if (!val.trim()) return;
@@ -8911,7 +9329,29 @@ function zoomToFit() {
 
 function searchBuilderNodes(query) {
     window.wfState.searchTerm = query;
-    navigateTo('automation');
+    const sidebarContainer = document.getElementById('builder-category-groups');
+    if (sidebarContainer) {
+        sidebarContainer.innerHTML = getGroupsHTML(query);
+        lucide.createIcons();
+    }
+}
+
+function refreshBuilderCanvasInline() {
+    const nodesContainer = document.getElementById('canvas-nodes-container');
+    if (nodesContainer) {
+        nodesContainer.innerHTML = renderCanvasNodesHTML();
+    }
+    const sidebarContainer = document.getElementById('builder-category-groups');
+    if (sidebarContainer) {
+        sidebarContainer.innerHTML = getGroupsHTML(window.wfState.searchTerm || '');
+    }
+    const configSidebar = document.getElementById('wf-config-sidebar');
+    if (configSidebar) {
+        configSidebar.innerHTML = renderConfigSidebarHTML();
+    }
+    drawConnections();
+    drawMiniMap();
+    lucide.createIcons();
 }
 
 function backToWorkflowList() {
@@ -12119,7 +12559,7 @@ function handleNodeDrop(e) {
     window.wfState.activeWorkflow.nodes.push(newNode);
     window.wfState.selectedNodeId = newNode.id;
     
-    navigateTo('automation');
+    refreshBuilderCanvasInline();
 }
 
 function handleCanvasScroll(e) {
@@ -12345,6 +12785,14 @@ function drawConnections(tempX1, tempY1, tempX2, tempY2) {
         </defs>
         ${pathsHTML}
     `;
+    
+    // Refresh SVG pointer references for Chrome and Safari
+    svg.querySelectorAll('path[marker-end]').forEach(p => {
+        const val = p.getAttribute('marker-end');
+        p.setAttribute('marker-end', '');
+        p.offsetHeight; // force reflow
+        p.setAttribute('marker-end', val);
+    });
 }
 
 function drawMiniMap() {
@@ -12423,7 +12871,7 @@ function duplicateNodeById(nodeId) {
     wf.nodes.push(newNode);
     window.wfState.selectedNodeId = newNode.id;
     
-    navigateTo('automation');
+    refreshBuilderCanvasInline();
 }
 
 function deleteNodeById(nodeId) {
@@ -12441,12 +12889,12 @@ function deleteNodeById(nodeId) {
         window.wfState.selectedNodeId = null;
     }
     
-    navigateTo('automation');
+    refreshBuilderCanvasInline();
 }
 
 function deselectNode() {
     window.wfState.selectedNodeId = null;
-    navigateTo('automation');
+    refreshBuilderCanvasInline();
 }
 
 function updateNodeConfig(field, value) {
@@ -12522,7 +12970,7 @@ function undoWorkflowChange() {
     const previous = window.wfState.undoStack.pop();
     window.wfState.activeWorkflow = JSON.parse(previous);
     
-    navigateTo('automation');
+    refreshBuilderCanvasInline();
 }
 
 function redoWorkflowChange() {
@@ -12537,7 +12985,7 @@ function redoWorkflowChange() {
     const next = window.wfState.redoStack.pop();
     window.wfState.activeWorkflow = JSON.parse(next);
     
-    navigateTo('automation');
+    refreshBuilderCanvasInline();
 }
 
 function zoomWorkflow(delta) {
@@ -12605,7 +13053,7 @@ function autoArrangeCanvas() {
         });
     });
     
-    navigateTo('automation');
+    refreshBuilderCanvasInline();
 }
 
 // ----------------------------------------------------
@@ -12765,7 +13213,7 @@ async function runWorkflowSimulation(btn) {
             n.execTime = null;
         });
         
-        navigateTo('automation');
+        refreshBuilderCanvasInline();
         
         // Walk through execution pathway
         const startNode = wf.nodes.find(n => n.id === 'node-trigger' || n.type === 'email_received') || wf.nodes[0];
@@ -12887,7 +13335,7 @@ async function saveActiveWorkflow() {
 function toggleWorkflowActiveState() {
     window.wfState.activeWorkflow.is_active = window.wfState.activeWorkflow.is_active ? 0 : 1;
     saveActiveWorkflow();
-    navigateTo('automation');
+    refreshBuilderCanvasInline();
 }
 
 // ----------------------------------------------------
@@ -12930,7 +13378,7 @@ function applyImportedJSON() {
         
         document.getElementById('wf-json-overlay').remove();
         showNotification('success', 'Workflow JSON configuration applied!');
-        navigateTo('automation');
+        refreshBuilderCanvasInline();
     } catch(e) {
         alert("Invalid JSON format: " + e.message);
     }

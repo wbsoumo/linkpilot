@@ -190,7 +190,7 @@
             </nav>
 
             <!-- Pro Plan Card -->
-            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-3.5 space-y-2.5">
+            <div id="sidebar-pro-card" class="bg-slate-900/60 border border-slate-800 rounded-xl p-3.5 space-y-2.5">
                 <div class="text-white text-xs font-bold">Pro Plan</div>
                 <div class="text-slate-500 text-[10px]">Renews on 25 Jun, 2025</div>
                 <button
@@ -515,15 +515,15 @@
         }
 
         function toggleSidebarMenu() {
-            if (window.innerWidth < 1024) {
+            const sidebar = document.getElementById('sidebar-panel');
+            if (!sidebar) return;
+            const isMobile = window.getComputedStyle(sidebar).position === 'fixed';
+            if (isMobile) {
                 toggleMobileSidebar();
             } else {
-                const sidebar = document.getElementById('sidebar-panel');
-                if (sidebar) {
-                    sidebar.classList.toggle('collapsed');
-                    if (typeof drawConnections === 'function') {
-                        setTimeout(drawConnections, 350);
-                    }
+                sidebar.classList.toggle('collapsed');
+                if (typeof drawConnections === 'function') {
+                    setTimeout(drawConnections, 350);
                 }
             }
         }

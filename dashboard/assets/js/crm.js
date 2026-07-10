@@ -5775,15 +5775,25 @@ async function openInspectCompanyModal(companyId) {
                         </div>
                         
                         <div class="flex-1 flex flex-col items-center justify-center bg-slate-50/50 border border-slate-200/50 rounded-xl p-4 text-center min-h-[140px]">
-                            ${c.notes ? `
-                                <p class="text-slate-700 text-left w-full text-[11px] leading-relaxed max-h-[110px] overflow-y-auto">${c.notes}</p>
-                            ` : `
-                                <div class="h-10 w-10 rounded-full bg-slate-100 text-slate-450 flex items-center justify-center shrink-0 mb-2">
-                                    <i data-lucide="file-text" class="h-5 w-5"></i>
-                                </div>
-                                <span class="block font-bold text-slate-700 text-[11px]">No extension data or notes available.</span>
-                                <span class="block text-[9px] text-slate-400 mt-1 max-w-[200px] leading-relaxed">Use browser extension to capture data and add notes about this company.</span>
-                            `}
+                            ${(() => {
+                                const companyNotes = (typeof c.notes === 'string') ? c.notes.trim() : '';
+                                const hasNotes = companyNotes && companyNotes !== 'null' && companyNotes !== 'No general notes available.' && companyNotes !== 'No notes available.';
+                                if (hasNotes) {
+                                    return `<p class="text-slate-700 text-left w-full text-[11px] leading-relaxed max-h-[110px] overflow-y-auto">${companyNotes}</p>`;
+                                } else {
+                                    return `
+                                        <div class="flex flex-col items-center text-center">
+                                            <div class="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0 mb-2">
+                                                <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                                </svg>
+                                            </div>
+                                            <span class="block font-bold text-[11px] mb-0.5" style="color: #334155 !important;">No extension data or notes available.</span>
+                                            <span class="block text-[9px] mt-1 max-w-[200px] leading-relaxed" style="color: #64748b !important;">Use browser extension to capture data and add notes about this company.</span>
+                                        </div>
+                                    `;
+                                }
+                            })()}
                         </div>
                     </div>
 
@@ -5803,17 +5813,51 @@ async function openInspectCompanyModal(companyId) {
                             </button>
                         </div>
                         
-                        <div class="flex flex-col items-center justify-center bg-slate-50/50 border border-slate-200/50 rounded-xl p-4 text-center py-6 min-h-[140px]">
-                            <div class="h-10 w-10 rounded-full bg-slate-100 text-slate-450 flex items-center justify-center shrink-0 mb-2">
-                                <i data-lucide="calendar" class="h-5 w-5"></i>
-                            </div>
-                            <span class="block font-bold text-slate-700 text-[11px]">No tasks or meetings scheduled.</span>
-                            <span class="block text-[9px] text-slate-400 mt-1 max-w-[220px] leading-relaxed">Schedule tasks or meetings to stay on top of your follow-ups.</span>
-                            
-                            <button onclick="createNewTaskModal({ company_id: ${c.id} })" class="mt-3 px-3 py-1.5 bg-[#4f46e5] hover:bg-indigo-600 text-white rounded-lg font-bold text-[9px] flex items-center space-x-1 transition shadow-sm animate-pulse" style="color: #ffffff !important;">
-                                <i data-lucide="plus" class="h-3 w-3" style="stroke: #ffffff !important;"></i>
-                                <span style="color: #ffffff !important;">Schedule Task / Meeting</span>
-                            </button>
+                        <div class="flex flex-col bg-slate-50/50 border border-slate-200/50 rounded-xl p-4 min-h-[140px] justify-center">
+                            ${(tasks.length === 0 && meetings.length === 0) ? `
+                                <div class="flex flex-col items-center text-center">
+                                    <div class="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0 mb-2">
+                                        <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                                        </svg>
+                                    </div>
+                                    <span class="block font-bold text-[11px] mb-0.5" style="color: #334155 !important;">No tasks or meetings scheduled.</span>
+                                    <span class="block text-[9px] mt-1 max-w-[200px] leading-relaxed" style="color: #64748b !important;">Schedule tasks or meetings to stay on top of your follow-ups.</span>
+                                    <button onclick="createNewTaskModal({ company_id: ${c.id} })" class="mt-3 px-3 py-1.5 bg-[#4f46e5] hover:bg-indigo-600 text-white rounded-lg font-bold text-[9px] flex items-center space-x-1.5 transition shadow-sm" style="color: #ffffff !important;">
+                                        <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="stroke: #ffffff !important;">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                        </svg>
+                                        <span style="color: #ffffff !important;">Schedule Task / Meeting</span>
+                                    </button>
+                                </div>
+                            ` : `
+                                <div class="space-y-2 max-h-[120px] overflow-y-auto pr-1">
+                                    ${tasks.map(t => {
+                                        const date = new Date(t.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+                                        return `
+                                            <div class="flex justify-between items-center bg-white border border-slate-100 p-2.5 rounded-lg">
+                                                <div class="flex items-center space-x-2">
+                                                    <span class="h-2 w-2 rounded-full ${t.status === 'Completed' ? 'bg-emerald-500' : 'bg-amber-500'}"></span>
+                                                    <span class="font-bold text-slate-800 text-[10px]">${t.title}</span>
+                                                </div>
+                                                <span class="text-[9px] text-slate-450 font-semibold">${date}</span>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                    ${meetings.map(m => {
+                                        const date = new Date(m.start_time).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                                        return `
+                                            <div class="flex justify-between items-center bg-white border border-slate-100 p-2.5 rounded-lg">
+                                                <div class="flex items-center space-x-2">
+                                                    <span class="h-2 w-2 rounded-full bg-indigo-500"></span>
+                                                    <span class="font-bold text-slate-800 text-[10px]">${m.title}</span>
+                                                </div>
+                                                <span class="text-[9px] text-slate-450 font-semibold">${date}</span>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            `}
                         </div>
                     </div>
 

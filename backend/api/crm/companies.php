@@ -57,7 +57,7 @@ try {
             // Fetch notes
             $stmtNotes = $db->prepare("SELECT * FROM crm_notes WHERE company_id = ? AND user_id = ? ORDER BY created_at DESC");
             $stmtNotes->execute([$companyId, $userId]);
-            $company['notes'] = $stmtNotes->fetchAll();
+            $company['notes_list'] = $stmtNotes->fetchAll();
             
             // Fetch documents
             $stmtDocs = $db->prepare("SELECT * FROM crm_documents WHERE company_id = ? AND user_id = ? ORDER BY created_at DESC");

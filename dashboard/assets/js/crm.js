@@ -3928,28 +3928,126 @@ function triggerContactsCSVSelect() {
     openImportContactsModal();
 }
 
+function handleImportDragOver(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const zone = document.getElementById('drag-drop-zone');
+    if (zone) zone.classList.add('border-indigo-500', 'bg-indigo-50/15');
+}
+
+function handleImportDragLeave(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const zone = document.getElementById('drag-drop-zone');
+    if (zone) zone.classList.remove('border-indigo-500', 'bg-indigo-50/15');
+}
+
+function handleImportDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const zone = document.getElementById('drag-drop-zone');
+    if (zone) zone.classList.remove('border-indigo-500', 'bg-indigo-50/15');
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        const file = e.dataTransfer.files[0];
+        const input = document.getElementById('contacts-import-file-input');
+        if (input) {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            input.files = dataTransfer.files;
+            handleImportFileChange({ target: input });
+        }
+    }
+}
+
+function downloadSampleContactsCSV() {
+    const csvContent = "data:text/csv;charset=utf-8,Name,Email,Phone,Company,Designation\nJohn Doe,john@example.com,+91 9999999999,Google,Software Engineer\nJane Smith,jane@acme.org,,Acme Corp,Product Manager\n";
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "sample_contacts.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
 function openImportContactsModal() {
     const existing = document.getElementById('crm-import-contacts-modal');
     if (existing) existing.remove();
 
     const modalHTML = `
-        <div id="crm-import-contacts-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm animate-fade-in">
-            <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-lg p-6 text-slate-800 text-xs space-y-4 shadow-2xl relative" id="import-modal-content">
-                <button onclick="document.getElementById('crm-import-contacts-modal').remove()" class="absolute top-4 right-4 h-7 w-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
+        <div id="crm-import-contacts-modal" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-950/60 backdrop-blur-md animate-fade-in p-4">
+            <div class="bg-white border border-slate-100 rounded-[24px] w-full max-w-2xl p-6 text-slate-800 text-xs space-y-6 shadow-2xl relative" id="import-modal-content">
+                <button onclick="document.getElementById('crm-import-contacts-modal').remove()" class="absolute top-6 right-6 h-8 w-8 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-400 hover:text-slate-700 flex items-center justify-center transition shadow-xs">
                     <i data-lucide="x" class="h-4 w-4"></i>
                 </button>
                 
-                <h2 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
-                    <i data-lucide="upload" class="h-4.5 w-4.5 text-indigo-600 mr-1"></i>
-                    <span>Import Contacts from File</span>
-                </h2>
-                
-                <div class="p-8 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 hover:bg-slate-100/50 transition cursor-pointer flex flex-col items-center justify-center space-y-2.5 relative" onclick="document.getElementById('contacts-import-file-input').click()">
-                    <i data-lucide="file-text" class="h-8 w-8 text-indigo-500"></i>
-                    <span class="font-bold text-slate-700">Click to select CSV File</span>
-                    <span class="text-[10px] text-slate-400">Supports standard .csv format with Name, Email, Phone, Company...</span>
-                    <input type="file" id="contacts-import-file-input" class="hidden" accept=".csv" onchange="handleImportFileChange(event)">
+                <div class="flex items-center space-x-3.5">
+                    <div class="h-11 w-11 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100/50 shadow-xs">
+                        <i data-lucide="upload-cloud" class="h-5 w-5"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900 leading-tight">Import Contacts</h2>
+                        <p class="text-slate-450 text-[11px] mt-0.5 font-medium">Upload a CSV file to import your contacts quickly and easily.</p>
+                    </div>
                 </div>
+                
+                <div id="drag-drop-zone" class="p-8 border-2 border-dashed border-indigo-200 hover:border-indigo-400 rounded-[16px] bg-indigo-50/5 hover:bg-indigo-50/15 transition cursor-pointer flex flex-col items-center justify-center space-y-3 relative group"
+                     onclick="document.getElementById('contacts-import-file-input').click()"
+                     ondragover="handleImportDragOver(event)"
+                     ondragleave="handleImportDragLeave(event)"
+                     ondrop="handleImportDrop(event)">
+                    
+                    <input type="file" id="contacts-import-file-input" class="hidden" accept=".csv" onchange="handleImportFileChange(event)">
+                    
+                    <div class="relative flex flex-col items-center justify-center">
+                        <svg class="h-16 w-16 text-indigo-500" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M14 6C14 3.79086 15.7909 2 18 2H38L50 14V58C50 60.2091 48.2091 62 46 62H18C15.7909 62 14 60.2091 14 58V6Z" fill="#F1F3FF" stroke="#818CF8" stroke-width="2"/>
+                            <path d="M38 2V14H50" fill="#E0E7FF" stroke="#818CF8" stroke-width="2"/>
+                            <rect x="18" y="34" width="28" height="14" rx="4" fill="#4F46E5"/>
+                            <text x="32" y="44" fill="white" font-size="8" font-family="sans-serif" font-weight="bold" text-anchor="middle">CSV</text>
+                        </svg>
+                        <div class="absolute -top-1 -right-2 text-indigo-400 animate-pulse text-sm">✦</div>
+                        <div class="absolute top-8 -left-3 text-indigo-400 animate-pulse text-xs">✦</div>
+                        <div class="absolute bottom-4 -right-3 text-indigo-400 animate-pulse text-xs">✦</div>
+                    </div>
+                    
+                    <span class="font-bold text-slate-800 text-[13px] group-hover:text-indigo-600 transition">Drag and drop your CSV file here</span>
+                    <span class="text-[10px] text-slate-400">or</span>
+                    
+                    <button class="px-4 py-2 bg-[#4f46e5] hover:bg-indigo-650 text-white rounded-lg font-bold text-xs flex items-center space-x-1.5 transition shadow-sm pointer-events-none">
+                        <i data-lucide="upload" class="h-3.5 w-3.5"></i>
+                        <span>Choose CSV File</span>
+                    </button>
+                </div>
+                
+                <div class="p-3 border border-emerald-100 bg-[#f0fdf4]/60 rounded-xl flex items-center space-x-3 text-slate-700">
+                    <i data-lucide="check-circle-2" class="h-5 w-5 text-emerald-500 shrink-0"></i>
+                    <div>
+                        <span class="block font-bold text-[11px] text-emerald-800">Supported format</span>
+                        <span class="block text-[10px] text-slate-500 mt-0.5">CSV file with columns: <strong class="text-slate-650">Name, Email, Phone, Company</strong></span>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                    <button onclick="downloadSampleContactsCSV()" class="px-4 py-2 border border-slate-200 rounded-lg text-slate-650 hover:bg-slate-50 font-bold flex items-center space-x-1.5 transition text-[11px] shadow-xs">
+                        <i data-lucide="help-circle" class="h-3.5 w-3.5 text-slate-450"></i>
+                        <span>Download Sample CSV</span>
+                    </button>
+                    
+                    <div class="flex items-center space-x-2">
+                        <button onclick="document.getElementById('crm-import-contacts-modal').remove()" class="px-4 py-2 border border-slate-200 rounded-lg text-slate-650 hover:bg-slate-50 font-bold transition text-[11px] shadow-xs">Cancel</button>
+                        <button onclick="document.getElementById('contacts-import-file-input').click()" class="px-4 py-2 bg-[#4f46e5] hover:bg-indigo-650 text-white rounded-lg font-bold flex items-center space-x-1.5 transition text-[11px] shadow-sm">
+                            <span>Import Contacts</span>
+                            <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-center space-x-1.5 mt-4 text-[10px] text-slate-400 font-medium">
+                <i data-lucide="shield-check" class="h-3.5 w-3.5"></i>
+                <span>Your data is secure and will not be shared with third parties.</span>
             </div>
         </div>
     `;

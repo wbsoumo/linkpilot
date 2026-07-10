@@ -329,6 +329,88 @@ try {
                 throw $ex;
             }
         }
+        
+        elseif ($action === 'batch_insert') {
+            $contactsInput = $input['contacts'] ?? [];
+            if (!is_array($contactsInput)) {
+                sendJsonResponse('error', 'Invalid contacts payload.', [], 400);
+            }
+            
+            $importedCount = 0;
+            $duplicateCount = 0;
+            $limitReached = false;
+            
+            $db->beginTransaction();
+            try {
+                foreach ($contactsInput as $c) {
+                    if (!checkContactLimit($userId)) {
+                        $limitReached = true;
+                        break;
+                    }
+                    
+                    $name = trim($c['name'] ?? '');
+                    if (empty($name)) continue;
+                    
+                    $email = strtolower(trim($c['email'] ?? ''));
+                    $phone = trim($c['phone'] ?? '');
+                    $companyName = trim($c['company'] ?? '');
+                    $designation = trim($c['designation'] ?? '');
+                    
+                    // Prevent duplicate contacts by email
+                    if (!empty($email)) {
+                        $stmtDup = $db->prepare("SELECT id FROM crm_contacts WHERE email = ? AND user_id = ?");
+                        $stmtDup->execute([$email, $userId]);
+                        if ($stmtDup->fetch()) {
+                            $duplicateCount++;
+                            continue;
+                        }
+                    }
+                    
+                    // Resolve or create company
+                    $companyId = null;
+                    if (!empty($companyName)) {
+                        $stmtComp = $db->prepare("SELECT id FROM crm_companies WHERE name = ? AND user_id = ?");
+                        $stmtComp->execute([$companyName, $userId]);
+                        if ($compRow = $stmtComp->fetch()) {
+                            $companyId = $compRow['id'];
+                        } else {
+                            $insComp = $db->prepare("INSERT INTO crm_companies (user_id, name, status) VALUES (?, ?, 'Active')");
+                            $insComp->execute([$userId, $companyName]);
+                            $companyId = $db->lastInsertId();
+                        }
+                    }
+                    
+                    // Insert contact
+                    $stmt = $db->prepare("INSERT INTO crm_contacts (user_id, company_id, name, phone, email, designation) VALUES (?, ?, ?, ?, ?, ?)");
+                    $stmt->execute([
+                        $userId, $companyId, $name, $phone, $email, $designation
+                    ]);
+                    $contactId = $db->lastInsertId();
+                    
+                    // Log to timeline
+                    $timelineStmt = $db->prepare("INSERT INTO crm_timeline (user_id, contact_id, company_id, activity_type, description) VALUES (?, ?, ?, 'Contact Created', ?)");
+                    $timelineStmt->execute([$userId, $contactId, $companyId, "Contact '$name' was imported into CRM."]);
+                    
+                    $importedCount++;
+                }
+                
+                $db->commit();
+                
+                $msg = "Imported $importedCount contacts successfully.";
+                if ($duplicateCount > 0) {
+                    $msg .= " Skipped $duplicateCount duplicates.";
+                }
+                
+                sendJsonResponse('success', $msg, [
+                    'imported' => $importedCount,
+                    'duplicates' => $duplicateCount,
+                    'limit_reached' => $limitReached
+                ]);
+            } catch (Exception $ex) {
+                $db->rollBack();
+                throw $ex;
+            }
+        }
 
         // Create contact
         $input = json_decode(file_get_contents('php://input'), true);

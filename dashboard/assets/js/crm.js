@@ -3890,43 +3890,266 @@ function toggleSelectAllContacts(masterCheckbox) {
     checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
 }
 
-function triggerContactsCSVSelect() {
-    const fileInput = document.getElementById('contacts-csv-import-input');
-    if (fileInput) fileInput.click();
+function parseCSV(text) {
+    const lines = [];
+    let row = [""];
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const nextChar = text[i + 1];
+
+        if (char === '"') {
+            if (inQuotes && nextChar === '"') {
+                row[row.length - 1] += '"';
+                i++;
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (char === ',' && !inQuotes) {
+            row.push("");
+        } else if ((char === '\r' || char === '\n') && !inQuotes) {
+            if (char === '\r' && nextChar === '\n') {
+                i++;
+            }
+            lines.push(row);
+            row = [""];
+        } else {
+            row[row.length - 1] += char;
+        }
+    }
+    if (row.length > 1 || row[0] !== "") {
+        lines.push(row);
+    }
+    return lines;
 }
 
-function handleContactsCSVImport(fileInput) {
-    if (!fileInput.files || fileInput.files.length === 0) return;
-    const file = fileInput.files[0];
-    const formData = new FormData();
-    formData.append('csv_file', file);
-    formData.append('action', 'import');
+function triggerContactsCSVSelect() {
+    openImportContactsModal();
+}
 
-    showNotification('info', 'Importing contacts CSV. Please wait...');
+function openImportContactsModal() {
+    const existing = document.getElementById('crm-import-contacts-modal');
+    if (existing) existing.remove();
+
+    const modalHTML = `
+        <div id="crm-import-contacts-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm animate-fade-in">
+            <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-lg p-6 text-slate-800 text-xs space-y-4 shadow-2xl relative" id="import-modal-content">
+                <button onclick="document.getElementById('crm-import-contacts-modal').remove()" class="absolute top-4 right-4 h-7 w-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+                
+                <h2 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+                    <i data-lucide="upload" class="h-4.5 w-4.5 text-indigo-600 mr-1"></i>
+                    <span>Import Contacts from File</span>
+                </h2>
+                
+                <div class="p-8 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 hover:bg-slate-100/50 transition cursor-pointer flex flex-col items-center justify-center space-y-2.5 relative" onclick="document.getElementById('contacts-import-file-input').click()">
+                    <i data-lucide="file-text" class="h-8 w-8 text-indigo-500"></i>
+                    <span class="font-bold text-slate-700">Click to select CSV File</span>
+                    <span class="text-[10px] text-slate-400">Supports standard .csv format with Name, Email, Phone, Company...</span>
+                    <input type="file" id="contacts-import-file-input" class="hidden" accept=".csv" onchange="handleImportFileChange(event)">
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    lucide.createIcons();
+}
+
+function handleImportFileChange(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const content = document.getElementById('import-modal-content');
+    content.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-10 space-y-4">
+            <div class="h-10 w-10 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+            <span class="font-bold text-slate-700 animate-pulse text-xs">Analyzing and parsing contact file...</span>
+            <span class="text-[10px] text-slate-400">Verifying file structures and fields</span>
+        </div>
+    `;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const text = e.target.result;
+        
+        setTimeout(() => {
+            try {
+                const rows = parseCSV(text);
+                if (rows.length < 2) {
+                    throw new Error("File is empty or contains no headers.");
+                }
+                
+                const headers = rows[0].map(h => h.trim().toLowerCase().replace(/[^a-z0-9]/g, ''));
+                
+                const colIndexName = headers.indexOf('name') !== -1 ? headers.indexOf('name') : headers.indexOf('contactname');
+                const colIndexEmail = headers.indexOf('email') !== -1 ? headers.indexOf('email') : headers.indexOf('emailaddress');
+                const colIndexPhone = headers.indexOf('phone') !== -1 ? headers.indexOf('phone') : headers.indexOf('phonenumber');
+                const colIndexCompany = headers.indexOf('company') !== -1 ? headers.indexOf('company') : headers.indexOf('companyname');
+                const colIndexDesignation = headers.indexOf('designation');
+                
+                if (colIndexName === -1) {
+                    throw new Error("Could not find a 'Name' or 'Contact Name' column in the headers.");
+                }
+
+                const parsedContacts = [];
+                for (let i = 1; i < rows.length; i++) {
+                    const r = rows[i];
+                    if (r.length === 0 || (r.length === 1 && r[0] === '')) continue;
+                    const name = r[colIndexName]?.trim();
+                    if (!name) continue;
+
+                    parsedContacts.push({
+                        name: name,
+                        email: colIndexEmail !== -1 ? r[colIndexEmail]?.trim() : '',
+                        phone: colIndexPhone !== -1 ? r[colIndexPhone]?.trim() : '',
+                        company: colIndexCompany !== -1 ? r[colIndexCompany]?.trim() : '',
+                        designation: colIndexDesignation !== -1 ? r[colIndexDesignation]?.trim() : ''
+                    });
+                }
+
+                showImportPreviewScreen(parsedContacts);
+            } catch (err) {
+                showImportErrorScreen(err.message);
+            }
+        }, 1200);
+    };
+    reader.readAsText(file);
+}
+
+window.parsedImportContacts = [];
+function showImportPreviewScreen(contacts) {
+    window.parsedImportContacts = contacts;
+    const content = document.getElementById('import-modal-content');
     
-    const token = localStorage.getItem('linkpilot_token');
-    fetch('backend/api/crm/contacts.php?action=import', {
-        method: 'POST',
-        headers: {
-            'Authorization': 'Bearer ' + token
-        },
-        body: formData
-    })
-    .then(res => res.json())
-    .then(res => {
-        if (res.status === 'success') {
-            showNotification('success', res.message);
-            const container = document.getElementById('main-content-viewport');
-            if (container) renderContacts(container);
-        } else {
-            showNotification('error', res.message || 'Import failed.');
+    let rowsHtml = contacts.map((c, index) => `
+        <tr class="border-b border-slate-100 hover:bg-slate-50 transition text-slate-700 text-[11px]">
+            <td class="py-2.5 px-3 w-8 text-center">
+                <input type="checkbox" data-index="${index}" class="preview-import-checkbox rounded border-slate-300 text-indigo-650 focus:ring-indigo-500 h-3.5 w-3.5" checked>
+            </td>
+            <td class="py-2.5 px-3 font-semibold text-slate-800">${c.name}</td>
+            <td class="py-2.5 px-3 text-slate-650">${c.company || '-'}</td>
+            <td class="py-2.5 px-3 text-slate-500 font-mono text-[10px]">${c.email || '-'}</td>
+            <td class="py-2.5 px-3 text-slate-500">${c.phone || '-'}</td>
+            <td class="py-2.5 px-3 text-slate-500">${c.designation || '-'}</td>
+        </tr>
+    `).join('');
+
+    content.innerHTML = `
+        <button onclick="document.getElementById('crm-import-contacts-modal').remove()" class="absolute top-4 right-4 h-7 w-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
+            <i data-lucide="x" class="h-4 w-4"></i>
+        </button>
+        
+        <h2 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+            <i data-lucide="list-checks" class="h-4.5 w-4.5 text-indigo-650 mr-1"></i>
+            <span>Parsed Contacts Preview</span>
+        </h2>
+        
+        <p class="text-[11px] text-slate-500">Found <strong class="text-slate-700">${contacts.length}</strong> contacts. Uncheck any row to exclude it from the import.</p>
+        
+        <div class="max-h-60 overflow-y-auto border border-slate-200 rounded-xl bg-white">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-450 font-bold uppercase tracking-wider text-[9px] sticky top-0">
+                        <th class="py-2 px-3 w-8 text-center"><input type="checkbox" onchange="toggleSelectAllImportPreviews(this)" class="rounded border-slate-350 text-indigo-650 focus:ring-indigo-500 h-3.5 w-3.5" checked></th>
+                        <th class="py-2 px-3">Contact</th>
+                        <th class="py-2 px-3">Company</th>
+                        <th class="py-2 px-3">Email</th>
+                        <th class="py-2 px-3">Phone</th>
+                        <th class="py-2 px-3">Designation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rowsHtml || `<tr><td colspan="6" class="text-center py-6 text-slate-400">No importable records parsed.</td></tr>`}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+            <button onclick="openImportContactsModal()" class="px-4 py-2 border border-slate-200 rounded-lg text-slate-650 hover:bg-slate-50 transition">Back</button>
+            <button onclick="submitFinalImport()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition shadow-sm" id="import-submit-btn">Import Selected (${contacts.length})</button>
+        </div>
+    `;
+    lucide.createIcons();
+}
+
+function toggleSelectAllImportPreviews(master) {
+    const checkboxes = document.querySelectorAll('.preview-import-checkbox');
+    checkboxes.forEach(cb => cb.checked = master.checked);
+}
+
+function showImportErrorScreen(msg) {
+    const content = document.getElementById('import-modal-content');
+    content.innerHTML = `
+        <button onclick="document.getElementById('crm-import-contacts-modal').remove()" class="absolute top-4 right-4 h-7 w-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
+            <i data-lucide="x" class="h-4 w-4"></i>
+        </button>
+        
+        <div class="flex flex-col items-center justify-center py-6 space-y-3">
+            <i data-lucide="alert-triangle" class="h-10 w-10 text-red-500"></i>
+            <span class="font-bold text-slate-800 text-sm">Failed to Parse File</span>
+            <span class="text-xs text-slate-500 text-center max-w-xs">${msg}</span>
+        </div>
+        
+        <div class="flex justify-end pt-4 border-t border-slate-100">
+            <button onclick="openImportContactsModal()" class="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-750 font-bold transition">Try Another File</button>
+        </div>
+    `;
+    lucide.createIcons();
+}
+
+function submitFinalImport() {
+    const checkboxes = document.querySelectorAll('.preview-import-checkbox');
+    const selectedContacts = [];
+    checkboxes.forEach(cb => {
+        if (cb.checked) {
+            const index = parseInt(cb.getAttribute('data-index'));
+            selectedContacts.push(window.parsedImportContacts[index]);
         }
-        fileInput.value = '';
-    })
-    .catch(err => {
-        showNotification('error', 'Network error importing CSV: ' + err.message);
-        fileInput.value = '';
     });
+
+    if (selectedContacts.length === 0) {
+        showNotification('warning', 'Please select at least one contact to import.');
+        return;
+    }
+
+    const content = document.getElementById('import-modal-content');
+    content.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-6 space-y-3 text-center">
+            <dotlottie-wc src="https://lottie.host/84140ec0-d043-44f2-ad03-0851264ce760/EAb0eZ26cj.lottie" style="width: 250px; height: 250px" autoplay loop></dotlottie-wc>
+            <span class="font-extrabold text-sm text-slate-800">Importing selected contacts...</span>
+            <span class="text-xs text-slate-500 font-medium">Writing profiles and mapping companies</span>
+        </div>
+    `;
+
+    apiCall('crm/contacts.php?action=batch_insert', 'POST', { contacts: selectedContacts })
+        .then(res => {
+            if (res.status === 'success') {
+                content.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-6 space-y-3 text-center">
+                        <dotlottie-wc src="https://lottie.host/b719c456-9268-4dea-80e8-dfc060f53604/4pgT4yhNjy.lottie" style="width: 250px; height: 250px" autoplay></dotlottie-wc>
+                        <span class="font-extrabold text-sm text-indigo-650">Import Complete!</span>
+                        <span class="text-xs text-slate-500 font-semibold">${res.imported} contacts and associated companies imported successfully.</span>
+                        
+                        <button onclick="closeImportAndReload()" class="mt-4 px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition shadow-sm">Done</button>
+                    </div>
+                `;
+            } else {
+                showImportErrorScreen(res.message || 'Import failed.');
+            }
+        })
+        .catch(err => {
+            showImportErrorScreen(err.message);
+        });
+}
+
+function closeImportAndReload() {
+    const modal = document.getElementById('crm-import-contacts-modal');
+    if (modal) modal.remove();
+    
+    const container = document.getElementById('main-content-viewport');
+    if (container) renderContacts(container);
 }
 
 function openAddContactModal() {

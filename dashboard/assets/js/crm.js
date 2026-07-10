@@ -8454,6 +8454,409 @@ window.getNodeIconHTML = function(type, icon) {
 };
 
 
+// State variables for automation
+if (typeof window.automationCurrentPage === 'undefined') {
+    window.automationCurrentPage = 1;
+}
+if (typeof window.automationSearchQuery === 'undefined') {
+    window.automationSearchQuery = '';
+}
+if (typeof window.automationTabFilter === 'undefined') {
+    window.automationTabFilter = 'all';
+}
+if (typeof window.automationSortOption === 'undefined') {
+    window.automationSortOption = 'newest';
+}
+
+const SEED_WORKFLOWS = [
+    { id: -1, name: "New Lead Email Sequence", description: "Automatically send emails to new leads", status: "Active", executions: 324, last_updated: "2 mins ago", type: "email", icon: "mail", is_active: 1 },
+    { id: -2, name: "WhatsApp Auto Reply", description: "Auto-reply to incoming WhatsApp messages", status: "Active", executions: 532, last_updated: "10 mins ago", type: "whatsapp", icon: "message-square", is_active: 1 },
+    { id: -3, name: "Deal Won Notification", description: "Notify team on Slack when a deal is won", status: "Paused", executions: 120, last_updated: "1 hour ago", type: "slack", icon: "slack", is_active: 0 },
+    { id: -4, name: "Add Lead to Google Sheet", description: "Add new leads to Google Sheets", status: "Active", executions: 210, last_updated: "3 hours ago", type: "sheets", icon: "file-spreadsheet", is_active: 1 },
+    { id: -5, name: "Follow-up Reminder", description: "Remind to follow up with leads", status: "Active", executions: 98, last_updated: "5 hours ago", type: "calendar", icon: "calendar", is_active: 1 },
+    { id: -6, name: "Sync to HubSpot", description: "Sync contacts to HubSpot CRM", status: "Draft", executions: 0, last_updated: "1 day ago", type: "hubspot", icon: "git-compare", is_active: 0 },
+    { id: -7, name: "Auto-responder for Out of Office", description: "Send automated email during holidays", status: "Active", executions: 145, last_updated: "2 days ago", type: "email", icon: "mail", is_active: 1 },
+    { id: -8, name: "Slack Alert for Hot Lead", description: "Send team channel message when score > 90", status: "Active", executions: 89, last_updated: "2 days ago", type: "slack", icon: "slack", is_active: 1 },
+    { id: -9, name: "LinkedIn Connection Welcome", description: "Send welcome message to new LinkedIn contacts", status: "Paused", executions: 22, last_updated: "3 days ago", type: "calendar", icon: "calendar", is_active: 0 },
+    { id: -10, name: "Stripe Payment Success Webhook", description: "Log payments and upgrade account state in CRM", status: "Active", executions: 412, last_updated: "4 days ago", type: "sheets", icon: "file-spreadsheet", is_active: 1 },
+    { id: -11, name: "Cart Abandonment Campaign", description: "Follow up with users who left items in cart", status: "Draft", executions: 0, last_updated: "5 days ago", type: "email", icon: "mail", is_active: 0 },
+    { id: -12, name: "WhatsApp Campaign Broadcast", description: "Send massive templates updates monthly", status: "Active", executions: 1043, last_updated: "5 days ago", type: "whatsapp", icon: "message-square", is_active: 1 },
+    { id: -13, name: "Weekly Pipeline Report", description: "Export deals status and send to executives", status: "Active", executions: 4, last_updated: "1 week ago", type: "sheets", icon: "file-spreadsheet", is_active: 1 },
+    { id: -14, name: "AI Feedback Sentiment Analysis", description: "Analyze user reviews and classify positive/negative", status: "Active", executions: 75, last_updated: "1 week ago", type: "calendar", icon: "calendar", is_active: 1 },
+    { id: -15, name: "Re-engagement Sequence", description: "Contact cold leads after 30 days of inactivity", status: "Paused", executions: 12, last_updated: "1 week ago", type: "email", icon: "mail", is_active: 0 },
+    { id: -16, name: "Deal Milestone Celebration", description: "Trigger Slack fireworks when a major deal is closed", status: "Draft", executions: 0, last_updated: "2 weeks ago", type: "slack", icon: "slack", is_active: 0 },
+    { id: -17, name: "Lead Data Enrichment", description: "Lookup social profiles and populate fields", status: "Active", executions: 340, last_updated: "2 weeks ago", type: "calendar", icon: "calendar", is_active: 1 },
+    { id: -18, name: "HubSpot Sync Cleanup", description: "Remove duplicated records across both systems", status: "Paused", executions: 8, last_updated: "3 weeks ago", type: "hubspot", icon: "git-compare", is_active: 0 },
+    { id: -19, name: "Birthday Coupon Dispatcher", description: "Send automated discount template on user birthday", status: "Active", executions: 133, last_updated: "3 weeks ago", type: "whatsapp", icon: "message-square", is_active: 1 },
+    { id: -20, name: "Support Ticket Escalation", description: "Alert customer success team when ticket is unresolved", status: "Active", executions: 56, last_updated: "4 weeks ago", type: "slack", icon: "slack", is_active: 1 },
+    { id: -21, name: "Google Sheets Backup", description: "Nightly mirror database records to spreadsheet", status: "Active", executions: 30, last_updated: "1 month ago", type: "sheets", icon: "file-spreadsheet", is_active: 1 },
+    { id: -22, name: "Contract Expiration Warning", description: "Send email warning 30 days before renewal", status: "Draft", executions: 0, last_updated: "1 month ago", type: "email", icon: "mail", is_active: 0 },
+    { id: -23, name: "Trial User Onboarding Checklist", description: "Send custom tips based on user features clicked", status: "Active", executions: 490, last_updated: "1 month ago", type: "calendar", icon: "calendar", is_active: 1 },
+    { id: -24, name: "HubSpot Contact Import Webhook", description: "Pull contacts created in HubSpot to local CRM", status: "Active", executions: 890, last_updated: "1 month ago", type: "hubspot", icon: "git-compare", is_active: 1 }
+];
+
+if (!window.seedWorkflows) {
+    window.seedWorkflows = [...SEED_WORKFLOWS];
+}
+
+const MOCK_EXECUTIONS = [
+    { name: "New Lead Email Sequence", status: "success", execution_time: "1.2s", last_updated: "2 mins ago", id: "#1240", icon: "mail", iconClass: "bg-blue-50 text-blue-600 border-blue-100/50" },
+    { name: "WhatsApp Auto Reply", status: "success", execution_time: "0.8s", last_updated: "5 mins ago", id: "#1239", icon: "message-square", iconClass: "bg-emerald-50 text-emerald-650 border-emerald-100/50" },
+    { name: "Deal Won Notification", status: "success", execution_time: "1.4s", last_updated: "15 mins ago", id: "#1238", icon: "slack", iconClass: "bg-purple-50 text-purple-655 border-purple-100/50" },
+    { name: "Add Lead to Google Sheet", status: "failed", execution_time: "2.1s", last_updated: "1 hour ago", id: "#1237", icon: "file-spreadsheet", iconClass: "bg-green-50 text-green-600 border-green-100/50" },
+    { name: "Follow-up Reminder", status: "success", execution_time: "0.9s", last_updated: "2 hours ago", id: "#1236", icon: "calendar", iconClass: "bg-blue-50 text-blue-655 border-blue-100/50" }
+];
+
+function getWfIconHTML(type, icon) {
+    if (type === 'email' || icon === 'mail') {
+        return `<div class="h-9 w-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100/50 shadow-xs"><i data-lucide="mail" class="h-4.5 w-4.5 text-blue-600"></i></div>`;
+    }
+    if (type === 'whatsapp' || icon === 'message-square') {
+        return `<div class="h-9 w-9 rounded-xl bg-emerald-50 text-emerald-650 flex items-center justify-center shrink-0 border border-emerald-100/50 shadow-xs"><i data-lucide="message-square" class="h-4.5 w-4.5 text-emerald-600"></i></div>`;
+    }
+    if (type === 'slack' || icon === 'slack') {
+        return `<div class="h-9 w-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100/50 shadow-xs"><i data-lucide="slack" class="h-4.5 w-4.5 text-purple-600"></i></div>`;
+    }
+    if (type === 'sheets' || icon === 'file-spreadsheet') {
+        return `<div class="h-9 w-9 rounded-xl bg-green-50 text-green-650 flex items-center justify-center shrink-0 border border-green-100/50 shadow-xs"><i data-lucide="file-spreadsheet" class="h-4.5 w-4.5 text-green-600"></i></div>`;
+    }
+    if (type === 'calendar' || icon === 'calendar') {
+        return `<div class="h-9 w-9 rounded-xl bg-blue-50 text-blue-655 flex items-center justify-center shrink-0 border border-blue-100/50 shadow-xs"><i data-lucide="calendar" class="h-4.5 w-4.5 text-blue-600"></i></div>`;
+    }
+    if (type === 'hubspot' || icon === 'git-compare') {
+        return `<div class="h-9 w-9 rounded-xl bg-orange-50 text-orange-655 flex items-center justify-center shrink-0 border border-orange-100/50 shadow-xs"><i data-lucide="git-compare" class="h-4.5 w-4.5 text-orange-600"></i></div>`;
+    }
+    return `<div class="h-9 w-9 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center shrink-0 border border-slate-150 shadow-xs"><i data-lucide="workflow" class="h-4.5 w-4.5 text-slate-500"></i></div>`;
+}
+
+window.switchAutomationFilter = function(tab) {
+    window.automationTabFilter = tab;
+    window.automationCurrentPage = 1;
+    
+    // Update active tab styles
+    const tabs = ['all', 'active', 'paused', 'draft'];
+    tabs.forEach(t => {
+        const btn = document.getElementById(`tab-${t}`);
+        if (btn) {
+            if (t === tab) {
+                btn.className = "text-xs font-bold text-indigo-650 border-b-2 border-indigo-650 pb-2 px-1 focus:outline-none transition";
+            } else {
+                btn.className = "text-xs font-bold text-slate-400 hover:text-slate-650 pb-2 px-1 focus:outline-none transition";
+            }
+        }
+    });
+    
+    renderAutomationList();
+};
+
+window.handleWorkflowSearch = function(query) {
+    window.automationSearchQuery = query;
+    window.automationCurrentPage = 1;
+    renderAutomationList();
+};
+
+window.handleWorkflowSort = function(option) {
+    window.automationSortOption = option;
+    window.automationCurrentPage = 1;
+    renderAutomationList();
+};
+
+window.changeAutomationPage = function(page) {
+    window.automationCurrentPage = page;
+    renderAutomationList();
+};
+
+window.toggleWorkflowDropdown = function(e, id) {
+    e.stopPropagation();
+    const allDropdowns = document.querySelectorAll('.workflow-action-dropdown');
+    allDropdowns.forEach(d => {
+        if (d.id !== `dropdown-${id}`) d.classList.add('hidden');
+    });
+    const dropdown = document.getElementById(`dropdown-${id}`);
+    if (dropdown) dropdown.classList.toggle('hidden');
+};
+
+document.addEventListener('click', () => {
+    const allDropdowns = document.querySelectorAll('.workflow-action-dropdown');
+    allDropdowns.forEach(d => d.classList.add('hidden'));
+});
+
+window.toggleWorkflowStatus = async function(id, currentStatus) {
+    const isSeed = id < 0;
+    const newStatus = currentStatus === 1 ? 0 : 1;
+    
+    if (isSeed) {
+        const wf = window.seedWorkflows.find(w => w.id === id);
+        if (wf) {
+            wf.is_active = newStatus;
+            wf.status = newStatus === 1 ? "Active" : "Paused";
+            showNotification('success', `Workflow status updated to ${wf.status}`);
+            renderAutomationList();
+        }
+        return;
+    }
+    
+    try {
+        const wf = window.fetchedWorkflows.find(w => w.id === id);
+        if (wf) {
+            const payload = {
+                id: wf.id,
+                name: wf.name,
+                trigger_type: wf.trigger_type,
+                trigger_value: wf.trigger_value,
+                actions: wf.actions,
+                is_active: newStatus
+            };
+            const res = await apiCall('crm/automation.php', 'POST', payload);
+            if (res.status === 'success') {
+                showNotification('success', `Workflow status updated successfully.`);
+                renderAutomation(document.getElementById('main-content-viewport'));
+            }
+        }
+    } catch (err) {
+        showNotification('error', err.message);
+    }
+};
+
+window.deleteAutomationWorkflow = async function(id) {
+    const isSeed = id < 0;
+    if (!confirm('Are you sure you want to delete this workflow?')) return;
+    
+    if (isSeed) {
+        const idx = window.seedWorkflows.findIndex(w => w.id === id);
+        if (idx !== -1) {
+            window.seedWorkflows.splice(idx, 1);
+            showNotification('success', 'Workflow deleted.');
+            renderAutomationList();
+        }
+        return;
+    }
+    
+    try {
+        const res = await apiCall('crm/automation.php?action=delete', 'POST', { id });
+        if (res.status === 'success') {
+            showNotification('success', 'Workflow deleted.');
+            renderAutomation(document.getElementById('main-content-viewport'));
+        }
+    } catch(e) {
+        showNotification('error', e.message);
+    }
+};
+
+window.duplicateAutomationWorkflow = async function(id) {
+    const isSeed = id < 0;
+    if (isSeed) {
+        const wf = window.seedWorkflows.find(w => w.id === id);
+        if (wf) {
+            const newId = -Math.round(Math.random() * 1000000) - 100;
+            const duplicateWf = {
+                ...wf,
+                id: newId,
+                name: wf.name + " (Copy)",
+                executions: 0,
+                last_updated: "Just now"
+            };
+            window.seedWorkflows.unshift(duplicateWf);
+            showNotification('success', 'Workflow duplicated successfully.');
+            renderAutomationList();
+        }
+        return;
+    }
+    
+    try {
+        const res = await apiCall('crm/automation.php?action=duplicate', 'POST', { id });
+        if (res.status === 'success') {
+            showNotification('success', 'Workflow duplicated successfully.');
+            renderAutomation(document.getElementById('main-content-viewport'));
+        }
+    } catch(e) {
+        showNotification('error', e.message);
+    }
+};
+
+window.editAutomationWorkflow = function(id) {
+    const isSeed = id < 0;
+    if (isSeed) {
+        const wf = window.seedWorkflows.find(w => w.id === id);
+        if (wf) {
+            window.wfState.activeTab = 'builder';
+            window.wfState.activeWorkflow = {
+                id: 0,
+                name: wf.name,
+                trigger_type: "visual_workflow",
+                trigger_value: "canvas",
+                is_active: wf.is_active,
+                nodes: [
+                    { id: "node-trigger", type: "email_received", name: wf.name, category: "TRIGGERS", icon: wf.icon, x: 250, y: 80, config: {} }
+                ],
+                connections: []
+            };
+            navigateTo('automation');
+        }
+        return;
+    }
+    
+    editVisualWorkflow(id);
+};
+
+window.viewAllExecutionsLog = function(e) {
+    e.preventDefault();
+    showNotification('info', 'Viewing all execution logs...');
+};
+
+function renderAutomationList() {
+    const tableBody = document.getElementById('automation-workflows-table-body');
+    const paginationFooter = document.getElementById('automation-pagination-footer');
+    if (!tableBody) return;
+
+    let allList = [...(window.fetchedWorkflows || [])];
+    
+    allList = allList.map(w => ({
+        id: w.id,
+        name: w.name,
+        description: "Visual Workflow Creator",
+        status: w.is_active ? "Active" : "Paused",
+        executions: 48,
+        last_updated: new Date(w.created_at || Date.now()).toLocaleDateString() + " ago",
+        type: w.trigger_type === 'whatsapp_received' ? 'whatsapp' : 'email',
+        icon: w.trigger_type === 'whatsapp_received' ? 'message-square' : 'mail',
+        is_active: parseInt(w.is_active)
+    }));
+
+    allList = [...allList, ...window.seedWorkflows];
+
+    const totalCountVal = allList.length;
+    const activeCountVal = allList.filter(w => w.is_active === 1).length;
+    const statsTotal = document.getElementById('stats-total-workflows');
+    const statsActive = document.getElementById('stats-active-workflows');
+    if (statsTotal) statsTotal.innerText = totalCountVal;
+    if (statsActive) statsActive.innerText = activeCountVal;
+
+    if (window.automationTabFilter === 'active') {
+        allList = allList.filter(w => w.is_active === 1);
+    } else if (window.automationTabFilter === 'paused') {
+        allList = allList.filter(w => w.is_active === 0 && w.status !== 'Draft');
+    } else if (window.automationTabFilter === 'draft') {
+        allList = allList.filter(w => w.status === 'Draft');
+    }
+
+    if (window.automationSearchQuery.trim()) {
+        const query = window.automationSearchQuery.toLowerCase().trim();
+        allList = allList.filter(w => w.name.toLowerCase().includes(query) || w.description.toLowerCase().includes(query));
+    }
+
+    if (window.automationSortOption === 'name') {
+        allList.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (window.automationSortOption === 'oldest') {
+        allList.sort((a, b) => a.id - b.id);
+    } else {
+        allList.sort((a, b) => b.id - a.id);
+    }
+
+    const limit = 6;
+    const total = allList.length;
+    const totalPages = Math.ceil(total / limit) || 1;
+    const page = Math.min(window.automationCurrentPage, totalPages);
+    window.automationCurrentPage = page;
+    
+    const startIndex = (page - 1) * limit;
+    const pageItems = allList.slice(startIndex, startIndex + limit);
+
+    if (pageItems.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="py-12 text-center text-slate-400 italic">No workflows match the active filters.</td>
+            </tr>
+        `;
+    } else {
+        tableBody.innerHTML = pageItems.map(w => {
+            const statusClass = w.status === 'Active' 
+                ? 'bg-[#e6fbf1] text-emerald-650 border border-emerald-100/60'
+                : w.status === 'Paused'
+                ? 'bg-slate-100 text-slate-500 border border-slate-200'
+                : 'bg-blue-50/60 text-blue-600 border border-blue-100/60';
+
+            return `
+                <tr class="hover:bg-slate-50/50 transition">
+                    <td class="py-4 px-5 flex items-center space-x-3.5">
+                        ${getWfIconHTML(w.type, w.icon)}
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-xs leading-snug">${w.name}</h4>
+                            <p class="text-[10px] text-slate-400 mt-0.5">${w.description}</p>
+                        </div>
+                    </td>
+                    <td class="py-4 px-4 align-middle">
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold ${statusClass}">${w.status}</span>
+                            <button onclick="toggleWorkflowStatus(${w.id}, ${w.is_active})" class="w-8 h-4.5 rounded-full transition-colors duration-250 relative ${w.is_active ? 'bg-indigo-650' : 'bg-slate-200'} shrink-0">
+                                <span class="absolute top-[2px] left-[2px] w-3 h-3 bg-white rounded-full transition-transform duration-250 shadow-sm ${w.is_active ? 'transform translate-x-[14px]' : ''}"></span>
+                            </button>
+                        </div>
+                    </td>
+                    <td class="py-4 px-4 text-center align-middle font-bold text-slate-700 text-xs">${w.executions}</td>
+                    <td class="py-4 px-4 align-middle text-slate-500 text-xs">${w.last_updated}</td>
+                    <td class="py-4 px-5 text-right align-middle relative">
+                        <button onclick="toggleWorkflowDropdown(event, ${w.id})" class="h-7 w-7 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-400 hover:text-slate-700 flex items-center justify-center transition shadow-xs ml-auto">
+                            <i data-lucide="more-horizontal" class="h-4 w-4"></i>
+                        </button>
+                        <div id="dropdown-${w.id}" class="workflow-action-dropdown hidden absolute right-5 mt-1.5 w-32 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-45 text-left text-[11px] font-semibold text-slate-700 animate-fade-in animate-duration-150">
+                            <button onclick="editAutomationWorkflow(${w.id})" class="w-full px-3 py-1.5 hover:bg-slate-50 text-left flex items-center space-x-1.5">
+                                <i data-lucide="edit-2" class="h-3.5 w-3.5 text-indigo-650"></i>
+                                <span>Edit Builder</span>
+                            </button>
+                            <button onclick="duplicateAutomationWorkflow(${w.id})" class="w-full px-3 py-1.5 hover:bg-slate-50 text-left flex items-center space-x-1.5">
+                                <i data-lucide="copy" class="h-3.5 w-3.5 text-emerald-600"></i>
+                                <span>Duplicate</span>
+                            </button>
+                            <button onclick="deleteAutomationWorkflow(${w.id})" class="w-full px-3 py-1.5 hover:bg-slate-50 text-left flex items-center space-x-1.5 text-rose-600 border-t border-slate-100 mt-1">
+                                <i data-lucide="trash" class="h-3.5 w-3.5 text-rose-500"></i>
+                                <span>Delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    if (total === 0) {
+        paginationFooter.innerHTML = '';
+    } else {
+        const showingStart = startIndex + 1;
+        const showingEnd = Math.min(startIndex + limit, total);
+        
+        let pagesHtml = '';
+        pagesHtml += `
+            <button onclick="changeAutomationPage(${page - 1})" ${page === 1 ? 'disabled' : ''} class="h-7 w-7 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 flex items-center justify-center transition disabled:opacity-40 disabled:hover:bg-transparent">
+                <i data-lucide="chevron-left" class="h-3.5 w-3.5"></i>
+            </button>
+        `;
+        
+        for (let p = 1; p <= totalPages; p++) {
+            if (p === page) {
+                pagesHtml += `<button class="h-7 w-7 bg-indigo-650 text-white rounded-lg flex items-center justify-center font-bold text-xs shadow-sm">${p}</button>`;
+            } else {
+                pagesHtml += `<button onclick="changeAutomationPage(${p})" class="h-7 w-7 rounded-lg text-slate-650 hover:bg-slate-50 flex items-center justify-center font-bold text-xs transition">${p}</button>`;
+            }
+        }
+
+        pagesHtml += `
+            <button onclick="changeAutomationPage(${page + 1})" ${page === totalPages ? 'disabled' : ''} class="h-7 w-7 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 flex items-center justify-center transition disabled:opacity-40 disabled:hover:bg-transparent">
+                <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i>
+            </button>
+        `;
+
+        paginationFooter.innerHTML = `
+            <span class="text-slate-400 font-medium text-[11px]">Showing <strong class="text-slate-700">${showingStart} to ${showingEnd}</strong> of <strong class="text-slate-700">${total}</strong> workflows</span>
+            <div class="flex items-center space-x-1">
+                ${pagesHtml}
+            </div>
+        `;
+    }
+
+    lucide.createIcons();
+}
+
 async function renderAutomation(container) {
     injectVisualBuilderStyles();
     
@@ -8462,93 +8865,169 @@ async function renderAutomation(container) {
         return;
     }
 
+    const contentArea = document.getElementById('main-content-viewport');
+    if (contentArea) {
+        contentArea.className = "flex-grow p-6 md:p-8 overflow-y-auto max-w-7xl w-full mx-auto";
+    }
+
     try {
         const data = await apiCall('crm/automation.php');
-        const workflows = data.workflows || [];
+        window.fetchedWorkflows = data.workflows || [];
         
-        let wfItems = workflows.map(w => {
-            const act = w.is_active ? 'ACTIVE' : 'PAUSED';
-            const badgeClass = w.is_active ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-500';
-            return `
-                <div class="p-4 bg-slate-900 border border-slate-850 rounded-xl flex justify-between items-center transition hover:border-slate-750">
-                    <div class="text-left">
-                        <h4 class="font-bold text-white text-xs">${w.name}</h4>
-                        <p class="text-[10px] text-slate-400 mt-1">Visual Workflow Creator • Created ${new Date(w.created_at || Date.now()).toLocaleDateString()}</p>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <span class="px-2 py-0.5 rounded text-[8px] font-bold ${badgeClass}">${act}</span>
-                        <button onclick="editVisualWorkflow(${w.id})" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded text-[10px] font-bold transition">Open Builder</button>
-                        <button onclick="duplicateWorkflow(${w.id})" class="p-1 text-slate-400 hover:text-indigo-400 transition" title="Duplicate"><i data-lucide="copy" class="h-3.5 w-3.5"></i></button>
-                        <button onclick="deleteWorkflow(${w.id})" class="p-1 text-slate-400 hover:text-rose-500 transition" title="Delete"><i data-lucide="trash" class="h-3.5 w-3.5"></i></button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        let templateCards = WORKFLOW_TEMPLATES.map((t, idx) => `
-            <div class="p-4 bg-slate-900 border border-slate-850 rounded-xl flex flex-col justify-between text-left space-y-3">
-                <div>
-                    <h4 class="font-bold text-white text-xs flex items-center space-x-1.5">
-                        <i data-lucide="sparkles" class="h-3.5 w-3.5 text-indigo-500"></i>
-                        <span>${t.name}</span>
-                    </h4>
-                    <p class="text-[10px] text-slate-400 mt-1 leading-normal">${t.description}</p>
-                </div>
-                <button onclick="installWorkflowTemplate(${idx})" class="w-full py-1.5 bg-indigo-650 hover:bg-indigo-600 text-white rounded-lg text-[10px] font-bold transition flex items-center justify-center space-x-1">
-                    <i data-lucide="download-cloud" class="h-3.5 w-3.5"></i>
-                    <span>Use Template</span>
-                </button>
-            </div>
-        `).join('');
-
         container.innerHTML = `
-            <div class="space-y-6 animate-fade-in pt-4 max-w-4xl mx-auto pb-12">
-                <div class="flex justify-between items-center border-b border-slate-850 pb-4">
+            <div class="space-y-6 animate-fade-in pt-2 pb-12">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
                     <div class="text-left">
-                        <h1 class="text-2xl font-extrabold text-white">Visual Workflow Builder</h1>
-                        <p class="text-slate-400 text-xs mt-1">Design automated visual pathways for emails, CRM triggers, and AI intelligence.</p>
+                        <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center">
+                            <i data-lucide="workflow" class="h-6 w-6 text-indigo-650 mr-2"></i>
+                            <span>Workflows</span>
+                        </h1>
+                        <p class="text-slate-550 text-xs mt-1 font-semibold">Build powerful automation workflows with no code. Connect your apps, set triggers, and automate anything.</p>
                     </div>
-                    <button onclick="createNewVisualWorkflow()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[10px] font-bold transition flex items-center space-x-1.5 shadow-sm">
-                        <i data-lucide="plus" class="h-3.5 w-3.5"></i>
-                        <span>New Workflow</span>
-                    </button>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="createNewVisualWorkflow()" class="px-4 py-2 bg-indigo-650 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-sm">
+                            <i data-lucide="plus" class="h-4 w-4 text-white"></i>
+                            <span>Create Workflow</span>
+                            <i data-lucide="chevron-down" class="h-3 w-3 opacity-60 text-white"></i>
+                        </button>
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Left: Workflows list -->
-                    <div class="md:col-span-2 space-y-4">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-white uppercase tracking-wider">Your Workflows</span>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white border border-slate-100 rounded-[20px] p-5 shadow-xs flex justify-between items-center relative overflow-hidden text-left">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Workflows</span>
+                            <h3 class="text-2xl font-black text-slate-800 leading-tight" id="stats-total-workflows">24</h3>
+                            <span class="text-[10px] text-emerald-500 font-extrabold flex items-center">
+                                <i data-lucide="arrow-up" class="h-3.5 w-3.5 mr-0.5"></i>
+                                <span>12% this month</span>
+                            </span>
                         </div>
-                        <div class="space-y-3">
-                            ${wfItems || `
-                                <div class="p-8 text-center bg-slate-900 border border-slate-850 rounded-xl text-slate-500 italic text-[11px]">
-                                    No custom workflows created yet. Build a new one or choose a template below.
-                                </div>
-                            `}
+                        <div class="h-10 w-10 rounded-xl bg-purple-50 text-purple-650 flex items-center justify-center border border-purple-100/50">
+                            <i data-lucide="file-text" class="h-5 w-5 text-purple-600"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-slate-100 rounded-[20px] p-5 shadow-xs flex justify-between items-center relative overflow-hidden text-left">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Active Workflows</span>
+                            <h3 class="text-2xl font-black text-slate-800 leading-tight" id="stats-active-workflows">12</h3>
+                            <span class="text-[10px] text-emerald-500 font-extrabold flex items-center">
+                                <i data-lucide="arrow-up" class="h-3.5 w-3.5 mr-0.5"></i>
+                                <span>8% this month</span>
+                            </span>
+                        </div>
+                        <div class="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-650 flex items-center justify-center border border-emerald-100/50">
+                            <i data-lucide="shield-check" class="h-5 w-5 text-emerald-600"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-slate-100 rounded-[20px] p-5 shadow-xs flex justify-between items-center relative overflow-hidden text-left">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Executions (This Month)</span>
+                            <h3 class="text-2xl font-black text-slate-800 leading-tight">1,240</h3>
+                            <span class="text-[10px] text-emerald-500 font-extrabold flex items-center">
+                                <i data-lucide="arrow-up" class="h-3.5 w-3.5 mr-0.5"></i>
+                                <span>18% this month</span>
+                            </span>
+                        </div>
+                        <div class="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100/50">
+                            <i data-lucide="zap" class="h-5 w-5 text-blue-650"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-slate-100 rounded-[20px] p-5 shadow-xs flex justify-between items-center relative overflow-hidden text-left">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Success Rate</span>
+                            <h3 class="text-2xl font-black text-slate-800 leading-tight">98.6%</h3>
+                            <span class="text-[10px] text-emerald-500 font-extrabold flex items-center">
+                                <i data-lucide="arrow-up" class="h-3.5 w-3.5 mr-0.5"></i>
+                                <span>2.6% this month</span>
+                            </span>
+                        </div>
+                        <div class="h-10 w-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center border border-amber-100/50">
+                            <i data-lucide="star" class="h-5 w-5 text-amber-500"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-8">
+                    <div class="flex items-center space-x-6 border-b border-slate-100 pb-1">
+                        <button onclick="switchAutomationFilter('all')" id="tab-all" class="text-xs font-bold text-indigo-650 border-b-2 border-indigo-650 pb-2 px-1 focus:outline-none transition">All Workflows</button>
+                        <button onclick="switchAutomationFilter('active')" id="tab-active" class="text-xs font-bold text-slate-400 hover:text-slate-650 pb-2 px-1 focus:outline-none transition">Active</button>
+                        <button onclick="switchAutomationFilter('paused')" id="tab-paused" class="text-xs font-bold text-slate-400 hover:text-slate-650 pb-2 px-1 focus:outline-none transition">Paused</button>
+                        <button onclick="switchAutomationFilter('draft')" id="tab-draft" class="text-xs font-bold text-slate-400 hover:text-slate-650 pb-2 px-1 focus:outline-none transition">Draft</button>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="relative min-w-[200px]">
+                            <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
+                                <i data-lucide="search" class="h-3.5 w-3.5"></i>
+                            </span>
+                            <input type="text" id="workflow-search-input" oninput="handleWorkflowSearch(this.value)" placeholder="Search workflows..." class="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 shadow-xs">
+                        </div>
+                        <button class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition hover:bg-slate-50 flex items-center space-x-1.5 shadow-sm">
+                            <i data-lucide="sliders-horizontal" class="h-3.5 w-3.5"></i>
+                            <span>Filter</span>
+                        </button>
+                        <div class="relative">
+                            <select onchange="handleWorkflowSort(this.value)" class="pl-4 pr-9 py-2 bg-white border border-slate-200 text-slate-755 rounded-xl text-xs font-bold transition hover:bg-slate-50 cursor-pointer appearance-none shadow-sm focus:outline-none focus:border-indigo-500">
+                                <option value="newest">Sort: Newest</option>
+                                <option value="oldest">Sort: Oldest</option>
+                                <option value="name">Sort: Name</option>
+                            </select>
+                            <span class="absolute right-3 top-2.5 pointer-events-none text-slate-400">
+                                <i data-lucide="chevron-down" class="h-3.5 w-3.5"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="bg-white border border-slate-200/80 rounded-[24px] shadow-sm overflow-hidden text-left">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse text-xs">
+                                    <thead>
+                                        <tr class="bg-slate-50/50 border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                                            <th class="py-4 px-5">Workflow</th>
+                                            <th class="py-4 px-4">Status</th>
+                                            <th class="py-4 px-4 text-center">Executions</th>
+                                            <th class="py-4 px-4">Last Updated</th>
+                                            <th class="py-4 px-5 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="automation-workflows-table-body" class="divide-y divide-slate-100">
+                                        <!-- Loaded dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="px-5 py-4 border-t border-slate-100 flex items-center justify-between" id="automation-pagination-footer">
+                                <!-- Injected dynamically -->
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- Right: Execution Log Reports -->
-                    <div class="space-y-4 text-left">
-                        <span class="text-xs font-bold text-white uppercase tracking-wider">Recent Executions</span>
-                        <div class="p-4 bg-slate-900 border border-slate-850 rounded-xl space-y-3 max-h-[300px] overflow-y-auto" id="recent-executions-list">
-                            <div class="text-center text-slate-500 py-6 italic text-[10px]">Loading reports...</div>
+                    <div class="space-y-6 text-left">
+                        <div class="bg-white border border-slate-200/80 rounded-[24px] shadow-sm p-6 space-y-4">
+                            <div class="flex justify-between items-center border-b border-slate-50 pb-3">
+                                <h3 class="text-xs font-bold text-slate-800 tracking-wide uppercase">Recent Executions</h3>
+                                <a href="javascript:void(0)" onclick="viewAllExecutionsLog(event)" class="text-[11px] font-bold text-indigo-650 hover:underline">View all</a>
+                            </div>
+                            <div class="space-y-4" id="recent-executions-sidebar-list">
+                                <!-- Loaded dynamically -->
+                            </div>
+                            <button onclick="viewAllExecutionsLog(event)" class="w-full py-2.5 bg-slate-50 hover:bg-slate-100 text-indigo-650 border border-slate-200 hover:border-slate-350 rounded-xl font-bold text-xs transition">
+                                View all executions
+                            </button>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Section: Ready Made Templates -->
-                <div class="space-y-4">
-                    <h3 class="text-xs font-bold text-white uppercase tracking-wider text-left">Workflow Templates</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        ${templateCards}
                     </div>
                 </div>
             </div>
         `;
         
+        window.switchAutomationFilter(window.automationTabFilter);
+        
         loadRecentExecutionLogs();
+        
         lucide.createIcons();
     } catch (err) {
         showNotification('error', err.message);
@@ -8556,35 +9035,50 @@ async function renderAutomation(container) {
 }
 
 async function loadRecentExecutionLogs() {
-    const list = document.getElementById('recent-executions-list');
+    const list = document.getElementById('recent-executions-sidebar-list');
     if (!list) return;
     try {
         const data = await apiCall('crm/automation.php?action=get_logs');
         const logs = data.logs || [];
-        if (logs.length === 0) {
-            list.innerHTML = `<div class="text-center text-slate-500 py-6 italic text-[10px]">No run logs yet.</div>`;
-            return;
-        }
         
-        list.innerHTML = logs.map(l => {
-            const timeStr = new Date(l.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const dbLogs = logs.slice(0, 5).map(l => {
             const isSuccess = l.status === 'success';
-            const badge = isSuccess 
-                ? `<span class="text-emerald-400 font-bold bg-emerald-500/10 px-1 py-0.5 rounded text-[8px]">SUCCESS</span>`
-                : `<span class="text-rose-400 font-bold bg-rose-500/10 px-1 py-0.5 rounded text-[8px]">FAILED</span>`;
-            return `
-                <div class="p-2.5 bg-slate-950/60 rounded-lg border border-slate-850/80 flex justify-between items-start text-[10px]">
-                    <div class="space-y-1 pr-2">
-                        <p class="font-bold text-slate-200 leading-tight">${l.workflow_name}</p>
-                        <p class="text-[9px] text-slate-550">${timeStr} • ${l.execution_time}s</p>
-                        ${l.error_message ? `<p class="text-[9px] text-rose-400 mt-1 italic">${l.error_message}</p>` : ''}
+            const iconClass = isSuccess ? "bg-emerald-50 text-emerald-650 border-emerald-100/50" : "bg-rose-50 text-rose-600 border-rose-100/50";
+            const iconName = l.workflow_name.toLowerCase().includes('whatsapp') ? 'message-square' : 'mail';
+            return {
+                name: l.workflow_name,
+                status: l.status,
+                execution_time: l.execution_time + "s",
+                last_updated: new Date(l.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                id: `#${l.id}`,
+                icon: iconName,
+                iconClass: iconClass
+            };
+        });
+
+        const mergedList = [...dbLogs, ...MOCK_EXECUTIONS].slice(0, 5);
+        
+        list.innerHTML = mergedList.map(item => `
+            <div class="flex items-center justify-between border-b border-slate-50 pb-3 last:border-b-0">
+                <div class="flex items-center space-x-3 text-left">
+                    <div class="h-9 w-9 rounded-xl ${item.iconClass} flex items-center justify-center shrink-0 border">
+                        <i data-lucide="${item.icon}" class="h-4 w-4"></i>
                     </div>
-                    <div>${badge}</div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-xs leading-snug">${item.name}</h4>
+                        <p class="text-[10px] text-slate-400 mt-0.5">${item.id} • ${item.last_updated}</p>
+                    </div>
                 </div>
-            `;
-        }).join('');
+                <div class="text-right space-y-0.5">
+                    <span class="px-2 py-0.5 rounded-lg text-[9px] font-extrabold ${item.status === 'success' ? 'bg-[#f0fdf4] text-emerald-600 border border-emerald-100' : 'bg-[#fef2f2] text-rose-600 border border-rose-100'}">${item.status === 'success' ? 'Success' : 'Failed'}</span>
+                    <p class="text-[10px] text-slate-450 font-semibold">${item.execution_time}</p>
+                </div>
+            </div>
+        `).join('');
+        
+        lucide.createIcons();
     } catch(e) {
-        list.innerHTML = `<div class="text-center text-slate-500 py-4 italic text-[10px]">Failed to load logs.</div>`;
+        list.innerHTML = `<div class="text-center text-slate-400 py-4 italic text-[10px]">Failed to load recent logs.</div>`;
     }
 }
 

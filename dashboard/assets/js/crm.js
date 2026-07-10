@@ -3976,7 +3976,7 @@ function openImportContactsModal() {
     if (existing) existing.remove();
 
     const modalHTML = `
-        <div id="crm-import-contacts-modal" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-950/60 backdrop-blur-md animate-fade-in p-4">
+        <div id="crm-import-contacts-modal" class="fixed inset-0 z-[100] flex flex-col items-center justify-center animate-fade-in p-4" style="background-color: rgba(15, 23, 42, 0.65) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
             <div class="bg-white border border-slate-100 rounded-[24px] w-full max-w-2xl p-6 text-slate-800 text-xs space-y-6 shadow-2xl relative" id="import-modal-content">
                 <button onclick="document.getElementById('crm-import-contacts-modal').remove()" class="absolute top-6 right-6 h-8 w-8 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-400 hover:text-slate-700 flex items-center justify-center transition shadow-xs">
                     <i data-lucide="x" class="h-4 w-4"></i>
@@ -3984,7 +3984,7 @@ function openImportContactsModal() {
                 
                 <div class="flex items-center space-x-3.5">
                     <div class="h-11 w-11 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100/50 shadow-xs">
-                        <i data-lucide="upload-cloud" class="h-5 w-5"></i>
+                        <i data-lucide="upload-cloud" class="h-5 w-5" style="stroke: #4f46e5 !important;"></i>
                     </div>
                     <div>
                         <h2 class="text-base font-bold text-slate-900 leading-tight">Import Contacts</h2>
@@ -4015,9 +4015,9 @@ function openImportContactsModal() {
                     <span class="font-bold text-slate-800 text-[13px] group-hover:text-indigo-600 transition">Drag and drop your CSV file here</span>
                     <span class="text-[10px] text-slate-400">or</span>
                     
-                    <button class="px-4 py-2 bg-[#4f46e5] hover:bg-indigo-650 text-white rounded-lg font-bold text-xs flex items-center space-x-1.5 transition shadow-sm pointer-events-none">
-                        <i data-lucide="upload" class="h-3.5 w-3.5"></i>
-                        <span>Choose CSV File</span>
+                    <button class="px-4 py-2 bg-[#4f46e5] hover:bg-indigo-600 rounded-lg font-bold text-xs flex items-center space-x-1.5 transition shadow-sm pointer-events-none" style="color: #ffffff !important;">
+                        <i data-lucide="upload" class="h-3.5 w-3.5" style="stroke: #ffffff !important;"></i>
+                        <span style="color: #ffffff !important;">Choose CSV File</span>
                     </button>
                 </div>
                 
@@ -4030,16 +4030,18 @@ function openImportContactsModal() {
                 </div>
                 
                 <div class="flex items-center justify-between pt-3 border-t border-slate-100">
-                    <button onclick="downloadSampleContactsCSV()" class="px-4 py-2 border border-slate-200 rounded-lg text-slate-650 hover:bg-slate-50 font-bold flex items-center space-x-1.5 transition text-[11px] shadow-xs">
-                        <i data-lucide="help-circle" class="h-3.5 w-3.5 text-slate-450"></i>
-                        <span>Download Sample CSV</span>
+                    <button onclick="downloadSampleContactsCSV()" class="px-4 py-2 bg-slate-600 hover:bg-slate-700 rounded-lg font-bold flex items-center space-x-1.5 transition text-[11px] shadow-xs" style="color: #ffffff !important;">
+                        <i data-lucide="help-circle" class="h-3.5 w-3.5" style="stroke: #ffffff !important;"></i>
+                        <span style="color: #ffffff !important;">Download Sample CSV</span>
                     </button>
                     
                     <div class="flex items-center space-x-2">
-                        <button onclick="document.getElementById('crm-import-contacts-modal').remove()" class="px-4 py-2 border border-slate-200 rounded-lg text-slate-650 hover:bg-slate-50 font-bold transition text-[11px] shadow-xs">Cancel</button>
-                        <button onclick="document.getElementById('contacts-import-file-input').click()" class="px-4 py-2 bg-[#4f46e5] hover:bg-indigo-650 text-white rounded-lg font-bold flex items-center space-x-1.5 transition text-[11px] shadow-sm">
-                            <span>Import Contacts</span>
-                            <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+                        <button onclick="document.getElementById('crm-import-contacts-modal').remove()" class="px-4 py-2 bg-slate-500 hover:bg-slate-600 rounded-lg font-bold transition text-[11px] shadow-xs" style="color: #ffffff !important;">
+                            <span style="color: #ffffff !important;">Cancel</span>
+                        </button>
+                        <button onclick="document.getElementById('contacts-import-file-input').click()" class="px-4 py-2 bg-[#4f46e5] hover:bg-indigo-650 rounded-lg font-bold flex items-center space-x-1.5 transition text-[11px] shadow-sm" style="color: #ffffff !important;">
+                            <span style="color: #ffffff !important;">Import Contacts</span>
+                            <i data-lucide="arrow-right" class="h-3.5 w-3.5" style="stroke: #ffffff !important;"></i>
                         </button>
                     </div>
                 </div>
@@ -4165,8 +4167,12 @@ function showImportPreviewScreen(contacts) {
         </div>
         
         <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
-            <button onclick="openImportContactsModal()" class="px-4 py-2 border border-slate-200 rounded-lg text-slate-650 hover:bg-slate-50 transition">Back</button>
-            <button onclick="submitFinalImport()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition shadow-sm" id="import-submit-btn">Import Selected (${contacts.length})</button>
+            <button onclick="openImportContactsModal()" class="px-4 py-2 bg-slate-500 hover:bg-slate-600 rounded-lg font-bold transition" style="color: #ffffff !important;">
+                <span style="color: #ffffff !important;">Back</span>
+            </button>
+            <button onclick="submitFinalImport()" class="px-4 py-2 bg-[#4f46e5] hover:bg-indigo-600 rounded-lg font-bold transition shadow-sm" id="import-submit-btn" style="color: #ffffff !important;">
+                <span style="color: #ffffff !important;">Import Selected (${contacts.length})</span>
+            </button>
         </div>
     `;
     lucide.createIcons();
@@ -4191,7 +4197,9 @@ function showImportErrorScreen(msg) {
         </div>
         
         <div class="flex justify-end pt-4 border-t border-slate-100">
-            <button onclick="openImportContactsModal()" class="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-750 font-bold transition">Try Another File</button>
+            <button onclick="openImportContactsModal()" class="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg font-bold transition" style="color: #ffffff !important;">
+                <span style="color: #ffffff !important;">Try Another File</span>
+            </button>
         </div>
     `;
     lucide.createIcons();
@@ -4230,7 +4238,9 @@ function submitFinalImport() {
                         <span class="font-extrabold text-sm text-indigo-650">Import Complete!</span>
                         <span class="text-xs text-slate-500 font-semibold">${res.imported} contacts and associated companies imported successfully.</span>
                         
-                        <button onclick="closeImportAndReload()" class="mt-4 px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition shadow-sm">Done</button>
+                        <button onclick="closeImportAndReload()" class="mt-4 px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition shadow-sm" style="color: #ffffff !important;">
+                            <span style="color: #ffffff !important;">Done</span>
+                        </button>
                     </div>
                 `;
             } else {

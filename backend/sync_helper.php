@@ -87,13 +87,11 @@ class SyncHelper {
             }
         }
 
-        // If we attempted to synchronize but ALL attempted services failed, throw the last error
+        // If we attempted to synchronize but ALL attempted services failed, log the error but do not throw a fatal exception
         if ($attemptedCount > 0 && $successCount === 0) {
-            if ($lastError) {
-                throw $lastError;
-            } else {
-                throw new Exception("All connected sync services failed to synchronize.");
-            }
+            $errMsg = $lastError ? $lastError->getMessage() : 'No active connections configured.';
+            $errStmt = $db->prepare("INSERT INTO email_processing_logs (user_id, status, message) VALUES (?, 'error', ?)");
+            $errStmt->execute([$userId, 'All sync channels failed: ' . $errMsg]);
         }
         
         // Fetch spam filters

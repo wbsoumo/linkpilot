@@ -3544,7 +3544,7 @@ window.openEditDealModal = async function(dealId) {
         };
         
         try {
-            await apiCall('crm/deals.php', 'POST', payload);
+            await apiCall('crm/deals.php?action=update', 'POST', payload);
             showNotification('success', 'Deal updated successfully!');
             modal.remove();
             navigateTo('deals');

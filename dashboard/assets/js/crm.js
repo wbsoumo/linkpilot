@@ -5666,108 +5666,395 @@ async function openInspectCompanyModal(companyId) {
         const modal = document.getElementById('crm-company-inspect-modal');
         if (!modal) return;
 
+        const modal = document.getElementById('crm-company-inspect-modal');
+        if (!modal) return;
+
         modal.innerHTML = `
-            <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-3xl text-slate-700 text-xs shadow-2xl relative flex flex-col max-h-[85vh]">
-                <div class="p-5 border-b border-slate-100 flex justify-between items-start">
-                    <div>
-                        <div class="flex items-center space-x-2.5">
-                            <h2 class="text-lg font-bold text-slate-800">${c.name}</h2>
-                            ${c.industry ? `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full text-[10px] font-bold">${c.industry}</span>` : ''}
+            <div class="bg-white border border-slate-100 rounded-[24px] w-full max-w-4xl text-slate-700 text-xs shadow-2xl relative flex flex-col max-h-[90vh] p-6 space-y-5 animate-scale-up">
+                
+                <!-- Header -->
+                <div class="flex items-center justify-between pb-5 border-b border-slate-100">
+                    <div class="flex items-center space-x-4">
+                        <!-- Company Logo -->
+                        <div class="h-16 w-16 rounded-2xl bg-indigo-50 border border-slate-100 flex items-center justify-center shrink-0 shadow-sm overflow-hidden select-none">
+                            ${c.website ? `
+                                <img src="https://img.logo.dev/${c.website.replace('https://','').replace('http://','').replace('www.','').split('/')[0]}?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-12 w-12 object-contain" onerror="this.outerHTML='<div class=\\'text-lg font-bold text-slate-800\\'>${c.name.charAt(0)}</div>'">
+                            ` : `
+                                <div class="text-lg font-bold text-slate-800">${c.name.charAt(0)}</div>
+                            `}
                         </div>
-                        <p class="text-slate-550 text-[11px] mt-0.5">${c.website || 'No website registered'} • Status: ${c.status || 'Active'}</p>
+                        
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h2 class="text-lg font-bold text-slate-900 leading-tight">${c.name}</h2>
+                                <span class="text-blue-500 hover:text-blue-600">
+                                    <i data-lucide="check-circle" class="h-4.5 w-4.5 fill-blue-500 text-white stroke-2"></i>
+                                </span>
+                            </div>
+                            <p class="text-slate-450 text-[10px] mt-0.5 font-medium">${c.name} Ltd.</p>
+                            
+                            <div class="flex items-center space-x-2 mt-2 text-[10px] text-slate-500 font-semibold">
+                                <span class="flex items-center text-slate-450">
+                                    <i data-lucide="building" class="h-3.5 w-3.5 mr-1 text-slate-400"></i>
+                                    <span>${c.address ? c.address.split(',')[0] : 'No Location'}</span>
+                                </span>
+                                <span class="text-slate-300">•</span>
+                                <span class="flex items-center text-slate-450">
+                                    <i data-lucide="tag" class="h-3.5 w-3.5 mr-1 text-slate-400"></i>
+                                    <span>${c.industry || 'Technology'}</span>
+                                </span>
+                                <span class="text-slate-300">•</span>
+                                <span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100/50 rounded-full text-[9px] font-bold">${c.status || 'Active'}</span>
+                            </div>
+                        </div>
                     </div>
-                    <button onclick="document.getElementById('crm-company-inspect-modal').remove()" class="h-7 w-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
-                        <i data-lucide="x" class="h-4 w-4"></i>
-                    </button>
+                    
+                    <div class="flex items-center space-x-2 shrink-0">
+                        ${c.website ? `
+                            <button onclick="window.open('${c.website.startsWith('http') ? c.website : `https://${c.website}`}', '_blank')" class="px-4 py-2 border border-indigo-200 hover:bg-indigo-50/20 text-indigo-650 rounded-lg text-[10px] font-bold flex items-center space-x-1.5 transition shadow-xs" style="color: #4f46e5 !important;">
+                                <i data-lucide="external-link" class="h-3.5 w-3.5" style="stroke: #4f46e5 !important;"></i>
+                                <span style="color: #4f46e5 !important;">View Company Portal</span>
+                            </button>
+                        ` : ''}
+                        
+                        <button onclick="document.getElementById('crm-company-inspect-modal').remove()" class="h-7 w-7 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
+                            <i data-lucide="x" class="h-4 w-4"></i>
+                        </button>
+                    </div>
                 </div>
 
-                <div class="p-6 overflow-y-auto space-y-6 flex-1 text-left">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="space-y-4">
-                            <h3 class="text-xs font-bold text-teal-650 uppercase tracking-wider">Company Information</h3>
-                            <div class="space-y-2.5 bg-slate-50 p-4 border border-slate-200/80 rounded-xl">
-                                <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-550 font-medium">Website:</span>
-                                    ${c.website ? `<a href="${c.website.startsWith('http') ? c.website : `https://${c.website}`}" target="_blank" class="font-semibold text-indigo-600 hover:underline flex items-center space-x-1"><span>${c.website}</span><i data-lucide="external-link" class="h-3 w-3"></i></a>` : '<span class="text-slate-500">-</span>'}
-                                </div>
-                                <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-550 font-medium">GST / Tax ID:</span>
-                                    <span class="font-semibold text-slate-800">${c.gst || '-'}</span>
-                                </div>
-                                <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-550 font-medium">Employees:</span>
-                                    <span class="font-semibold text-slate-800">${c.employees ? c.employees.toLocaleString() : '-'}</span>
-                                </div>
-                                <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-550 font-medium">Annual Revenue:</span>
-                                    <span class="font-semibold text-slate-800">${c.revenue ? `₹${c.revenue.toLocaleString()}` : '-'}</span>
-                                </div>
-                                <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-550 font-medium">Owner / Account Manager:</span>
-                                    <span class="font-semibold text-slate-800">${c.owner || '-'}</span>
-                                </div>
-                                <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-550 font-medium">Source:</span>
-                                    <span class="font-semibold text-slate-700 px-1.5 py-0.5 bg-slate-100 rounded border border-slate-200 text-[10px]">${c.source || 'CRM Manual'}</span>
-                                </div>
+                <!-- 2x2 Grid Content -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 overflow-y-auto max-h-[60vh] pr-1">
+                    
+                    <!-- Box 1: Contact Details -->
+                    <div class="bg-white border border-slate-100 rounded-2xl p-5 space-y-4 shadow-2xs">
+                        <div class="flex items-center space-x-2 pb-2 border-b border-slate-50">
+                            <div class="h-7 w-7 rounded-full bg-indigo-50 text-indigo-650 flex items-center justify-center shrink-0">
+                                <i data-lucide="user" class="h-4 w-4" style="stroke: #4f46e5 !important;"></i>
                             </div>
+                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Contact Details</h3>
                         </div>
-
-                        <div class="space-y-4 flex flex-col justify-between">
-                            <div class="space-y-3">
-                                <h3 class="text-xs font-bold text-teal-650 uppercase tracking-wider">Office Address</h3>
-                                <div class="bg-slate-50 p-4 border border-slate-200/80 rounded-xl text-slate-700">
-                                    ${c.address || 'No address details available.'}
-                                </div>
-                            </div>
-                            <div class="space-y-3">
-                                <h3 class="text-xs font-bold text-teal-650 uppercase tracking-wider">Internal Notes</h3>
-                                <div class="bg-slate-50 p-4 border border-slate-200/80 rounded-xl text-slate-700 max-h-[90px] overflow-y-auto leading-relaxed">
-                                    ${c.notes || 'No general notes available.'}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                        <div class="space-y-3">
-                            <h3 class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Associated Contacts</h3>
-                            <div class="space-y-2 bg-slate-50 p-4 border border-slate-200/80 rounded-xl max-h-[160px] overflow-y-auto text-[11px]">
-                                ${contacts.length === 0 ? `<div class="text-slate-450 text-center py-4">No contacts linked to this company.</div>` : ''}
-                                ${contacts.map(con => `
-                                    <div class="flex justify-between items-center border-b border-slate-100 pb-1.5 last:border-b-0 last:pb-0">
-                                        <div>
-                                            <span class="font-bold text-slate-800 block">${con.name}</span>
-                                            <span class="text-[10px] text-slate-450">${con.designation || 'Contact'} • ${con.email || 'No Email'}</span>
-                                        </div>
+                        
+                        <div class="space-y-3 text-[11px]">
+                            <div class="flex justify-between items-center py-0.5">
+                                <span class="text-slate-450 font-semibold flex items-center"><i data-lucide="mail" class="h-3.5 w-3.5 mr-2 text-slate-400"></i>Email</span>
+                                ${c.website ? `
+                                    <div class="flex items-center space-x-1.5">
+                                        <span class="font-bold text-indigo-600">info@${c.website.replace('https://','').replace('http://','').replace('www.','').split('/')[0]}</span>
+                                        <button onclick="navigator.clipboard.writeText('info@${c.website}'); showNotification('success', 'Email copied!')" class="text-slate-400 hover:text-slate-655"><i data-lucide="copy" class="h-3 w-3"></i></button>
                                     </div>
-                                `).join('')}
+                                ` : '<span class="text-slate-500 font-bold">-</span>'}
+                            </div>
+                            
+                            <div class="flex justify-between items-center py-0.5">
+                                <span class="text-slate-450 font-semibold flex items-center"><i data-lucide="phone" class="h-3.5 w-3.5 mr-2 text-slate-400"></i>Phone</span>
+                                <span class="font-bold text-slate-800">${contacts[0]?.phone || '-'}</span>
+                            </div>
+                            
+                            <div class="flex justify-between items-center py-0.5">
+                                <span class="text-slate-450 font-semibold flex items-center"><i data-lucide="link" class="h-3.5 w-3.5 mr-2 text-slate-400"></i>LinkedIn Link</span>
+                                <span class="font-bold text-slate-800">-</span>
+                            </div>
+                            
+                            <div class="flex justify-between items-center py-0.5">
+                                <span class="text-slate-450 font-semibold flex items-center"><i data-lucide="map-pin" class="h-3.5 w-3.5 mr-2 text-slate-400"></i>Location</span>
+                                <span class="font-bold text-slate-800 text-right max-w-[200px] truncate">${c.address || '-'}</span>
+                            </div>
+                            
+                            <div class="flex justify-between items-center py-0.5">
+                                <span class="text-slate-450 font-semibold flex items-center"><i data-lucide="database" class="h-3.5 w-3.5 mr-2 text-slate-400"></i>Source</span>
+                                <span class="px-2 py-0.5 bg-indigo-50/60 text-indigo-650 border border-indigo-100/30 rounded text-[9px] font-bold">${c.source || 'CRM Manual'}</span>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="space-y-3">
-                            <h3 class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Company Activity Timeline</h3>
-                            <div class="space-y-2 bg-slate-50 p-4 border border-slate-200/80 rounded-xl max-h-[160px] overflow-y-auto text-[11px]">
-                                ${timeline.length === 0 ? `<div class="text-slate-450 text-center py-4">No activities logged.</div>` : ''}
-                                ${timeline.map(t => {
-                                    const date = new Date(t.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-                                    return `
-                                        <div class="border-b border-slate-100 pb-1.5 last:border-b-0 last:pb-0">
-                                            <span class="text-[10px] text-slate-400 block font-mono">${date}</span>
-                                            <span class="font-semibold text-slate-700">${t.activity_type}:</span>
-                                            <span class="text-slate-600">${t.description}</span>
-                                        </div>
-                                    `;
-                                }).join('')}
+                    <!-- Box 2: Extension Scraped Data / Notes -->
+                    <div class="bg-white border border-slate-100 rounded-2xl p-5 space-y-4 shadow-2xs flex flex-col h-full">
+                        <div class="flex items-center space-x-2 pb-2 border-b border-slate-50 shrink-0">
+                            <div class="h-7 w-7 rounded-full bg-indigo-50 text-indigo-650 flex items-center justify-center shrink-0">
+                                <i data-lucide="file-text" class="h-4 w-4" style="stroke: #4f46e5 !important;"></i>
                             </div>
+                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Extension Scraped Data / Notes</h3>
+                        </div>
+                        
+                        <div class="flex-1 flex flex-col items-center justify-center bg-slate-50/50 border border-slate-200/50 rounded-xl p-4 text-center min-h-[140px]">
+                            ${c.notes ? `
+                                <p class="text-slate-700 text-left w-full text-[11px] leading-relaxed max-h-[110px] overflow-y-auto">${c.notes}</p>
+                            ` : `
+                                <div class="h-10 w-10 rounded-full bg-slate-100 text-slate-450 flex items-center justify-center shrink-0 mb-2">
+                                    <i data-lucide="file-text" class="h-5 w-5"></i>
+                                </div>
+                                <span class="block font-bold text-slate-700 text-[11px]">No extension data or notes available.</span>
+                                <span class="block text-[9px] text-slate-400 mt-1 max-w-[200px] leading-relaxed">Use browser extension to capture data and add notes about this company.</span>
+                            `}
+                        </div>
+                    </div>
+
+                    <!-- Box 3: Scheduled Tasks & Meetings -->
+                    <div class="bg-white border border-slate-100 rounded-2xl p-5 space-y-4 shadow-2xs">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-50">
+                            <div class="flex items-center space-x-2">
+                                <div class="h-7 w-7 rounded-full bg-indigo-50 text-indigo-650 flex items-center justify-center shrink-0">
+                                    <i data-lucide="calendar" class="h-4 w-4" style="stroke: #4f46e5 !important;"></i>
+                                </div>
+                                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Scheduled Tasks & Meetings</h3>
+                            </div>
+                            
+                            <button onclick="createNewTaskModal({ company_id: ${c.id} })" class="text-indigo-655 hover:text-indigo-700 text-[10px] font-bold flex items-center space-x-0.5">
+                                <i data-lucide="plus" class="h-3 w-3" style="stroke: #4f46e5 !important;"></i>
+                                <span>Add New</span>
+                            </button>
+                        </div>
+                        
+                        <div class="flex flex-col items-center justify-center bg-slate-50/50 border border-slate-200/50 rounded-xl p-4 text-center py-6 min-h-[140px]">
+                            <div class="h-10 w-10 rounded-full bg-slate-100 text-slate-450 flex items-center justify-center shrink-0 mb-2">
+                                <i data-lucide="calendar" class="h-5 w-5"></i>
+                            </div>
+                            <span class="block font-bold text-slate-700 text-[11px]">No tasks or meetings scheduled.</span>
+                            <span class="block text-[9px] text-slate-400 mt-1 max-w-[220px] leading-relaxed">Schedule tasks or meetings to stay on top of your follow-ups.</span>
+                            
+                            <button onclick="createNewTaskModal({ company_id: ${c.id} })" class="mt-3 px-3 py-1.5 bg-[#4f46e5] hover:bg-indigo-600 text-white rounded-lg font-bold text-[9px] flex items-center space-x-1 transition shadow-sm animate-pulse" style="color: #ffffff !important;">
+                                <i data-lucide="plus" class="h-3 w-3" style="stroke: #ffffff !important;"></i>
+                                <span style="color: #ffffff !important;">Schedule Task / Meeting</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Box 4: Activity Timeline -->
+                    <div class="bg-white border border-slate-100 rounded-2xl p-5 space-y-4 shadow-2xs flex flex-col h-full">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-50 shrink-0">
+                            <div class="flex items-center space-x-2">
+                                <div class="h-7 w-7 rounded-full bg-indigo-50 text-indigo-650 flex items-center justify-center shrink-0">
+                                    <i data-lucide="activity" class="h-4 w-4" style="stroke: #4f46e5 !important;"></i>
+                                </div>
+                                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Activity Timeline</h3>
+                            </div>
+                            
+                            <button class="text-indigo-655 hover:text-indigo-700 text-[10px] font-bold">View All Activity</button>
+                        </div>
+                        
+                        <div class="flex-1 overflow-y-auto max-h-[160px] pr-1">
+                            ${timeline.length === 0 ? `
+                                <div class="flex flex-col items-center justify-center text-center py-8">
+                                    <span class="block text-[10px] text-slate-400">No activity history available.</span>
+                                </div>
+                            ` : `
+                                <div class="relative pl-4 border-l border-slate-200 space-y-4 text-left ml-2">
+                                    ${timeline.map(t => {
+                                        const date = new Date(t.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                                        return `
+                                            <div class="relative pb-0.5">
+                                                <!-- Bullet indicator -->
+                                                <span class="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full border-2 border-white bg-indigo-500 shadow-xs"></span>
+                                                <span class="block text-[9px] text-slate-400 font-mono">${date}</span>
+                                                <span class="block font-bold text-slate-800 text-[10px] mt-0.5">${t.activity_type}</span>
+                                                <span class="block text-slate-500 text-[9px] mt-0.5 leading-relaxed">${t.description}</span>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            `}
                         </div>
                     </div>
                 </div>
 
-                <div class="p-5 border-t border-slate-100 flex justify-end">
-                    <button onclick="document.getElementById('crm-company-inspect-modal').remove()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-750 rounded-lg font-bold transition">Close</button>
+                <!-- Footer -->
+                <div class="flex items-center justify-between pt-4 border-t border-slate-100 shrink-0">
+                    <button onclick="confirmDeleteCompany(${c.id})" class="px-3 py-1.5 border border-red-200 hover:bg-red-50/20 text-red-600 rounded-lg text-[10px] font-bold flex items-center space-x-1 transition shadow-xs">
+                        <i data-lucide="trash-2" class="h-3.5 w-3.5 text-red-500"></i>
+                        <span>Delete Company</span>
+                    </button>
+                    
+                    <div class="flex items-center space-x-2">
+                        <button onclick="document.getElementById('crm-company-inspect-modal').remove()" class="px-4 py-2 bg-slate-500 hover:bg-slate-600 rounded-lg font-bold text-[10px] transition shadow-xs" style="color: #ffffff !important;">
+                            <span style="color: #ffffff !important;">Close</span>
+                        </button>
+                        <button onclick="openEditCompanyModal(${c.id})" class="px-4 py-2 bg-[#4f46e5] hover:bg-indigo-600 rounded-lg font-bold text-[10px] flex items-center space-x-1.5 transition shadow-sm" style="color: #ffffff !important;">
+                            <i data-lucide="edit" class="h-3.5 w-3.5" style="stroke: #ffffff !important;"></i>
+                            <span style="color: #ffffff !important;">Edit Company</span>
+                        </button>
+                    </div>
                 </div>
             </div>
+        `;
+        lucide.createIcons();
+    } catch (e) {
+        showNotification('error', 'Failed to retrieve company details: ' + e.message);
+        document.getElementById('crm-company-inspect-modal').remove();
+    }
+}
+
+function confirmDeleteCompany(companyId) {
+    if (confirm("Are you sure you want to delete this company?")) {
+        apiCall(`crm/companies.php`, 'DELETE', { id: companyId })
+            .then(() => {
+                showNotification('success', 'Company profile deleted successfully.');
+                const modal = document.getElementById('crm-company-inspect-modal');
+                if (modal) modal.remove();
+                const container = document.getElementById('main-content-viewport');
+                if (container) renderCompanies(container);
+            })
+            .catch(err => {
+                showNotification('error', 'Failed to delete company: ' + err.message);
+            });
+    }
+}
+
+function openEditCompanyModal(companyId) {
+    apiCall(`crm/companies.php?id=${companyId}`)
+        .then(res => {
+            const c = res.company || {};
+            const existing = document.getElementById('crm-add-company-modal');
+            if (existing) existing.remove();
+
+            const modalHTML = `
+                <div id="crm-add-company-modal" class="fixed inset-0 z-[100] flex items-center justify-center animate-fade-in p-4" style="background-color: rgba(15, 23, 42, 0.65) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
+                    <div class="bg-white border border-slate-100 rounded-[24px] w-full max-w-lg p-6 text-slate-800 text-xs space-y-4 shadow-2xl relative">
+                        
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <div class="flex items-center space-x-3">
+                                <div class="h-10 w-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100/50 shadow-xs">
+                                    <i data-lucide="edit" class="h-5 w-5" style="stroke: #4f46e5 !important;"></i>
+                                </div>
+                                <div>
+                                    <h2 class="text-sm font-bold text-slate-900 leading-tight">Edit Company</h2>
+                                    <p class="text-slate-450 text-[10px] mt-0.5 font-medium">Modify company profile details.</p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="document.getElementById('crm-add-company-modal').remove()" class="h-7 w-7 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
+                                <i data-lucide="x" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+                        
+                        <form onsubmit="submitEditCompanyForm(event, ${c.id})" class="space-y-3.5">
+                            <div>
+                                <label class="block text-slate-500 font-semibold mb-1">Company Name *</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-2.5 text-slate-400">
+                                        <i data-lucide="building" class="h-3.5 w-3.5"></i>
+                                    </span>
+                                    <input type="text" id="edit-company-name" required value="${c.name || ''}" placeholder="Enter company name" class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-indigo-500 text-xs">
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-slate-500 font-semibold mb-1">Industry</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-2.5 text-slate-400">
+                                            <i data-lucide="tag" class="h-3.5 w-3.5"></i>
+                                        </span>
+                                        <input type="text" id="edit-company-industry" value="${c.industry || ''}" placeholder="e.g. Technology" class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-indigo-500 text-xs">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-slate-500 font-semibold mb-1">Website</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-2.5 text-slate-400">
+                                            <i data-lucide="globe" class="h-3.5 w-3.5"></i>
+                                        </span>
+                                        <input type="text" id="edit-company-website" value="${c.website || ''}" placeholder="e.g. google.com" class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-indigo-500 text-xs">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-slate-500 font-semibold mb-1">Status</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-2.5 text-slate-400">
+                                            <i data-lucide="circle-dot" class="h-3.5 w-3.5"></i>
+                                        </span>
+                                        <select id="edit-company-status" class="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-indigo-500 text-xs appearance-none">
+                                            <option value="Active" ${c.status === 'Active' ? 'selected' : ''}>Active</option>
+                                            <option value="Inactive" ${c.status === 'Inactive' ? 'selected' : ''}>Inactive</option>
+                                        </select>
+                                        <span class="absolute right-3 top-3 text-slate-400 pointer-events-none">
+                                            <i data-lucide="chevron-down" class="h-3 w-3"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-slate-500 font-semibold mb-1">Owner</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-2.5 text-slate-400">
+                                            <i data-lucide="user" class="h-3.5 w-3.5"></i>
+                                        </span>
+                                        <input type="text" id="edit-company-owner" value="${c.owner || ''}" placeholder="e.g. John Doe" class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-indigo-500 text-xs">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-slate-500 font-semibold mb-1">Address</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-2.5 text-slate-400">
+                                        <i data-lucide="map-pin" class="h-3.5 w-3.5"></i>
+                                    </span>
+                                    <input type="text" id="edit-company-address" value="${c.address || ''}" placeholder="Enter address" class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-indigo-500 text-xs">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-slate-500 font-semibold mb-1">Remarks / Notes</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-2.5 text-slate-400">
+                                        <i data-lucide="file-text" class="h-3.5 w-3.5"></i>
+                                    </span>
+                                    <textarea id="edit-company-notes" rows="2" placeholder="Add any additional notes..." class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-indigo-500 text-xs">${c.notes || ''}</textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                                <span class="text-[9px] text-slate-450 font-medium">ID: ${c.id}</span>
+                                <div class="flex items-center space-x-2">
+                                    <button type="button" onclick="document.getElementById('crm-add-company-modal').remove()" class="px-4 py-2 bg-slate-500 hover:bg-slate-600 rounded-lg font-bold text-[10px] transition shadow-xs" style="color: #ffffff !important;">
+                                        <span style="color: #ffffff !important;">Cancel</span>
+                                    </button>
+                                    <button type="submit" class="px-4 py-2 bg-[#4f46e5] hover:bg-indigo-600 rounded-lg font-bold text-[10px] flex items-center space-x-1.5 transition shadow-sm" style="color: #ffffff !important;">
+                                        <span style="color: #ffffff !important;">Save Changes</span>
+                                        <i data-lucide="arrow-right" class="h-3.5 w-3.5" style="stroke: #ffffff !important;"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            lucide.createIcons();
+        });
+}
+
+function submitEditCompanyForm(e, companyId) {
+    e.preventDefault();
+    const payload = {
+        id: companyId,
+        name: document.getElementById('edit-company-name').value.trim(),
+        industry: document.getElementById('edit-company-industry').value.trim(),
+        website: document.getElementById('edit-company-website').value.trim(),
+        status: document.getElementById('edit-company-status').value,
+        owner: document.getElementById('edit-company-owner').value.trim(),
+        address: document.getElementById('edit-company-address').value.trim(),
+        notes: document.getElementById('edit-company-notes').value.trim()
+    };
+
+    apiCall('crm/companies.php', 'PUT', payload)
+        .then(res => {
+            showNotification('success', 'Company details updated successfully.');
+            document.getElementById('crm-add-company-modal').remove();
+            
+            // Re-open company inspect modal to reflect changes
+            openInspectCompanyModal(companyId);
+            
+            // Refresh main table viewport list
+            const container = document.getElementById('main-content-viewport');
+            if (container) renderCompanies(container);
+        })
+        .catch(err => {
+            showNotification('error', err.message);
+        });
+}
         `;
         lucide.createIcons();
     } catch (e) {

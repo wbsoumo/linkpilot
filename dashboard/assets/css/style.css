@@ -800,3 +800,12 @@ body :not(aside) .backdrop-blur,
     backdrop-filter: blur(8px) !important;
     -webkit-backdrop-filter: blur(8px) !important;
 }
+
+/* Sidebar Group Headers styling */
+aside h6 {
+    color: #64748b !important; /* text-slate-500 */
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+}

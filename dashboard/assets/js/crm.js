@@ -327,6 +327,9 @@ async function navigateTo(view, params = {}) {
         case 'meetings':
             renderMeetings(contentArea);
             break;
+        case 'calls':
+            renderCalls(contentArea);
+            break;
         case 'automation':
             renderAutomation(contentArea);
             break;
@@ -7795,6 +7798,141 @@ async function submitTaskRemarks(btn, taskId) {
 function renderMeetings(container) {
     container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs animate-fade-in">Meetings scheduler calendar loaded. Track scheduled items on the Dashboard.</div>`;
 }
+
+function renderCalls(container) {
+    container.innerHTML = `
+        <div class="space-y-6 animate-fade-in">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-extrabold text-slate-800">AI Telephony & Voice Center</h1>
+                    <p class="text-xs text-slate-500 font-semibold mt-1">Conduct direct outreach, set up voice agents, and review automated call transcripts.</p>
+                </div>
+                <div class="flex space-x-2">
+                    <span class="inline-flex items-center space-x-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full text-[10px] font-extrabold">
+                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>VoIP Line Connected</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left: Dialpad & Active Call Control -->
+                <div class="lg:col-span-1 glass-panel p-6 bg-white border border-slate-200 rounded-2xl flex flex-col space-y-4 shadow-sm">
+                    <h3 class="text-xs font-bold text-slate-850 uppercase tracking-wider">Dialer Panel</h3>
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
+                        <div id="dialer-screen" class="text-lg font-bold text-slate-800 placeholder-slate-400 tracking-widest h-8 overflow-hidden truncate"></div>
+                        <div class="text-[10px] text-slate-400 mt-1 font-semibold">Enter destination number</div>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-3 max-w-[200px] mx-auto">
+                        ${[1,2,3,4,5,6,7,8,9,'*',0,'#'].map(num => `
+                            <button onclick="pressDialerKey('${num}')" class="h-12 w-12 rounded-full border border-slate-200 bg-white hover:bg-slate-100 text-slate-800 font-bold flex items-center justify-center transition shadow-sm hover:scale-105 select-none text-sm" style="color: #334155 !important;">${num}</button>
+                        `).join('')}
+                    </div>
+
+                    <div class="flex justify-center space-x-3 pt-2">
+                        <button onclick="clearDialer()" class="px-3 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-500 transition font-bold text-xs" style="color: #475569 !important;">Clear</button>
+                        <button onclick="initiateMockCall(false)" class="flex-grow py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-md">
+                            <i data-lucide="phone" class="h-4 w-4 text-white"></i>
+                            <span>Call Now</span>
+                        </button>
+                        <button onclick="initiateMockCall(true)" class="py-2.5 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center shadow-md" title="Outbound AI Voice Agent">
+                            <i data-lucide="sparkles" class="h-4 w-4 text-white"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Middle/Right: Call Logs & Transcripts -->
+                <div class="lg:col-span-2 glass-panel p-6 bg-white border border-slate-200 rounded-2xl flex flex-col space-y-4 shadow-sm">
+                    <h3 class="text-xs font-bold text-slate-850 uppercase tracking-wider">VoIP Outreach Logs</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="border-b border-slate-100 bg-slate-50/50">
+                                    <th class="py-3 px-4 font-bold text-slate-500 text-[10px] uppercase">Destination / Contact</th>
+                                    <th class="py-3 px-4 font-bold text-slate-500 text-[10px] uppercase">Time</th>
+                                    <th class="py-3 px-4 font-bold text-slate-500 text-[10px] uppercase">Duration</th>
+                                    <th class="py-3 px-4 font-bold text-slate-500 text-[10px] uppercase">Status</th>
+                                    <th class="py-3 px-4 font-bold text-slate-500 text-[10px] uppercase text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition">
+                                    <td class="py-3.5 px-4 font-semibold text-slate-800">
+                                        <div>Prakash Sharma</div>
+                                        <div class="text-[10px] text-slate-400">+91 98765 43210</div>
+                                    </td>
+                                    <td class="py-3.5 px-4 text-slate-500 font-semibold">Today, 04:30 PM</td>
+                                    <td class="py-3.5 px-4 text-slate-500 font-semibold">3m 42s</td>
+                                    <td class="py-3.5 px-4">
+                                        <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 text-blue-600 border border-blue-100" style="color: #2563eb !important;">Completed (AI Outbound)</span>
+                                    </td>
+                                    <td class="py-3.5 px-4 text-right">
+                                        <button onclick="showCallTranscript('Prakash Sharma', 'Today, 04:30 PM', 'The contact requested a demo scheduling link via WhatsApp. AI Agent confirmed sending the setup link.')" class="px-2.5 py-1 bg-slate-100 border border-slate-200 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg text-[10px] font-bold transition" style="color: #475569 !important;">View Summary</button>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition">
+                                    <td class="py-3.5 px-4 font-semibold text-slate-800">
+                                        <div>John Doe</div>
+                                        <div class="text-[10px] text-slate-400">+1 (555) 019-2834</div>
+                                    </td>
+                                    <td class="py-3.5 px-4 text-slate-500 font-semibold">Yesterday, 11:15 AM</td>
+                                    <td class="py-3.5 px-4 text-slate-500 font-semibold">1m 15s</td>
+                                    <td class="py-3.5 px-4">
+                                        <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-50 text-rose-600 border border-rose-100" style="color: #ef4444 !important;">No Answer</span>
+                                    </td>
+                                    <td class="py-3.5 px-4 text-right">
+                                        <button disabled class="px-2.5 py-1 bg-slate-50 border border-slate-100 text-slate-350 rounded-lg text-[10px] font-semibold" style="color: #94a3b8 !important;">Unavailable</button>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-slate-50/50 transition">
+                                    <td class="py-3.5 px-4 font-semibold text-slate-800">
+                                        <div>Jane Smith (Acme Corp)</div>
+                                        <div class="text-[10px] text-slate-400">+1 (555) 041-9876</div>
+                                    </td>
+                                    <td class="py-3.5 px-4 text-slate-500 font-semibold">Jul 8, 2026</td>
+                                    <td class="py-3.5 px-4 text-slate-500 font-semibold">5m 12s</td>
+                                    <td class="py-3.5 px-4">
+                                        <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100" style="color: #10b981 !important;">Completed</span>
+                                    </td>
+                                    <td class="py-3.5 px-4 text-right">
+                                        <button onclick="showCallTranscript('Jane Smith (Acme Corp)', 'Jul 8, 2026', 'Manual outbound VoIP call. Discussed custom contract terms. Jane will check with legal team and reply via email.')" class="px-2.5 py-1 bg-slate-100 border border-slate-200 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg text-[10px] font-bold transition" style="color: #475569 !important;">View Summary</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    lucide.createIcons();
+}
+
+window.pressDialerKey = function(key) {
+    const screen = document.getElementById('dialer-screen');
+    if (screen) screen.textContent += key;
+}
+
+window.clearDialer = function() {
+    const screen = document.getElementById('dialer-screen');
+    if (screen) screen.textContent = '';
+}
+
+window.initiateMockCall = function(isAi) {
+    const screen = document.getElementById('dialer-screen');
+    const number = screen ? screen.textContent.trim() : '';
+    if (!number) {
+        showNotification('warning', 'Please dial a number first.');
+        return;
+    }
+    showNotification('success', isAi ? 'AI outreach voice call initiated to ' + number : 'Connecting VoIP outbound call to ' + number);
+}
+
+window.showCallTranscript = function(name, time, summary) {
+    alert(`Call with ${name} on ${time}\n\nAI Agent Summary:\n${summary}`);
+}
+
 
 // Global State for Visual Workflow Builder
 if (!window.wfState) {

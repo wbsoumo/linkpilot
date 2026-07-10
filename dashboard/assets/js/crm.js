@@ -4837,67 +4837,139 @@ function openAddContactModal() {
             const companyOptions = comps.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
 
             const modalHTML = `
-                <div id="crm-add-contact-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm animate-fade-in">
-                    <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-lg p-6 text-slate-800 text-xs space-y-4 shadow-2xl relative">
-                        <button onclick="document.getElementById('crm-add-contact-modal').remove()" class="absolute top-4 right-4 h-7 w-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
-                            <i data-lucide="x" class="h-4 w-4"></i>
-                        </button>
+                <div id="crm-add-contact-modal" class="fixed inset-0 z-[100] flex items-center justify-center animate-fade-in p-4" style="background-color: rgba(15, 23, 42, 0.65) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
+                    <div class="bg-white border border-slate-100 rounded-[24px] w-full max-w-lg p-6 text-slate-800 text-xs space-y-4 shadow-2xl relative">
                         
-                        <h2 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
-                            <i data-lucide="user-plus" class="h-4.5 w-4.5 text-indigo-655 mr-1"></i>
-                            <span>Create New Contact Profile</span>
-                        </h2>
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <div class="flex items-center space-x-3">
+                                <div class="h-10 w-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100/50 shadow-xs">
+                                    <i data-lucide="user-plus" class="h-5 w-5" style="stroke: #4f46e5 !important;"></i>
+                                </div>
+                                <div>
+                                    <h2 class="text-sm font-bold text-slate-900 leading-tight">Create New Contact</h2>
+                                    <p class="text-slate-450 text-[10px] mt-0.5 font-medium">Add a new contact profile to your CRM.</p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="document.getElementById('crm-add-contact-modal').remove()" class="h-7 w-7 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
+                                <i data-lucide="x" class="h-4 w-4"></i>
+                            </button>
+                        </div>
                         
                         <form onsubmit="submitAddContactForm(event)" class="space-y-3.5">
                             <div>
                                 <label class="block text-slate-500 font-semibold mb-1">Full Name *</label>
-                                <input type="text" id="add-contact-name" required placeholder="John Doe" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
+                                <div class="relative">
+                                    <span class="absolute left-3 top-2.5 text-slate-400">
+                                        <i data-lucide="user" class="h-3.5 w-3.5"></i>
+                                    </span>
+                                    <input type="text" id="add-contact-name" required placeholder="Enter full name" class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-indigo-500 text-xs">
+                                </div>
                             </div>
                             
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-slate-500 font-semibold mb-1">Email Address</label>
-                                    <input type="email" id="add-contact-email" placeholder="john@example.com" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-2.5 text-slate-400">
+                                            <i data-lucide="mail" class="h-3.5 w-3.5"></i>
+                                        </span>
+                                        <input type="email" id="add-contact-email" placeholder="john@example.com" class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-indigo-500 text-xs">
+                                    </div>
                                 </div>
                                 <div>
                                     <label class="block text-slate-500 font-semibold mb-1">Phone Number</label>
-                                    <input type="text" id="add-contact-phone" placeholder="+91 99999 99999" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-2.5 text-slate-400">
+                                            <i data-lucide="phone" class="h-3.5 w-3.5"></i>
+                                        </span>
+                                        <input type="text" id="add-contact-phone" placeholder="+91 99999 99999" class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-indigo-500 text-xs">
+                                    </div>
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-slate-500 font-semibold mb-1">Associated Company</label>
-                                    <select id="add-contact-company-id" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
-                                        <option value="">-- Select Company --</option>
-                                        ${companyOptions}
-                                    </select>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-2.5 text-slate-400">
+                                            <i data-lucide="building" class="h-3.5 w-3.5"></i>
+                                        </span>
+                                        <select id="add-contact-company-id" class="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-indigo-500 text-xs appearance-none">
+                                            <option value="">Select company</option>
+                                            ${companyOptions}
+                                        </select>
+                                        <span class="absolute right-3 top-3 text-slate-400 pointer-events-none">
+                                            <i data-lucide="chevron-down" class="h-3 w-3"></i>
+                                        </span>
+                                    </div>
                                 </div>
                                 <div>
                                     <label class="block text-slate-500 font-semibold mb-1">Designation</label>
-                                    <input type="text" id="add-contact-designation" placeholder="Product Manager" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-2.5 text-slate-400">
+                                            <i data-lucide="briefcase" class="h-3.5 w-3.5"></i>
+                                        </span>
+                                        <input type="text" id="add-contact-designation" placeholder="e.g. Product Manager" class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-indigo-500 text-xs">
+                                    </div>
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-slate-500 font-semibold mb-1">Department</label>
-                                    <input type="text" id="add-contact-department" placeholder="Engineering" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-2.5 text-slate-400">
+                                            <i data-lucide="building-2" class="h-3.5 w-3.5"></i>
+                                        </span>
+                                        <input type="text" id="add-contact-department" placeholder="e.g. Engineering" class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-indigo-500 text-xs">
+                                    </div>
                                 </div>
                                 <div>
                                     <label class="block text-slate-500 font-semibold mb-1">Location</label>
-                                    <input type="text" id="add-contact-location" placeholder="Bengaluru, India" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-2.5 text-slate-400">
+                                            <i data-lucide="map-pin" class="h-3.5 w-3.5"></i>
+                                        </span>
+                                        <input type="text" id="add-contact-location" placeholder="e.g. Bengaluru, India" class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-indigo-500 text-xs">
+                                    </div>
                                 </div>
                             </div>
 
                             <div>
                                 <label class="block text-slate-500 font-semibold mb-1">Remarks / Notes</label>
-                                <textarea id="add-contact-notes" rows="2" placeholder="Acquired via event networking..." class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800"></textarea>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-2.5 text-slate-400">
+                                        <i data-lucide="file-text" class="h-3.5 w-3.5"></i>
+                                    </span>
+                                    <textarea id="add-contact-notes" rows="2" placeholder="Add any additional notes..." class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-indigo-500 text-xs"></textarea>
+                                </div>
                             </div>
                             
-                            <div class="flex justify-end space-x-2 pt-2">
-                                <button type="button" onclick="document.getElementById('crm-add-contact-modal').remove()" class="px-4 py-2 border border-slate-200 rounded-lg text-slate-650 hover:bg-slate-50 transition">Cancel</button>
-                                <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition shadow-sm">Save Contact</button>
+                            <div class="p-3 bg-indigo-50/40 border border-indigo-100/30 rounded-xl flex items-center space-x-3 text-slate-700">
+                                <div class="h-7 w-7 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                    <i data-lucide="shield" class="h-4 w-4" style="stroke: #4f46e5 !important;"></i>
+                                </div>
+                                <div>
+                                    <span class="block font-bold text-[10px] text-indigo-800">Your data is safe with us</span>
+                                    <span class="block text-[9px] text-slate-500 mt-0.5">All contact information is encrypted and stored securely.</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                                <button type="button" class="px-3 py-1.5 border border-indigo-200 hover:bg-indigo-50/20 text-indigo-650 rounded-lg text-[10px] font-bold flex items-center space-x-1 transition shadow-xs">
+                                    <i data-lucide="plus" class="h-3 w-3" style="stroke: #4f46e5 !important;"></i>
+                                    <span>Add more details</span>
+                                </button>
+                                
+                                <div class="flex items-center space-x-2">
+                                    <button type="button" onclick="document.getElementById('crm-add-contact-modal').remove()" class="px-4 py-2 bg-slate-500 hover:bg-slate-600 rounded-lg font-bold text-[10px] transition shadow-xs" style="color: #ffffff !important;">
+                                        <span style="color: #ffffff !important;">Cancel</span>
+                                    </button>
+                                    <button type="submit" class="px-4 py-2 bg-[#4f46e5] hover:bg-indigo-600 rounded-lg font-bold text-[10px] flex items-center space-x-1.5 transition shadow-sm" style="color: #ffffff !important;">
+                                        <span style="color: #ffffff !important;">Save Contact</span>
+                                        <i data-lucide="arrow-right" class="h-3.5 w-3.5" style="stroke: #ffffff !important;"></i>
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -4927,6 +4999,166 @@ function submitAddContactForm(e) {
             document.getElementById('crm-add-contact-modal').remove();
             const container = document.getElementById('main-content-viewport');
             if (container) renderContacts(container);
+        })
+        .catch(err => {
+            showNotification('error', err.message);
+        });
+}
+
+function openAddCompanyModal() {
+    const existing = document.getElementById('crm-add-company-modal');
+    if (existing) existing.remove();
+
+    const modalHTML = `
+        <div id="crm-add-company-modal" class="fixed inset-0 z-[100] flex items-center justify-center animate-fade-in p-4" style="background-color: rgba(15, 23, 42, 0.65) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">
+            <div class="bg-white border border-slate-100 rounded-[24px] w-full max-w-lg p-6 text-slate-800 text-xs space-y-4 shadow-2xl relative">
+                
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div class="flex items-center space-x-3">
+                        <div class="h-10 w-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100/50 shadow-xs">
+                            <i data-lucide="building-2" class="h-5 w-5" style="stroke: #4f46e5 !important;"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-sm font-bold text-slate-900 leading-tight">Create New Company</h2>
+                            <p class="text-slate-450 text-[10px] mt-0.5 font-medium">Add a new company profile to your CRM.</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="document.getElementById('crm-add-company-modal').remove()" class="h-7 w-7 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                    </button>
+                </div>
+                
+                <form onsubmit="submitAddCompanyForm(event)" class="space-y-3.5">
+                    <div>
+                        <label class="block text-slate-500 font-semibold mb-1">Company Name *</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2.5 text-slate-400">
+                                <i data-lucide="building" class="h-3.5 w-3.5"></i>
+                            </span>
+                            <input type="text" id="add-company-name" required placeholder="Enter company name" class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-indigo-500 text-xs">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-slate-500 font-semibold mb-1">Industry</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2.5 text-slate-400">
+                                    <i data-lucide="tag" class="h-3.5 w-3.5"></i>
+                                </span>
+                                <input type="text" id="add-company-industry" placeholder="e.g. Technology" class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-indigo-500 text-xs">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-slate-500 font-semibold mb-1">Website</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2.5 text-slate-400">
+                                    <i data-lucide="globe" class="h-3.5 w-3.5"></i>
+                                </span>
+                                <input type="text" id="add-company-website" placeholder="e.g. google.com" class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-indigo-500 text-xs">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-slate-500 font-semibold mb-1">Status</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2.5 text-slate-400">
+                                    <i data-lucide="circle-dot" class="h-3.5 w-3.5"></i>
+                                </span>
+                                <select id="add-company-status" class="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-indigo-500 text-xs appearance-none">
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                </select>
+                                <span class="absolute right-3 top-3 text-slate-400 pointer-events-none">
+                                    <i data-lucide="chevron-down" class="h-3 w-3"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-slate-500 font-semibold mb-1">Owner</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2.5 text-slate-400">
+                                    <i data-lucide="user" class="h-3.5 w-3.5"></i>
+                                </span>
+                                <input type="text" id="add-company-owner" placeholder="e.g. John Doe" class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-indigo-500 text-xs">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-slate-500 font-semibold mb-1">Address</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2.5 text-slate-400">
+                                <i data-lucide="map-pin" class="h-3.5 w-3.5"></i>
+                            </span>
+                            <input type="text" id="add-company-address" placeholder="Enter address" class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-indigo-500 text-xs">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-slate-500 font-semibold mb-1">Remarks / Notes</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2.5 text-slate-400">
+                                <i data-lucide="file-text" class="h-3.5 w-3.5"></i>
+                            </span>
+                            <textarea id="add-company-notes" rows="2" placeholder="Add any additional notes..." class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-indigo-500 text-xs"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="p-3 bg-indigo-50/40 border border-indigo-100/30 rounded-xl flex items-center space-x-3 text-slate-700">
+                        <div class="h-7 w-7 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                            <i data-lucide="shield" class="h-4 w-4" style="stroke: #4f46e5 !important;"></i>
+                        </div>
+                        <div>
+                            <span class="block font-bold text-[10px] text-indigo-800">Your data is safe with us</span>
+                            <span class="block text-[9px] text-slate-500 mt-0.5">All company details are saved securely.</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                        <button type="button" class="px-3 py-1.5 border border-indigo-200 hover:bg-indigo-50/20 text-indigo-650 rounded-lg text-[10px] font-bold flex items-center space-x-1 transition shadow-xs">
+                            <i data-lucide="plus" class="h-3 w-3" style="stroke: #4f46e5 !important;"></i>
+                            <span>Add more details</span>
+                        </button>
+                        
+                        <div class="flex items-center space-x-2">
+                            <button type="button" onclick="document.getElementById('crm-add-company-modal').remove()" class="px-4 py-2 bg-slate-500 hover:bg-slate-600 rounded-lg font-bold text-[10px] transition shadow-xs" style="color: #ffffff !important;">
+                                <span style="color: #ffffff !important;">Cancel</span>
+                            </button>
+                            <button type="submit" class="px-4 py-2 bg-[#4f46e5] hover:bg-indigo-600 rounded-lg font-bold text-[10px] flex items-center space-x-1.5 transition shadow-sm" style="color: #ffffff !important;">
+                                <span style="color: #ffffff !important;">Save Company</span>
+                                <i data-lucide="arrow-right" class="h-3.5 w-3.5" style="stroke: #ffffff !important;"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    lucide.createIcons();
+}
+
+function submitAddCompanyForm(e) {
+    e.preventDefault();
+    const payload = {
+        name: document.getElementById('add-company-name').value.trim(),
+        industry: document.getElementById('add-company-industry').value.trim(),
+        website: document.getElementById('add-company-website').value.trim(),
+        status: document.getElementById('add-company-status').value,
+        owner: document.getElementById('add-company-owner').value.trim(),
+        address: document.getElementById('add-company-address').value.trim(),
+        notes: document.getElementById('add-company-notes').value.trim()
+    };
+
+    apiCall('crm/companies.php', 'POST', payload)
+        .then(res => {
+            showNotification('success', 'Company profile created successfully.');
+            document.getElementById('crm-add-company-modal').remove();
+            const container = document.getElementById('main-content-viewport');
+            if (container) renderCompanies(container);
         })
         .catch(err => {
             showNotification('error', err.message);
@@ -5060,12 +5292,12 @@ async function renderContacts(container) {
                         </button>
                         
                         <div class="inline-flex rounded-lg shadow-xs">
-                            <button onclick="openAddContactModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-l-lg font-bold text-xs flex items-center space-x-1.5 transition select-none">
-                                <i data-lucide="plus" class="h-3.5 w-3.5"></i>
-                                <span>Add Contact</span>
+                            <button onclick="openAddContactModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-l-lg font-bold text-xs flex items-center space-x-1.5 transition select-none" style="color: #ffffff !important;">
+                                <i data-lucide="plus" class="h-3.5 w-3.5" style="stroke: #ffffff !important;"></i>
+                                <span style="color: #ffffff !important;">Add Contact</span>
                             </button>
-                            <button onclick="openAddContactModal()" class="px-2.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-r-lg border-l border-indigo-700/50 transition select-none">
-                                <i data-lucide="chevron-down" class="h-3.5 w-3.5"></i>
+                            <button onclick="openAddContactModal()" class="px-2.5 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-r-lg border-l border-indigo-700/50 transition select-none" style="color: #ffffff !important;">
+                                <i data-lucide="chevron-down" class="h-3.5 w-3.5" style="stroke: #ffffff !important;"></i>
                             </button>
                         </div>
                     </div>

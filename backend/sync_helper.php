@@ -37,7 +37,24 @@ class SyncHelper {
         $success = false;
         $errorMsg = '';
 
-        if (ExternalAppsHelper::isGoogleConnected($userId)) {
+        // Check if manual IMAP is configured
+        $stmtImap = $db->prepare("SELECT id FROM imap_smtp_configurations WHERE user_id = ? AND imap_host IS NOT NULL AND imap_host != ''");
+        $stmtImap->execute([$userId]);
+        $hasImap = (bool)$stmtImap->fetch();
+
+        if ($hasImap) {
+            // Prioritize IMAP: Use manual connection details even if Gmail OAuth is connected later
+            try {
+                $imapEmails = IMAPHelper::fetchNewEmails($userId, 10);
+                if (is_array($imapEmails)) {
+                    $newEmails = $imapEmails;
+                    $success = true;
+                }
+            } catch (Throwable $e) {
+                $errorMsg = 'IMAP Connection Error: ' . $e->getMessage();
+            }
+        } elseif (ExternalAppsHelper::isGoogleConnected($userId)) {
+            // Fallback to Google OAuth Gmail API
             try {
                 $gmailEmails = ExternalAppsHelper::fetchGmailEmails($userId, 10);
                 if (is_array($gmailEmails)) {
@@ -48,6 +65,7 @@ class SyncHelper {
                 $errorMsg = 'Gmail API Sync Error: ' . $e->getMessage();
             }
         } else {
+            // No integration: Trigger standard IMAP fetch (to throw setup errors to logs)
             try {
                 $imapEmails = IMAPHelper::fetchNewEmails($userId, 10);
                 if (is_array($imapEmails)) {

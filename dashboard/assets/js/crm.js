@@ -1100,126 +1100,232 @@ function renderSetupWizard(container, data) {
     const permissions = settings.permissions || { read_emails: true, read_attachments: true, store_metadata: true, ai_processing: true, auto_sync: true, background_processing: true };
     
     container.innerHTML = `
-        <div class="max-w-3xl mx-auto space-y-8 animate-fade-in pt-4">
-            <div>
-                <h1 class="text-2xl font-extrabold text-white text-center">Activate Email Intelligence</h1>
-                <p class="text-slate-400 text-xs mt-1 text-center">Let AI automatically fetch, categorize, and draft replies to inbound client emails.</p>
+        <div class="max-w-4xl mx-auto space-y-6 animate-fade-in pt-4 pb-12">
+            <div class="text-center space-y-2">
+                <h1 class="text-2xl font-black text-slate-800 tracking-tight flex items-center justify-center gap-2">
+                    <i data-lucide="sparkles" class="h-6 w-6 text-blue-600 animate-pulse"></i>
+                    <span>Activate Email Intelligence</span>
+                </h1>
+                <p class="text-slate-500 text-xs font-semibold">Connect your email account and let AI handle the rest.</p>
             </div>
 
-            <!-- Stepper Progress Nodes -->
-            <div class="flex justify-between items-center glass-panel p-4 bg-slate-900/40">
-                <div class="wizard-step ${wizardStep >= 1 ? (wizardStep === 1 ? 'active' : 'completed') : ''}">
-                    <div class="wizard-step-node">1</div>
-                    <div class="text-[10px] font-bold uppercase text-slate-400">Connect</div>
-                    <div class="wizard-line"></div>
+            <!-- Stepper Progress Nodes (White background, premium shadow) -->
+            <div class="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm flex justify-between items-center relative overflow-hidden">
+                <!-- Connecting Line in background -->
+                <div class="absolute top-[38px] left-[8%] right-[8%] h-0.5 bg-slate-100 -z-10"></div>
+                <div id="wiz-progress-bar" class="absolute top-[38px] left-[8%] h-0.5 bg-blue-600 transition-all duration-500 -z-10" style="width: ${(wizardStep - 1) * 20}%;"></div>
+
+                <!-- Step 1: Connect -->
+                <div class="flex flex-col items-center flex-1 relative wizard-step">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300
+                        ${wizardStep >= 1 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white border border-slate-200 text-slate-400'}">
+                        <i data-lucide="mail" class="h-4.5 w-4.5"></i>
+                    </div>
+                    <span class="text-[10px] font-extrabold uppercase mt-2 tracking-wider ${wizardStep >= 1 ? 'text-blue-600' : 'text-slate-400'}">Connect</span>
                 </div>
-                <div class="wizard-step ${wizardStep >= 2 ? (wizardStep === 2 ? 'active' : 'completed') : ''}">
-                    <div class="wizard-step-node">2</div>
-                    <div class="text-[10px] font-bold uppercase text-slate-400">SMTP</div>
-                    <div class="wizard-line"></div>
+
+                <!-- Step 2: SMTP -->
+                <div class="flex flex-col items-center flex-1 relative wizard-step">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300
+                        ${wizardStep >= 2 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white border border-slate-200 text-slate-400'}">
+                        <i data-lucide="server" class="h-4.5 w-4.5"></i>
+                    </div>
+                    <span class="text-[10px] font-extrabold uppercase mt-2 tracking-wider ${wizardStep >= 2 ? 'text-blue-600' : 'text-slate-400'}">SMTP</span>
                 </div>
-                <div class="wizard-step ${wizardStep >= 3 ? (wizardStep === 3 ? 'active' : 'completed') : ''}">
-                    <div class="wizard-step-node">3</div>
-                    <div class="text-[10px] font-bold uppercase text-slate-400">IMAP</div>
-                    <div class="wizard-line"></div>
+
+                <!-- Step 3: IMAP -->
+                <div class="flex flex-col items-center flex-1 relative wizard-step">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300
+                        ${wizardStep >= 3 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white border border-slate-200 text-slate-400'}">
+                        <i data-lucide="download" class="h-4.5 w-4.5"></i>
+                    </div>
+                    <span class="text-[10px] font-extrabold uppercase mt-2 tracking-wider ${wizardStep >= 3 ? 'text-blue-600' : 'text-slate-400'}">IMAP</span>
                 </div>
-                <div class="wizard-step ${wizardStep >= 4 ? (wizardStep === 4 ? 'active' : 'completed') : ''}">
-                    <div class="wizard-step-node">4</div>
-                    <div class="text-[10px] font-bold uppercase text-slate-400">Perms</div>
-                    <div class="wizard-line"></div>
+
+                <!-- Step 4: Perms -->
+                <div class="flex flex-col items-center flex-1 relative wizard-step">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300
+                        ${wizardStep >= 4 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white border border-slate-200 text-slate-400'}">
+                        <i data-lucide="shield-check" class="h-4.5 w-4.5"></i>
+                    </div>
+                    <span class="text-[10px] font-extrabold uppercase mt-2 tracking-wider ${wizardStep >= 4 ? 'text-blue-600' : 'text-slate-400'}">Perms</span>
                 </div>
-                <div class="wizard-step ${wizardStep >= 5 ? (wizardStep === 5 ? 'active' : 'completed') : ''}">
-                    <div class="wizard-step-node">5</div>
-                    <div class="text-[10px] font-bold uppercase text-slate-400">Profile</div>
-                    <div class="wizard-line"></div>
+
+                <!-- Step 5: Profile -->
+                <div class="flex flex-col items-center flex-1 relative wizard-step">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300
+                        ${wizardStep >= 5 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white border border-slate-200 text-slate-400'}">
+                        <i data-lucide="user" class="h-4.5 w-4.5"></i>
+                    </div>
+                    <span class="text-[10px] font-extrabold uppercase mt-2 tracking-wider ${wizardStep >= 5 ? 'text-blue-600' : 'text-slate-400'}">Profile</span>
                 </div>
-                <div class="wizard-step ${wizardStep >= 6 ? (wizardStep === 6 ? 'active' : 'completed') : ''}">
-                    <div class="wizard-step-node">6</div>
-                    <div class="text-[10px] font-bold uppercase text-slate-400">Privacy</div>
+
+                <!-- Step 6: Privacy -->
+                <div class="flex flex-col items-center flex-1 relative wizard-step">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300
+                        ${wizardStep >= 6 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white border border-slate-200 text-slate-400'}">
+                        <i data-lucide="lock" class="h-4.5 w-4.5"></i>
+                    </div>
+                    <span class="text-[10px] font-extrabold uppercase mt-2 tracking-wider ${wizardStep >= 6 ? 'text-blue-600' : 'text-slate-400'}">Privacy</span>
                 </div>
             </div>
 
-            <!-- Wizard card viewports -->
-            <div class="glass-panel p-6 bg-slate-900/50 shadow-2xl relative">
+            <!-- Wizard card viewports (White background, premium shadow) -->
+            <div class="bg-white border border-slate-100 rounded-3xl p-8 shadow-sm relative">
                 <form id="wizard-setup-form" onsubmit="event.preventDefault()">
                     <!-- STEP 1: CHOOSE PROVIDER -->
                     <div class="wizard-pane space-y-6 ${wizardStep === 1 ? '' : 'hidden'}">
-                        <div class="border-b border-slate-800 pb-3"><h3 class="text-sm font-bold text-white uppercase tracking-wider">Step 1: Choose Email Provider</h3></div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <label class="p-4 bg-slate-950/40 border border-slate-800 rounded-xl cursor-pointer hover:border-indigo-500 block relative">
-                                <input type="radio" name="email_provider" value="gmail" class="absolute top-4 right-4" ${conn.email_provider === 'gmail' ? 'checked' : ''} onchange="toggleWizProvider(this.value)">
-                                <div class="font-bold text-white">Gmail / Workspace</div>
-                                <div class="text-[10px] text-slate-500 mt-1">Connect Gmail SMTP & IMAP</div>
+                        <!-- Header with icon -->
+                        <div class="flex items-center space-x-3 pb-5 border-b border-slate-100">
+                            <div class="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+                                <i data-lucide="mail" class="h-5 w-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-extrabold text-slate-800">Step 1: Choose Email Provider</h3>
+                                <p class="text-[11px] text-slate-400 font-semibold mt-0.5">Select your email provider to connect your account securely.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Gmail Card -->
+                            <label class="p-5 bg-white border rounded-2xl cursor-pointer transition-all duration-300 block relative hover:shadow-md
+                                ${conn.email_provider === 'gmail' ? 'border-blue-600 ring-1 ring-blue-600' : 'border-slate-200'}" id="provider-card-gmail">
+                                <input type="radio" name="email_provider" value="gmail" class="absolute top-5 right-5 h-4 w-4 accent-blue-600" ${conn.email_provider === 'gmail' ? 'checked' : ''} onchange="selectWizProvider('gmail')">
+                                <div class="flex items-start space-x-4">
+                                    <!-- Google Original Logo SVG -->
+                                    <div class="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center shrink-0 border border-slate-100">
+                                        <svg class="h-6 w-6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                            <path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.08H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.92l2.85-2.22.81-.6z" fill="#FBBC05"/>
+                                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.08l3.66 2.84c.87-2.6 3.3-4.54 6.16-4.54z" fill="#EA4335"/>
+                                        </svg>
+                                    </div>
+                                    <div class="text-left space-y-1">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="font-extrabold text-slate-800 text-sm">Gmail / Google Workspace</span>
+                                            <span class="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[9px] font-black uppercase tracking-wider">Recommended</span>
+                                        </div>
+                                        <span class="block text-[11px] text-slate-400 font-semibold leading-relaxed">Connect Gmail with SMTP & IMAP</span>
+                                    </div>
+                                </div>
                             </label>
-                            <label class="p-4 bg-slate-950/40 border border-slate-800 rounded-xl cursor-pointer hover:border-indigo-500 block relative">
-                                <input type="radio" name="email_provider" value="outlook" class="absolute top-4 right-4" ${conn.email_provider === 'outlook' ? 'checked' : ''} onchange="toggleWizProvider(this.value)">
-                                <div class="font-bold text-white">Microsoft Outlook</div>
-                                <div class="text-[10px] text-slate-500 mt-1">Office 365 or Outlook Mail</div>
+
+                            <!-- Outlook Card -->
+                            <label class="p-5 bg-white border rounded-2xl cursor-pointer transition-all duration-300 block relative hover:shadow-md
+                                ${conn.email_provider === 'outlook' ? 'border-blue-600 ring-1 ring-blue-600' : 'border-slate-200'}" id="provider-card-outlook">
+                                <input type="radio" name="email_provider" value="outlook" class="absolute top-5 right-5 h-4 w-4 accent-blue-600" ${conn.email_provider === 'outlook' ? 'checked' : ''} onchange="selectWizProvider('outlook')">
+                                <div class="flex items-start space-x-4">
+                                    <!-- Outlook Original Logo SVG -->
+                                    <div class="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center shrink-0 border border-slate-100">
+                                        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M21.5 5.5H8.5c-.8 0-1.5.7-1.5 1.5v10c0 .8.7 1.5 1.5 1.5h13c.8 0 1.5-.7 1.5-1.5V7c0-.8-.7-1.5-1.5-1.5z" fill="#0078D4"/>
+                                            <path d="M10.5 8.5H3.5c-.8 0-1.5.7-1.5 1.5v4c0 .8.7 1.5 1.5 1.5h7c.8 0 1.5-.7 1.5-1.5v-4c0-.8-.7-1.5-1.5-1.5z" fill="#106EBE"/>
+                                            <path d="M8.5 7v10h13V7H8.5z" fill="#106EBE"/>
+                                            <path d="M10.5 9v6h-7V9h7z" fill="#0078D4"/>
+                                            <path d="M5.5 10.5h3v1h-3v-1zm0 2h3v1h-3v-1z" fill="#FFF"/>
+                                        </svg>
+                                    </div>
+                                    <div class="text-left space-y-1">
+                                        <span class="font-extrabold text-slate-800 text-sm">Microsoft Outlook</span>
+                                        <span class="block text-[11px] text-slate-400 font-semibold leading-relaxed">Connect Outlook, Hotmail or Office 365</span>
+                                    </div>
+                                </div>
                             </label>
-                            <label class="p-4 bg-slate-950/40 border border-slate-850 rounded-xl cursor-pointer hover:border-indigo-500 block relative col-span-2">
-                                <input type="radio" name="email_provider" value="custom" class="absolute top-4 right-4" ${conn.email_provider !== 'gmail' && conn.email_provider !== 'outlook' ? 'checked' : ''} onchange="toggleWizProvider(this.value)">
-                                <div class="font-bold text-white">Custom SMTP/IMAP Server</div>
-                                <div class="text-[10px] text-slate-500 mt-1">Configure standard host server credentials</div>
+
+                            <!-- Custom SMTP/IMAP Server Card -->
+                            <label class="p-5 bg-white border rounded-2xl cursor-pointer transition-all duration-300 block relative hover:shadow-md col-span-1 md:col-span-2
+                                ${conn.email_provider !== 'gmail' && conn.email_provider !== 'outlook' ? 'border-blue-600 ring-1 ring-blue-600' : 'border-slate-200'}" id="provider-card-custom">
+                                <input type="radio" name="email_provider" value="custom" class="absolute top-5 right-5 h-4 w-4 accent-blue-600" ${conn.email_provider !== 'gmail' && conn.email_provider !== 'outlook' ? 'checked' : ''} onchange="selectWizProvider('custom')">
+                                <div class="flex items-start space-x-4">
+                                    <!-- Custom Server Icon -->
+                                    <div class="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center shrink-0 border border-slate-100 text-blue-600">
+                                        <i data-lucide="server" class="h-6 w-6"></i>
+                                    </div>
+                                    <div class="text-left space-y-1">
+                                        <span class="font-extrabold text-slate-800 text-sm">Custom SMTP/IMAP Server</span>
+                                        <span class="block text-[11px] text-slate-400 font-semibold leading-relaxed">Configure standard host server credentials manually</span>
+                                    </div>
+                                </div>
                             </label>
                         </div>
 
                         <!-- Gmail OAuth Block -->
-                        <div id="wiz-gmail-oauth-block" class="hidden p-5 bg-teal-500/5 border border-teal-500/10 rounded-2xl space-y-4">
-                            <div class="flex items-start space-x-3.5">
-                                <div class="p-2 bg-teal-400/10 text-teal-400 rounded-lg shrink-0">
-                                    <i data-lucide="sparkles" class="h-5 w-5"></i>
+                        <div id="wiz-gmail-oauth-block" class="hidden p-6 bg-blue-50/50 border border-blue-100 rounded-2xl relative overflow-hidden">
+                            <!-- Background Shield Check Illustration on the right -->
+                            <div class="absolute right-6 top-1/2 -translate-y-1/2 opacity-20 text-blue-600 select-none pointer-events-none hidden md:block">
+                                <svg class="h-20 w-20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                                </svg>
+                            </div>
+                            
+                            <div class="flex items-start space-x-4 max-w-xl">
+                                <div class="p-3 bg-blue-100 text-blue-600 rounded-xl shrink-0">
+                                    <i data-lucide="shield-check" class="h-6 w-6"></i>
                                 </div>
-                                <div class="text-left">
-                                    <span class="block text-slate-200 font-bold text-xs">Secure Google OAuth Integration</span>
-                                    <span class="text-[11px] text-slate-400 leading-relaxed font-semibold">LinkPilot connects directly with Google to read and sync your emails securely. No manual SMTP/IMAP password configuration is needed.</span>
+                                <div class="text-left space-y-1.5">
+                                    <span class="block text-slate-800 font-extrabold text-sm">Secure Google OAuth Integration</span>
+                                    <span class="block text-xs text-slate-500 leading-relaxed font-semibold">LinkPilot connects directly with Google to read and sync your emails securely. No manual SMTP/IMAP password configuration is needed.</span>
                                 </div>
                             </div>
-                            <button type="button" onclick="launchWizGoogleOAuth()" class="w-full flex items-center justify-center py-3 px-4 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-xl text-xs font-bold text-white shadow-sm transition-all duration-150 cursor-pointer">
-                                <svg class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                                    <path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.08H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.92l2.85-2.22.81-.6z" fill="#FBBC05"/>
-                                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.08l3.66 2.84c.87-2.6 3.3-4.54 6.16-4.54z" fill="#EA4335"/>
-                                </svg>
-                                <span>Continue with Google</span>
-                            </button>
+                            <div class="mt-6">
+                                <button type="button" onclick="launchWizGoogleOAuth()" class="w-full flex items-center justify-center py-3.5 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl text-xs font-bold text-slate-700 shadow-sm transition-all duration-150 cursor-pointer">
+                                    <svg class="h-4.5 w-4.5 mr-2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                        <path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.08H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.92l2.85-2.22.81-.6z" fill="#FBBC05"/>
+                                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.08l3.66 2.84c.87-2.6 3.3-4.54 6.16-4.54z" fill="#EA4335"/>
+                                    </svg>
+                                    <span>Continue with Google</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
                     <!-- STEP 2: SMTP OUTBOX CONFIG -->
-                    <div class="wizard-pane space-y-4 ${wizardStep === 2 ? '' : 'hidden'}">
-                        <div class="border-b border-slate-800 pb-3"><h3 class="text-sm font-bold text-white uppercase tracking-wider">Step 2: SMTP Outbox Configuration</h3></div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                            <div>
-                                <label class="block text-slate-400 font-semibold mb-1">SMTP Host</label>
-                                <input type="text" id="wiz_smtp_host" value="${conn.smtp_host || ''}" placeholder="smtp.example.com" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                    <div class="wizard-pane space-y-6 ${wizardStep === 2 ? '' : 'hidden'}">
+                        <!-- Header with icon -->
+                        <div class="flex items-center space-x-3 pb-5 border-b border-slate-100">
+                            <div class="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+                                <i data-lucide="server" class="h-5 w-5"></i>
                             </div>
                             <div>
-                                <label class="block text-slate-400 font-semibold mb-1">SMTP Port</label>
-                                <input type="number" id="wiz_smtp_port" value="${conn.smtp_port || 587}" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                                <h3 class="text-base font-extrabold text-slate-800">Step 2: SMTP Outbox Configuration</h3>
+                                <p class="text-[11px] text-slate-400 font-semibold mt-0.5">Configure standard outgoing mail server credentials manually.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                            <div>
+                                <label class="block text-slate-500 font-bold uppercase text-[10px] tracking-wider mb-1.5">SMTP Host</label>
+                                <input type="text" id="wiz_smtp_host" value="${conn.smtp_host || ''}" placeholder="smtp.example.com" class="block w-full px-4 py-3 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 sm:text-xs transition-all duration-200 shadow-sm">
                             </div>
                             <div>
-                                <label class="block text-slate-400 font-semibold mb-1">Encryption</label>
-                                <select id="wiz_smtp_encryption" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                                <label class="block text-slate-500 font-bold uppercase text-[10px] tracking-wider mb-1.5">SMTP Port</label>
+                                <input type="number" id="wiz_smtp_port" value="${conn.smtp_port || 587}" class="block w-full px-4 py-3 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 sm:text-xs transition-all duration-200 shadow-sm">
+                            </div>
+                            <div>
+                                <label class="block text-slate-500 font-bold uppercase text-[10px] tracking-wider mb-1.5">Encryption</label>
+                                <select id="wiz_smtp_encryption" class="block w-full px-4 py-3 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 sm:text-xs transition-all duration-200 shadow-sm">
                                     <option value="tls" ${conn.smtp_encryption === 'tls' ? 'selected' : ''}>STARTTLS (587)</option>
                                     <option value="ssl" ${conn.smtp_encryption === 'ssl' ? 'selected' : ''}>SSL (465)</option>
                                     <option value="none" ${conn.smtp_encryption === 'none' ? 'selected' : ''}>None (25)</option>
                                 </select>
                             </div>
                             <div class="md:col-span-2">
-                                <label class="block text-slate-400 font-semibold mb-1">Username (Email)</label>
-                                <input type="email" id="wiz_smtp_username" value="${conn.smtp_username || ''}" placeholder="you@company.com" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                                <label class="block text-slate-500 font-bold uppercase text-[10px] tracking-wider mb-1.5">Username (Email)</label>
+                                <input type="email" id="wiz_smtp_username" value="${conn.smtp_username || ''}" placeholder="you@company.com" class="block w-full px-4 py-3 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 sm:text-xs transition-all duration-200 shadow-sm">
                             </div>
                             <div>
-                                <label class="block text-slate-400 font-semibold mb-1">Password</label>
-                                <input type="password" id="wiz_smtp_password" placeholder="••••••••" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
-                                <p class="text-[9px] text-slate-500 mt-1 font-medium select-none">
+                                <label class="block text-slate-500 font-bold uppercase text-[10px] tracking-wider mb-1.5">Password</label>
+                                <input type="password" id="wiz_smtp_password" placeholder="••••••••" class="block w-full px-4 py-3 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 sm:text-xs transition-all duration-200 shadow-sm">
+                                <p class="text-[9px] text-slate-400 mt-1.5 font-medium select-none">
                                     💡 For Gmail/Workspace or Outlook, enter your 16-character <strong>App Password</strong>.
                                 </p>
                             </div>
                         </div>
-                        <div class="pt-4 flex justify-between">
-                            <button type="button" onclick="testSmtpConnection(this)" class="px-4 py-2 border border-indigo-500 text-indigo-400 rounded-lg hover:bg-indigo-500 hover:text-white transition text-xs font-bold">
+                        <div class="pt-4 flex items-center justify-between">
+                            <button type="button" onclick="testSmtpConnection(this)" class="px-5 py-2.5 border border-blue-600 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition text-xs font-extrabold shadow-sm">
                                 Test SMTP Connection
                             </button>
                             <span id="smtp-test-feedback" class="text-xs font-bold py-2"></span>
@@ -1227,39 +1333,49 @@ function renderSetupWizard(container, data) {
                     </div>
 
                     <!-- STEP 3: IMAP INBOX CONFIG -->
-                    <div class="wizard-pane space-y-4 ${wizardStep === 3 ? '' : 'hidden'}">
-                        <div class="border-b border-slate-800 pb-3"><h3 class="text-sm font-bold text-white uppercase tracking-wider">Step 3: IMAP Inbox Configuration</h3></div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                            <div>
-                                <label class="block text-slate-400 font-semibold mb-1">IMAP Host</label>
-                                <input type="text" id="wiz_imap_host" value="${conn.imap_host || ''}" placeholder="imap.example.com" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                    <div class="wizard-pane space-y-6 ${wizardStep === 3 ? '' : 'hidden'}">
+                        <!-- Header with icon -->
+                        <div class="flex items-center space-x-3 pb-5 border-b border-slate-100">
+                            <div class="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+                                <i data-lucide="download" class="h-5 w-5"></i>
                             </div>
                             <div>
-                                <label class="block text-slate-400 font-semibold mb-1">IMAP Port</label>
-                                <input type="number" id="wiz_imap_port" value="${conn.imap_port || 993}" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                                <h3 class="text-base font-extrabold text-slate-800">Step 3: IMAP Inbox Configuration</h3>
+                                <p class="text-[11px] text-slate-400 font-semibold mt-0.5">Configure standard incoming mail server credentials manually.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                            <div>
+                                <label class="block text-slate-500 font-bold uppercase text-[10px] tracking-wider mb-1.5">IMAP Host</label>
+                                <input type="text" id="wiz_imap_host" value="${conn.imap_host || ''}" placeholder="imap.example.com" class="block w-full px-4 py-3 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 sm:text-xs transition-all duration-200 shadow-sm">
                             </div>
                             <div>
-                                <label class="block text-slate-400 font-semibold mb-1">Encryption</label>
-                                <select id="wiz_imap_encryption" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                                <label class="block text-slate-500 font-bold uppercase text-[10px] tracking-wider mb-1.5">IMAP Port</label>
+                                <input type="number" id="wiz_imap_port" value="${conn.imap_port || 993}" class="block w-full px-4 py-3 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 sm:text-xs transition-all duration-200 shadow-sm">
+                            </div>
+                            <div>
+                                <label class="block text-slate-500 font-bold uppercase text-[10px] tracking-wider mb-1.5">Encryption</label>
+                                <select id="wiz_imap_encryption" class="block w-full px-4 py-3 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 sm:text-xs transition-all duration-200 shadow-sm">
                                     <option value="ssl" ${conn.imap_encryption === 'ssl' ? 'selected' : ''}>SSL (993)</option>
                                     <option value="tls" ${conn.imap_encryption === 'tls' ? 'selected' : ''}>TLS (143)</option>
                                     <option value="none" ${conn.imap_encryption === 'none' ? 'selected' : ''}>None</option>
                                 </select>
                             </div>
                             <div class="md:col-span-2">
-                                <label class="block text-slate-400 font-semibold mb-1">Username (Email)</label>
-                                <input type="email" id="wiz_imap_username" value="${conn.imap_username || ''}" placeholder="you@company.com" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                                <label class="block text-slate-500 font-bold uppercase text-[10px] tracking-wider mb-1.5">Username (Email)</label>
+                                <input type="email" id="wiz_imap_username" value="${conn.imap_username || ''}" placeholder="you@company.com" class="block w-full px-4 py-3 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 sm:text-xs transition-all duration-200 shadow-sm">
                             </div>
                             <div>
-                                <label class="block text-slate-400 font-semibold mb-1">Password</label>
-                                <input type="password" id="wiz_imap_password" placeholder="••••••••" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
-                                <p class="text-[9px] text-slate-500 mt-1 font-medium select-none">
+                                <label class="block text-slate-500 font-bold uppercase text-[10px] tracking-wider mb-1.5">Password</label>
+                                <input type="password" id="wiz_imap_password" placeholder="••••••••" class="block w-full px-4 py-3 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 sm:text-xs transition-all duration-200 shadow-sm">
+                                <p class="text-[9px] text-slate-400 mt-1.5 font-medium select-none">
                                     💡 For Gmail/Workspace or Outlook, enter your 16-character <strong>App Password</strong>.
                                 </p>
                             </div>
                         </div>
-                        <div class="pt-4 flex justify-between">
-                            <button type="button" onclick="testImapConnection(this)" class="px-4 py-2 border border-indigo-500 text-indigo-400 rounded-lg hover:bg-indigo-500 hover:text-white transition text-xs font-bold">
+                        <div class="pt-4 flex items-center justify-between">
+                            <button type="button" onclick="testImapConnection(this)" class="px-5 py-2.5 border border-blue-600 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition text-xs font-extrabold shadow-sm">
                                 Test IMAP Connection
                             </button>
                             <span id="imap-test-feedback" class="text-xs font-bold py-2"></span>
@@ -1267,48 +1383,67 @@ function renderSetupWizard(container, data) {
                     </div>
 
                     <!-- STEP 4: PERMISSIONS -->
-                    <div class="wizard-pane space-y-4 ${wizardStep === 4 ? '' : 'hidden'}">
-                        <div class="border-b border-slate-800 pb-3"><h3 class="text-sm font-bold text-white uppercase tracking-wider">Step 4: Sync & AI Permissions</h3></div>
-                        <div class="space-y-3 text-xs">
-                            <label class="flex items-center space-x-3 p-3 bg-slate-950/20 border border-slate-800 rounded-lg cursor-pointer">
-                                <input type="checkbox" id="perm_read_emails" ${permissions.read_emails ? 'checked' : ''} class="h-4 w-4 rounded text-indigo-600 bg-slate-800 border-slate-750">
+                    <div class="wizard-pane space-y-6 ${wizardStep === 4 ? '' : 'hidden'}">
+                        <!-- Header with icon -->
+                        <div class="flex items-center space-x-3 pb-5 border-b border-slate-100">
+                            <div class="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+                                <i data-lucide="shield-check" class="h-5 w-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-extrabold text-slate-800">Step 4: Sync & AI Permissions</h3>
+                                <p class="text-[11px] text-slate-400 font-semibold mt-0.5">Authorizations for AI categorization and sync scheduling.</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3.5">
+                            <label class="flex items-center space-x-4 p-4 bg-[#f8fafc] border border-slate-200 rounded-2xl cursor-pointer hover:border-blue-600 transition">
+                                <input type="checkbox" id="perm_read_emails" ${permissions.read_emails ? 'checked' : ''} class="h-4.5 w-4.5 rounded text-blue-600 bg-white border-slate-300 focus:ring-blue-500">
                                 <div>
-                                    <div class="font-bold text-white">Read Emails</div>
-                                    <div class="text-[10px] text-slate-500 mt-0.5">Authorizes the scheduler to retrieve incoming email text bodies.</div>
+                                    <div class="font-extrabold text-slate-800 text-xs">Read Emails</div>
+                                    <div class="text-[10px] text-slate-400 font-semibold mt-0.5">Authorizes the scheduler to retrieve incoming email text bodies.</div>
                                 </div>
                             </label>
-                            <label class="flex items-center space-x-3 p-3 bg-slate-950/20 border border-slate-800 rounded-lg cursor-pointer">
-                                <input type="checkbox" id="perm_read_attachments" ${permissions.read_attachments ? 'checked' : ''} class="h-4 w-4 rounded text-indigo-600 bg-slate-800 border-slate-750">
+                            <label class="flex items-center space-x-4 p-4 bg-[#f8fafc] border border-slate-200 rounded-2xl cursor-pointer hover:border-blue-600 transition">
+                                <input type="checkbox" id="perm_read_attachments" ${permissions.read_attachments ? 'checked' : ''} class="h-4.5 w-4.5 rounded text-blue-600 bg-white border-slate-300 focus:ring-blue-500">
                                 <div>
-                                    <div class="font-bold text-white">Read Attachments</div>
-                                    <div class="text-[10px] text-slate-500 mt-0.5">Permits downloading and secure storage of attachments.</div>
+                                    <div class="font-extrabold text-slate-800 text-xs">Read Attachments</div>
+                                    <div class="text-[10px] text-slate-400 font-semibold mt-0.5">Permits downloading and secure storage of attachments.</div>
                                 </div>
                             </label>
-                            <label class="flex items-center space-x-3 p-3 bg-slate-950/20 border border-slate-800 rounded-lg cursor-pointer">
-                                <input type="checkbox" id="perm_ai_processing" ${permissions.ai_processing ? 'checked' : ''} class="h-4 w-4 rounded text-indigo-600 bg-slate-800 border-slate-750">
+                            <label class="flex items-center space-x-4 p-4 bg-[#f8fafc] border border-slate-200 rounded-2xl cursor-pointer hover:border-blue-600 transition">
+                                <input type="checkbox" id="perm_ai_processing" ${permissions.ai_processing ? 'checked' : ''} class="h-4.5 w-4.5 rounded text-blue-600 bg-white border-slate-300 focus:ring-blue-500">
                                 <div>
-                                    <div class="font-bold text-white">AI Processing Permission</div>
-                                    <div class="text-[10px] text-slate-500 mt-0.5">Enables AI parsing of sender signatures, budgets, deadline dates and intents.</div>
+                                    <div class="font-extrabold text-slate-800 text-xs">AI Processing Permission</div>
+                                    <div class="text-[10px] text-slate-400 font-semibold mt-0.5">Enables AI parsing of sender signatures, budgets, deadline dates and intents.</div>
                                 </div>
                             </label>
-                            <label class="flex items-center space-x-3 p-3 bg-slate-950/20 border border-slate-800 rounded-lg cursor-pointer">
-                                <input type="checkbox" id="perm_auto_sync" ${permissions.auto_sync ? 'checked' : ''} class="h-4 w-4 rounded text-indigo-600 bg-slate-800 border-slate-750">
+                            <label class="flex items-center space-x-4 p-4 bg-[#f8fafc] border border-slate-200 rounded-2xl cursor-pointer hover:border-blue-600 transition">
+                                <input type="checkbox" id="perm_auto_sync" ${permissions.auto_sync ? 'checked' : ''} class="h-4.5 w-4.5 rounded text-blue-600 bg-white border-slate-300 focus:ring-blue-500">
                                 <div>
-                                    <div class="font-bold text-white">Auto Sync & Background Processing</div>
-                                    <div class="text-[10px] text-slate-500 mt-0.5">Allow automatic interval processing in background jobs.</div>
+                                    <div class="font-extrabold text-slate-800 text-xs">Auto Sync & Background Processing</div>
+                                    <div class="text-[10px] text-slate-400 font-semibold mt-0.5">Allow automatic interval processing in background jobs.</div>
                                 </div>
                             </label>
                         </div>
                     </div>
 
                     <!-- STEP 5: BUSINESS PROFILE & TEMPLATE FIELDS -->
-                    <div class="wizard-pane space-y-4 ${wizardStep === 5 ? '' : 'hidden'}">
-                        <div class="border-b border-slate-800 pb-3"><h3 class="text-sm font-bold text-white uppercase tracking-wider">Step 5: Business Profile Settings</h3></div>
-                        <p class="text-[11px] text-slate-400">Selecting your business type dynamically structures custom CRM fields for contacts and leads.</p>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div class="wizard-pane space-y-6 ${wizardStep === 5 ? '' : 'hidden'}">
+                        <!-- Header with icon -->
+                        <div class="flex items-center space-x-3 pb-5 border-b border-slate-100">
+                            <div class="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+                                <i data-lucide="user" class="h-5 w-5"></i>
+                            </div>
                             <div>
-                                <label class="block text-slate-400 font-semibold mb-1">Business Type</label>
-                                <select id="wiz_business_type" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white" onchange="previewDynamicFields(this.value)">
+                                <h3 class="text-base font-extrabold text-slate-800">Step 5: Business Profile Settings</h3>
+                                <p class="text-[11px] text-slate-400 font-semibold mt-0.5">Selecting your business type structures custom CRM fields dynamically.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 text-xs">
+                            <div>
+                                <label class="block text-slate-500 font-bold uppercase text-[10px] tracking-wider mb-1.5">Business Type</label>
+                                <select id="wiz_business_type" class="block w-full px-4 py-3 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 sm:text-xs transition-all duration-200 shadow-sm" onchange="previewDynamicFields(this.value)">
                                     <option value="Software Company" ${settings.business_type === 'Software Company' ? 'selected' : ''}>Software Company (Position, Experience)</option>
                                     <option value="Marketing Agency" ${settings.business_type === 'Marketing Agency' ? 'selected' : ''}>Marketing Agency (Campaign, Budget)</option>
                                     <option value="Freelancer" ${settings.business_type === 'Freelancer' ? 'selected' : ''}>Freelancer (Services, Rate)</option>
@@ -1318,8 +1453,8 @@ function renderSetupWizard(container, data) {
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-slate-400 font-semibold mb-1">Sync Frequency</label>
-                                <select id="wiz_sync_interval" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+                                <label class="block text-slate-500 font-bold uppercase text-[10px] tracking-wider mb-1.5">Sync Frequency</label>
+                                <select id="wiz_sync_interval" class="block w-full px-4 py-3 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 sm:text-xs transition-all duration-200 shadow-sm">
                                     <option value="15" ${settings.sync_interval_minutes == 15 ? 'selected' : ''}>Every 15 Minutes</option>
                                     <option value="30" ${settings.sync_interval_minutes == 30 ? 'selected' : ''}>Every 30 Minutes</option>
                                     <option value="60" ${settings.sync_interval_minutes == 60 ? 'selected' : ''}>Every 1 Hour (Default)</option>
@@ -1330,44 +1465,55 @@ function renderSetupWizard(container, data) {
                                 </select>
                             </div>
                         </div>
-                        <div class="p-4 bg-slate-950/40 border border-slate-850 rounded-xl space-y-2 mt-4">
-                            <span class="text-[10px] font-bold text-indigo-400 uppercase block">Fields Template Preview</span>
-                            <div id="dynamic-fields-preview" class="text-[11px] text-slate-400 italic">
+                        <div class="p-5 bg-blue-50/30 border border-blue-100 rounded-2xl space-y-2 mt-4">
+                            <span class="text-[10px] font-black text-blue-600 uppercase tracking-wider block">Fields Template Preview</span>
+                            <div id="dynamic-fields-preview" class="text-xs text-slate-500 font-semibold italic">
                                 Position, Technical stack, Campaign budget, Expected closing date...
                             </div>
                         </div>
                     </div>
 
                     <!-- STEP 6: TERMS & AGREEMENTS -->
-                    <div class="wizard-pane space-y-4 ${wizardStep === 6 ? '' : 'hidden'}">
-                        <div class="border-b border-slate-800 pb-3"><h3 class="text-sm font-bold text-white uppercase tracking-wider">Step 6: Privacy Agreement Consent</h3></div>
-                        <div class="p-4 bg-slate-950/60 border border-slate-850 rounded-xl text-[10px] text-slate-400 max-h-48 overflow-y-auto leading-relaxed space-y-2 font-mono">
-                            <p class="font-bold text-slate-300">LinkPilot AI - Privacy Policy & Encryption Standards</p>
+                    <div class="wizard-pane space-y-6 ${wizardStep === 6 ? '' : 'hidden'}">
+                        <!-- Header with icon -->
+                        <div class="flex items-center space-x-3 pb-5 border-b border-slate-100">
+                            <div class="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+                                <i data-lucide="lock" class="h-5 w-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-extrabold text-slate-800">Step 6: Privacy Agreement Consent</h3>
+                                <p class="text-[11px] text-slate-400 font-semibold mt-0.5">Please review LinkPilot encryption standards and confirm consent.</p>
+                            </div>
+                        </div>
+
+                        <div class="p-5 bg-slate-50 border border-slate-200 rounded-2xl text-[11px] text-slate-500 max-h-48 overflow-y-auto leading-relaxed space-y-2.5 font-mono">
+                            <p class="font-bold text-slate-700">LinkPilot AI - Privacy Policy & Encryption Standards</p>
                             <p>1. Syncing Ownership: Syncing emails via IMAP remains 100% the property of the client/user account. Data is never shared or sold to third-party providers.</p>
                             <p>2. AI Processing Scope: AI engines read header data and content logs only to extract CRM variables. Data is processed in zero-data retention endpoints.</p>
                             <p>3. Credentials Storage: SMTP and IMAP password credentials are encrypted in local storage with an industrial-grade AES-256 bit CBC hash block.</p>
                             <p>4. Permanency: Users reserve the complete right to terminate operations and permanently delete all synced datasets, email logs and timelines immediately.</p>
                         </div>
-                        <label class="flex items-center space-x-3 p-2 cursor-pointer mt-4">
-                            <input type="checkbox" id="wiz_consent_accepted" class="h-4 w-4 rounded text-teal-500 bg-slate-800 border-slate-750">
-                            <span class="text-xs text-slate-300 font-semibold">I read, understand, and agree to the LinkPilot CRM terms of service and privacy policies.</span>
+                        <label class="flex items-center space-x-3 p-3 bg-blue-50/40 border border-blue-100 rounded-xl cursor-pointer mt-4">
+                            <input type="checkbox" id="wiz_consent_accepted" class="h-4.5 w-4.5 rounded text-blue-600 bg-white border-slate-300 focus:ring-blue-500">
+                            <span class="text-xs text-slate-600 font-bold">I read, understand, and agree to the LinkPilot CRM terms of service and privacy policies.</span>
                         </label>
                     </div>
 
-                    <!-- Action buttons -->
-                    <div class="pt-6 border-t border-slate-800 flex justify-between mt-8">
-                        <button type="button" id="wiz-back-btn" onclick="adjustWizardStep(-1)" class="px-4 py-2 border border-slate-700 rounded-lg text-xs font-semibold text-slate-300 hover:border-slate-500 transition ${wizardStep === 1 ? 'invisible' : ''}">
+                    <!-- Action buttons (White background, light borders) -->
+                    <div class="pt-6 border-t border-slate-100 flex justify-between mt-8">
+                        <button type="button" id="wiz-back-btn" onclick="adjustWizardStep(-1)" class="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-extrabold text-slate-600 transition shadow-sm ${wizardStep === 1 ? 'invisible' : ''}">
                             Back
                         </button>
                         
                         <div id="wiz-action-btn-container">
                             ${wizardStep === 6 ? `
-                                <button type="button" onclick="activateEmailIntelligenceService(this)" class="px-5 py-2.5 bg-teal-400 text-slate-950 rounded-lg text-xs font-bold hover:bg-teal-300 transition shadow-lg shadow-teal-500/10">
+                                <button type="button" onclick="activateEmailIntelligenceService(this)" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold transition shadow-md shadow-emerald-500/10">
                                     Activate Email Intelligence
                                 </button>
                             ` : `
-                                <button type="button" onclick="adjustWizardStep(1)" class="px-5 py-2.5 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-500 transition">
-                                    Continue
+                                <button type="button" onclick="adjustWizardStep(1)" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-extrabold transition shadow-md shadow-blue-500/10 flex items-center space-x-1.5">
+                                    <span>Next Step</span>
+                                    <i data-lucide="arrow-right" class="h-4 w-4"></i>
                                 </button>
                             `}
                         </div>
@@ -1392,6 +1538,24 @@ window.toggleWizProvider = function(val) {
         oauthBlock.classList.add('hidden');
         if (actionBtn) actionBtn.classList.remove('hidden');
     }
+};
+
+window.selectWizProvider = function(val) {
+    const radio = document.querySelector(`input[name="email_provider"][value="${val}"]`);
+    if (radio) radio.checked = true;
+    
+    ['gmail', 'outlook', 'custom'].forEach(p => {
+        const card = document.getElementById(`provider-card-${p}`);
+        if (card) {
+            if (p === val) {
+                card.className = "p-5 bg-white border rounded-2xl cursor-pointer transition-all duration-300 block relative hover:shadow-md border-blue-600 ring-1 ring-blue-600";
+            } else {
+                card.className = "p-5 bg-white border rounded-2xl cursor-pointer transition-all duration-300 block relative hover:shadow-md border-slate-200";
+            }
+        }
+    });
+
+    toggleWizProvider(val);
 };
 
 window.launchWizGoogleOAuth = async function() {
@@ -1451,19 +1615,31 @@ function adjustWizardStep(dir) {
         }
     });
 
+    // Update progress bar
+    const progressBar = document.getElementById('wiz-progress-bar');
+    if (progressBar) {
+        progressBar.style.width = `${(wizardStep - 1) * 20}%`;
+    }
+
     // Update stepper progress nodes
     const steps = document.querySelectorAll('.wizard-step');
     steps.forEach((step, idx) => {
         const stepNum = idx + 1;
-        step.classList.remove('active', 'completed');
-        if (stepNum === wizardStep) {
-            step.classList.add('active');
-        } else if (stepNum < wizardStep) {
-            step.classList.add('completed');
+        const circleNode = step.querySelector('.rounded-full');
+        const labelNode = step.querySelector('span.uppercase');
+        if (circleNode && labelNode) {
+            circleNode.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300";
+            if (stepNum <= wizardStep) {
+                circleNode.classList.add('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-500/20');
+                labelNode.className = "text-[10px] font-extrabold uppercase mt-2 tracking-wider text-blue-600";
+            } else {
+                circleNode.classList.add('bg-white', 'border', 'border-slate-200', 'text-slate-400');
+                labelNode.className = "text-[10px] font-extrabold uppercase mt-2 tracking-wider text-slate-400";
+            }
         }
     });
 
-    // Toggle Back button visibility
+    // Toggle Back button visibility & styling
     const backBtn = document.getElementById('wiz-back-btn');
     if (backBtn) {
         if (wizardStep === 1) {
@@ -1478,14 +1654,15 @@ function adjustWizardStep(dir) {
     if (actionBtnContainer) {
         if (wizardStep === 6) {
             actionBtnContainer.innerHTML = `
-                <button type="button" onclick="activateEmailIntelligenceService(this)" class="px-5 py-2.5 bg-teal-400 text-slate-950 rounded-lg text-xs font-bold hover:bg-teal-300 transition shadow-lg shadow-teal-500/10">
+                <button type="button" onclick="activateEmailIntelligenceService(this)" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold transition shadow-md shadow-emerald-500/10">
                     Activate Email Intelligence
                 </button>
             `;
         } else {
             actionBtnContainer.innerHTML = `
-                <button type="button" onclick="adjustWizardStep(1)" class="px-5 py-2.5 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-500 transition">
-                    Continue
+                <button type="button" onclick="adjustWizardStep(1)" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-extrabold transition shadow-md shadow-blue-500/10 flex items-center space-x-1.5">
+                    <span>Next Step</span>
+                    <i data-lucide="arrow-right" class="h-4 w-4"></i>
                 </button>
             `;
         }

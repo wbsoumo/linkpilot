@@ -654,13 +654,24 @@ async function renderDashboard(container) {
         const tasksData = await apiCall('crm/tasks.php');
         const meetingsData = await apiCall('crm/meetings.php');
         
-        document.getElementById('stat-total-leads').textContent = leadsData.total || 0;
-        document.getElementById('stat-total-companies').textContent = companiesData.total || 0;
-        document.getElementById('stat-meetings').textContent = meetingsData.total || 0;
+        if (currentView !== 'dashboard') return;
+
+        const safeSetText = (id, text) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = text;
+        };
+        const safeSetHTML = (id, html) => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = html;
+        };
+
+        safeSetText('stat-total-leads', leadsData.total || 0);
+        safeSetText('stat-total-companies', companiesData.total || 0);
+        safeSetText('stat-meetings', meetingsData.total || 0);
         
         // Calculate Active Clients (companies with status = 'Active')
         const activeCount = companiesData.companies.filter(c => c.status === 'Active' || c.status === 'Active Client').length;
-        document.getElementById('stat-active-clients').textContent = activeCount;
+        safeSetText('stat-active-clients', activeCount);
         
         // Deals expected revenue summation
         let totalRev = 0;
@@ -671,13 +682,13 @@ async function renderDashboard(container) {
                 dealsCount += dealsData.stages[st].length;
             });
         }
-        document.getElementById('stat-open-deals').textContent = dealsCount;
-        document.getElementById('stat-revenue-val').textContent = '₹' + totalRev.toLocaleString('en-IN');
+        safeSetText('stat-open-deals', dealsCount);
+        safeSetText('stat-revenue-val', '₹' + totalRev.toLocaleString('en-IN'));
         
         // Calculate dynamic conversion rate
         const totalLeads = parseInt(leadsData.total) || 0;
         const convRate = totalLeads > 0 ? ((dealsCount / totalLeads) * 100).toFixed(1) + '%' : '0.0%';
-        document.getElementById('stat-conv-rate').textContent = convRate;
+        safeSetText('stat-conv-rate', convRate);
 
         // Calculate dynamic AI Accuracy from logs
         let aiSuccess = 0;
@@ -692,101 +703,107 @@ async function renderDashboard(container) {
             });
         }
         const aiAccuracy = aiTotal > 0 ? ((aiSuccess / aiTotal) * 100).toFixed(1) + '%' : '98.2%';
-        document.getElementById('stat-ai-accuracy').textContent = aiAccuracy;
+        safeSetText('stat-ai-accuracy', aiAccuracy);
         
         // Tasks Due Today & Follow-ups
         const todayStr = new Date().toISOString().split('T')[0];
         const pendingTodayTasks = tasksData.tasks.filter(t => {
             return t.status !== 'completed' && t.due_date && t.due_date <= todayStr;
         });
-        document.getElementById('stat-tasks-today').textContent = pendingTodayTasks.length;
-        document.getElementById('stat-followups-due').textContent = tasksData.tasks.filter(t => t.status === 'pending').length;
+        safeSetText('stat-tasks-today', pendingTodayTasks.length);
+        safeSetText('stat-followups-due', tasksData.tasks.filter(t => t.status === 'pending').length);
         
         const tasksContainer = document.getElementById('dash-tasks-today-list');
-        if (pendingTodayTasks.length > 0) {
-            tasksContainer.innerHTML = pendingTodayTasks.map(t => {
-                const priority = t.priority || 'medium';
-                let priorityBadge = '';
-                if (priority === 'high') {
-                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-rose-50 text-rose-600 border border-rose-200 uppercase">High</span>`;
-                } else if (priority === 'medium') {
-                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-200 uppercase">Medium</span>`;
-                } else {
-                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase">Low</span>`;
-                }
+        if (tasksContainer) {
+            if (pendingTodayTasks.length > 0) {
+                tasksContainer.innerHTML = pendingTodayTasks.map(t => {
+                    const priority = t.priority || 'medium';
+                    let priorityBadge = '';
+                    if (priority === 'high') {
+                        priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-rose-50 text-rose-600 border border-rose-200 uppercase">High</span>`;
+                    } else if (priority === 'medium') {
+                        priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-200 uppercase">Medium</span>`;
+                    } else {
+                        priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase">Low</span>`;
+                    }
 
-                // Parse category prefix out
-                let displayTitle = t.title || '';
-                let categoryHTML = '';
-                if (displayTitle.startsWith('[Follow-up]')) {
-                    categoryHTML = `<span class="text-indigo-600 font-bold mr-1">[Follow-up]</span>`;
-                    displayTitle = displayTitle.replace('[Follow-up] ', '');
-                } else if (displayTitle.startsWith('[Reply]')) {
-                    categoryHTML = `<span class="text-emerald-600 font-bold mr-1">[Reply]</span>`;
-                    displayTitle = displayTitle.replace('[Reply] ', '');
-                } else if (displayTitle.startsWith('[Meeting]')) {
-                    categoryHTML = `<span class="text-blue-600 font-bold mr-1">[Meeting]</span>`;
-                    displayTitle = displayTitle.replace('[Meeting] ', '');
-                } else if (displayTitle.startsWith('[Arrange]')) {
-                    categoryHTML = `<span class="text-amber-600 font-bold mr-1">[Arrange]</span>`;
-                    displayTitle = displayTitle.replace('[Arrange] ', '');
-                }
+                    // Parse category prefix out
+                    let displayTitle = t.title || '';
+                    let categoryHTML = '';
+                    if (displayTitle.startsWith('[Follow-up]')) {
+                        categoryHTML = `<span class="text-indigo-600 font-bold mr-1">[Follow-up]</span>`;
+                        displayTitle = displayTitle.replace('[Follow-up] ', '');
+                    } else if (displayTitle.startsWith('[Reply]')) {
+                        categoryHTML = `<span class="text-emerald-600 font-bold mr-1">[Reply]</span>`;
+                        displayTitle = displayTitle.replace('[Reply] ', '');
+                    } else if (displayTitle.startsWith('[Meeting]')) {
+                        categoryHTML = `<span class="text-blue-600 font-bold mr-1">[Meeting]</span>`;
+                        displayTitle = displayTitle.replace('[Meeting] ', '');
+                    } else if (displayTitle.startsWith('[Arrange]')) {
+                        categoryHTML = `<span class="text-amber-600 font-bold mr-1">[Arrange]</span>`;
+                        displayTitle = displayTitle.replace('[Arrange] ', '');
+                    }
 
-                const timeStr = t.due_time ? `<span class="text-slate-500 ml-1.5">@ ${t.due_time.substring(0, 5)}</span>` : '';
-                const meetHTML = t.meet_link ? `
-                    <a href="${t.meet_link}" target="_blank" class="mt-1 flex items-center space-x-1 text-[9px] text-blue-600 hover:text-blue-500 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200 transition w-fit inline-flex">
-                        <i data-lucide="video" class="h-3 w-3 mr-0.5"></i>
-                        <span>Join Meet</span>
-                    </a>
-                ` : '';
+                    const timeStr = t.due_time ? `<span class="text-slate-500 ml-1.5">@ ${t.due_time.substring(0, 5)}</span>` : '';
+                    const meetHTML = t.meet_link ? `
+                        <a href="${t.meet_link}" target="_blank" class="mt-1 flex items-center space-x-1 text-[9px] text-blue-600 hover:text-blue-500 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200 transition w-fit inline-flex">
+                            <i data-lucide="video" class="h-3 w-3 mr-0.5"></i>
+                            <span>Join Meet</span>
+                        </a>
+                    ` : '';
 
-                return `
-                    <div class="p-2.5 bg-slate-50 border border-slate-150 rounded-xl flex items-start space-x-2.5 hover:border-indigo-500/30 hover:bg-indigo-50/10 transition">
-                        <input type="checkbox" onclick="dashboardToggleTask(${t.id}, '${t.status}')" class="mt-0.5 h-3.5 w-3.5 border-slate-300 rounded text-indigo-600 bg-white focus:ring-indigo-500 cursor-pointer">
-                        <div class="flex-grow text-left">
-                            <div class="font-bold text-slate-800 text-[11px] leading-tight flex flex-wrap items-center">
-                                ${categoryHTML}
-                                <span>${displayTitle}</span>
-                                ${timeStr}
+                    return `
+                        <div class="p-2.5 bg-slate-50 border border-slate-150 rounded-xl flex items-start space-x-2.5 hover:border-indigo-500/30 hover:bg-indigo-50/10 transition">
+                            <input type="checkbox" onclick="dashboardToggleTask(${t.id}, '${t.status}')" class="mt-0.5 h-3.5 w-3.5 border-slate-300 rounded text-indigo-600 bg-white focus:ring-indigo-500 cursor-pointer">
+                            <div class="flex-grow text-left">
+                                <div class="font-bold text-slate-800 text-[11px] leading-tight flex flex-wrap items-center">
+                                    ${categoryHTML}
+                                    <span>${displayTitle}</span>
+                                    ${timeStr}
+                                </div>
+                                <p class="text-[9px] text-slate-500 mt-0.5 line-clamp-1">${t.description || 'No description.'}</p>
+                                ${meetHTML}
                             </div>
-                            <p class="text-[9px] text-slate-500 mt-0.5 line-clamp-1">${t.description || 'No description.'}</p>
-                            ${meetHTML}
+                            <div class="shrink-0 flex items-center">
+                                ${priorityBadge}
+                            </div>
                         </div>
-                        <div class="shrink-0 flex items-center">
-                            ${priorityBadge}
-                        </div>
+                    `;
+                }).join('');
+            } else {
+                tasksContainer.innerHTML = `
+                    <div class="text-center py-6 text-slate-550 text-[10px] flex flex-col items-center justify-center space-y-1.5">
+                        <i data-lucide="check-circle-2" class="h-6 w-6 text-emerald-500"></i>
+                        <span class="text-slate-400">No pending tasks due today.</span>
                     </div>
                 `;
-            }).join('');
-        } else {
-            tasksContainer.innerHTML = `
-                <div class="text-center py-6 text-slate-550 text-[10px] flex flex-col items-center justify-center space-y-1.5">
-                    <i data-lucide="check-circle-2" class="h-6 w-6 text-emerald-500"></i>
-                    <span class="text-slate-400">No pending tasks due today.</span>
-                </div>
-            `;
+            }
         }
         
         // Meetings
-        document.getElementById('stat-meetings').textContent = meetingsData.meetings.length;
+        safeSetText('stat-meetings', meetingsData.meetings.length);
         
         // Populate Timeline feed
         const timelineData = await apiCall('crm/timeline.php');
+        if (currentView !== 'dashboard') return;
+
         const timelineContainer = document.getElementById('dash-timeline-feed');
-        if (timelineData && timelineData.timeline.length > 0) {
-            timelineContainer.innerHTML = timelineData.timeline.map(item => {
-                const date = new Date(item.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-                return `
-                    <div class="timeline-item">
-                        <div class="timeline-dot ${item.activity_type.includes('Email') ? 'teal' : item.activity_type.includes('Lead') ? 'success' : ''}"></div>
-                        <div class="text-xs font-semibold text-white">${item.activity_type}</div>
-                        <div class="text-[11px] text-slate-400 mt-0.5">${item.description}</div>
-                        <div class="text-[9px] text-slate-500 mt-1">${date}</div>
-                    </div>
-                `;
-            }).join('');
-        } else {
-            timelineContainer.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">No interactions logged yet.</p>`;
+        if (timelineContainer) {
+            if (timelineData && timelineData.timeline.length > 0) {
+                timelineContainer.innerHTML = timelineData.timeline.map(item => {
+                    const date = new Date(item.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                    return `
+                        <div class="timeline-item">
+                            <div class="timeline-dot ${item.activity_type.includes('Email') ? 'teal' : item.activity_type.includes('Lead') ? 'success' : ''}"></div>
+                            <div class="text-xs font-semibold text-white">${item.activity_type}</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">${item.description}</div>
+                            <div class="text-[9px] text-slate-500 mt-1">${date}</div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                timelineContainer.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">No interactions logged yet.</p>`;
+            }
         }
         
         // Update global task badges

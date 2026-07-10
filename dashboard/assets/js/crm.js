@@ -352,8 +352,8 @@ async function navigateTo(view, params = {}) {
         const contentArea = document.getElementById('main-content-viewport');
         if (!contentArea) return;
         
-        // Dynamically manage full-bleed for inbox
-        if (view === 'inbox' || view === 'whatsapp-inbox') {
+        // Dynamically manage full-bleed for inbox and visual builder
+        if (view === 'inbox' || view === 'whatsapp-inbox' || (view === 'automation' && window.wfState.activeWorkflow)) {
             contentArea.className = "flex-grow overflow-hidden w-full h-[calc(100vh-61px)] flex flex-col";
         } else {
             contentArea.className = "flex-grow p-6 md:p-8 overflow-y-auto max-w-7xl w-full mx-auto";

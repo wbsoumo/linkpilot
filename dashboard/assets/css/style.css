@@ -850,6 +850,9 @@ aside h6 {
 @media (min-width: 1024px) {
     #sidebar-panel.collapsed {
         width: 64px !important;
+        min-width: 64px !important;
+        max-width: 64px !important;
+        overflow: hidden !important;
     }
     #sidebar-panel.collapsed .sidebar-nav-link span {
         display: none !important;
@@ -909,7 +912,6 @@ aside h6 {
     }
     #sidebar-panel.collapsed .flex.items-center.space-x-3 {
         justify-content: center !important;
-        space-x-0 !important;
     }
     #sidebar-panel.collapsed .flex.items-center.space-x-3 > div:not(#user-avatar-initials) {
         display: none !important;

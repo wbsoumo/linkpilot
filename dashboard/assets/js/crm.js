@@ -1119,7 +1119,7 @@ function renderSetupWizard(container, data) {
                 <div class="flex flex-col items-center flex-1 relative wizard-step">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300
                         ${wizardStep >= 1 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white border border-slate-200 text-slate-400'}">
-                        <i data-lucide="mail" class="h-4.5 w-4.5"></i>
+                        <i data-lucide="mail" class="h-5 w-5"></i>
                     </div>
                     <span class="text-[10px] font-extrabold uppercase mt-2 tracking-wider ${wizardStep >= 1 ? 'text-blue-600' : 'text-slate-400'}">Connect</span>
                 </div>
@@ -1128,7 +1128,7 @@ function renderSetupWizard(container, data) {
                 <div class="flex flex-col items-center flex-1 relative wizard-step">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300
                         ${wizardStep >= 2 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white border border-slate-200 text-slate-400'}">
-                        <i data-lucide="server" class="h-4.5 w-4.5"></i>
+                        <i data-lucide="server" class="h-5 w-5"></i>
                     </div>
                     <span class="text-[10px] font-extrabold uppercase mt-2 tracking-wider ${wizardStep >= 2 ? 'text-blue-600' : 'text-slate-400'}">SMTP</span>
                 </div>
@@ -1137,7 +1137,7 @@ function renderSetupWizard(container, data) {
                 <div class="flex flex-col items-center flex-1 relative wizard-step">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300
                         ${wizardStep >= 3 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white border border-slate-200 text-slate-400'}">
-                        <i data-lucide="download" class="h-4.5 w-4.5"></i>
+                        <i data-lucide="download" class="h-5 w-5"></i>
                     </div>
                     <span class="text-[10px] font-extrabold uppercase mt-2 tracking-wider ${wizardStep >= 3 ? 'text-blue-600' : 'text-slate-400'}">IMAP</span>
                 </div>
@@ -1146,7 +1146,7 @@ function renderSetupWizard(container, data) {
                 <div class="flex flex-col items-center flex-1 relative wizard-step">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300
                         ${wizardStep >= 4 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white border border-slate-200 text-slate-400'}">
-                        <i data-lucide="shield-check" class="h-4.5 w-4.5"></i>
+                        <i data-lucide="shield-check" class="h-5 w-5"></i>
                     </div>
                     <span class="text-[10px] font-extrabold uppercase mt-2 tracking-wider ${wizardStep >= 4 ? 'text-blue-600' : 'text-slate-400'}">Perms</span>
                 </div>
@@ -1155,7 +1155,7 @@ function renderSetupWizard(container, data) {
                 <div class="flex flex-col items-center flex-1 relative wizard-step">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300
                         ${wizardStep >= 5 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white border border-slate-200 text-slate-400'}">
-                        <i data-lucide="user" class="h-4.5 w-4.5"></i>
+                        <i data-lucide="user" class="h-5 w-5"></i>
                     </div>
                     <span class="text-[10px] font-extrabold uppercase mt-2 tracking-wider ${wizardStep >= 5 ? 'text-blue-600' : 'text-slate-400'}">Profile</span>
                 </div>
@@ -1164,7 +1164,7 @@ function renderSetupWizard(container, data) {
                 <div class="flex flex-col items-center flex-1 relative wizard-step">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300
                         ${wizardStep >= 6 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white border border-slate-200 text-slate-400'}">
-                        <i data-lucide="lock" class="h-4.5 w-4.5"></i>
+                        <i data-lucide="lock" class="h-5 w-5"></i>
                     </div>
                     <span class="text-[10px] font-extrabold uppercase mt-2 tracking-wider ${wizardStep >= 6 ? 'text-blue-600' : 'text-slate-400'}">Privacy</span>
                 </div>
@@ -1194,7 +1194,7 @@ function renderSetupWizard(container, data) {
                                 <div class="flex items-start space-x-4">
                                     <!-- Google Original Logo SVG -->
                                     <div class="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center shrink-0 border border-slate-100">
-                                        <svg class="h-6 w-6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <svg style="width: 24px; height: 24px;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                                             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                                             <path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.08H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.92l2.85-2.22.81-.6z" fill="#FBBC05"/>
@@ -1218,12 +1218,13 @@ function renderSetupWizard(container, data) {
                                 <div class="flex items-start space-x-4">
                                     <!-- Outlook Original Logo SVG -->
                                     <div class="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center shrink-0 border border-slate-100">
-                                        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M21.5 5.5H8.5c-.8 0-1.5.7-1.5 1.5v10c0 .8.7 1.5 1.5 1.5h13c.8 0 1.5-.7 1.5-1.5V7c0-.8-.7-1.5-1.5-1.5z" fill="#0078D4"/>
-                                            <path d="M10.5 8.5H3.5c-.8 0-1.5.7-1.5 1.5v4c0 .8.7 1.5 1.5 1.5h7c.8 0 1.5-.7 1.5-1.5v-4c0-.8-.7-1.5-1.5-1.5z" fill="#106EBE"/>
-                                            <path d="M8.5 7v10h13V7H8.5z" fill="#106EBE"/>
-                                            <path d="M10.5 9v6h-7V9h7z" fill="#0078D4"/>
-                                            <path d="M5.5 10.5h3v1h-3v-1zm0 2h3v1h-3v-1z" fill="#FFF"/>
+                                        <svg style="width: 28px; height: 28px;" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <rect x="6" y="8" width="20" height="16" rx="2" fill="#0078d4"/>
+                                            <path d="M6 10l10 7 10-7" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                                            <path d="M6 22V11" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                            <path d="M26 22V11" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                            <circle cx="9" cy="20" r="6" fill="#106ebe" stroke="#ffffff" stroke-width="1.5"/>
+                                            <text x="6" y="24" fill="#ffffff" font-family="Segoe UI, sans-serif" font-weight="900" font-size="11">O</text>
                                         </svg>
                                     </div>
                                     <div class="text-left space-y-1">
@@ -1238,9 +1239,17 @@ function renderSetupWizard(container, data) {
                                 ${conn.email_provider !== 'gmail' && conn.email_provider !== 'outlook' ? 'border-blue-600 ring-1 ring-blue-600' : 'border-slate-200'}" id="provider-card-custom">
                                 <input type="radio" name="email_provider" value="custom" class="absolute top-5 right-5 h-4 w-4 accent-blue-600" ${conn.email_provider !== 'gmail' && conn.email_provider !== 'outlook' ? 'checked' : ''} onchange="selectWizProvider('custom')">
                                 <div class="flex items-start space-x-4">
-                                    <!-- Custom Server Icon -->
-                                    <div class="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center shrink-0 border border-slate-100 text-blue-600">
-                                        <i data-lucide="server" class="h-6 w-6"></i>
+                                    <!-- Custom Server Database Illustration Image/SVG -->
+                                    <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0 border border-slate-100 text-indigo-600">
+                                        <svg style="width: 28px; height: 28px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <rect x="3" y="4" width="18" height="6" rx="1.5" fill="#e0e7ff" stroke="#4f46e5" stroke-width="1.5"/>
+                                            <rect x="3" y="14" width="18" height="6" rx="1.5" fill="#e0e7ff" stroke="#4f46e5" stroke-width="1.5"/>
+                                            <circle cx="6" cy="7" r="1" fill="#10b981"/>
+                                            <circle cx="9" cy="7" r="1" fill="#4f46e5"/>
+                                            <circle cx="6" cy="17" r="1" fill="#10b981"/>
+                                            <circle cx="9" cy="17" r="1" fill="#4f46e5"/>
+                                            <path d="M14 7h4M14 17h4" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round"/>
+                                        </svg>
                                     </div>
                                     <div class="text-left space-y-1">
                                         <span class="font-extrabold text-slate-800 text-sm">Custom SMTP/IMAP Server</span>
@@ -1270,7 +1279,7 @@ function renderSetupWizard(container, data) {
                             </div>
                             <div class="mt-6">
                                 <button type="button" onclick="launchWizGoogleOAuth()" class="w-full flex items-center justify-center py-3.5 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl text-xs font-bold text-slate-700 shadow-sm transition-all duration-150 cursor-pointer">
-                                    <svg class="h-4.5 w-4.5 mr-2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <svg style="width: 18px; height: 18px;" class="mr-2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                                         <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                                         <path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.08H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.92l2.85-2.22.81-.6z" fill="#FBBC05"/>
@@ -1397,28 +1406,28 @@ function renderSetupWizard(container, data) {
 
                         <div class="space-y-3.5">
                             <label class="flex items-center space-x-4 p-4 bg-[#f8fafc] border border-slate-200 rounded-2xl cursor-pointer hover:border-blue-600 transition">
-                                <input type="checkbox" id="perm_read_emails" ${permissions.read_emails ? 'checked' : ''} class="h-4.5 w-4.5 rounded text-blue-600 bg-white border-slate-300 focus:ring-blue-500">
+                                <input type="checkbox" id="perm_read_emails" ${permissions.read_emails ? 'checked' : ''} class="h-5 w-5 rounded text-blue-600 bg-white border-slate-300 focus:ring-blue-500">
                                 <div>
                                     <div class="font-extrabold text-slate-800 text-xs">Read Emails</div>
                                     <div class="text-[10px] text-slate-400 font-semibold mt-0.5">Authorizes the scheduler to retrieve incoming email text bodies.</div>
                                 </div>
                             </label>
                             <label class="flex items-center space-x-4 p-4 bg-[#f8fafc] border border-slate-200 rounded-2xl cursor-pointer hover:border-blue-600 transition">
-                                <input type="checkbox" id="perm_read_attachments" ${permissions.read_attachments ? 'checked' : ''} class="h-4.5 w-4.5 rounded text-blue-600 bg-white border-slate-300 focus:ring-blue-500">
+                                <input type="checkbox" id="perm_read_attachments" ${permissions.read_attachments ? 'checked' : ''} class="h-5 w-5 rounded text-blue-600 bg-white border-slate-300 focus:ring-blue-500">
                                 <div>
                                     <div class="font-extrabold text-slate-800 text-xs">Read Attachments</div>
                                     <div class="text-[10px] text-slate-400 font-semibold mt-0.5">Permits downloading and secure storage of attachments.</div>
                                 </div>
                             </label>
                             <label class="flex items-center space-x-4 p-4 bg-[#f8fafc] border border-slate-200 rounded-2xl cursor-pointer hover:border-blue-600 transition">
-                                <input type="checkbox" id="perm_ai_processing" ${permissions.ai_processing ? 'checked' : ''} class="h-4.5 w-4.5 rounded text-blue-600 bg-white border-slate-300 focus:ring-blue-500">
+                                <input type="checkbox" id="perm_ai_processing" ${permissions.ai_processing ? 'checked' : ''} class="h-5 w-5 rounded text-blue-600 bg-white border-slate-300 focus:ring-blue-500">
                                 <div>
                                     <div class="font-extrabold text-slate-800 text-xs">AI Processing Permission</div>
                                     <div class="text-[10px] text-slate-400 font-semibold mt-0.5">Enables AI parsing of sender signatures, budgets, deadline dates and intents.</div>
                                 </div>
                             </label>
                             <label class="flex items-center space-x-4 p-4 bg-[#f8fafc] border border-slate-200 rounded-2xl cursor-pointer hover:border-blue-600 transition">
-                                <input type="checkbox" id="perm_auto_sync" ${permissions.auto_sync ? 'checked' : ''} class="h-4.5 w-4.5 rounded text-blue-600 bg-white border-slate-300 focus:ring-blue-500">
+                                <input type="checkbox" id="perm_auto_sync" ${permissions.auto_sync ? 'checked' : ''} class="h-5 w-5 rounded text-blue-600 bg-white border-slate-300 focus:ring-blue-500">
                                 <div>
                                     <div class="font-extrabold text-slate-800 text-xs">Auto Sync & Background Processing</div>
                                     <div class="text-[10px] text-slate-400 font-semibold mt-0.5">Allow automatic interval processing in background jobs.</div>
@@ -1494,7 +1503,7 @@ function renderSetupWizard(container, data) {
                             <p>4. Permanency: Users reserve the complete right to terminate operations and permanently delete all synced datasets, email logs and timelines immediately.</p>
                         </div>
                         <label class="flex items-center space-x-3 p-3 bg-blue-50/40 border border-blue-100 rounded-xl cursor-pointer mt-4">
-                            <input type="checkbox" id="wiz_consent_accepted" class="h-4.5 w-4.5 rounded text-blue-600 bg-white border-slate-300 focus:ring-blue-500">
+                            <input type="checkbox" id="wiz_consent_accepted" class="h-5 w-5 rounded text-blue-600 bg-white border-slate-300 focus:ring-blue-500">
                             <span class="text-xs text-slate-600 font-bold">I read, understand, and agree to the LinkPilot CRM terms of service and privacy policies.</span>
                         </label>
                     </div>
@@ -1524,6 +1533,7 @@ function renderSetupWizard(container, data) {
     `;
     previewDynamicFields(document.getElementById('wiz_business_type')?.value || 'Software Company');
     toggleWizProvider(conn.email_provider || 'custom');
+    lucide.createIcons();
 }
 
 window.toggleWizProvider = function(val) {
@@ -1626,7 +1636,7 @@ function adjustWizardStep(dir) {
     steps.forEach((step, idx) => {
         const stepNum = idx + 1;
         const circleNode = step.querySelector('.rounded-full');
-        const labelNode = step.querySelector('span.uppercase');
+        const labelNode = step.querySelector('span');
         if (circleNode && labelNode) {
             circleNode.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300";
             if (stepNum <= wizardStep) {

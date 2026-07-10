@@ -1614,12 +1614,18 @@ function renderSyncStatus(container, data) {
                 const total = errs + pends + succs;
 
                 if (l.connection_message) {
-                    statusLabel = 'error';
-                    statusColorClass = 'bg-red-500/10 text-red-400 border border-red-500/20';
-                    if (l.connection_message.includes('Connection') || l.connection_message.includes('IMAP')) {
-                        cleanMsg = 'Mail Server Connection issue. Retrying connection.';
+                    if (succs > 0 || pends > 0) {
+                        statusLabel = 'warning';
+                        statusColorClass = 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+                        cleanMsg = `Synchronized ${succs} email${succs > 1 ? 's' : ''} successfully. (Notice: ${l.connection_message})`;
                     } else {
-                        cleanMsg = 'Synchronizer connection error. Retrying shortly.';
+                        statusLabel = 'error';
+                        statusColorClass = 'bg-red-500/10 text-red-400 border border-red-500/20';
+                        if (l.connection_message.includes('Connection') || l.connection_message.includes('IMAP')) {
+                            cleanMsg = 'Mail Server Connection issue. Retrying connection.';
+                        } else {
+                            cleanMsg = l.connection_message;
+                        }
                     }
                 } else {
                     if (errs > 0 && succs > 0) {

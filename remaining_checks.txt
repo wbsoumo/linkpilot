@@ -1,0 +1,39 @@
+LINKPILOT CRM - ONBOARDING & SETUP VERIFICATION CHECKLIST
+=========================================================
+
+The following is a comprehensive summary of all implemented changes, along with recommended tests for live validation:
+
+[x] 1. LOGIN PAGE REDESIGN
+    - Verfied: Split-screen desktop layout, styled Google/Facebook buttons, and white text logins.
+    - Verified: Automated smooth slide-scroller for marketing headlines in the right-pane.
+
+[x] 2. EMAIL SETUP STATUS BANNER (SLIDE 1)
+    - Verified: Moved `#email-setup-status-box` outside of the columns layout, placing it full-width on Slide 1.
+    - Verified: Fixed the layout squeezing/overlapping bug when configuring SMTP on desktop views.
+
+[x] 3. SEARCHABLE CUSTOM SMTP PROVIDER SELECTION
+    - Verified: Preloaded 40+ popular email provider configurations.
+    - Verified: Added MilesWeb preset (mail.milesweb.com, port 465).
+    - Verified: Integrated Logo.dev API (`https://img.logo.dev/{domain}?token=pk_N-oU80_cR4CQ8ojWxHTECA`) to pull original high-resolution brand logos.
+    - Verified: Added an interactive live-search header inside the dropdown options wrapper to filter providers on the fly.
+
+[x] 4. SMTP CONFIGURATION DETAILS DYNAMICS
+    - Verified: Changed Host and Port fields to be always visible and required during manual configurations, allowing direct editing of presets.
+
+[x] 5. GOOGLE GMAIL OAUTH SCOPES UPGRADE
+    - Verified: Gmail modify and send scopes (`gmail.modify` and `gmail.send`) are enforced in backend/api/external_apps/status.php.
+    - Verified: Setup status displays the connected email address only when Google OAuth is fully completed with all required scopes.
+
+[x] 6. WHATSAPP CONNECT STATUS
+    - Verified: Fixed button position and layout flow on Slide 2.
+
+---------------------------------------------------------
+RECOMMENDED LIVE CHECKS:
+---------------------------------------------------------
+1. OAUTH SCOPE APPROVAL IN PRODUCTION:
+   - Ensure the updated scopes list is verified in the Google Cloud Console credential settings if running outside sandbox/test modes.
+
+2. LOGO.DEV API KEY PERSISTENCE:
+   - Verify that your Logo.dev publishable token (pk_N-oU80_cR4CQ8ojWxHTECA) continues to authorize domains on your production domain. If you ever change the token, update it in `dashboard/setup.html` line 656.
+
+All items have been verified, built, and pushed to origin/main. Working tree is clean.

@@ -11,6 +11,64 @@ let charts = {};
 let wizardStep = 1;
 let aiChatHistory = [];
 
+window.animateNumber = function(element, start, end, duration = 800) {
+    if (!element) return;
+    const startTime = performance.now();
+    const formatValue = (val) => {
+        if (element.id === 'stat-revenue-val') {
+            return '₹' + Math.round(val).toLocaleString('en-IN');
+        }
+        if (element.id === 'stat-conv-rate' || element.id === 'stat-ai-accuracy') {
+            return val.toFixed(1) + '%';
+        }
+        return Math.round(val).toString();
+    };
+
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const ease = progress * (2 - progress); // easeOutQuad
+        const currentVal = start + (end - start) * ease;
+        element.textContent = formatValue(currentVal);
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        } else {
+            element.textContent = formatValue(end);
+        }
+    }
+    requestAnimationFrame(update);
+};
+
+window.showProgressBar = function() {
+    const bar = document.getElementById('top-loading-progress-bar');
+    if (bar) {
+        bar.style.width = '0%';
+        bar.style.opacity = '1';
+        bar.offsetHeight; // force repaint
+        setTimeout(() => {
+            bar.style.width = '40%';
+        }, 50);
+        setTimeout(() => {
+            if (bar.style.width === '40%') {
+                bar.style.width = '75%';
+            }
+        }, 300);
+    }
+};
+
+window.completeProgressBar = function() {
+    const bar = document.getElementById('top-loading-progress-bar');
+    if (bar) {
+        bar.style.width = '100%';
+        setTimeout(() => {
+            bar.style.opacity = '0';
+            setTimeout(() => {
+                bar.style.width = '0%';
+            }, 400);
+        }, 300);
+    }
+};
+
 function getSkeletonLoader(view) {
     if (view === 'dashboard') {
         return `
@@ -226,172 +284,177 @@ async function checkEmailSyncConfig() {
 
 // Router routing interceptor
 async function navigateTo(view, params = {}) {
-    if (view === 'inbox') {
-        const syncConfigured = await checkEmailSyncConfig();
-        if (!syncConfigured) {
-            showNotification('warning', 'Please configure your Email Sync connection details first.');
-            window.location.hash = '#/email-intelligence';
-            return;
-        }
-    }
-
-    if (view === 'automation') {
-        const smtpConfigured = await checkSmtpConfig();
-        if (!smtpConfigured) {
-            window.location.href = 'smtp.html?setup_smtp=true';
-            return;
-        }
-    }
-
-    currentView = view;
-    window.location.hash = `#/${view}`;
-    
-    // Clear WhatsApp CRM context if navigating away from whatsapp views
-    if (!view.startsWith('whatsapp-')) {
-        window.activeWaCrmContext = null;
-    }
-    
-    // Dynamically update today's tasks badge count on sidebar and top header
-    updateGlobalTaskBadges();
-    
-    // Refresh Auto-Reply header status
-    if (typeof window.loadHeaderAutoReplyStatus === 'function') {
-        window.loadHeaderAutoReplyStatus();
-    }
-    
-    // Highlight sidebar links
-    document.querySelectorAll('.sidebar-nav-link, .sidebar-submenu-link').forEach(link => {
-        const href = link.getAttribute('href');
-        if (href && href.includes(view)) {
-            link.classList.add('active');
-            if (link.classList.contains('sidebar-submenu-link')) {
-                link.classList.remove('text-slate-400');
-                link.classList.add('text-white', 'bg-slate-800', 'font-bold');
+    showProgressBar();
+    try {
+        if (view === 'inbox') {
+            const syncConfigured = await checkEmailSyncConfig();
+            if (!syncConfigured) {
+                showNotification('warning', 'Please configure your Email Sync connection details first.');
+                window.location.hash = '#/email-intelligence';
+                return;
             }
+        }
+
+        if (view === 'automation') {
+            const smtpConfigured = await checkSmtpConfig();
+            if (!smtpConfigured) {
+                window.location.href = 'smtp.html?setup_smtp=true';
+                return;
+            }
+        }
+
+        currentView = view;
+        window.location.hash = `#/${view}`;
+        
+        // Clear WhatsApp CRM context if navigating away from whatsapp views
+        if (!view.startsWith('whatsapp-')) {
+            window.activeWaCrmContext = null;
+        }
+        
+        // Dynamically update today's tasks badge count on sidebar and top header
+        updateGlobalTaskBadges();
+        
+        // Refresh Auto-Reply header status
+        if (typeof window.loadHeaderAutoReplyStatus === 'function') {
+            window.loadHeaderAutoReplyStatus();
+        }
+        
+        // Highlight sidebar links
+        document.querySelectorAll('.sidebar-nav-link, .sidebar-submenu-link').forEach(link => {
+            const href = link.getAttribute('href');
+            if (href && href.includes(view)) {
+                link.classList.add('active');
+                if (link.classList.contains('sidebar-submenu-link')) {
+                    link.classList.remove('text-slate-400');
+                    link.classList.add('text-white', 'bg-slate-800', 'font-bold');
+                }
+            } else {
+                link.classList.remove('active');
+                if (link.classList.contains('sidebar-submenu-link')) {
+                    link.classList.remove('text-white', 'bg-slate-800', 'font-bold');
+                    link.classList.add('text-slate-400');
+                }
+            }
+        });
+
+        const isWhatsAppView = view.startsWith('whatsapp-');
+        const waSubmenu = document.getElementById('whatsapp-submenu');
+        const waChevron = document.getElementById('wa-chevron');
+        if (isWhatsAppView && waSubmenu) {
+            waSubmenu.classList.remove('hidden');
+            if (waChevron) waChevron.classList.add('rotate-180');
+        }
+
+        const contentArea = document.getElementById('main-content-viewport');
+        if (!contentArea) return;
+        
+        // Dynamically manage full-bleed for inbox
+        if (view === 'inbox' || view === 'whatsapp-inbox') {
+            contentArea.className = "flex-grow overflow-hidden w-full h-[calc(100vh-61px)] flex flex-col";
         } else {
-            link.classList.remove('active');
-            if (link.classList.contains('sidebar-submenu-link')) {
-                link.classList.remove('text-white', 'bg-slate-800', 'font-bold');
-                link.classList.add('text-slate-400');
-            }
+            contentArea.className = "flex-grow p-6 md:p-8 overflow-y-auto max-w-7xl w-full mx-auto";
         }
-    });
 
-    const isWhatsAppView = view.startsWith('whatsapp-');
-    const waSubmenu = document.getElementById('whatsapp-submenu');
-    const waChevron = document.getElementById('wa-chevron');
-    if (isWhatsAppView && waSubmenu) {
-        waSubmenu.classList.remove('hidden');
-        if (waChevron) waChevron.classList.add('rotate-180');
-    }
+        // Show skeleton loader
+        contentArea.innerHTML = getSkeletonLoader(view);
 
-    const contentArea = document.getElementById('main-content-viewport');
-    if (!contentArea) return;
-    
-    // Dynamically manage full-bleed for inbox
-    if (view === 'inbox' || view === 'whatsapp-inbox') {
-        contentArea.className = "flex-grow overflow-hidden w-full h-[calc(100vh-61px)] flex flex-col";
-    } else {
-        contentArea.className = "flex-grow p-6 md:p-8 overflow-y-auto max-w-7xl w-full mx-auto";
-    }
-
-    // Show skeleton loader
-    contentArea.innerHTML = getSkeletonLoader(view);
-
-    // Render corresponding screen
-    switch (view) {
-        case 'dashboard':
-            renderDashboard(contentArea);
-            break;
-        case 'email-intelligence':
-            renderEmailIntelligence(contentArea);
-            break;
-        case 'inbox':
-            renderInbox(contentArea, params.emailId);
-            break;
-        case 'leads':
-            renderLeads(contentArea);
-            break;
-        case 'companies':
-            renderCompanies(contentArea, params.companyId);
-            break;
-        case 'contacts':
-            renderContacts(contentArea, params.contactId);
-            break;
-        case 'deals':
-            renderDeals(contentArea);
-            break;
-        case 'tasks':
-            renderTasks(contentArea);
-            break;
-        case 'meetings':
-            renderMeetings(contentArea);
-            break;
-        case 'calls':
-            renderCalls(contentArea);
-            break;
-        case 'automation':
-            renderAutomation(contentArea);
-            break;
-        case 'ai-insights':
-            renderAIInsights(contentArea);
-            break;
-        case 'reports':
-            renderReports(contentArea);
-            break;
-        case 'integrations':
-            renderIntegrations(contentArea);
-            break;
-        case 'integration-logs':
-            renderIntegrationLogs(contentArea);
-            break;
-        case 'credit-logs':
-            renderCreditLogs(contentArea);
-            break;
-        case 'recharge':
-            renderRecharge(contentArea, params);
-            break;
-        case 'external-apps':
-            renderExternalApps(contentArea);
-            break;
-        case 'settings':
-            renderSettings(contentArea);
-            break;
-        case 'install-extensions':
-            renderInstallExtensions(contentArea);
-            break;
-        case 'whatsapp-dashboard':
-            renderWhatsAppDashboard(contentArea);
-            break;
-        case 'whatsapp-inbox':
-            renderWhatsAppInbox(contentArea);
-            break;
-        case 'whatsapp-contacts':
-            renderWhatsAppContacts(contentArea);
-            break;
-        case 'whatsapp-campaigns':
-            renderWhatsAppCampaigns(contentArea);
-            break;
-        case 'whatsapp-templates':
-            renderWhatsAppTemplates(contentArea);
-            break;
-        case 'whatsapp-send-template':
-            renderWhatsAppSendTemplate(contentArea, params);
-            break;
-        case 'whatsapp-broadcast':
-            renderWhatsAppBroadcast(contentArea);
-            break;
-        case 'whatsapp-automation':
-            renderWhatsAppAutomation(contentArea);
-            break;
-        case 'whatsapp-reports':
-            renderWhatsAppReports(contentArea);
-            break;
-        case 'whatsapp-settings':
-            renderWhatsAppSettings(contentArea);
-            break;
-        default:
-            renderDashboard(contentArea);
+        // Render corresponding screen
+        switch (view) {
+            case 'dashboard':
+                await renderDashboard(contentArea);
+                break;
+            case 'email-intelligence':
+                await renderEmailIntelligence(contentArea);
+                break;
+            case 'inbox':
+                await renderInbox(contentArea, params.emailId);
+                break;
+            case 'leads':
+                await renderLeads(contentArea);
+                break;
+            case 'companies':
+                await renderCompanies(contentArea, params.companyId);
+                break;
+            case 'contacts':
+                await renderContacts(contentArea, params.contactId);
+                break;
+            case 'deals':
+                await renderDeals(contentArea);
+                break;
+            case 'tasks':
+                await renderTasks(contentArea);
+                break;
+            case 'meetings':
+                await renderMeetings(contentArea);
+                break;
+            case 'calls':
+                await renderCalls(contentArea);
+                break;
+            case 'automation':
+                await renderAutomation(contentArea);
+                break;
+            case 'ai-insights':
+                await renderAIInsights(contentArea);
+                break;
+            case 'reports':
+                await renderReports(contentArea);
+                break;
+            case 'integrations':
+                await renderIntegrations(contentArea);
+                break;
+            case 'integration-logs':
+                await renderIntegrationLogs(contentArea);
+                break;
+            case 'credit-logs':
+                await renderCreditLogs(contentArea);
+                break;
+            case 'recharge':
+                await renderRecharge(contentArea, params);
+                break;
+            case 'external-apps':
+                await renderExternalApps(contentArea);
+                break;
+            case 'settings':
+                await renderSettings(contentArea);
+                break;
+            case 'install-extensions':
+                await renderInstallExtensions(contentArea);
+                break;
+            case 'whatsapp-dashboard':
+                await renderWhatsAppDashboard(contentArea);
+                break;
+            case 'whatsapp-inbox':
+                await renderWhatsAppInbox(contentArea);
+                break;
+            case 'whatsapp-contacts':
+                await renderWhatsAppContacts(contentArea);
+                break;
+            case 'whatsapp-campaigns':
+                await renderWhatsAppCampaigns(contentArea);
+                break;
+            case 'whatsapp-templates':
+                await renderWhatsAppTemplates(contentArea);
+                break;
+            case 'whatsapp-send-template':
+                await renderWhatsAppSendTemplate(contentArea, params);
+                break;
+            case 'whatsapp-broadcast':
+                await renderWhatsAppBroadcast(contentArea);
+                break;
+            case 'whatsapp-automation':
+                await renderWhatsAppAutomation(contentArea);
+                break;
+            case 'whatsapp-reports':
+                await renderWhatsAppReports(contentArea);
+                break;
+            case 'whatsapp-settings':
+                await renderWhatsAppSettings(contentArea);
+                break;
+            default:
+                await renderDashboard(contentArea);
+        }
+    } finally {
+        completeProgressBar();
     }
 }
 
@@ -656,22 +719,23 @@ async function renderDashboard(container) {
         
         if (currentView !== 'dashboard') return;
 
-        const safeSetText = (id, text) => {
+        const countValue = (id, endVal) => {
             const el = document.getElementById(id);
-            if (el) el.textContent = text;
+            if (el) {
+                animateNumber(el, 0, endVal);
+            }
         };
         const safeSetHTML = (id, html) => {
             const el = document.getElementById(id);
             if (el) el.innerHTML = html;
         };
 
-        safeSetText('stat-total-leads', leadsData.total || 0);
-        safeSetText('stat-total-companies', companiesData.total || 0);
-        safeSetText('stat-meetings', meetingsData.total || 0);
+        countValue('stat-total-leads', parseInt(leadsData.total) || 0);
+        countValue('stat-total-companies', parseInt(companiesData.total) || 0);
         
         // Calculate Active Clients (companies with status = 'Active')
         const activeCount = companiesData.companies.filter(c => c.status === 'Active' || c.status === 'Active Client').length;
-        safeSetText('stat-active-clients', activeCount);
+        countValue('stat-active-clients', activeCount);
         
         // Deals expected revenue summation
         let totalRev = 0;
@@ -682,13 +746,13 @@ async function renderDashboard(container) {
                 dealsCount += dealsData.stages[st].length;
             });
         }
-        safeSetText('stat-open-deals', dealsCount);
-        safeSetText('stat-revenue-val', '₹' + totalRev.toLocaleString('en-IN'));
+        countValue('stat-open-deals', dealsCount);
+        countValue('stat-revenue-val', totalRev);
         
         // Calculate dynamic conversion rate
         const totalLeads = parseInt(leadsData.total) || 0;
-        const convRate = totalLeads > 0 ? ((dealsCount / totalLeads) * 100).toFixed(1) + '%' : '0.0%';
-        safeSetText('stat-conv-rate', convRate);
+        const convRateVal = totalLeads > 0 ? (dealsCount / totalLeads) * 100 : 0;
+        countValue('stat-conv-rate', convRateVal);
 
         // Calculate dynamic AI Accuracy from logs
         let aiSuccess = 0;
@@ -702,16 +766,16 @@ async function renderDashboard(container) {
                 }
             });
         }
-        const aiAccuracy = aiTotal > 0 ? ((aiSuccess / aiTotal) * 100).toFixed(1) + '%' : '98.2%';
-        safeSetText('stat-ai-accuracy', aiAccuracy);
+        const aiAccuracyVal = aiTotal > 0 ? (aiSuccess / aiTotal) * 100 : 98.2;
+        countValue('stat-ai-accuracy', aiAccuracyVal);
         
         // Tasks Due Today & Follow-ups
         const todayStr = new Date().toISOString().split('T')[0];
         const pendingTodayTasks = tasksData.tasks.filter(t => {
             return t.status !== 'completed' && t.due_date && t.due_date <= todayStr;
         });
-        safeSetText('stat-tasks-today', pendingTodayTasks.length);
-        safeSetText('stat-followups-due', tasksData.tasks.filter(t => t.status === 'pending').length);
+        countValue('stat-tasks-today', pendingTodayTasks.length);
+        countValue('stat-followups-due', tasksData.tasks.filter(t => t.status === 'pending').length);
         
         const tasksContainer = document.getElementById('dash-tasks-today-list');
         if (tasksContainer) {
@@ -781,7 +845,7 @@ async function renderDashboard(container) {
         }
         
         // Meetings
-        safeSetText('stat-meetings', meetingsData.meetings.length);
+        countValue('stat-meetings', meetingsData.meetings.length);
         
         // Populate Timeline feed
         const timelineData = await apiCall('crm/timeline.php');

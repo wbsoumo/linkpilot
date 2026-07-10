@@ -21,19 +21,20 @@
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="assets/css/style.css?v=5.16">
+    <link rel="stylesheet" href="assets/css/style.css?v=5.17">
     <!-- Lottie Files Animation Integration -->
     <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.14/dist/dotlottie-wc.js" type="module"></script>
 </head>
 
 <body class="h-full bg-[#f8fafc] text-slate-800 flex overflow-hidden">
+    <div id="top-loading-progress-bar"></div>
 
     <!-- Sidebar Mobile Backdrop -->
-    <div id="sidebar-backdrop" onclick="toggleMobileSidebar()" class="hidden fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-40 lg:hidden"></div>
+    <div id="sidebar-backdrop" onclick="toggleMobileSidebar()" class="hidden fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-40 lg:hidden opacity-0 transition-opacity duration-300"></div>
 
     <!-- 1. LEFT SIDEBAR PANEL -->
     <aside id="sidebar-panel"
-        class="hidden lg:flex flex-col w-64 bg-[#0a1128] border-r border-slate-800/10 shrink-0 h-full justify-between fixed lg:relative inset-y-0 left-0 z-50 lg:z-0">
+        class="flex flex-col w-64 bg-[#0a1128] border-r border-slate-800/10 shrink-0 h-full justify-between fixed lg:relative inset-y-0 left-0 z-50 lg:z-0 transition-transform duration-300 transform -translate-x-full lg:translate-x-0">
         <!-- Logo (Sticky Top) -->
         <div class="p-5 border-b border-slate-800/20 flex items-center justify-between">
             <a href="index.html" class="flex items-center space-x-2 text-lg font-extrabold tracking-wider text-white">
@@ -497,9 +498,9 @@
 
     <!-- Scripts integrations -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <script src="assets/js/app.js?v=5.16"></script>
-    <script src="assets/js/whatsapp.js?v=5.16"></script>
-    <script src="assets/js/crm.js?v=5.16"></script>
+    <script src="assets/js/app.js?v=5.17"></script>
+    <script src="assets/js/whatsapp.js?v=5.17"></script>
+    <script src="assets/js/crm.js?v=5.17"></script>
     <script>
         function toggleWhatsAppMenu() {
             const menu = document.getElementById('whatsapp-submenu');
@@ -517,15 +518,25 @@
             const sidebar = document.getElementById('sidebar-panel');
             const backdrop = document.getElementById('sidebar-backdrop');
             if (sidebar && backdrop) {
-                const isHidden = sidebar.classList.contains('hidden');
+                const isHidden = sidebar.classList.contains('-translate-x-full');
                 if (isHidden) {
-                    sidebar.classList.remove('hidden');
-                    sidebar.classList.add('flex');
+                    sidebar.classList.remove('-translate-x-full');
+                    sidebar.classList.add('translate-x-0');
                     backdrop.classList.remove('hidden');
+                    // Force a repaint for transition
+                    backdrop.offsetHeight;
+                    backdrop.classList.add('opacity-100');
+                    backdrop.classList.remove('opacity-0');
                 } else {
-                    sidebar.classList.add('hidden');
-                    sidebar.classList.remove('flex');
-                    backdrop.classList.add('hidden');
+                    sidebar.classList.add('-translate-x-full');
+                    sidebar.classList.remove('translate-x-0');
+                    backdrop.classList.add('opacity-0');
+                    backdrop.classList.remove('opacity-100');
+                    setTimeout(() => {
+                        if (sidebar.classList.contains('-translate-x-full')) {
+                            backdrop.classList.add('hidden');
+                        }
+                    }, 300);
                 }
             }
         }

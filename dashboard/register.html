@@ -96,25 +96,25 @@
                     <div class="absolute top-4 left-10 right-10 h-[2px] bg-slate-100 z-0"></div>
                     
                     <div class="step-indicator flex flex-col items-center z-10" id="ind-1">
-                        <span class="w-8 h-8 rounded-full bg-[#005bf7] text-white font-extrabold flex items-center justify-center text-xs shadow-md shadow-blue-500/10 transition-all duration-300">1</span>
+                        <span class="w-8 h-8 rounded-full bg-[#005bf7] text-white font-extrabold flex items-center justify-center text-xs shadow-md shadow-blue-500/10 transition-all duration-300" style="color: #ffffff !important;">1</span>
                         <span class="text-[10px] text-[#005bf7] font-bold mt-1.5">Account</span>
                     </div>
                     <div class="flex-grow border-t-2 border-slate-100 mx-2 z-0" id="line-1"></div>
                     
                     <div class="step-indicator flex flex-col items-center z-10" id="ind-2">
-                        <span class="w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 font-extrabold flex items-center justify-center text-xs transition-all duration-300">2</span>
+                        <span class="w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 font-extrabold flex items-center justify-center text-xs transition-all duration-300" style="color: #94a3b8 !important;">2</span>
                         <span class="text-[10px] text-slate-400 font-semibold mt-1.5">Profile</span>
                     </div>
                     <div class="flex-grow border-t-2 border-slate-100 mx-2 z-0" id="line-2"></div>
                     
                     <div class="step-indicator flex flex-col items-center z-10" id="ind-3">
-                        <span class="w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 font-extrabold flex items-center justify-center text-xs transition-all duration-300">3</span>
+                        <span class="w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 font-extrabold flex items-center justify-center text-xs transition-all duration-300" style="color: #94a3b8 !important;">3</span>
                         <span class="text-[10px] text-slate-400 font-semibold mt-1.5">Bio</span>
                     </div>
                     <div class="flex-grow border-t-2 border-slate-100 mx-2 z-0" id="line-3"></div>
                     
                     <div class="step-indicator flex flex-col items-center z-10" id="ind-4">
-                        <span class="w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 font-extrabold flex items-center justify-center text-xs transition-all duration-300">4</span>
+                        <span class="w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 font-extrabold flex items-center justify-center text-xs transition-all duration-300" style="color: #94a3b8 !important;">4</span>
                         <span class="text-[10px] text-slate-400 font-semibold mt-1.5">Verify</span>
                     </div>
                 </div>
@@ -598,12 +598,15 @@
                 
                 if (i === step) {
                     circle.className = "w-8 h-8 rounded-full bg-[#005bf7] text-white font-extrabold flex items-center justify-center text-xs shadow-md shadow-blue-500/10 transition-all duration-300";
+                    circle.style.setProperty('color', '#ffffff', 'important');
                     label.className = "text-[10px] text-[#005bf7] font-bold mt-1.5";
                 } else if (i < step) {
                     circle.className = "w-8 h-8 rounded-full bg-blue-50 text-[#005bf7] border border-blue-200 font-extrabold flex items-center justify-center text-xs transition-all duration-300";
+                    circle.style.setProperty('color', '#005bf7', 'important');
                     label.className = "text-[10px] text-[#005bf7]/80 font-bold mt-1.5";
                 } else {
                     circle.className = "w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 font-extrabold flex items-center justify-center text-xs transition-all duration-300";
+                    circle.style.setProperty('color', '#94a3b8', 'important');
                     label.className = "text-[10px] text-slate-400 font-semibold mt-1.5";
                 }
 

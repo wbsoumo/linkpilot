@@ -966,6 +966,7 @@ aside h6 {
 /* Chat bubble styling */
 .chat-message {
     max-width: 85%;
+    width: fit-content; /* Prevent shrink-wrapping to min-content */
     padding: 10px 14px;
     border-radius: 14px;
     font-size: 13px; /* Slightly larger text for high visibility */

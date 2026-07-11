@@ -932,9 +932,9 @@ aside h6 {
     display: flex;
     flex-direction: column;
     position: fixed;
-    top: 61px; /* aligns below the main header */
+    top: 0; /* Cover top bar and publish button */
     right: 0;
-    height: calc(100vh - 61px);
+    height: 100vh; /* Full screen height */
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -968,11 +968,12 @@ aside h6 {
     max-width: 85%;
     padding: 10px 14px;
     border-radius: 14px;
-    font-size: 10px;
+    font-size: 13px; /* Slightly larger text for high visibility */
     line-height: 1.5;
     margin-bottom: 8px;
-    display: inline-block;
-    word-break: break-word;
+    word-break: normal;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
 }
 .chat-message.user {
     background: #4f46e5;

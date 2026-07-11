@@ -9357,59 +9357,57 @@ function renderVisualCanvas(container) {
                         </div>
                     </div>
 
-                    <!-- Right Configuration Panel -->
-                    <div class="w-80 bg-white border-l border-slate-200 flex flex-col h-full overflow-hidden text-left shrink-0" id="wf-config-sidebar">
-                        ${renderConfigSidebarHTML()}
                     </div>
+                </div>
 
-                    <!-- AI Builder Sliding Resizable Drawer -->
-                    <div id="ai-builder-drawer" class="hidden absolute top-0 right-0 h-full bg-white/95 border-l border-slate-200 shadow-2xl z-40 flex flex-col transition-all duration-300" style="width: 480px; border-top-left-radius: 16px; border-bottom-left-radius: 16px;">
-                        <div id="ai-builder-resize-handle" class="absolute top-0 left-0 w-1.5 h-full cursor-ew-resize hover:bg-indigo-500/30 transition"></div>
-                        <div id="ai-builder-inner-content" class="flex flex-col h-full overflow-hidden">
-                            <!-- Header -->
-                            <div class="p-4 border-b border-slate-200 flex items-center justify-between shrink-0 bg-white">
-                                <div class="flex items-center space-x-2 text-xs">
-                                    <i data-lucide="sparkles" class="h-4.5 w-4.5 text-purple-600"></i>
-                                    <span class="font-extrabold text-slate-800 text-sm">AI Automation Builder</span>
-                                    <span class="px-1.5 py-0.5 rounded bg-purple-50 border border-purple-100 text-purple-600 text-[8px] font-bold uppercase tracking-wide">Beta</span>
-                                </div>
-                                <div class="flex items-center space-x-1.5">
-                                    <button onclick="toggleAIBuilderDrawer(false)" class="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition"><i data-lucide="minus" class="h-4.5 w-4.5"></i></button>
-                                    <button onclick="toggleAIBuilderDrawer(false)" class="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition"><i data-lucide="x" class="h-4.5 w-4.5"></i></button>
-                                </div>
+                <!-- AI Builder Sliding Resizable Drawer (Moved to direct child of layout to cover full height including top bar) -->
+                <div id="ai-builder-drawer" class="hidden absolute top-0 right-0 h-full bg-white/95 border-l border-slate-200 shadow-2xl z-45 flex flex-col transition-all duration-300" style="width: 480px; border-top-left-radius: 16px; border-bottom-left-radius: 16px;">
+                    <div id="ai-builder-resize-handle" class="absolute top-0 left-0 w-1.5 h-full cursor-ew-resize hover:bg-indigo-500/30 transition"></div>
+                    <div id="ai-builder-inner-content" class="flex flex-col h-full overflow-hidden">
+                        <!-- Header -->
+                        <div class="p-4 border-b border-slate-200 flex items-center justify-between shrink-0 bg-white">
+                            <div class="flex items-center space-x-2 text-xs">
+                                <i data-lucide="sparkles" class="h-4.5 w-4.5 text-purple-600"></i>
+                                <span class="font-extrabold text-slate-800 text-sm">AI Automation Builder</span>
+                                <span class="px-1.5 py-0.5 rounded bg-purple-50 border border-purple-100 text-purple-600 text-[8px] font-bold uppercase tracking-wide">Beta</span>
                             </div>
-                            <!-- Tabs Navigation -->
-                            <div class="h-10 border-b border-slate-200 flex shrink-0 bg-white">
-                                <button onclick="switchAIBuilderTab('chat')" id="ai-tab-btn-chat" class="flex-grow text-xs font-bold border-b-2 border-indigo-600 text-indigo-600 transition">Chat</button>
-                                <button onclick="switchAIBuilderTab('history')" id="ai-tab-btn-history" class="flex-grow text-xs font-semibold border-b border-slate-200 text-slate-500 hover:text-slate-700 transition">History</button>
+                            <div class="flex items-center space-x-1.5">
+                                <button onclick="toggleAIBuilderDrawer(false)" class="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition"><i data-lucide="minus" class="h-4.5 w-4.5"></i></button>
+                                <button onclick="toggleAIBuilderDrawer(false)" class="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition"><i data-lucide="x" class="h-4.5 w-4.5"></i></button>
+                            </div>
+                        </div>
+                        <!-- Tabs Navigation -->
+                        <div class="h-10 border-b border-slate-200 flex shrink-0 bg-white">
+                            <button onclick="switchAIBuilderTab('chat')" id="ai-tab-btn-chat" class="flex-grow text-xs font-bold border-b-2 border-indigo-600 text-indigo-600 transition">Chat</button>
+                            <button onclick="switchAIBuilderTab('history')" id="ai-tab-btn-history" class="flex-grow text-xs font-semibold border-b border-slate-200 text-slate-500 hover:text-slate-700 transition">History</button>
+                        </div>
+                        
+                        <!-- Drawer body container -->
+                        <div id="ai-drawer-body" class="flex-grow flex flex-col overflow-hidden relative">
+                            <!-- Chat tab content -->
+                            <div id="ai-chat-tab-panel" class="flex-grow flex flex-col overflow-hidden">
+                                <!-- Messages feed wrapper -->
+                                <div id="ai-chat-messages-container" class="flex-grow overflow-y-auto p-4 space-y-4 flex flex-col bg-slate-50/30">
+                                    <!-- Initial state will render here -->
+                                </div>
+                                <!-- Inputs wrapper -->
+                                <div class="p-4 border-t border-slate-200 bg-white shrink-0">
+                                    <div id="ai-input-form-container" class="space-y-3">
+                                        <div class="flex items-end space-x-2">
+                                            <textarea id="ai-chat-text-input" placeholder="Describe your workflow..." class="flex-grow border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 resize-none h-20 shadow-xs" onkeydown="handleAIChatKeyDown(event)"></textarea>
+                                            <button onclick="submitAIChat()" class="h-10 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center transition shadow-md hover:scale-105 active:scale-95 shrink-0 font-bold text-xs space-x-1">
+                                                <i data-lucide="send" class="h-4 w-4"></i>
+                                                <span>Send</span>
+                                            </button>
+                                        </div>
+                                        <div class="text-[10px] text-slate-400 text-center">AI can make mistakes. Please review before applying.</div>
+                                    </div>
+                                </div>
                             </div>
                             
-                            <!-- Drawer body container -->
-                            <div id="ai-drawer-body" class="flex-grow flex flex-col overflow-hidden relative">
-                                <!-- Chat tab content -->
-                                <div id="ai-chat-tab-panel" class="flex-grow flex flex-col overflow-hidden">
-                                    <!-- Messages feed wrapper -->
-                                    <div id="ai-chat-messages-container" class="flex-grow overflow-y-auto p-4 space-y-4 flex flex-col bg-slate-50/30">
-                                        <!-- Initial state will render here -->
-                                    </div>
-                                    <!-- Inputs wrapper -->
-                                    <div class="p-4 border-t border-slate-200 bg-white shrink-0">
-                                        <div id="ai-input-form-container" class="space-y-3">
-                                            <div class="relative">
-                                                <textarea id="ai-chat-text-input" placeholder="Describe your workflow..." class="w-full border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-indigo-500 resize-none h-20 shadow-xs" onkeydown="handleAIChatKeyDown(event)"></textarea>
-                                                <button onclick="submitAIChat()" class="absolute bottom-2.5 right-3 h-7 w-7 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center transition shadow-sm">
-                                                    <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
-                                                </button>
-                                            </div>
-                                            <div class="text-[9px] text-slate-400 text-center">AI can make mistakes. Please review before applying.</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- History tab panel -->
-                                <div id="ai-history-tab-panel" class="hidden flex-grow overflow-y-auto p-5 space-y-3 bg-slate-50/20">
-                                    <!-- Rendered dynamically -->
-                                </div>
+                            <!-- History tab panel -->
+                            <div id="ai-history-tab-panel" class="hidden flex-grow overflow-y-auto p-5 space-y-3 bg-slate-50/20">
+                                <!-- Rendered dynamically -->
                             </div>
                         </div>
                     </div>
@@ -16897,25 +16895,25 @@ function renderAIChatMessages() {
     window.wfState.aiChatMessages.forEach((msg, idx) => {
         if (msg.sender === 'user') {
             html += `
-                <div class="flex items-start justify-end space-x-2.5 w-full">
+                <div class="flex items-start justify-end space-x-3 w-full">
                     <div class="flex flex-col items-end">
                         <div class="chat-message user">${msg.text}</div>
-                        <span class="text-[8px] text-slate-400 mr-1">${msg.time}</span>
+                        <span class="text-[10px] text-slate-400 mr-1">${msg.time}</span>
                     </div>
-                    <div class="h-7 w-7 rounded-full bg-blue-600 text-white font-extrabold flex items-center justify-center text-[10px] shrink-0 border border-blue-400/20 shadow-xs">
+                    <div class="h-9 w-9 rounded-full bg-blue-600 text-white font-extrabold flex items-center justify-center text-xs shrink-0 border border-blue-400/20 shadow-xs">
                         SS
                     </div>
                 </div>
             `;
         } else {
             html += `
-                <div class="flex items-start justify-start space-x-2.5 w-full">
-                    <div class="h-7 w-7 rounded-full bg-indigo-50 border border-indigo-200/50 flex items-center justify-center shrink-0 shadow-xs">
-                        <i data-lucide="sparkles" class="h-3.5 w-3.5 text-indigo-600"></i>
+                <div class="flex items-start justify-start space-x-3 w-full">
+                    <div class="h-9 w-9 rounded-full bg-indigo-50 border border-indigo-200/50 flex items-center justify-center shrink-0 shadow-xs">
+                        <i data-lucide="sparkles" class="h-4 w-4 text-indigo-600"></i>
                     </div>
                     <div class="flex flex-col items-start w-full">
                         <div class="chat-message ai">${msg.text}</div>
-                        <span class="text-[8px] text-slate-400 ml-1 mb-2">${msg.time}</span>
+                        <span class="text-[10px] text-slate-400 ml-1 mb-2">${msg.time}</span>
                         
                         <!-- Choice chips if any -->
                         ${(msg.chips && !msg.isTyping) ? `
@@ -16977,13 +16975,14 @@ function renderAIChatMessages() {
         } else {
             if (!document.getElementById('ai-chat-text-input')) {
                 inputArea.innerHTML = `
-                    <div class="relative flex items-center">
-                        <textarea id="ai-chat-text-input" placeholder="Describe your workflow..." class="w-full border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-indigo-500 resize-none h-20 shadow-xs" onkeydown="handleAIChatKeyDown(event)"></textarea>
-                        <button onclick="submitAIChat()" class="absolute right-3 bottom-3 h-7 w-7 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center transition shadow-md hover:scale-105 active:scale-95">
-                            <i data-lucide="send" class="h-3.5 w-3.5"></i>
+                    <div class="flex items-end space-x-2">
+                        <textarea id="ai-chat-text-input" placeholder="Describe your workflow..." class="flex-grow border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 resize-none h-20 shadow-xs" onkeydown="handleAIChatKeyDown(event)"></textarea>
+                        <button onclick="submitAIChat()" class="h-10 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center transition shadow-md hover:scale-105 active:scale-95 shrink-0 font-bold text-xs space-x-1">
+                            <i data-lucide="send" class="h-4 w-4"></i>
+                            <span>Send</span>
                         </button>
                     </div>
-                    <p class="text-[9px] text-slate-400 mt-2 text-center select-none">AI can make mistakes. Please review before applying.</p>
+                    <p class="text-[10px] text-slate-400 mt-2 text-center select-none">AI can make mistakes. Please review before applying.</p>
                 `;
                 lucide.createIcons();
             }
@@ -17000,13 +16999,14 @@ window.cancelAIWorkflow = function() {
     const inputArea = document.getElementById('ai-input-form-container');
     if (inputArea) {
         inputArea.innerHTML = `
-            <div class="relative flex items-center">
-                <textarea id="ai-chat-text-input" placeholder="Describe your workflow..." class="w-full border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-indigo-500 resize-none h-20 shadow-xs" onkeydown="handleAIChatKeyDown(event)"></textarea>
-                <button onclick="submitAIChat()" class="absolute right-3 bottom-3 h-7 w-7 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center transition shadow-md hover:scale-105 active:scale-95">
-                    <i data-lucide="send" class="h-3.5 w-3.5"></i>
+            <div class="flex items-end space-x-2">
+                <textarea id="ai-chat-text-input" placeholder="Describe your workflow..." class="flex-grow border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 resize-none h-20 shadow-xs" onkeydown="handleAIChatKeyDown(event)"></textarea>
+                <button onclick="submitAIChat()" class="h-10 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center transition shadow-md hover:scale-105 active:scale-95 shrink-0 font-bold text-xs space-x-1">
+                    <i data-lucide="send" class="h-4 w-4"></i>
+                    <span>Send</span>
                 </button>
             </div>
-            <p class="text-[9px] text-slate-400 mt-2 text-center select-none">AI can make mistakes. Please review before applying.</p>
+            <p class="text-[10px] text-slate-400 mt-2 text-center select-none">AI can make mistakes. Please review before applying.</p>
         `;
         lucide.createIcons();
     }

@@ -9403,6 +9403,9 @@ function renderVisualCanvas(container) {
                         </div>
                     </div>
 
+                    <!-- Right Sidebar (Node Configuration) -->
+                    <div id="wf-config-sidebar" class="w-80 bg-white border-l border-slate-200 flex flex-col h-full overflow-hidden shrink-0">
+                        <!-- Loaded dynamically via renderConfigSidebarHTML() -->
                     </div>
                 </div>
 
@@ -9461,9 +9464,7 @@ function renderVisualCanvas(container) {
             </div>
         `;
 
-        lucide.createIcons();
-        drawConnections();
-        drawMiniMap();
+        refreshBuilderCanvasInline();
         startBuilderAutoSave();
     } else if (activeTab === 'executions') {
         container.innerHTML = `

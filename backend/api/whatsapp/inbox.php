@@ -38,13 +38,21 @@ try {
                 sendJsonResponse('error', 'Conversation thread not found.', [], 404);
             }
             
-            // 2. Load message history (latest 100 messages chronologically)
-            $stmtMsgs = $db->prepare("SELECT * FROM whatsapp_messages WHERE wa_contact_id = ? ORDER BY created_at DESC LIMIT 100");
-            $stmtMsgs->execute([$waContactId]);
+            // 2. Load message history (latest 100 messages chronologically from all threads matching the same last 10 digits)
+            $stmtMsgs = $db->prepare("
+                SELECT m.* 
+                FROM whatsapp_messages m
+                JOIN whatsapp_contacts c ON m.wa_contact_id = c.id
+                WHERE c.user_id = ? AND RIGHT(c.wa_id, 10) = RIGHT(?, 10)
+                ORDER BY m.created_at DESC 
+                LIMIT 100
+            ");
+            $stmtMsgs->execute([$userId, $thread['wa_id']]);
             $messages = array_reverse($stmtMsgs->fetchAll());
             
-            // 3. Clear unread badge
-            $db->prepare("UPDATE whatsapp_contacts SET unread_count = 0 WHERE id = ?")->execute([$waContactId]);
+            // 3. Clear unread badge for all duplicate threads of this number
+            $db->prepare("UPDATE whatsapp_contacts SET unread_count = 0 WHERE user_id = ? AND RIGHT(wa_id, 10) = RIGHT(?, 10)")
+               ->execute([$userId, $thread['wa_id']]);
             
             // 4. Gather CRM profile details
             $crmContact = null;
@@ -136,6 +144,12 @@ try {
                            (SELECT body FROM whatsapp_messages WHERE wa_contact_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message_body,
                            (SELECT type FROM whatsapp_messages WHERE wa_contact_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message_type
                     FROM whatsapp_contacts c 
+                    JOIN (
+                        SELECT RIGHT(wa_id, 10) as clean_id, MAX(id) as max_id
+                        FROM whatsapp_contacts
+                        WHERE user_id = :user_id
+                        GROUP BY RIGHT(wa_id, 10)
+                    ) g ON c.id = g.max_id
                     WHERE c.user_id = :user_id";
             $params = ['user_id' => $userId];
             
@@ -176,7 +190,7 @@ try {
             }
             
             // 1. Check if thread already exists in whatsapp_contacts
-            $stmt = $db->prepare("SELECT id FROM whatsapp_contacts WHERE user_id = ? AND wa_id = ?");
+            $stmt = $db->prepare("SELECT id FROM whatsapp_contacts WHERE user_id = ? AND RIGHT(wa_id, 10) = RIGHT(?, 10) ORDER BY last_message_at DESC LIMIT 1");
             $stmt->execute([$userId, $phoneClean]);
             $existingId = $stmt->fetchColumn();
             
@@ -357,7 +371,7 @@ try {
             // Manual messaging is free, no credit deduction needed
             if ($waContactId <= 0) {
                 // Check if contact already exists
-                $stmtExist = $db->prepare("SELECT id FROM whatsapp_contacts WHERE user_id = ? AND wa_id = ?");
+                $stmtExist = $db->prepare("SELECT id FROM whatsapp_contacts WHERE user_id = ? AND RIGHT(wa_id, 10) = RIGHT(?, 10) ORDER BY last_message_at DESC LIMIT 1");
                 $stmtExist->execute([$userId, $recipient]);
                 $waContactId = $stmtExist->fetchColumn();
                 

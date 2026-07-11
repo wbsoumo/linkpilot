@@ -208,7 +208,7 @@ class WorkflowRunner {
                         }
 
                         // Log outbound message to database
-                        $stmtExist = $db->prepare("SELECT id FROM whatsapp_contacts WHERE user_id = ? AND wa_id = ?");
+                        $stmtExist = $db->prepare("SELECT id FROM whatsapp_contacts WHERE user_id = ? AND RIGHT(wa_id, 10) = RIGHT(?, 10) ORDER BY last_message_at DESC LIMIT 1");
                         $stmtExist->execute([$userId, $toClean]);
                         $waContactId = $stmtExist->fetchColumn();
                         

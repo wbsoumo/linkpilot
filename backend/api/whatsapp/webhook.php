@@ -139,7 +139,7 @@ try {
                 $db->beginTransaction();
                 try {
                     // a. Locate or create whatsapp_contacts record
-                    $stmtContact = $db->prepare("SELECT id, contact_id, chat_summary, last_message_at FROM whatsapp_contacts WHERE user_id = ? AND wa_id = ?");
+                    $stmtContact = $db->prepare("SELECT id, contact_id, chat_summary, last_message_at FROM whatsapp_contacts WHERE user_id = ? AND RIGHT(wa_id, 10) = RIGHT(?, 10) ORDER BY last_message_at DESC LIMIT 1");
                     $stmtContact->execute([$userId, $fromWaId]);
                     $waContact = $stmtContact->fetch();
                     

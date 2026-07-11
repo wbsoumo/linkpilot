@@ -421,7 +421,7 @@ You MUST return your response as a valid, parsable JSON block with the following
                     $db->prepare("UPDATE whatsapp_queue SET status = 'sent', error_message = NULL WHERE id = ?")->execute([$queueId]);
                     
                     // Create/Find WhatsApp Contact
-                    $stmtContact = $db->prepare("SELECT id FROM whatsapp_contacts WHERE user_id = ? AND wa_id = ?");
+                    $stmtContact = $db->prepare("SELECT id FROM whatsapp_contacts WHERE user_id = ? AND RIGHT(wa_id, 10) = RIGHT(?, 10) ORDER BY last_message_at DESC LIMIT 1");
                     $stmtContact->execute([$userId, $recipient]);
                     $waContactId = $stmtContact->fetchColumn();
                     

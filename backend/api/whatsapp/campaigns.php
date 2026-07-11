@@ -176,7 +176,7 @@ try {
                 }
                 
                 // Locate or create whatsapp_contacts entry
-                $stmtWCon = $db->prepare("SELECT id FROM whatsapp_contacts WHERE user_id = ? AND wa_id = ?");
+                $stmtWCon = $db->prepare("SELECT id FROM whatsapp_contacts WHERE user_id = ? AND RIGHT(wa_id, 10) = RIGHT(?, 10) ORDER BY last_message_at DESC LIMIT 1");
                 $stmtWCon->execute([$userId, $rawPhone]);
                 $waContactId = $stmtWCon->fetchColumn();
                 

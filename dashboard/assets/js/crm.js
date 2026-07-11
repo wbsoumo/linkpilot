@@ -9443,7 +9443,7 @@ function renderVisualCanvas(container) {
                                     <!-- Initial state will render here -->
                                 </div>
                                 <!-- Inputs wrapper -->
-                                <div class="p-4 border-t border-slate-200 bg-white shrink-0">
+                                <div class="p-4 pb-7 border-t border-slate-200 bg-white shrink-0">
                                     <div id="ai-input-form-container" class="space-y-3">
                                         <div class="flex items-end space-x-2">
                                             <textarea id="ai-chat-text-input" placeholder="Describe your workflow..." class="flex-grow border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 resize-none h-20 shadow-xs" onkeydown="handleAIChatKeyDown(event)"></textarea>
@@ -16997,7 +16997,7 @@ function renderAIChatMessages() {
         if (msg.sender === 'user') {
             html += `
                 <div class="flex items-start justify-end space-x-3 w-full">
-                    <div class="flex flex-col items-end">
+                    <div class="flex flex-col items-end flex-grow max-w-[75%]">
                         <div class="chat-message user">${msg.text}</div>
                         <span class="text-[10px] text-slate-400 mr-1">${msg.time}</span>
                     </div>

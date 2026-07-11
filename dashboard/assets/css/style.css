@@ -999,7 +999,7 @@ aside h6 {
     font-size: 13px; /* Slightly larger text for high visibility */
     line-height: 1.5;
     margin-bottom: 8px;
-    word-break: normal;
+    word-break: break-word;
     overflow-wrap: break-word;
     white-space: pre-wrap;
 }

@@ -825,6 +825,23 @@ body .bg-\[\#4f46e5\], body .bg-\[\#4f46e5\] * {
     stroke: #ffffff !important;
 }
 
+/* Specificity fix to force white text/icons on blue, indigo, and emerald primary action buttons */
+body button.bg-blue-600, body button.bg-blue-600 *,
+body button.bg-blue-500, body button.bg-blue-500 *,
+body button.bg-indigo-600, body button.bg-indigo-600 *,
+body button.bg-indigo-500, body button.bg-indigo-500 *,
+body button.bg-emerald-600, body button.bg-emerald-600 *,
+body button.bg-emerald-500, body button.bg-emerald-500 *,
+body .bg-blue-600 button, body .bg-blue-600 button *,
+body .bg-blue-500 button, body .bg-blue-500 button *,
+body .bg-indigo-600 button, body .bg-indigo-600 button *,
+body .bg-indigo-500 button, body .bg-indigo-500 button *,
+body .bg-emerald-600 button, body .bg-emerald-600 button *,
+body .bg-emerald-500 button, body .bg-emerald-500 button * {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+}
+
 /* Custom Popup Modals Dark Blurred Backdrop Rule */
 body :not(aside) .backdrop-blur-sm,
 body :not(aside) .backdrop-blur-md,

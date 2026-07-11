@@ -357,6 +357,10 @@ async function navigateTo(view, params = {}) {
         const contentArea = document.getElementById('main-content-viewport');
         if (!contentArea) return;
         
+        if (view !== 'automation' || !window.wfState.activeWorkflow) {
+            toggleSidebarCollapsed(false);
+        }
+        
         // Dynamically manage full-bleed for inbox and visual builder
         if (view === 'inbox' || view === 'whatsapp-inbox' || (view === 'automation' && window.wfState.activeWorkflow)) {
             contentArea.className = "flex-grow overflow-hidden w-full h-[calc(100vh-61px)] flex flex-col";
@@ -8440,6 +8444,35 @@ window.toggleSidebarCollapsed = function(collapsed) {
     }
 };
 
+window.setupSidebarHoverForBuilder = function() {
+    const sidebar = document.getElementById('sidebar-panel');
+    if (!sidebar) return;
+    
+    if (sidebar.dataset.hoverListenersBound) return; // Prevent multiple bindings
+    
+    sidebar.dataset.hoverListenersBound = "true";
+    
+    sidebar.addEventListener('mouseenter', () => {
+        // Only run if we are currently viewing the visual builder
+        if (window.location.hash.startsWith('#/automation') && window.wfState.activeWorkflow) {
+            sidebar.classList.remove('collapsed');
+            if (typeof drawConnections === 'function') {
+                setTimeout(drawConnections, 300);
+            }
+        }
+    });
+    
+    sidebar.addEventListener('mouseleave', () => {
+        // Only run if we are currently viewing the visual builder
+        if (window.location.hash.startsWith('#/automation') && window.wfState.activeWorkflow) {
+            sidebar.classList.add('collapsed');
+            if (typeof drawConnections === 'function') {
+                setTimeout(drawConnections, 300);
+            }
+        }
+    });
+};
+
 window.getNodeIconHTML = function(type, icon) {
     if (type === 'send_slack' || icon === 'slack') {
         return `<img src="https://img.logo.dev/slack.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-4 w-4 rounded-sm object-contain" alt="Slack">`;
@@ -9183,6 +9216,9 @@ function renderVisualCanvas(container) {
     const wf = window.wfState.activeWorkflow;
     const activeTab = window.wfState.activeTab || 'builder';
     toggleSidebarCollapsed(true);
+    if (typeof setupSidebarHoverForBuilder === 'function') {
+        setupSidebarHoverForBuilder();
+    }
     const assistantBtn = document.getElementById('ai-chat-trigger-btn');
     if (assistantBtn) assistantBtn.classList.add('hidden');
     
@@ -9220,8 +9256,10 @@ function renderVisualCanvas(container) {
                             <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Automations</span>
                             <span class="text-slate-350">/</span>
                         </div>
-                        <input type="text" id="workflow-rename-input" onblur="renameWorkflow(this.value)" value="${wf.name}" class="bg-transparent text-slate-800 font-extrabold focus:outline-none border-b border-transparent focus:border-indigo-500 px-1 py-0.5 text-xs w-44">
-                        <button onclick="document.getElementById('workflow-rename-input').focus()" class="text-slate-400 hover:text-slate-650 p-0.5"><i data-lucide="pencil" class="h-3 w-3"></i></button>
+                        <div class="relative flex items-center bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1 shadow-2xs transition group" style="min-width: 180px;" ondblclick="enableWorkflowRename()">
+                            <input type="text" id="workflow-rename-input" readonly onblur="finishRenameWorkflow(this)" onkeydown="handleRenameKeyDown(event, this)" value="${wf.name}" class="bg-transparent text-slate-800 font-bold focus:outline-none px-1 py-0.5 text-xs w-44 cursor-pointer focus:cursor-text focus:bg-white" title="Double click to edit">
+                            <button onclick="enableWorkflowRename(); event.stopPropagation();" class="text-slate-400 hover:text-slate-600 p-0.5 ml-1 transition" title="Edit name"><i data-lucide="pencil" class="h-3 w-3"></i></button>
+                        </div>
                         
                         <span class="ml-3 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center space-x-1">
                             <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -9875,6 +9913,36 @@ function renameWorkflow(val) {
     saveUndoState();
     window.wfState.activeWorkflow.name = val.trim();
 }
+
+window.enableWorkflowRename = function() {
+    const input = document.getElementById('workflow-rename-input');
+    if (input) {
+        input.removeAttribute('readonly');
+        input.classList.remove('cursor-pointer');
+        input.classList.add('cursor-text', 'bg-white', 'ring-2', 'ring-indigo-500/20', 'border-indigo-500');
+        input.focus();
+        input.select();
+    }
+};
+
+window.finishRenameWorkflow = function(input) {
+    input.setAttribute('readonly', 'true');
+    input.classList.add('cursor-pointer');
+    input.classList.remove('cursor-text', 'bg-white', 'ring-2', 'ring-indigo-500/20', 'border-indigo-500');
+    renameWorkflow(input.value);
+};
+
+window.handleRenameKeyDown = function(e, input) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        input.blur();
+    } else if (e.key === 'Escape') {
+        if (window.wfState.activeWorkflow) {
+            input.value = window.wfState.activeWorkflow.name;
+        }
+        input.blur();
+    }
+};
 
 function filterBuilderNodes(cat) {
     window.wfState.activeCategoryFilter = cat;
@@ -16698,6 +16766,10 @@ window.submitAIChat = function() {
     input.value = '';
     renderAIChatMessages();
     
+    if (typeof saveCurrentChatSession === 'function') {
+        saveCurrentChatSession();
+    }
+    
     // Process step response
     setTimeout(() => {
         processAIStep(text);
@@ -16849,6 +16921,7 @@ async function processAIStep(userText) {
             
             typeMessageEffect(messageObj, () => {
                 renderAIChatMessages();
+                if (typeof saveCurrentChatSession === 'function') saveCurrentChatSession();
             });
             
         } else {
@@ -16859,6 +16932,7 @@ async function processAIStep(userText) {
             };
             typeMessageEffect(errorMsg, () => {
                 renderAIChatMessages();
+                if (typeof saveCurrentChatSession === 'function') saveCurrentChatSession();
             });
         }
     } catch (err) {
@@ -16870,6 +16944,7 @@ async function processAIStep(userText) {
         };
         typeMessageEffect(errorMsg, () => {
             renderAIChatMessages();
+            if (typeof saveCurrentChatSession === 'function') saveCurrentChatSession();
         });
     }
 }
@@ -16994,6 +17069,7 @@ window.cancelAIWorkflow = function() {
     window.wfState.aiChatMessages = [];
     window.wfState.aiStep = 0;
     window.wfState.aiSummarySteps = [];
+    window.wfState.currentChatSessionId = null;
     renderAIEmptyState();
     
     const inputArea = document.getElementById('ai-input-form-container');
@@ -17029,6 +17105,7 @@ window.addChangesAIWorkflow = function() {
     });
     
     renderAIChatMessages();
+    if (typeof saveCurrentChatSession === 'function') saveCurrentChatSession();
 };
 
 window.approveAIWorkflow = function() {
@@ -17355,16 +17432,62 @@ window.undoAIGeneration = function() {
     }
 };
 
+window.saveCurrentChatSession = function() {
+    if (window.wfState.aiChatMessages.length === 0) return;
+    
+    if (!window.wfState.currentChatSessionId) {
+        window.wfState.currentChatSessionId = 'chat-sess-' + Date.now();
+    }
+    
+    let sessions = [];
+    try {
+        sessions = JSON.parse(localStorage.getItem('linkpilot_ai_chat_sessions')) || [];
+    } catch (e) {
+        sessions = [];
+    }
+    
+    const firstUserMsg = window.wfState.aiChatMessages.find(m => m.sender === 'user');
+    let title = firstUserMsg ? firstUserMsg.text : (window.wfState.aiChatMessages[0]?.text || "Chat Session");
+    if (title.length > 36) {
+        title = title.substring(0, 35) + "...";
+    }
+    
+    const sessIndex = sessions.findIndex(s => s.id === window.wfState.currentChatSessionId);
+    const dateStr = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    
+    const sessionData = {
+        id: window.wfState.currentChatSessionId,
+        title: title,
+        date: dateStr,
+        messages: JSON.parse(JSON.stringify(window.wfState.aiChatMessages))
+    };
+    
+    if (sessIndex >= 0) {
+        sessions[sessIndex] = sessionData;
+    } else {
+        sessions.unshift(sessionData);
+    }
+    
+    localStorage.setItem('linkpilot_ai_chat_sessions', JSON.stringify(sessions));
+};
+
 function renderAIHistoryPanel() {
     const panel = document.getElementById('ai-history-tab-panel');
     if (!panel) return;
     
-    if (window.wfState.aiHistory.length === 0) {
+    let sessions = [];
+    try {
+        sessions = JSON.parse(localStorage.getItem('linkpilot_ai_chat_sessions')) || [];
+    } catch (e) {
+        sessions = [];
+    }
+    
+    if (sessions.length === 0) {
         panel.innerHTML = `
             <div class="flex-grow flex flex-col items-center justify-center p-6 text-center text-slate-400 space-y-2 select-none my-auto h-full">
                 <i data-lucide="history" class="h-8 w-8 text-slate-300"></i>
-                <div class="text-xs font-bold uppercase tracking-wider text-slate-500">No History Available</div>
-                <div class="text-[10px] leading-relaxed max-w-[200px]">Any workflows successfully built by AI will appear here for restore/rollback.</div>
+                <div class="text-xs font-bold uppercase tracking-wider text-slate-500">No Chat History</div>
+                <div class="text-[10px] leading-relaxed max-w-[200px]">Your conversational AI chat logs will appear here. Click to resume any past chat.</div>
             </div>
         `;
         lucide.createIcons();
@@ -17372,64 +17495,87 @@ function renderAIHistoryPanel() {
     }
     
     let html = `
-        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider text-left pl-1">Generated Session Log</div>
+        <div class="flex items-center justify-between pl-1 mb-2">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Past Conversations</span>
+            <button onclick="startNewChatSession()" class="text-[9px] font-extrabold text-indigo-650 hover:text-indigo-800 transition flex items-center space-x-0.5">
+                <i data-lucide="plus" class="h-3 w-3"></i>
+                <span>New Chat</span>
+            </button>
+        </div>
         <div class="space-y-2.5">
     `;
-    window.wfState.aiHistory.forEach(sess => {
+    
+    sessions.forEach(sess => {
+        const isCurrent = sess.id === window.wfState.currentChatSessionId;
         html += `
-            <div class="p-3 bg-white border border-slate-200 rounded-xl space-y-2 text-left shadow-xs">
+            <div onclick="openPreviousChatSession('${sess.id}')" class="p-3 bg-white hover:bg-slate-50 border ${isCurrent ? 'border-indigo-400 ring-1 ring-indigo-400/20' : 'border-slate-200'} rounded-xl space-y-1.5 text-left shadow-xs cursor-pointer transition group">
                 <div class="flex items-center justify-between shrink-0">
-                    <div class="font-extrabold text-slate-800 text-xs">${sess.title}</div>
+                    <div class="font-extrabold text-slate-800 text-xs truncate max-w-[70%] group-hover:text-indigo-650 transition">${sess.title}</div>
                     <span class="text-[8px] font-bold text-slate-400">${sess.date}</span>
                 </div>
-                <div class="text-[9px] text-slate-500 flex items-center space-x-2">
-                    <span class="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 font-bold border border-indigo-100 uppercase tracking-wide">AI Build</span>
-                    <span>${sess.nodes.length} Nodes • ${sess.connections.length} Links</span>
-                </div>
-                <div class="flex items-center space-x-1.5 pt-1 shrink-0">
-                    <button onclick="restoreAIHistorySession('${sess.id}')" class="flex-grow py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg text-[9px] font-extrabold transition">Restore</button>
-                    <button onclick="duplicateAIHistorySession('${sess.id}')" class="py-1 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-lg text-[9px] font-bold transition">Duplicate</button>
-                    <button onclick="deleteAIHistorySession('${sess.id}')" class="py-1 px-2.5 bg-red-550 hover:bg-red-500 text-white rounded-lg text-[9px] font-bold transition"><i data-lucide="trash" class="h-3 w-3"></i></button>
+                <div class="flex items-center justify-between shrink-0">
+                    <div class="text-[9px] text-slate-500">
+                        <span class="font-semibold text-slate-650">${sess.messages.length} Messages</span>
+                    </div>
+                    <button onclick="deleteChatSession('${sess.id}'); event.stopPropagation();" class="p-1 hover:bg-red-50 text-slate-400 hover:text-red-650 rounded transition" title="Delete conversation">
+                        <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                    </button>
                 </div>
             </div>
         `;
     });
+    
     html += `</div>`;
     panel.innerHTML = html;
     lucide.createIcons();
 }
 
-window.restoreAIHistorySession = function(sessId) {
-    const found = window.wfState.aiHistory.find(s => s.id === sessId);
+window.openPreviousChatSession = function(sessId) {
+    let sessions = [];
+    try {
+        sessions = JSON.parse(localStorage.getItem('linkpilot_ai_chat_sessions')) || [];
+    } catch (e) {
+        sessions = [];
+    }
+    
+    const found = sessions.find(s => s.id === sessId);
     if (found) {
-        window.wfState.previousActiveWorkflow = JSON.parse(JSON.stringify(window.wfState.activeWorkflow));
-        window.wfState.activeWorkflow.nodes = JSON.parse(JSON.stringify(found.nodes));
-        window.wfState.activeWorkflow.connections = JSON.parse(JSON.stringify(found.connections));
-        refreshBuilderCanvasInline();
-        zoomToFit();
-        showNotification('success', 'Workflow restored from AI session log.');
-        toggleAIBuilderDrawer(false);
+        window.wfState.currentChatSessionId = found.id;
+        window.wfState.aiChatMessages = JSON.parse(JSON.stringify(found.messages));
+        
+        switchAIBuilderTab('chat');
+        showNotification('success', 'Conversation loaded.');
     }
 };
 
-window.duplicateAIHistorySession = function(sessId) {
-    const found = window.wfState.aiHistory.find(s => s.id === sessId);
-    if (found) {
-        const copy = JSON.parse(JSON.stringify(found));
-        copy.id = "ai-sess-" + new Date().getTime();
-        copy.title += " (Copy)";
-        window.wfState.aiHistory.push(copy);
-        localStorage.setItem('linkpilot_ai_history', JSON.stringify(window.wfState.aiHistory));
-        renderAIHistoryPanel();
-        showNotification('success', 'AI session template duplicated.');
-    }
+window.startNewChatSession = function() {
+    window.wfState.currentChatSessionId = null;
+    window.wfState.aiChatMessages = [];
+    window.wfState.aiStep = 0;
+    
+    switchAIBuilderTab('chat');
+    showNotification('success', 'New conversation started.');
 };
 
-window.deleteAIHistorySession = function(sessId) {
-    window.wfState.aiHistory = window.wfState.aiHistory.filter(s => s.id !== sessId);
-    localStorage.setItem('linkpilot_ai_history', JSON.stringify(window.wfState.aiHistory));
+window.deleteChatSession = function(sessId) {
+    let sessions = [];
+    try {
+        sessions = JSON.parse(localStorage.getItem('linkpilot_ai_chat_sessions')) || [];
+    } catch (e) {
+        sessions = [];
+    }
+    
+    sessions = sessions.filter(s => s.id !== sessId);
+    localStorage.setItem('linkpilot_ai_chat_sessions', JSON.stringify(sessions));
+    
+    if (window.wfState.currentChatSessionId === sessId) {
+        window.wfState.currentChatSessionId = null;
+        window.wfState.aiChatMessages = [];
+        window.wfState.aiStep = 0;
+    }
+    
     renderAIHistoryPanel();
-    showNotification('info', 'AI session template removed.');
+    showNotification('info', 'Chat conversation deleted.');
 };
 
 function showConfettiCelebration() {

@@ -9213,6 +9213,9 @@ function installWorkflowTemplate(idx) {
 }
 
 function renderVisualCanvas(container) {
+    if (container) {
+        container.className = "flex-grow overflow-hidden h-full w-full relative";
+    }
     const wf = window.wfState.activeWorkflow;
     const activeTab = window.wfState.activeTab || 'builder';
     toggleSidebarCollapsed(true);
@@ -10030,7 +10033,7 @@ function injectVisualBuilderStyles() {
     style.innerHTML = `
         #workflow-builder-layout {
             display: flex;
-            height: calc(100vh - 100px);
+            height: 100%;
             overflow: hidden;
             background-color: #f8fafc;
             color: #0f172a;

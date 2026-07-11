@@ -864,7 +864,17 @@ aside h6 {
 }
 
 /* Collapsed Sidebar Rules */
+#sidebar-panel {
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    will-change: width, min-width, max-width;
+}
+
 @media (min-width: 1024px) {
+    #sidebar-panel {
+        width: 256px !important;
+        min-width: 256px !important;
+        max-width: 256px !important;
+    }
     #sidebar-panel.collapsed {
         width: 64px !important;
         min-width: 64px !important;

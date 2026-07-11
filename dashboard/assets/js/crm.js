@@ -9245,9 +9245,6 @@ function renderVisualCanvas(container) {
                 <div class="h-14 border-b border-slate-200 bg-white flex items-center justify-between px-6 select-none shrink-0 w-full overflow-x-auto overflow-y-hidden">
                     <!-- Left: Path and Edit -->
                     <div class="flex items-center space-x-2 text-xs shrink-0">
-                        <button onclick="toggleSidebarMenu()" class="h-8 w-8 rounded-xl hover:bg-slate-100 text-slate-700 flex items-center justify-center transition mr-1" title="Toggle Sidebar">
-                            <i data-lucide="menu" class="h-4.5 w-4.5"></i>
-                        </button>
                         <button onclick="backToWorkflowList()" class="h-8 w-8 rounded-xl hover:bg-slate-100 text-slate-700 flex items-center justify-center transition mr-1" title="Back to List">
                             <i data-lucide="arrow-left" class="h-4.5 w-4.5"></i>
                         </button>
@@ -9256,9 +9253,20 @@ function renderVisualCanvas(container) {
                             <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Automations</span>
                             <span class="text-slate-350">/</span>
                         </div>
-                        <div class="relative flex items-center bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1 shadow-2xs transition group" style="min-width: 180px;" ondblclick="enableWorkflowRename()">
-                            <input type="text" id="workflow-rename-input" readonly onblur="finishRenameWorkflow(this)" onkeydown="handleRenameKeyDown(event, this)" value="${wf.name}" class="bg-transparent text-slate-800 font-bold focus:outline-none px-1 py-0.5 text-xs w-44 cursor-pointer focus:cursor-text focus:bg-white" title="Double click to edit">
-                            <button onclick="enableWorkflowRename(); event.stopPropagation();" class="text-slate-400 hover:text-slate-600 p-0.5 ml-1 transition" title="Edit name"><i data-lucide="pencil" class="h-3 w-3"></i></button>
+                        
+                        <div class="flex items-center space-x-2 select-none">
+                            <!-- View Mode -->
+                            <div id="workflow-name-view-container" class="flex items-center space-x-1.5 cursor-pointer" title="Double click to edit" ondblclick="enableWorkflowRename()">
+                                <span id="workflow-name-display" class="text-slate-800 font-extrabold text-xs px-1 py-0.5">${wf.name}</span>
+                                <button onclick="enableWorkflowRename(); event.stopPropagation();" class="text-slate-400 hover:text-slate-600 p-0.5 transition" title="Edit name">
+                                    <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Edit Mode (Hidden by default) -->
+                            <div id="workflow-name-edit-container" class="hidden flex items-center bg-white border border-slate-200 rounded-lg px-2 py-0.5 shadow-2xs">
+                                <input type="text" id="workflow-rename-input" onblur="finishRenameWorkflow(this)" onkeydown="handleRenameKeyDown(event, this)" value="${wf.name}" class="bg-transparent text-slate-800 font-bold focus:outline-none px-1 py-0.5 text-xs w-44 focus:cursor-text">
+                            </div>
                         </div>
                         
                         <span class="ml-3 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center space-x-1">
@@ -9915,21 +9923,35 @@ function renameWorkflow(val) {
 }
 
 window.enableWorkflowRename = function() {
+    const viewContainer = document.getElementById('workflow-name-view-container');
+    const editContainer = document.getElementById('workflow-name-edit-container');
     const input = document.getElementById('workflow-rename-input');
-    if (input) {
-        input.removeAttribute('readonly');
-        input.classList.remove('cursor-pointer');
-        input.classList.add('cursor-text', 'bg-white', 'ring-2', 'ring-indigo-500/20', 'border-indigo-500');
+    
+    if (viewContainer && editContainer && input) {
+        viewContainer.classList.add('hidden');
+        editContainer.classList.remove('hidden');
         input.focus();
         input.select();
     }
 };
 
 window.finishRenameWorkflow = function(input) {
-    input.setAttribute('readonly', 'true');
-    input.classList.add('cursor-pointer');
-    input.classList.remove('cursor-text', 'bg-white', 'ring-2', 'ring-indigo-500/20', 'border-indigo-500');
-    renameWorkflow(input.value);
+    const viewContainer = document.getElementById('workflow-name-view-container');
+    const editContainer = document.getElementById('workflow-name-edit-container');
+    const displaySpan = document.getElementById('workflow-name-display');
+    
+    if (viewContainer && editContainer) {
+        viewContainer.classList.remove('hidden');
+        editContainer.classList.add('hidden');
+    }
+    
+    const newVal = input.value.trim();
+    if (newVal) {
+        if (displaySpan) {
+            displaySpan.textContent = newVal;
+        }
+        renameWorkflow(newVal);
+    }
 };
 
 window.handleRenameKeyDown = function(e, input) {

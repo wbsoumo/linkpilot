@@ -8755,7 +8755,7 @@ window.showScheduleMeetingForm = async function(container) {
         const activeEmail = document.querySelector('.user-email-display')?.textContent || 'superadmin@linkpilot.work';
         const userInitials = activeName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'SS';
 
-        // Generate datetime-local standard format for default values (now and 30 mins later)
+        // Generate datetime-local standard format for default values
         const now = new Date();
         const offset = now.getTimezoneOffset();
         const localNow = new Date(now.getTime() - offset * 60 * 1000);
@@ -8809,7 +8809,7 @@ window.showScheduleMeetingForm = async function(container) {
                         </div>
                         <div class="min-w-0">
                             <div class="font-bold text-slate-800 text-[11px] truncate">${c.name}</div>
-                            <div class="text-slate-400 text-[9px] truncate">${c.email || 'No email'}</div>
+                            <div class="text-slate-450 text-[9px] truncate">${c.email || 'No email'}</div>
                         </div>
                     </div>
                 `).join('');
@@ -8946,10 +8946,32 @@ window.showScheduleMeetingForm = async function(container) {
             }
         };
 
+        window.updateMeetingDateTimeUI = function() {
+            const startIn = document.getElementById('meeting-start-time');
+            const endIn = document.getElementById('meeting-end-time');
+            const startText = document.getElementById('display-start-time-text');
+            const endText = document.getElementById('display-end-time-text');
+            
+            if (startIn && startText && startIn.value) {
+                const d = new Date(startIn.value);
+                if (!isNaN(d.getTime())) {
+                    const options = { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true };
+                    startText.textContent = d.toLocaleString('en-US', options);
+                }
+            }
+            if (endIn && endText && endIn.value) {
+                const d = new Date(endIn.value);
+                if (!isNaN(d.getTime())) {
+                    const options = { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true };
+                    endText.textContent = d.toLocaleString('en-US', options);
+                }
+            }
+        };
+
         window.updateMeetingEndTime = function() {
             const startInput = document.getElementById('meeting-start-time');
             const durationSelect = document.getElementById('meeting-duration');
-            const endInput = document.querySelector('input[name="end_time"]');
+            const endInput = document.getElementById('meeting-end-time');
             if (!startInput || !durationSelect || !endInput || !startInput.value) return;
             const startDate = new Date(startInput.value);
             const durationMinutes = parseInt(durationSelect.value);
@@ -8957,6 +8979,180 @@ window.showScheduleMeetingForm = async function(container) {
             const offset = endDate.getTimezoneOffset();
             const localEnd = new Date(endDate.getTime() - offset * 60 * 1000);
             endInput.value = localEnd.toISOString().substring(0, 16);
+            window.updateMeetingDateTimeUI();
+        };
+
+        // Custom Searchable Dropdown Initializers
+        window.initSearchableCompanyDropdown = function(companiesList) {
+            const input = document.getElementById('company-search-input');
+            const hiddenInput = document.getElementById('company-id-hidden-input');
+            const dropdown = document.getElementById('company-search-dropdown');
+            if (!input || !dropdown) return;
+
+            const renderList = (filter = '') => {
+                const query = filter.toLowerCase().trim();
+                const filtered = companiesList.filter(c => c.name && c.name.toLowerCase().includes(query));
+                
+                let html = `<div onclick="window.selectSearchableCompany('', 'Select company')" class="p-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 text-slate-400 font-bold">Select company</div>`;
+                if (filtered.length === 0) {
+                    html += `<div class="p-3 text-slate-400 text-center">No companies found</div>`;
+                } else {
+                    html += filtered.map(c => `
+                        <div onclick="window.selectSearchableCompany('${c.id}', '${c.name.replace(/'/g, "\\'")}')" class="p-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 text-slate-800 font-bold">${c.name}</div>
+                    `).join('');
+                }
+                dropdown.innerHTML = html;
+            };
+
+            input.addEventListener('focus', () => {
+                renderList(input.value);
+                dropdown.classList.remove('hidden');
+            });
+
+            input.addEventListener('input', (e) => {
+                renderList(e.target.value);
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+        };
+
+        window.selectSearchableCompany = function(id, name) {
+            const input = document.getElementById('company-search-input');
+            const hiddenInput = document.getElementById('company-id-hidden-input');
+            const dropdown = document.getElementById('company-search-dropdown');
+            if (input && hiddenInput && dropdown) {
+                hiddenInput.value = id;
+                input.value = id ? name : '';
+                dropdown.classList.add('hidden');
+            }
+        };
+
+        window.initSearchableContactDropdown = function(contactsList) {
+            const input = document.getElementById('contact-search-input');
+            const hiddenInput = document.getElementById('contact-id-hidden-input');
+            const dropdown = document.getElementById('contact-search-dropdown');
+            if (!input || !dropdown) return;
+
+            const renderList = (filter = '') => {
+                const query = filter.toLowerCase().trim();
+                const filtered = contactsList.filter(c => c.name && c.name.toLowerCase().includes(query));
+                
+                let html = `<div onclick="window.selectSearchableContact('', 'Select contact')" class="p-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 text-slate-400 font-bold">Select contact</div>`;
+                if (filtered.length === 0) {
+                    html += `<div class="p-3 text-slate-400 text-center">No contacts found</div>`;
+                } else {
+                    html += filtered.map(c => `
+                        <div onclick="window.selectSearchableContact('${c.id}', '${c.name.replace(/'/g, "\\'")}')" class="p-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 text-slate-800 font-bold">${c.name}</div>
+                    `).join('');
+                }
+                dropdown.innerHTML = html;
+            };
+
+            input.addEventListener('focus', () => {
+                renderList(input.value);
+                dropdown.classList.remove('hidden');
+            });
+
+            input.addEventListener('input', (e) => {
+                renderList(e.target.value);
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+        };
+
+        window.selectSearchableContact = function(id, name) {
+            const input = document.getElementById('contact-search-input');
+            const hiddenInput = document.getElementById('contact-id-hidden-input');
+            const dropdown = document.getElementById('contact-search-dropdown');
+            if (input && hiddenInput && dropdown) {
+                hiddenInput.value = id;
+                input.value = id ? name : '';
+                dropdown.classList.add('hidden');
+            }
+        };
+
+        // Custom Location Dropdown Initializer with Brand Logos
+        window.initCustomLocationDropdown = function(defaultLoc, googleConn, zoomConn) {
+            const btn = document.getElementById('selected-location-btn');
+            const dropdown = document.getElementById('location-dropdown-menu');
+            const hiddenInput = document.getElementById('meeting-location-hidden-input');
+            if (!btn || !dropdown || !hiddenInput) return;
+
+            const locationsMap = {
+                'Google Meet': `
+                    <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+                    </svg>
+                    <span class="font-bold text-slate-800">Google Meet</span>
+                `,
+                'Zoom Meeting': `
+                    <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="24" height="24" rx="6" fill="#2D8CFF"/>
+                        <path d="M6 8.5C6 7.67157 6.67157 7 7.5 7H13.5C14.3284 7 15 7.67157 15 8.5V13.5C15 14.3284 14.3284 15 13.5 15H7.5C6.67157 15 6 14.3284 6 13.5V8.5Z" fill="white"/>
+                        <path d="M16 10.2L18.4 8.4C18.7333 8.15 19 8.28333 19 8.7V15.3C19 15.7167 18.7333 15.85 18.4 15.6L16 13.8V10.2Z" fill="white"/>
+                    </svg>
+                    <span class="font-bold text-slate-800">Zoom Meeting</span>
+                `,
+                'Physical Venue': `
+                    <svg class="w-3.5 h-3.5 shrink-0 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span class="font-bold text-slate-800">In-Person / Physical Venue</span>
+                `
+            };
+
+            window.selectLocationOption = function(loc) {
+                hiddenInput.value = loc;
+                document.getElementById('selected-location-display').innerHTML = locationsMap[loc];
+                dropdown.classList.add('hidden');
+
+                // Trigger sync display rules
+                const syncBox = document.getElementById('meeting-sync-info-box');
+                const customBox = document.getElementById('custom-location-container');
+                const syncTitleEl = document.getElementById('meeting-sync-info-title');
+                const syncTextEl = document.getElementById('meeting-sync-info-text');
+
+                if (loc === 'Physical Venue') {
+                    if (syncBox) syncBox.classList.add('hidden');
+                    if (customBox) customBox.classList.remove('hidden');
+                } else {
+                    if (customBox) customBox.classList.add('hidden');
+                    if (syncBox) syncBox.classList.remove('hidden');
+                    
+                    if (loc === 'Google Meet' && syncTitleEl && syncTextEl) {
+                        syncTitleEl.textContent = "Google Calendar integration is active.";
+                        syncTextEl.textContent = "A Google Meet link will be generated automatically and added to the calendar event.";
+                    } else if (loc === 'Zoom Meeting' && syncTitleEl && syncTextEl) {
+                        syncTitleEl.textContent = "Zoom integration is active.";
+                        syncTextEl.textContent = "A Zoom video meeting room will be generated automatically and synchronized back onto your calendar event and CRM timeline.";
+                    }
+                }
+            };
+
+            // Toggle dropdown
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdown.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', () => {
+                dropdown.classList.add('hidden');
+            });
+
+            // Set default initially
+            window.selectLocationOption(defaultLoc);
         };
 
         container.innerHTML = `
@@ -9018,19 +9214,20 @@ window.showScheduleMeetingForm = async function(container) {
                             
                             <!-- Meeting Title -->
                             <div class="space-y-1.5">
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Meeting Title *</label>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-extrabold">Meeting Title *</label>
                                 <div class="relative flex items-center">
-                                    <input type="text" name="title" required placeholder="e.g. Discovery Call, Demo Discussion" class="w-full pl-3.5 pr-10 py-2.5 border border-slate-250 rounded-xl focus:outline-none focus:border-blue-500 bg-white text-xs text-slate-800 placeholder-slate-450 font-medium">
+                                    <i data-lucide="type" class="absolute left-3.5 h-4 w-4 text-slate-450"></i>
+                                    <input type="text" name="title" required placeholder="e.g. Discovery Call, Demo Discussion" class="w-full pl-10 pr-10 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] focus:bg-white text-xs text-slate-800 placeholder-slate-400 font-bold transition-all duration-200">
                                     <i data-lucide="sparkles" class="absolute right-3.5 h-4 w-4 text-blue-500/80 cursor-pointer hover:text-blue-600 transition" onclick="window.triggerAIMeetingTitle(this)" title="Generate AI Title"></i>
                                 </div>
                             </div>
 
                             <!-- Description with Rich Formatting bar -->
                             <div class="space-y-1.5">
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Description</label>
-                                <div class="border border-slate-250 rounded-xl overflow-hidden focus-within:border-blue-500 transition">
-                                    <textarea name="description" placeholder="Brief outline or agenda for the sync call..." rows="4" class="w-full px-3.5 py-2.5 bg-white font-sans text-xs text-slate-800 placeholder-slate-450 focus:outline-none border-0 resize-none"></textarea>
-                                    <div class="flex items-center space-x-4 px-3.5 py-2 bg-slate-50 border-t border-slate-150 text-slate-400 text-xs">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-extrabold">Description</label>
+                                <div class="border border-slate-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#005bf7] focus-within:border-[#005bf7] transition-all">
+                                    <textarea name="description" placeholder="Brief outline or agenda for the sync call..." rows="4" class="w-full px-4 py-3 bg-[#f8fafc] focus:bg-white focus:outline-none text-xs text-slate-800 placeholder-slate-400 resize-none font-medium transition-all duration-200 border-0"></textarea>
+                                    <div class="flex items-center space-x-4 px-3.5 py-2 bg-slate-50 border-t border-slate-100 text-slate-400 text-xs">
                                         <button type="button" class="hover:text-slate-700 transition font-bold" onclick="window.insertRichText('bold')" title="Bold">B</button>
                                         <button type="button" class="hover:text-slate-700 transition italic" onclick="window.insertRichText('italic')" title="Italic">I</button>
                                         <button type="button" class="hover:text-slate-700 transition" onclick="window.insertRichText('bullet')" title="Bullet List"><i data-lucide="list" class="h-3.5 w-3.5"></i></button>
@@ -9040,25 +9237,43 @@ window.showScheduleMeetingForm = async function(container) {
                                 </div>
                             </div>
 
-                            <!-- Start Time & End Time -->
+                            <!-- Start Time & End Time Cards (Advanced booking UI) -->
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="space-y-1.5">
-                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Start Time *</label>
-                                    <input type="datetime-local" id="meeting-start-time" name="start_time" required value="${startIso}" onchange="window.updateMeetingEndTime()" class="w-full px-3.5 py-2.5 border border-slate-250 rounded-xl focus:outline-none focus:border-blue-500 bg-white text-xs font-semibold text-slate-800">
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-extrabold">Start Time *</label>
+                                    <div class="relative flex items-center p-3.5 bg-[#f8fafc] hover:bg-white border border-slate-200 focus-within:ring-2 focus-within:ring-[#005bf7] focus-within:border-[#005bf7] rounded-xl cursor-pointer transition-all duration-200">
+                                        <div class="h-9 w-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 mr-3">
+                                            <i data-lucide="calendar" class="h-4.5 w-4.5"></i>
+                                        </div>
+                                        <div class="flex-grow min-w-0">
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Start Date & Time</span>
+                                            <span class="text-xs font-bold text-slate-700 block mt-0.5 truncate" id="display-start-time-text">Select Start Date</span>
+                                        </div>
+                                        <input type="datetime-local" id="meeting-start-time" name="start_time" required value="${startIso}" onchange="window.updateMeetingEndTime()" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+                                    </div>
                                 </div>
                                 <div class="space-y-1.5">
-                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">End Time</label>
-                                    <input type="datetime-local" name="end_time" value="${endIso}" class="w-full px-3.5 py-2.5 border border-slate-250 rounded-xl focus:outline-none focus:border-blue-500 bg-white text-xs font-semibold text-slate-800">
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-extrabold">End Time</label>
+                                    <div class="relative flex items-center p-3.5 bg-[#f8fafc] hover:bg-white border border-slate-200 focus-within:ring-2 focus-within:ring-[#005bf7] focus-within:border-[#005bf7] rounded-xl cursor-pointer transition-all duration-200">
+                                        <div class="h-9 w-9 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center shrink-0 mr-3">
+                                            <i data-lucide="clock" class="h-4.5 w-4.5"></i>
+                                        </div>
+                                        <div class="flex-grow min-w-0">
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">End Date & Time</span>
+                                            <span class="text-xs font-bold text-slate-700 block mt-0.5 truncate" id="display-end-time-text">Select End Date</span>
+                                        </div>
+                                        <input type="datetime-local" id="meeting-end-time" name="end_time" value="${endIso}" onchange="window.updateMeetingDateTimeUI()" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Duration & Timezone -->
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="space-y-1.5">
-                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Duration</label>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-extrabold">Duration</label>
                                     <div class="relative flex items-center">
-                                        <i data-lucide="clock" class="absolute left-3.5 h-4 w-4 text-slate-400"></i>
-                                        <select id="meeting-duration" onchange="window.updateMeetingEndTime()" class="w-full pl-9 pr-3.5 py-2.5 border border-slate-250 rounded-xl focus:outline-none focus:border-blue-500 bg-white text-xs font-bold text-slate-800">
+                                        <i data-lucide="clock" class="absolute left-3.5 h-4 w-4 text-slate-450"></i>
+                                        <select id="meeting-duration" onchange="window.updateMeetingEndTime()" class="w-full pl-9 pr-3.5 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] focus:bg-white text-xs font-bold text-slate-800 transition-all duration-200">
                                             <option value="15">15 minutes</option>
                                             <option value="30" selected>30 minutes</option>
                                             <option value="45">45 minutes</option>
@@ -9069,10 +9284,10 @@ window.showScheduleMeetingForm = async function(container) {
                                     </div>
                                 </div>
                                 <div class="space-y-1.5">
-                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Timezone</label>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-extrabold">Timezone</label>
                                     <div class="relative flex items-center">
-                                        <i data-lucide="globe" class="absolute left-3.5 h-4 w-4 text-slate-400"></i>
-                                        <select name="timezone" class="w-full pl-9 pr-3.5 py-2.5 border border-slate-250 rounded-xl focus:outline-none focus:border-blue-500 bg-white text-xs font-bold text-slate-800">
+                                        <i data-lucide="globe" class="absolute left-3.5 h-4 w-4 text-slate-455"></i>
+                                        <select name="timezone" class="w-full pl-9 pr-3.5 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] focus:bg-white text-xs font-bold text-slate-800 transition-all duration-200">
                                             <option value="Asia/Kolkata" selected>(GMT+05:30) Kolkata</option>
                                             <option value="UTC">(GMT+00:00) UTC</option>
                                             <option value="America/New_York">(GMT-05:00) New York</option>
@@ -9085,24 +9300,60 @@ window.showScheduleMeetingForm = async function(container) {
                                 </div>
                             </div>
 
-                            <!-- Location Select -->
+                            <!-- Location Select (With google & zoom logos in custom dropdown) -->
                             <div class="space-y-1.5">
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Location / Venue *</label>
-                                <select name="location" onchange="window.onMeetingLocationChange(this)" class="w-full px-3.5 py-2.5 border border-slate-250 rounded-xl focus:outline-none focus:border-blue-500 bg-white text-xs font-bold text-slate-800">
-                                    ${googleConnected ? `<option value="Google Meet" ${defaultLocation === 'Google Meet' ? 'selected' : ''}>Google Meet</option>` : ''}
-                                    ${zoomConnected ? `<option value="Zoom Meeting" ${defaultLocation === 'Zoom Meeting' ? 'selected' : ''}>Zoom Meeting</option>` : ''}
-                                    <option value="Physical Venue" ${defaultLocation === 'Physical Venue' ? 'selected' : ''}>In-Person / Physical Venue</option>
-                                </select>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-extrabold">Location / Venue *</label>
+                                <div class="relative">
+                                    <div id="selected-location-btn" class="flex items-center justify-between w-full px-3.5 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl cursor-pointer hover:border-slate-300 transition-all duration-200">
+                                        <div class="flex items-center space-x-2 min-w-0" id="selected-location-display">
+                                            <!-- Selected display -->
+                                        </div>
+                                        <i data-lucide="chevron-down" class="h-4 w-4 text-slate-400"></i>
+                                    </div>
+                                    <input type="hidden" name="location" id="meeting-location-hidden-input">
+                                    
+                                    <div id="location-dropdown-menu" class="absolute left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg hidden overflow-hidden z-50">
+                                        ${googleConnected ? `
+                                        <div onclick="window.selectLocationOption('Google Meet')" class="px-3.5 py-3 hover:bg-slate-50 cursor-pointer flex items-center space-x-2.5 transition-all text-xs font-bold text-slate-700 border-b border-slate-100">
+                                            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+                                            </svg>
+                                            <span class="font-bold text-slate-800">Google Meet</span>
+                                        </div>` : ''}
+                                        ${zoomConnected ? `
+                                        <div onclick="window.selectLocationOption('Zoom Meeting')" class="px-3.5 py-3 hover:bg-slate-50 cursor-pointer flex items-center space-x-2.5 transition-all text-xs font-bold text-slate-700 border-b border-slate-100">
+                                            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <rect width="24" height="24" rx="6" fill="#2D8CFF"/>
+                                                <path d="M6 8.5C6 7.67157 6.67157 7 7.5 7H13.5C14.3284 7 15 7.67157 15 8.5V13.5C15 14.3284 14.3284 15 13.5 15H7.5C6.67157 15 6 14.3284 6 13.5V8.5Z" fill="white"/>
+                                                <path d="M16 10.2L18.4 8.4C18.7333 8.15 19 8.28333 19 8.7V15.3C19 15.7167 18.7333 15.85 18.4 15.6L16 13.8V10.2Z" fill="white"/>
+                                            </svg>
+                                            <span class="font-bold text-slate-800">Zoom Meeting</span>
+                                        </div>` : ''}
+                                        <div onclick="window.selectLocationOption('Physical Venue')" class="px-3.5 py-3 hover:bg-slate-50 cursor-pointer flex items-center space-x-2.5 transition-all text-xs font-bold text-slate-700">
+                                            <svg class="w-3.5 h-3.5 shrink-0 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                                <circle cx="12" cy="10" r="3"></circle>
+                                            </svg>
+                                            <span class="font-bold text-slate-800">In-Person / Physical Venue</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Physical Venue Address input -->
                             <div id="custom-location-container" class="space-y-1.5 ${customLocClass}">
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Physical Venue Address</label>
-                                <input type="text" name="custom_location" placeholder="e.g. Conference Room A, Office Address..." class="w-full px-3.5 py-2.5 border border-slate-250 rounded-xl focus:outline-none focus:border-blue-500 bg-white text-xs text-slate-800 placeholder-slate-400">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-extrabold">Physical Venue Address</label>
+                                <div class="relative flex items-center">
+                                    <i data-lucide="map-pin" class="absolute left-3.5 h-4 w-4 text-slate-450"></i>
+                                    <input type="text" name="custom_location" placeholder="e.g. Conference Room A, Office Address..." class="w-full pl-10 pr-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] focus:bg-white text-xs text-slate-800 placeholder-slate-400 font-bold transition-all duration-200">
+                                </div>
                             </div>
 
                             <!-- Sync Alert Card -->
-                            <div id="meeting-sync-info-box" class="p-3 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-start space-x-2.5 ${syncBoxClass}">
+                            <div id="meeting-sync-info-box" class="p-3 bg-emerald-50/50 border border-emerald-100 rounded-2xl flex items-start space-x-2.5 ${syncBoxClass}">
                                 <i data-lucide="check-circle" class="h-4 w-4 text-emerald-600 shrink-0 mt-0.5"></i>
                                 <div>
                                     <p class="text-[10px] text-slate-700 font-extrabold" id="meeting-sync-info-title">${syncTitle}</p>
@@ -9118,9 +9369,10 @@ window.showScheduleMeetingForm = async function(container) {
                             
                             <!-- Attendees List & Lookup -->
                             <div class="space-y-2">
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Attendees</label>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-extrabold">Attendees</label>
                                 <div class="relative">
-                                    <input type="text" id="attendee-search-input" placeholder="Add people by name or email..." class="w-full px-3.5 py-2.5 border border-slate-250 rounded-xl focus:outline-none focus:border-blue-500 bg-white text-xs text-slate-800 placeholder-slate-400 font-medium" autocomplete="off" oninput="window.handleAttendeeSearch(this.value)">
+                                    <i data-lucide="search" class="absolute left-3.5 h-4 w-4 text-slate-450"></i>
+                                    <input type="text" id="attendee-search-input" placeholder="Add people by name or email..." class="w-full pl-10 pr-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] focus:bg-white text-xs text-slate-800 placeholder-slate-400 font-bold transition-all duration-200" autocomplete="off" oninput="window.handleAttendeeSearch(this.value)">
                                     <!-- Autocomplete Dropdown -->
                                     <div id="attendee-autocomplete-dropdown" class="absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg hidden max-h-48 overflow-y-auto z-50 text-xs"></div>
                                 </div>
@@ -9147,26 +9399,26 @@ window.showScheduleMeetingForm = async function(container) {
 
                             <!-- Associate with company / contact -->
                             <div class="space-y-2.5 pt-4 border-t border-slate-100">
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Associate With</label>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-extrabold">Associate With</label>
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="space-y-1">
                                         <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Company (Optional)</span>
                                         <div class="relative flex items-center">
-                                            <i data-lucide="building" class="absolute left-3.5 h-3.5 w-3.5 text-slate-400"></i>
-                                            <select name="company_id" class="w-full pl-9 pr-3.5 py-2.5 border border-slate-250 rounded-xl focus:outline-none focus:border-blue-500 bg-white text-xs text-slate-700 font-bold">
-                                                <option value="">Select company</option>
-                                                ${companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
-                                            </select>
+                                            <i data-lucide="building" class="absolute left-3.5 h-4 w-4 text-slate-450 z-10 pointer-events-none"></i>
+                                            <input type="text" id="company-search-input" placeholder="Search company..." autocomplete="off" class="w-full pl-10 pr-8 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] focus:bg-white text-xs text-slate-800 placeholder-slate-400 font-bold transition-all duration-200">
+                                            <i data-lucide="chevron-down" class="absolute right-3.5 h-4 w-4 text-slate-400 pointer-events-none"></i>
+                                            <input type="hidden" name="company_id" id="company-id-hidden-input">
+                                            <div id="company-search-dropdown" class="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg hidden max-h-48 overflow-y-auto z-50 text-xs font-bold text-slate-700"></div>
                                         </div>
                                     </div>
                                     <div class="space-y-1">
                                         <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Contact (Optional)</span>
                                         <div class="relative flex items-center">
-                                            <i data-lucide="user" class="absolute left-3.5 h-3.5 w-3.5 text-slate-400"></i>
-                                            <select name="contact_id" class="w-full pl-9 pr-3.5 py-2.5 border border-slate-250 rounded-xl focus:outline-none focus:border-blue-500 bg-white text-xs text-slate-700 font-bold">
-                                                <option value="">Select contact</option>
-                                                ${contacts.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
-                                            </select>
+                                            <i data-lucide="user" class="absolute left-3.5 h-4 w-4 text-slate-450 z-10 pointer-events-none"></i>
+                                            <input type="text" id="contact-search-input" placeholder="Search contact..." autocomplete="off" class="w-full pl-10 pr-8 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] focus:bg-white text-xs text-slate-800 placeholder-slate-400 font-bold transition-all duration-200">
+                                            <i data-lucide="chevron-down" class="absolute right-3.5 h-4 w-4 text-slate-400 pointer-events-none"></i>
+                                            <input type="hidden" name="contact_id" id="contact-id-hidden-input">
+                                            <div id="contact-search-dropdown" class="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg hidden max-h-48 overflow-y-auto z-50 text-xs font-bold text-slate-700"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -9174,22 +9426,22 @@ window.showScheduleMeetingForm = async function(container) {
 
                             <!-- Meeting Options -->
                             <div class="space-y-2.5 pt-4 border-t border-slate-100">
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Meeting Options</label>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-extrabold">Meeting Options</label>
                                 <div class="space-y-2.5 mt-1.5">
                                     <label class="flex items-center space-x-2.5 cursor-pointer">
-                                        <input type="checkbox" name="send_invites" checked class="h-3.5 w-3.5 border-slate-300 rounded text-blue-600 focus:ring-blue-500">
+                                        <input type="checkbox" name="send_invites" checked class="h-3.5 w-3.5 border-slate-350 rounded text-blue-600 focus:ring-blue-500">
                                         <span class="text-xs font-bold text-slate-700 select-none">Send email invitations to attendees</span>
                                     </label>
                                     <label class="flex items-center space-x-2.5 cursor-pointer">
-                                        <input type="checkbox" name="add_to_calendar" ${googleConnected ? 'checked' : ''} class="h-3.5 w-3.5 border-slate-300 rounded text-blue-600 focus:ring-blue-500">
+                                        <input type="checkbox" name="add_to_calendar" ${googleConnected ? 'checked' : ''} class="h-3.5 w-3.5 border-slate-350 rounded text-blue-600 focus:ring-blue-500">
                                         <span class="text-xs font-bold text-slate-700 select-none">Add to Google Calendar</span>
                                     </label>
                                     <div class="flex items-center justify-between">
                                         <label class="flex items-center space-x-2.5 cursor-pointer">
-                                            <input type="checkbox" id="set-reminder-checkbox" onchange="window.toggleReminderDropdown(this)" class="h-3.5 w-3.5 border-slate-300 rounded text-blue-600 focus:ring-blue-500">
+                                            <input type="checkbox" id="set-reminder-checkbox" onchange="window.toggleReminderDropdown(this)" class="h-3.5 w-3.5 border-slate-350 rounded text-blue-600 focus:ring-blue-500">
                                             <span class="text-xs font-bold text-slate-700 select-none">Set reminder</span>
                                         </label>
-                                        <select id="reminder-dropdown" disabled class="px-2.5 py-1.5 border border-slate-200 rounded-lg text-[10px] font-bold bg-white text-slate-600 focus:outline-none focus:border-blue-500">
+                                        <select id="reminder-dropdown" disabled class="px-2.5 py-1.5 border border-slate-200 rounded-lg text-[10px] font-bold bg-[#f8fafc] text-slate-650 focus:outline-none focus:border-blue-500">
                                             <option value="15">15 minutes before</option>
                                             <option value="30">30 minutes before</option>
                                             <option value="60">1 hour before</option>
@@ -9202,7 +9454,7 @@ window.showScheduleMeetingForm = async function(container) {
 
                         <!-- Footer -->
                         <div class="col-span-1 lg:col-span-12 pt-6 border-t border-slate-100 flex justify-end space-x-3 mt-4">
-                            <button type="button" onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'))" class="px-6 py-2.5 border border-slate-200 hover:bg-slate-50 rounded-xl font-bold transition text-xs text-slate-500 hover:text-slate-800 shadow-xs">Cancel</button>
+                            <button type="button" onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'))" class="px-6 py-2.5 border border-slate-200 hover:bg-slate-50 rounded-xl font-bold transition text-xs text-slate-500 hover:text-slate-800 shadow-xs bg-white">Cancel</button>
                             <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition flex items-center space-x-2 shadow-md" style="color: #ffffff !important;">
                                 <i data-lucide="calendar" class="h-4 w-4 text-white"></i>
                                 <span>Schedule Meeting</span>
@@ -9212,6 +9464,13 @@ window.showScheduleMeetingForm = async function(container) {
                 </form>
             </div>
         `;
+
+        // Initialize helper components
+        window.updateMeetingDateTimeUI();
+        window.initSearchableCompanyDropdown(companies);
+        window.initSearchableContactDropdown(contacts);
+        window.initCustomLocationDropdown(defaultLocation, googleConnected, zoomConnected);
+
         lucide.createIcons();
     } catch(err) {
         showNotification('error', 'Failed to initialize create meeting page: ' + err.message);

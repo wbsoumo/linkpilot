@@ -10490,10 +10490,10 @@ window.renderBookingSetup = async function(container) {
                             </div>
                             <!-- Toggle switch -->
                             <div class="flex items-center shrink-0 pr-2">
-                                <div class="relative inline-block w-8 h-4.5 select-none shrink-0">
+                                <div class="relative inline-block select-none shrink-0" style="width: 36px; height: 20px;">
                                     <input type="checkbox" onchange="window.toggleDayActive(${day.index})" ${isActive ? 'checked' : ''} class="opacity-0 w-0 h-0 absolute" id="toggle-${day.index}">
                                     <label for="toggle-${day.index}" class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 rounded-full transition-all duration-200" style="background-color: ${isActive ? '#10b981' : '#cbd5e1'};">
-                                        <span class="absolute left-[2px] bottom-[2px] bg-white w-3.5 h-3.5 rounded-full transition-all duration-200" style="transform: ${isActive ? 'translateX(14px)' : 'translateX(0px)'};"></span>
+                                        <span class="absolute bg-white rounded-full transition-all duration-200" style="width: 16px; height: 16px; left: 2px; top: 2px; transform: ${isActive ? 'translateX(16px)' : 'translateX(0px)'};"></span>
                                     </label>
                                 </div>
                             </div>

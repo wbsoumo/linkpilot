@@ -541,7 +541,7 @@ async function renderDashboard(container) {
                 <!-- 12 Top Statistics Cards Grid -->
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     <!-- Received Emails -->
-                    <div class="glass-panel p-4 bg-slate-900/40 card-hover">
+                    <div onclick="window.location.hash = '#/inbox'" class="glass-panel p-4 bg-slate-900/40 card-hover cursor-pointer">
                         <div class="flex justify-between items-center text-slate-400">
                             <span class="text-[10px] font-bold uppercase tracking-wider">Emails Recd</span>
                             <span class="p-1.5 bg-indigo-500/10 text-indigo-400 rounded-md"><i data-lucide="mail" class="h-4 w-4"></i></span>
@@ -552,7 +552,7 @@ async function renderDashboard(container) {
                         </div>
                     </div>
                     <!-- Emails Processed by AI -->
-                    <div class="glass-panel p-4 bg-slate-900/40 card-hover">
+                    <div onclick="window.location.hash = '#/inbox'" class="glass-panel p-4 bg-slate-900/40 card-hover cursor-pointer">
                         <div class="flex justify-between items-center text-slate-400">
                             <span class="text-[10px] font-bold uppercase tracking-wider">AI Processed</span>
                             <span class="p-1.5 bg-teal-500/10 text-teal-400 rounded-md"><i data-lucide="cpu" class="h-4 w-4"></i></span>
@@ -563,7 +563,7 @@ async function renderDashboard(container) {
                         </div>
                     </div>
                     <!-- Total Leads -->
-                    <div class="glass-panel p-4 bg-slate-900/40 card-hover">
+                    <div onclick="window.location.hash = '#/leads'" class="glass-panel p-4 bg-slate-900/40 card-hover cursor-pointer">
                         <div class="flex justify-between items-center text-slate-400">
                             <span class="text-[10px] font-bold uppercase tracking-wider">Total Leads</span>
                             <span class="p-1.5 bg-emerald-500/10 text-emerald-400 rounded-md"><i data-lucide="users" class="h-4 w-4"></i></span>
@@ -574,7 +574,7 @@ async function renderDashboard(container) {
                         </div>
                     </div>
                     <!-- Total Companies -->
-                    <div class="glass-panel p-4 bg-slate-900/40 card-hover">
+                    <div onclick="window.location.hash = '#/companies'" class="glass-panel p-4 bg-slate-900/40 card-hover cursor-pointer">
                         <div class="flex justify-between items-center text-slate-400">
                             <span class="text-[10px] font-bold uppercase tracking-wider">Companies</span>
                             <span class="p-1.5 bg-blue-500/10 text-blue-400 rounded-md"><i data-lucide="building" class="h-4 w-4"></i></span>
@@ -585,7 +585,7 @@ async function renderDashboard(container) {
                         </div>
                     </div>
                     <!-- Active Clients -->
-                    <div class="glass-panel p-4 bg-slate-900/40 card-hover">
+                    <div onclick="window.location.hash = '#/contacts'" class="glass-panel p-4 bg-slate-900/40 card-hover cursor-pointer">
                         <div class="flex justify-between items-center text-slate-400">
                             <span class="text-[10px] font-bold uppercase tracking-wider">Active Clients</span>
                             <span class="p-1.5 bg-green-500/10 text-green-400 rounded-md"><i data-lucide="shield-check" class="h-4 w-4"></i></span>
@@ -596,7 +596,7 @@ async function renderDashboard(container) {
                         </div>
                     </div>
                     <!-- Open Opportunities -->
-                    <div class="glass-panel p-4 bg-slate-900/40 card-hover">
+                    <div onclick="window.location.hash = '#/deals'" class="glass-panel p-4 bg-slate-900/40 card-hover cursor-pointer">
                         <div class="flex justify-between items-center text-slate-400">
                             <span class="text-[10px] font-bold uppercase tracking-wider">Open Deals</span>
                             <span class="p-1.5 bg-amber-500/10 text-amber-400 rounded-md"><i data-lucide="zap" class="h-4 w-4"></i></span>
@@ -607,7 +607,7 @@ async function renderDashboard(container) {
                         </div>
                     </div>
                     <!-- Follow-ups Due -->
-                    <div class="glass-panel p-4 bg-slate-900/40 card-hover">
+                    <div onclick="window.location.hash = '#/tasks'" class="glass-panel p-4 bg-slate-900/40 card-hover cursor-pointer">
                         <div class="flex justify-between items-center text-slate-400">
                             <span class="text-[10px] font-bold uppercase tracking-wider">Follow-ups</span>
                             <span class="p-1.5 bg-purple-500/10 text-purple-400 rounded-md"><i data-lucide="bell" class="h-4 w-4"></i></span>
@@ -618,7 +618,7 @@ async function renderDashboard(container) {
                         </div>
                     </div>
                     <!-- Tasks Due Today -->
-                    <div class="glass-panel p-4 bg-slate-900/40 card-hover">
+                    <div onclick="window.location.hash = '#/tasks'" class="glass-panel p-4 bg-slate-900/40 card-hover cursor-pointer">
                         <div class="flex justify-between items-center text-slate-400">
                             <span class="text-[10px] font-bold uppercase tracking-wider">Tasks Today</span>
                             <span class="p-1.5 bg-pink-500/10 text-pink-400 rounded-md"><i data-lucide="check-square" class="h-4 w-4"></i></span>
@@ -629,7 +629,7 @@ async function renderDashboard(container) {
                         </div>
                     </div>
                     <!-- Meetings Scheduled -->
-                    <div class="glass-panel p-4 bg-slate-900/40 card-hover">
+                    <div onclick="window.location.hash = '#/meetings'" class="glass-panel p-4 bg-slate-900/40 card-hover cursor-pointer">
                         <div class="flex justify-between items-center text-slate-400">
                             <span class="text-[10px] font-bold uppercase tracking-wider">Meetings</span>
                             <span class="p-1.5 bg-rose-500/10 text-rose-400 rounded-md"><i data-lucide="calendar" class="h-4 w-4"></i></span>
@@ -640,7 +640,7 @@ async function renderDashboard(container) {
                         </div>
                     </div>
                     <!-- Revenue Pipeline -->
-                    <div class="glass-panel p-4 bg-slate-900/40 card-hover col-span-2 lg:col-span-1">
+                    <div onclick="window.location.hash = '#/deals'" class="glass-panel p-4 bg-slate-900/40 card-hover col-span-2 lg:col-span-1 cursor-pointer">
                         <div class="flex justify-between items-center text-slate-400">
                             <span class="text-[10px] font-bold uppercase tracking-wider">Pipeline Val</span>
                             <span class="p-1.5 bg-emerald-500/10 text-emerald-400 rounded-md"><i data-lucide="dollar-sign" class="h-4 w-4"></i></span>
@@ -651,7 +651,7 @@ async function renderDashboard(container) {
                         </div>
                     </div>
                     <!-- Conversion Rate -->
-                    <div class="glass-panel p-4 bg-slate-900/40 card-hover">
+                    <div onclick="window.location.hash = '#/reports'" class="glass-panel p-4 bg-slate-900/40 card-hover cursor-pointer">
                         <div class="flex justify-between items-center text-slate-400">
                             <span class="text-[10px] font-bold uppercase tracking-wider">Conv. Rate</span>
                             <span class="p-1.5 bg-sky-500/10 text-sky-400 rounded-md"><i data-lucide="trending-up" class="h-4 w-4"></i></span>
@@ -662,7 +662,7 @@ async function renderDashboard(container) {
                         </div>
                     </div>
                     <!-- AI processing success rate -->
-                    <div class="glass-panel p-4 bg-slate-900/40 card-hover">
+                    <div onclick="window.location.hash = '#/ai-insights'" class="glass-panel p-4 bg-slate-900/40 card-hover cursor-pointer">
                         <div class="flex justify-between items-center text-slate-400">
                             <span class="text-[10px] font-bold uppercase tracking-wider">AI Accuracy</span>
                             <span class="p-1.5 bg-violet-500/10 text-violet-400 rounded-md"><i data-lucide="check-circle" class="h-4 w-4"></i></span>

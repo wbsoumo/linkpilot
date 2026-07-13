@@ -228,7 +228,7 @@
                     <!-- Timezone field selector -->
                     <div class="mt-8 p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer select-none">
                         <div class="flex items-center space-x-2.5">
-                            <i data-lucide="globe" class="h-4.5 w-4.5 text-slate-400"></i>
+                            <span id="timezone-flag" class="text-base shrink-0 select-none mr-0.5">🇮🇳</span>
                             <div class="text-left">
                                 <div class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Time zone</div>
                                 <div id="timezone-label-text" class="text-xs font-black text-slate-700">Asia/Kolkata (GMT+05:30)</div>
@@ -412,6 +412,17 @@
             bindAppEvents();
         });
 
+        function getTimezoneFlag(timezone) {
+            if (!timezone) return '🌐';
+            if (timezone.includes('Kolkata')) return '🇮🇳';
+            if (timezone.includes('New_York') || timezone.includes('Chicago') || timezone.includes('Denver') || timezone.includes('Los_Angeles')) return '🇺🇸';
+            if (timezone.includes('London')) return '🇬🇧';
+            if (timezone.includes('Paris')) return '🇫🇷';
+            if (timezone.includes('Dubai')) return '🇦🇪';
+            if (timezone.includes('Singapore')) return '🇸🇬';
+            return '🌐';
+        }
+
         // Fetch host info
         async function fetchHostProfile() {
             try {
@@ -427,6 +438,11 @@
                     document.getElementById('meeting-duration-lbl').textContent = `${hostProfile.duration_minutes} minutes`;
                     document.getElementById('timezone-label-text').textContent = hostProfile.timezone;
                     document.getElementById('timezone-footer-lbl').textContent = `All times are in ${hostProfile.timezone}`;
+
+                    const flagEl = document.getElementById('timezone-flag');
+                    if (flagEl) {
+                        flagEl.textContent = getTimezoneFlag(hostProfile.timezone);
+                    }
 
                     // Set calendar boundary dates
                     const today = new Date();

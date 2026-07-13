@@ -8590,28 +8590,12 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <!-- Left: Meetings table & Filter tab bar -->
                     <div class="lg:col-span-2 space-y-4">
-                        <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 pb-2 space-y-3 md:space-y-0 text-left">
+                        <div class="border-b border-slate-200 pb-2 text-left">
                             <div class="flex space-x-6 font-bold text-xs">
                                 <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'upcoming', '${searchQuery}')" class="pb-2 transition border-b-2 ${activeTab === 'upcoming' ? 'border-blue-600 text-blue-600 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">Upcoming</button>
                                 <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'all', '${searchQuery}')" class="pb-2 transition border-b-2 ${activeTab === 'all' ? 'border-blue-600 text-blue-600 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">All Meetings</button>
                                 <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'completed', '${searchQuery}')" class="pb-2 transition border-b-2 ${activeTab === 'completed' ? 'border-blue-600 text-blue-600 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">Completed</button>
                                 <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'cancelled', '${searchQuery}')" class="pb-2 transition border-b-2 ${activeTab === 'cancelled' ? 'border-blue-600 text-blue-600 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">Cancelled</button>
-                            </div>
-                            
-                            <!-- Search meeting controls -->
-                            <div class="flex items-center space-x-2.5">
-                                <div class="relative w-48">
-                                    <input type="text" id="meetings-search-input" value="${searchQuery}" onkeydown="if(event.key === 'Enter') { window.renderMeetingsList(document.getElementById('main-content-viewport'), '${activeTab}', this.value); }" placeholder="Search meetings..." class="w-full pl-8 pr-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 bg-white text-xs font-semibold text-slate-700 placeholder-slate-400">
-                                    <i data-lucide="search" class="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400"></i>
-                                </div>
-                                <button onclick="showNotification('info', 'Filter feature coming soon')" class="px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold transition flex items-center space-x-1.5 text-xs shadow-sm focus:outline-none">
-                                    <i data-lucide="filter" class="h-3.5 w-3.5 text-slate-500"></i>
-                                    <span>Filter</span>
-                                </button>
-                                <button onclick="showNotification('info', 'Sort feature coming soon')" class="px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold transition flex items-center space-x-1.5 text-xs shadow-sm focus:outline-none">
-                                    <span>Sort: Nearest</span>
-                                    <i data-lucide="chevron-down" class="h-3.5 w-3.5 text-slate-400"></i>
-                                </button>
                             </div>
                         </div>
 
@@ -8623,7 +8607,6 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
                                         <th class="py-3 px-4">Meeting</th>
                                         <th class="py-3 px-4">Time</th>
                                         <th class="py-3 px-4">Attendees</th>
-                                        <th class="py-3 px-4">Related To</th>
                                         <th class="py-3 px-4">Status</th>
                                         <th class="py-3 px-4 text-right">Actions</th>
                                     </tr>
@@ -8648,7 +8631,7 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
                                         if (filteredMeetings.length === 0) {
                                             return `
                                                 <tr>
-                                                    <td colspan="6" class="py-12 text-center text-slate-400 font-semibold italic bg-white border-0 rounded-b-2xl">
+                                                    <td colspan="5" class="py-12 text-center text-slate-400 font-semibold italic bg-white border-0 rounded-b-2xl">
                                                         No meetings found matching this criteria. Click 'Schedule New Meeting' to schedule one.
                                                     </td>
                                                 </tr>
@@ -8708,11 +8691,6 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
                                                     <td class="py-3.5 px-4">
                                                         ${getAttendeeBubblesHTML(m.contact_name)}
                                                     </td>
-                                                    <td class="py-3.5 px-4 font-semibold text-slate-700">
-                                                        ${m.company_name ? `<div class="truncate max-w-[120px]" title="${m.company_name}">${m.company_name}</div>` : ''}
-                                                        ${m.contact_name ? `<div class="text-[10px] text-slate-400 font-semibold mt-0.5 truncate max-w-[120px]" title="${m.contact_name}">${m.contact_name}</div>` : ''}
-                                                        ${!m.company_name && !m.contact_name ? '<span class="text-slate-350">-</span>' : ''}
-                                                    </td>
                                                     <td class="py-3.5 px-4">
                                                         <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${m.status === 'scheduled' ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : m.status === 'completed' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'}">
                                                             ${m.status.toUpperCase()}
@@ -8765,6 +8743,25 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
 
                     <!-- Right Column: Calendar Widget, Today's Agenda, Tip -->
                     <div class="space-y-6">
+                        <!-- Search & Filter Options Card -->
+                        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3 text-left">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Find Syncs</div>
+                            <div class="relative w-full">
+                                <input type="text" id="meetings-search-input" value="${searchQuery}" onkeydown="if(event.key === 'Enter') { window.renderMeetingsList(document.getElementById('main-content-viewport'), '${activeTab}', this.value); }" placeholder="Search meetings..." class="w-full pl-8 pr-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 bg-[#f8fafc] text-xs font-semibold text-slate-750 placeholder-slate-400 transition-all">
+                                <i data-lucide="search" class="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400"></i>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="showNotification('info', 'Filter feature coming soon')" class="flex-1 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-750 rounded-xl font-bold transition flex items-center justify-center space-x-1.5 text-xs shadow-sm focus:outline-none">
+                                    <i data-lucide="filter" class="h-3.5 w-3.5 text-slate-500"></i>
+                                    <span>Filter</span>
+                                </button>
+                                <button onclick="showNotification('info', 'Sort feature coming soon')" class="flex-1 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-750 rounded-xl font-bold transition flex items-center justify-center space-x-1.5 text-xs shadow-sm focus:outline-none">
+                                    <span>Sort: Nearest</span>
+                                    <i data-lucide="chevron-down" class="h-3.5 w-3.5 text-slate-400"></i>
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Monthly Calendar Widget -->
                         <div id="calendar-widget-container">
                             ${generateCalendarWidgetHTML(window.meetingsCalendarYear, window.meetingsCalendarMonth)}

@@ -10288,27 +10288,21 @@ window.renderBookingSetup = async function(container) {
                     const valClean = h24.substring(0, 5);
                     const isSelected = valClean === selectedClean;
                     const label = timeTo12h(h24);
-                    html += `<option value="${h24}" ${isSelected ? 'selected' : ''}>${label}</option>`;
-                }
-            }
-            return html;
-        }
-
-        function renderView() {
+           function renderView() {
             container.innerHTML = `
                 <div class="space-y-8 animate-fade-in text-slate-800 font-sans text-xs">
                     <!-- Header -->
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0 text-left">
-                        <div class="flex items-start space-x-3">
-                            <div class="h-10 w-10 bg-blue-50 border border-blue-100 text-blue-600 rounded-xl flex items-center justify-center shadow-sm shrink-0">
-                                <i data-lucide="link" class="h-5 w-5"></i>
+                        <div class="flex items-start space-x-3.5">
+                            <div class="h-11 w-11 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center shadow-xs shrink-0">
+                                <i data-lucide="link" class="h-5.5 w-5.5"></i>
                             </div>
                             <div>
-                                <h1 class="text-2xl font-extrabold text-slate-850">Booking Settings</h1>
+                                <h1 class="text-2xl font-black text-slate-850">Booking Settings</h1>
                                 <p class="text-slate-500 text-xs mt-0.5">Configure your availability and share your custom booking link.</p>
                             </div>
                         </div>
-                        <button onclick="window.location.hash = '#/meetings'" class="px-3.5 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl font-bold transition text-slate-550 hover:text-slate-800 shadow-xs bg-white text-xs flex items-center space-x-1.5 focus:outline-none">
+                        <button onclick="window.location.hash = '#/meetings'" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl font-bold transition text-slate-600 hover:text-slate-850 shadow-xs bg-white text-xs flex items-center space-x-1.5 focus:outline-none select-none">
                             <i data-lucide="arrow-left" class="h-4 w-4"></i>
                             <span>Back to Meetings</span>
                         </button>
@@ -10318,81 +10312,142 @@ window.renderBookingSetup = async function(container) {
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <!-- Configuration Form (Left 2 Columns) -->
                         <div class="lg:col-span-2 space-y-6">
-                            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 text-left">
-                                <div class="flex items-center space-x-2 border-b border-slate-100 pb-3">
-                                    <i data-lucide="clock" class="h-5 w-5 text-slate-500"></i>
-                                    <h3 class="text-sm font-bold text-slate-800">Weekly hours</h3>
+                            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-6 text-left">
+                                <!-- Card Header -->
+                                <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-100 pb-4 gap-4">
+                                    <div class="flex items-start space-x-3.5">
+                                        <div class="h-10 w-10 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-full flex items-center justify-center shrink-0">
+                                            <i data-lucide="clock" class="h-5 w-5"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-sm font-extrabold text-slate-800">Set your weekly availability</h3>
+                                            <p class="text-[11px] text-slate-400 font-semibold mt-0.5">Define when you're available for meetings.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Timezone selector placed in the header -->
+                                    <div class="text-left w-64 shrink-0">
+                                        <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Timezone</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-indigo-600">
+                                                <i data-lucide="globe" class="h-3.5 w-3.5"></i>
+                                            </div>
+                                            <select id="booking-timezone-select" class="w-full pl-8 pr-8 py-1.5 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-600 bg-white text-xs font-black text-slate-700 cursor-pointer appearance-none">
+                                                ${timezones.map(tz => `<option value="${tz.value}" ${profile.timezone === tz.value ? 'selected' : ''}>${tz.label}</option>`).join('')}
+                                            </select>
+                                            <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-400">
+                                                <i data-lucide="chevron-down" class="h-3.5 w-3.5"></i>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <p class="text-[11px] text-slate-400 -mt-3">Set when you are typically available for meetings.</p>
 
                                 <!-- Availability Rows List -->
                                 <div class="space-y-4 pt-2" id="avail-rows-container">
                                     <!-- Dynamic rows injected here -->
                                 </div>
 
-                                <!-- Timezone and Duration selection row -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
-                                    <div>
-                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Time zone</label>
-                                        <select id="booking-timezone-select" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 bg-white text-xs font-semibold text-slate-750 transition-all cursor-pointer">
-                                            ${timezones.map(tz => `<option value="${tz.value}" ${profile.timezone === tz.value ? 'selected' : ''}>${tz.label}</option>`).join('')}
-                                        </select>
-                                    </div>
+                                <!-- Bottom Info Notice -->
+                                <div class="bg-indigo-50/50 border border-indigo-100/50 rounded-2xl p-4 flex items-center space-x-3 text-left">
+                                    <i data-lucide="info" class="h-4.5 w-4.5 text-indigo-600 shrink-0"></i>
+                                    <div class="text-[10px] text-slate-500 font-bold leading-normal">Your availability will be checked against existing meetings to avoid double bookings.</div>
+                                </div>
+
+                                <!-- Duration and Save Changes Row -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100 items-end">
                                     <div>
                                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Meeting Duration</label>
-                                        <select id="booking-duration-select" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 bg-white text-xs font-semibold text-slate-750 transition-all cursor-pointer">
+                                        <select id="booking-duration-select" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-600 bg-white text-xs font-bold text-slate-750 transition-all cursor-pointer">
                                             <option value="15" ${profile.duration_minutes === 15 ? 'selected' : ''}>15 minutes</option>
                                             <option value="30" ${profile.duration_minutes === 30 ? 'selected' : ''}>30 minutes</option>
                                             <option value="45" ${profile.duration_minutes === 45 ? 'selected' : ''}>45 minutes</option>
                                             <option value="60" ${profile.duration_minutes === 60 ? 'selected' : ''}>60 minutes</option>
                                         </select>
                                     </div>
-                                </div>
-
-                                <!-- Save Changes -->
-                                <div class="pt-4 flex justify-end">
-                                    <button id="save-booking-btn" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition flex items-center space-x-1.5 shadow-md text-xs focus:outline-none" style="color: #ffffff !important;">
-                                        <i data-lucide="check" class="h-4 w-4 text-white"></i>
-                                        <span>Save Changes</span>
-                                    </button>
+                                    <div class="flex justify-end">
+                                        <button id="save-booking-btn" class="w-full md:w-auto px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black transition flex items-center justify-center space-x-1.5 shadow-md text-xs focus:outline-none" style="color: #ffffff !important;">
+                                            <i data-lucide="check" class="h-4 w-4 text-white"></i>
+                                            <span>Save Changes</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Link Sharing Info (Right Column) -->
                         <div class="lg:col-span-1 space-y-6">
-                            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4 text-left">
+                            <!-- Link Share Card -->
+                            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4 text-left">
                                 <div class="flex items-center space-x-2 border-b border-slate-100 pb-2">
-                                    <i data-lucide="share-2" class="h-4 w-4 text-blue-600"></i>
-                                    <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Your Booking Link</h4>
+                                    <i data-lucide="share-2" class="h-4.5 w-4.5 text-indigo-600"></i>
+                                    <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider">Your Booking Link</h4>
                                 </div>
-                                <p class="text-[11px] text-slate-400 leading-relaxed">Share this link with prospects and clients so they can instantly choose slots on your calendar.</p>
+                                <p class="text-[11px] text-slate-400 leading-relaxed font-semibold">Share this link with prospects and clients so they can instantly choose a time that works for them.</p>
                                 
                                 <div class="flex items-center space-x-1.5">
-                                    <input type="text" readonly value="${bookingUrl}" class="flex-grow px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 select-all focus:outline-none">
-                                    <button id="copy-booking-link-btn" class="p-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-500 hover:text-slate-800 transition focus:outline-none shrink-0" title="Copy to clipboard">
+                                    <input type="text" readonly value="${bookingUrl}" class="flex-grow px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 select-all focus:outline-none">
+                                    <button id="copy-booking-link-btn" class="p-2.5 border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-400 hover:text-slate-700 transition focus:outline-none shrink-0" title="Copy to clipboard">
                                         <i data-lucide="copy" class="h-4 w-4"></i>
                                     </button>
                                 </div>
                                 
-                                <div class="pt-2">
-                                    <a href="${bookingUrl}" target="_blank" class="w-full py-2 bg-blue-50 border border-blue-150 hover:bg-blue-600 hover:text-white text-blue-650 rounded-xl font-bold transition flex items-center justify-center space-x-1.5 text-xs focus:outline-none" style="color: #2563eb;">
+                                <div class="space-y-2 pt-2">
+                                    <a href="${bookingUrl}" target="_blank" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl transition flex items-center justify-center space-x-1.5 text-xs shadow-md focus:outline-none" style="color: #ffffff !important;">
                                         <i data-lucide="external-link" class="h-3.5 w-3.5"></i>
+                                        <span>Open Booking Page</span>
+                                    </a>
+                                    <a href="${bookingUrl}" target="_blank" class="w-full py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-800 font-bold rounded-xl transition flex items-center justify-center space-x-1.5 text-xs focus:outline-none bg-white shadow-xs">
+                                        <i data-lucide="globe" class="h-3.5 w-3.5"></i>
                                         <span>Test Booking Page</span>
                                     </a>
                                 </div>
                             </div>
 
-                            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3.5 text-left">
-                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center space-x-1.5">
-                                    <i data-lucide="shield-check" class="h-4 w-4 text-emerald-500"></i>
+                            <!-- How it Works Card -->
+                            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4 text-left">
+                                <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center space-x-1.5">
+                                    <i data-lucide="check-circle" class="h-4.5 w-4.5 text-emerald-500"></i>
                                     <span>How it works</span>
                                 </h4>
-                                <ul class="space-y-2 text-[11px] text-slate-400 pl-4 list-disc leading-relaxed">
-                                    <li>When visitors book, LinkPilot creates a new contact in your CRM.</li>
-                                    <li>The system checks your availability schedule and excludes busy slots from existing CRM meetings automatically.</li>
-                                    <li>If Google Calendar or Zoom is connected, calendar events and video links sync instantly.</li>
-                                </ul>
+                                <div class="space-y-3">
+                                    <div class="flex items-start space-x-2.5">
+                                        <div class="h-5 w-5 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100 text-indigo-500 shrink-0 mt-0.5">
+                                            <i data-lucide="user-plus" class="h-3 w-3"></i>
+                                        </div>
+                                        <p class="text-[10px] text-slate-400 font-bold leading-normal">When visitors book, LinkPilot creates a new contact in your CRM.</p>
+                                    </div>
+                                    <div class="flex items-start space-x-2.5">
+                                        <div class="h-5 w-5 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100 text-indigo-500 shrink-0 mt-0.5">
+                                            <i data-lucide="calendar-check" class="h-3 w-3"></i>
+                                        </div>
+                                        <p class="text-[10px] text-slate-400 font-bold leading-normal">The system checks your availability schedule and excludes busy slots from existing CRM meetings automatically.</p>
+                                    </div>
+                                    <div class="flex items-start space-x-2.5">
+                                        <div class="h-5 w-5 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100 text-indigo-500 shrink-0 mt-0.5">
+                                            <i data-lucide="refresh-cw" class="h-3 w-3"></i>
+                                        </div>
+                                        <p class="text-[10px] text-slate-400 font-bold leading-normal">If Google Calendar or Zoom is connected, calendar events and video links sync instantly.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Calendar Integration Box -->
+                            <div class="bg-indigo-50 border border-indigo-150 rounded-2xl p-5 relative text-left flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <button onclick="this.parentElement.remove()" class="absolute top-3 right-3 text-indigo-400 hover:text-indigo-600 transition focus:outline-none">
+                                    <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                                </button>
+                                <div class="flex items-start space-x-3.5">
+                                    <div class="h-9 w-9 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center shrink-0 border border-indigo-200">
+                                        <i data-lucide="calendar" class="h-4.5 w-4.5"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-black text-slate-850">Connect your calendar</h4>
+                                        <p class="text-[10px] text-slate-500 font-semibold mt-0.5 leading-normal max-w-sm">Sync your availability with Google Calendar or Zoom for a seamless experience.</p>
+                                    </div>
+                                </div>
+                                <button class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-lg transition text-[10px] shrink-0 focus:outline-none" style="color: #ffffff !important;">
+                                    Manage Integration
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -10416,48 +10471,78 @@ window.renderBookingSetup = async function(container) {
                 const isActive = daySlots.length > 0;
 
                 html += `
-                    <div class="flex flex-col md:flex-row md:items-center space-y-2.5 md:space-y-0 md:space-x-4 pb-3 border-b border-slate-50 last:border-0 last:pb-0">
-                        <!-- Day Bubble Selector -->
-                        <div class="flex items-center space-x-3 w-32 shrink-0 select-none">
-                            <button onclick="window.toggleDayActive(${day.index})" class="h-8 w-8 rounded-full border flex items-center justify-center font-bold text-xs transition duration-150 focus:outline-none ${isActive ? 'bg-[#0f172a] text-white border-[#0f172a]' : 'bg-white text-slate-400 border-slate-200 hover:border-slate-400'}">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 last:border-0 last:pb-0 min-h-[52px]">
+                        <!-- Left Block: Day bubble, Name, Toggle -->
+                        <div class="flex items-center space-x-4 flex-grow">
+                            <!-- Day Bubble Label -->
+                            <div class="h-8 w-8 rounded-full border border-slate-200 bg-white text-slate-700 flex items-center justify-center font-bold text-xs shrink-0 select-none shadow-xxs">
                                 ${day.label}
-                            </button>
-                            <span class="text-xs font-bold text-slate-700">${day.name}</span>
+                            </div>
+                            <!-- Day Name -->
+                            <div class="text-xs font-black text-slate-800 w-20 shrink-0 text-left">
+                                ${day.name}
+                            </div>
+                            
+                            <!-- Toggle switch -->
+                            <div class="flex items-center shrink-0 pr-2">
+                                <label class="relative inline-flex items-center cursor-pointer select-none">
+                                    <input type="checkbox" onchange="window.toggleDayActive(${day.index})" ${isActive ? 'checked' : ''} class="sr-only peer">
+                                    <div class="w-8 h-4.5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                </label>
+                            </div>
+
+                            <!-- Config / Times list or Unavailable status -->
+                            <div class="flex-grow flex flex-col space-y-2">
+                                ${isActive ? daySlots.map((slot, sIdx) => `
+                                    <div class="flex items-center space-x-2.5 animate-fade-in text-left">
+                                        <!-- Start Time Dropdown -->
+                                        <div class="relative shrink-0">
+                                            <select onchange="window.updateSlotTime(${day.index}, ${sIdx}, 'start_time', this.value)" class="pl-3 pr-8 py-1.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-600 text-xs font-black text-slate-700 cursor-pointer appearance-none">
+                                                ${generateTimeOptions(slot.start_time)}
+                                            </select>
+                                            <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-400">
+                                                <i data-lucide="chevron-down" class="h-3.5 w-3.5"></i>
+                                            </div>
+                                        </div>
+                                        
+                                        <span class="text-slate-400 font-bold select-none">-</span>
+                                        
+                                        <!-- End Time Dropdown -->
+                                        <div class="relative shrink-0">
+                                            <select onchange="window.updateSlotTime(${day.index}, ${sIdx}, 'end_time', this.value)" class="pl-3 pr-8 py-1.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-600 text-xs font-black text-slate-700 cursor-pointer appearance-none">
+                                                ${generateTimeOptions(slot.end_time)}
+                                            </select>
+                                            <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-400">
+                                                <i data-lucide="chevron-down" class="h-3.5 w-3.5"></i>
+                                            </div>
+                                        </div>
+
+                                        <!-- Plus Button (Add Interval) -->
+                                        <button onclick="window.addSlot(${day.index})" class="h-7 w-7 border border-indigo-150 text-indigo-650 hover:bg-indigo-50 rounded-lg flex items-center justify-center transition shrink-0 focus:outline-none" title="Add interval">
+                                            <i data-lucide="plus" class="h-4 w-4"></i>
+                                        </button>
+                                        
+                                        <!-- Duplicate Button (Copy Hours) -->
+                                        <button onclick="window.copyHoursToActiveDays(${day.index})" class="h-7 w-7 border border-slate-200 text-slate-450 hover:text-slate-700 hover:bg-slate-50 rounded-lg flex items-center justify-center transition shrink-0 focus:outline-none" title="Copy to other days">
+                                            <i data-lucide="copy" class="h-4 w-4"></i>
+                                        </button>
+
+                                        <!-- Delete / Trash Button -->
+                                        <button onclick="window.removeSlot(${day.index}, ${sIdx})" class="h-7 w-7 border border-slate-200 text-rose-500 hover:bg-rose-50 rounded-lg flex items-center justify-center transition shrink-0 focus:outline-none" title="Remove interval">
+                                            <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                        </button>
+                                    </div>
+                                `).join('') : `
+                                    <div class="text-left">
+                                        <span class="px-2.5 py-0.5 bg-slate-50 border border-slate-100 text-slate-400 rounded-full font-extrabold text-[10px] uppercase select-none">Unavailable</span>
+                                    </div>
+                                `}
+                            </div>
                         </div>
-
-                        <!-- Slots range configuration -->
-                        <div class="flex-grow space-y-2">
-                            ${isActive ? daySlots.map((slot, sIdx) => `
-                                <div class="flex items-center space-x-2 animate-fade-in">
-                                    <!-- Start Time Select -->
-                                    <select onchange="window.updateSlotTime(${day.index}, ${sIdx}, 'start_time', this.value)" class="px-2.5 py-1.5 bg-[#f8fafc] border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 text-xs font-semibold text-slate-750 cursor-pointer">
-                                        ${generateTimeOptions(slot.start_time)}
-                                    </select>
-                                    <span class="text-slate-400 font-semibold">-</span>
-                                    <!-- End Time Select -->
-                                    <select onchange="window.updateSlotTime(${day.index}, ${sIdx}, 'end_time', this.value)" class="px-2.5 py-1.5 bg-[#f8fafc] border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 text-xs font-semibold text-slate-750 cursor-pointer">
-                                        ${generateTimeOptions(slot.end_time)}
-                                    </select>
-
-                                    <!-- Delete Slot Action -->
-                                    <button onclick="window.removeSlot(${day.index}, ${sIdx})" class="p-1 hover:bg-slate-100 border border-transparent hover:border-slate-200 text-slate-450 hover:text-rose-600 rounded-lg transition focus:outline-none" title="Remove slot">
-                                        <i data-lucide="x" class="h-3.5 w-3.5"></i>
-                                    </button>
-
-                                    ${sIdx === 0 ? `
-                                        <!-- Add Slot button -->
-                                        <button onclick="window.addSlot(${day.index})" class="p-1 hover:bg-slate-100 border border-transparent hover:border-slate-200 text-slate-450 hover:text-blue-600 rounded-lg transition focus:outline-none" title="Add another interval">
-                                            <i data-lucide="plus" class="h-3.5 w-3.5"></i>
-                                        </button>
-                                        <!-- Copy slots to other days -->
-                                        <button onclick="window.copyHoursToActiveDays(${day.index})" class="p-1 hover:bg-slate-100 border border-transparent hover:border-slate-200 text-slate-450 hover:text-indigo-600 rounded-lg transition focus:outline-none" title="Copy to active days">
-                                            <i data-lucide="copy" class="h-3.5 w-3.5"></i>
-                                        </button>
-                                    ` : ''}
-                                </div>
-                            `).join('') : `
-                                <div class="text-[11px] text-slate-400 font-semibold italic py-1">Unavailable</div>
-                            `}
+                        
+                        <!-- Far Right arrow-down -->
+                        <div class="pl-4 shrink-0">
+                            <i data-lucide="chevron-down" class="h-4 w-4 text-slate-400 select-none"></i>
                         </div>
                     </div>
                 `;

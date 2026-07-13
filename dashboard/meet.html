@@ -88,7 +88,9 @@
             width: 120px;
             height: 120px;
             overflow: hidden;
-            pointer-events: none;
+            pointer-events: auto;
+            cursor: pointer;
+            z-index: 40;
         }
         .ribbon-inner {
             text-align: center;
@@ -114,9 +116,9 @@
     <!-- Overall Booking Container -->
     <div class="w-full max-w-6xl premium-container overflow-hidden relative flex flex-col min-h-[580px]">
         <!-- Powered by LinkPilot Badge -->
-        <div class="ribbon">
+        <a href="https://linkpilot.work" target="_blank" class="ribbon">
             <span class="ribbon-inner">POWERED BY<br>LinkPilot</span>
-        </div>
+        </a>
 
         <!-- Initial loading state -->
         <div id="booking-loading" class="absolute inset-0 bg-white z-50 flex flex-col items-center justify-center space-y-4">

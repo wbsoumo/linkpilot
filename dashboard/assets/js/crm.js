@@ -8418,7 +8418,24 @@ async function renderMeetings(container) {
     }
 }
 
-window.renderMeetingsList = async function(container, activeTab = 'upcoming', searchQuery = '') {
+window.renderMeetingsList = async function(container, activeTab = null, searchQuery = null, filterType = null, sortOrder = null) {
+    if (activeTab !== null) window.currentMeetingsTab = activeTab;
+    else if (!window.currentMeetingsTab) window.currentMeetingsTab = 'upcoming';
+
+    if (searchQuery !== null) window.currentMeetingsSearchQuery = searchQuery;
+    else if (window.currentMeetingsSearchQuery === undefined || window.currentMeetingsSearchQuery === null) window.currentMeetingsSearchQuery = '';
+
+    if (filterType !== null) window.currentMeetingsFilterType = filterType;
+    else if (!window.currentMeetingsFilterType) window.currentMeetingsFilterType = 'all';
+
+    if (sortOrder !== null) window.currentMeetingsSortOrder = sortOrder;
+    else if (!window.currentMeetingsSortOrder) window.currentMeetingsSortOrder = 'nearest';
+
+    activeTab = window.currentMeetingsTab;
+    searchQuery = window.currentMeetingsSearchQuery;
+    const filterVal = window.currentMeetingsFilterType;
+    const sortVal = window.currentMeetingsSortOrder;
+
     container.innerHTML = `
         <div class="flex items-center justify-center py-12">
             <i data-lucide="loader-2" class="h-8 w-8 animate-spin text-rose-500"></i>
@@ -8511,6 +8528,40 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
             );
         }
 
+        // Location Type filter
+        if (filterVal !== 'all') {
+            filteredMeetings = filteredMeetings.filter(m => {
+                const isZoom = m.location && (m.location.includes('Zoom') || m.location.includes('zoom') || m.location.includes('zoom.us') || m.location.includes('zoom.com'));
+                const isGoogle = m.location && (m.location.includes('Google') || m.location.includes('google') || m.location.includes('meet.google.com'));
+                
+                if (filterVal === 'zoom') return isZoom;
+                if (filterVal === 'google_meet') return isGoogle;
+                if (filterVal === 'physical') return !isZoom && !isGoogle;
+                return true;
+            });
+        }
+
+        // Sort order
+        if (sortVal === 'nearest') {
+            filteredMeetings.sort((a, b) => {
+                const timeA = new Date(a.start_time.replace(' ', 'T')).getTime();
+                const timeB = new Date(b.start_time.replace(' ', 'T')).getTime();
+                return timeA - timeB;
+            });
+        } else if (sortVal === 'furthest') {
+            filteredMeetings.sort((a, b) => {
+                const timeA = new Date(a.start_time.replace(' ', 'T')).getTime();
+                const timeB = new Date(b.start_time.replace(' ', 'T')).getTime();
+                return timeB - timeA;
+            });
+        } else if (sortVal === 'title_asc') {
+            filteredMeetings.sort((a, b) => {
+                const titleA = (a.title || '').toLowerCase();
+                const titleB = (b.title || '').toLowerCase();
+                return titleA.localeCompare(titleB);
+            });
+        }
+
         // Compute Stat values
         const totalMeetingsCount = meetings.length;
         const upcomingCount = upcomingList.length;
@@ -8594,10 +8645,10 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
                     <div class="lg:col-span-2 space-y-4">
                         <div class="border-b border-slate-200 pb-2 text-left">
                             <div class="flex space-x-6 font-bold text-xs">
-                                <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'upcoming', '${searchQuery}')" class="pb-2 transition border-b-2 ${activeTab === 'upcoming' ? 'border-blue-600 text-blue-600 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">Upcoming</button>
-                                <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'all', '${searchQuery}')" class="pb-2 transition border-b-2 ${activeTab === 'all' ? 'border-blue-600 text-blue-600 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">All Meetings</button>
-                                <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'completed', '${searchQuery}')" class="pb-2 transition border-b-2 ${activeTab === 'completed' ? 'border-blue-600 text-blue-600 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">Completed</button>
-                                <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'cancelled', '${searchQuery}')" class="pb-2 transition border-b-2 ${activeTab === 'cancelled' ? 'border-blue-600 text-blue-600 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">Cancelled</button>
+                                <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'upcoming')" class="pb-2 transition border-b-2 ${activeTab === 'upcoming' ? 'border-blue-600 text-blue-600 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">Upcoming</button>
+                                <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'all')" class="pb-2 transition border-b-2 ${activeTab === 'all' ? 'border-blue-600 text-blue-600 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">All Meetings</button>
+                                <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'completed')" class="pb-2 transition border-b-2 ${activeTab === 'completed' ? 'border-blue-600 text-blue-600 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">Completed</button>
+                                <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'cancelled')" class="pb-2 transition border-b-2 ${activeTab === 'cancelled' ? 'border-blue-600 text-blue-600 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">Cancelled</button>
                             </div>
                         </div>
 
@@ -8743,14 +8794,23 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
                                 <i data-lucide="search" class="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400"></i>
                             </div>
                             <div class="flex items-center space-x-2">
-                                <button onclick="showNotification('info', 'Filter feature coming soon')" class="flex-1 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-750 rounded-xl font-bold transition flex items-center justify-center space-x-1.5 text-xs shadow-sm focus:outline-none">
-                                    <i data-lucide="filter" class="h-3.5 w-3.5 text-slate-500"></i>
-                                    <span>Filter</span>
-                                </button>
-                                <button onclick="showNotification('info', 'Sort feature coming soon')" class="flex-1 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-750 rounded-xl font-bold transition flex items-center justify-center space-x-1.5 text-xs shadow-sm focus:outline-none">
-                                    <span>Sort: Nearest</span>
-                                    <i data-lucide="chevron-down" class="h-3.5 w-3.5 text-slate-400"></i>
-                                </button>
+                                <div class="flex-1 relative">
+                                    <select onchange="window.renderMeetingsList(document.getElementById('main-content-viewport'), null, null, this.value, null)" class="w-full pl-8 pr-2 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold text-xs shadow-sm focus:outline-none appearance-none cursor-pointer">
+                                        <option value="all" ${filterVal === 'all' ? 'selected' : ''}>All Locations</option>
+                                        <option value="zoom" ${filterVal === 'zoom' ? 'selected' : ''}>Zoom</option>
+                                        <option value="google_meet" ${filterVal === 'google_meet' ? 'selected' : ''}>Google Meet</option>
+                                        <option value="physical" ${filterVal === 'physical' ? 'selected' : ''}>Physical / Phone</option>
+                                    </select>
+                                    <i data-lucide="filter" class="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500 pointer-events-none"></i>
+                                </div>
+                                <div class="flex-1 relative">
+                                    <select onchange="window.renderMeetingsList(document.getElementById('main-content-viewport'), null, null, null, this.value)" class="w-full pl-3 pr-8 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold text-xs shadow-sm focus:outline-none appearance-none cursor-pointer">
+                                        <option value="nearest" ${sortVal === 'nearest' ? 'selected' : ''}>Sort: Nearest</option>
+                                        <option value="furthest" ${sortVal === 'furthest' ? 'selected' : ''}>Sort: Furthest</option>
+                                        <option value="title_asc" ${sortVal === 'title_asc' ? 'selected' : ''}>Sort: A-Z</option>
+                                    </select>
+                                    <i data-lucide="chevron-down" class="absolute right-3 top-3 h-3.5 w-3.5 text-slate-400 pointer-events-none"></i>
+                                </div>
                             </div>
                         </div>
 

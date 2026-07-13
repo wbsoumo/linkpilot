@@ -131,7 +131,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-4 flex-grow min-h-[480px]">
             
             <!-- LEFT PANEL: Host details and schedule info (1 column) -->
-            <div class="lg:col-span-1 border-r border-slate-100 p-6 flex flex-col justify-between text-left">
+            <div class="lg:col-span-1 bg-[#f5f6ff] border-r border-[#e2e8f0]/60 p-6 flex flex-col justify-between text-left">
                 <div class="space-y-6">
                     <!-- Back Button link -->
                     <button id="back-btn" class="flex items-center space-x-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 transition focus:outline-none select-none">
@@ -140,16 +140,14 @@
                     </button>
 
                     <!-- Circular Calendar Icon -->
-                    <div class="h-16 w-16 rounded-full bg-indigo-50 flex items-center justify-center border border-indigo-100">
-                        <div class="h-12 w-12 rounded-full bg-indigo-600 flex items-center justify-center text-white">
-                            <i data-lucide="calendar" class="h-5 w-5"></i>
-                        </div>
+                    <div class="h-12 w-12 rounded-full bg-indigo-50 flex items-center justify-center border border-indigo-100/50 text-indigo-600">
+                        <i data-lucide="calendar" class="h-5 w-5"></i>
                     </div>
 
                     <!-- Host & Meeting Title -->
                     <div>
                         <span id="host-name" class="text-slate-400 font-bold text-xs tracking-wide">Host Name</span>
-                        <h2 id="meeting-title" class="text-2xl font-black text-slate-800 mt-1 leading-tight">
+                        <h2 id="meeting-title" class="text-3xl font-black text-slate-800 mt-2 leading-tight">
                             <span class="text-indigo-600 font-extrabold" id="meeting-duration-val">30</span> Minute Meeting
                         </h2>
                     </div>
@@ -190,12 +188,25 @@
                     </div>
                 </div>
 
-                <!-- Nice sparkling bottom promo card -->
-                <div class="mt-8 bg-indigo-50/50 border border-indigo-100/50 rounded-2xl p-4 flex items-start space-x-3">
-                    <i data-lucide="sparkles" class="h-5 w-5 text-indigo-600 shrink-0 mt-0.5"></i>
-                    <div>
-                        <div class="font-bold text-xs text-slate-800">Quick & Easy Scheduling</div>
-                        <div class="text-[10px] text-slate-400 leading-normal mt-0.5">Pick a date and time that works best for you. We'll handle the rest.</div>
+                <!-- Nice sparkling bottom promo card & Footer Links -->
+                <div class="space-y-6">
+                    <div class="bg-indigo-50/50 border border-indigo-100/50 rounded-2xl p-4 flex items-start space-x-3">
+                        <i data-lucide="sparkles" class="h-5 w-5 text-indigo-600 shrink-0 mt-0.5"></i>
+                        <div>
+                            <div class="font-bold text-xs text-slate-800">Quick & Easy Scheduling</div>
+                            <div class="text-[10px] text-slate-400 leading-normal mt-0.5">Pick a date and time that works best for you. We'll handle the rest.</div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-indigo-100/30 flex flex-col space-y-3.5 text-[10px] font-bold text-slate-450 uppercase tracking-wider select-none">
+                        <button onclick="openPrivacyPolicyPopup()" class="flex items-center space-x-2.5 hover:text-indigo-600 text-left transition focus:outline-none">
+                            <i data-lucide="shield" class="h-4 w-4 text-indigo-500"></i>
+                            <span>Privacy Policy</span>
+                        </button>
+                        <button onclick="openCookieSettingsPopup()" class="flex items-center space-x-2.5 hover:text-indigo-600 text-left transition focus:outline-none">
+                            <i data-lucide="cookie" class="h-4 w-4 text-indigo-500"></i>
+                            <span>Cookie Settings</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -311,44 +322,52 @@
             <!-- STEP 3: Success Confirmation View (3 columns) -->
             <div id="step-success" class="hidden lg:col-span-3 p-8 flex flex-col items-center justify-start space-y-6 overflow-y-auto max-h-[580px] custom-scrollbar">
                 <!-- Checkmark Icon Circle with background sparkles -->
-                <div class="flex flex-col items-center relative mt-2">
-                    <div class="h-16 w-16 bg-[#e6fbf2] border border-[#a7f3d0] rounded-full flex items-center justify-center shadow-xs text-emerald-600 relative">
-                        <i data-lucide="check" class="h-7 w-7 stroke-[3px]"></i>
+                <div class="flex flex-col items-center relative mt-2 text-center">
+                    <div class="relative flex justify-center">
+                        <div class="h-12 w-12 bg-[#e6fbf2] border border-[#a7f3d0] rounded-full flex items-center justify-center text-emerald-600 relative">
+                            <i data-lucide="check" class="h-5.5 w-5.5 stroke-[3px]"></i>
+                        </div>
+                        <span class="absolute left-[-16px] top-[-8px] text-indigo-400">
+                            <i data-lucide="sparkles" class="h-4.5 w-4.5 animate-pulse"></i>
+                        </span>
+                        <span class="absolute right-[-16px] bottom-[-8px] text-teal-400">
+                            <i data-lucide="sparkles" class="h-4 w-4 animate-pulse"></i>
+                        </span>
                     </div>
                     <h3 class="text-2xl font-black text-slate-800 mt-4 leading-tight">You're all set!</h3>
                     <p class="text-xs text-slate-400 font-bold mt-1">A calendar invitation has been sent to your email address.</p>
                     
                     <button class="mt-4 px-5 py-2 border border-slate-200 hover:bg-slate-50 text-indigo-600 font-bold rounded-xl transition text-xs shadow-xxs bg-white flex items-center space-x-1.5 focus:outline-none select-none">
-                        <i data-lucide="mail" class="h-4 w-4"></i>
+                        <i data-lucide="mail" class="h-4 w-4 text-indigo-500"></i>
                         <span>Open Invitation</span>
                         <i data-lucide="external-link" class="h-3.5 w-3.5 text-indigo-400"></i>
                     </button>
                 </div>
 
                 <!-- Confirmation details card -->
-                <div class="border border-slate-200 rounded-t-2xl p-6 bg-white shadow-xxs max-w-xl w-full text-left space-y-4">
+                <div class="border border-slate-200/80 rounded-2xl p-6 bg-white shadow-xxs max-w-xl w-full text-left space-y-4">
                     <div class="flex items-center space-x-2.5 border-b border-slate-100 pb-3.5">
-                        <div class="h-7 w-7 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
-                            <i data-lucide="calendar" class="h-4 w-4"></i>
+                        <div class="h-7 w-7 rounded-lg bg-indigo-50 border border-indigo-100/50 flex items-center justify-center text-indigo-650">
+                            <i data-lucide="calendar" class="h-4 w-4 text-indigo-600"></i>
                         </div>
-                        <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider">Meeting Details</h4>
+                        <h4 class="text-xs font-black text-slate-850 tracking-wide">Meeting Details</h4>
                     </div>
                     
                     <div class="space-y-4 text-xs font-semibold text-slate-600">
                         <!-- Host Row -->
                         <div class="flex items-center justify-between border-b border-slate-50 pb-3">
                             <div class="flex items-center space-x-2.5 text-slate-400">
-                                <i data-lucide="user" class="h-4.5 w-4.5 shrink-0"></i>
-                                <span class="font-bold">Host</span>
+                                <i data-lucide="user" class="h-4.5 w-4.5 text-indigo-500 shrink-0"></i>
+                                <span class="font-bold text-slate-450 uppercase tracking-wider text-[10px]">Host</span>
                             </div>
-                            <span id="success-host-name" class="font-extrabold text-slate-850">Soumojit Saha</span>
+                            <span id="success-host-name" class="font-extrabold text-slate-800">Soumojit Saha</span>
                         </div>
                         
                         <!-- Date & Time Row -->
                         <div class="flex items-center justify-between border-b border-slate-50 pb-3">
                             <div class="flex items-center space-x-2.5 text-slate-400">
-                                <i data-lucide="calendar-days" class="h-4.5 w-4.5 shrink-0"></i>
-                                <span class="font-bold">Date & Time</span>
+                                <i data-lucide="calendar-days" class="h-4.5 w-4.5 text-indigo-500 shrink-0"></i>
+                                <span class="font-bold text-slate-450 uppercase tracking-wider text-[10px]">Date & Time</span>
                             </div>
                             <span id="success-datetime" class="font-extrabold text-slate-850">Monday, 13 July 2026 • 06:00 PM – 06:30 PM</span>
                         </div>
@@ -356,8 +375,8 @@
                         <!-- Time Zone Row -->
                         <div class="flex items-center justify-between border-b border-slate-50 pb-3">
                             <div class="flex items-center space-x-2.5 text-slate-400">
-                                <i data-lucide="globe" class="h-4.5 w-4.5 shrink-0"></i>
-                                <span class="font-bold">Time Zone</span>
+                                <i data-lucide="globe" class="h-4.5 w-4.5 text-indigo-500 shrink-0"></i>
+                                <span class="font-bold text-slate-450 uppercase tracking-wider text-[10px]">Time Zone</span>
                             </div>
                             <span id="success-timezone" class="font-extrabold text-slate-850">Asia/Kolkata (GMT+05:30)</span>
                         </div>
@@ -365,65 +384,75 @@
                         <!-- Location / Conferencing Details Row -->
                         <div class="flex items-center justify-between pb-1">
                             <div class="flex items-center space-x-2.5 text-slate-400">
-                                <i data-lucide="video" class="h-4.5 w-4.5 shrink-0"></i>
-                                <span id="success-location-label" class="font-bold">Join with Zoom</span>
+                                <i data-lucide="video" class="h-4.5 w-4.5 text-indigo-500 shrink-0"></i>
+                                <span id="success-location-label" class="font-bold text-slate-450 uppercase tracking-wider text-[10px]">Join with Zoom</span>
                             </div>
-                            <span id="success-location" class="font-extrabold text-slate-850 truncate max-w-xs md:max-w-md"></span>
-                        </div>
-                    </div>
-
-                    <!-- Green Booking Confirmed alert box -->
-                    <div class="mt-2 bg-[#ecfdf5] border border-[#d1fae5] rounded-2xl p-4 flex items-center justify-between relative overflow-hidden">
-                        <div class="flex items-center space-x-3 z-10">
-                            <div class="h-8 w-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-xs shrink-0">
-                                <i data-lucide="check" class="h-4.5 w-4.5"></i>
-                            </div>
-                            <div class="text-left col-span-2">
-                                <div class="font-black text-xs text-emerald-800">Your booking is confirmed</div>
-                                <div class="text-[10px] text-emerald-600 font-bold mt-0.5">We look forward to meeting with you!</div>
-                            </div>
-                        </div>
-                        <!-- Mock calendar illustration art in SVG on the right -->
-                        <div class="absolute right-3 top-2 opacity-90 select-none hidden md:block">
-                            <svg width="68" height="52" viewBox="0 0 68 52" fill="none" class="drop-shadow-xs">
-                                <rect x="4" y="8" width="44" height="38" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-                                <path d="M4 18H48" stroke="#cbd5e1" stroke-width="1.5"/>
-                                <circle cx="12" cy="4" r="2.5" fill="#818cf8"/>
-                                <circle cx="40" cy="4" r="2.5" fill="#818cf8"/>
-                                <path d="M12 4V10" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round"/>
-                                <path d="M40 4V10" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round"/>
-                                <rect x="10" y="24" width="6" height="5" rx="1.5" fill="#f1f5f9"/>
-                                <rect x="20" y="24" width="6" height="5" rx="1.5" fill="#f1f5f9"/>
-                                <rect x="30" y="24" width="6" height="5" rx="1.5" fill="#34d399"/>
-                                <rect x="10" y="33" width="6" height="5" rx="1.5" fill="#f1f5f9"/>
-                                <rect x="20" y="33" width="6" height="5" rx="1.5" fill="#f1f5f9"/>
-                                <rect x="30" y="33" width="6" height="5" rx="1.5" fill="#f1f5f9"/>
-                                <!-- plant -->
-                                <path d="M56 46C56 36 50 32 50 32C50 32 52 40 50 46" stroke="#10b981" stroke-width="1.5" stroke-linecap="round"/>
-                                <path d="M52 38C54 32 58 30 58 30C58 30 55 35 52 38Z" fill="#34d399"/>
-                                <path d="M48 40C46 35 42 34 42 34C42 34 45 38 48 40Z" fill="#34d399"/>
-                                <path d="M46 46H54V44C54 43 53.1 42 52 42H48C46.9 42 46 43 46 44V46Z" fill="#94a3b8"/>
-                            </svg>
+                            <a id="success-location" href="#" target="_blank" class="font-extrabold text-indigo-600 hover:underline truncate max-w-xs md:max-w-md"></a>
                         </div>
                     </div>
                 </div>
 
+                <!-- Green Booking Confirmed alert box -->
+                <div class="border border-emerald-100/70 bg-[#ecfdf5] rounded-2xl p-4 flex items-center justify-between relative overflow-hidden max-w-xl w-full">
+                    <div class="flex items-center space-x-3 z-10">
+                        <div class="h-8 w-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-xs shrink-0">
+                            <i data-lucide="check" class="h-4.5 w-4.5"></i>
+                        </div>
+                        <div class="text-left col-span-2">
+                            <div class="font-black text-xs text-emerald-800">Your booking is confirmed</div>
+                            <div class="text-[10px] text-emerald-600 font-bold mt-0.5">We look forward to meeting with you!</div>
+                        </div>
+                    </div>
+                    <!-- Mock calendar illustration art in SVG on the right -->
+                    <div class="absolute right-3 top-2 opacity-90 select-none hidden md:block">
+                        <svg width="68" height="52" viewBox="0 0 68 52" fill="none" class="drop-shadow-xs">
+                            <rect x="4" y="8" width="44" height="38" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+                            <path d="M4 18H48" stroke="#cbd5e1" stroke-width="1.5"/>
+                            <circle cx="12" cy="4" r="2.5" fill="#818cf8"/>
+                            <circle cx="40" cy="4" r="2.5" fill="#818cf8"/>
+                            <path d="M12 4V10" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round"/>
+                            <path d="M40 4V10" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round"/>
+                            <rect x="10" y="24" width="6" height="5" rx="1.5" fill="#f1f5f9"/>
+                            <rect x="20" y="24" width="6" height="5" rx="1.5" fill="#f1f5f9"/>
+                            <rect x="30" y="24" width="6" height="5" rx="1.5" fill="#34d399"/>
+                            <rect x="10" y="33" width="6" height="5" rx="1.5" fill="#f1f5f9"/>
+                            <rect x="20" y="33" width="6" height="5" rx="1.5" fill="#f1f5f9"/>
+                            <rect x="30" y="33" width="6" height="5" rx="1.5" fill="#f1f5f9"/>
+                            <!-- plant -->
+                            <path d="M56 46C56 36 50 32 50 32C50 32 52 40 50 46" stroke="#10b981" stroke-width="1.5" stroke-linecap="round"/>
+                            <path d="M52 38C54 32 58 30 58 30C58 30 55 35 52 38Z" fill="#34d399"/>
+                            <path d="M48 40C46 35 42 34 42 34C42 34 45 38 48 40Z" fill="#34d399"/>
+                            <path d="M46 46H54V44C54 43 53.1 42 52 42H48C46.9 42 46 43 46 44V46Z" fill="#94a3b8"/>
+                        </svg>
+                    </div>
+                </div>
+
                 <!-- Add to Calendar widget -->
-                <div class="bg-[#f8fafc] border border-slate-200 border-t-0 rounded-b-2xl p-5 flex flex-col md:flex-row justify-between items-center max-w-xl w-full mx-auto gap-4 mt-[-24px]">
+                <div class="bg-[#f8fafc] border border-slate-200 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-center max-w-xl w-full mx-auto gap-4">
                     <div class="text-left">
                         <div class="font-extrabold text-xs text-slate-800">Add to your calendar</div>
-                        <div class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Never miss this meeting.</div>
+                        <div class="text-[10px] text-slate-400 font-bold mt-0.5">Never miss this meeting.</div>
                     </div>
                     <div class="flex items-center space-x-2.5">
-                        <a id="add-google-cal" href="#" target="_blank" class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-extrabold rounded-xl transition text-xs shadow-xxs flex items-center space-x-1.5 focus:outline-none">
-                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none">
-                                <path d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-6.887 4.114-4.636 0-8.24-3.6-8.24-8.24S7.604 2.035 12.24 2.035c2.233 0 4.143.832 5.568 2.163l3.207-3.207C18.847.885 15.753 0 12.24 0 5.48 0 0 5.48 0 12.24s5.48 12.24 12.24 12.24c7.056 0 11.72-4.96 11.72-11.92 0-.8-.064-1.576-.2-2.275H12.24z" fill="#EA4335"/>
+                        <a id="add-google-cal" href="#" target="_blank" class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-extrabold rounded-xl transition text-xs shadow-xxs flex items-center focus:outline-none select-none">
+                            <!-- Official multi-colored Google Calendar G logo -->
+                            <svg class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none">
+                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
                             </svg>
                             <span>Google Calendar</span>
                         </a>
-                        <a id="add-outlook-cal" href="#" target="_blank" class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-extrabold rounded-xl transition text-xs shadow-xxs flex items-center space-x-1.5 focus:outline-none">
-                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none">
-                                <path d="M20 3h-1v2h-2v2h-2v2h-2v2h-2V9H9V7H7V5H5V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z" fill="#0078D4"/>
+                        <a id="add-outlook-cal" href="#" target="_blank" class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-extrabold rounded-xl transition text-xs shadow-xxs flex items-center focus:outline-none select-none">
+                            <!-- Official Microsoft Outlook Calendar Logo -->
+                            <svg class="h-4.5 w-4.5 mr-1.5" viewBox="0 0 24 24" fill="none">
+                                <path d="M12.5 2H21.5C22.3 2 23 2.7 23 3.5V20.5C23 21.3 22.3 22 21.5 22H12.5V2Z" fill="#106EBE"/>
+                                <path d="M12.5 6.5H20V8H12.5V6.5ZM12.5 11H20V12.5H12.5V11ZM12.5 15.5H17V17H12.5V15.5Z" fill="#FFFFFF"/>
+                                <path d="M13.5 22L1 18.5V5.5L13.5 2V22Z" fill="#0078D4"/>
+                                <path d="M7.25 7C5.17893 7 3.5 8.67893 3.5 10.75C3.5 12.8211 5.17893 14.5 7.25 14.5C9.32107 14.5 11 12.8211 11 10.75C11 8.67893 9.32107 7 7.25 7Z" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M7.25 9V11" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round"/>
+                                <path d="M6 10.25H8.5" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round"/>
                             </svg>
                             <span>Outlook Calendar</span>
                         </a>
@@ -437,14 +466,6 @@
         <div id="booking-footer" class="border-t border-slate-100 p-5 flex flex-col md:flex-row justify-between items-center bg-slate-50/50 space-y-4 md:space-y-0 text-xs">
             <!-- Left Policies Links -->
             <div class="flex space-x-5 text-[10px] font-bold text-slate-450 uppercase tracking-wider select-none">
-                <button onclick="openPrivacyPolicyPopup()" class="flex items-center space-x-1.5 hover:text-slate-700 transition focus:outline-none">
-                    <i data-lucide="shield" class="h-3.5 w-3.5 text-slate-400"></i>
-                    <span>Privacy Policy</span>
-                </button>
-                <button onclick="openCookieSettingsPopup()" class="flex items-center space-x-1.5 hover:text-slate-700 transition focus:outline-none">
-                    <i data-lucide="cookie" class="h-3.5 w-3.5 text-slate-400"></i>
-                    <span>Cookie Settings</span>
-                </button>
             </div>
 
             <!-- Right Confirm Actions -->
@@ -951,16 +972,20 @@
                         const locEl = document.getElementById('success-location');
                         const locLabelEl = document.getElementById('success-location-label');
                         if (m.location && (m.location.startsWith('http://') || m.location.startsWith('https://'))) {
-                            locEl.innerHTML = `<a href="${m.location}" target="_blank" class="text-indigo-650 hover:underline break-all font-bold">${m.location}</a>`;
+                            locEl.href = m.location;
+                            locEl.textContent = m.location;
+                            locEl.classList.add('hover:underline', 'text-indigo-650');
                             if (m.location.includes('zoom.us')) {
                                 if (locLabelEl) locLabelEl.textContent = 'Join with Zoom';
-                            } else if (m.location.includes('google.com/meet')) {
+                            } else if (m.location.includes('google.com')) {
                                 if (locLabelEl) locLabelEl.textContent = 'Join with Google Meet';
                             } else {
                                 if (locLabelEl) locLabelEl.textContent = 'Conferencing Link';
                             }
                         } else {
+                            locEl.removeAttribute('href');
                             locEl.textContent = m.location || 'Web conferencing details to follow.';
+                            locEl.classList.remove('hover:underline', 'text-indigo-650');
                             if (locLabelEl) locLabelEl.textContent = 'Location';
                         }
 

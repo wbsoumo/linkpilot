@@ -10294,6 +10294,27 @@ window.renderBookingSetup = async function(container) {
             return html;
         }
 
+        // Update meeting provider logo indicator
+        function updateProviderLogo(val) {
+            const logoIndicator = document.getElementById('provider-logo-indicator');
+            if (!logoIndicator) return;
+            if (val === 'zoom') {
+                logoIndicator.innerHTML = `
+                    <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="#2D8CFF">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M21.2 7c-.5-.4-1.2-.2-1.7.3l-3.5 3.5V8c0-1.7-1.3-3-3-3H3c-1.7 0-3 1.3-3 3v8c0 1.7 1.3 3 3 3h10c1.7 0 3-1.3 3-3v-2.8l3.5 3.5c.5.5 1.2.7 1.7.3.5-.4.8-1 .8-1.7V8.7c0-.7-.3-1.3-.8-1.7z"/>
+                    </svg>
+                `;
+            } else {
+                logoIndicator.innerHTML = `
+                    <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none">
+                        <path d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-6.887 4.114-4.636 0-8.24-3.6-8.24-8.24S7.604 2.035 12.24 2.035c2.233 0 4.143.832 5.568 2.163l3.207-3.207C18.847.885 15.753 0 12.24 0 5.48 0 0 5.48 0 12.24s5.48 12.24 12.24 12.24c7.056 0 11.72-4.96 11.72-11.92 0-.8-.064-1.576-.2-2.275H12.24z" fill="#EA4335"/>
+                    </svg>
+                `;
+            }
+        }
+        window.updateProviderLogo = updateProviderLogo;
+
         function renderView() {
             container.innerHTML = `
                 <div class="space-y-8 animate-fade-in text-slate-800 font-sans text-xs">
@@ -10574,26 +10595,6 @@ window.renderBookingSetup = async function(container) {
             container.innerHTML = html;
             lucide.createIcons();
         }
-
-        // Update meeting provider logo indicator
-        window.updateProviderLogo = function(val) {
-            const logoIndicator = document.getElementById('provider-logo-indicator');
-            if (!logoIndicator) return;
-            if (val === 'zoom') {
-                logoIndicator.innerHTML = `
-                    <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="#2D8CFF">
-                        <path d="M0 0h24v24H0z" fill="none"/>
-                        <path d="M21.2 7c-.5-.4-1.2-.2-1.7.3l-3.5 3.5V8c0-1.7-1.3-3-3-3H3c-1.7 0-3 1.3-3 3v8c0 1.7 1.3 3 3 3h10c1.7 0 3-1.3 3-3v-2.8l3.5 3.5c.5.5 1.2.7 1.7.3.5-.4.8-1 .8-1.7V8.7c0-.7-.3-1.3-.8-1.7z"/>
-                    </svg>
-                `;
-            } else {
-                logoIndicator.innerHTML = `
-                    <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none">
-                        <path d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-6.887 4.114-4.636 0-8.24-3.6-8.24-8.24S7.604 2.035 12.24 2.035c2.233 0 4.143.832 5.568 2.163l3.207-3.207C18.847.885 15.753 0 12.24 0 5.48 0 0 5.48 0 12.24s5.48 12.24 12.24 12.24c7.056 0 11.72-4.96 11.72-11.92 0-.8-.064-1.576-.2-2.275H12.24z" fill="#EA4335"/>
-                    </svg>
-                `;
-            }
-        };
 
         // Toggle Day active status
         window.toggleDayActive = function(dayIndex) {

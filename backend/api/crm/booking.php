@@ -220,7 +220,8 @@ try {
 
         $hostUserId = $profile['user_id'];
         $duration = (int)$profile['duration_minutes'];
-        $meetingProvider = $profile['meeting_provider'] ?? 'google';
+        $preferredProvider = trim($input['preferred_provider'] ?? '');
+        $meetingProvider = !empty($preferredProvider) ? $preferredProvider : ($profile['meeting_provider'] ?? 'google');
 
         // Compute start & end times
         $timezone = new DateTimeZone($profile['timezone']);

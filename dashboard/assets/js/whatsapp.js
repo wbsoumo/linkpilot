@@ -1434,9 +1434,42 @@ async function loadWaThreadMessages() {
 
         // Show/Hide Input Footer or Warning alert
         const footer = document.getElementById('wa-chat-footer');
+        
+        // Clean phone number to digits only
+        const cleanToPhone = (thread.wa_id || '').replace(/[^0-9]/g, '');
+        let isPhoneAllowed = true;
+        let phoneRestrictedReason = '';
+        
+        if (!cleanToPhone.startsWith('91')) {
+            isPhoneAllowed = false;
+            phoneRestrictedReason = 'Outside Indian messaging is not allowed if not starting with 91.';
+        } else if (cleanToPhone.length !== 12) {
+            isPhoneAllowed = false;
+            phoneRestrictedReason = 'Invalid Indian mobile number length (must be 10 digits after 91).';
+        } else {
+            const firstDigit = cleanToPhone.charAt(2);
+            if (!['9', '8', '7', '6'].includes(firstDigit)) {
+                isPhoneAllowed = false;
+                phoneRestrictedReason = 'Outside Indian messaging is not allowed (Indian mobile numbers must start with 9, 8, 7, or 6 after 91).';
+            }
+        }
+        
         if (footer) {
             footer.classList.remove('hidden');
-            if (!isWindowActive) {
+            if (!isPhoneAllowed) {
+                footer.innerHTML = `
+                    <div class="p-3.5 bg-rose-50/70 border border-rose-200/80 rounded-xl flex flex-col items-center text-center space-y-2 animate-fade-in">
+                        <div class="flex items-center space-x-2 text-rose-700 font-bold text-[10px] uppercase tracking-wider">
+                            <i data-lucide="alert-circle" class="h-4 w-4"></i>
+                            <span>Messaging Restricted</span>
+                        </div>
+                        <p class="text-slate-600 text-[10px] max-w-sm">
+                            ${phoneRestrictedReason}
+                        </p>
+                    </div>
+                `;
+                lucide.createIcons();
+            } else if (!isWindowActive) {
                 // Only render if warning is not already showing
                 if (!footer.querySelector('.bg-amber-600')) {
                     footer.innerHTML = `
@@ -5784,6 +5817,24 @@ window.submitManualNewChat = async function () {
 
 async function resolveAndOpenNewChat(phone) {
     const modal = document.getElementById('wa-new-chat-modal');
+    
+    // Clean to numeric characters only
+    const cleanToPhone = (phone || '').replace(/[^0-9]/g, '');
+    
+    // Validate
+    if (!cleanToPhone.startsWith('91')) {
+        alert('Outside Indian messaging is not allowed if not starting with 91.');
+        return;
+    }
+    if (cleanToPhone.length !== 12) {
+        alert('Invalid Indian mobile number length (must be 10 digits after 91).');
+        return;
+    }
+    const firstDigit = cleanToPhone.charAt(2);
+    if (!['9', '8', '7', '6'].includes(firstDigit)) {
+        alert('Outside Indian messaging is not allowed (Indian mobile numbers must start with 9, 8, 7, or 6 after 91).');
+        return;
+    }
 
     try {
         const res = await apiCall('whatsapp/inbox.php?action=resolve_contact', 'POST', { phone: phone });

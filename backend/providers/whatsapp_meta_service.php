@@ -152,9 +152,35 @@ class WhatsAppMetaService {
     }
     
     /**
+     * Validate if the phone number is a valid Indian mobile number.
+     */
+    public static function validateIndianNumber($phone) {
+        $cleaned = preg_replace('/[^0-9]/', '', $phone);
+        
+        // 1. Must start with 91
+        if (substr($cleaned, 0, 2) !== '91') {
+            throw new Exception("Outside Indian messaging is not allowed if not starting with 91.");
+        }
+        
+        // 2. Must be exactly 12 digits (91 + 10 digits)
+        if (strlen($cleaned) !== 12) {
+            throw new Exception("Invalid Indian mobile number length (must be 10 digits after 91).");
+        }
+        
+        // 3. The 10-digit number must start with 9, 8, 7, or 6
+        $firstDigit = $cleaned[2];
+        if (!in_array($firstDigit, ['9', '8', '7', '6'])) {
+            throw new Exception("Outside Indian messaging is not allowed (Indian mobile numbers must start with 9, 8, 7, or 6 after 91).");
+        }
+        
+        return $cleaned;
+    }
+
+    /**
      * Send text message.
      */
     public static function sendTextMessage($userId, $phoneNumberId, $to, $text, $overrideToken = null) {
+        self::validateIndianNumber($to);
         $token = self::getAccessToken($userId, $overrideToken);
         
         $payload = [
@@ -176,6 +202,7 @@ class WhatsAppMetaService {
      * components parameters format: array of header, body parameters
      */
     public static function sendTemplateMessage($userId, $phoneNumberId, $to, $templateName, $languageCode = 'en', $components = [], $overrideToken = null) {
+        self::validateIndianNumber($to);
         $token = self::getAccessToken($userId, $overrideToken);
         
         $payload = [
@@ -202,6 +229,7 @@ class WhatsAppMetaService {
      * Send media message (image, video, document, audio).
      */
     public static function sendMediaMessage($userId, $phoneNumberId, $to, $mediaType, $mediaId, $filename = null, $overrideToken = null) {
+        self::validateIndianNumber($to);
         $token = self::getAccessToken($userId, $overrideToken);
         
         $mediaPayload = [

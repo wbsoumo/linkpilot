@@ -190,6 +190,18 @@ try {
                 sendJsonResponse('error', 'Invalid phone number format.', [], 400);
             }
             
+            // Check Indian number validation
+            if (substr($phoneClean, 0, 2) !== '91') {
+                sendJsonResponse('error', 'Outside Indian messaging is not allowed if not starting with 91.', [], 400);
+            }
+            if (strlen($phoneClean) !== 12) {
+                sendJsonResponse('error', 'Invalid Indian mobile number length (must be 10 digits after 91).', [], 400);
+            }
+            $firstDigit = $phoneClean[2];
+            if (!in_array($firstDigit, ['9', '8', '7', '6'])) {
+                sendJsonResponse('error', 'Outside Indian messaging is not allowed (Indian mobile numbers must start with 9, 8, 7, or 6 after 91).', [], 400);
+            }
+            
             // 1. Check if thread already exists in whatsapp_contacts
             $stmt = $db->prepare("SELECT id FROM whatsapp_contacts WHERE user_id = ? AND RIGHT(wa_id, 10) = RIGHT(?, 10) ORDER BY last_message_at DESC LIMIT 1");
             $stmt->execute([$userId, $phoneClean]);

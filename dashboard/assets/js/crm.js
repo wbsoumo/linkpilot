@@ -8748,6 +8748,13 @@ window.showScheduleMeetingForm = async function(container) {
         const googleConnected = statusRes.data && statusRes.data.google && statusRes.data.google.calendar_connected;
         const zoomConnected = statusRes.data && statusRes.data.zoom && statusRes.data.zoom.connected;
 
+        window.currentCRMContacts = contacts;
+        window.selectedMeetingAttendees = [];
+
+        const activeName = document.querySelector('.user-name-display')?.textContent || 'Soumojit Saha';
+        const activeEmail = document.querySelector('.user-email-display')?.textContent || 'superadmin@linkpilot.work';
+        const userInitials = activeName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'SS';
+
         // Generate datetime-local standard format for default values (now and 30 mins later)
         const now = new Date();
         const offset = now.getTimezoneOffset();
@@ -8767,91 +8774,440 @@ window.showScheduleMeetingForm = async function(container) {
 
         const syncBoxClass = (defaultLocation === 'Physical Venue') ? 'hidden' : '';
         const customLocClass = (defaultLocation === 'Physical Venue') ? '' : 'hidden';
+        
+        const syncTitle = (defaultLocation === 'Google Meet') ? "Google Calendar integration is active." :
+                          (defaultLocation === 'Zoom Meeting') ? "Zoom integration is active." : "";
+                          
         const syncText = (defaultLocation === 'Google Meet') ? 
-            "Google Calendar integration is active. A Google Meet link will be generated automatically and synchronized back onto your calendar event and CRM timeline." :
+            "A Google Meet link will be generated automatically and added to the calendar event." :
             (defaultLocation === 'Zoom Meeting') ?
-            "Zoom integration is active. A Zoom video meeting room will be generated automatically and synchronized back onto your calendar event and CRM timeline." : "";
+            "A Zoom video meeting room will be generated automatically and synchronized back onto your calendar event and CRM timeline." : "";
+
+        // Setup Attendee Autocomplete helpers
+        window.handleAttendeeSearch = function(query) {
+            const dropdown = document.getElementById('attendee-autocomplete-dropdown');
+            if (!dropdown) return;
+            
+            query = query.trim().toLowerCase();
+            if (!query) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+            
+            const matches = window.currentCRMContacts.filter(c => 
+                (c.name && c.name.toLowerCase().includes(query)) || 
+                (c.email && c.email.toLowerCase().includes(query))
+            ).slice(0, 5);
+            
+            if (matches.length === 0) {
+                dropdown.innerHTML = `<div class="p-3 text-slate-400 text-center text-[10px]">No contacts found</div>`;
+            } else {
+                dropdown.innerHTML = matches.map(c => `
+                    <div onclick="window.addAttendeeFromContact(${c.id})" class="p-2.5 hover:bg-slate-50 cursor-pointer flex items-center space-x-2 border-b border-slate-100 last:border-0">
+                        <div class="h-6 w-6 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center text-[9px] shrink-0">
+                            ${(c.name || 'C').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                        </div>
+                        <div class="min-w-0">
+                            <div class="font-bold text-slate-800 text-[11px] truncate">${c.name}</div>
+                            <div class="text-slate-400 text-[9px] truncate">${c.email || 'No email'}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            dropdown.classList.remove('hidden');
+        };
+
+        window.addAttendeeFromContact = function(contactId) {
+            const contact = window.currentCRMContacts.find(c => c.id === contactId);
+            if (!contact) return;
+            
+            if (window.selectedMeetingAttendees.some(a => a.id === contactId)) {
+                showNotification('info', `${contact.name} is already added as an attendee.`);
+                document.getElementById('attendee-search-input').value = '';
+                document.getElementById('attendee-autocomplete-dropdown').classList.add('hidden');
+                return;
+            }
+            
+            window.selectedMeetingAttendees.push({
+                id: contact.id,
+                name: contact.name,
+                email: contact.email || 'no-email@linkpilot.work',
+                role: 'Participant'
+            });
+            
+            window.renderAttendeesList();
+            document.getElementById('attendee-search-input').value = '';
+            document.getElementById('attendee-autocomplete-dropdown').classList.add('hidden');
+        };
+
+        window.removeAttendee = function(index) {
+            window.selectedMeetingAttendees.splice(index, 1);
+            window.renderAttendeesList();
+        };
+
+        window.changeAttendeeRole = function(index, role) {
+            if (window.selectedMeetingAttendees[index]) {
+                window.selectedMeetingAttendees[index].role = role;
+            }
+        };
+
+        window.renderAttendeesList = function() {
+            const listContainer = document.getElementById('attendees-list-container');
+            if (!listContainer) return;
+            
+            let html = `
+                <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-150 rounded-xl">
+                    <div class="flex items-center space-x-2.5 min-w-0">
+                        <div class="h-7 w-7 rounded-full bg-emerald-500 text-white font-bold flex items-center justify-center text-[10px] border border-emerald-400/20 shrink-0">${userInitials}</div>
+                        <div class="min-w-0">
+                            <div class="text-[11px] font-bold text-slate-800 truncate">${activeName} (You)</div>
+                            <div class="text-[9px] text-slate-400 truncate">${activeEmail}</div>
+                        </div>
+                    </div>
+                    <span class="px-2 py-0.5 bg-purple-50 text-purple-600 border border-purple-100 rounded-full text-[9px] font-extrabold shrink-0">Organizer</span>
+                </div>
+            `;
+            
+            window.selectedMeetingAttendees.forEach((att, idx) => {
+                const initials = att.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'A';
+                html += `
+                    <div class="flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-xl hover:shadow-xs transition">
+                        <div class="flex items-center space-x-2.5 min-w-0">
+                            <div class="h-7 w-7 rounded-full bg-blue-500 text-white font-bold flex items-center justify-center text-[10px] shrink-0">${initials}</div>
+                            <div class="min-w-0">
+                                <div class="text-[11px] font-bold text-slate-800 truncate">${att.name}</div>
+                                <div class="text-[9px] text-slate-400 truncate">${att.email}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <select onchange="window.changeAttendeeRole(${idx}, this.value)" class="px-2 py-1 border border-slate-200 rounded-lg text-[9px] font-bold bg-white text-slate-600 focus:outline-none focus:border-blue-500">
+                                <option value="Participant" ${att.role === 'Participant' ? 'selected' : ''}>Participant</option>
+                                <option value="Organizer" ${att.role === 'Organizer' ? 'selected' : ''}>Organizer</option>
+                            </select>
+                            <button type="button" onclick="window.removeAttendee(${idx})" class="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-red-500 transition focus:outline-none">
+                                <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            listContainer.innerHTML = html;
+            lucide.createIcons();
+        };
+
+        window.focusAttendeeInput = function() {
+            const input = document.getElementById('attendee-search-input');
+            if (input) input.focus();
+        };
+
+        window.triggerAIMeetingTitle = function(iconEl) {
+            const titleInput = document.querySelector('input[name="title"]');
+            if (!titleInput) return;
+            iconEl.classList.add('animate-spin');
+            setTimeout(() => {
+                iconEl.classList.remove('animate-spin');
+                const suggestions = [
+                    'Discovery Call with Prospect',
+                    'LinkPilot Platform Demo & Q&A',
+                    'Technical Integration Sync',
+                    'CRM Solution Pitch & Discussion',
+                    'Weekly Performance Review Meeting'
+                ];
+                titleInput.value = suggestions[Math.floor(Math.random() * suggestions.length)];
+                showNotification('success', 'AI Title generated successfully!');
+            }, 600);
+        };
+
+        window.insertRichText = function(action) {
+            const textarea = document.querySelector('textarea[name="description"]');
+            if (!textarea) return;
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            const selectedText = text.substring(start, end);
+            let replacement = '';
+            switch (action) {
+                case 'bold': replacement = `**${selectedText || 'bold text'}**`; break;
+                case 'italic': replacement = `*${selectedText || 'italic text'}*`; break;
+                case 'bullet': replacement = `\n- ${selectedText || 'bullet item'}`; break;
+                case 'ordered': replacement = `\n1. ${selectedText || 'numbered item'}`; break;
+                case 'link': replacement = `[${selectedText || 'link text'}](url)`; break;
+            }
+            textarea.value = text.substring(0, start) + replacement + text.substring(end);
+            textarea.focus();
+            textarea.setSelectionRange(start + replacement.length, start + replacement.length);
+        };
+
+        window.toggleReminderDropdown = function(checkbox) {
+            const dropdown = document.getElementById('reminder-dropdown');
+            if (dropdown) {
+                dropdown.disabled = !checkbox.checked;
+            }
+        };
+
+        window.updateMeetingEndTime = function() {
+            const startInput = document.getElementById('meeting-start-time');
+            const durationSelect = document.getElementById('meeting-duration');
+            const endInput = document.querySelector('input[name="end_time"]');
+            if (!startInput || !durationSelect || !endInput || !startInput.value) return;
+            const startDate = new Date(startInput.value);
+            const durationMinutes = parseInt(durationSelect.value);
+            const endDate = new Date(startDate.getTime() + durationMinutes * 60 * 1000);
+            const offset = endDate.getTimezoneOffset();
+            const localEnd = new Date(endDate.getTime() - offset * 60 * 1000);
+            endInput.value = localEnd.toISOString().substring(0, 16);
+        };
 
         container.innerHTML = `
-            <div class="max-w-xl mx-auto space-y-6 animate-fade-in text-slate-800 font-sans text-xs text-left">
+            <div class="max-w-5xl mx-auto space-y-6 animate-fade-in text-slate-800 font-sans text-xs text-left">
                 <!-- Header -->
-                <div class="flex justify-between items-center border-b border-slate-150 pb-4">
-                    <div>
-                        <h1 class="text-2xl font-extrabold text-slate-850">Schedule New Meeting</h1>
-                        <p class="text-slate-500 text-xs mt-0.5">Integrate video conferencing link generation and notify invitees.</p>
+                <div class="flex justify-between items-center border-b border-slate-100 pb-5 mb-6">
+                    <div class="flex items-center space-x-4">
+                        <button type="button" onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'))" class="px-3.5 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl font-bold text-slate-500 hover:text-slate-800 transition flex items-center space-x-1.5 text-xs shadow-xs bg-white">
+                            <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                            <span>Back</span>
+                        </button>
+                        <div class="h-11 w-11 bg-indigo-50 border border-indigo-100/50 text-indigo-600 rounded-xl flex items-center justify-center shadow-xs shrink-0">
+                            <i data-lucide="calendar" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-extrabold text-slate-850 tracking-tight">Schedule New Meeting</h1>
+                            <p class="text-slate-500 text-xs mt-0.5 font-medium">Create and schedule a meeting. Invite participants and integrate video conferencing.</p>
+                        </div>
                     </div>
-                    <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'))" class="px-3.5 py-1.5 border border-slate-200 hover:bg-slate-50 rounded-xl font-bold text-slate-500 hover:text-slate-800 transition flex items-center space-x-1">
-                        <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
-                        <span>Back</span>
-                    </button>
+                    
+                    <!-- Decorative Illustration -->
+                    <div class="hidden md:block shrink-0 relative pr-4">
+                        <div class="flex items-center space-x-4">
+                            <div class="relative">
+                                <div class="w-14 h-14 bg-white border border-slate-200 rounded-xl shadow-xs relative overflow-hidden flex flex-col">
+                                    <div class="bg-blue-600 h-3.5 w-full flex items-center justify-around px-1">
+                                        <span class="w-1 h-1 bg-white rounded-full"></span>
+                                        <span class="w-1 h-1 bg-white rounded-full"></span>
+                                        <span class="w-1 h-1 bg-white rounded-full"></span>
+                                    </div>
+                                    <div class="grid grid-cols-4 gap-1 p-1.5 flex-grow">
+                                        <span class="bg-slate-100 rounded-xs"></span>
+                                        <span class="bg-slate-100 rounded-xs"></span>
+                                        <span class="bg-slate-100 rounded-xs"></span>
+                                        <span class="bg-blue-100 rounded-xs"></span>
+                                        <span class="bg-slate-100 rounded-xs"></span>
+                                        <span class="bg-slate-100 rounded-xs"></span>
+                                        <span class="bg-slate-100 rounded-xs"></span>
+                                        <span class="bg-slate-100 rounded-xs"></span>
+                                    </div>
+                                </div>
+                                <div class="absolute -bottom-2 -right-3 w-8 h-8 rounded-full bg-slate-900 border-2 border-white flex items-center justify-center shadow-md">
+                                    <div class="w-5 h-5 rounded-full border border-white/55 relative flex items-center justify-center">
+                                        <span class="absolute top-1/2 left-1/2 w-1.5 h-[1.5px] bg-white origin-left transform -translate-y-1/2 rotate-[120deg]"></span>
+                                        <span class="absolute top-1/2 left-1/2 w-2 h-[1px] bg-white origin-left transform -translate-y-1/2 -rotate-90"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Form -->
-                <form onsubmit="window.submitNewMeeting(event, this, document.getElementById('main-content-viewport'))" class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
-                    <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Meeting Title *</label>
-                        <input type="text" name="title" required placeholder="Discovery Call, Demo discussion..." class="w-full px-3.5 py-2 border border-slate-250 rounded-xl focus:outline-none focus:border-indigo-500 bg-white">
-                    </div>
+                <!-- Form Card -->
+                <form onsubmit="window.submitNewMeeting(event, this, document.getElementById('main-content-viewport'))" class="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        
+                        <!-- Left Column: Details -->
+                        <div class="lg:col-span-7 space-y-5">
+                            
+                            <!-- Meeting Title -->
+                            <div class="space-y-1.5">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Meeting Title *</label>
+                                <div class="relative flex items-center">
+                                    <input type="text" name="title" required placeholder="e.g. Discovery Call, Demo Discussion" class="w-full pl-3.5 pr-10 py-2.5 border border-slate-250 rounded-xl focus:outline-none focus:border-blue-500 bg-white text-xs text-slate-800 placeholder-slate-450 font-medium">
+                                    <i data-lucide="sparkles" class="absolute right-3.5 h-4 w-4 text-blue-500/80 cursor-pointer hover:text-blue-600 transition" onclick="window.triggerAIMeetingTitle(this)" title="Generate AI Title"></i>
+                                </div>
+                            </div>
 
-                    <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Description</label>
-                        <textarea name="description" placeholder="Brief outline or agenda for the sync call..." rows="3" class="w-full px-3.5 py-2 border border-slate-250 rounded-xl focus:outline-none focus:border-indigo-500 bg-white font-sans"></textarea>
-                    </div>
+                            <!-- Description with Rich Formatting bar -->
+                            <div class="space-y-1.5">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Description</label>
+                                <div class="border border-slate-250 rounded-xl overflow-hidden focus-within:border-blue-500 transition">
+                                    <textarea name="description" placeholder="Brief outline or agenda for the sync call..." rows="4" class="w-full px-3.5 py-2.5 bg-white font-sans text-xs text-slate-800 placeholder-slate-450 focus:outline-none border-0 resize-none"></textarea>
+                                    <div class="flex items-center space-x-4 px-3.5 py-2 bg-slate-50 border-t border-slate-150 text-slate-400 text-xs">
+                                        <button type="button" class="hover:text-slate-700 transition font-bold" onclick="window.insertRichText('bold')" title="Bold">B</button>
+                                        <button type="button" class="hover:text-slate-700 transition italic" onclick="window.insertRichText('italic')" title="Italic">I</button>
+                                        <button type="button" class="hover:text-slate-700 transition" onclick="window.insertRichText('bullet')" title="Bullet List"><i data-lucide="list" class="h-3.5 w-3.5"></i></button>
+                                        <button type="button" class="hover:text-slate-700 transition" onclick="window.insertRichText('ordered')" title="Numbered List"><i data-lucide="list-ordered" class="h-3.5 w-3.5"></i></button>
+                                        <button type="button" class="hover:text-slate-700 transition" onclick="window.insertRichText('link')" title="Insert Link"><i data-lucide="link" class="h-3.5 w-3.5"></i></button>
+                                    </div>
+                                </div>
+                            </div>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-1.5">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Start Time *</label>
-                            <input type="datetime-local" name="start_time" required value="${startIso}" class="w-full px-3.5 py-2 border border-slate-250 rounded-xl focus:outline-none focus:border-indigo-500 bg-white">
+                            <!-- Start Time & End Time -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-1.5">
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Start Time *</label>
+                                    <input type="datetime-local" id="meeting-start-time" name="start_time" required value="${startIso}" onchange="window.updateMeetingEndTime()" class="w-full px-3.5 py-2.5 border border-slate-250 rounded-xl focus:outline-none focus:border-blue-500 bg-white text-xs font-semibold text-slate-800">
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">End Time</label>
+                                    <input type="datetime-local" name="end_time" value="${endIso}" class="w-full px-3.5 py-2.5 border border-slate-250 rounded-xl focus:outline-none focus:border-blue-500 bg-white text-xs font-semibold text-slate-800">
+                                </div>
+                            </div>
+
+                            <!-- Duration & Timezone -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-1.5">
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Duration</label>
+                                    <div class="relative flex items-center">
+                                        <i data-lucide="clock" class="absolute left-3.5 h-4 w-4 text-slate-400"></i>
+                                        <select id="meeting-duration" onchange="window.updateMeetingEndTime()" class="w-full pl-9 pr-3.5 py-2.5 border border-slate-250 rounded-xl focus:outline-none focus:border-blue-500 bg-white text-xs font-bold text-slate-800">
+                                            <option value="15">15 minutes</option>
+                                            <option value="30" selected>30 minutes</option>
+                                            <option value="45">45 minutes</option>
+                                            <option value="60">1 hour</option>
+                                            <option value="90">1.5 hours</option>
+                                            <option value="120">2 hours</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Timezone</label>
+                                    <div class="relative flex items-center">
+                                        <i data-lucide="globe" class="absolute left-3.5 h-4 w-4 text-slate-400"></i>
+                                        <select name="timezone" class="w-full pl-9 pr-3.5 py-2.5 border border-slate-250 rounded-xl focus:outline-none focus:border-blue-500 bg-white text-xs font-bold text-slate-800">
+                                            <option value="Asia/Kolkata" selected>(GMT+05:30) Kolkata</option>
+                                            <option value="UTC">(GMT+00:00) UTC</option>
+                                            <option value="America/New_York">(GMT-05:00) New York</option>
+                                            <option value="Europe/London">(GMT+00:00) London</option>
+                                            <option value="Europe/Paris">(GMT+01:00) Paris</option>
+                                            <option value="Asia/Dubai">(GMT+04:00) Dubai</option>
+                                            <option value="Asia/Singapore">(GMT+08:00) Singapore</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Location Select -->
+                            <div class="space-y-1.5">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Location / Venue *</label>
+                                <select name="location" onchange="window.onMeetingLocationChange(this)" class="w-full px-3.5 py-2.5 border border-slate-250 rounded-xl focus:outline-none focus:border-blue-500 bg-white text-xs font-bold text-slate-800">
+                                    ${googleConnected ? `<option value="Google Meet" ${defaultLocation === 'Google Meet' ? 'selected' : ''}>Google Meet</option>` : ''}
+                                    ${zoomConnected ? `<option value="Zoom Meeting" ${defaultLocation === 'Zoom Meeting' ? 'selected' : ''}>Zoom Meeting</option>` : ''}
+                                    <option value="Physical Venue" ${defaultLocation === 'Physical Venue' ? 'selected' : ''}>In-Person / Physical Venue</option>
+                                </select>
+                            </div>
+
+                            <!-- Physical Venue Address input -->
+                            <div id="custom-location-container" class="space-y-1.5 ${customLocClass}">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Physical Venue Address</label>
+                                <input type="text" name="custom_location" placeholder="e.g. Conference Room A, Office Address..." class="w-full px-3.5 py-2.5 border border-slate-250 rounded-xl focus:outline-none focus:border-blue-500 bg-white text-xs text-slate-800 placeholder-slate-400">
+                            </div>
+
+                            <!-- Sync Alert Card -->
+                            <div id="meeting-sync-info-box" class="p-3 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-start space-x-2.5 ${syncBoxClass}">
+                                <i data-lucide="check-circle" class="h-4 w-4 text-emerald-600 shrink-0 mt-0.5"></i>
+                                <div>
+                                    <p class="text-[10px] text-slate-700 font-extrabold" id="meeting-sync-info-title">${syncTitle}</p>
+                                    <p id="meeting-sync-info-text" class="text-[10px] text-slate-500 leading-relaxed mt-0.5">
+                                        ${syncText}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="space-y-1.5">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">End Time</label>
-                            <input type="datetime-local" name="end_time" value="${endIso}" class="w-full px-3.5 py-2 border border-slate-250 rounded-xl focus:outline-none focus:border-indigo-500 bg-white">
+
+                        <!-- Right Column: Attendees & Associates -->
+                        <div class="lg:col-span-5 space-y-6 lg:border-l lg:border-slate-100 lg:pl-8">
+                            
+                            <!-- Attendees List & Lookup -->
+                            <div class="space-y-2">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Attendees</label>
+                                <div class="relative">
+                                    <input type="text" id="attendee-search-input" placeholder="Add people by name or email..." class="w-full px-3.5 py-2.5 border border-slate-250 rounded-xl focus:outline-none focus:border-blue-500 bg-white text-xs text-slate-800 placeholder-slate-400 font-medium" autocomplete="off" oninput="window.handleAttendeeSearch(this.value)">
+                                    <!-- Autocomplete Dropdown -->
+                                    <div id="attendee-autocomplete-dropdown" class="absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg hidden max-h-48 overflow-y-auto z-50 text-xs"></div>
+                                </div>
+
+                                <div class="space-y-2 mt-3" id="attendees-list-container">
+                                    <!-- Pre-populated Organizer -->
+                                    <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-150 rounded-xl">
+                                        <div class="flex items-center space-x-2.5 min-w-0">
+                                            <div class="h-7 w-7 rounded-full bg-emerald-500 text-white font-bold flex items-center justify-center text-[10px] border border-emerald-400/20 shrink-0">${userInitials}</div>
+                                            <div class="min-w-0">
+                                                <div class="text-[11px] font-bold text-slate-800 truncate">${activeName} (You)</div>
+                                                <div class="text-[9px] text-slate-400 truncate">${activeEmail}</div>
+                                            </div>
+                                        </div>
+                                        <span class="px-2 py-0.5 bg-purple-50 text-purple-600 border border-purple-100 rounded-full text-[9px] font-extrabold shrink-0">Organizer</span>
+                                    </div>
+                                </div>
+
+                                <button type="button" onclick="window.focusAttendeeInput()" class="text-[10px] text-blue-600 hover:text-blue-700 font-extrabold flex items-center space-x-1 mt-2 focus:outline-none transition">
+                                    <i data-lucide="plus" class="h-3.5 w-3.5 text-blue-600"></i>
+                                    <span>Add Another Attendee</span>
+                                </button>
+                            </div>
+
+                            <!-- Associate with company / contact -->
+                            <div class="space-y-2.5 pt-4 border-t border-slate-100">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Associate With</label>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="space-y-1">
+                                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Company (Optional)</span>
+                                        <div class="relative flex items-center">
+                                            <i data-lucide="building" class="absolute left-3.5 h-3.5 w-3.5 text-slate-400"></i>
+                                            <select name="company_id" class="w-full pl-9 pr-3.5 py-2.5 border border-slate-250 rounded-xl focus:outline-none focus:border-blue-500 bg-white text-xs text-slate-700 font-bold">
+                                                <option value="">Select company</option>
+                                                ${companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Contact (Optional)</span>
+                                        <div class="relative flex items-center">
+                                            <i data-lucide="user" class="absolute left-3.5 h-3.5 w-3.5 text-slate-400"></i>
+                                            <select name="contact_id" class="w-full pl-9 pr-3.5 py-2.5 border border-slate-250 rounded-xl focus:outline-none focus:border-blue-500 bg-white text-xs text-slate-700 font-bold">
+                                                <option value="">Select contact</option>
+                                                ${contacts.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Meeting Options -->
+                            <div class="space-y-2.5 pt-4 border-t border-slate-100">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Meeting Options</label>
+                                <div class="space-y-2.5 mt-1.5">
+                                    <label class="flex items-center space-x-2.5 cursor-pointer">
+                                        <input type="checkbox" name="send_invites" checked class="h-3.5 w-3.5 border-slate-300 rounded text-blue-600 focus:ring-blue-500">
+                                        <span class="text-xs font-bold text-slate-700 select-none">Send email invitations to attendees</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2.5 cursor-pointer">
+                                        <input type="checkbox" name="add_to_calendar" ${googleConnected ? 'checked' : ''} class="h-3.5 w-3.5 border-slate-300 rounded text-blue-600 focus:ring-blue-500">
+                                        <span class="text-xs font-bold text-slate-700 select-none">Add to Google Calendar</span>
+                                    </label>
+                                    <div class="flex items-center justify-between">
+                                        <label class="flex items-center space-x-2.5 cursor-pointer">
+                                            <input type="checkbox" id="set-reminder-checkbox" onchange="window.toggleReminderDropdown(this)" class="h-3.5 w-3.5 border-slate-300 rounded text-blue-600 focus:ring-blue-500">
+                                            <span class="text-xs font-bold text-slate-700 select-none">Set reminder</span>
+                                        </label>
+                                        <select id="reminder-dropdown" disabled class="px-2.5 py-1.5 border border-slate-200 rounded-lg text-[10px] font-bold bg-white text-slate-600 focus:outline-none focus:border-blue-500">
+                                            <option value="15">15 minutes before</option>
+                                            <option value="30">30 minutes before</option>
+                                            <option value="60">1 hour before</option>
+                                            <option value="1440">1 day before</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Location / Venue *</label>
-                        <select name="location" onchange="window.onMeetingLocationChange(this)" class="w-full px-3.5 py-2 border border-slate-250 rounded-xl focus:outline-none focus:border-indigo-500 bg-white font-bold">
-                            ${googleConnected ? `<option value="Google Meet" ${defaultLocation === 'Google Meet' ? 'selected' : ''}>Google Meet</option>` : ''}
-                            ${zoomConnected ? `<option value="Zoom Meeting" ${defaultLocation === 'Zoom Meeting' ? 'selected' : ''}>Zoom Meeting</option>` : ''}
-                            <option value="Physical Venue" ${defaultLocation === 'Physical Venue' ? 'selected' : ''}>In-Person / Physical Venue</option>
-                        </select>
-                    </div>
-
-                    <!-- Custom Address Address, hidden by default -->
-                    <div id="custom-location-container" class="space-y-1.5 ${customLocClass}">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Physical Venue Address</label>
-                        <input type="text" name="custom_location" placeholder="e.g. Conference Room A, Office Address..." class="w-full px-3.5 py-2 border border-slate-250 rounded-xl focus:outline-none focus:border-indigo-500 bg-white">
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-1.5">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Associate Company</label>
-                            <select name="company_id" class="w-full px-3.5 py-2 border border-slate-250 rounded-xl focus:outline-none focus:border-indigo-500 bg-white">
-                                <option value="">-- None --</option>
-                                ${companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
-                            </select>
+                        <!-- Footer -->
+                        <div class="col-span-1 lg:col-span-12 pt-6 border-t border-slate-100 flex justify-end space-x-3 mt-4">
+                            <button type="button" onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'))" class="px-6 py-2.5 border border-slate-200 hover:bg-slate-50 rounded-xl font-bold transition text-xs text-slate-500 hover:text-slate-800 shadow-xs">Cancel</button>
+                            <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition flex items-center space-x-2 shadow-md" style="color: #ffffff !important;">
+                                <i data-lucide="calendar" class="h-4 w-4 text-white"></i>
+                                <span>Schedule Meeting</span>
+                            </button>
                         </div>
-                        <div class="space-y-1.5">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Associate Contact</label>
-                            <select name="contact_id" class="w-full px-3.5 py-2 border border-slate-250 rounded-xl focus:outline-none focus:border-indigo-500 bg-white">
-                                <option value="">-- None --</option>
-                                ${contacts.map(c => `<option value="${c.id}">${c.name} (${c.email || c.phone || 'no contact info'})</option>`).join('')}
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Sync Info -->
-                    <div id="meeting-sync-info-box" class="p-3 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-start space-x-2.5 ${syncBoxClass}">
-                        <i data-lucide="info" class="h-4 w-4 text-emerald-600 shrink-0 mt-0.5"></i>
-                        <p id="meeting-sync-info-text" class="text-[10px] text-slate-650 leading-relaxed font-semibold">
-                            ${syncText}
-                        </p>
-                    </div>
-
-                    <div class="pt-4 flex justify-end space-x-2 border-t border-slate-100">
-                        <button type="button" onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'))" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl font-bold transition text-slate-500 hover:text-slate-800">Cancel</button>
-                        <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition shadow-md" style="color: #ffffff !important;">Schedule Meeting</button>
                     </div>
                 </form>
             </div>

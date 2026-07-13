@@ -331,17 +331,20 @@ async function navigateTo(view, params = {}) {
         // Highlight sidebar links
         document.querySelectorAll('.sidebar-nav-link, .sidebar-submenu-link').forEach(link => {
             const href = link.getAttribute('href');
-            if (href && href.includes(view)) {
-                link.classList.add('active');
-                if (link.classList.contains('sidebar-submenu-link')) {
-                    link.classList.remove('text-slate-400');
-                    link.classList.add('text-white', 'bg-slate-800', 'font-bold');
-                }
-            } else {
-                link.classList.remove('active');
-                if (link.classList.contains('sidebar-submenu-link')) {
-                    link.classList.remove('text-white', 'bg-slate-800', 'font-bold');
-                    link.classList.add('text-slate-400');
+            if (href) {
+                const linkView = href.replace(/^#\/?/, '').split('?')[0];
+                if (linkView === view) {
+                    link.classList.add('active');
+                    if (link.classList.contains('sidebar-submenu-link')) {
+                        link.classList.remove('text-slate-400');
+                        link.classList.add('text-white', 'bg-slate-800', 'font-bold');
+                    }
+                } else {
+                    link.classList.remove('active');
+                    if (link.classList.contains('sidebar-submenu-link')) {
+                        link.classList.remove('text-white', 'bg-slate-800', 'font-bold');
+                        link.classList.add('text-slate-400');
+                    }
                 }
             }
         });

@@ -553,9 +553,13 @@
                                     <label class="block text-slate-400 font-semibold mb-1">Zoom Client Secret</label>
                                     <input type="password" id="adm-zoom-client-secret" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white" placeholder="Zoom Client Secret">
                                 </div>
-                                <div>
+                                 <div>
                                     <label class="block text-slate-400 font-semibold mb-1">Redirect URI (Auto-generated / Read-only)</label>
                                     <input type="text" id="adm-zoom-redirect-uri" readonly class="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-400 font-mono select-all">
+                                </div>
+                                <div>
+                                    <label class="block text-slate-400 font-semibold mb-1">Zoom Webhook Secret Token</label>
+                                    <input type="password" id="adm-zoom-webhook-secret-token" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white" placeholder="Zoom Webhook Secret Token">
                                 </div>
                                 <div class="flex space-x-2 pt-2">
                                     <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-bold transition select-none" style="color: #ffffff !important;">Save Zoom Credentials</button>
@@ -576,6 +580,7 @@
                                     <li>Copy the <b>Redirect URI</b> shown on the left and paste it into the Zoom app configuration field.</li>
                                     <li>Under **Scopes**, request access to: <code class="text-sky-400 bg-slate-900/60 px-1 py-0.5 rounded font-mono font-bold">meeting:write</code>, <code class="text-sky-400 bg-slate-900/60 px-1 py-0.5 rounded font-mono font-bold">meeting:write:admin</code> and <code class="text-sky-400 bg-slate-900/60 px-1 py-0.5 rounded font-mono font-bold">user:read</code>.</li>
                                     <li>Copy your **Client ID** and **Client Secret** into the fields on the left and click **Save Zoom Credentials**.</li>
+                                    <li>Enable **Webhooks (Event Subscriptions)**, copy the **Secret Token** generated, paste it into the **Zoom Webhook Secret Token** field, and configure your webhook URL as `https://<your-domain>/backend/api/external_apps/zoom_callback.php` then click Validate.</li>
                                 </ol>
                             </div>
                         </div>
@@ -875,6 +880,7 @@
                 document.getElementById('adm-zoom-enabled').value = c.zoom_enabled || '1';
                 document.getElementById('adm-zoom-client-id').value = c.zoom_client_id || '';
                 document.getElementById('adm-zoom-client-secret').value = c.zoom_client_secret || '';
+                document.getElementById('adm-zoom-webhook-secret-token').value = c.zoom_webhook_secret_token || '';
             } catch (err) {
                 showNotification('error', 'Failed to load external developer credentials: ' + err.message);
             }
@@ -890,7 +896,8 @@
                 google_sheets_client_secret: document.getElementById('adm-google-sheets-client-secret').value.trim(),
                 zoom_external_enabled: document.getElementById('adm-zoom-enabled').value,
                 zoom_external_client_id: document.getElementById('adm-zoom-client-id').value.trim(),
-                zoom_external_client_secret: document.getElementById('adm-zoom-client-secret').value.trim()
+                zoom_external_client_secret: document.getElementById('adm-zoom-client-secret').value.trim(),
+                zoom_webhook_secret_token: document.getElementById('adm-zoom-webhook-secret-token').value.trim()
             };
             try {
                 const res = await apiCall('admin/external_app_credentials.php', 'POST', payload);

@@ -7,6 +7,38 @@ require_once __DIR__ . '/../../external_apps_helper.php';
 ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
+// Check if this is a Zoom Webhook / Challenge Request
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $rawInput = file_get_contents('php://input');
+    $input = json_decode($rawInput, true);
+    if ($input && isset($input['event'])) {
+        if ($input['event'] === 'endpoint.url_validation') {
+            $plainToken = $input['payload']['plainToken'] ?? '';
+            $creds = ExternalAppsHelper::getZoomCredentials();
+            $secretToken = $creds['webhook_secret_token'] ?? '';
+            if (empty($secretToken)) {
+                // Fallback to client secret just in case
+                $secretToken = $creds['client_secret'] ?? '';
+            }
+            $encryptedToken = hash_hmac('sha256', $plainToken, $secretToken);
+            
+            header('Content-Type: application/json; charset=utf-8');
+            http_response_code(200);
+            echo json_encode([
+                'plainToken' => $plainToken,
+                'encryptedToken' => $encryptedToken
+            ]);
+            exit;
+        } else {
+            // Acknowledge other event types with 200 OK
+            header('Content-Type: application/json; charset=utf-8');
+            http_response_code(200);
+            echo json_encode(['status' => 'acknowledged']);
+            exit;
+        }
+    }
+}
+
 $code = $_GET['code'] ?? '';
 $state = $_GET['state'] ?? '';
 

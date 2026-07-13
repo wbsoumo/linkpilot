@@ -28,6 +28,7 @@ try {
         $creds['zoom_enabled'] = $zoomCreds['enabled'];
         $creds['zoom_client_id'] = $zoomCreds['client_id'];
         $creds['zoom_client_secret'] = $zoomCreds['client_secret'];
+        $creds['zoom_webhook_secret_token'] = $zoomCreds['webhook_secret_token'];
 
         sendJsonResponse('success', 'External app credentials fetched successfully.', ['credentials' => $creds]);
     }
@@ -103,6 +104,7 @@ try {
             $zoomEnabled = trim($input['zoom_external_enabled'] ?? '1');
             $zoomClientId = trim($input['zoom_external_client_id'] ?? '');
             $zoomClientSecret = trim($input['zoom_external_client_secret'] ?? '');
+            $zoomWebhookSecretToken = trim($input['zoom_webhook_secret_token'] ?? '');
 
             $db->beginTransaction();
 
@@ -117,6 +119,7 @@ try {
             $stmt->execute(['zoom_external_enabled', $zoomEnabled]);
             $stmt->execute(['zoom_external_client_id', $zoomClientId]);
             $stmt->execute(['zoom_external_client_secret', $zoomClientSecret]);
+            $stmt->execute(['zoom_webhook_secret_token', $zoomWebhookSecretToken]);
 
             logActivity($userId, "Admin saved external app credentials.");
 

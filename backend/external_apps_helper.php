@@ -204,19 +204,21 @@ class ExternalAppsHelper {
         self::checkDatabaseSchema();
         $db = Database::getConnection();
         
-        $stmt = $db->query("SELECT setting_key, setting_value FROM admin_settings WHERE setting_key IN ('zoom_external_enabled', 'zoom_external_client_id', 'zoom_external_client_secret')");
+        $stmt = $db->query("SELECT setting_key, setting_value FROM admin_settings WHERE setting_key IN ('zoom_external_enabled', 'zoom_external_client_id', 'zoom_external_client_secret', 'zoom_webhook_secret_token')");
         $rows = $stmt->fetchAll();
         
         $settings = [
             'enabled' => '1',
             'client_id' => '',
-            'client_secret' => ''
+            'client_secret' => '',
+            'webhook_secret_token' => ''
         ];
 
         foreach ($rows as $r) {
             if ($r['setting_key'] === 'zoom_external_enabled') $settings['enabled'] = $r['setting_value'];
             if ($r['setting_key'] === 'zoom_external_client_id') $settings['client_id'] = $r['setting_value'];
             if ($r['setting_key'] === 'zoom_external_client_secret') $settings['client_secret'] = $r['setting_value'];
+            if ($r['setting_key'] === 'zoom_webhook_secret_token') $settings['webhook_secret_token'] = $r['setting_value'];
         }
 
         return $settings;

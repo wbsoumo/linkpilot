@@ -107,6 +107,13 @@ class ExternalAppsHelper {
                 }
             } catch (Exception $e) {}
 
+            try {
+                $stmt = $db->query("SHOW COLUMNS FROM `crm_meetings` LIKE 'zoom_meeting_id'");
+                if ($stmt->rowCount() === 0) {
+                    $db->exec("ALTER TABLE `crm_meetings` ADD COLUMN `zoom_meeting_id` VARCHAR(255) DEFAULT NULL AFTER `google_event_id`");
+                }
+            } catch (Exception $e) {}
+
             // 3. Append missing CRM fields to crm_tasks
             try {
                 $stmt = $db->query("SHOW COLUMNS FROM `crm_tasks` LIKE 'sync_to_calendar'");
@@ -191,12 +198,49 @@ class ExternalAppsHelper {
     }
 
     /**
+     * Fetch Zoom Client ID and Secret from admin_settings
+     */
+    public static function getZoomCredentials() {
+        self::checkDatabaseSchema();
+        $db = Database::getConnection();
+        
+        $stmt = $db->query("SELECT setting_key, setting_value FROM admin_settings WHERE setting_key IN ('zoom_external_enabled', 'zoom_external_client_id', 'zoom_external_client_secret')");
+        $rows = $stmt->fetchAll();
+        
+        $settings = [
+            'enabled' => '1',
+            'client_id' => '',
+            'client_secret' => ''
+        ];
+
+        foreach ($rows as $r) {
+            if ($r['setting_key'] === 'zoom_external_enabled') $settings['enabled'] = $r['setting_value'];
+            if ($r['setting_key'] === 'zoom_external_client_id') $settings['client_id'] = $r['setting_value'];
+            if ($r['setting_key'] === 'zoom_external_client_secret') $settings['client_secret'] = $r['setting_value'];
+        }
+
+        return $settings;
+    }
+
+    /**
      * Checks if user has a connected Google account
      */
     public static function isGoogleConnected($userId) {
         self::checkDatabaseSchema();
         $db = Database::getConnection();
         $stmt = $db->prepare("SELECT status FROM external_app_connections WHERE user_id = ? AND provider = 'google' LIMIT 1");
+        $stmt->execute([$userId]);
+        $status = $stmt->fetchColumn();
+        return ($status === 'connected');
+    }
+
+    /**
+     * Checks if user has a connected Zoom account
+     */
+    public static function isZoomConnected($userId) {
+        self::checkDatabaseSchema();
+        $db = Database::getConnection();
+        $stmt = $db->prepare("SELECT status FROM external_app_connections WHERE user_id = ? AND provider = 'zoom' LIMIT 1");
         $stmt->execute([$userId]);
         $status = $stmt->fetchColumn();
         return ($status === 'connected');
@@ -1040,5 +1084,143 @@ class ExternalAppsHelper {
                 self::parseGmailMessageParts($subParts, $bodies, $attachments);
             }
         }
+    }
+
+    /**
+     * Gets and auto-refreshes Zoom access token
+     */
+    public static function getZoomAccessToken($userId) {
+        self::checkDatabaseSchema();
+        $db = Database::getConnection();
+        $stmt = $db->prepare("SELECT * FROM external_app_connections WHERE user_id = ? AND provider = 'zoom' LIMIT 1");
+        $stmt->execute([$userId]);
+        $conn = $stmt->fetch();
+
+        if (!$conn || $conn['status'] !== 'connected') {
+            return false;
+        }
+
+        $expiresAt = strtotime($conn['expires_at']);
+        $accessToken = decryptData($conn['access_token']);
+
+        // Refresh token if expired or expiring in 60s
+        if ($expiresAt <= (time() + 60)) {
+            $refreshToken = decryptData($conn['refresh_token']);
+            if (!$refreshToken) {
+                return false;
+            }
+
+            $creds = self::getZoomCredentials();
+            $authHeader = base64_encode($creds['client_id'] . ':' . $creds['client_secret']);
+            
+            $url = 'https://zoom.us/oauth/token';
+            $body = [
+                'grant_type' => 'refresh_token',
+                'refresh_token' => $refreshToken
+            ];
+            $headers = [
+                'Authorization' => 'Basic ' . $authHeader,
+                'Content-Type' => 'application/x-www-form-urlencoded'
+            ];
+
+            $res = self::makeCurlRequest($url, 'POST', $body, $headers);
+            if ($res['code'] !== 200 || !isset($res['data']['access_token'])) {
+                error_log("Zoom Token Refresh Error (HTTP " . $res['code'] . "): " . $res['body']);
+                return false;
+            }
+
+            $newAccess = $res['data']['access_token'];
+            $newRefresh = $res['data']['refresh_token'] ?? $refreshToken;
+            $newExpiresIn = $res['data']['expires_in'] ?? 3600;
+            $newExpiresAt = date('Y-m-d H:i:s', time() + $newExpiresIn);
+
+            $encryptedAccess = encryptData($newAccess);
+            $encryptedRefresh = encryptData($newRefresh);
+
+            $stmtUpdate = $db->prepare("UPDATE external_app_connections SET access_token = ?, refresh_token = ?, expires_at = ?, updated_at = NOW() WHERE id = ?");
+            $stmtUpdate->execute([$encryptedAccess, $encryptedRefresh, $newExpiresAt, $conn['id']]);
+
+            return $newAccess;
+        }
+
+        return $accessToken;
+    }
+
+    /**
+     * Schedule a meeting inside Zoom using Zoom Meetings API
+     */
+    public static function createZoomMeeting($userId, $meetingId, $title, $description, $startTime, $endTime) {
+        $token = self::getZoomAccessToken($userId);
+        if (!$token) return false;
+
+        $db = Database::getConnection();
+
+        // Calculate duration in minutes (default 30)
+        $duration = 30;
+        if ($startTime && $endTime) {
+            $diff = strtotime($endTime) - strtotime($startTime);
+            if ($diff > 0) {
+                $duration = ceil($diff / 60);
+            }
+        }
+
+        // Format start time as ISO 8601 UTC (e.g. 2026-07-13T12:00:00Z)
+        $utcStart = gmdate('Y-m-d\TH:i:s\Z', strtotime($startTime));
+
+        $url = 'https://api.zoom.us/v2/users/me/meetings';
+        $body = json_encode([
+            'topic' => $title,
+            'type' => 2, // Scheduled meeting
+            'start_time' => $utcStart,
+            'duration' => (int)$duration,
+            'timezone' => 'UTC',
+            'agenda' => $description ?: 'Scheduled via LinkPilot AI CRM',
+            'settings' => [
+                'host_video' => true,
+                'participant_video' => true,
+                'join_before_host' => true,
+                'mute_upon_entry' => false,
+                'waiting_room' => false
+            ]
+        ]);
+
+        $headers = [
+            'Authorization' => 'Bearer ' . $token,
+            'Content-Type' => 'application/json'
+        ];
+
+        $res = self::makeCurlRequest($url, 'POST', $body, $headers);
+        if ($res['code'] !== 201 || !isset($res['data']['join_url'])) {
+            error_log("Zoom Meeting Creation Failure (HTTP " . $res['code'] . "): " . $res['body']);
+            return false;
+        }
+
+        $zoomMeetingId = $res['data']['id'];
+        $joinUrl = $res['data']['join_url'];
+
+        // Save Zoom meeting ID and join link to database
+        $stmtUpdate = $db->prepare("UPDATE crm_meetings SET zoom_meeting_id = ?, meet_link = ? WHERE id = ?");
+        $stmtUpdate->execute([$zoomMeetingId, $joinUrl, $meetingId]);
+
+        return [
+            'meeting_id' => $zoomMeetingId,
+            'join_url' => $joinUrl
+        ];
+    }
+
+    /**
+     * Delete a Zoom meeting
+     */
+    public static function deleteZoomMeeting($userId, $zoomMeetingId) {
+        $token = self::getZoomAccessToken($userId);
+        if (!$token || !$zoomMeetingId) return false;
+
+        $url = 'https://api.zoom.us/v2/meetings/' . $zoomMeetingId;
+        $headers = [
+            'Authorization' => 'Bearer ' . $token
+        ];
+
+        $res = self::makeCurlRequest($url, 'DELETE', null, $headers);
+        return ($res['code'] === 204 || $res['code'] === 404);
     }
 }

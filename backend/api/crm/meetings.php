@@ -76,6 +76,21 @@ try {
         
         $meetingId = $db->lastInsertId();
         
+        // Sync to Zoom
+        $isZoom = ($location === 'Zoom Meeting');
+        if ($isZoom) {
+            try {
+                if (ExternalAppsHelper::isZoomConnected($userId)) {
+                    $zoomData = ExternalAppsHelper::createZoomMeeting($userId, $meetingId, $title, $description, $startTime, $endTime);
+                    if ($zoomData && isset($zoomData['join_url'])) {
+                        $location = $zoomData['join_url'];
+                    }
+                }
+            } catch (Exception $e) {
+                error_log("Zoom Meeting sync failed: " . $e->getMessage());
+            }
+        }
+        
         // Sync to Google Calendar
         try {
             if (ExternalAppsHelper::isGoogleConnected($userId)) {
@@ -152,7 +167,7 @@ try {
             sendJsonResponse('error', 'Meeting ID is required.', [], 400);
         }
         
-        $stmtCheck = $db->prepare("SELECT id, title, google_event_id FROM crm_meetings WHERE id = ? AND user_id = ?");
+        $stmtCheck = $db->prepare("SELECT id, title, google_event_id, zoom_meeting_id FROM crm_meetings WHERE id = ? AND user_id = ?");
         $stmtCheck->execute([$meetingId, $userId]);
         $meeting = $stmtCheck->fetch();
         if (!$meeting) {
@@ -166,6 +181,15 @@ try {
             }
         } catch (Exception $e) {
             error_log("Google Calendar Meeting delete failed: " . $e->getMessage());
+        }
+
+        // Sync delete to Zoom
+        try {
+            if (!empty($meeting['zoom_meeting_id']) && ExternalAppsHelper::isZoomConnected($userId)) {
+                ExternalAppsHelper::deleteZoomMeeting($userId, $meeting['zoom_meeting_id']);
+            }
+        } catch (Exception $e) {
+            error_log("Zoom Meeting delete failed: " . $e->getMessage());
         }
 
         $stmt = $db->prepare("DELETE FROM crm_meetings WHERE id = ? AND user_id = ?");

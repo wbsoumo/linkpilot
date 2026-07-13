@@ -8187,6 +8187,32 @@ window.disconnectGoogleMeetings = async function(container) {
     }
 };
 
+window.connectZoomMeetings = async function() {
+    try {
+        showNotification('info', 'Redirecting to Zoom OAuth authorization page...');
+        const res = await apiCall('external_apps/zoom_auth.php?from=meetings');
+        if (res.status === 'success' && res.auth_url) {
+            window.location.href = res.auth_url;
+        } else {
+            showNotification('error', res.message || 'Failed to construct authorization URL.');
+        }
+    } catch (err) {
+        showNotification('error', 'OAuth redirect failed: ' + err.message);
+    }
+};
+
+window.disconnectZoomMeetings = async function(container) {
+    if (!confirm('Are you sure you want to disconnect Zoom integration? Meeting links won\'t sync automatically.')) return;
+    try {
+        showNotification('info', 'Disconnecting Zoom integration...');
+        await apiCall('external_apps/disconnect.php?provider=zoom');
+        showNotification('success', 'Zoom disconnected successfully.');
+        renderMeetings(container);
+    } catch (err) {
+        showNotification('error', err.message);
+    }
+};
+
 function formatMeetingTime(startStr, endStr) {
     if (!startStr) return 'N/A';
     const start = new Date(startStr.replace(' ', 'T'));
@@ -8293,37 +8319,67 @@ async function renderMeetings(container) {
     showProgressBar();
     try {
         const statusRes = await apiCall('external_apps/status.php');
-        const googleConnected = statusRes.data && statusRes.data.calendar_connected;
+        const googleConnected = statusRes.data && statusRes.data.google && statusRes.data.google.calendar_connected;
+        const zoomConnected = statusRes.data && statusRes.data.zoom && statusRes.data.zoom.connected;
         
-        // Detect if coming back from successful Google authentication redirect
+        // Detect if coming back from successful authentication redirect
         const urlParams = new URLSearchParams(window.location.search);
         let showFormDirectly = false;
         if (urlParams.get('google_connected') === 'true') {
             showFormDirectly = true;
-            // Strip url parameters to keep clean URL
             window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
             showNotification('success', 'Google Workspace Calendar sync enabled successfully!');
+        } else if (urlParams.get('zoom_connected') === 'true') {
+            showFormDirectly = true;
+            window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+            showNotification('success', 'Zoom video meetings integration enabled successfully!');
         }
 
-        if (!googleConnected) {
-            // Render Splash connection page
+        if (!googleConnected && !zoomConnected) {
+            // Render Splash connection page for both integrations
             container.innerHTML = `
-                <div class="max-w-xl mx-auto py-16 px-6 text-center space-y-6 animate-fade-in text-slate-800 font-sans">
-                    <div class="inline-flex h-16 w-16 items-center justify-center bg-indigo-50 border border-indigo-100 rounded-2xl text-indigo-600 shadow-sm">
-                        <i data-lucide="calendar" class="h-8 w-8"></i>
-                    </div>
-                    <div class="space-y-2">
-                        <h1 class="text-2xl font-extrabold text-slate-850">Connect Google Calendar</h1>
-                        <p class="text-slate-500 text-xs max-w-sm mx-auto leading-relaxed">
-                            To schedule video meetings, generate automatic Google Meet links, and keep your workspace synced, connect your Google calendar.
+                <div class="max-w-3xl mx-auto py-16 px-6 space-y-8 animate-fade-in text-slate-800 font-sans text-center">
+                    <div class="space-y-3">
+                        <h1 class="text-3xl font-extrabold text-slate-850 tracking-tight">Connect Video Integrations</h1>
+                        <p class="text-slate-500 text-sm max-w-lg mx-auto leading-relaxed">
+                            To schedule video meetings, generate automatic video-conferencing links, and sync customer callbacks, connect your preferred communication suite.
                         </p>
                     </div>
                     
-                    <div class="pt-4">
-                        <button onclick="window.connectGoogleMeetings()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2.5 mx-auto shadow-md" style="color: #ffffff !important;">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" class="h-4 w-4 bg-white p-0.5 rounded-sm" alt="Google">
-                            <span>Connect Google Workspace Calendar</span>
-                        </button>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+                        <!-- Google Calendar Integration Card -->
+                        <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-md transition text-center space-y-5 flex flex-col justify-between">
+                            <div class="space-y-3.5">
+                                <div class="inline-flex h-12 w-12 items-center justify-center bg-blue-50 border border-blue-100 rounded-2xl text-blue-600 shadow-sm mx-auto">
+                                    <i data-lucide="calendar" class="h-6 w-6 text-blue-600"></i>
+                                </div>
+                                <h3 class="text-lg font-bold text-slate-850">Google Workspace Calendar</h3>
+                                <p class="text-slate-450 text-[11px] leading-relaxed">
+                                    Generate Google Meet video-call rooms automatically and synchronize scheduled events on your Google calendar.
+                                </p>
+                            </div>
+                            <button onclick="window.connectGoogleMeetings()" class="w-full py-3 bg-indigo-650 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2.5 shadow-sm" style="color: #ffffff !important;">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" class="h-4 w-4 bg-white p-0.5 rounded-sm" alt="Google">
+                                <span>Connect Google Calendar</span>
+                            </button>
+                        </div>
+
+                        <!-- Zoom Integration Card -->
+                        <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-md transition text-center space-y-5 flex flex-col justify-between">
+                            <div class="space-y-3.5">
+                                <div class="inline-flex h-12 w-12 items-center justify-center bg-sky-50 border border-sky-100 rounded-2xl text-sky-600 shadow-sm mx-auto">
+                                    <i data-lucide="video" class="h-6 w-6 text-sky-600"></i>
+                                </div>
+                                <h3 class="text-lg font-bold text-slate-850">Zoom Video Meetings</h3>
+                                <p class="text-slate-450 text-[11px] leading-relaxed">
+                                    Generate private Zoom join links, manage duration/passcode, and sync schedules to your customer dashboard.
+                                </p>
+                            </div>
+                            <button onclick="window.connectZoomMeetings()" class="w-full py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2.5 shadow-sm" style="color: #ffffff !important;">
+                                <img src="https://source.zoom.us/zoom-logo.png" class="h-4 w-4 object-contain" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3670/3670151.png'" alt="Zoom">
+                                <span>Connect Zoom Meetings</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -8354,9 +8410,52 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
     lucide.createIcons();
 
     try {
-        const meetingsRes = await apiCall('crm/meetings.php');
+        const [meetingsRes, statusRes] = await Promise.all([
+            apiCall('crm/meetings.php'),
+            apiCall('external_apps/status.php')
+        ]);
         let meetings = meetingsRes.meetings || [];
         
+        const googleConnected = statusRes.data && statusRes.data.google && statusRes.data.google.calendar_connected;
+        const zoomConnected = statusRes.data && statusRes.data.zoom && statusRes.data.zoom.connected;
+        
+        let connectionButtons = '';
+        if (googleConnected) {
+            connectionButtons += `
+                <button onclick="window.disconnectGoogleMeetings(document.getElementById('main-content-viewport'))" class="px-3.5 py-2 bg-emerald-50 border border-emerald-100 hover:bg-rose-50 hover:border-rose-100 text-emerald-600 hover:text-rose-600 rounded-xl font-bold transition flex items-center space-x-1.5 text-[11px] group">
+                    <i data-lucide="check-circle" class="h-4 w-4 text-emerald-500 group-hover:hidden"></i>
+                    <i data-lucide="x-circle" class="h-4 w-4 text-rose-500 hidden group-hover:inline"></i>
+                    <span class="group-hover:hidden">Google Calendar</span>
+                    <span class="hidden group-hover:inline">Disconnect Google</span>
+                </button>
+            `;
+        } else {
+            connectionButtons += `
+                <button onclick="window.connectGoogleMeetings()" class="px-3 py-2 bg-slate-50 border border-slate-200 hover:bg-indigo-50 hover:border-indigo-200 text-slate-650 hover:text-indigo-650 rounded-xl font-bold transition flex items-center space-x-1.5 text-[11px]">
+                    <i data-lucide="calendar" class="h-4 w-4 text-slate-400"></i>
+                    <span>Connect Google</span>
+                </button>
+            `;
+        }
+
+        if (zoomConnected) {
+            connectionButtons += `
+                <button onclick="window.disconnectZoomMeetings(document.getElementById('main-content-viewport'))" class="px-3.5 py-2 bg-emerald-50 border border-emerald-100 hover:bg-rose-50 hover:border-rose-100 text-emerald-600 hover:text-rose-600 rounded-xl font-bold transition flex items-center space-x-1.5 text-[11px] group">
+                    <i data-lucide="check-circle" class="h-4 w-4 text-emerald-500 group-hover:hidden"></i>
+                    <i data-lucide="x-circle" class="h-4 w-4 text-rose-500 hidden group-hover:inline"></i>
+                    <span class="group-hover:hidden">Zoom Connected</span>
+                    <span class="hidden group-hover:inline">Disconnect Zoom</span>
+                </button>
+            `;
+        } else {
+            connectionButtons += `
+                <button onclick="window.connectZoomMeetings()" class="px-3 py-2 bg-slate-50 border border-slate-200 hover:bg-sky-50 hover:border-sky-200 text-slate-650 hover:text-sky-600 rounded-xl font-bold transition flex items-center space-x-1.5 text-[11px]">
+                    <i data-lucide="video" class="h-4 w-4 text-slate-400"></i>
+                    <span>Connect Zoom</span>
+                </button>
+            `;
+        }
+
         // Filter meetings based on tab
         const todayStr = new Date().toISOString().split('T')[0];
         const nowTime = new Date().getTime();
@@ -8420,12 +8519,7 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
                         </div>
                     </div>
                     <div class="flex items-center space-x-3.5">
-                        <button onclick="window.disconnectGoogleMeetings(document.getElementById('main-content-viewport'))" class="px-3.5 py-2 bg-emerald-50 border border-emerald-100 hover:bg-rose-50 hover:border-rose-100 text-emerald-600 hover:text-rose-600 rounded-xl font-bold transition flex items-center space-x-2 text-[11px] group">
-                            <i data-lucide="check-circle" class="h-4 w-4 text-emerald-500 group-hover:hidden"></i>
-                            <i data-lucide="x-circle" class="h-4 w-4 text-rose-500 hidden group-hover:inline"></i>
-                            <span class="group-hover:hidden">Google Calendar Connected</span>
-                            <span class="hidden group-hover:inline">Disconnect Calendar</span>
-                        </button>
+                        ${connectionButtons}
                         <button onclick="window.showScheduleMeetingForm(document.getElementById('main-content-viewport'))" class="px-4 py-2 bg-indigo-650 hover:bg-indigo-600 text-white rounded-xl font-bold transition flex items-center space-x-1.5 shadow-md" style="color: #ffffff !important;">
                             <i data-lucide="plus" class="h-4 w-4 text-white"></i>
                             <span>Schedule New Meeting</span>
@@ -8646,13 +8740,16 @@ window.showScheduleMeetingForm = async function(container) {
     lucide.createIcons();
 
     try {
-        const [contsRes, compsRes] = await Promise.all([
+        const [contsRes, compsRes, statusRes] = await Promise.all([
             apiCall('crm/contacts.php?limit=1000').catch(() => ({ contacts: [] })),
-            apiCall('crm/companies.php?limit=1000').catch(() => ({ companies: [] }))
+            apiCall('crm/companies.php?limit=1000').catch(() => ({ companies: [] })),
+            apiCall('external_apps/status.php').catch(() => ({ data: {} }))
         ]);
         
         const contacts = contsRes.contacts || [];
         const companies = compsRes.companies || [];
+        const googleConnected = statusRes.data && statusRes.data.google && statusRes.data.google.calendar_connected;
+        const zoomConnected = statusRes.data && statusRes.data.zoom && statusRes.data.zoom.connected;
 
         // Generate datetime-local standard format for default values (now and 30 mins later)
         const now = new Date();
@@ -8664,13 +8761,27 @@ window.showScheduleMeetingForm = async function(container) {
         const localEnd = new Date(end.getTime() - offset * 60 * 1000);
         const endIso = localEnd.toISOString().substring(0, 16);
 
+        let defaultLocation = 'Physical Venue';
+        if (googleConnected) {
+            defaultLocation = 'Google Meet';
+        } else if (zoomConnected) {
+            defaultLocation = 'Zoom Meeting';
+        }
+
+        const syncBoxClass = (defaultLocation === 'Physical Venue') ? 'hidden' : '';
+        const customLocClass = (defaultLocation === 'Physical Venue') ? '' : 'hidden';
+        const syncText = (defaultLocation === 'Google Meet') ? 
+            "Google Calendar integration is active. A Google Meet link will be generated automatically and synchronized back onto your calendar event and CRM timeline." :
+            (defaultLocation === 'Zoom Meeting') ?
+            "Zoom integration is active. A Zoom video meeting room will be generated automatically and synchronized back onto your calendar event and CRM timeline." : "";
+
         container.innerHTML = `
             <div class="max-w-xl mx-auto space-y-6 animate-fade-in text-slate-800 font-sans text-xs text-left">
                 <!-- Header -->
                 <div class="flex justify-between items-center border-b border-slate-150 pb-4">
                     <div>
                         <h1 class="text-2xl font-extrabold text-slate-850">Schedule New Meeting</h1>
-                        <p class="text-slate-500 text-xs mt-0.5">Integrate Google Meet link generation and notify invitees.</p>
+                        <p class="text-slate-500 text-xs mt-0.5">Integrate video conferencing link generation and notify invitees.</p>
                     </div>
                     <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'))" class="px-3.5 py-1.5 border border-slate-200 hover:bg-slate-50 rounded-xl font-bold text-slate-500 hover:text-slate-800 transition flex items-center space-x-1">
                         <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
@@ -8702,8 +8813,18 @@ window.showScheduleMeetingForm = async function(container) {
                     </div>
 
                     <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Location / Venue</label>
-                        <input type="text" name="location" placeholder="Google Meet, Zoom, Physical location..." value="Google Meet" class="w-full px-3.5 py-2 border border-slate-250 rounded-xl focus:outline-none focus:border-indigo-500 bg-white">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Location / Venue *</label>
+                        <select name="location" onchange="window.onMeetingLocationChange(this)" class="w-full px-3.5 py-2 border border-slate-250 rounded-xl focus:outline-none focus:border-indigo-500 bg-white font-bold">
+                            ${googleConnected ? `<option value="Google Meet" ${defaultLocation === 'Google Meet' ? 'selected' : ''}>Google Meet</option>` : ''}
+                            ${zoomConnected ? `<option value="Zoom Meeting" ${defaultLocation === 'Zoom Meeting' ? 'selected' : ''}>Zoom Meeting</option>` : ''}
+                            <option value="Physical Venue" ${defaultLocation === 'Physical Venue' ? 'selected' : ''}>In-Person / Physical Venue</option>
+                        </select>
+                    </div>
+
+                    <!-- Custom Address Address, hidden by default -->
+                    <div id="custom-location-container" class="space-y-1.5 ${customLocClass}">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Physical Venue Address</label>
+                        <input type="text" name="custom_location" placeholder="e.g. Conference Room A, Office Address..." class="w-full px-3.5 py-2 border border-slate-250 rounded-xl focus:outline-none focus:border-indigo-500 bg-white">
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
@@ -8724,10 +8845,10 @@ window.showScheduleMeetingForm = async function(container) {
                     </div>
 
                     <!-- Sync Info -->
-                    <div class="p-3 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-start space-x-2.5">
+                    <div id="meeting-sync-info-box" class="p-3 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-start space-x-2.5 ${syncBoxClass}">
                         <i data-lucide="info" class="h-4 w-4 text-emerald-600 shrink-0 mt-0.5"></i>
-                        <p class="text-[10px] text-slate-650 leading-relaxed font-semibold">
-                            Google Calendar integration is active. A Google Meet link will be generated automatically and synchronized back onto your calendar event and CRM timeline.
+                        <p id="meeting-sync-info-text" class="text-[10px] text-slate-650 leading-relaxed font-semibold">
+                            ${syncText}
                         </p>
                     </div>
 
@@ -8741,6 +8862,27 @@ window.showScheduleMeetingForm = async function(container) {
         lucide.createIcons();
     } catch(err) {
         showNotification('error', 'Failed to initialize create meeting page: ' + err.message);
+    }
+};
+
+window.onMeetingLocationChange = function(select) {
+    const customContainer = document.getElementById('custom-location-container');
+    const syncInfo = document.getElementById('meeting-sync-info-box');
+    
+    if (select.value === 'Physical Venue') {
+        customContainer.classList.remove('hidden');
+        syncInfo.classList.add('hidden');
+    } else {
+        customContainer.classList.add('hidden');
+        syncInfo.classList.remove('hidden');
+        
+        // Update sync helper info text
+        const syncText = document.getElementById('meeting-sync-info-text');
+        if (select.value === 'Google Meet') {
+            syncText.textContent = "Google Calendar integration is active. A Google Meet link will be generated automatically and synchronized back onto your calendar event and CRM timeline.";
+        } else if (select.value === 'Zoom Meeting') {
+            syncText.textContent = "Zoom integration is active. A Zoom video meeting room will be generated automatically and synchronized back onto your calendar event and CRM timeline.";
+        }
     }
 };
 
@@ -8764,12 +8906,17 @@ window.submitNewMeeting = async function(event, form, container) {
         return dtVal.replace('T', ' ') + ':00';
     };
 
+    let locationVal = form.location.value;
+    if (locationVal === 'Physical Venue') {
+        locationVal = (form.custom_location.value || '').trim() || 'In-Person Meeting';
+    }
+
     const payload = {
         title: form.title.value.trim(),
         description: form.description.value.trim(),
         start_time: formatSql(startVal),
         end_time: formatSql(endVal),
-        location: form.location.value.trim(),
+        location: locationVal,
         company_id: form.company_id.value ? parseInt(form.company_id.value) : null,
         contact_id: form.contact_id.value ? parseInt(form.contact_id.value) : null
     };
@@ -8781,7 +8928,7 @@ window.submitNewMeeting = async function(event, form, container) {
 
         const res = await apiCall('crm/meetings.php', 'POST', payload);
         if (res.status === 'success') {
-            showNotification('success', 'Meeting scheduled successfully and synced to Google Calendar!');
+            showNotification('success', 'Meeting scheduled successfully!');
             window.renderMeetingsList(container);
         } else {
             showNotification('error', res.message || 'Failed to save meeting.');
@@ -15029,7 +15176,7 @@ async function renderExternalApps(container) {
             apiCall('google/status.php').catch(err => ({ status: 'error', connected: false }))
         ]);
         
-        const conn = res.data || {
+        const conn = res.data && res.data.google ? res.data.google : {
             connected: false,
             email: null,
             name: null,
@@ -15039,6 +15186,14 @@ async function renderExternalApps(container) {
             profile_connected: false,
             calendar_connected: false,
             gmail_connected: false
+        };
+
+        const zoomConn = res.data && res.data.zoom ? res.data.zoom : {
+            connected: false,
+            email: null,
+            name: null,
+            avatar: null,
+            last_sync: null
         };
         
         const sheetConn = (sheetRes && sheetRes.status === 'success') ? sheetRes : { connected: false };
@@ -15059,7 +15214,7 @@ async function renderExternalApps(container) {
                 <!-- Header -->
                 <div class="border-b border-slate-150 pb-4">
                     <h1 class="text-2xl font-extrabold text-slate-800">External Apps Marketplace</h1>
-                    <p class="text-slate-500 text-xs mt-1">Connect and authorize Google developer integrations to synchronize your CRM activities.</p>
+                    <p class="text-slate-500 text-xs mt-1">Connect and authorize external developer integrations to synchronize your CRM activities.</p>
                 </div>
 
                 <!-- Integrations Cards Grid -->
@@ -15207,6 +15362,38 @@ async function renderExternalApps(container) {
                             `}
                         </div>
                     </div>
+
+                    <!-- Zoom Connection Card -->
+                    <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl flex flex-col justify-between hover:shadow-md transition">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <div class="h-12 w-12 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-center p-2.5 shrink-0">
+                                    <img src="https://source.zoom.us/zoom-logo.png" class="h-full w-full object-contain" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3670/3670151.png'" alt="Zoom">
+                                </div>
+                                ${buildStatusBadge(zoomConn.connected)}
+                            </div>
+                            <h3 class="text-sm font-extrabold text-slate-800 mt-4">Zoom Meetings Sync</h3>
+                            <p class="text-slate-500 mt-1.5 leading-relaxed">Schedule meetings dynamically inside the CRM and sync meeting lifecycles directly with Zoom video-conferencing.</p>
+                            
+                            ${zoomConn.connected ? `
+                                <div class="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-150 flex items-center space-x-3 text-slate-650">
+                                    ${zoomConn.avatar ? `<img src="${zoomConn.avatar}" class="h-8 w-8 rounded-full border border-slate-200" alt="Avatar">` : ''}
+                                    <div class="truncate font-mono text-[10px] space-y-0.5">
+                                        <p class="font-bold text-slate-850 truncate">${zoomConn.name || 'Zoom User'}</p>
+                                        <p class="text-slate-500 truncate">${zoomConn.email}</p>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <div class="mt-6 flex space-x-2 pt-2 border-t border-slate-100">
+                            ${zoomConn.connected ? `
+                                <button onclick="disconnectExternalZoom()" class="w-full py-2 border border-slate-200 hover:border-red-500/20 hover:bg-red-50 text-red-500 rounded-lg font-bold transition">Disconnect Zoom</button>
+                            ` : `
+                                <button onclick="connectExternalZoom()" class="w-full py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-bold text-center transition" style="color: #ffffff !important;">Connect Zoom Account</button>
+                            `}
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -15232,6 +15419,35 @@ window.connectExternalGoogle = async function(type = 'login') {
         }
     } catch (err) {
         showNotification('error', 'OAuth URL creation failed: ' + err.message);
+    }
+};
+
+window.connectExternalZoom = async function() {
+    try {
+        showNotification('info', 'Constructing secure Zoom auth request URL...');
+        const res = await apiCall('external_apps/zoom_auth.php');
+        if (res.status === 'success' && res.auth_url) {
+            window.location.href = res.auth_url;
+        } else {
+            showNotification('error', res.message || 'Failed to construct URL.');
+        }
+    } catch (err) {
+        showNotification('error', 'OAuth URL creation failed: ' + err.message);
+    }
+};
+
+window.disconnectExternalZoom = async function() {
+    if (!confirm('Are you sure you want to disconnect your Zoom integration?')) return;
+    try {
+        showNotification('info', 'Disconnecting Zoom...');
+        const res = await apiCall('external_apps/disconnect.php?provider=zoom');
+        if (res.status === 'success') {
+            showNotification('success', res.message);
+            const viewport = document.getElementById('main-content-viewport');
+            if (viewport) renderExternalApps(viewport);
+        }
+    } catch (err) {
+        showNotification('error', err.message);
     }
 };
 

@@ -8605,54 +8605,108 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${filteredMeetings.length === 0 ? `
-                                        <tr>
-                                            <td colspan="6" class="py-12 text-center text-slate-400 font-semibold italic bg-white">
-                                                No meetings found matches this criteria. Click 'Schedule New Meeting' to schedule one.
-                                            </td>
-                                        </tr>
-                                    ` : filteredMeetings.map(m => `
-                                        <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition">
-                                            <td class="py-3.5 px-4 font-semibold text-slate-800">
-                                                <div class="flex items-start space-x-2">
-                                                    <div class="h-7 w-7 rounded bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0 mt-0.5">
+                                    ${(() => {
+                                        const stripMarkdown = (str) => (str || '').replace(/\*\*/g, '').replace(/\*/g, '').replace(/`/g, '');
+                                        const formatTime12h = (timeStr) => {
+                                            if (!timeStr) return '';
+                                            const parts = timeStr.split(':');
+                                            let hours = parseInt(parts[0]);
+                                            const minutes = parts[1] || '00';
+                                            const ampm = hours >= 12 ? 'pm' : 'am';
+                                            hours = hours % 12;
+                                            hours = hours ? hours : 12;
+                                            const padHours = String(hours).padStart(2, '0');
+                                            return `${padHours}:${minutes} ${ampm}`;
+                                        };
+
+                                        if (filteredMeetings.length === 0) {
+                                            return `
+                                                <tr>
+                                                    <td colspan="6" class="py-12 text-center text-slate-400 font-semibold italic bg-white">
+                                                        No meetings found matches this criteria. Click 'Schedule New Meeting' to schedule one.
+                                                    </td>
+                                                </tr>
+                                            `;
+                                        }
+
+                                        return filteredMeetings.map(m => {
+                                            const isZoom = m.location && (m.location.includes('Zoom') || m.location.includes('zoom'));
+                                            const isGoogle = m.location && (m.location.includes('Google') || m.location.includes('google'));
+                                            
+                                            let meetingIconHTML = '';
+                                            if (isZoom) {
+                                                meetingIconHTML = `
+                                                    <div class="h-7 w-7 rounded bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 mt-0.5" title="Zoom Meeting">
+                                                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <rect width="24" height="24" rx="6" fill="#2D8CFF"/>
+                                                            <path d="M6 8.5C6 7.67157 6.67157 7 7.5 7H13.5C14.3284 7 15 7.67157 15 8.5V13.5C15 14.3284 14.3284 15 13.5 15H7.5C6.67157 15 6 14.3284 6 13.5V8.5Z" fill="white"/>
+                                                            <path d="M16 10.2L18.4 8.4C18.7333 8.15 19 8.28333 19 8.7V15.3C19 15.7167 18.7333 15.85 18.4 15.6L16 13.8V10.2Z" fill="white"/>
+                                                        </svg>
+                                                    </div>
+                                                `;
+                                            } else if (isGoogle) {
+                                                meetingIconHTML = `
+                                                    <div class="h-7 w-7 rounded bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0 mt-0.5" title="Google Meet">
                                                         <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" class="h-4 w-4" alt="Google">
                                                     </div>
-                                                    <div>
-                                                        <span class="block font-bold text-slate-850">${m.title}</span>
-                                                        <span class="text-[9px] text-slate-400 font-semibold">${m.description || 'Google Meet'}</span>
+                                                `;
+                                            } else {
+                                                meetingIconHTML = `
+                                                    <div class="h-7 w-7 rounded bg-slate-50 border border-slate-150 flex items-center justify-center shrink-0 mt-0.5" title="${m.location || 'In-Person Meeting'}">
+                                                        <svg class="w-4 h-4 shrink-0 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                                            <circle cx="12" cy="10" r="3"></circle>
+                                                        </svg>
                                                     </div>
-                                                </div>
-                                            </td>
-                                            <td class="py-3.5 px-4 text-slate-650">
-                                                ${formatMeetingTime(m.start_time, m.end_time)}
-                                            </td>
-                                            <td class="py-3.5 px-4">
-                                                ${getAttendeeBubblesHTML(m.contact_name)}
-                                            </td>
-                                            <td class="py-3.5 px-4 font-semibold text-slate-700">
-                                                ${m.company_name ? `<div>${m.company_name}</div>` : ''}
-                                                ${m.contact_name ? `<div class="text-[10px] text-slate-400 font-semibold mt-0.5">${m.contact_name}</div>` : ''}
-                                                ${!m.company_name && !m.contact_name ? '<span class="text-slate-350">-</span>' : ''}
-                                            </td>
-                                            <td class="py-3.5 px-4">
-                                                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${m.status === 'scheduled' ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : m.status === 'completed' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'}">
-                                                    ${m.status.toUpperCase()}
-                                                </span>
-                                            </td>
-                                            <td class="py-3.5 px-4 text-right space-x-1.5 shrink-0">
-                                                ${m.meet_link ? `
-                                                    <a href="${m.meet_link}" target="_blank" class="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[9px] font-bold inline-flex items-center space-x-1 shadow-sm transition" style="color: #ffffff !important;">
-                                                        <i data-lucide="video" class="h-3 w-3 text-white"></i>
-                                                        <span>Join Meet</span>
-                                                    </a>
-                                                ` : ''}
-                                                <button onclick="window.deleteMeeting(${m.id}, document.getElementById('main-content-viewport'))" class="p-1 hover:bg-rose-50 border border-transparent hover:border-rose-100 hover:text-rose-600 text-slate-400 rounded-lg transition inline-flex" title="Delete meeting">
-                                                    <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    `).join('')}
+                                                `;
+                                            }
+
+                                            const locationLabel = m.location || 'In-Person Meeting';
+                                            const cleanDescription = m.description ? stripMarkdown(m.description) : '';
+
+                                            return `
+                                                <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition">
+                                                    <td class="py-3.5 px-4 font-semibold text-slate-800">
+                                                        <div class="flex items-start space-x-2.5">
+                                                            ${meetingIconHTML}
+                                                            <div class="min-w-0">
+                                                                <span class="block font-bold text-slate-850 truncate max-w-xs">${m.title}</span>
+                                                                <span class="text-[9px] text-slate-450 font-bold block mt-0.5 truncate max-w-xs">${locationLabel}</span>
+                                                                ${cleanDescription ? `<p class="text-[9px] text-slate-400 font-semibold mt-1 max-w-xs truncate">${cleanDescription}</p>` : ''}
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="py-3.5 px-4 text-slate-650 font-semibold">
+                                                        ${formatMeetingTime(m.start_time, m.end_time)}
+                                                    </td>
+                                                    <td class="py-3.5 px-4">
+                                                        ${getAttendeeBubblesHTML(m.contact_name)}
+                                                    </td>
+                                                    <td class="py-3.5 px-4 font-semibold text-slate-700">
+                                                        ${m.company_name ? `<div>${m.company_name}</div>` : ''}
+                                                        ${m.contact_name ? `<div class="text-[10px] text-slate-400 font-semibold mt-0.5">${m.contact_name}</div>` : ''}
+                                                        ${!m.company_name && !m.contact_name ? '<span class="text-slate-350">-</span>' : ''}
+                                                    </td>
+                                                    <td class="py-3.5 px-4">
+                                                        <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${m.status === 'scheduled' ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : m.status === 'completed' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'}">
+                                                            ${m.status.toUpperCase()}
+                                                        </span>
+                                                    </td>
+                                                    <td class="py-3.5 px-4 text-right space-x-1.5 shrink-0">
+                                                        ${m.meet_link ? `
+                                                            <a href="${m.meet_link}" target="_blank" class="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[9px] font-bold inline-flex items-center space-x-1 shadow-sm transition" style="color: #ffffff !important;">
+                                                                <i data-lucide="video" class="h-3 w-3 text-white"></i>
+                                                                <span>Join Meet</span>
+                                                            </a>
+                                                        ` : ''}
+                                                        <button onclick="window.deleteMeeting(${m.id}, document.getElementById('main-content-viewport'))" class="p-1 hover:bg-rose-50 border border-transparent hover:border-rose-100 hover:text-rose-600 text-slate-400 rounded-lg transition inline-flex" title="Delete meeting">
+                                                            <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            `;
+                                        }).join('');
+                                    })()}
                                 </tbody>
                             </table>
                         </div>
@@ -8672,20 +8726,39 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
                                 <span class="text-[9px] text-slate-400 font-bold font-mono">${todayStr}</span>
                             </div>
                             <div class="space-y-3.5">
-                                ${todayMeetings.length === 0 ? `
-                                    <div class="text-slate-400 text-center italic py-4 font-semibold">No meetings today</div>
-                                ` : todayMeetings.map(m => {
-                                    const startTimeStr = m.start_time.split(' ')[1] || '';
-                                    return `
-                                        <div class="flex items-start space-x-3">
-                                            <span class="h-2 w-2 rounded-full bg-indigo-500 mt-1.5 shrink-0 animate-pulse"></span>
-                                            <div>
-                                                <span class="block font-bold text-slate-800">${m.title}</span>
-                                                <span class="text-[10px] text-slate-400 font-semibold">${startTimeStr}</span>
+                                ${(() => {
+                                    const formatTime12h = (timeStr) => {
+                                        if (!timeStr) return '';
+                                        const parts = timeStr.split(':');
+                                        let hours = parseInt(parts[0]);
+                                        const minutes = parts[1] || '00';
+                                        const ampm = hours >= 12 ? 'pm' : 'am';
+                                        hours = hours % 12;
+                                        hours = hours ? hours : 12;
+                                        const padHours = String(hours).padStart(2, '0');
+                                        return `${padHours}:${minutes} ${ampm}`;
+                                    };
+
+                                    if (todayMeetings.length === 0) {
+                                        return `
+                                            <div class="text-slate-400 text-center italic py-4 font-semibold">No meetings today</div>
+                                        `;
+                                    }
+
+                                    return todayMeetings.map(m => {
+                                        const rawTimeStr = m.start_time.split(' ')[1] || '';
+                                        const startTimeStr = formatTime12h(rawTimeStr);
+                                        return `
+                                            <div class="flex items-start space-x-3">
+                                                <span class="h-2 w-2 rounded-full bg-indigo-500 mt-1.5 shrink-0 animate-pulse"></span>
+                                                <div>
+                                                    <span class="block font-bold text-slate-800">${m.title}</span>
+                                                    <span class="text-[10px] text-slate-400 font-semibold">${startTimeStr}</span>
+                                                </div>
                                             </div>
-                                        </div>
-                                    `;
-                                }).join('')}
+                                        `;
+                                    }).join('');
+                                })()}
                             </div>
                         </div>
 

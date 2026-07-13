@@ -10488,13 +10488,14 @@ window.renderBookingSetup = async function(container) {
                             <div class="text-xs font-black text-slate-800 w-20 shrink-0 text-left">
                                 ${day.name}
                             </div>
-                            
                             <!-- Toggle switch -->
                             <div class="flex items-center shrink-0 pr-2">
-                                <label class="relative inline-flex items-center cursor-pointer select-none">
-                                    <input type="checkbox" onchange="window.toggleDayActive(${day.index})" ${isActive ? 'checked' : ''} class="sr-only peer">
-                                    <div class="w-8 h-4.5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-emerald-500"></div>
-                                </label>
+                                <div class="relative inline-block w-8 h-4.5 select-none shrink-0">
+                                    <input type="checkbox" onchange="window.toggleDayActive(${day.index})" ${isActive ? 'checked' : ''} class="opacity-0 w-0 h-0 absolute" id="toggle-${day.index}">
+                                    <label for="toggle-${day.index}" class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 rounded-full transition-all duration-200" style="background-color: ${isActive ? '#10b981' : '#cbd5e1'};">
+                                        <span class="absolute left-[2px] bottom-[2px] bg-white w-3.5 h-3.5 rounded-full transition-all duration-200" style="transform: ${isActive ? 'translateX(14px)' : 'translateX(0px)'};"></span>
+                                    </label>
+                                </div>
                             </div>
 
                             <!-- Config / Times list or Unavailable status -->

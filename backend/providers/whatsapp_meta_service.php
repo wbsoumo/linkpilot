@@ -157,6 +157,11 @@ class WhatsAppMetaService {
     public static function validateIndianNumber($phone) {
         $cleaned = preg_replace('/[^0-9]/', '', $phone);
         
+        // Normalize 10-digit Indian mobile numbers by prepending 91
+        if (strlen($cleaned) === 10 && in_array($cleaned[0], ['9', '8', '7', '6'])) {
+            $cleaned = '91' . $cleaned;
+        }
+        
         // 1. Must start with 91
         if (substr($cleaned, 0, 2) !== '91') {
             throw new Exception("Outside Indian messaging is not allowed if not starting with 91.");
@@ -180,13 +185,13 @@ class WhatsAppMetaService {
      * Send text message.
      */
     public static function sendTextMessage($userId, $phoneNumberId, $to, $text, $overrideToken = null) {
-        self::validateIndianNumber($to);
+        $toClean = self::validateIndianNumber($to);
         $token = self::getAccessToken($userId, $overrideToken);
         
         $payload = [
             "messaging_product" => "whatsapp",
             "recipient_type" => "individual",
-            "to" => $to,
+            "to" => $toClean,
             "type" => "text",
             "text" => [
                 "preview_url" => false,
@@ -202,13 +207,13 @@ class WhatsAppMetaService {
      * components parameters format: array of header, body parameters
      */
     public static function sendTemplateMessage($userId, $phoneNumberId, $to, $templateName, $languageCode = 'en', $components = [], $overrideToken = null) {
-        self::validateIndianNumber($to);
+        $toClean = self::validateIndianNumber($to);
         $token = self::getAccessToken($userId, $overrideToken);
         
         $payload = [
             "messaging_product" => "whatsapp",
             "recipient_type" => "individual",
-            "to" => $to,
+            "to" => $toClean,
             "type" => "template",
             "template" => [
                 "name" => $templateName,
@@ -229,7 +234,7 @@ class WhatsAppMetaService {
      * Send media message (image, video, document, audio).
      */
     public static function sendMediaMessage($userId, $phoneNumberId, $to, $mediaType, $mediaId, $filename = null, $overrideToken = null) {
-        self::validateIndianNumber($to);
+        $toClean = self::validateIndianNumber($to);
         $token = self::getAccessToken($userId, $overrideToken);
         
         $mediaPayload = [
@@ -242,7 +247,7 @@ class WhatsAppMetaService {
         $payload = [
             "messaging_product" => "whatsapp",
             "recipient_type" => "individual",
-            "to" => $to,
+            "to" => $toClean,
             "type" => $mediaType,
             $mediaType => $mediaPayload
         ];

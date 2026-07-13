@@ -1288,6 +1288,23 @@ function getAvatarColorClass(name) {
     return colors[index];
 }
 
+// Format and normalize phone numbers for UI display (prevent double pluses and format 10-digit Indian mobile numbers as +91...)
+function formatPhoneNumber(phone) {
+    if (!phone) return '';
+    let cleaned = phone.trim();
+    if (cleaned.startsWith('+')) {
+        return '+' + cleaned.replace(/[^0-9]/g, '');
+    }
+    const digits = cleaned.replace(/[^0-9]/g, '');
+    if (digits.startsWith('91')) {
+        return '+' + digits;
+    }
+    if (digits.length === 10 && ['9', '8', '7', '6'].includes(digits.charAt(0))) {
+        return '+91' + digits;
+    }
+    return '+' + digits;
+}
+
 // Fetch WhatsApp threads list
 async function loadWaThreads(search = '') {
     try {
@@ -1319,7 +1336,7 @@ async function loadWaThreads(search = '') {
                     lastMsgText = t.last_message_body;
                 }
             } else {
-                lastMsgText = '+' + t.wa_id;
+                lastMsgText = formatPhoneNumber(t.wa_id);
             }
 
             const unreadBadge = (t.unread_count > 0 && !isActive) ?
@@ -1394,7 +1411,7 @@ async function loadWaThreadMessages() {
                             <i data-lucide="check-circle-2" class="h-3.5 w-3.5 text-emerald-500 fill-emerald-100"></i>
                         </div>
                         <p class="text-[10px] text-slate-500 flex items-center space-x-1.5 mt-0.5">
-                            <span class="font-mono">+${thread.wa_id}</span>
+                            <span class="font-mono">${formatPhoneNumber(thread.wa_id)}</span>
                             <span class="h-1 w-1 rounded-full bg-slate-300"></span>
                             <span class="text-emerald-500 font-bold flex items-center space-x-1">
                                 <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
@@ -1903,7 +1920,7 @@ function renderWhatsAppContacts(container) {
                                                 </div>
                                                 <span>${c.profile_name || 'WhatsApp Contact'}</span>
                                             </td>
-                                            <td class="py-3 px-4 text-slate-600 font-mono">+${c.wa_id}</td>
+                                            <td class="py-3 px-4 text-slate-600 font-mono">${formatPhoneNumber(c.wa_id)}</td>
                                             <td class="py-3 px-4 text-slate-600">
                                                 ${c.crm_name ? `<span class="px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-md font-bold">${c.crm_name}</span>` : '<span class="text-slate-400 italic">Not Linked</span>'}
                                             </td>
@@ -2406,7 +2423,7 @@ function renderWhatsAppCampaigns(container) {
                                 </td>
                                 <td class="py-3 px-4 text-slate-600 font-semibold flex items-center space-x-1.5">
                                     <img src="../assets/css/WhatsApp_icon.png" class="h-4 w-4 object-contain shrink-0" alt="WhatsApp">
-                                    <span class="font-mono text-[11px]">+${c.wa_number}</span>
+                                    <span class="font-mono text-[11px]">${formatPhoneNumber(c.wa_number)}</span>
                                 </td>
                                 <td class="py-3 px-4 text-center font-bold text-slate-800 text-xs">${c.total_contacts}</td>
                                 <td class="py-3 px-4 text-center font-bold text-slate-700 text-xs">${c.sent_count}</td>
@@ -2545,7 +2562,7 @@ function renderWhatsAppCampaigns(container) {
 
                 let csv = "Campaign Name,Template,WhatsApp Number,Target,Sent,Delivered,Read,Replies,Status,Created At\n";
                 filtered.forEach(c => {
-                    csv += `"${c.name}","${c.template_name}","+${c.wa_number}",${c.total_contacts},${c.sent_count},${c.delivered_count},${c.read_count},${c.replies_count},"${c.status.toUpperCase()}","${c.created_at}"\n`;
+                    csv += `"${c.name}","${c.template_name}","${formatPhoneNumber(c.wa_number)}",${c.total_contacts},${c.sent_count},${c.delivered_count},${c.read_count},${c.replies_count},"${c.status.toUpperCase()}","${c.created_at}"\n`;
                 });
 
                 const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -2770,7 +2787,7 @@ function renderWhatsAppCampaigns(container) {
                                 return `
                                     <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50/40">
                                         <td class="p-2.5 pl-4 font-bold text-slate-805">${l.profile_name || 'Contact'}</td>
-                                        <td class="p-2.5 font-mono text-[11px] text-slate-500">+${l.wa_id}</td>
+                                        <td class="p-2.5 font-mono text-[11px] text-slate-500">${formatPhoneNumber(l.wa_id)}</td>
                                         <td class="p-2.5 text-center">
                                             <span class="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold border ${pillClass}">
                                                 ${l.status.toUpperCase()}

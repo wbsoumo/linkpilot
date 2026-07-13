@@ -190,6 +190,11 @@ try {
                 sendJsonResponse('error', 'Invalid phone number format.', [], 400);
             }
             
+            // Normalize 10-digit Indian mobile numbers by prepending 91
+            if (strlen($phoneClean) === 10 && in_array($phoneClean[0], ['9', '8', '7', '6'])) {
+                $phoneClean = '91' . $phoneClean;
+            }
+            
             // Check Indian number validation
             if (substr($phoneClean, 0, 2) !== '91') {
                 sendJsonResponse('error', 'Outside Indian messaging is not allowed if not starting with 91.', [], 400);

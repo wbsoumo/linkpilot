@@ -378,9 +378,16 @@
     <script>
         const API_BASE_URL = '../backend/api/';
 
-        // Parse query parameter ID
+        // Parse query parameter ID or fallback to path extraction
         const urlParams = new URLSearchParams(window.location.search);
-        const linkId = urlParams.get('id') || '';
+        let linkId = urlParams.get('id') || '';
+        if (!linkId) {
+            const pathParts = window.location.pathname.split('/');
+            const mIndex = pathParts.indexOf('m');
+            if (mIndex !== -1 && pathParts[mIndex + 1]) {
+                linkId = pathParts[mIndex + 1];
+            }
+        }
 
         // App state
         let hostProfile = null;

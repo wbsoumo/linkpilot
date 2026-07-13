@@ -13,6 +13,33 @@ $action = $_GET['action'] ?? $_POST['action'] ?? '';
 try {
     $db = Database::getConnection();
 
+    // Self-healing database migrations for booking system (runs transparently on live server)
+    try {
+        $db->exec("CREATE TABLE IF NOT EXISTS `crm_booking_profiles` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `user_id` INT UNIQUE NOT NULL,
+            `booking_id` VARCHAR(16) UNIQUE NOT NULL,
+            `timezone` VARCHAR(100) DEFAULT 'Asia/Kolkata',
+            `duration_minutes` INT DEFAULT 30,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            CONSTRAINT `fk_booking_profile_user_live` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+        $db->exec("CREATE TABLE IF NOT EXISTS `crm_booking_availability` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `user_id` INT NOT NULL,
+            `day_of_week` INT NOT NULL,
+            `start_time` TIME NOT NULL,
+            `end_time` TIME NOT NULL,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT `fk_booking_avail_user_live` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+            UNIQUE KEY `idx_user_day_slot` (`user_id`, `day_of_week`, `start_time`, `end_time`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+    } catch (Exception $migEx) {
+        // Silently capture migration issues
+    }
+
     // -------------------------------------------------------------------------
     // PUBLIC ENDPOINTS (No authentication required)
     // -------------------------------------------------------------------------

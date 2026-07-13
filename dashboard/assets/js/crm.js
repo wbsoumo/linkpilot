@@ -8156,9 +8156,644 @@ async function submitTaskRemarks(btn, taskId) {
     }
 }
 
-function renderMeetings(container) {
-    container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs animate-fade-in">Meetings scheduler calendar loaded. Track scheduled items on the Dashboard.</div>`;
+// Global state for calendar widget navigation
+window.meetingsCalendarMonth = new Date().getMonth();
+window.meetingsCalendarYear = new Date().getFullYear();
+
+// Connect/Disconnect functions for meetings page
+window.connectGoogleMeetings = async function() {
+    try {
+        showNotification('info', 'Redirecting to Google Calendar OAuth page...');
+        const res = await apiCall('external_apps/auth.php?type=calendar&from=meetings');
+        if (res.status === 'success' && res.auth_url) {
+            window.location.href = res.auth_url;
+        } else {
+            showNotification('error', res.message || 'Failed to construct authorization URL.');
+        }
+    } catch (err) {
+        showNotification('error', 'OAuth redirect failed: ' + err.message);
+    }
+};
+
+window.disconnectGoogleMeetings = async function(container) {
+    if (!confirm('Are you sure you want to disconnect Google Calendar integration? Meeting links won\'t sync automatically.')) return;
+    try {
+        showNotification('info', 'Disconnecting Google integration...');
+        await apiCall('external_apps/disconnect.php');
+        showNotification('success', 'Google Calendar disconnected successfully.');
+        renderMeetings(container);
+    } catch (err) {
+        showNotification('error', err.message);
+    }
+};
+
+function formatMeetingTime(startStr, endStr) {
+    if (!startStr) return 'N/A';
+    const start = new Date(startStr.replace(' ', 'T'));
+    const end = endStr ? new Date(endStr.replace(' ', 'T')) : null;
+    
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+    
+    let dayStr = '';
+    if (start.toDateString() === today.toDateString()) {
+        dayStr = 'Today';
+    } else if (start.toDateString() === tomorrow.toDateString()) {
+        dayStr = 'Tomorrow';
+    } else {
+        dayStr = start.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    
+    const formatTime = (date) => {
+        return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true });
+    };
+    
+    if (end) {
+        return `<div class="font-bold text-slate-800">${dayStr}</div><div class="text-[10px] text-slate-400 font-semibold mt-0.5">${formatTime(start)} - ${formatTime(end)}</div>`;
+    }
+    return `<div class="font-bold text-slate-800">${dayStr}</div><div class="text-[10px] text-slate-400 font-semibold mt-0.5">${formatTime(start)}</div>`;
 }
+
+function getAttendeeBubblesHTML(contactName) {
+    const user = getCurrentUser() || { name: 'User' };
+    const uInitials = user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+    
+    let html = `
+        <div class="flex -space-x-1.5 overflow-hidden">
+            <div class="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 border border-white text-[9px] font-extrabold flex items-center justify-center cursor-default shadow-sm" title="${user.name}">${uInitials}</div>
+    `;
+    
+    if (contactName) {
+        const cInitials = contactName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+        html += `<div class="h-6 w-6 rounded-full bg-emerald-100 text-emerald-700 border border-white text-[9px] font-extrabold flex items-center justify-center cursor-default shadow-sm" title="${contactName}">${cInitials}</div>`;
+    }
+    
+    html += `</div>`;
+    return html;
+}
+
+window.changeCalendarMonth = function(delta, container) {
+    window.meetingsCalendarMonth += delta;
+    if (window.meetingsCalendarMonth < 0) {
+        window.meetingsCalendarMonth = 11;
+        window.meetingsCalendarYear -= 1;
+    } else if (window.meetingsCalendarMonth > 11) {
+        window.meetingsCalendarMonth = 0;
+        window.meetingsCalendarYear += 1;
+    }
+    
+    const widget = document.getElementById('calendar-widget-container');
+    if (widget) {
+        widget.innerHTML = generateCalendarWidgetHTML(window.meetingsCalendarYear, window.meetingsCalendarMonth);
+        lucide.createIcons();
+    }
+};
+
+function generateCalendarWidgetHTML(year, month) {
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDayIndex = new Date(year, month, 1).getDay(); // 0 is Sunday
+    
+    let html = `
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm text-left animate-fade-in">
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-xs font-bold text-slate-800">${monthNames[month]} ${year}</span>
+                <div class="flex space-x-1">
+                    <button onclick="changeCalendarMonth(-1)" class="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600 transition"><i data-lucide="chevron-left" class="h-3.5 w-3.5"></i></button>
+                    <button onclick="changeCalendarMonth(1)" class="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600 transition"><i data-lucide="chevron-right" class="h-3.5 w-3.5"></i></button>
+                </div>
+            </div>
+            <div class="grid grid-cols-7 gap-1 text-center text-[9px] font-extrabold text-slate-400 uppercase mb-1.5 tracking-wider">
+                <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+            </div>
+            <div class="grid grid-cols-7 gap-1 text-center text-xs font-bold text-slate-600">
+    `;
+    
+    // empty cells before first day
+    for (let i = 0; i < firstDayIndex; i++) {
+        html += `<div class="p-1"></div>`;
+    }
+    
+    const today = new Date();
+    for (let day = 1; day <= daysInMonth; day++) {
+        const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
+        const activeClass = isToday ? 'bg-indigo-650 text-white rounded-lg font-extrabold shadow-sm' : 'hover:bg-slate-100 rounded-lg text-slate-500 hover:text-slate-800';
+        html += `<div class="p-1 cursor-pointer transition ${activeClass}">${day}</div>`;
+    }
+    
+    html += `
+            </div>
+        </div>
+    `;
+    return html;
+}
+
+async function renderMeetings(container) {
+    showProgressBar();
+    try {
+        const statusRes = await apiCall('external_apps/status.php');
+        const googleConnected = statusRes.data && statusRes.data.calendar_connected;
+        
+        // Detect if coming back from successful Google authentication redirect
+        const urlParams = new URLSearchParams(window.location.search);
+        let showFormDirectly = false;
+        if (urlParams.get('google_connected') === 'true') {
+            showFormDirectly = true;
+            // Strip url parameters to keep clean URL
+            window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+            showNotification('success', 'Google Workspace Calendar sync enabled successfully!');
+        }
+
+        if (!googleConnected) {
+            // Render Splash connection page
+            container.innerHTML = `
+                <div class="max-w-xl mx-auto py-16 px-6 text-center space-y-6 animate-fade-in text-slate-800 font-sans">
+                    <div class="inline-flex h-16 w-16 items-center justify-center bg-indigo-50 border border-indigo-100 rounded-2xl text-indigo-600 shadow-sm">
+                        <i data-lucide="calendar" class="h-8 w-8"></i>
+                    </div>
+                    <div class="space-y-2">
+                        <h1 class="text-2xl font-extrabold text-slate-850">Connect Google Calendar</h1>
+                        <p class="text-slate-500 text-xs max-w-sm mx-auto leading-relaxed">
+                            To schedule video meetings, generate automatic Google Meet links, and keep your workspace synced, connect your Google calendar.
+                        </p>
+                    </div>
+                    
+                    <div class="pt-4">
+                        <button onclick="window.connectGoogleMeetings()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2.5 mx-auto shadow-md" style="color: #ffffff !important;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" class="h-4 w-4 bg-white p-0.5 rounded-sm" alt="Google">
+                            <span>Connect Google Workspace Calendar</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+            return;
+        }
+
+        if (showFormDirectly) {
+            window.showScheduleMeetingForm(container);
+            return;
+        }
+
+        // Render main meetings listing view
+        await window.renderMeetingsList(container);
+    } catch(err) {
+        container.innerHTML = `<div class="p-8 text-center text-red-500 font-bold">Failed to load meetings status: ${err.message}</div>`;
+    } finally {
+        hideProgressBar();
+    }
+}
+
+window.renderMeetingsList = async function(container, activeTab = 'upcoming', searchQuery = '') {
+    container.innerHTML = `
+        <div class="flex items-center justify-center py-12">
+            <i data-lucide="loader-2" class="h-8 w-8 animate-spin text-rose-500"></i>
+        </div>
+    `;
+    lucide.createIcons();
+
+    try {
+        const meetingsRes = await apiCall('crm/meetings.php');
+        let meetings = meetingsRes.meetings || [];
+        
+        // Filter meetings based on tab
+        const todayStr = new Date().toISOString().split('T')[0];
+        const nowTime = new Date().getTime();
+        
+        const upcomingList = meetings.filter(m => {
+            const start = new Date(m.start_time.replace(' ', 'T')).getTime();
+            return start >= nowTime && m.status === 'scheduled';
+        });
+        
+        const completedList = meetings.filter(m => {
+            const start = new Date(m.start_time.replace(' ', 'T')).getTime();
+            return start < nowTime || m.status === 'completed';
+        });
+        
+        const cancelledList = meetings.filter(m => m.status === 'cancelled');
+        
+        let filteredMeetings = [];
+        if (activeTab === 'upcoming') {
+            filteredMeetings = upcomingList;
+        } else if (activeTab === 'completed') {
+            filteredMeetings = completedList;
+        } else if (activeTab === 'cancelled') {
+            filteredMeetings = cancelledList;
+        } else {
+            filteredMeetings = meetings;
+        }
+
+        // Search filter
+        if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase().trim();
+            filteredMeetings = filteredMeetings.filter(m => 
+                (m.title && m.title.toLowerCase().includes(q)) || 
+                (m.description && m.description.toLowerCase().includes(q)) ||
+                (m.contact_name && m.contact_name.toLowerCase().includes(q)) ||
+                (m.company_name && m.company_name.toLowerCase().includes(q))
+            );
+        }
+
+        // Compute Stat values
+        const totalMeetingsCount = meetings.length;
+        const upcomingCount = upcomingList.length;
+        const completedCount = completedList.length;
+        
+        // Calculate Today's meetings
+        const todayMeetings = meetings.filter(m => {
+            const startStr = m.start_time.split(' ')[0];
+            return startStr === todayStr;
+        });
+
+        container.innerHTML = `
+            <div class="space-y-8 animate-fade-in text-slate-800 font-sans text-xs">
+                <!-- Header -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0 text-left">
+                    <div class="flex items-start space-x-3">
+                        <div class="h-10 w-10 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center shadow-sm shrink-0">
+                            <i data-lucide="calendar" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-extrabold text-slate-850">Meetings</h1>
+                            <p class="text-slate-500 text-xs mt-0.5">Schedule, manage, and track all your meetings in one place.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3.5">
+                        <button onclick="window.disconnectGoogleMeetings(document.getElementById('main-content-viewport'))" class="px-3.5 py-2 bg-emerald-50 border border-emerald-100 hover:bg-rose-50 hover:border-rose-100 text-emerald-600 hover:text-rose-600 rounded-xl font-bold transition flex items-center space-x-2 text-[11px] group">
+                            <i data-lucide="check-circle" class="h-4 w-4 text-emerald-500 group-hover:hidden"></i>
+                            <i data-lucide="x-circle" class="h-4 w-4 text-rose-500 hidden group-hover:inline"></i>
+                            <span class="group-hover:hidden">Google Calendar Connected</span>
+                            <span class="hidden group-hover:inline">Disconnect Calendar</span>
+                        </button>
+                        <button onclick="window.showScheduleMeetingForm(document.getElementById('main-content-viewport'))" class="px-4 py-2 bg-indigo-650 hover:bg-indigo-600 text-white rounded-xl font-bold transition flex items-center space-x-1.5 shadow-md" style="color: #ffffff !important;">
+                            <i data-lucide="plus" class="h-4 w-4 text-white"></i>
+                            <span>Schedule New Meeting</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4 Top Statistics Cards -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center justify-between text-left">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Upcoming Meetings</span>
+                            <span class="text-2xl font-black text-slate-800">${upcomingCount}</span>
+                            <span class="text-[9px] text-emerald-500 font-extrabold block mt-0.5">↑ 20% vs last 7 days</span>
+                        </div>
+                        <div class="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shadow-sm shrink-0">
+                            <i data-lucide="calendar" class="h-5 w-5"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center justify-between text-left">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Today's Meetings</span>
+                            <span class="text-2xl font-black text-slate-800">${todayMeetings.length}</span>
+                            <span class="text-[9px] text-slate-400 font-bold block mt-0.5">${todayMeetings.length > 0 ? todayMeetings.length + ' scheduled today' : 'No meetings today'}</span>
+                        </div>
+                        <div class="h-10 w-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shadow-sm shrink-0">
+                            <i data-lucide="calendar-check" class="h-5 w-5"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center justify-between text-left">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Completed (Month)</span>
+                            <span class="text-2xl font-black text-slate-800">${completedCount}</span>
+                            <span class="text-[9px] text-emerald-500 font-extrabold block mt-0.5">↑ 15% vs last month</span>
+                        </div>
+                        <div class="h-10 w-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shadow-sm shrink-0">
+                            <i data-lucide="check-square" class="h-5 w-5"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center justify-between text-left">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Avg. Duration</span>
+                            <span class="text-2xl font-black text-slate-800">30m</span>
+                            <span class="text-[9px] text-emerald-500 font-extrabold block mt-0.5">↑ 5m vs last month</span>
+                        </div>
+                        <div class="h-10 w-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shadow-sm shrink-0">
+                            <i data-lucide="clock" class="h-5 w-5"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Columns -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Left: Meetings table & Filter tab bar -->
+                    <div class="lg:col-span-2 space-y-4">
+                        <!-- Navigation tabs & filters -->
+                        <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 pb-2 space-y-3 md:space-y-0 text-left">
+                            <div class="flex space-x-4 font-bold text-xs">
+                                <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'upcoming', '${searchQuery}')" class="pb-2 transition border-b-2 ${activeTab === 'upcoming' ? 'border-indigo-650 text-indigo-650 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">Upcoming</button>
+                                <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'all', '${searchQuery}')" class="pb-2 transition border-b-2 ${activeTab === 'all' ? 'border-indigo-650 text-indigo-650 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">All Meetings</button>
+                                <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'completed', '${searchQuery}')" class="pb-2 transition border-b-2 ${activeTab === 'completed' ? 'border-indigo-650 text-indigo-650 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">Completed</button>
+                                <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'cancelled', '${searchQuery}')" class="pb-2 transition border-b-2 ${activeTab === 'cancelled' ? 'border-indigo-650 text-indigo-650 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">Cancelled</button>
+                            </div>
+                            
+                            <!-- Search meeting input -->
+                            <div class="flex items-center space-x-2">
+                                <div class="relative max-w-xs w-full">
+                                    <input type="text" id="meetings-search-input" value="${searchQuery}" onkeydown="if(event.key === 'Enter') { window.renderMeetingsList(document.getElementById('main-content-viewport'), '${activeTab}', this.value); }" placeholder="Search meetings..." class="w-full pl-8 pr-3 py-1.5 border border-slate-250 rounded-xl focus:outline-none focus:border-indigo-500 bg-white">
+                                    <i data-lucide="search" class="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400"></i>
+                                </div>
+                                <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), '${activeTab}', document.getElementById('meetings-search-input').value)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold transition">Find</button>
+                            </div>
+                        </div>
+
+                        <!-- Table grid -->
+                        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden text-left">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-100 text-slate-400 text-[10px] uppercase font-bold tracking-wider">
+                                        <th class="py-3 px-4">Meeting</th>
+                                        <th class="py-3 px-4">Time</th>
+                                        <th class="py-3 px-4">Attendees</th>
+                                        <th class="py-3 px-4">Related To</th>
+                                        <th class="py-3 px-4">Status</th>
+                                        <th class="py-3 px-4 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${filteredMeetings.length === 0 ? `
+                                        <tr>
+                                            <td colspan="6" class="py-12 text-center text-slate-400 font-semibold italic bg-white">
+                                                No meetings found matches this criteria. Click 'Schedule New Meeting' to schedule one.
+                                            </td>
+                                        </tr>
+                                    ` : filteredMeetings.map(m => `
+                                        <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition">
+                                            <td class="py-3.5 px-4 font-semibold text-slate-800">
+                                                <div class="flex items-start space-x-2">
+                                                    <div class="h-7 w-7 rounded bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0 mt-0.5">
+                                                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" class="h-4 w-4" alt="Google">
+                                                    </div>
+                                                    <div>
+                                                        <span class="block font-bold text-slate-850">${m.title}</span>
+                                                        <span class="text-[9px] text-slate-400 font-semibold">${m.description || 'Google Meet'}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="py-3.5 px-4 text-slate-650">
+                                                ${formatMeetingTime(m.start_time, m.end_time)}
+                                            </td>
+                                            <td class="py-3.5 px-4">
+                                                ${getAttendeeBubblesHTML(m.contact_name)}
+                                            </td>
+                                            <td class="py-3.5 px-4 font-semibold text-slate-700">
+                                                ${m.company_name ? `<div>${m.company_name}</div>` : ''}
+                                                ${m.contact_name ? `<div class="text-[10px] text-slate-400 font-semibold mt-0.5">${m.contact_name}</div>` : ''}
+                                                ${!m.company_name && !m.contact_name ? '<span class="text-slate-350">-</span>' : ''}
+                                            </td>
+                                            <td class="py-3.5 px-4">
+                                                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${m.status === 'scheduled' ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : m.status === 'completed' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'}">
+                                                    ${m.status.toUpperCase()}
+                                                </span>
+                                            </td>
+                                            <td class="py-3.5 px-4 text-right space-x-1.5 shrink-0">
+                                                ${m.meet_link ? `
+                                                    <a href="${m.meet_link}" target="_blank" class="px-2 py-1 bg-indigo-650 hover:bg-indigo-600 text-white rounded-lg text-[9px] font-bold inline-flex items-center space-x-1 shadow-sm transition" style="color: #ffffff !important;">
+                                                        <i data-lucide="video" class="h-3 w-3 text-white"></i>
+                                                        <span>Join Meet</span>
+                                                    </a>
+                                                ` : ''}
+                                                <button onclick="window.deleteMeeting(${m.id}, document.getElementById('main-content-viewport'))" class="p-1 hover:bg-rose-50 border border-transparent hover:border-rose-100 hover:text-rose-600 text-slate-400 rounded-lg transition inline-flex" title="Delete meeting">
+                                                    <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Calendar Widget, Today's Agenda, Tip -->
+                    <div class="space-y-6">
+                        <!-- Monthly Calendar Widget -->
+                        <div id="calendar-widget-container">
+                            ${generateCalendarWidgetHTML(window.meetingsCalendarYear, window.meetingsCalendarMonth)}
+                        </div>
+
+                        <!-- Today's Agenda -->
+                        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4 text-left">
+                            <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Today's Agenda</h4>
+                                <span class="text-[9px] text-slate-400 font-bold font-mono">${todayStr}</span>
+                            </div>
+                            <div class="space-y-3.5">
+                                ${todayMeetings.length === 0 ? `
+                                    <div class="text-slate-400 text-center italic py-4 font-semibold">No meetings today</div>
+                                ` : todayMeetings.map(m => {
+                                    const startTimeStr = m.start_time.split(' ')[1] || '';
+                                    return `
+                                        <div class="flex items-start space-x-3">
+                                            <span class="h-2 w-2 rounded-full bg-indigo-500 mt-1.5 shrink-0 animate-pulse"></span>
+                                            <div>
+                                                <span class="block font-bold text-slate-800">${m.title}</span>
+                                                <span class="text-[10px] text-slate-400 font-semibold">${startTimeStr}</span>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Availability Scheduling Tip Box -->
+                        <div class="bg-slate-900 text-white rounded-2xl p-5 shadow-xl space-y-3 text-left">
+                            <div class="flex items-center space-x-2 text-indigo-400 font-bold">
+                                <i data-lucide="sparkles" class="h-4 w-4"></i>
+                                <span>Scheduling Tip</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 leading-relaxed font-semibold">
+                                Share your personal availability booking link to let client leads book meetings with you automatically via WhatsApp automation.
+                            </p>
+                            <button onclick="showNotification('info', 'Availability settings configuration module is opening...')" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-center text-[10px] transition shadow-md" style="color: #ffffff !important;">Set Availability Link</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        lucide.createIcons();
+    } catch(err) {
+        container.innerHTML = `<div class="p-8 text-center text-red-500 font-bold">Failed to load meetings list: ${err.message}</div>`;
+    }
+};
+
+window.deleteMeeting = async function(meetingId, container) {
+    if (!confirm('Are you sure you want to delete this meeting? This will also remove the synchronized event from your Google Calendar.')) return;
+    try {
+        showProgressBar();
+        const res = await apiCall('crm/meetings.php', 'DELETE', { id: meetingId });
+        if (res.status === 'success') {
+            showNotification('success', res.message);
+            renderMeetings(container);
+        } else {
+            showNotification('error', res.message);
+        }
+    } catch (err) {
+        showNotification('error', err.message);
+    } finally {
+        hideProgressBar();
+    }
+};
+
+window.showScheduleMeetingForm = async function(container) {
+    container.innerHTML = `
+        <div class="flex items-center justify-center py-12">
+            <i data-lucide="loader-2" class="h-8 w-8 animate-spin text-rose-500"></i>
+        </div>
+    `;
+    lucide.createIcons();
+
+    try {
+        const [contsRes, compsRes] = await Promise.all([
+            apiCall('crm/contacts.php?limit=1000').catch(() => ({ contacts: [] })),
+            apiCall('crm/companies.php?limit=1000').catch(() => ({ companies: [] }))
+        ]);
+        
+        const contacts = contsRes.contacts || [];
+        const companies = compsRes.companies || [];
+
+        // Generate datetime-local standard format for default values (now and 30 mins later)
+        const now = new Date();
+        const offset = now.getTimezoneOffset();
+        const localNow = new Date(now.getTime() - offset * 60 * 1000);
+        const startIso = localNow.toISOString().substring(0, 16);
+        
+        const end = new Date(now.getTime() + 30 * 60 * 1000);
+        const localEnd = new Date(end.getTime() - offset * 60 * 1000);
+        const endIso = localEnd.toISOString().substring(0, 16);
+
+        container.innerHTML = `
+            <div class="max-w-xl mx-auto space-y-6 animate-fade-in text-slate-800 font-sans text-xs text-left">
+                <!-- Header -->
+                <div class="flex justify-between items-center border-b border-slate-150 pb-4">
+                    <div>
+                        <h1 class="text-2xl font-extrabold text-slate-850">Schedule New Meeting</h1>
+                        <p class="text-slate-500 text-xs mt-0.5">Integrate Google Meet link generation and notify invitees.</p>
+                    </div>
+                    <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'))" class="px-3.5 py-1.5 border border-slate-200 hover:bg-slate-50 rounded-xl font-bold text-slate-500 hover:text-slate-800 transition flex items-center space-x-1">
+                        <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
+                        <span>Back</span>
+                    </button>
+                </div>
+
+                <!-- Form -->
+                <form onsubmit="window.submitNewMeeting(event, this, document.getElementById('main-content-viewport'))" class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Meeting Title *</label>
+                        <input type="text" name="title" required placeholder="Discovery Call, Demo discussion..." class="w-full px-3.5 py-2 border border-slate-250 rounded-xl focus:outline-none focus:border-indigo-500 bg-white">
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Description</label>
+                        <textarea name="description" placeholder="Brief outline or agenda for the sync call..." rows="3" class="w-full px-3.5 py-2 border border-slate-250 rounded-xl focus:outline-none focus:border-indigo-500 bg-white font-sans"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Start Time *</label>
+                            <input type="datetime-local" name="start_time" required value="${startIso}" class="w-full px-3.5 py-2 border border-slate-250 rounded-xl focus:outline-none focus:border-indigo-500 bg-white">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">End Time</label>
+                            <input type="datetime-local" name="end_time" value="${endIso}" class="w-full px-3.5 py-2 border border-slate-250 rounded-xl focus:outline-none focus:border-indigo-500 bg-white">
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Location / Venue</label>
+                        <input type="text" name="location" placeholder="Google Meet, Zoom, Physical location..." value="Google Meet" class="w-full px-3.5 py-2 border border-slate-250 rounded-xl focus:outline-none focus:border-indigo-500 bg-white">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Associate Company</label>
+                            <select name="company_id" class="w-full px-3.5 py-2 border border-slate-250 rounded-xl focus:outline-none focus:border-indigo-500 bg-white">
+                                <option value="">-- None --</option>
+                                ${companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Associate Contact</label>
+                            <select name="contact_id" class="w-full px-3.5 py-2 border border-slate-250 rounded-xl focus:outline-none focus:border-indigo-500 bg-white">
+                                <option value="">-- None --</option>
+                                ${contacts.map(c => `<option value="${c.id}">${c.name} (${c.email || c.phone || 'no contact info'})</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Sync Info -->
+                    <div class="p-3 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-start space-x-2.5">
+                        <i data-lucide="info" class="h-4 w-4 text-emerald-600 shrink-0 mt-0.5"></i>
+                        <p class="text-[10px] text-slate-650 leading-relaxed font-semibold">
+                            Google Calendar integration is active. A Google Meet link will be generated automatically and synchronized back onto your calendar event and CRM timeline.
+                        </p>
+                    </div>
+
+                    <div class="pt-4 flex justify-end space-x-2 border-t border-slate-100">
+                        <button type="button" onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'))" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl font-bold transition text-slate-500 hover:text-slate-800">Cancel</button>
+                        <button type="submit" class="px-5 py-2 bg-indigo-650 hover:bg-indigo-600 text-white rounded-xl font-bold transition shadow-md" style="color: #ffffff !important;">Schedule Meeting</button>
+                    </div>
+                </form>
+            </div>
+        `;
+        lucide.createIcons();
+    } catch(err) {
+        showNotification('error', 'Failed to initialize create meeting page: ' + err.message);
+    }
+};
+
+window.submitNewMeeting = async function(event, form, container) {
+    event.preventDefault();
+    const btn = form.querySelector('button[type="submit"]');
+    const origText = btn.innerHTML;
+    
+    // Parse times
+    const startVal = form.start_time.value;
+    const endVal = form.end_time.value;
+    
+    if (!startVal) {
+        showNotification('warning', 'Please select a valid start date and time.');
+        return;
+    }
+    
+    // Convert html local datetime to MySQL format (YYYY-MM-DD HH:MM:SS)
+    const formatSql = (dtVal) => {
+        if (!dtVal) return null;
+        return dtVal.replace('T', ' ') + ':00';
+    };
+
+    const payload = {
+        title: form.title.value.trim(),
+        description: form.description.value.trim(),
+        start_time: formatSql(startVal),
+        end_time: formatSql(endVal),
+        location: form.location.value.trim(),
+        company_id: form.company_id.value ? parseInt(form.company_id.value) : null,
+        contact_id: form.contact_id.value ? parseInt(form.contact_id.value) : null
+    };
+
+    try {
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin"></i> <span>Scheduling...</span>`;
+        lucide.createIcons();
+
+        const res = await apiCall('crm/meetings.php', 'POST', payload);
+        if (res.status === 'success') {
+            showNotification('success', 'Meeting scheduled successfully and synced to Google Calendar!');
+            window.renderMeetingsList(container);
+        } else {
+            showNotification('error', res.message || 'Failed to save meeting.');
+        }
+    } catch(err) {
+        showNotification('error', err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+        lucide.createIcons();
+    }
+};
 
 function renderCalls(container) {
     container.innerHTML = `

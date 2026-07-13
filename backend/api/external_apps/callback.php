@@ -78,6 +78,8 @@ try {
                 header("Location: {$protocol}://{$host}/dashboard/smtp.html?google_error=" . $errParam);
             } elseif ($from === 'email-intelligence') {
                 header("Location: {$protocol}://{$host}/dashboard/index.html?google_error=" . $errParam . "#/email-intelligence");
+            } elseif ($from === 'meetings') {
+                header("Location: {$protocol}://{$host}/dashboard/index.html?google_error=" . $errParam . "#/meetings");
             } else {
                 header("Location: {$protocol}://{$host}/dashboard/index.html#/external-apps?google_error=" . $errParam);
             }
@@ -217,6 +219,8 @@ if ($from === 'setup') {
     header("Location: {$protocol}://{$host}/dashboard/smtp.html?google_connected=true");
 } elseif ($from === 'email-intelligence') {
     header("Location: {$protocol}://{$host}/dashboard/index.html?google_connected=true#/email-intelligence");
+} elseif ($from === 'meetings') {
+    header("Location: {$protocol}://{$host}/dashboard/index.html?google_connected=true#/meetings");
 } else {
     header("Location: {$protocol}://{$host}/dashboard/index.html#/external-apps");
 }

@@ -4639,7 +4639,7 @@ function openImportCompaniesModal() {
                         <button onclick="document.getElementById('crm-import-companies-modal').remove()" class="px-4 py-2 bg-slate-500 hover:bg-slate-600 rounded-lg font-bold transition text-[11px] shadow-xs" style="color: #ffffff !important;">
                             <span style="color: #ffffff !important;">Cancel</span>
                         </button>
-                        <button onclick="document.getElementById('companies-import-file-input').click()" class="px-4 py-2 bg-[#4f46e5] hover:bg-indigo-650 rounded-lg font-bold flex items-center space-x-1.5 transition text-[11px] shadow-sm" style="color: #ffffff !important;">
+                        <button onclick="document.getElementById('companies-import-file-input').click()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold flex items-center space-x-1.5 transition text-[11px] shadow-sm" style="color: #ffffff !important;">
                             <span style="color: #ffffff !important;">Import Companies</span>
                             <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
                         </button>
@@ -5108,7 +5108,7 @@ function openImportContactsModal() {
                         <button onclick="document.getElementById('crm-import-contacts-modal').remove()" class="px-4 py-2 bg-slate-500 hover:bg-slate-600 rounded-lg font-bold transition text-[11px] shadow-xs" style="color: #ffffff !important;">
                             <span style="color: #ffffff !important;">Cancel</span>
                         </button>
-                        <button onclick="document.getElementById('contacts-import-file-input').click()" class="px-4 py-2 bg-[#4f46e5] hover:bg-indigo-650 rounded-lg font-bold flex items-center space-x-1.5 transition text-[11px] shadow-sm" style="color: #ffffff !important;">
+                        <button onclick="document.getElementById('contacts-import-file-input').click()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold flex items-center space-x-1.5 transition text-[11px] shadow-sm" style="color: #ffffff !important;">
                             <span style="color: #ffffff !important;">Import Contacts</span>
                             <i data-lucide="arrow-right" class="h-3.5 w-3.5" style="stroke: #ffffff !important;"></i>
                         </button>
@@ -6933,16 +6933,15 @@ async function renderTasks(container) {
                         <p class="text-slate-500 text-xs mt-1">Manage, categorize, and complete tasks ordered by priority metrics.</p>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <button onclick="showQuickTaskModal()" class="px-4 py-2 border border-indigo-650 hover:bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 shadow-sm hover:shadow-indigo-100/50">
+                        <button onclick="showQuickTaskModal()" class="px-4 py-2 border border-indigo-600 hover:bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 shadow-sm hover:shadow-indigo-100/50">
                             <i data-lucide="sparkles" class="h-3.5 w-3.5 text-indigo-650"></i>
                             <span>Quick Task (Ctrl+K)</span>
                         </button>
-                        <button onclick="createNewTaskModal()" class="px-4 py-2 bg-indigo-650 hover:bg-indigo-600 text-white rounded-lg text-xs font-bold transition flex items-center space-x-1.5 shadow-sm">
+                        <button onclick="createNewTaskModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition flex items-center space-x-1.5 shadow-sm">
                             <i data-lucide="plus" class="h-3.5 w-3.5"></i>
                             <span>Add New Task</span>
                         </button>
                     </div>
-                </div>
 
                 <!-- Tabs filtering row -->
                 <div class="flex items-center space-x-1 border-b border-slate-200 pb-px text-left w-full overflow-x-auto">
@@ -7245,7 +7244,7 @@ window.showQuickTaskModal = function() {
                 <!-- Footer buttons -->
                 <div class="px-6 py-4 border-t border-slate-800 bg-slate-900/80 flex justify-end space-x-2.5">
                     <button onclick="closeQuickTaskModal()" class="px-4 py-2 text-slate-455 hover:text-slate-200 bg-transparent rounded-lg font-bold transition">Cancel</button>
-                    <button onclick="submitQuickTask(this)" class="px-5 py-2 bg-indigo-650 hover:bg-indigo-600 text-white rounded-lg font-bold transition flex items-center space-x-1.5 shadow-md shadow-indigo-650/10 hover:shadow-indigo-500/20">
+                    <button onclick="submitQuickTask(this)" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold transition flex items-center space-x-1.5 shadow-md shadow-blue-600/10 hover:shadow-blue-500/20">
                         <i data-lucide="check" class="h-4 w-4"></i>
                         <span>Create Task</span>
                     </button>
@@ -8304,8 +8303,8 @@ function generateCalendarWidgetHTML(year, month) {
     const today = new Date();
     for (let day = 1; day <= daysInMonth; day++) {
         const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
-        const activeClass = isToday ? 'bg-indigo-650 text-white rounded-lg font-extrabold shadow-sm' : 'hover:bg-slate-100 rounded-lg text-slate-500 hover:text-slate-800';
-        html += `<div class="p-1 cursor-pointer transition ${activeClass}">${day}</div>`;
+        const activeClass = isToday ? 'bg-blue-600 text-white rounded-full font-black shadow-md flex items-center justify-center h-6 w-6 mx-auto' : 'hover:bg-slate-100 rounded-lg text-slate-550 hover:text-slate-800';
+        html += `<div class="p-1 cursor-pointer transition flex items-center justify-center"><div class="h-6 w-6 flex items-center justify-center ${activeClass}">${day}</div></div>`;
     }
     
     html += `
@@ -8358,7 +8357,7 @@ async function renderMeetings(container) {
                                     Generate Google Meet video-call rooms automatically and synchronize scheduled events on your Google calendar.
                                 </p>
                             </div>
-                            <button onclick="window.connectGoogleMeetings()" class="w-full py-3 bg-indigo-650 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2.5 shadow-sm" style="color: #ffffff !important;">
+                            <button onclick="window.connectGoogleMeetings()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2.5 shadow-sm" style="color: #ffffff !important;">
                                 <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" class="h-4 w-4 bg-white p-0.5 rounded-sm" alt="Google">
                                 <span>Connect Google Calendar</span>
                             </button>
@@ -8423,16 +8422,15 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
         if (googleConnected) {
             connectionButtons += `
                 <button onclick="window.disconnectGoogleMeetings(document.getElementById('main-content-viewport'))" class="px-3.5 py-2 bg-emerald-50 border border-emerald-100 hover:bg-rose-50 hover:border-rose-100 text-emerald-600 hover:text-rose-600 rounded-xl font-bold transition flex items-center space-x-1.5 text-[11px] group">
-                    <i data-lucide="check-circle" class="h-4 w-4 text-emerald-500 group-hover:hidden"></i>
-                    <i data-lucide="x-circle" class="h-4 w-4 text-rose-500 hidden group-hover:inline"></i>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" class="h-4 w-4 bg-white p-0.5 rounded-full mr-1" alt="Google">
                     <span class="group-hover:hidden">Google Calendar</span>
                     <span class="hidden group-hover:inline">Disconnect Google</span>
                 </button>
             `;
         } else {
             connectionButtons += `
-                <button onclick="window.connectGoogleMeetings()" class="px-3 py-2 bg-slate-50 border border-slate-200 hover:bg-indigo-50 hover:border-indigo-200 text-slate-650 hover:text-indigo-650 rounded-xl font-bold transition flex items-center space-x-1.5 text-[11px]">
-                    <i data-lucide="calendar" class="h-4 w-4 text-slate-400"></i>
+                <button onclick="window.connectGoogleMeetings()" class="px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold transition flex items-center space-x-1.5 text-[11px]">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" class="h-4 w-4 bg-white p-0.5 rounded-full mr-1" alt="Google">
                     <span>Connect Google</span>
                 </button>
             `;
@@ -8441,16 +8439,15 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
         if (zoomConnected) {
             connectionButtons += `
                 <button onclick="window.disconnectZoomMeetings(document.getElementById('main-content-viewport'))" class="px-3.5 py-2 bg-emerald-50 border border-emerald-100 hover:bg-rose-50 hover:border-rose-100 text-emerald-600 hover:text-rose-600 rounded-xl font-bold transition flex items-center space-x-1.5 text-[11px] group">
-                    <i data-lucide="check-circle" class="h-4 w-4 text-emerald-500 group-hover:hidden"></i>
-                    <i data-lucide="x-circle" class="h-4 w-4 text-rose-500 hidden group-hover:inline"></i>
+                    <img src="https://source.zoom.us/zoom-logo.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3670/3670151.png'" class="h-4 w-4 mr-1 object-contain" alt="Zoom">
                     <span class="group-hover:hidden">Zoom Connected</span>
                     <span class="hidden group-hover:inline">Disconnect Zoom</span>
                 </button>
             `;
         } else {
             connectionButtons += `
-                <button onclick="window.connectZoomMeetings()" class="px-3 py-2 bg-slate-50 border border-slate-200 hover:bg-sky-50 hover:border-sky-200 text-slate-650 hover:text-sky-600 rounded-xl font-bold transition flex items-center space-x-1.5 text-[11px]">
-                    <i data-lucide="video" class="h-4 w-4 text-slate-400"></i>
+                <button onclick="window.connectZoomMeetings()" class="px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold transition flex items-center space-x-1.5 text-[11px]">
+                    <img src="https://source.zoom.us/zoom-logo.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3670/3670151.png'" class="h-4 w-4 mr-1 object-contain" alt="Zoom">
                     <span>Connect Zoom</span>
                 </button>
             `;
@@ -8520,7 +8517,7 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
                     </div>
                     <div class="flex items-center space-x-3.5">
                         ${connectionButtons}
-                        <button onclick="window.showScheduleMeetingForm(document.getElementById('main-content-viewport'))" class="px-4 py-2 bg-indigo-650 hover:bg-indigo-600 text-white rounded-xl font-bold transition flex items-center space-x-1.5 shadow-md" style="color: #ffffff !important;">
+                        <button onclick="window.showScheduleMeetingForm(document.getElementById('main-content-viewport'))" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition flex items-center space-x-1.5 shadow-md" style="color: #ffffff !important;">
                             <i data-lucide="plus" class="h-4 w-4 text-white"></i>
                             <span>Schedule New Meeting</span>
                         </button>
@@ -8645,7 +8642,7 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
                                             </td>
                                             <td class="py-3.5 px-4 text-right space-x-1.5 shrink-0">
                                                 ${m.meet_link ? `
-                                                    <a href="${m.meet_link}" target="_blank" class="px-2 py-1 bg-indigo-650 hover:bg-indigo-600 text-white rounded-lg text-[9px] font-bold inline-flex items-center space-x-1 shadow-sm transition" style="color: #ffffff !important;">
+                                                    <a href="${m.meet_link}" target="_blank" class="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[9px] font-bold inline-flex items-center space-x-1 shadow-sm transition" style="color: #ffffff !important;">
                                                         <i data-lucide="video" class="h-3 w-3 text-white"></i>
                                                         <span>Join Meet</span>
                                                     </a>
@@ -8854,7 +8851,7 @@ window.showScheduleMeetingForm = async function(container) {
 
                     <div class="pt-4 flex justify-end space-x-2 border-t border-slate-100">
                         <button type="button" onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'))" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl font-bold transition text-slate-500 hover:text-slate-800">Cancel</button>
-                        <button type="submit" class="px-5 py-2 bg-indigo-650 hover:bg-indigo-600 text-white rounded-xl font-bold transition shadow-md" style="color: #ffffff !important;">Schedule Meeting</button>
+                        <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition shadow-md" style="color: #ffffff !important;">Schedule Meeting</button>
                     </div>
                 </form>
             </div>
@@ -9606,7 +9603,7 @@ function renderAutomationList() {
                     <td class="py-4 px-4 align-middle">
                         <div class="flex items-center space-x-2">
                             <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold ${statusClass}">${w.status}</span>
-                            <button onclick="toggleWorkflowStatus(${w.id}, ${w.is_active})" class="w-8 h-4.5 rounded-full transition-colors duration-250 relative ${w.is_active ? 'bg-indigo-650' : 'bg-slate-200'} shrink-0">
+                            <button onclick="toggleWorkflowStatus(${w.id}, ${w.is_active})" class="w-8 h-4.5 rounded-full transition-colors duration-250 relative ${w.is_active ? 'bg-blue-600' : 'bg-slate-200'} shrink-0">
                                 <span class="absolute top-[2px] left-[2px] w-3 h-3 bg-white rounded-full transition-transform duration-250 shadow-sm ${w.is_active ? 'transform translate-x-[14px]' : ''}"></span>
                             </button>
                         </div>
@@ -9652,7 +9649,7 @@ function renderAutomationList() {
         
         for (let p = 1; p <= totalPages; p++) {
             if (p === page) {
-                pagesHtml += `<button class="h-7 w-7 bg-indigo-650 text-white rounded-lg flex items-center justify-center font-bold text-xs shadow-sm">${p}</button>`;
+                pagesHtml += `<button class="h-7 w-7 bg-blue-600 text-white rounded-lg flex items-center justify-center font-bold text-xs shadow-sm">${p}</button>`;
             } else {
                 pagesHtml += `<button onclick="changeAutomationPage(${p})" class="h-7 w-7 rounded-lg text-slate-650 hover:bg-slate-50 flex items-center justify-center font-bold text-xs transition">${p}</button>`;
             }
@@ -9697,13 +9694,13 @@ async function renderAutomation(container) {
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
                     <div class="text-left">
                         <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center">
-                            <i data-lucide="workflow" class="h-6 w-6 text-indigo-650 mr-2"></i>
+                            <i data-lucide="workflow" class="h-6 w-6 text-blue-600 mr-2"></i>
                             <span>Workflows</span>
                         </h1>
                         <p class="text-slate-550 text-xs mt-1 font-semibold">Build powerful automation workflows with no code. Connect your apps, set triggers, and automate anything.</p>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <button onclick="createNewVisualWorkflow()" class="px-4 py-2 bg-indigo-650 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-sm">
+                        <button onclick="createNewVisualWorkflow()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-sm">
                             <i data-lucide="plus" class="h-4 w-4 text-white"></i>
                             <span>Create Workflow</span>
                             <i data-lucide="chevron-down" class="h-3 w-3 opacity-60 text-white"></i>
@@ -11012,7 +11009,7 @@ async function renderAIInsights(container) {
                             <i data-lucide="search" class="h-4 w-4"></i>
                         </span>
                         <input type="text" id="ai-nlp-search" onkeypress="handleAISearchKey(event)" placeholder="Ask AI: e.g. 'leads above 1 lakh' or 'requesting SEO'..." class="w-full pl-9 pr-20 py-2 bg-slate-900/60 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition placeholder-slate-500">
-                        <button onclick="triggerAISearch()" class="absolute right-1 top-1 bottom-1 px-3.5 bg-indigo-650 hover:bg-indigo-600 text-white rounded-lg font-bold transition text-[10px]">Query</button>
+                        <button onclick="triggerAISearch()" class="absolute right-1 top-1 bottom-1 px-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold transition text-[10px]">Query</button>
                     </div>
                 </div>
 
@@ -11052,7 +11049,7 @@ async function renderAIInsights(container) {
                     </div>
                     <div class="flex justify-between items-center pt-2 border-t border-slate-800/30">
                         <span class="text-[9px] text-slate-500 font-medium">Confidence: <strong class="text-slate-300">${h.confidence}%</strong></span>
-                        <button onclick="${actionOnClick}" class="text-[10px] px-3 py-1 bg-slate-950/50 hover:bg-indigo-650 hover:text-white border border-slate-800 hover:border-indigo-500/20 rounded-lg transition-colors font-bold">${actionText}</button>
+                        <button onclick="${actionOnClick}" class="text-[10px] px-3 py-1 bg-slate-950/50 hover:bg-blue-600 hover:text-white border border-slate-800 hover:border-blue-500/20 rounded-lg transition-colors font-bold">${actionText}</button>
                     </div>
                 </div>
             `;
@@ -14857,7 +14854,7 @@ function openJSONConfigPanel() {
             <textarea id="wf-json-area" class="w-full h-64 bg-slate-900 border border-slate-850 rounded-lg p-3 text-[10px] text-indigo-300 font-mono focus:outline-none focus:border-indigo-500">${jsonStr}</textarea>
             <div class="flex justify-end space-x-2 text-[10px]">
                 <button onclick="document.getElementById('wf-json-overlay').remove()" class="px-4 py-2 border border-slate-800 hover:bg-slate-900 text-slate-400 rounded-lg transition font-bold">Cancel</button>
-                <button onclick="applyImportedJSON()" class="px-4 py-2 bg-indigo-650 hover:bg-indigo-600 text-white rounded-lg transition font-bold shadow-md">Apply JSON</button>
+                <button onclick="applyImportedJSON()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition font-bold shadow-md">Apply JSON</button>
             </div>
         </div>
     `;
@@ -15274,7 +15271,7 @@ async function renderExternalApps(container) {
 
                         <div class="mt-6 flex space-x-2 pt-2 border-t border-slate-100">
                             ${conn.calendar_connected ? `
-                                <button onclick="openGoogleCalendarTestModal()" class="flex-1 py-2 bg-indigo-550 hover:bg-indigo-650 text-white rounded-lg font-bold text-center transition" style="color: #ffffff !important;">Test Sync</button>
+                                <button onclick="openGoogleCalendarTestModal()" class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-center transition" style="color: #ffffff !important;">Test Sync</button>
                                 <button onclick="disconnectExternalGoogle()" class="px-3 py-2 border border-slate-200 hover:border-red-500/20 hover:bg-red-50 text-red-500 rounded-lg font-bold transition">Disable</button>
                             ` : `
                                 <button onclick="${conn.profile_connected ? "connectExternalGoogle('calendar')" : "showNotification('warning', 'Please connect your Google Account profile first.')"}" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-bold text-center transition ${conn.profile_connected ? '' : 'opacity-50 cursor-not-allowed'}">Enable Calendar Sync</button>
@@ -15305,7 +15302,7 @@ async function renderExternalApps(container) {
 
                         <div class="mt-6 flex space-x-2 pt-2 border-t border-slate-100">
                             ${conn.gmail_connected ? `
-                                <button onclick="openGoogleGmailModal()" class="flex-1 py-2 bg-indigo-550 hover:bg-indigo-650 text-white rounded-lg font-bold text-center transition" style="color: #ffffff !important;">Compose Email</button>
+                                <button onclick="openGoogleGmailModal()" class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-center transition" style="color: #ffffff !important;">Compose Email</button>
                                 <button onclick="disconnectExternalGoogle()" class="px-3 py-2 border border-slate-200 hover:border-red-500/20 hover:bg-red-50 text-red-500 rounded-lg font-bold transition">Disable</button>
                             ` : `
                                 <button onclick="${conn.profile_connected ? "connectExternalGoogle('gmail')" : "showNotification('warning', 'Please connect your Google Account profile first.')"}" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-bold text-center transition ${conn.profile_connected ? '' : 'opacity-50 cursor-not-allowed'}">Enable Gmail Integration</button>
@@ -15354,7 +15351,7 @@ async function renderExternalApps(container) {
                         <div class="mt-6 flex space-x-2 pt-2 border-t border-slate-100">
                             ${sheetConn.connected ? `
                                 ${sheetConn.spreadsheet_id ? `
-                                    <button onclick="triggerGoogleSheetsSync()" class="flex-1 py-2 bg-indigo-550 hover:bg-indigo-650 text-white rounded-lg font-bold text-center transition select-none" style="color: #ffffff !important;">Sync Now</button>
+                                    <button onclick="triggerGoogleSheetsSync()" class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-center transition select-none" style="color: #ffffff !important;">Sync Now</button>
                                 ` : ''}
                                 <button onclick="disconnectGoogleSheets()" class="px-3 py-2 border border-slate-200 hover:border-red-500/20 hover:bg-red-50 text-red-500 rounded-lg font-bold transition select-none">Disconnect</button>
                             ` : `
@@ -15752,7 +15749,7 @@ window.openGoogleMeetTestModal = function() {
                                 <i data-lucide="message-square" class="h-3.5 w-3.5"></i>
                                 <span>WhatsApp Link</span>
                             </button>
-                            <button onclick="shareMeetViaEmail()" class="flex-1 py-2 bg-indigo-500 hover:bg-indigo-650 text-white rounded-lg font-bold transition flex items-center justify-center space-x-1" style="color: #ffffff !important;">
+                            <button onclick="shareMeetViaEmail()" class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold transition flex items-center justify-center space-x-1" style="color: #ffffff !important;">
                                 <i data-lucide="mail" class="h-3.5 w-3.5"></i>
                                 <span>Email Link</span>
                             </button>

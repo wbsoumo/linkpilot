@@ -1346,6 +1346,10 @@ async function loadWaThreads(search = '') {
 
     } catch (err) {
         console.warn('Failed threads sync: ', err);
+        const container = document.getElementById('wa-threads-container');
+        if (container) {
+            container.innerHTML = `<div class="p-4 text-center text-red-500 font-semibold">Failed to load threads: ${err.message}</div>`;
+        }
     }
 }
 
@@ -1749,6 +1753,10 @@ async function loadWaThreadMessages() {
 
     } catch (err) {
         console.warn('Failed inbox load thread details:', err);
+        const msgList = document.getElementById('wa-messages-container-list');
+        if (msgList) {
+            msgList.innerHTML = `<div class="text-red-500 text-center py-20 font-semibold">Failed to load messages: ${err.message}</div>`;
+        }
     }
 }
 

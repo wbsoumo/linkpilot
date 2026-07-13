@@ -154,8 +154,9 @@ try {
             $params = ['user_id1' => $userId, 'user_id2' => $userId];
             
             if ($search !== '') {
-                $sql .= " AND (c.profile_name LIKE :search OR c.wa_id LIKE :search)";
-                $params['search'] = "%{$search}%";
+                $sql .= " AND (c.profile_name LIKE :search1 OR c.wa_id LIKE :search2)";
+                $params['search1'] = "%{$search}%";
+                $params['search2'] = "%{$search}%";
             }
             if ($tag !== '') {
                 $sql .= " AND c.tags LIKE :tag";

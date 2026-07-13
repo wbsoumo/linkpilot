@@ -8321,7 +8321,8 @@ function generateCalendarWidgetHTML(year, month) {
     for (let day = 1; day <= daysInMonth; day++) {
         const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
         const activeClass = isToday ? 'bg-blue-600 text-white rounded-full font-black shadow-md flex items-center justify-center h-6 w-6 mx-auto' : 'hover:bg-slate-100 rounded-lg text-slate-550 hover:text-slate-800';
-        html += `<div class="p-1 cursor-pointer transition flex items-center justify-center"><div class="h-6 w-6 flex items-center justify-center ${activeClass}">${day}</div></div>`;
+        const inlineStyle = isToday ? ' style="color: #ffffff !important;"' : '';
+        html += `<div class="p-1 cursor-pointer transition flex items-center justify-center"><div class="h-6 w-6 flex items-center justify-center ${activeClass}"${inlineStyle}>${day}</div></div>`;
     }
     
     html += `
@@ -8470,19 +8471,20 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
                 </button>
             `;
         }
-
-        // Filter meetings based on tab
         const todayStr = new Date().toISOString().split('T')[0];
         const nowTime = new Date().getTime();
-        
+
+        // Filter meetings based on tab
         const upcomingList = meetings.filter(m => {
+            const mDateStr = m.start_time.split(' ')[0];
             const start = new Date(m.start_time.replace(' ', 'T')).getTime();
-            return start >= nowTime && m.status === 'scheduled';
+            return (mDateStr === todayStr || start >= nowTime) && m.status === 'scheduled';
         });
         
         const completedList = meetings.filter(m => {
+            const mDateStr = m.start_time.split(' ')[0];
             const start = new Date(m.start_time.replace(' ', 'T')).getTime();
-            return start < nowTime || m.status === 'completed';
+            return (mDateStr !== todayStr && start < nowTime) || m.status === 'completed';
         });
         
         const cancelledList = meetings.filter(m => m.status === 'cancelled');
@@ -8697,22 +8699,12 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
                                                         </span>
                                                     </td>
                                                     <td class="py-3.5 px-4 text-right shrink-0">
-                                                        <div class="flex flex-col items-end space-y-1.5">
-                                                            <div class="flex items-center space-x-1.5">
-                                                                ${m.meet_link ? `
-                                                                    <a href="${m.meet_link}" target="_blank" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[9px] font-bold inline-flex items-center space-x-1 transition shadow-sm" style="color: #ffffff !important;">
-                                                                        <i data-lucide="video" class="h-3 w-3 text-white"></i>
-                                                                        <span>Join</span>
-                                                                    </a>
-                                                                ` : ''}
-                                                                <button onclick="window.openMeetingDetailsModal(${m.id})" class="p-1 hover:bg-slate-100 border border-slate-200 text-slate-500 rounded-lg transition inline-flex focus:outline-none" title="View details">
-                                                                    <i data-lucide="more-horizontal" class="h-3.5 w-3.5"></i>
-                                                                </button>
-                                                            </div>
-                                                            <button onclick="window.deleteMeeting(${m.id}, document.getElementById('main-content-viewport'))" class="p-1 hover:bg-rose-50 border border-transparent hover:border-rose-100 hover:text-rose-600 text-slate-400 rounded-lg transition inline-flex focus:outline-none" title="Delete meeting">
-                                                                <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
-                                                            </button>
-                                                        </div>
+                                                        ${m.meet_link ? `
+                                                            <a href="${m.meet_link}" target="_blank" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-extrabold inline-flex items-center space-x-1 transition shadow-sm" style="color: #ffffff !important;">
+                                                                <i data-lucide="video" class="h-3.5 w-3.5 text-white"></i>
+                                                                <span style="color: #ffffff !important;">Join</span>
+                                                            </a>
+                                                        ` : '<span class="text-slate-350 font-bold">-</span>'}
                                                     </td>
                                                 </tr>
                                             `;

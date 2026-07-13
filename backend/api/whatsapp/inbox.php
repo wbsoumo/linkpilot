@@ -147,11 +147,11 @@ try {
                     JOIN (
                         SELECT RIGHT(wa_id, 10) as clean_id, MAX(id) as max_id
                         FROM whatsapp_contacts
-                        WHERE user_id = :user_id
+                        WHERE user_id = :user_id1
                         GROUP BY RIGHT(wa_id, 10)
                     ) g ON c.id = g.max_id
-                    WHERE c.user_id = :user_id";
-            $params = ['user_id' => $userId];
+                    WHERE c.user_id = :user_id2";
+            $params = ['user_id1' => $userId, 'user_id2' => $userId];
             
             if ($search !== '') {
                 $sql .= " AND (c.profile_name LIKE :search OR c.wa_id LIKE :search)";

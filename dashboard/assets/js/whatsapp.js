@@ -1329,10 +1329,10 @@ async function loadWaThreads(search = '') {
                 <div onclick="selectWaThread(${t.id})" class="p-3 flex items-start justify-between cursor-pointer transition ${isActive ? 'bg-blue-50/80 border-l-4 border-blue-500' : 'bg-white hover:bg-slate-50'}">
                     <div class="flex items-start space-x-2.5 truncate">
                         <div class="h-8 w-8 rounded-full ${getAvatarColorClass(t.profile_name)} font-bold flex items-center justify-center shrink-0">
-                            ${t.profile_name.charAt(0).toUpperCase()}
+                            ${(t.profile_name || 'WhatsApp Contact').charAt(0).toUpperCase()}
                         </div>
                         <div class="truncate">
-                            <div class="font-bold text-slate-700">${t.profile_name}</div>
+                            <div class="font-bold text-slate-700">${t.profile_name || 'WhatsApp Contact'}</div>
                             <div class="text-[10px] text-slate-400 truncate mt-0.5">${lastMsgText}</div>
                         </div>
                     </div>
@@ -1382,11 +1382,11 @@ async function loadWaThreadMessages() {
             header.innerHTML = `
                 <div class="flex items-center space-x-2.5">
                     <div class="h-8.5 w-8.5 rounded-full ${getAvatarColorClass(thread.profile_name)} font-bold flex items-center justify-center shrink-0">
-                        ${thread.profile_name.charAt(0).toUpperCase()}
+                        ${(thread.profile_name || 'WhatsApp Contact').charAt(0).toUpperCase()}
                     </div>
                     <div>
                         <div class="flex items-center space-x-1">
-                            <h4 class="text-xs font-bold text-slate-800">${thread.profile_name}</h4>
+                            <h4 class="text-xs font-bold text-slate-800">${thread.profile_name || 'WhatsApp Contact'}</h4>
                             <i data-lucide="check-circle-2" class="h-3.5 w-3.5 text-emerald-500 fill-emerald-100"></i>
                         </div>
                         <p class="text-[10px] text-slate-500 flex items-center space-x-1.5 mt-0.5">
@@ -1571,10 +1571,10 @@ async function loadWaThreadMessages() {
                     <div class="bg-indigo-50 border border-indigo-105 p-3.5 rounded-xl space-y-2 text-slate-800 shadow-sm">
                         <div class="flex items-center space-x-2">
                             <div class="h-8 w-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
-                                ${crm.contact.name.charAt(0).toUpperCase()}
+                                ${(crm.contact.name || 'CRM Contact').charAt(0).toUpperCase()}
                             </div>
                             <div>
-                                <h4 class="text-xs font-bold text-slate-900">${crm.contact.name}</h4>
+                                <h4 class="text-xs font-bold text-slate-900">${crm.contact.name || 'CRM Contact'}</h4>
                                 <p class="text-[10px] text-slate-500 mt-0.5">${crm.contact.designation || 'CRM Contact Profile'}</p>
                             </div>
                         </div>
@@ -1858,9 +1858,9 @@ function renderWhatsAppContacts(container) {
                                         <tr class="hover:bg-slate-50 border-b border-slate-100">
                                             <td class="py-3 px-4 font-bold text-slate-700 flex items-center space-x-2">
                                                 <div class="h-6 w-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-[10px]">
-                                                    ${c.profile_name.charAt(0).toUpperCase()}
+                                                    ${(c.profile_name || 'WhatsApp Contact').charAt(0).toUpperCase()}
                                                 </div>
-                                                <span>${c.profile_name}</span>
+                                                <span>${c.profile_name || 'WhatsApp Contact'}</span>
                                             </td>
                                             <td class="py-3 px-4 text-slate-600 font-mono">+${c.wa_id}</td>
                                             <td class="py-3 px-4 text-slate-600">

@@ -10226,8 +10226,7 @@ window.renderBookingSetup = async function(container) {
         const bookingId = profile.booking_id;
 
         // Dynamic local booking URL
-        const baseHref = window.location.origin + window.location.pathname.replace('index.html', '');
-        const bookingUrl = `${baseHref}meet.html?id=${bookingId}`;
+        const bookingUrl = `${window.location.origin}/m/${bookingId}`;
 
         const timezones = [
             { value: 'Asia/Kolkata', label: 'India, Sri Lanka Time (Kolkata)' },

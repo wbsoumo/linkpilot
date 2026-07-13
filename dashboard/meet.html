@@ -13,17 +13,17 @@
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #f8fafc;
-            color: #0f172a;
+            background-color: #f1f5f9;
+            color: #1e293b;
         }
         h1, h2, h3, h4, .font-title {
             font-family: 'Outfit', sans-serif;
         }
-        .premium-card {
+        .premium-container {
             background: #ffffff;
             border: 1px solid #e2e8f0;
-            box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.02);
-            border-radius: 20px;
+            box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.05);
+            border-radius: 24px;
         }
         /* Custom scrollbar */
         .custom-scrollbar::-webkit-scrollbar {
@@ -48,272 +48,330 @@
             transition: all 0.2s;
         }
         .calendar-day-btn.available {
-            background-color: #eff6ff;
-            color: #2563eb;
+            color: #4f46e5;
+            background-color: #f5f3ff;
         }
         .calendar-day-btn.available:hover {
-            background-color: #dbeafe;
+            background-color: #ddd6fe;
             transform: scale(1.05);
         }
         .calendar-day-btn.selected {
-            background-color: #2563eb !important;
+            background-color: #4f46e5 !important;
             color: #ffffff !important;
-            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
         }
         .calendar-day-btn.disabled {
             color: #94a3b8;
             cursor: not-allowed;
         }
-        /* Custom time option slot button */
-        .time-slot-btn {
-            border: 1px solid #2563eb;
-            color: #2563eb;
-            font-weight: 700;
+        /* Custom Time Slot Cards */
+        .time-card {
+            border: 1px solid #e2e8f0;
+            background-color: #ffffff;
             transition: all 0.2s ease-in-out;
+            cursor: pointer;
         }
-        .time-slot-btn:hover {
-            background-color: #eff6ff;
+        .time-card:hover {
+            border-color: #c084fc;
+            background-color: #faf5ff;
         }
-        /* Lucide icons default sizes */
-        .icon-sm {
-            width: 16px;
-            height: 16px;
-        }
-        .icon-md {
-            width: 20px;
-            height: 20px;
-        }
-        /* Spinner */
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #2563eb;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .time-card.selected {
+            border-color: #6366f1;
+            background-color: #f5f3ff;
+            box-shadow: 0 0 0 1px #6366f1;
         }
         /* Ribbon badge */
         .ribbon {
             position: absolute;
             top: 0;
             right: 0;
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             overflow: hidden;
+            pointer-events: none;
         }
         .ribbon-inner {
             text-align: center;
             font-size: 8px;
-            font-weight: 900;
-            letter-spacing: 0.5px;
+            font-weight: 800;
+            letter-spacing: 0.8px;
             color: #fff;
-            line-height: 20px;
+            line-height: 22px;
             transform: rotate(45deg);
-            width: 150px;
+            width: 170px;
             display: block;
-            background: #475569;
-            box-shadow: 0 3px 10px -5px rgba(0,0,0,0.3);
+            background: #312e81;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
             position: absolute;
-            top: 22px;
-            right: -32px;
+            top: 24px;
+            right: -36px;
             text-transform: uppercase;
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 md:p-8">
+<body class="min-h-screen flex items-center justify-center p-4 md:p-6 lg:p-8">
 
-    <div class="w-full max-w-4xl premium-card overflow-hidden relative min-h-[520px]">
-        <!-- Powered by badge -->
+    <!-- Overall Booking Container -->
+    <div class="w-full max-w-6xl premium-container overflow-hidden relative flex flex-col min-h-[580px]">
+        <!-- Powered by LinkPilot Badge -->
         <div class="ribbon">
             <span class="ribbon-inner">POWERED BY<br>LinkPilot</span>
         </div>
 
         <!-- Initial loading state -->
         <div id="booking-loading" class="absolute inset-0 bg-white z-50 flex flex-col items-center justify-center space-y-4">
-            <div class="spinner"></div>
-            <p class="text-xs text-slate-400 font-bold">Loading schedule...</p>
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <p class="text-xs text-slate-400 font-bold">Loading scheduling details...</p>
         </div>
 
-        <!-- Master Content Container -->
-        <div id="booking-container" class="grid grid-cols-1 md:grid-cols-3 min-h-[520px]">
-            <!-- Left Info Panel (1 Column) -->
-            <div class="md:col-span-1 border-r border-slate-100 p-6 flex flex-col justify-between text-left">
-                <div>
-                    <!-- Back Button (shown in form step) -->
-                    <button id="back-btn" class="hidden h-9 w-9 rounded-full border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-650 hover:text-slate-900 transition mb-6 focus:outline-none">
-                        <i data-lucide="arrow-left" class="icon-md"></i>
+        <!-- Main Body Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 flex-grow min-h-[480px]">
+            
+            <!-- LEFT PANEL: Host details and schedule info (1 column) -->
+            <div class="lg:col-span-1 border-r border-slate-100 p-6 flex flex-col justify-between text-left">
+                <div class="space-y-6">
+                    <!-- Back Button link -->
+                    <button id="back-btn" class="flex items-center space-x-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 transition focus:outline-none select-none">
+                        <i data-lucide="chevron-left" class="h-4 w-4"></i>
+                        <span>Back</span>
                     </button>
 
-                    <span id="host-name" class="text-slate-400 font-bold text-xs tracking-wide">Host Name</span>
-                    <h2 id="meeting-title" class="text-xl md:text-2xl font-black text-slate-800 mt-1 leading-tight">30 Minute Meeting</h2>
+                    <!-- Circular Calendar Icon -->
+                    <div class="h-16 w-16 rounded-full bg-indigo-50 flex items-center justify-center border border-indigo-100">
+                        <div class="h-12 w-12 rounded-full bg-indigo-600 flex items-center justify-center text-white">
+                            <i data-lucide="calendar" class="h-5 w-5"></i>
+                        </div>
+                    </div>
 
-                    <div class="mt-6 space-y-4 text-slate-550 text-xs font-semibold">
-                        <div class="flex items-center space-x-2.5">
-                            <i data-lucide="clock" class="text-slate-400 icon-md"></i>
-                            <span id="meeting-duration-text">30 min</span>
+                    <!-- Host & Meeting Title -->
+                    <div>
+                        <span id="host-name" class="text-slate-400 font-bold text-xs tracking-wide">Host Name</span>
+                        <h2 id="meeting-title" class="text-2xl font-black text-slate-800 mt-1 leading-tight">
+                            <span class="text-indigo-600 font-extrabold" id="meeting-duration-val">30</span> Minute Meeting
+                        </h2>
+                    </div>
+
+                    <!-- Meeting Meta -->
+                    <div class="space-y-4 text-xs font-semibold text-slate-600">
+                        <div class="flex items-start space-x-3">
+                            <div class="p-1.5 bg-slate-50 border border-slate-100 rounded-lg text-indigo-600">
+                                <i data-lucide="clock" class="h-4 w-4"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-850" id="meeting-duration-lbl">30 minutes</div>
+                                <div class="text-[10px] text-slate-400 font-medium">Duration</div>
+                            </div>
                         </div>
+
+                        <div class="flex items-start space-x-3">
+                            <div class="p-1.5 bg-slate-50 border border-slate-100 rounded-lg text-indigo-600">
+                                <i data-lucide="video" class="h-4 w-4"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-850">Web conferencing details</div>
+                                <div class="text-[10px] text-slate-400 font-medium">Provided upon confirmation</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Selected Slot Info Card -->
+                    <div id="selected-datetime-info" class="hidden border-t border-slate-100 pt-5 space-y-3">
                         <div class="flex items-start space-x-2.5">
-                            <i data-lucide="video" class="text-slate-400 icon-md mt-0.5 shrink-0"></i>
-                            <span id="meeting-location-text">Web conferencing details provided upon confirmation.</span>
+                            <i data-lucide="calendar-check" class="text-indigo-600 h-4.5 w-4.5 mt-0.5"></i>
+                            <span id="slot-time-formatted" class="text-xs font-extrabold text-slate-800"></span>
                         </div>
-                        <div id="selected-datetime-info" class="hidden flex-col space-y-2 border-t border-slate-100 pt-4">
-                            <div class="flex items-center space-x-2.5 text-slate-700">
-                                <i data-lucide="calendar" class="text-slate-400 icon-md shrink-0"></i>
-                                <span id="slot-time-formatted" class="font-extrabold text-xs"></span>
-                            </div>
-                            <div class="flex items-center space-x-2.5 text-slate-400">
-                                <i data-lucide="globe" class="text-slate-350 icon-md shrink-0"></i>
-                                <span id="slot-timezone-formatted" class="font-bold text-[10px]"></span>
-                            </div>
+                        <div class="flex items-center space-x-2.5 text-slate-400">
+                            <i data-lucide="globe" class="h-4 w-4 shrink-0"></i>
+                            <span id="slot-timezone-formatted" class="font-bold text-[10px] uppercase"></span>
                         </div>
                     </div>
                 </div>
 
-                <div class="flex space-x-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-8 md:mt-0">
-                    <a href="#" class="hover:text-slate-600 transition">Cookie settings</a>
-                    <a href="#" class="hover:text-slate-600 transition">Privacy Policy</a>
+                <!-- Nice sparkling bottom promo card -->
+                <div class="mt-8 bg-indigo-50/50 border border-indigo-100/50 rounded-2xl p-4 flex items-start space-x-3">
+                    <i data-lucide="sparkles" class="h-5 w-5 text-indigo-600 shrink-0 mt-0.5"></i>
+                    <div>
+                        <div class="font-bold text-xs text-slate-800">Quick & Easy Scheduling</div>
+                        <div class="text-[10px] text-slate-400 leading-normal mt-0.5">Pick a date and time that works best for you. We'll handle the rest.</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Right Interactive Panel (2 Columns) -->
-            <div class="md:col-span-2 flex flex-col justify-between">
-                
-                <!-- STEP 1: Date & Time Picker View -->
-                <div id="step-picker" class="grid grid-cols-1 lg:grid-cols-2 flex-grow min-h-[460px] text-left">
-                    <!-- Calendar View -->
-                    <div class="p-6">
-                        <h3 class="text-base font-extrabold text-slate-800 tracking-tight">Select a Date & Time</h3>
+            <!-- STEP 1: Date & Time Picker Content Area (3 columns) -->
+            <div id="step-picker" class="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 flex-grow text-left">
+                <!-- Middle Column: Calendar view -->
+                <div class="p-6 md:p-8 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-800 tracking-tight">1. Select Date</h3>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase mt-0.5 tracking-wider">Choose a convenient date</p>
                         
-                        <!-- Month navigation header -->
-                        <div class="flex items-center justify-between mt-4 border-b border-slate-50 pb-2">
-                            <button id="prev-month-btn" class="p-1 hover:bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-lg text-slate-550 transition focus:outline-none">
-                                <i data-lucide="chevron-left" class="icon-sm"></i>
+                        <!-- Calendar navigation -->
+                        <div class="flex items-center justify-between mt-6 border-b border-slate-100 pb-3">
+                            <button id="prev-month-btn" class="h-8 w-8 hover:bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-slate-550 transition focus:outline-none">
+                                <i data-lucide="chevron-left" class="h-4 w-4"></i>
                             </button>
-                            <span id="calendar-month-year" class="text-xs font-black text-slate-750">July 2026</span>
-                            <button id="next-month-btn" class="p-1 hover:bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-lg text-slate-550 transition focus:outline-none">
-                                <i data-lucide="chevron-right" class="icon-sm"></i>
+                            <span id="calendar-month-year" class="text-sm font-black text-slate-750">July 2026</span>
+                            <button id="next-month-btn" class="h-8 w-8 hover:bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-slate-550 transition focus:outline-none">
+                                <i data-lucide="chevron-right" class="h-4 w-4"></i>
                             </button>
                         </div>
 
-                        <!-- Calendar Grid -->
-                        <div class="grid grid-cols-7 gap-1 text-center mt-3 text-[10px] font-bold text-slate-400 uppercase">
+                        <!-- Calendar table grid -->
+                        <div class="grid grid-cols-7 gap-1 text-center mt-4 text-[9px] font-extrabold text-slate-400 uppercase tracking-wide">
                             <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
                         </div>
-                        <div id="calendar-days-container" class="grid grid-cols-7 gap-1 mt-1 text-center">
+                        <div id="calendar-days-container" class="grid grid-cols-7 gap-1.5 mt-2 text-center">
                             <!-- Injected day buttons -->
-                        </div>
-
-                        <!-- Timezone label display -->
-                        <div class="mt-5 pt-3 border-t border-slate-50 flex items-center space-x-1.5 text-[10px] text-slate-500 font-semibold select-none">
-                            <i data-lucide="globe" class="icon-sm text-slate-400"></i>
-                            <span>Time zone:</span>
-                            <span id="timezone-label-text" class="font-extrabold text-slate-750">India Standard Time</span>
                         </div>
                     </div>
 
-                    <!-- Scrollable Slots Panel -->
-                    <div class="border-l border-slate-100 p-6 flex flex-col">
-                        <h4 id="slots-header" class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Select Date</h4>
-                        
-                        <div id="slots-scrollable" class="flex-grow overflow-y-auto max-h-[300px] pr-2 custom-scrollbar space-y-2">
-                            <!-- Dynamic Slot Blocks: 11:00am, 11:30am, etc. -->
-                            <div class="text-[11px] text-slate-450 italic font-semibold py-12 text-center select-none" id="slots-placeholder">
-                                Select a date to see available time slots
+                    <!-- Timezone field selector -->
+                    <div class="mt-8 p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer select-none">
+                        <div class="flex items-center space-x-2.5">
+                            <i data-lucide="globe" class="h-4.5 w-4.5 text-slate-400"></i>
+                            <div class="text-left">
+                                <div class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Time zone</div>
+                                <div id="timezone-label-text" class="text-xs font-black text-slate-700">Asia/Kolkata (GMT+05:30)</div>
                             </div>
                         </div>
+                        <i data-lucide="chevron-down" class="h-4 w-4 text-slate-400"></i>
                     </div>
                 </div>
 
-                <!-- STEP 2: Details Form View -->
-                <div id="step-form" class="hidden p-6 text-left flex-grow">
-                    <h3 class="text-base font-extrabold text-slate-800 tracking-tight mb-4">Enter Details</h3>
+                <!-- Right Column: Scrollable time slot picker -->
+                <div class="border-l border-slate-100 p-6 md:p-8 flex flex-col">
+                    <h3 class="text-base font-extrabold text-slate-800 tracking-tight">2. Select Time</h3>
+                    <p id="slots-header" class="text-[10px] text-slate-400 font-bold uppercase mt-0.5 tracking-wider">Available time slots for date</p>
                     
-                    <form id="booking-details-form" class="space-y-4 max-w-lg">
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Name *</label>
-                            <input type="text" id="guest-name" required placeholder="John Doe" class="w-full px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 bg-white text-xs font-semibold text-slate-750 transition-all">
+                    <div id="slots-scrollable" class="flex-grow overflow-y-auto max-h-[340px] mt-6 pr-2 custom-scrollbar space-y-2">
+                        <!-- Dynamic time slot cards load here -->
+                        <div class="text-[11px] text-slate-400 italic font-bold py-16 text-center select-none" id="slots-placeholder">
+                            Select a date to check available time slots.
                         </div>
-                        <div>
+                    </div>
+
+                    <!-- Under slots description -->
+                    <div class="mt-4 pt-3 border-t border-slate-50 flex items-center space-x-1.5 text-[10px] text-slate-400 font-bold tracking-wide">
+                        <i data-lucide="clock" class="h-3.5 w-3.5 text-slate-350"></i>
+                        <span id="timezone-footer-lbl">All times are in Asia/Kolkata (GMT+05:30)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 2: Details Form View (3 columns) -->
+            <div id="step-form" class="hidden lg:col-span-3 p-6 md:p-8 text-left flex flex-col justify-between">
+                <div class="max-w-2xl">
+                    <h3 class="text-xl font-extrabold text-slate-800 tracking-tight">Enter Details</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Please provide your booking details below.</p>
+                    
+                    <form id="booking-details-form" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                        <div class="md:col-span-2">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Name *</label>
+                            <input type="text" id="guest-name" required placeholder="John Doe" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-600 bg-white text-xs font-semibold text-slate-750 transition-all">
+                        </div>
+                        <div class="md:col-span-2">
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Email *</label>
-                            <input type="email" id="guest-email" required placeholder="john@example.com" class="w-full px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 bg-white text-xs font-semibold text-slate-750 transition-all">
+                            <input type="email" id="guest-email" required placeholder="john@example.com" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-600 bg-white text-xs font-semibold text-slate-750 transition-all">
                         </div>
                         
                         <!-- Guest fields wrapper -->
-                        <div id="additional-guests-container" class="space-y-2"></div>
+                        <div id="additional-guests-container" class="md:col-span-2 space-y-2"></div>
                         
-                        <div>
-                            <button type="button" id="add-guests-btn" class="px-3 py-1.5 border border-blue-600 text-blue-600 hover:bg-blue-50 rounded-full font-bold transition text-[10px] flex items-center space-x-1.5 focus:outline-none">
-                                <i data-lucide="plus" class="icon-sm"></i>
+                        <div class="md:col-span-2">
+                            <button type="button" id="add-guests-btn" class="px-3.5 py-1.5 border border-indigo-600 hover:bg-indigo-50 text-indigo-650 rounded-full font-bold transition text-[10px] flex items-center space-x-1.5 focus:outline-none">
+                                <i data-lucide="plus" class="h-3.5 w-3.5"></i>
                                 <span>Add guests</span>
                             </button>
                         </div>
                         
-                        <div>
+                        <div class="md:col-span-2">
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Please share anything that will help prepare for our meeting.</label>
-                            <textarea id="guest-remarks" rows="3" placeholder="I would love to learn more about..." class="w-full px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 bg-white text-xs font-semibold text-slate-750 transition-all resize-none"></textarea>
+                            <textarea id="guest-remarks" rows="3" placeholder="I would love to learn more about..." class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-600 bg-white text-xs font-semibold text-slate-750 transition-all resize-none"></textarea>
                         </div>
                         
-                        <p class="text-[10px] text-slate-400 leading-normal">
+                        <p class="md:col-span-2 text-[10px] text-slate-400 leading-normal pt-2">
                             By proceeding, you confirm that you have read and agree to 
-                            <a href="#" class="text-blue-600 hover:underline">Calendly's Participant Terms</a> and 
-                            <a href="#" class="text-blue-600 hover:underline">Privacy Notice</a>.
+                            <a href="#" class="text-indigo-600 hover:underline">LinkPilot's Participant Terms</a> and 
+                            <a href="#" class="text-indigo-600 hover:underline">Privacy Notice</a>.
                         </p>
-                        
-                        <div class="pt-2">
-                            <button type="submit" id="submit-booking-btn" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition flex items-center space-x-1.5 shadow-md text-xs focus:outline-none" style="color: #ffffff !important;">
-                                <span>Schedule Event</span>
-                            </button>
-                        </div>
                     </form>
                 </div>
+            </div>
 
-                <!-- STEP 3: Success Confirmation View -->
-                <div id="step-success" class="hidden p-8 text-center flex-grow flex flex-col items-center justify-center space-y-6">
-                    <div class="flex flex-col items-center">
-                        <div class="h-12 w-12 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-full flex items-center justify-center shadow-sm">
-                            <i data-lucide="check" class="h-6 w-6"></i>
-                        </div>
-                        <h3 class="text-xl md:text-2xl font-black text-slate-800 mt-4 leading-tight">You are scheduled!</h3>
-                        <p class="text-[11px] text-slate-400 font-semibold mt-1">A calendar invitation has been sent to your email address.</p>
+            <!-- STEP 3: Success Confirmation View (3 columns) -->
+            <div id="step-success" class="hidden lg:col-span-3 p-8 text-center flex flex-col items-center justify-center space-y-6">
+                <div class="flex flex-col items-center">
+                    <div class="h-14 w-14 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-full flex items-center justify-center shadow-xs">
+                        <i data-lucide="check" class="h-6 w-6"></i>
                     </div>
+                    <h3 class="text-2xl font-black text-slate-800 mt-4 leading-tight">You are scheduled!</h3>
+                    <p class="text-xs text-slate-400 font-semibold mt-1">A calendar invitation has been sent to your email address.</p>
+                </div>
 
-                    <button class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl transition text-xs shadow-sm flex items-center space-x-1.5 focus:outline-none">
-                        <span>Open Invitation</span>
-                        <i data-lucide="external-link" class="icon-sm"></i>
-                    </button>
+                <button class="px-4.5 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl transition text-xs shadow-xs flex items-center space-x-1.5 focus:outline-none">
+                    <span>Open Invitation</span>
+                    <i data-lucide="external-link" class="h-3.5 w-3.5"></i>
+                </button>
 
-                    <!-- Confirmation card details -->
-                    <div class="border border-slate-150 rounded-2xl p-5 bg-white shadow-xs max-w-md w-full text-left space-y-3.5">
-                        <h4 id="success-meeting-title" class="text-sm font-black text-slate-800 border-b border-slate-50 pb-2">30 Minute Meeting</h4>
-                        
-                        <div class="space-y-2 text-xs font-semibold text-slate-550">
-                            <div class="flex items-center space-x-2.5">
-                                <i data-lucide="user" class="text-slate-400 icon-md shrink-0"></i>
-                                <span id="success-host-name">Soumojit Saha</span>
-                            </div>
-                            <div class="flex items-center space-x-2.5">
-                                <i data-lucide="calendar" class="text-slate-400 icon-md shrink-0"></i>
-                                <span id="success-datetime">11:00am - 11:30am, Tuesday, July 14, 2026</span>
-                            </div>
-                            <div class="flex items-center space-x-2.5">
-                                <i data-lucide="globe" class="text-slate-400 icon-md shrink-0"></i>
-                                <span id="success-timezone">India Standard Time</span>
-                            </div>
-                            <div class="flex items-center space-x-2.5">
-                                <i data-lucide="video" class="text-slate-400 icon-md shrink-0"></i>
-                                <span id="success-location">Web conferencing details to follow.</span>
-                            </div>
+                <!-- Confirmation details card -->
+                <div class="border border-slate-200 rounded-2xl p-5 bg-white shadow-xs max-w-md w-full text-left space-y-3.5">
+                    <h4 id="success-meeting-title" class="text-sm font-black text-slate-800 border-b border-slate-100 pb-2">30 Minute Meeting</h4>
+                    
+                    <div class="space-y-2 text-xs font-semibold text-slate-550">
+                        <div class="flex items-center space-x-2.5">
+                            <i data-lucide="user" class="text-slate-450 h-4.5 w-4.5 shrink-0"></i>
+                            <span id="success-host-name">Soumojit Saha</span>
+                        </div>
+                        <div class="flex items-center space-x-2.5">
+                            <i data-lucide="calendar" class="text-slate-450 h-4.5 w-4.5 shrink-0"></i>
+                            <span id="success-datetime">11:00am - 11:30am, Tuesday, July 14, 2026</span>
+                        </div>
+                        <div class="flex items-center space-x-2.5">
+                            <i data-lucide="globe" class="text-slate-450 h-4.5 w-4.5 shrink-0"></i>
+                            <span id="success-timezone">India Standard Time</span>
+                        </div>
+                        <div class="flex items-center space-x-2.5">
+                            <i data-lucide="video" class="text-slate-450 h-4.5 w-4.5 shrink-0"></i>
+                            <span id="success-location">Web conferencing details to follow.</span>
                         </div>
                     </div>
                 </div>
-
             </div>
+
         </div>
 
+        <!-- FOOTER: Standard actions & Policy links -->
+        <div id="booking-footer" class="border-t border-slate-100 p-5 flex flex-col md:flex-row justify-between items-center bg-slate-50/50 space-y-4 md:space-y-0 text-xs">
+            <!-- Left Policies Links -->
+            <div class="flex space-x-5 text-[10px] font-bold text-slate-450 uppercase tracking-wider select-none">
+                <a href="#" class="flex items-center space-x-1.5 hover:text-slate-700 transition">
+                    <i data-lucide="shield" class="h-3.5 w-3.5 text-slate-400"></i>
+                    <span>Privacy Policy</span>
+                </a>
+                <a href="#" class="flex items-center space-x-1.5 hover:text-slate-700 transition">
+                    <i data-lucide="cookie" class="h-3.5 w-3.5 text-slate-400"></i>
+                    <span>Cookie Settings</span>
+                </a>
+            </div>
+
+            <!-- Right Confirm Actions -->
+            <div class="flex items-center space-x-4">
+                <div class="hidden md:flex items-center space-x-2 text-right">
+                    <div class="h-6 w-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+                        <i data-lucide="check" class="h-3.5 w-3.5"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-[10px] text-slate-800 leading-none">No payment required</div>
+                        <div class="text-[9px] text-slate-400 font-semibold mt-0.5">Calendar invite with details provided.</div>
+                    </div>
+                </div>
+
+                <button id="footer-action-btn" disabled class="px-5 py-2.5 bg-slate-300 cursor-not-allowed text-white font-bold rounded-xl flex items-center space-x-1.5 shadow-sm transition-all focus:outline-none select-none">
+                    <span id="footer-btn-label">Confirm Booking</span>
+                    <i data-lucide="arrow-right" class="h-4 w-4"></i>
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Booking App Core JS Script -->
@@ -330,6 +388,7 @@
         let selectedTime = null;
         let activeYear = 2026;
         let activeMonth = 6; // 0-indexed (July = 6)
+        let currentStep = 'picker'; // 'picker' or 'form' or 'success'
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!linkId) {
@@ -357,9 +416,10 @@
                     
                     // Prepopulate UI
                     document.getElementById('host-name').textContent = hostProfile.host_name;
-                    document.getElementById('meeting-title').textContent = `${hostProfile.duration_minutes} Minute Meeting`;
-                    document.getElementById('meeting-duration-text').textContent = `${hostProfile.duration_minutes} min`;
+                    document.getElementById('meeting-duration-val').textContent = hostProfile.duration_minutes;
+                    document.getElementById('meeting-duration-lbl').textContent = `${hostProfile.duration_minutes} minutes`;
                     document.getElementById('timezone-label-text').textContent = hostProfile.timezone;
+                    document.getElementById('timezone-footer-lbl').textContent = `All times are in ${hostProfile.timezone}`;
 
                     // Set calendar boundary dates
                     const today = new Date();
@@ -399,17 +459,12 @@
 
             monthYearLabel.textContent = `${months[activeMonth]} ${activeYear}`;
 
-            // Get first day of month (0 = Sun, ..., 6 = Sat)
             const firstDay = new Date(activeYear, activeMonth, 1).getDay();
-            // Convert to Mon-Sun index (0 = Mon, ..., 6 = Sun)
             const startOffset = firstDay === 0 ? 6 : firstDay - 1;
-
-            // Total days in month
             const totalDays = new Date(activeYear, activeMonth + 1, 0).getDate();
 
             let html = '';
 
-            // Blank spacer cells for start offset
             for (let i = 0; i < startOffset; i++) {
                 html += '<div></div>';
             }
@@ -417,7 +472,6 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            // Generate day cells
             for (let day = 1; day <= totalDays; day++) {
                 const dateObj = new Date(activeYear, activeMonth, day);
                 dateObj.setHours(0, 0, 0, 0);
@@ -425,7 +479,6 @@
                 const dateStr = `${activeYear}-${String(activeMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const dayOfWeek = dateObj.getDay();
 
-                // Has weekly availability configured for this day of week?
                 const isConfiguredAvailable = hostProfile.availability.some(a => a.day_of_week === dayOfWeek);
                 const isPast = dateObj < today;
 
@@ -456,14 +509,15 @@
             selectedDate = dateStr;
             selectedTime = null;
             renderCalendar();
+            updateFooterButtonState();
 
             // Format slots panel header
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
             const dateParts = dateStr.split('-');
             const dateObj = new Date(dateParts[0], parseInt(dateParts[1]) - 1, dateParts[2]);
-            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
             
-            document.getElementById('slots-header').textContent = `${dayNames[dateObj.getDay()]}, ${months[dateObj.getMonth()]} ${dateObj.getDate()}`;
+            document.getElementById('slots-header').textContent = `Available time slots for ${dayNames[dateObj.getDay()]}, ${dateObj.getDate()} ${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
             
             fetchTimeSlots(dateStr);
         };
@@ -472,11 +526,10 @@
         async function fetchTimeSlots(dateStr) {
             const container = document.getElementById('slots-scrollable');
             container.innerHTML = `
-                <div class="flex items-center justify-center py-12">
-                    <i data-lucide="loader-2" class="h-6 w-6 animate-spin text-blue-500"></i>
+                <div class="flex items-center justify-center py-16">
+                    <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
                 </div>
             `;
-            lucide.createIcons();
 
             try {
                 const response = await fetch(`${API_BASE_URL}crm/booking.php?action=check_slots&link_id=${linkId}&date=${dateStr}`);
@@ -485,22 +538,51 @@
                 if (res.success && res.data && res.data.slots) {
                     const slots = res.data.slots;
                     if (slots.length === 0) {
-                        container.innerHTML = `<div class="text-[11px] text-slate-450 italic font-semibold py-12 text-center">No available slots for this day.</div>`;
+                        container.innerHTML = `<div class="text-[11px] text-slate-400 font-bold py-16 text-center">No available slots for this day.</div>`;
                         return;
                     }
 
-                    // Render slot buttons
+                    // Render slots with period icons/labels
                     let html = '';
                     slots.forEach(slot => {
+                        const h = parseInt(slot.split(':')[0]);
+                        let periodLabel = 'Morning';
+                        let periodIcon = 'sunrise';
+
+                        if (h >= 12 && h < 15) {
+                            periodLabel = 'Noon';
+                            periodIcon = 'sun';
+                        } else if (h >= 15 && h < 18) {
+                            periodLabel = 'Afternoon';
+                            periodIcon = 'sunset';
+                        } else if (h >= 18) {
+                            periodLabel = 'Evening';
+                            periodIcon = 'moon';
+                        }
+
+                        const isSelected = selectedTime === slot;
+
                         html += `
-                            <div class="slot-row flex items-center space-x-2" id="slot-row-${slot.replace(':', '-')}">
-                                <button onclick="clickSlot('${slot}')" class="time-slot-btn w-full py-3.5 rounded-lg text-xs hover:border-2 text-center transition">
-                                    ${formatTimeTo12h(slot)}
-                                </button>
+                            <div onclick="selectTimeSlot('${slot}')" class="time-card p-3 rounded-xl flex items-center justify-between transition-all ${isSelected ? 'selected' : ''}" id="time-card-${slot.replace(':', '-')}">
+                                <div class="flex items-center space-x-3 text-left">
+                                    <div class="h-8 w-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 ${isSelected ? 'bg-indigo-50 border-indigo-100 text-indigo-600' : 'text-slate-400'}">
+                                        <i data-lucide="${periodIcon}" class="h-4 w-4"></i>
+                                    </div>
+                                    <span class="text-xs font-bold text-slate-800">${formatTimeTo12h(slot)}</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-[10px] text-slate-400 font-semibold">${periodLabel}</span>
+                                    ${isSelected ? `
+                                        <div class="h-5 w-5 rounded-full bg-indigo-600 text-white flex items-center justify-center">
+                                            <i data-lucide="check" class="h-3 w-3"></i>
+                                        </div>
+                                    ` : ''}
+                                </div>
                             </div>
                         `;
                     });
                     container.innerHTML = html;
+                    lucide.createIcons();
                 } else {
                     container.innerHTML = `<div class="text-xs text-red-500 font-bold text-center py-8">Error loading slots.</div>`;
                 }
@@ -509,48 +591,82 @@
             }
         }
 
-        // Helper time conversion
+        // Helper 12h time formatter
         function formatTimeTo12h(time24) {
             const parts = time24.split(':');
             let h = parseInt(parts[0]);
             const m = parts[1] || '00';
-            const ampm = h >= 12 ? 'pm' : 'am';
+            const ampm = h >= 12 ? 'PM' : 'AM';
             h = h % 12;
             h = h ? h : 12;
-            return `${h}:${m}${ampm}`;
+            return `${String(h).padStart(2, '0')}:${m} ${ampm}`;
         }
 
-        // Clicking a slot displays "Next" action button next to it
-        window.clickSlot = function(timeStr) {
-            selectedTime = timeStr;
+        // Select booking time slot
+        window.selectTimeSlot = function(slot) {
+            selectedTime = slot;
+            updateFooterButtonState();
             
-            // Re-render time slots layout and restore others
-            document.querySelectorAll('.slot-row').forEach(row => {
-                const rowTime = row.id.replace('slot-row-', '').replace('-', ':');
-                if (rowTime === timeStr) {
-                    row.innerHTML = `
-                        <button class="bg-[#6b7280] text-white font-bold w-1/2 py-3.5 rounded-lg text-xs text-center cursor-default shrink-0">
-                            ${formatTimeTo12h(rowTime)}
-                        </button>
-                        <button onclick="confirmTimeSlot()" class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold w-1/2 py-3.5 rounded-lg text-xs text-center transition tracking-wider shadow-md focus:outline-none">
-                            Next
-                        </button>
+            // Re-render slot list to apply styles and checkbox
+            document.querySelectorAll('.time-card').forEach(card => {
+                const cardTime = card.id.replace('time-card-', '').replace('-', ':');
+                const isSelected = cardTime === slot;
+                
+                const iconContainer = card.querySelector('.h-8');
+                const badgeContainer = card.querySelector('.flex.items-center.space-x-2');
+                
+                // Get period details
+                const h = parseInt(cardTime.split(':')[0]);
+                let label = 'Morning';
+                let icon = 'sunrise';
+                if (h >= 12 && h < 15) { label = 'Noon'; icon = 'sun'; }
+                else if (h >= 15 && h < 18) { label = 'Afternoon'; icon = 'sunset'; }
+                else if (h >= 18) { label = 'Evening'; icon = 'moon'; }
+
+                if (isSelected) {
+                    card.className = "time-card p-3 rounded-xl flex items-center justify-between transition-all selected";
+                    iconContainer.className = "h-8 w-8 rounded-lg bg-indigo-50 flex items-center justify-center border border-indigo-100 text-indigo-600";
+                    iconContainer.innerHTML = `<i data-lucide="${icon}" class="h-4 w-4"></i>`;
+                    badgeContainer.innerHTML = `
+                        <span class="text-[10px] text-slate-400 font-semibold">${label}</span>
+                        <div class="h-5 w-5 rounded-full bg-indigo-600 text-white flex items-center justify-center">
+                            <i data-lucide="check" class="h-3 w-3"></i>
+                        </div>
                     `;
                 } else {
-                    row.innerHTML = `
-                        <button onclick="clickSlot('${rowTime}')" class="time-slot-btn w-full py-3.5 rounded-lg text-xs text-center transition">
-                            ${formatTimeTo12h(rowTime)}
-                        </button>
-                    `;
+                    card.className = "time-card p-3 rounded-xl flex items-center justify-between transition-all";
+                    iconContainer.className = "h-8 w-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 text-slate-450";
+                    iconContainer.innerHTML = `<i data-lucide="${icon}" class="h-4 w-4"></i>`;
+                    badgeContainer.innerHTML = `<span class="text-[10px] text-slate-400 font-semibold">${label}</span>`;
                 }
             });
+            
+            lucide.createIcons();
         };
 
-        // Go to Step 2 Form
-        window.confirmTimeSlot = function() {
+        // Enable or disable footer booking button
+        function updateFooterButtonState() {
+            const btn = document.getElementById('footer-action-btn');
+            if (currentStep === 'picker') {
+                if (selectedDate && selectedTime) {
+                    btn.disabled = false;
+                    btn.className = "px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl flex items-center space-x-1.5 shadow-md cursor-pointer transition-all focus:outline-none select-none";
+                } else {
+                    btn.disabled = true;
+                    btn.className = "px-5 py-2.5 bg-slate-300 text-white font-bold rounded-xl flex items-center space-x-1.5 shadow-sm cursor-not-allowed transition-all focus:outline-none select-none";
+                }
+            } else if (currentStep === 'form') {
+                btn.disabled = false;
+                btn.className = "px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl flex items-center space-x-1.5 shadow-md cursor-pointer transition-all focus:outline-none select-none";
+            }
+        }
+
+        // Transition from Picker to Details Form
+        function transitionToForm() {
+            currentStep = 'form';
             document.getElementById('step-picker').classList.add('hidden');
             document.getElementById('step-form').classList.remove('hidden');
-            document.getElementById('back-btn').classList.remove('hidden');
+            document.getElementById('back-btn').classList.remove('invisible'); // Show back button
 
             // Format selected datetime details
             const dateParts = selectedDate.split('-');
@@ -559,12 +675,28 @@
             const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
             
             const timeFormatted = `${formatTimeTo12h(selectedTime)} - ${formatTimeTo12h(addMinutes(selectedTime, hostProfile.duration_minutes))}`;
-            const dateFormatted = `${dayNames[dateObj.getDay()]}, ${months[dateObj.getMonth()]} ${dateObj.getDate()}, ${dateObj.getFullYear()}`;
+            const dateFormatted = `${dayNames[dateObj.getDay()]}, ${dateObj.getDate()} ${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
 
             document.getElementById('slot-time-formatted').textContent = `${timeFormatted}, ${dateFormatted}`;
             document.getElementById('slot-timezone-formatted').textContent = hostProfile.timezone;
             document.getElementById('selected-datetime-info').classList.remove('hidden');
-        };
+
+            // Update footer button label
+            document.getElementById('footer-btn-label').textContent = 'Confirm Booking';
+            updateFooterButtonState();
+        }
+
+        // Transition from Details Form back to Picker
+        function transitionToPicker() {
+            currentStep = 'picker';
+            document.getElementById('step-form').classList.add('hidden');
+            document.getElementById('step-picker').classList.remove('hidden');
+            document.getElementById('back-btn').classList.add('invisible'); // Hide back button
+            document.getElementById('selected-datetime-info').classList.add('hidden');
+
+            document.getElementById('footer-btn-label').textContent = 'Confirm Booking';
+            updateFooterButtonState();
+        }
 
         // Helper time calculation
         function addMinutes(timeStr, minutes) {
@@ -579,8 +711,8 @@
             return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
         }
 
-        // Navigation Month change
         function bindAppEvents() {
+            // Calendar months controls
             document.getElementById('prev-month-btn').onclick = () => {
                 const today = new Date();
                 if (activeYear > today.getFullYear() || (activeYear === today.getFullYear() && activeMonth > today.getMonth())) {
@@ -604,39 +736,51 @@
 
             // Back button
             document.getElementById('back-btn').onclick = () => {
-                document.getElementById('step-form').classList.add('hidden');
-                document.getElementById('step-picker').classList.remove('hidden');
-                document.getElementById('back-btn').classList.add('hidden');
-                document.getElementById('selected-datetime-info').classList.add('hidden');
+                if (currentStep === 'form') {
+                    transitionToPicker();
+                }
             };
+
+            // Initially hide back button on step 1
+            document.getElementById('back-btn').classList.add('invisible');
 
             // Add guest emails
             document.getElementById('add-guests-btn').onclick = () => {
                 const container = document.getElementById('additional-guests-container');
                 const idx = container.children.length;
-                if (idx >= 5) return; // limit 5 guest emails
+                if (idx >= 5) return;
 
                 const row = document.createElement('div');
-                row.className = 'flex items-center space-x-2 animate-fade-in';
+                row.className = 'flex items-center space-x-2 animate-fade-in mt-1';
                 row.innerHTML = `
-                    <input type="email" placeholder="guest${idx + 1}@example.com" class="guest-additional-email flex-grow px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 bg-white text-xs font-semibold text-slate-750 transition-all">
+                    <input type="email" placeholder="guest${idx + 1}@example.com" class="guest-additional-email flex-grow px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-600 bg-white text-xs font-semibold text-slate-755 transition-all">
                     <button type="button" onclick="this.parentElement.remove()" class="p-2 border border-slate-200 hover:bg-slate-50 text-slate-400 hover:text-rose-600 rounded-xl transition focus:outline-none">
-                        <i data-lucide="trash-2" class="icon-sm"></i>
+                        <i data-lucide="trash-2" class="h-4 w-4"></i>
                     </button>
                 `;
                 container.appendChild(row);
                 lucide.createIcons();
             };
 
-            // Handle booking submission
+            // Footer primary action button click
+            const footerBtn = document.getElementById('footer-action-btn');
+            footerBtn.onclick = () => {
+                if (currentStep === 'picker') {
+                    transitionToForm();
+                } else if (currentStep === 'form') {
+                    // Trigger form submission manually
+                    document.getElementById('booking-details-form').requestSubmit();
+                }
+            };
+
+            // Handle booking form submission
             const form = document.getElementById('booking-details-form');
             form.onsubmit = async (e) => {
                 e.preventDefault();
 
-                const submitBtn = document.getElementById('submit-booking-btn');
-                const originalHtml = submitBtn.innerHTML;
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin text-white"></i><span>Scheduling...</span>`;
+                const originalText = footerBtn.innerHTML;
+                footerBtn.disabled = true;
+                footerBtn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin text-white"></i><span>Scheduling...</span>`;
                 lucide.createIcons();
 
                 const name = document.getElementById('guest-name').value;
@@ -671,7 +815,7 @@
                     if (res.success && res.data) {
                         const m = res.data;
 
-                        // Set success details
+                        // Set success card details
                         document.getElementById('success-meeting-title').textContent = m.title;
                         document.getElementById('success-host-name').textContent = hostProfile.host_name;
                         
@@ -681,26 +825,30 @@
                         const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
                         
                         const timeFormatted = `${formatTimeTo12h(selectedTime)} - ${formatTimeTo12h(addMinutes(selectedTime, hostProfile.duration_minutes))}`;
-                        const dateFormatted = `${dayNames[dateObj.getDay()]}, ${months[dateObj.getMonth()]} ${dateObj.getDate()}, ${dateObj.getFullYear()}`;
+                        const dateFormatted = `${dayNames[dateObj.getDay()]}, ${dateObj.getDate()} ${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
 
                         document.getElementById('success-datetime').textContent = `${timeFormatted}, ${dateFormatted}`;
                         document.getElementById('success-timezone').textContent = hostProfile.timezone;
                         document.getElementById('success-location').textContent = m.location;
 
                         // Switch view
+                        currentStep = 'success';
                         document.getElementById('step-form').classList.add('hidden');
-                        document.getElementById('back-btn').classList.add('hidden');
+                        document.getElementById('back-btn').classList.add('invisible');
                         document.getElementById('selected-datetime-info').classList.add('hidden');
+                        document.getElementById('booking-footer').classList.add('hidden'); // Hide footer completely
                         document.getElementById('step-success').classList.remove('hidden');
                         lucide.createIcons();
                     } else {
                         alert(res.message || 'Failed to schedule meeting.');
+                        footerBtn.disabled = false;
+                        footerBtn.innerHTML = originalText;
+                        lucide.createIcons();
                     }
                 } catch (err) {
                     alert('Network error scheduling meeting.');
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalHtml;
+                    footerBtn.disabled = false;
+                    footerBtn.innerHTML = originalText;
                     lucide.createIcons();
                 }
             };

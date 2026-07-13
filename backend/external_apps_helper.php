@@ -598,7 +598,7 @@ class ExternalAppsHelper {
     /**
      * Send email via Gmail API
      */
-    public static function sendGmailEmail($userId, $recipientEmail, $subject, $body, $attachments = [], $inReplyTo = null) {
+    public static function sendGmailEmail($userId, $recipientEmail, $subject, $body, $attachments = [], $inReplyTo = null, $ccEmails = []) {
         $token = self::getGoogleAccessToken($userId);
         if (!$token) {
             return [
@@ -631,6 +631,9 @@ class ExternalAppsHelper {
             }
         }
         $rawMessage .= "To: $recipientEmail\r\n";
+        if (!empty($ccEmails)) {
+            $rawMessage .= "Cc: " . implode(', ', $ccEmails) . "\r\n";
+        }
         $rawMessage .= "Subject: =?utf-8?B?" . base64_encode($subject) . "?=\r\n";
         $rawMessage .= "MIME-Version: 1.0\r\n";
         

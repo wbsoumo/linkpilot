@@ -10359,8 +10359,8 @@ window.renderBookingSetup = async function(container) {
                                     <div class="text-[10px] text-slate-500 font-bold leading-normal">Your availability will be checked against existing meetings to avoid double bookings.</div>
                                 </div>
 
-                                <!-- Duration and Save Changes Row -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100 items-end">
+                                <!-- Duration, Provider and Save Changes Row -->
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-100 items-end">
                                     <div>
                                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Meeting Duration</label>
                                         <select id="booking-duration-select" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-600 bg-white text-xs font-bold text-slate-750 transition-all cursor-pointer">
@@ -10369,6 +10369,21 @@ window.renderBookingSetup = async function(container) {
                                             <option value="45" ${profile.duration_minutes === 45 ? 'selected' : ''}>45 minutes</option>
                                             <option value="60" ${profile.duration_minutes === 60 ? 'selected' : ''}>60 minutes</option>
                                         </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Create Link With</label>
+                                        <div class="relative">
+                                            <div id="provider-logo-indicator" class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                                                <!-- Dynamic logo SVG -->
+                                            </div>
+                                            <select id="booking-provider-select" onchange="window.updateProviderLogo(this.value)" class="w-full pl-9 pr-8 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-600 bg-white text-xs font-bold text-slate-750 transition-all cursor-pointer appearance-none">
+                                                <option value="google" ${profile.meeting_provider === 'zoom' ? '' : 'selected'}>Google Meet</option>
+                                                <option value="zoom" ${profile.meeting_provider === 'zoom' ? 'selected' : ''}>Zoom</option>
+                                            </select>
+                                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                                                <i data-lucide="chevron-down" class="h-4 w-4"></i>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="flex justify-end">
                                         <button id="save-booking-btn" class="w-full md:w-auto px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black transition flex items-center justify-center space-x-1.5 shadow-md text-xs focus:outline-none" style="color: #ffffff !important;">
@@ -10462,6 +10477,7 @@ window.renderBookingSetup = async function(container) {
 
             bindEvents();
             renderAvailRows();
+            window.updateProviderLogo(profile.meeting_provider || 'google');
             lucide.createIcons();
         }
 
@@ -10559,6 +10575,26 @@ window.renderBookingSetup = async function(container) {
             lucide.createIcons();
         }
 
+        // Update meeting provider logo indicator
+        window.updateProviderLogo = function(val) {
+            const logoIndicator = document.getElementById('provider-logo-indicator');
+            if (!logoIndicator) return;
+            if (val === 'zoom') {
+                logoIndicator.innerHTML = `
+                    <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="#2D8CFF">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M21.2 7c-.5-.4-1.2-.2-1.7.3l-3.5 3.5V8c0-1.7-1.3-3-3-3H3c-1.7 0-3 1.3-3 3v8c0 1.7 1.3 3 3 3h10c1.7 0 3-1.3 3-3v-2.8l3.5 3.5c.5.5 1.2.7 1.7.3.5-.4.8-1 .8-1.7V8.7c0-.7-.3-1.3-.8-1.7z"/>
+                    </svg>
+                `;
+            } else {
+                logoIndicator.innerHTML = `
+                    <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none">
+                        <path d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-6.887 4.114-4.636 0-8.24-3.6-8.24-8.24S7.604 2.035 12.24 2.035c2.233 0 4.143.832 5.568 2.163l3.207-3.207C18.847.885 15.753 0 12.24 0 5.48 0 0 5.48 0 12.24s5.48 12.24 12.24 12.24c7.056 0 11.72-4.96 11.72-11.92 0-.8-.064-1.576-.2-2.275H12.24z" fill="#EA4335"/>
+                    </svg>
+                `;
+            }
+        };
+
         // Toggle Day active status
         window.toggleDayActive = function(dayIndex) {
             const hasSlots = availability.some(s => s.day_of_week === dayIndex);
@@ -10634,6 +10670,7 @@ window.renderBookingSetup = async function(container) {
                 saveBtn.onclick = async () => {
                     const timezone = document.getElementById('booking-timezone-select').value;
                     const duration = document.getElementById('booking-duration-select').value;
+                    const provider = document.getElementById('booking-provider-select').value;
 
                     const originalHtml = saveBtn.innerHTML;
                     saveBtn.disabled = true;
@@ -10644,6 +10681,7 @@ window.renderBookingSetup = async function(container) {
                         const saveRes = await apiCall('crm/booking.php', 'POST', {
                             timezone: timezone,
                             duration_minutes: duration,
+                            meeting_provider: provider,
                             availability: availability
                         });
 
@@ -10651,6 +10689,7 @@ window.renderBookingSetup = async function(container) {
                             showNotification('success', 'Booking settings updated successfully!');
                             profile.timezone = timezone;
                             profile.duration_minutes = parseInt(duration);
+                            profile.meeting_provider = provider;
                         } else {
                             showNotification('error', saveRes.message || 'Failed to save settings.');
                         }

@@ -14,11 +14,11 @@ class SMTPHelper {
     /**
      * Send email using user's custom SMTP configuration
      */
-    public static function sendEmail($userId, $recipientEmail, $subject, $body, $attachments = [], $senderEmail = null, $originalMessageId = null) {
+    public static function sendEmail($userId, $recipientEmail, $subject, $body, $attachments = [], $senderEmail = null, $originalMessageId = null, $ccEmails = []) {
         // Intercept and route via Gmail API if user connected Google integration
         require_once __DIR__ . '/external_apps_helper.php';
         if (ExternalAppsHelper::isGoogleConnected($userId)) {
-            $gmailResult = ExternalAppsHelper::sendGmailEmail($userId, $recipientEmail, $subject, $body, $attachments, $originalMessageId);
+            $gmailResult = ExternalAppsHelper::sendGmailEmail($userId, $recipientEmail, $subject, $body, $attachments, $originalMessageId, $ccEmails);
             if ($gmailResult['status']) {
                 self::logSentEmail($userId, $recipientEmail, $subject, $body, 'sent');
                 updateStatistic($userId, 'emails_sent');
@@ -137,6 +137,11 @@ class SMTPHelper {
             // Recipients
             $mail->setFrom($smtp['sender_email'], $smtp['sender_name']);
             $mail->addAddress($recipientEmail);
+            if (!empty($ccEmails)) {
+                foreach ($ccEmails as $cc) {
+                    $mail->addCC($cc);
+                }
+            }
             
             // Content
             $mail->isHTML(true);

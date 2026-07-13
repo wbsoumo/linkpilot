@@ -300,8 +300,8 @@
                         
                         <p class="md:col-span-2 text-[10px] text-slate-400 leading-normal pt-2">
                             By proceeding, you confirm that you have read and agree to 
-                            <a href="#" class="text-indigo-600 hover:underline">LinkPilot's Participant Terms</a> and 
-                            <a href="#" class="text-indigo-600 hover:underline">Privacy Notice</a>.
+                            <a href="javascript:void(0)" onclick="openParticipantTermsPopup()" class="text-indigo-600 hover:underline">LinkPilot's Participant Terms</a> and 
+                            <a href="javascript:void(0)" onclick="openPrivacyPolicyPopup()" class="text-indigo-600 hover:underline">Privacy Notice</a>.
                         </p>
                     </form>
                 </div>
@@ -436,14 +436,14 @@
         <div id="booking-footer" class="border-t border-slate-100 p-5 flex flex-col md:flex-row justify-between items-center bg-slate-50/50 space-y-4 md:space-y-0 text-xs">
             <!-- Left Policies Links -->
             <div class="flex space-x-5 text-[10px] font-bold text-slate-450 uppercase tracking-wider select-none">
-                <a href="#" class="flex items-center space-x-1.5 hover:text-slate-700 transition">
+                <button onclick="openPrivacyPolicyPopup()" class="flex items-center space-x-1.5 hover:text-slate-700 transition focus:outline-none">
                     <i data-lucide="shield" class="h-3.5 w-3.5 text-slate-400"></i>
                     <span>Privacy Policy</span>
-                </a>
-                <a href="#" class="flex items-center space-x-1.5 hover:text-slate-700 transition">
+                </button>
+                <button onclick="openCookieSettingsPopup()" class="flex items-center space-x-1.5 hover:text-slate-700 transition focus:outline-none">
                     <i data-lucide="cookie" class="h-3.5 w-3.5 text-slate-400"></i>
                     <span>Cookie Settings</span>
-                </a>
+                </button>
             </div>
 
             <!-- Right Confirm Actions -->
@@ -998,6 +998,369 @@
                 }
             };
         }
+
+        // ==========================================
+        // Modal controllers
+        // ==========================================
+        window.openCookieSettingsPopup = function() {
+            const modal = document.getElementById('cookie-settings-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.querySelector('.transform').classList.remove('scale-95');
+                    modal.querySelector('.transform').classList.add('scale-100');
+                }, 10);
+            }
+        };
+
+        window.closeCookieSettingsPopup = function() {
+            const modal = document.getElementById('cookie-settings-modal');
+            if (modal) {
+                modal.querySelector('.transform').classList.remove('scale-100');
+                modal.querySelector('.transform').classList.add('scale-95');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 150);
+            }
+        };
+
+        window.openPrivacyPolicyPopup = function() {
+            const modal = document.getElementById('privacy-policy-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.querySelector('.transform').classList.remove('scale-95');
+                    modal.querySelector('.transform').classList.add('scale-100');
+                }, 10);
+            }
+        };
+
+        window.closePrivacyPolicyPopup = function() {
+            const modal = document.getElementById('privacy-policy-modal');
+            if (modal) {
+                modal.querySelector('.transform').classList.remove('scale-100');
+                modal.querySelector('.transform').classList.add('scale-95');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 150);
+            }
+        };
+
+        window.openParticipantTermsPopup = function() {
+            const modal = document.getElementById('participant-terms-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.querySelector('.transform').classList.remove('scale-95');
+                    modal.querySelector('.transform').classList.add('scale-100');
+                }, 10);
+            }
+        };
+
+        window.closeParticipantTermsPopup = function() {
+            const modal = document.getElementById('participant-terms-modal');
+            if (modal) {
+                modal.querySelector('.transform').classList.remove('scale-100');
+                modal.querySelector('.transform').classList.add('scale-95');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 150);
+            }
+        };
+
+        window.rejectAllCookies = function() {
+            document.getElementById('cookie-perf').checked = false;
+            document.getElementById('cookie-func').checked = false;
+            document.getElementById('cookie-target').checked = false;
+            alert('All non-essential cookies have been rejected.');
+            closeCookieSettingsPopup();
+        };
+
+        window.acceptAllCookies = function() {
+            document.getElementById('cookie-perf').checked = true;
+            document.getElementById('cookie-func').checked = true;
+            document.getElementById('cookie-target').checked = true;
+            alert('All cookies have been accepted.');
+            closeCookieSettingsPopup();
+        };
+
+        window.saveCookieSettings = function() {
+            alert('Cookie settings updated successfully!');
+            closeCookieSettingsPopup();
+        };
+
+        // Close modals when clicking background
+        document.addEventListener('click', (e) => {
+            const cookieModal = document.getElementById('cookie-settings-modal');
+            const privacyModal = document.getElementById('privacy-policy-modal');
+            const termsModal = document.getElementById('participant-terms-modal');
+
+            if (e.target === cookieModal) closeCookieSettingsPopup();
+            if (e.target === privacyModal) closePrivacyPolicyPopup();
+            if (e.target === termsModal) closeParticipantTermsPopup();
+        });
     </script>
+
+    <!-- ========================================== -->
+    <!-- COOKIES SETTINGS POPUP MODAL -->
+    <!-- ========================================== -->
+    <div id="cookie-settings-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden select-none animate-fade-in">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-xl w-full max-h-[85vh] flex flex-col overflow-hidden text-left transform scale-95 transition-all duration-300">
+            <!-- Header -->
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between shrink-0">
+                <div class="flex items-center space-x-2.5">
+                    <div class="h-9 w-9 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center">
+                        <i data-lucide="cookie" class="h-5 w-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black text-slate-800">Cookie Preference Center</h3>
+                        <p class="text-[10px] text-slate-400 font-semibold mt-0.5">Customize your privacy preferences</p>
+                    </div>
+                </div>
+                <button onclick="closeCookieSettingsPopup()" class="h-8 w-8 hover:bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center text-slate-450 hover:text-slate-700 transition focus:outline-none">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            </div>
+
+            <!-- Content Area -->
+            <div class="p-6 overflow-y-auto custom-scrollbar space-y-5 text-xs text-slate-650 leading-relaxed">
+                <p class="text-slate-500 font-medium">
+                    We use cookies to improve your user experience, customize content, and analyze our traffic. In accordance with data privacy regulations, you have full control over which categories of cookies you choose to activate.
+                </p>
+
+                <!-- Categories list -->
+                <div class="space-y-4 pt-1">
+                    <!-- Strictly Necessary -->
+                    <div class="bg-slate-50 border border-slate-200/60 rounded-xl p-4 flex items-start justify-between gap-4">
+                        <div class="space-y-1 w-4/5 text-left">
+                            <div class="font-bold text-slate-800 flex items-center space-x-1.5">
+                                <span>Strictly Necessary Cookies</span>
+                                <span class="bg-indigo-100 text-indigo-750 text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider">Required</span>
+                            </div>
+                            <p class="text-[10px] text-slate-400 leading-normal font-semibold">
+                                These cookies are essential for core platform features like scheduling, security validation, and session preservation. They cannot be disabled.
+                            </p>
+                        </div>
+                        <div class="flex items-center pt-1.5">
+                            <!-- Toggle switch (disabled active) -->
+                            <label class="relative inline-flex items-center cursor-not-allowed">
+                                <input type="checkbox" checked disabled class="sr-only peer">
+                                <div class="w-9 h-5 bg-indigo-600 rounded-full peer peer-focus:ring-0 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:height-4 after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-650 opacity-60"></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Performance & Analytics -->
+                    <div class="bg-slate-50 border border-slate-200/60 rounded-xl p-4 flex items-start justify-between gap-4">
+                        <div class="space-y-1 w-4/5 text-left">
+                            <div class="font-bold text-slate-800">Performance & Analytics Cookies</div>
+                            <p class="text-[10px] text-slate-400 leading-normal font-semibold">
+                                These allow us to monitor aggregate visitor counts and evaluate traffic sources to optimize the loading speed and responsiveness of our booking panels.
+                            </p>
+                        </div>
+                        <div class="flex items-center pt-1.5">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="cookie-perf" checked class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-250 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Functional Cookies -->
+                    <div class="bg-slate-50 border border-slate-200/60 rounded-xl p-4 flex items-start justify-between gap-4">
+                        <div class="space-y-1 w-4/5 text-left">
+                            <div class="font-bold text-slate-800">Functional Cookies</div>
+                            <p class="text-[10px] text-slate-400 leading-normal font-semibold">
+                                Used to remember preference selections such as your default timezone region, preferred calendar display styles, and search query overrides.
+                            </p>
+                        </div>
+                        <div class="flex items-center pt-1.5">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="cookie-func" checked class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-250 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Targeting & Advertising -->
+                    <div class="bg-slate-50 border border-slate-200/60 rounded-xl p-4 flex items-start justify-between gap-4">
+                        <div class="space-y-1 w-4/5 text-left">
+                            <div class="font-bold text-slate-800">Targeting & Advertising Cookies</div>
+                            <p class="text-[10px] text-slate-400 leading-normal font-semibold">
+                                Used by our integrations to build generic engagement patterns to surface helpful tutorials and contextual tips based on your platform activity.
+                            </p>
+                        </div>
+                        <div class="flex items-center pt-1.5">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="cookie-target" class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-250 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Buttons -->
+            <div class="p-5 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row justify-between gap-3 shrink-0">
+                <button onclick="rejectAllCookies()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-650 font-bold rounded-xl text-xs transition focus:outline-none">
+                    Reject All
+                </button>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button onclick="saveCookieSettings()" class="px-4 py-2 bg-indigo-50 border border-indigo-150 hover:bg-indigo-100 text-indigo-600 font-extrabold rounded-xl text-xs transition focus:outline-none">
+                        Save Preferences
+                    </button>
+                    <button onclick="acceptAllCookies()" class="px-4.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl text-xs transition focus:outline-none shadow-sm">
+                        Accept All
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- PRIVACY POLICY POPUP MODAL -->
+    <!-- ========================================== -->
+    <div id="privacy-policy-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden select-none animate-fade-in">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden text-left transform scale-95 transition-all duration-300">
+            <!-- Header -->
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between shrink-0">
+                <div class="flex items-center space-x-2.5">
+                    <div class="h-9 w-9 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center">
+                        <i data-lucide="shield" class="h-5 w-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black text-slate-800">Privacy Policy</h3>
+                        <p class="text-[10px] text-slate-400 font-semibold mt-0.5">Last updated: July 13, 2026</p>
+                    </div>
+                </div>
+                <button onclick="closePrivacyPolicyPopup()" class="h-8 w-8 hover:bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center text-slate-450 hover:text-slate-700 transition focus:outline-none">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            </div>
+
+            <!-- Content Area (Long Page) -->
+            <div class="p-6 overflow-y-auto custom-scrollbar text-xs text-slate-650 space-y-5 leading-relaxed">
+                <h4 class="font-black text-slate-800 text-sm">1. Introduction</h4>
+                <p>
+                    Welcome to LinkPilot AI CRM. We are committed to protecting your personal data and respecting your privacy. This Privacy Policy outlines how we collect, process, share, and protect your personal information when you use our scheduling booking system, visitor pages, and associated platform modules.
+                </p>
+
+                <h4 class="font-black text-slate-800 text-sm">2. Information We Collect</h4>
+                <p class="font-semibold text-slate-700">A. Visitor and Guest Data:</p>
+                <p class="pl-2">
+                    When you schedule a meeting with a host through LinkPilot, we collect the details you submit, including your full name, email address, timezone preference, remarks, and any additional guest emails you provide.
+                </p>
+                <p class="font-semibold text-slate-700">B. Host Configuration Data:</p>
+                <p class="pl-2">
+                    For hosts setting up links, we gather sync tokens, timezone choices, weekly availability hours, credentials for external calendar integrations (e.g. Google Calendar, Zoom), and preferences.
+                </p>
+                <p class="font-semibold text-slate-700">C. Device & Technical Metadata:</p>
+                <p class="pl-2">
+                    We automatically log IP addresses, browser dimensions, browser languages, and interaction histories to enhance the security and integrity of our systems.
+                </p>
+
+                <h4 class="font-black text-slate-800 text-sm">3. How We Use Your Information</h4>
+                <p>
+                    We process your information under legal bases including performance of contract, legitimate interest, and explicit consent:
+                </p>
+                <ul class="list-disc pl-5 space-y-1 text-slate-550">
+                    <li>To calculate available calendar slots and process meeting scheduling requests.</li>
+                    <li>To sync events with Google Calendar and Zoom API endpoints.</li>
+                    <li>To send booking confirmation emails containing attachments (e.g. ICS files).</li>
+                    <li>To monitor platform stability, troubleshoot bugs, and deter fraudulent activities.</li>
+                </ul>
+
+                <h4 class="font-black text-slate-800 text-sm">4. Data Sharing and Third-Party Integrations</h4>
+                <p>
+                    We never sell your personal information. Your data is shared only with authorized processors or integrations that you explicitly connect:
+                </p>
+                <ul class="list-disc pl-5 space-y-1 text-slate-550">
+                    <li><strong>Google Calendar API / Zoom API:</strong> To write scheduled slots onto your connected accounts.</li>
+                    <li><strong>SMTP / Mail Services:</strong> To deliver notifications and invitations.</li>
+                    <li><strong>Legal Compliance:</strong> If required by a court subpoena or legal authority.</li>
+                </ul>
+
+                <h4 class="font-black text-slate-800 text-sm">5. Data Retention & Security</h4>
+                <p>
+                    We store your data securely in standard databases using advanced encryption standards. Meeting participant records are retained for as long as necessary to fulfill the host's customer relationship management requirements. You may request data deletion at any time by contacting the host or our support team.
+                </p>
+
+                <h4 class="font-black text-slate-800 text-sm">6. GDPR & Privacy Rights</h4>
+                <p>
+                    Under European GDPR and California CCPA guidelines, you have the right to access, rectify, restrict, port, or request erasure of your data. You can exercise these options by lodging an inquiry at support@linkpilot.work.
+                </p>
+            </div>
+
+            <!-- Footer Buttons -->
+            <div class="p-5 border-t border-slate-100 bg-slate-50/50 flex justify-end shrink-0">
+                <button onclick="closePrivacyPolicyPopup()" class="px-5 py-2 bg-indigo-650 hover:bg-indigo-700 text-white font-extrabold rounded-xl text-xs transition focus:outline-none shadow-sm">
+                    Close Policy
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- PARTICIPANT TERMS POPUP MODAL -->
+    <!-- ========================================== -->
+    <div id="participant-terms-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden select-none animate-fade-in">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden text-left transform scale-95 transition-all duration-300">
+            <!-- Header -->
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between shrink-0">
+                <div class="flex items-center space-x-2.5">
+                    <div class="h-9 w-9 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center">
+                        <i data-lucide="scale" class="h-5 w-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black text-slate-800">Participant Terms of Service</h3>
+                        <p class="text-[10px] text-slate-400 font-semibold mt-0.5">Agreement for meeting attendees</p>
+                    </div>
+                </div>
+                <button onclick="closeParticipantTermsPopup()" class="h-8 w-8 hover:bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center text-slate-450 hover:text-slate-700 transition focus:outline-none">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            </div>
+
+            <!-- Content Area -->
+            <div class="p-6 overflow-y-auto custom-scrollbar text-xs text-slate-650 space-y-5 leading-relaxed">
+                <h4 class="font-black text-slate-800 text-sm">1. Scope and Acceptance</h4>
+                <p>
+                    By scheduling a meeting with a host on the LinkPilot booking page, you agree to comply with and be bound by these Participant Terms. If you are scheduling a meeting on behalf of other attendees, you represent that you have authority to bind them to these terms.
+                </p>
+
+                <h4 class="font-black text-slate-800 text-sm">2. Scheduling & Attendance Rules</h4>
+                <p>
+                    LinkPilot acts as a CRM and scheduling facilitator. As a participant, you agree that:
+                </p>
+                <ul class="list-disc pl-5 space-y-1 text-slate-550">
+                    <li>All guest information provided (Name, Email, Remarks) must be accurate and truthful.</li>
+                    <li>You will respect the host's time and reschedule or cancel with reasonable prior notification if you cannot attend.</li>
+                    <li>The meeting details, including conferencing links, are confidential and must not be shared publicly without consent.</li>
+                </ul>
+
+                <h4 class="font-black text-slate-800 text-sm">3. Platform Conduct</h4>
+                <p>
+                    We maintain a zero-tolerance policy for platform abuse. Attendees must not use remarks fields, additional guest invites, or meeting requests to spam, harass, or perform malicious code injections. LinkPilot reserves the right to automatically filter or restrict access to users who violate these guidelines.
+                </p>
+
+                <h4 class="font-black text-slate-800 text-sm">4. Disclaimers & Limits of Liability</h4>
+                <p>
+                    LinkPilot facilitating tools are provided on an "as-is" and "as-available" basis. We are not liable for any calendar sync delay, scheduling conflicts, Zoom meeting dropouts, or communication failures. The booking visitor accepts all associated operational risks.
+                </p>
+
+                <h4 class="font-black text-slate-800 text-sm">5. Updates and Governing Law</h4>
+                <p>
+                    We may update these Participant Terms from time to time. Your continued use of the booking landing page constitutes your acceptance of the updated terms. These terms are governed by and construed in accordance with standard business regulations.
+                </p>
+            </div>
+
+            <!-- Footer Buttons -->
+            <div class="p-5 border-t border-slate-100 bg-slate-50/50 flex justify-end shrink-0">
+                <button onclick="closeParticipantTermsPopup()" class="px-5 py-2 bg-indigo-650 hover:bg-indigo-700 text-white font-extrabold rounded-xl text-xs transition focus:outline-none shadow-sm">
+                    Accept & Close
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

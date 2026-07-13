@@ -24,6 +24,10 @@
             border: 1px solid #e2e8f0;
             box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.05);
             border-radius: 24px;
+            transition: max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #time-slots-column {
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease-in-out, padding 0.4s ease-in-out;
         }
         /* Custom scrollbar */
         .custom-scrollbar::-webkit-scrollbar {
@@ -112,7 +116,7 @@
 <body class="min-h-screen flex items-center justify-center p-4 md:p-6 lg:p-8">
 
     <!-- Overall Booking Container -->
-    <div class="w-full max-w-6xl premium-container overflow-hidden relative flex flex-col min-h-[580px]">
+    <div id="booking-card" class="w-full max-w-3xl premium-container overflow-hidden relative flex flex-col min-h-[580px]">
         <!-- Powered by LinkPilot Badge -->
         <div class="ribbon">
             <span class="ribbon-inner">POWERED BY<br>LinkPilot</span>
@@ -198,9 +202,9 @@
             </div>
 
             <!-- STEP 1: Date & Time Picker Content Area (3 columns) -->
-            <div id="step-picker" class="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 flex-grow text-left">
+            <div id="step-picker" class="lg:col-span-3 flex flex-col md:flex-row flex-grow text-left overflow-hidden">
                 <!-- Middle Column: Calendar view -->
-                <div class="p-6 md:p-8 flex flex-col justify-between">
+                <div class="p-6 md:p-8 flex flex-col justify-between w-full md:w-[380px] shrink-0">
                     <div>
                         <h3 class="text-base font-extrabold text-slate-800 tracking-tight">1. Select Date</h3>
                         <p class="text-[10px] text-slate-400 font-bold uppercase mt-0.5 tracking-wider">Choose a convenient date</p>
@@ -238,22 +242,24 @@
                     </div>
                 </div>
 
-                <!-- Right Column: Scrollable time slot picker -->
-                <div class="border-l border-slate-100 p-6 md:p-8 flex flex-col">
-                    <h3 class="text-base font-extrabold text-slate-800 tracking-tight">2. Select Time</h3>
-                    <p id="slots-header" class="text-[10px] text-slate-400 font-bold uppercase mt-0.5 tracking-wider">Available time slots for date</p>
-                    
-                    <div id="slots-scrollable" class="flex-grow overflow-y-auto max-h-[340px] mt-6 pr-2 custom-scrollbar space-y-2">
-                        <!-- Dynamic time slot cards load here -->
-                        <div class="text-[11px] text-slate-400 italic font-bold py-16 text-center select-none" id="slots-placeholder">
-                            Select a date to check available time slots.
+                <!-- Right Column: Scrollable time slot picker (starts collapsed) -->
+                <div id="time-slots-column" class="w-0 opacity-0 overflow-hidden flex flex-col shrink-0 border-l border-slate-100 p-0">
+                    <div class="p-6 md:p-8 flex flex-col h-full w-[320px] shrink-0">
+                        <h3 class="text-base font-extrabold text-slate-800 tracking-tight">2. Select Time</h3>
+                        <p id="slots-header" class="text-[10px] text-slate-400 font-bold uppercase mt-0.5 tracking-wider">Available time slots for date</p>
+                        
+                        <div id="slots-scrollable" class="flex-grow overflow-y-auto max-h-[340px] mt-6 pr-2 custom-scrollbar space-y-2">
+                            <!-- Dynamic time slot cards load here -->
+                            <div class="text-[11px] text-slate-400 italic font-bold py-16 text-center select-none" id="slots-placeholder">
+                                Select a date to check available time slots.
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Under slots description -->
-                    <div class="mt-4 pt-3 border-t border-slate-50 flex items-center space-x-1.5 text-[10px] text-slate-400 font-bold tracking-wide">
-                        <i data-lucide="clock" class="h-3.5 w-3.5 text-slate-350"></i>
-                        <span id="timezone-footer-lbl">All times are in Asia/Kolkata (GMT+05:30)</span>
+                        <!-- Under slots description -->
+                        <div class="mt-4 pt-3 border-t border-slate-50 flex items-center space-x-1.5 text-[10px] text-slate-400 font-bold tracking-wide">
+                            <i data-lucide="clock" class="h-3.5 w-3.5 text-slate-350"></i>
+                            <span id="timezone-footer-lbl">All times are in Asia/Kolkata (GMT+05:30)</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -517,6 +523,19 @@
             selectedTime = null;
             renderCalendar();
             updateFooterButtonState();
+
+            // Expand calendar container and slide in time slots
+            const card = document.getElementById('booking-card');
+            if (card) {
+                card.classList.remove('max-w-3xl');
+                card.classList.add('max-w-5xl');
+            }
+
+            const timeCol = document.getElementById('time-slots-column');
+            if (timeCol) {
+                timeCol.classList.remove('w-0', 'opacity-0', 'overflow-hidden', 'p-0');
+                timeCol.classList.add('w-full', 'md:w-[320px]', 'opacity-100');
+            }
 
             // Format slots panel header
             const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -845,6 +864,13 @@
                         document.getElementById('selected-datetime-info').classList.add('hidden');
                         document.getElementById('booking-footer').classList.add('hidden'); // Hide footer completely
                         document.getElementById('step-success').classList.remove('hidden');
+                        
+                        // Shrink card back for success state
+                        const card = document.getElementById('booking-card');
+                        if (card) {
+                            card.classList.remove('max-w-5xl');
+                            card.classList.add('max-w-3xl');
+                        }
                         lucide.createIcons();
                     } else {
                         alert(res.message || 'Failed to schedule meeting.');

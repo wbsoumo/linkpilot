@@ -100,7 +100,8 @@ try {
     
     $profileRes = ExternalAppsHelper::makeCurlRequest($profileUrl, 'GET', null, $profileHeaders);
     if ($profileRes['code'] !== 200 || !isset($profileRes['data']['email'])) {
-        throw new Exception("Failed to fetch Zoom profile details.");
+        $errorMsg = "Failed to fetch Zoom profile details. HTTP Code: " . $profileRes['code'] . " | Response: " . json_encode($profileRes['data'] ?? $profileRes['body']);
+        throw new Exception($errorMsg);
     }
 
     $zoomEmail = $profileRes['data']['email'];

@@ -577,7 +577,13 @@
                                     <li>Log in to the <a href="https://marketplace.zoom.us/" target="_blank" class="text-sky-400 hover:underline font-semibold">Zoom App Marketplace</a>.</li>
                                     <li>Click <b>Develop</b> &rarr; <b>Build App</b> in the top navigation.</li>
                                     <li>Select <b>OAuth app</b> type.</li>
-                                    <li>Copy the <b>Redirect URI</b> shown on the left and paste it into the Zoom app configuration field.</li>
+                                    <li>Copy the <b>Redirect URI</b> shown on the left (<code class="text-sky-400 bg-slate-900/60 px-1 py-0.5 rounded font-mono select-all redirect-val">https://linkpilot.work/backend/api/external_apps/zoom_callback.php</code>) and paste it into **both** fields in Zoom App console:
+                                        <ul class="list-disc pl-4 mt-1 space-y-1 text-slate-450">
+                                            <li><b>OAuth Redirect URL</b></li>
+                                            <li><b>OAuth Allow List (Whitelisted URL)</b></li>
+                                        </ul>
+                                        <div class="text-rose-400 font-bold mt-1">⚠️ Crucial: If these do not match Zoom settings exactly, you will get the "Invalid redirect (4,700)" error.</div>
+                                    </li>
                                     <li>Under **Scopes**, request access to: <code class="text-sky-400 bg-slate-900/60 px-1 py-0.5 rounded font-mono font-bold">meeting:write</code>, <code class="text-sky-400 bg-slate-900/60 px-1 py-0.5 rounded font-mono font-bold">meeting:write:admin</code> and <code class="text-sky-400 bg-slate-900/60 px-1 py-0.5 rounded font-mono font-bold">user:read</code>.</li>
                                     <li>Copy your **Client ID** and **Client Secret** into the fields on the left and click **Save Zoom Credentials**.</li>
                                     <li>Enable **Webhooks (Event Subscriptions)**, copy the **Secret Token** generated, paste it into the **Zoom Webhook Secret Token** field, and configure your webhook URL as `https://<your-domain>/backend/api/external_apps/zoom_callback.php` then click Validate.</li>

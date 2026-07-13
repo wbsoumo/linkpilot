@@ -8231,13 +8231,30 @@ function formatMeetingTime(startStr, endStr) {
     }
     
     const formatTime = (date) => {
-        return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true });
+        return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
     };
     
     if (end) {
-        return `<div class="font-bold text-slate-800">${dayStr}</div><div class="text-[10px] text-slate-400 font-semibold mt-0.5">${formatTime(start)} - ${formatTime(end)}</div>`;
+        const diffMs = end.getTime() - start.getTime();
+        const diffMins = Math.round(diffMs / 60000);
+        let durationStr = '';
+        if (diffMins < 60) {
+            durationStr = `(${diffMins}m)`;
+        } else {
+            const hrs = (diffMins / 60).toFixed(1).replace('.0', '');
+            durationStr = `(${hrs}h)`;
+        }
+        return `
+            <div class="font-bold text-slate-800">${dayStr}</div>
+            <div class="text-[10px] text-slate-400 font-semibold mt-0.5">${formatTime(start)} -</div>
+            <div class="text-[10px] text-slate-400 font-semibold">${formatTime(end)}</div>
+            <div class="text-[9px] text-blue-600 font-bold mt-1">${durationStr}</div>
+        `;
     }
-    return `<div class="font-bold text-slate-800">${dayStr}</div><div class="text-[10px] text-slate-400 font-semibold mt-0.5">${formatTime(start)}</div>`;
+    return `
+        <div class="font-bold text-slate-800">${dayStr}</div>
+        <div class="text-[10px] text-slate-400 font-semibold mt-0.5">${formatTime(start)}</div>
+    `;
 }
 
 function getAttendeeBubblesHTML(contactName) {
@@ -8571,51 +8588,47 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
 
                 <!-- Content Columns -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Left: Meetings table & Filter tab bar -->
-                    <div class="lg:col-span-2 space-y-4">
-                        <!-- Navigation tabs & filters -->
-                        <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 pb-2 space-y-3 md:space-y-0 text-left">
-                            <div class="flex space-x-4 font-bold text-xs">
-                                <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'upcoming', '${searchQuery}')" class="pb-2 transition border-b-2 ${activeTab === 'upcoming' ? 'border-indigo-650 text-indigo-650 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">Upcoming</button>
-                                <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'all', '${searchQuery}')" class="pb-2 transition border-b-2 ${activeTab === 'all' ? 'border-indigo-650 text-indigo-650 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">All Meetings</button>
-                                <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'completed', '${searchQuery}')" class="pb-2 transition border-b-2 ${activeTab === 'completed' ? 'border-indigo-650 text-indigo-650 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">Completed</button>
-                                <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'cancelled', '${searchQuery}')" class="pb-2 transition border-b-2 ${activeTab === 'cancelled' ? 'border-indigo-650 text-indigo-650 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">Cancelled</button>
+                                       <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 pb-2 space-y-3 md:space-y-0 text-left">
+                            <div class="flex space-x-6 font-bold text-xs">
+                                <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'upcoming', '${searchQuery}')" class="pb-2 transition border-b-2 ${activeTab === 'upcoming' ? 'border-blue-600 text-blue-600 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">Upcoming</button>
+                                <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'all', '${searchQuery}')" class="pb-2 transition border-b-2 ${activeTab === 'all' ? 'border-blue-600 text-blue-600 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">All Meetings</button>
+                                <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'completed', '${searchQuery}')" class="pb-2 transition border-b-2 ${activeTab === 'completed' ? 'border-blue-600 text-blue-600 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">Completed</button>
+                                <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'cancelled', '${searchQuery}')" class="pb-2 transition border-b-2 ${activeTab === 'cancelled' ? 'border-blue-600 text-blue-600 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">Cancelled</button>
                             </div>
                             
-                            <!-- Search meeting input -->
-                            <div class="flex items-center space-x-2">
-                                <div class="relative max-w-xs w-full">
-                                    <input type="text" id="meetings-search-input" value="${searchQuery}" onkeydown="if(event.key === 'Enter') { window.renderMeetingsList(document.getElementById('main-content-viewport'), '${activeTab}', this.value); }" placeholder="Search meetings..." class="w-full pl-8 pr-3 py-1.5 border border-slate-250 rounded-xl focus:outline-none focus:border-indigo-500 bg-white">
-                                    <i data-lucide="search" class="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400"></i>
+                            <!-- Search meeting controls -->
+                            <div class="flex items-center space-x-2.5">
+                                <div class="relative w-48">
+                                    <input type="text" id="meetings-search-input" value="${searchQuery}" onkeydown="if(event.key === 'Enter') { window.renderMeetingsList(document.getElementById('main-content-viewport'), '${activeTab}', this.value); }" placeholder="Search meetings..." class="w-full pl-8 pr-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 bg-white text-xs font-semibold text-slate-700 placeholder-slate-400">
+                                    <i data-lucide="search" class="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400"></i>
                                 </div>
-                                <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), '${activeTab}', document.getElementById('meetings-search-input').value)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold transition">Find</button>
+                                <button onclick="showNotification('info', 'Filter feature coming soon')" class="px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold transition flex items-center space-x-1.5 text-xs shadow-sm focus:outline-none">
+                                    <i data-lucide="filter" class="h-3.5 w-3.5 text-slate-500"></i>
+                                    <span>Filter</span>
+                                </button>
+                                <button onclick="showNotification('info', 'Sort feature coming soon')" class="px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold transition flex items-center space-x-1.5 text-xs shadow-sm focus:outline-none">
+                                    <span>Sort: Nearest</span>
+                                    <i data-lucide="chevron-down" class="h-3.5 w-3.5 text-slate-400"></i>
+                                </button>
                             </div>
                         </div>
 
                         <!-- Table grid -->
-                        <di                                <thead>
+                        <div class="overflow-x-auto bg-white border border-slate-200 rounded-2xl shadow-sm">
+                            <table class="w-full text-left border-collapse min-w-[600px]">
+                                <thead>
                                     <tr class="bg-slate-50 border-b border-slate-100 text-slate-400 text-[10px] uppercase font-bold tracking-wider select-none">
                                         <th class="py-3 px-4">Meeting</th>
                                         <th class="py-3 px-4">Time</th>
                                         <th class="py-3 px-4">Attendees</th>
+                                        <th class="py-3 px-4">Related To</th>
                                         <th class="py-3 px-4">Status</th>
-                                        <th class="py-3 px-4 text-right">Action</th>
+                                        <th class="py-3 px-4 text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     ${(() => {
                                         const stripMarkdown = (str) => (str || '').replace(/\*\*/g, '').replace(/\*/g, '').replace(/`/g, '');
-                                        const formatTime12h = (timeStr) => {
-                                            if (!timeStr) return '';
-                                            const parts = timeStr.split(':');
-                                            let hours = parseInt(parts[0]);
-                                            const minutes = parts[1] || '00';
-                                            const ampm = hours >= 12 ? 'pm' : 'am';
-                                            hours = hours % 12;
-                                            hours = hours ? hours : 12;
-                                            const padHours = String(hours).padStart(2, '0');
-                                            return `${padHours}:${minutes} ${ampm}`;
-                                        };
                                         const getReadableLocation = (loc) => {
                                             if (!loc) return 'In-Person Meeting';
                                             if (loc.includes('zoom.us') || loc.includes('zoom.com') || loc === 'Zoom Meeting') {
@@ -8633,8 +8646,8 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
                                         if (filteredMeetings.length === 0) {
                                             return `
                                                 <tr>
-                                                    <td colspan="5" class="py-12 text-center text-slate-400 font-semibold italic bg-white">
-                                                        No meetings found matches this criteria. Click 'Schedule New Meeting' to schedule one.
+                                                    <td colspan="6" class="py-12 text-center text-slate-400 font-semibold italic bg-white border-0 rounded-b-2xl">
+                                                        No meetings found matching this criteria. Click 'Schedule New Meeting' to schedule one.
                                                     </td>
                                                 </tr>
                                             `;
@@ -8693,21 +8706,33 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
                                                     <td class="py-3.5 px-4">
                                                         ${getAttendeeBubblesHTML(m.contact_name)}
                                                     </td>
+                                                    <td class="py-3.5 px-4 font-semibold text-slate-700">
+                                                        ${m.company_name ? `<div class="truncate max-w-[120px]" title="${m.company_name}">${m.company_name}</div>` : ''}
+                                                        ${m.contact_name ? `<div class="text-[10px] text-slate-400 font-semibold mt-0.5 truncate max-w-[120px]" title="${m.contact_name}">${m.contact_name}</div>` : ''}
+                                                        ${!m.company_name && !m.contact_name ? '<span class="text-slate-350">-</span>' : ''}
+                                                    </td>
                                                     <td class="py-3.5 px-4">
                                                         <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${m.status === 'scheduled' ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : m.status === 'completed' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'}">
                                                             ${m.status.toUpperCase()}
                                                         </span>
                                                     </td>
-                                                    <td class="py-3.5 px-4 text-right space-x-1.5 shrink-0">
-                                                        ${m.meet_link ? `
-                                                            <a href="${m.meet_link}" target="_blank" class="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[9px] font-bold inline-flex items-center space-x-1 shadow-sm transition" style="color: #ffffff !important;">
-                                                                <i data-lucide="video" class="h-3 w-3 text-white"></i>
-                                                                <span>Join Meet</span>
-                                                            </a>
-                                                        ` : ''}
-                                                        <button onclick="window.deleteMeeting(${m.id}, document.getElementById('main-content-viewport'))" class="p-1 hover:bg-rose-50 border border-transparent hover:border-rose-100 hover:text-rose-600 text-slate-400 rounded-lg transition inline-flex" title="Delete meeting">
-                                                            <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
-                                                        </button>
+                                                    <td class="py-3.5 px-4 text-right shrink-0">
+                                                        <div class="flex flex-col items-end space-y-1.5">
+                                                            <div class="flex items-center space-x-1.5">
+                                                                ${m.meet_link ? `
+                                                                    <a href="${m.meet_link}" target="_blank" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[9px] font-bold inline-flex items-center space-x-1 transition shadow-sm" style="color: #ffffff !important;">
+                                                                        <i data-lucide="video" class="h-3 w-3 text-white"></i>
+                                                                        <span>Join</span>
+                                                                    </a>
+                                                                ` : ''}
+                                                                <button onclick="window.openMeetingDetailsModal(${m.id})" class="p-1 hover:bg-slate-100 border border-slate-200 text-slate-500 rounded-lg transition inline-flex focus:outline-none" title="View details">
+                                                                    <i data-lucide="more-horizontal" class="h-3.5 w-3.5"></i>
+                                                                </button>
+                                                            </div>
+                                                            <button onclick="window.deleteMeeting(${m.id}, document.getElementById('main-content-viewport'))" class="p-1 hover:bg-rose-50 border border-transparent hover:border-rose-100 hover:text-rose-600 text-slate-400 rounded-lg transition inline-flex focus:outline-none" title="Delete meeting">
+                                                                <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             `;
@@ -8715,6 +8740,24 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
                                     })()}
                                 </tbody>
                             </table>
+                            
+                            <!-- Table Pagination Footer -->
+                            <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between text-slate-500 font-bold select-none bg-white">
+                                <div>
+                                    Showing 1 to ${filteredMeetings.length} of ${filteredMeetings.length} ${filteredMeetings.length === 1 ? 'meeting' : 'meetings'}
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <button class="h-7 w-7 rounded-lg border border-slate-200 hover:bg-slate-50 flex items-center justify-center transition text-slate-400 focus:outline-none">
+                                        <i data-lucide="chevron-left" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                    <button class="h-7 w-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-extrabold focus:outline-none">
+                                        1
+                                    </button>
+                                    <button class="h-7 w-7 rounded-lg border border-slate-200 hover:bg-slate-50 flex items-center justify-center transition text-slate-400 focus:outline-none">
+                                        <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -8769,15 +8812,17 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
                         </div>
 
                         <!-- Availability Scheduling Tip Box -->
-                        <div class="bg-slate-900 text-white rounded-2xl p-5 shadow-xl space-y-3 text-left">
-                            <div class="flex items-center space-x-2 text-indigo-400 font-bold">
-                                <i data-lucide="sparkles" class="h-4 w-4"></i>
+                        <div class="bg-gradient-to-br from-[#4f46e5] to-[#7c3aed] text-white rounded-2xl p-5 shadow-lg space-y-3 text-left">
+                            <div class="flex items-center space-x-2 font-black">
+                                <i data-lucide="sparkles" class="h-4 w-4 text-white"></i>
                                 <span>Scheduling Tip</span>
                             </div>
-                            <p class="text-[11px] text-slate-400 leading-relaxed font-semibold">
+                            <p class="text-[11px] text-white/90 leading-relaxed font-semibold">
                                 Share your personal availability booking link to let client leads book meetings with you automatically via WhatsApp automation.
                             </p>
-                            <button onclick="showNotification('info', 'Availability settings configuration module is opening...')" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-center text-[10px] transition shadow-md" style="color: #ffffff !important;">Set Availability Link</button>
+                            <div class="pt-1 flex justify-end">
+                                <button onclick="showNotification('info', 'Availability settings configuration module is opening...')" class="px-4 py-2 bg-white hover:bg-slate-50 text-[#7c3aed] font-extrabold rounded-xl text-center text-[10px] transition shadow-md focus:outline-none">Set Availability Link</button>
+                            </div>
                         </div>
                     </div>
                 </div>

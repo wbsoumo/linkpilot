@@ -10288,7 +10288,13 @@ window.renderBookingSetup = async function(container) {
                     const valClean = h24.substring(0, 5);
                     const isSelected = valClean === selectedClean;
                     const label = timeTo12h(h24);
-           function renderView() {
+                    html += `<option value="${h24}" ${isSelected ? 'selected' : ''}>${label}</option>`;
+                }
+            }
+            return html;
+        }
+
+        function renderView() {
             container.innerHTML = `
                 <div class="space-y-8 animate-fade-in text-slate-800 font-sans text-xs">
                     <!-- Header -->

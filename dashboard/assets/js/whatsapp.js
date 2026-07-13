@@ -1305,6 +1305,16 @@ function formatPhoneNumber(phone) {
     return '+' + digits;
 }
 
+// Clean and normalize phone numbers (prepending 91 to 10-digit Indian mobile numbers starting with 9, 8, 7, 6)
+function normalizePhoneNumber(phone) {
+    if (!phone) return '';
+    let cleaned = phone.trim().replace(/[^0-9]/g, '');
+    if (cleaned.length === 10 && ['9', '8', '7', '6'].includes(cleaned.charAt(0))) {
+        cleaned = '91' + cleaned;
+    }
+    return cleaned;
+}
+
 // Fetch WhatsApp threads list
 async function loadWaThreads(search = '') {
     try {
@@ -1452,8 +1462,8 @@ async function loadWaThreadMessages() {
         // Show/Hide Input Footer or Warning alert
         const footer = document.getElementById('wa-chat-footer');
         
-        // Clean phone number to digits only
-        const cleanToPhone = (thread.wa_id || '').replace(/[^0-9]/g, '');
+        // Clean and normalize phone number
+        const cleanToPhone = normalizePhoneNumber(thread.wa_id || '');
         let isPhoneAllowed = true;
         let phoneRestrictedReason = '';
         

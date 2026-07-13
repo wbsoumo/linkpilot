@@ -386,7 +386,9 @@ class ExternalAppsHelper {
             $client->setAccessToken($token);
             $service = new Google\Service\Calendar($client);
 
-            $event = new Google\Service\Calendar\Event([
+            $isZoom = (str_contains($location, 'zoom.us') || str_contains($location, 'zoom.com'));
+
+            $eventData = [
                 'summary' => $title,
                 'description' => $description,
                 'location' => $location,
@@ -399,38 +401,47 @@ class ExternalAppsHelper {
                         ['method' => 'popup', 'minutes' => 30],
                         ['method' => 'email', 'minutes' => 1440]
                     ]
-                ],
-                'conferenceData' => [
+                ]
+            ];
+
+            if (!$isZoom) {
+                $eventData['conferenceData'] = [
                     'createRequest' => [
                         'requestId' => 'meet-' . $meetingId . '-' . time(),
                         'conferenceSolutionKey' => [
                             'type' => 'hangoutsMeet'
                         ]
                     ]
-                ]
-            ]);
+                ];
+            }
 
-            $createdEvent = $service->events->insert('primary', $event, ['conferenceDataVersion' => 1]);
+            $event = new Google\Service\Calendar\Event($eventData);
+
+            $createdEvent = $service->events->insert('primary', $event, $isZoom ? [] : ['conferenceDataVersion' => 1]);
             $googleEventId = $createdEvent->getId();
             
             // Extract Google Meet link
             $meetLink = null;
-            $confData = $createdEvent->getConferenceData();
-            if ($confData) {
-                $entryPoints = $confData->getEntryPoints();
-                if ($entryPoints) {
-                    foreach ($entryPoints as $ep) {
-                        if ($ep->getEntryPointType() === 'video') {
-                            $meetLink = $ep->getUri();
-                            break;
+            if (!$isZoom) {
+                $confData = $createdEvent->getConferenceData();
+                if ($confData) {
+                    $entryPoints = $confData->getEntryPoints();
+                    if ($entryPoints) {
+                        foreach ($entryPoints as $ep) {
+                            if ($ep->getEntryPointType() === 'video') {
+                                $meetLink = $ep->getUri();
+                                break;
+                            }
                         }
                     }
                 }
+            } else {
+                $meetLink = $location;
             }
 
-            // Save to local database
-            $stmtUpdate = $db->prepare("UPDATE crm_meetings SET google_event_id = ?, meet_link = ? WHERE id = ?");
-            $stmtUpdate->execute([$googleEventId, $meetLink, $meetingId]);
+            // Save to local database (including location and meet_link updates)
+            $stmtUpdate = $db->prepare("UPDATE crm_meetings SET google_event_id = ?, meet_link = ?, location = ? WHERE id = ?");
+            $stmtUpdate->execute([$googleEventId, $meetLink, $meetLink ?: $location, $meetingId]);
 
             return [
                 'event_id' => $googleEventId,
@@ -1200,9 +1211,9 @@ class ExternalAppsHelper {
         $zoomMeetingId = $res['data']['id'];
         $joinUrl = $res['data']['join_url'];
 
-        // Save Zoom meeting ID and join link to database
-        $stmtUpdate = $db->prepare("UPDATE crm_meetings SET zoom_meeting_id = ?, meet_link = ? WHERE id = ?");
-        $stmtUpdate->execute([$zoomMeetingId, $joinUrl, $meetingId]);
+        // Save Zoom meeting ID and join link to database (including location)
+        $stmtUpdate = $db->prepare("UPDATE crm_meetings SET zoom_meeting_id = ?, meet_link = ?, location = ? WHERE id = ?");
+        $stmtUpdate->execute([$zoomMeetingId, $joinUrl, $joinUrl, $meetingId]);
 
         return [
             'meeting_id' => $zoomMeetingId,

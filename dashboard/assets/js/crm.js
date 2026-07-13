@@ -8588,7 +8588,9 @@ window.renderMeetingsList = async function(container, activeTab = 'upcoming', se
 
                 <!-- Content Columns -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                       <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 pb-2 space-y-3 md:space-y-0 text-left">
+                    <!-- Left: Meetings table & Filter tab bar -->
+                    <div class="lg:col-span-2 space-y-4">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 pb-2 space-y-3 md:space-y-0 text-left">
                             <div class="flex space-x-6 font-bold text-xs">
                                 <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'upcoming', '${searchQuery}')" class="pb-2 transition border-b-2 ${activeTab === 'upcoming' ? 'border-blue-600 text-blue-600 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">Upcoming</button>
                                 <button onclick="window.renderMeetingsList(document.getElementById('main-content-viewport'), 'all', '${searchQuery}')" class="pb-2 transition border-b-2 ${activeTab === 'all' ? 'border-blue-600 text-blue-600 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">All Meetings</button>

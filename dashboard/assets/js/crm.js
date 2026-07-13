@@ -9825,6 +9825,11 @@ window.showScheduleMeetingForm = async function(container, editMeetingId = null)
                                                  <circle cx="12" cy="10" r="3"></circle>
                                              </svg>
                                              <span class="font-bold text-slate-800">In-Person / Physical Venue</span>
+                                         </div>
+                                     </div>
+                                 </div>
+                              </div>
+                              
                               <!-- Physical Venue Address input -->
                               <div id="custom-location-container" class="space-y-1.5 ${customLocClass}">
                                   <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-extrabold">Physical Venue Address</label>
@@ -10023,13 +10028,106 @@ window.submitNewMeeting = async function(event, form, container) {
         payload.id = parseInt(meetingId);
     }
 
+    // Show a beautiful blur overlay with stepping progress
+    const overlay = document.createElement('div');
+    overlay.className = 'fixed inset-0 z-[10000] flex items-center justify-center bg-slate-900/60 backdrop-blur-md transition-opacity duration-300';
+    overlay.innerHTML = `
+        <div class="bg-white border border-slate-200 rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl space-y-6 text-left transform scale-95 transition-all duration-300">
+            <div class="flex items-center space-x-3.5">
+                <div class="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shadow-xs animate-pulse">
+                    <i data-lucide="loader-2" class="h-5 w-5 animate-spin"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-800">${meetingId ? 'Updating Sync...' : 'Scheduling Meeting...'}</h3>
+                    <p class="text-[10px] text-slate-400 font-bold mt-0.5">Please wait, performing calendar synchronizations...</p>
+                </div>
+            </div>
+            
+            <div class="space-y-4 pt-2">
+                <!-- Step 1 -->
+                <div id="step-1" class="flex items-center space-x-3 text-slate-400 font-semibold text-xs transition-colors duration-200">
+                    <div class="step-icon h-5 w-5 rounded-full border border-slate-250 flex items-center justify-center shrink-0 transition bg-slate-50">
+                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full"></span>
+                    </div>
+                    <span class="step-text">Creating meeting request...</span>
+                </div>
+                
+                <!-- Step 2 -->
+                <div id="step-2" class="flex items-center space-x-3 text-slate-400 font-semibold text-xs transition-colors duration-200">
+                    <div class="step-icon h-5 w-5 rounded-full border border-slate-250 flex items-center justify-center shrink-0 transition bg-slate-50">
+                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full"></span>
+                    </div>
+                    <span class="step-text">Sharing with the participants...</span>
+                </div>
+                
+                <!-- Step 3 -->
+                <div id="step-3" class="flex items-center space-x-3 text-slate-400 font-semibold text-xs transition-colors duration-200">
+                    <div class="step-icon h-5 w-5 rounded-full border border-slate-250 flex items-center justify-center shrink-0 transition bg-slate-50">
+                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full"></span>
+                    </div>
+                    <span class="step-text">Adding event to Google Calendar...</span>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    lucide.createIcons();
+
+    const setStepActive = (stepNum, text) => {
+        const stepEl = document.getElementById(`step-${stepNum}`);
+        if (!stepEl) return;
+        stepEl.className = 'flex items-center space-x-3 text-slate-800 font-bold text-xs animate-pulse';
+        stepEl.querySelector('.step-icon').className = 'step-icon h-5 w-5 rounded-full border border-indigo-200 flex items-center justify-center shrink-0 bg-indigo-50 text-indigo-650';
+        stepEl.querySelector('.step-icon').innerHTML = '<i data-lucide="loader-2" class="h-3 w-3 animate-spin"></i>';
+        if (text) stepEl.querySelector('.step-text').textContent = text;
+        lucide.createIcons();
+    };
+
+    const setStepComplete = (stepNum, text) => {
+        const stepEl = document.getElementById(`step-${stepNum}`);
+        if (!stepEl) return;
+        stepEl.className = 'flex items-center space-x-3 text-slate-500 font-semibold text-xs';
+        stepEl.querySelector('.step-icon').className = 'step-icon h-5 w-5 rounded-full border border-emerald-250 flex items-center justify-center shrink-0 bg-emerald-50 text-emerald-600';
+        stepEl.querySelector('.step-icon').innerHTML = '<i data-lucide="check" class="h-3 w-3"></i>';
+        if (text) stepEl.querySelector('.step-text').textContent = text;
+        lucide.createIcons();
+    };
+
+    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+    
+    // Kick off API Call
+    const method = meetingId ? 'PUT' : 'POST';
+    const apiPromise = apiCall('crm/meetings.php', method, payload);
+    
     try {
         btn.disabled = true;
         btn.innerHTML = `<i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin"></i> <span>${meetingId ? 'Saving...' : 'Scheduling...'}</span>`;
         lucide.createIcons();
 
-        const method = meetingId ? 'PUT' : 'POST';
-        const res = await apiCall('crm/meetings.php', method, payload);
+        // Step 1 Active
+        setStepActive(1, 'Creating meeting request...');
+        await sleep(1000);
+        setStepComplete(1);
+        
+        // Step 2 Active
+        setStepActive(2, 'Sharing with the participants...');
+        await sleep(1000);
+        setStepComplete(2);
+        
+        // Step 3 Active
+        setStepActive(3, 'Adding event to Google Calendar...');
+        await sleep(1000);
+        
+        // Wait for API call to complete if it's still running, otherwise proceed
+        const res = await apiPromise;
+        setStepComplete(3);
+        await sleep(550);
+        
+        // Fade out overlay
+        overlay.style.opacity = '0';
+        await sleep(300);
+        overlay.remove();
+        
         if (res.status === 'success') {
             showNotification('success', meetingId ? 'Meeting updated successfully!' : 'Meeting scheduled successfully!');
             window.renderMeetingsList(container);
@@ -10037,6 +10135,7 @@ window.submitNewMeeting = async function(event, form, container) {
             showNotification('error', res.message || 'Failed to save meeting.');
         }
     } catch(err) {
+        overlay.remove();
         showNotification('error', err.message);
     } finally {
         btn.disabled = false;

@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule a Meeting - LinkPilot AI</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        h1, h2, h3, h4, .font-title {
+            font-family: 'Outfit', sans-serif;
+        }
+        .premium-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.02);
+            border-radius: 20px;
+        }
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        /* Calendar UI overrides */
+        .calendar-day-btn {
+            aspect-ratio: 1;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        .calendar-day-btn.available {
+            background-color: #eff6ff;
+            color: #2563eb;
+        }
+        .calendar-day-btn.available:hover {
+            background-color: #dbeafe;
+            transform: scale(1.05);
+        }
+        .calendar-day-btn.selected {
+            background-color: #2563eb !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+        }
+        .calendar-day-btn.disabled {
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+        /* Custom time option slot button */
+        .time-slot-btn {
+            border: 1px solid #2563eb;
+            color: #2563eb;
+            font-weight: 700;
+            transition: all 0.2s ease-in-out;
+        }
+        .time-slot-btn:hover {
+            background-color: #eff6ff;
+        }
+        /* Lucide icons default sizes */
+        .icon-sm {
+            width: 16px;
+            height: 16px;
+        }
+        .icon-md {
+            width: 20px;
+            height: 20px;
+        }
+        /* Spinner */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2563eb;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Ribbon badge */
+        .ribbon {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            overflow: hidden;
+        }
+        .ribbon-inner {
+            text-align: center;
+            font-size: 8px;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            color: #fff;
+            line-height: 20px;
+            transform: rotate(45deg);
+            width: 150px;
+            display: block;
+            background: #475569;
+            box-shadow: 0 3px 10px -5px rgba(0,0,0,0.3);
+            position: absolute;
+            top: 22px;
+            right: -32px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 md:p-8">
+
+    <div class="w-full max-w-4xl premium-card overflow-hidden relative min-h-[520px]">
+        <!-- Powered by badge -->
+        <div class="ribbon">
+            <span class="ribbon-inner">POWERED BY<br>LinkPilot</span>
+        </div>
+
+        <!-- Initial loading state -->
+        <div id="booking-loading" class="absolute inset-0 bg-white z-50 flex flex-col items-center justify-center space-y-4">
+            <div class="spinner"></div>
+            <p class="text-xs text-slate-400 font-bold">Loading schedule...</p>
+        </div>
+
+        <!-- Master Content Container -->
+        <div id="booking-container" class="grid grid-cols-1 md:grid-cols-3 min-h-[520px]">
+            <!-- Left Info Panel (1 Column) -->
+            <div class="md:col-span-1 border-r border-slate-100 p-6 flex flex-col justify-between text-left">
+                <div>
+                    <!-- Back Button (shown in form step) -->
+                    <button id="back-btn" class="hidden h-9 w-9 rounded-full border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-650 hover:text-slate-900 transition mb-6 focus:outline-none">
+                        <i data-lucide="arrow-left" class="icon-md"></i>
+                    </button>
+
+                    <span id="host-name" class="text-slate-400 font-bold text-xs tracking-wide">Host Name</span>
+                    <h2 id="meeting-title" class="text-xl md:text-2xl font-black text-slate-800 mt-1 leading-tight">30 Minute Meeting</h2>
+
+                    <div class="mt-6 space-y-4 text-slate-550 text-xs font-semibold">
+                        <div class="flex items-center space-x-2.5">
+                            <i data-lucide="clock" class="text-slate-400 icon-md"></i>
+                            <span id="meeting-duration-text">30 min</span>
+                        </div>
+                        <div class="flex items-start space-x-2.5">
+                            <i data-lucide="video" class="text-slate-400 icon-md mt-0.5 shrink-0"></i>
+                            <span id="meeting-location-text">Web conferencing details provided upon confirmation.</span>
+                        </div>
+                        <div id="selected-datetime-info" class="hidden flex-col space-y-2 border-t border-slate-100 pt-4">
+                            <div class="flex items-center space-x-2.5 text-slate-700">
+                                <i data-lucide="calendar" class="text-slate-400 icon-md shrink-0"></i>
+                                <span id="slot-time-formatted" class="font-extrabold text-xs"></span>
+                            </div>
+                            <div class="flex items-center space-x-2.5 text-slate-400">
+                                <i data-lucide="globe" class="text-slate-350 icon-md shrink-0"></i>
+                                <span id="slot-timezone-formatted" class="font-bold text-[10px]"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex space-x-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-8 md:mt-0">
+                    <a href="#" class="hover:text-slate-600 transition">Cookie settings</a>
+                    <a href="#" class="hover:text-slate-600 transition">Privacy Policy</a>
+                </div>
+            </div>
+
+            <!-- Right Interactive Panel (2 Columns) -->
+            <div class="md:col-span-2 flex flex-col justify-between">
+                
+                <!-- STEP 1: Date & Time Picker View -->
+                <div id="step-picker" class="grid grid-cols-1 lg:grid-cols-2 flex-grow min-h-[460px] text-left">
+                    <!-- Calendar View -->
+                    <div class="p-6">
+                        <h3 class="text-base font-extrabold text-slate-800 tracking-tight">Select a Date & Time</h3>
+                        
+                        <!-- Month navigation header -->
+                        <div class="flex items-center justify-between mt-4 border-b border-slate-50 pb-2">
+                            <button id="prev-month-btn" class="p-1 hover:bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-lg text-slate-550 transition focus:outline-none">
+                                <i data-lucide="chevron-left" class="icon-sm"></i>
+                            </button>
+                            <span id="calendar-month-year" class="text-xs font-black text-slate-750">July 2026</span>
+                            <button id="next-month-btn" class="p-1 hover:bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-lg text-slate-550 transition focus:outline-none">
+                                <i data-lucide="chevron-right" class="icon-sm"></i>
+                            </button>
+                        </div>
+
+                        <!-- Calendar Grid -->
+                        <div class="grid grid-cols-7 gap-1 text-center mt-3 text-[10px] font-bold text-slate-400 uppercase">
+                            <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+                        </div>
+                        <div id="calendar-days-container" class="grid grid-cols-7 gap-1 mt-1 text-center">
+                            <!-- Injected day buttons -->
+                        </div>
+
+                        <!-- Timezone label display -->
+                        <div class="mt-5 pt-3 border-t border-slate-50 flex items-center space-x-1.5 text-[10px] text-slate-500 font-semibold select-none">
+                            <i data-lucide="globe" class="icon-sm text-slate-400"></i>
+                            <span>Time zone:</span>
+                            <span id="timezone-label-text" class="font-extrabold text-slate-750">India Standard Time</span>
+                        </div>
+                    </div>
+
+                    <!-- Scrollable Slots Panel -->
+                    <div class="border-l border-slate-100 p-6 flex flex-col">
+                        <h4 id="slots-header" class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Select Date</h4>
+                        
+                        <div id="slots-scrollable" class="flex-grow overflow-y-auto max-h-[300px] pr-2 custom-scrollbar space-y-2">
+                            <!-- Dynamic Slot Blocks: 11:00am, 11:30am, etc. -->
+                            <div class="text-[11px] text-slate-450 italic font-semibold py-12 text-center select-none" id="slots-placeholder">
+                                Select a date to see available time slots
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: Details Form View -->
+                <div id="step-form" class="hidden p-6 text-left flex-grow">
+                    <h3 class="text-base font-extrabold text-slate-800 tracking-tight mb-4">Enter Details</h3>
+                    
+                    <form id="booking-details-form" class="space-y-4 max-w-lg">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Name *</label>
+                            <input type="text" id="guest-name" required placeholder="John Doe" class="w-full px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 bg-white text-xs font-semibold text-slate-750 transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Email *</label>
+                            <input type="email" id="guest-email" required placeholder="john@example.com" class="w-full px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 bg-white text-xs font-semibold text-slate-750 transition-all">
+                        </div>
+                        
+                        <!-- Guest fields wrapper -->
+                        <div id="additional-guests-container" class="space-y-2"></div>
+                        
+                        <div>
+                            <button type="button" id="add-guests-btn" class="px-3 py-1.5 border border-blue-600 text-blue-600 hover:bg-blue-50 rounded-full font-bold transition text-[10px] flex items-center space-x-1.5 focus:outline-none">
+                                <i data-lucide="plus" class="icon-sm"></i>
+                                <span>Add guests</span>
+                            </button>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Please share anything that will help prepare for our meeting.</label>
+                            <textarea id="guest-remarks" rows="3" placeholder="I would love to learn more about..." class="w-full px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 bg-white text-xs font-semibold text-slate-750 transition-all resize-none"></textarea>
+                        </div>
+                        
+                        <p class="text-[10px] text-slate-400 leading-normal">
+                            By proceeding, you confirm that you have read and agree to 
+                            <a href="#" class="text-blue-600 hover:underline">Calendly's Participant Terms</a> and 
+                            <a href="#" class="text-blue-600 hover:underline">Privacy Notice</a>.
+                        </p>
+                        
+                        <div class="pt-2">
+                            <button type="submit" id="submit-booking-btn" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition flex items-center space-x-1.5 shadow-md text-xs focus:outline-none" style="color: #ffffff !important;">
+                                <span>Schedule Event</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- STEP 3: Success Confirmation View -->
+                <div id="step-success" class="hidden p-8 text-center flex-grow flex flex-col items-center justify-center space-y-6">
+                    <div class="flex flex-col items-center">
+                        <div class="h-12 w-12 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-full flex items-center justify-center shadow-sm">
+                            <i data-lucide="check" class="h-6 w-6"></i>
+                        </div>
+                        <h3 class="text-xl md:text-2xl font-black text-slate-800 mt-4 leading-tight">You are scheduled!</h3>
+                        <p class="text-[11px] text-slate-400 font-semibold mt-1">A calendar invitation has been sent to your email address.</p>
+                    </div>
+
+                    <button class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl transition text-xs shadow-sm flex items-center space-x-1.5 focus:outline-none">
+                        <span>Open Invitation</span>
+                        <i data-lucide="external-link" class="icon-sm"></i>
+                    </button>
+
+                    <!-- Confirmation card details -->
+                    <div class="border border-slate-150 rounded-2xl p-5 bg-white shadow-xs max-w-md w-full text-left space-y-3.5">
+                        <h4 id="success-meeting-title" class="text-sm font-black text-slate-800 border-b border-slate-50 pb-2">30 Minute Meeting</h4>
+                        
+                        <div class="space-y-2 text-xs font-semibold text-slate-550">
+                            <div class="flex items-center space-x-2.5">
+                                <i data-lucide="user" class="text-slate-400 icon-md shrink-0"></i>
+                                <span id="success-host-name">Soumojit Saha</span>
+                            </div>
+                            <div class="flex items-center space-x-2.5">
+                                <i data-lucide="calendar" class="text-slate-400 icon-md shrink-0"></i>
+                                <span id="success-datetime">11:00am - 11:30am, Tuesday, July 14, 2026</span>
+                            </div>
+                            <div class="flex items-center space-x-2.5">
+                                <i data-lucide="globe" class="text-slate-400 icon-md shrink-0"></i>
+                                <span id="success-timezone">India Standard Time</span>
+                            </div>
+                            <div class="flex items-center space-x-2.5">
+                                <i data-lucide="video" class="text-slate-400 icon-md shrink-0"></i>
+                                <span id="success-location">Web conferencing details to follow.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Booking App Core JS Script -->
+    <script>
+        const API_BASE_URL = '../backend/api/';
+
+        // Parse query parameter ID
+        const urlParams = new URLSearchParams(window.location.search);
+        const linkId = urlParams.get('id') || '';
+
+        // App state
+        let hostProfile = null;
+        let selectedDate = null;
+        let selectedTime = null;
+        let activeYear = 2026;
+        let activeMonth = 6; // 0-indexed (July = 6)
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!linkId) {
+                document.getElementById('booking-loading').innerHTML = `
+                    <div class="p-8 text-center text-rose-500 font-bold flex flex-col items-center">
+                        <i data-lucide="alert-triangle" class="h-10 w-10 mb-2"></i>
+                        <span>Invalid or missing booking link.</span>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+            fetchHostProfile();
+            bindAppEvents();
+        });
+
+        // Fetch host info
+        async function fetchHostProfile() {
+            try {
+                const response = await fetch(`${API_BASE_URL}crm/booking.php?action=public_profile&link_id=${linkId}`);
+                const res = await response.json();
+
+                if (res.success && res.data) {
+                    hostProfile = res.data;
+                    
+                    // Prepopulate UI
+                    document.getElementById('host-name').textContent = hostProfile.host_name;
+                    document.getElementById('meeting-title').textContent = `${hostProfile.duration_minutes} Minute Meeting`;
+                    document.getElementById('meeting-duration-text').textContent = `${hostProfile.duration_minutes} min`;
+                    document.getElementById('timezone-label-text').textContent = hostProfile.timezone;
+
+                    // Set calendar boundary dates
+                    const today = new Date();
+                    activeYear = today.getFullYear();
+                    activeMonth = today.getMonth();
+
+                    renderCalendar();
+                    document.getElementById('booking-loading').classList.add('hidden');
+                } else {
+                    showError(res.message || 'Host profile could not be loaded.');
+                }
+            } catch (err) {
+                showError('Network error connecting to schedule server.');
+            }
+        }
+
+        function showError(msg) {
+            document.getElementById('booking-loading').innerHTML = `
+                <div class="p-8 text-center text-rose-500 font-bold flex flex-col items-center">
+                    <i data-lucide="alert-circle" class="h-10 w-10 mb-2"></i>
+                    <span>${msg}</span>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        // Render monthly calendar
+        function renderCalendar() {
+            const container = document.getElementById('calendar-days-container');
+            const monthYearLabel = document.getElementById('calendar-month-year');
+            if (!container) return;
+
+            const months = [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+
+            monthYearLabel.textContent = `${months[activeMonth]} ${activeYear}`;
+
+            // Get first day of month (0 = Sun, ..., 6 = Sat)
+            const firstDay = new Date(activeYear, activeMonth, 1).getDay();
+            // Convert to Mon-Sun index (0 = Mon, ..., 6 = Sun)
+            const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+
+            // Total days in month
+            const totalDays = new Date(activeYear, activeMonth + 1, 0).getDate();
+
+            let html = '';
+
+            // Blank spacer cells for start offset
+            for (let i = 0; i < startOffset; i++) {
+                html += '<div></div>';
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Generate day cells
+            for (let day = 1; day <= totalDays; day++) {
+                const dateObj = new Date(activeYear, activeMonth, day);
+                dateObj.setHours(0, 0, 0, 0);
+
+                const dateStr = `${activeYear}-${String(activeMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayOfWeek = dateObj.getDay();
+
+                // Has weekly availability configured for this day of week?
+                const isConfiguredAvailable = hostProfile.availability.some(a => a.day_of_week === dayOfWeek);
+                const isPast = dateObj < today;
+
+                const isAvailable = isConfiguredAvailable && !isPast;
+                const isSelected = selectedDate === dateStr;
+
+                if (isAvailable) {
+                    html += `
+                        <button onclick="selectDate('${dateStr}')" class="calendar-day-btn available ${isSelected ? 'selected' : ''}">
+                            ${day}
+                        </button>
+                    `;
+                } else {
+                    html += `
+                        <button disabled class="calendar-day-btn disabled">
+                            ${day}
+                        </button>
+                    `;
+                }
+            }
+
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // Select booking Date
+        window.selectDate = function(dateStr) {
+            selectedDate = dateStr;
+            selectedTime = null;
+            renderCalendar();
+
+            // Format slots panel header
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const dateParts = dateStr.split('-');
+            const dateObj = new Date(dateParts[0], parseInt(dateParts[1]) - 1, dateParts[2]);
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            
+            document.getElementById('slots-header').textContent = `${dayNames[dateObj.getDay()]}, ${months[dateObj.getMonth()]} ${dateObj.getDate()}`;
+            
+            fetchTimeSlots(dateStr);
+        };
+
+        // Fetch available slots for date
+        async function fetchTimeSlots(dateStr) {
+            const container = document.getElementById('slots-scrollable');
+            container.innerHTML = `
+                <div class="flex items-center justify-center py-12">
+                    <i data-lucide="loader-2" class="h-6 w-6 animate-spin text-blue-500"></i>
+                </div>
+            `;
+            lucide.createIcons();
+
+            try {
+                const response = await fetch(`${API_BASE_URL}crm/booking.php?action=check_slots&link_id=${linkId}&date=${dateStr}`);
+                const res = await response.json();
+
+                if (res.success && res.data && res.data.slots) {
+                    const slots = res.data.slots;
+                    if (slots.length === 0) {
+                        container.innerHTML = `<div class="text-[11px] text-slate-450 italic font-semibold py-12 text-center">No available slots for this day.</div>`;
+                        return;
+                    }
+
+                    // Render slot buttons
+                    let html = '';
+                    slots.forEach(slot => {
+                        html += `
+                            <div class="slot-row flex items-center space-x-2" id="slot-row-${slot.replace(':', '-')}">
+                                <button onclick="clickSlot('${slot}')" class="time-slot-btn w-full py-3.5 rounded-lg text-xs hover:border-2 text-center transition">
+                                    ${formatTimeTo12h(slot)}
+                                </button>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = `<div class="text-xs text-red-500 font-bold text-center py-8">Error loading slots.</div>`;
+                }
+            } catch (err) {
+                container.innerHTML = `<div class="text-xs text-red-500 font-bold text-center py-8">Failed to connect.</div>`;
+            }
+        }
+
+        // Helper time conversion
+        function formatTimeTo12h(time24) {
+            const parts = time24.split(':');
+            let h = parseInt(parts[0]);
+            const m = parts[1] || '00';
+            const ampm = h >= 12 ? 'pm' : 'am';
+            h = h % 12;
+            h = h ? h : 12;
+            return `${h}:${m}${ampm}`;
+        }
+
+        // Clicking a slot displays "Next" action button next to it
+        window.clickSlot = function(timeStr) {
+            selectedTime = timeStr;
+            
+            // Re-render time slots layout and restore others
+            document.querySelectorAll('.slot-row').forEach(row => {
+                const rowTime = row.id.replace('slot-row-', '').replace('-', ':');
+                if (rowTime === timeStr) {
+                    row.innerHTML = `
+                        <button class="bg-[#6b7280] text-white font-bold w-1/2 py-3.5 rounded-lg text-xs text-center cursor-default shrink-0">
+                            ${formatTimeTo12h(rowTime)}
+                        </button>
+                        <button onclick="confirmTimeSlot()" class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold w-1/2 py-3.5 rounded-lg text-xs text-center transition tracking-wider shadow-md focus:outline-none">
+                            Next
+                        </button>
+                    `;
+                } else {
+                    row.innerHTML = `
+                        <button onclick="clickSlot('${rowTime}')" class="time-slot-btn w-full py-3.5 rounded-lg text-xs text-center transition">
+                            ${formatTimeTo12h(rowTime)}
+                        </button>
+                    `;
+                }
+            });
+        };
+
+        // Go to Step 2 Form
+        window.confirmTimeSlot = function() {
+            document.getElementById('step-picker').classList.add('hidden');
+            document.getElementById('step-form').classList.remove('hidden');
+            document.getElementById('back-btn').classList.remove('hidden');
+
+            // Format selected datetime details
+            const dateParts = selectedDate.split('-');
+            const dateObj = new Date(dateParts[0], parseInt(dateParts[1]) - 1, dateParts[2]);
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            const timeFormatted = `${formatTimeTo12h(selectedTime)} - ${formatTimeTo12h(addMinutes(selectedTime, hostProfile.duration_minutes))}`;
+            const dateFormatted = `${dayNames[dateObj.getDay()]}, ${months[dateObj.getMonth()]} ${dateObj.getDate()}, ${dateObj.getFullYear()}`;
+
+            document.getElementById('slot-time-formatted').textContent = `${timeFormatted}, ${dateFormatted}`;
+            document.getElementById('slot-timezone-formatted').textContent = hostProfile.timezone;
+            document.getElementById('selected-datetime-info').classList.remove('hidden');
+        };
+
+        // Helper time calculation
+        function addMinutes(timeStr, minutes) {
+            const parts = timeStr.split(':');
+            let h = parseInt(parts[0]);
+            let m = parseInt(parts[1]) + minutes;
+            if (m >= 60) {
+                h += Math.floor(m / 60);
+                m = m % 60;
+            }
+            h = h % 24;
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        }
+
+        // Navigation Month change
+        function bindAppEvents() {
+            document.getElementById('prev-month-btn').onclick = () => {
+                const today = new Date();
+                if (activeYear > today.getFullYear() || (activeYear === today.getFullYear() && activeMonth > today.getMonth())) {
+                    activeMonth--;
+                    if (activeMonth < 0) {
+                        activeMonth = 11;
+                        activeYear--;
+                    }
+                    renderCalendar();
+                }
+            };
+
+            document.getElementById('next-month-btn').onclick = () => {
+                activeMonth++;
+                if (activeMonth > 11) {
+                    activeMonth = 0;
+                    activeYear++;
+                }
+                renderCalendar();
+            };
+
+            // Back button
+            document.getElementById('back-btn').onclick = () => {
+                document.getElementById('step-form').classList.add('hidden');
+                document.getElementById('step-picker').classList.remove('hidden');
+                document.getElementById('back-btn').classList.add('hidden');
+                document.getElementById('selected-datetime-info').classList.add('hidden');
+            };
+
+            // Add guest emails
+            document.getElementById('add-guests-btn').onclick = () => {
+                const container = document.getElementById('additional-guests-container');
+                const idx = container.children.length;
+                if (idx >= 5) return; // limit 5 guest emails
+
+                const row = document.createElement('div');
+                row.className = 'flex items-center space-x-2 animate-fade-in';
+                row.innerHTML = `
+                    <input type="email" placeholder="guest${idx + 1}@example.com" class="guest-additional-email flex-grow px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 bg-white text-xs font-semibold text-slate-750 transition-all">
+                    <button type="button" onclick="this.parentElement.remove()" class="p-2 border border-slate-200 hover:bg-slate-50 text-slate-400 hover:text-rose-600 rounded-xl transition focus:outline-none">
+                        <i data-lucide="trash-2" class="icon-sm"></i>
+                    </button>
+                `;
+                container.appendChild(row);
+                lucide.createIcons();
+            };
+
+            // Handle booking submission
+            const form = document.getElementById('booking-details-form');
+            form.onsubmit = async (e) => {
+                e.preventDefault();
+
+                const submitBtn = document.getElementById('submit-booking-btn');
+                const originalHtml = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin text-white"></i><span>Scheduling...</span>`;
+                lucide.createIcons();
+
+                const name = document.getElementById('guest-name').value;
+                const email = document.getElementById('guest-email').value;
+                const remarks = document.getElementById('guest-remarks').value;
+
+                // Collect additional guests
+                const guestEmails = [];
+                document.querySelectorAll('.guest-additional-email').forEach(input => {
+                    const val = input.value.trim();
+                    if (val) guestEmails.push(val);
+                });
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}crm/booking.php?action=schedule_event`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            link_id: linkId,
+                            date: selectedDate,
+                            time: selectedTime,
+                            name: name,
+                            email: email,
+                            remarks: remarks,
+                            guests: guestEmails
+                        })
+                    });
+                    const res = await response.json();
+
+                    if (res.success && res.data) {
+                        const m = res.data;
+
+                        // Set success details
+                        document.getElementById('success-meeting-title').textContent = m.title;
+                        document.getElementById('success-host-name').textContent = hostProfile.host_name;
+                        
+                        const dateParts = selectedDate.split('-');
+                        const dateObj = new Date(dateParts[0], parseInt(dateParts[1]) - 1, dateParts[2]);
+                        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                        
+                        const timeFormatted = `${formatTimeTo12h(selectedTime)} - ${formatTimeTo12h(addMinutes(selectedTime, hostProfile.duration_minutes))}`;
+                        const dateFormatted = `${dayNames[dateObj.getDay()]}, ${months[dateObj.getMonth()]} ${dateObj.getDate()}, ${dateObj.getFullYear()}`;
+
+                        document.getElementById('success-datetime').textContent = `${timeFormatted}, ${dateFormatted}`;
+                        document.getElementById('success-timezone').textContent = hostProfile.timezone;
+                        document.getElementById('success-location').textContent = m.location;
+
+                        // Switch view
+                        document.getElementById('step-form').classList.add('hidden');
+                        document.getElementById('back-btn').classList.add('hidden');
+                        document.getElementById('selected-datetime-info').classList.add('hidden');
+                        document.getElementById('step-success').classList.remove('hidden');
+                        lucide.createIcons();
+                    } else {
+                        alert(res.message || 'Failed to schedule meeting.');
+                    }
+                } catch (err) {
+                    alert('Network error scheduling meeting.');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHtml;
+                    lucide.createIcons();
+                }
+            };
+        }
+    </script>
+</body>
+</html>

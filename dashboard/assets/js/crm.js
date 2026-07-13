@@ -403,6 +403,9 @@ async function navigateTo(view, params = {}) {
             case 'meetings':
                 await renderMeetings(contentArea);
                 break;
+            case 'booking-setup':
+                await renderBookingSetup(contentArea);
+                break;
             case 'calls':
                 await renderCalls(contentArea);
                 break;
@@ -8588,6 +8591,10 @@ window.renderMeetingsList = async function(container, activeTab = null, searchQu
                     </div>
                     <div class="flex items-center space-x-3.5">
                         ${connectionButtons}
+                        <button onclick="window.location.hash = '#/booking-setup'" class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold transition flex items-center space-x-1.5 shadow-sm" style="color: #334155 !important;">
+                            <i data-lucide="link" class="h-4 w-4 text-slate-500"></i>
+                            <span>Booking Link</span>
+                        </button>
                         <button onclick="window.showScheduleMeetingForm(document.getElementById('main-content-viewport'))" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition flex items-center space-x-1.5 shadow-md" style="color: #ffffff !important;">
                             <i data-lucide="plus" class="h-4 w-4 text-white"></i>
                             <span>Schedule New Meeting</span>
@@ -10193,6 +10200,394 @@ window.submitNewMeeting = async function(event, form, container) {
         btn.disabled = false;
         btn.innerHTML = origText;
         lucide.createIcons();
+    }
+};
+
+// ----------------------------------------------------
+// 2A. CALENDLY-STYLE BOOKING SETTINGS
+// ----------------------------------------------------
+window.renderBookingSetup = async function(container) {
+    container.innerHTML = `
+        <div class="flex items-center justify-center py-12">
+            <i data-lucide="loader-2" class="h-8 w-8 animate-spin text-rose-500"></i>
+        </div>
+    `;
+    lucide.createIcons();
+
+    try {
+        const res = await apiCall('crm/booking.php');
+        if (res.status !== 'success') {
+            container.innerHTML = `<div class="p-8 text-center text-red-500 font-bold">Failed to load booking settings: ${res.message}</div>`;
+            return;
+        }
+
+        const profile = res.profile || {};
+        let availability = res.availability || [];
+        const bookingId = profile.booking_id;
+
+        // Dynamic local booking URL
+        const baseHref = window.location.origin + window.location.pathname.replace('index.html', '');
+        const bookingUrl = `${baseHref}meet.html?id=${bookingId}`;
+
+        const timezones = [
+            { value: 'Asia/Kolkata', label: 'India, Sri Lanka Time (Kolkata)' },
+            { value: 'America/New_York', label: 'Eastern Time (New York)' },
+            { value: 'America/Chicago', label: 'Central Time (Chicago)' },
+            { value: 'America/Denver', label: 'Mountain Time (Denver)' },
+            { value: 'America/Los_Angeles', label: 'Pacific Time (Los Angeles)' },
+            { value: 'Europe/London', label: 'GMT / London' },
+            { value: 'Europe/Paris', label: 'Central European Time (Paris)' },
+            { value: 'Asia/Dubai', label: 'Gulf Standard Time (Dubai)' },
+            { value: 'Asia/Singapore', label: 'Singapore Standard Time' },
+            { value: 'UTC', label: 'Coordinated Universal Time (UTC)' }
+        ];
+
+        const daysConfig = [
+            { index: 0, label: 'S', name: 'Sunday' },
+            { index: 1, label: 'M', name: 'Monday' },
+            { index: 2, label: 'T', name: 'Tuesday' },
+            { index: 3, label: 'W', name: 'Wednesday' },
+            { index: 4, label: 'T', name: 'Thursday' },
+            { index: 5, label: 'F', name: 'Friday' },
+            { index: 6, label: 'S', name: 'Saturday' }
+        ];
+
+        // Helper: Convert TIME string 24h to 12h representation for display
+        function timeTo12h(time24) {
+            if (!time24) return '';
+            const parts = time24.split(':');
+            let hours = parseInt(parts[0]);
+            const minutes = parts[1] || '00';
+            const ampm = hours >= 12 ? 'pm' : 'am';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            return `${hours}:${minutes}${ampm}`;
+        }
+
+        // Helper: Convert time label back to TIME format (HH:MM:SS)
+        function timeTo24h(time12) {
+            if (!time12) return '09:00:00';
+            const clean = time12.toLowerCase().trim();
+            const isPm = clean.includes('pm');
+            const isAm = clean.includes('am');
+            let timePart = clean.replace('am', '').replace('pm', '');
+            const parts = timePart.split(':');
+            let hours = parseInt(parts[0]);
+            let minutes = parseInt(parts[1] || '00');
+            if (isPm && hours < 12) hours += 12;
+            if (isAm && hours === 12) hours = 0;
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
+        }
+
+        // Helper: Generate time option values inside select dropdown
+        function generateTimeOptions(selectedTime) {
+            let html = '';
+            const selectedClean = timeTo24h(selectedTime).substring(0, 5);
+            for (let h = 0; h < 24; h++) {
+                for (let m = 0; m < 60; m += 30) {
+                    const h24 = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
+                    const valClean = h24.substring(0, 5);
+                    const isSelected = valClean === selectedClean;
+                    const label = timeTo12h(h24);
+                    html += `<option value="${h24}" ${isSelected ? 'selected' : ''}>${label}</option>`;
+                }
+            }
+            return html;
+        }
+
+        function renderView() {
+            container.innerHTML = `
+                <div class="space-y-8 animate-fade-in text-slate-800 font-sans text-xs">
+                    <!-- Header -->
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0 text-left">
+                        <div class="flex items-start space-x-3">
+                            <div class="h-10 w-10 bg-blue-50 border border-blue-100 text-blue-600 rounded-xl flex items-center justify-center shadow-sm shrink-0">
+                                <i data-lucide="link" class="h-5 w-5"></i>
+                            </div>
+                            <div>
+                                <h1 class="text-2xl font-extrabold text-slate-850">Booking Settings</h1>
+                                <p class="text-slate-500 text-xs mt-0.5">Configure your availability and share your custom booking link.</p>
+                            </div>
+                        </div>
+                        <button onclick="window.location.hash = '#/meetings'" class="px-3.5 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl font-bold transition text-slate-550 hover:text-slate-800 shadow-xs bg-white text-xs flex items-center space-x-1.5 focus:outline-none">
+                            <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                            <span>Back to Meetings</span>
+                        </button>
+                    </div>
+
+                    <!-- Setup Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <!-- Configuration Form (Left 2 Columns) -->
+                        <div class="lg:col-span-2 space-y-6">
+                            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 text-left">
+                                <div class="flex items-center space-x-2 border-b border-slate-100 pb-3">
+                                    <i data-lucide="clock" class="h-5 w-5 text-slate-500"></i>
+                                    <h3 class="text-sm font-bold text-slate-800">Weekly hours</h3>
+                                </div>
+                                <p class="text-[11px] text-slate-400 -mt-3">Set when you are typically available for meetings.</p>
+
+                                <!-- Availability Rows List -->
+                                <div class="space-y-4 pt-2" id="avail-rows-container">
+                                    <!-- Dynamic rows injected here -->
+                                </div>
+
+                                <!-- Timezone and Duration selection row -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Time zone</label>
+                                        <select id="booking-timezone-select" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 bg-white text-xs font-semibold text-slate-750 transition-all cursor-pointer">
+                                            ${timezones.map(tz => `<option value="${tz.value}" ${profile.timezone === tz.value ? 'selected' : ''}>${tz.label}</option>`).join('')}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Meeting Duration</label>
+                                        <select id="booking-duration-select" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 bg-white text-xs font-semibold text-slate-750 transition-all cursor-pointer">
+                                            <option value="15" ${profile.duration_minutes === 15 ? 'selected' : ''}>15 minutes</option>
+                                            <option value="30" ${profile.duration_minutes === 30 ? 'selected' : ''}>30 minutes</option>
+                                            <option value="45" ${profile.duration_minutes === 45 ? 'selected' : ''}>45 minutes</option>
+                                            <option value="60" ${profile.duration_minutes === 60 ? 'selected' : ''}>60 minutes</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Save Changes -->
+                                <div class="pt-4 flex justify-end">
+                                    <button id="save-booking-btn" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition flex items-center space-x-1.5 shadow-md text-xs focus:outline-none" style="color: #ffffff !important;">
+                                        <i data-lucide="check" class="h-4 w-4 text-white"></i>
+                                        <span>Save Changes</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Link Sharing Info (Right Column) -->
+                        <div class="lg:col-span-1 space-y-6">
+                            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4 text-left">
+                                <div class="flex items-center space-x-2 border-b border-slate-100 pb-2">
+                                    <i data-lucide="share-2" class="h-4 w-4 text-blue-600"></i>
+                                    <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Your Booking Link</h4>
+                                </div>
+                                <p class="text-[11px] text-slate-400 leading-relaxed">Share this link with prospects and clients so they can instantly choose slots on your calendar.</p>
+                                
+                                <div class="flex items-center space-x-1.5">
+                                    <input type="text" readonly value="${bookingUrl}" class="flex-grow px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 select-all focus:outline-none">
+                                    <button id="copy-booking-link-btn" class="p-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-500 hover:text-slate-800 transition focus:outline-none shrink-0" title="Copy to clipboard">
+                                        <i data-lucide="copy" class="h-4 w-4"></i>
+                                    </button>
+                                </div>
+                                
+                                <div class="pt-2">
+                                    <a href="${bookingUrl}" target="_blank" class="w-full py-2 bg-blue-50 border border-blue-150 hover:bg-blue-600 hover:text-white text-blue-650 rounded-xl font-bold transition flex items-center justify-center space-x-1.5 text-xs focus:outline-none" style="color: #2563eb;">
+                                        <i data-lucide="external-link" class="h-3.5 w-3.5"></i>
+                                        <span>Test Booking Page</span>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3.5 text-left">
+                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center space-x-1.5">
+                                    <i data-lucide="shield-check" class="h-4 w-4 text-emerald-500"></i>
+                                    <span>How it works</span>
+                                </h4>
+                                <ul class="space-y-2 text-[11px] text-slate-400 pl-4 list-disc leading-relaxed">
+                                    <li>When visitors book, LinkPilot creates a new contact in your CRM.</li>
+                                    <li>The system checks your availability schedule and excludes busy slots from existing CRM meetings automatically.</li>
+                                    <li>If Google Calendar or Zoom is connected, calendar events and video links sync instantly.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            bindEvents();
+            renderAvailRows();
+            lucide.createIcons();
+        }
+
+        // Render weekly rows list
+        function renderAvailRows() {
+            const container = document.getElementById('avail-rows-container');
+            if (!container) return;
+
+            let html = '';
+
+            daysConfig.forEach(day => {
+                const daySlots = availability.filter(s => s.day_of_week === day.index);
+                const isActive = daySlots.length > 0;
+
+                html += `
+                    <div class="flex flex-col md:flex-row md:items-center space-y-2.5 md:space-y-0 md:space-x-4 pb-3 border-b border-slate-50 last:border-0 last:pb-0">
+                        <!-- Day Bubble Selector -->
+                        <div class="flex items-center space-x-3 w-32 shrink-0 select-none">
+                            <button onclick="window.toggleDayActive(${day.index})" class="h-8 w-8 rounded-full border flex items-center justify-center font-bold text-xs transition duration-150 focus:outline-none ${isActive ? 'bg-[#0f172a] text-white border-[#0f172a]' : 'bg-white text-slate-400 border-slate-200 hover:border-slate-400'}">
+                                ${day.label}
+                            </button>
+                            <span class="text-xs font-bold text-slate-700">${day.name}</span>
+                        </div>
+
+                        <!-- Slots range configuration -->
+                        <div class="flex-grow space-y-2">
+                            ${isActive ? daySlots.map((slot, sIdx) => `
+                                <div class="flex items-center space-x-2 animate-fade-in">
+                                    <!-- Start Time Select -->
+                                    <select onchange="window.updateSlotTime(${day.index}, ${sIdx}, 'start_time', this.value)" class="px-2.5 py-1.5 bg-[#f8fafc] border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 text-xs font-semibold text-slate-750 cursor-pointer">
+                                        ${generateTimeOptions(slot.start_time)}
+                                    </select>
+                                    <span class="text-slate-400 font-semibold">-</span>
+                                    <!-- End Time Select -->
+                                    <select onchange="window.updateSlotTime(${day.index}, ${sIdx}, 'end_time', this.value)" class="px-2.5 py-1.5 bg-[#f8fafc] border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 text-xs font-semibold text-slate-750 cursor-pointer">
+                                        ${generateTimeOptions(slot.end_time)}
+                                    </select>
+
+                                    <!-- Delete Slot Action -->
+                                    <button onclick="window.removeSlot(${day.index}, ${sIdx})" class="p-1 hover:bg-slate-100 border border-transparent hover:border-slate-200 text-slate-450 hover:text-rose-600 rounded-lg transition focus:outline-none" title="Remove slot">
+                                        <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                                    </button>
+
+                                    ${sIdx === 0 ? `
+                                        <!-- Add Slot button -->
+                                        <button onclick="window.addSlot(${day.index})" class="p-1 hover:bg-slate-100 border border-transparent hover:border-slate-200 text-slate-450 hover:text-blue-600 rounded-lg transition focus:outline-none" title="Add another interval">
+                                            <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                                        </button>
+                                        <!-- Copy slots to other days -->
+                                        <button onclick="window.copyHoursToActiveDays(${day.index})" class="p-1 hover:bg-slate-100 border border-transparent hover:border-slate-200 text-slate-450 hover:text-indigo-600 rounded-lg transition focus:outline-none" title="Copy to active days">
+                                            <i data-lucide="copy" class="h-3.5 w-3.5"></i>
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            `).join('') : `
+                                <div class="text-[11px] text-slate-400 font-semibold italic py-1">Unavailable</div>
+                            `}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // Toggle Day active status
+        window.toggleDayActive = function(dayIndex) {
+            const hasSlots = availability.some(s => s.day_of_week === dayIndex);
+            if (hasSlots) {
+                availability = availability.filter(s => s.day_of_week !== dayIndex);
+            } else {
+                availability.push({ day_of_week: dayIndex, start_time: '11:00:00', end_time: '18:30:00' });
+            }
+            renderAvailRows();
+        };
+
+        // Add additional slot for a day
+        window.addSlot = function(dayIndex) {
+            availability.push({ day_of_week: dayIndex, start_time: '14:00:00', end_time: '17:00:00' });
+            renderAvailRows();
+        };
+
+        // Remove slot
+        window.removeSlot = function(dayIndex, sIdx) {
+            let daySlots = availability.filter(s => s.day_of_week === dayIndex);
+            daySlots.splice(sIdx, 1);
+            availability = availability.filter(s => s.day_of_week !== dayIndex).concat(daySlots);
+            renderAvailRows();
+        };
+
+        // Update slot time value
+        window.updateSlotTime = function(dayIndex, sIdx, field, val) {
+            let daySlots = availability.filter(s => s.day_of_week === dayIndex);
+            if (daySlots[sIdx]) {
+                daySlots[sIdx][field] = val;
+            }
+            availability = availability.filter(s => s.day_of_week !== dayIndex).concat(daySlots);
+        };
+
+        // Copy hours to all active days
+        window.copyHoursToActiveDays = function(sourceDayIndex) {
+            const sourceSlots = availability.filter(s => s.day_of_week === sourceDayIndex);
+            if (sourceSlots.length === 0) return;
+
+            // Get active days (excluding source day) that have slots
+            const activeDays = [];
+            for (let d = 0; d < 7; d++) {
+                if (d !== sourceDayIndex && availability.some(s => s.day_of_week === d)) {
+                    activeDays.push(d);
+                }
+            }
+
+            if (activeDays.length === 0) {
+                showNotification('info', 'No other active days to copy to.');
+                return;
+            }
+
+            // Remove slots for active destination days and replace with source slots cloned
+            availability = availability.filter(s => s.day_of_week === sourceDayIndex || !activeDays.includes(s.day_of_week));
+            activeDays.forEach(destDay => {
+                sourceSlots.forEach(slot => {
+                    availability.push({
+                        day_of_week: destDay,
+                        start_time: slot.start_time,
+                        end_time: slot.end_time
+                    });
+                });
+            });
+
+            renderAvailRows();
+            showNotification('success', `Copied hours to ${activeDays.length} active days.`);
+        };
+
+        function bindEvents() {
+            // Save settings
+            const saveBtn = document.getElementById('save-booking-btn');
+            if (saveBtn) {
+                saveBtn.onclick = async () => {
+                    const timezone = document.getElementById('booking-timezone-select').value;
+                    const duration = document.getElementById('booking-duration-select').value;
+
+                    const originalHtml = saveBtn.innerHTML;
+                    saveBtn.disabled = true;
+                    saveBtn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin text-white"></i><span>Saving...</span>`;
+                    lucide.createIcons();
+
+                    try {
+                        const saveRes = await apiCall('crm/booking.php', 'POST', {
+                            timezone: timezone,
+                            duration_minutes: duration,
+                            availability: availability
+                        });
+
+                        if (saveRes.status === 'success') {
+                            showNotification('success', 'Booking settings updated successfully!');
+                            profile.timezone = timezone;
+                            profile.duration_minutes = parseInt(duration);
+                        } else {
+                            showNotification('error', saveRes.message || 'Failed to save settings.');
+                        }
+                    } catch (err) {
+                        showNotification('error', err.message);
+                    } finally {
+                        saveBtn.disabled = false;
+                        saveBtn.innerHTML = originalHtml;
+                        lucide.createIcons();
+                    }
+                };
+            }
+
+            // Copy booking link to clipboard
+            const copyBtn = document.getElementById('copy-booking-link-btn');
+            if (copyBtn) {
+                copyBtn.onclick = () => {
+                    navigator.clipboard.writeText(bookingUrl)
+                        .then(() => showNotification('success', 'Booking link copied to clipboard!'))
+                        .catch(() => showNotification('error', 'Failed to copy link.'));
+                };
+            }
+        }
+
+        renderView();
+
+    } catch (err) {
+        container.innerHTML = `<div class="p-8 text-center text-red-500 font-bold">Failed to render booking: ${err.message}</div>`;
     }
 };
 

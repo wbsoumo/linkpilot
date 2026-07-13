@@ -8761,6 +8761,7 @@ window.showScheduleMeetingForm = async function(container) {
         const zoomConnected = statusRes.data && statusRes.data.zoom && statusRes.data.zoom.connected;
 
         window.currentCRMContacts = contacts;
+        window.currentCRMCompaniesList = companies;
         window.selectedMeetingAttendees = [];
 
         const activeName = document.querySelector('.user-name-display')?.textContent || 'Soumojit Saha';
@@ -8997,14 +8998,14 @@ window.showScheduleMeetingForm = async function(container) {
                 const query = filter.toLowerCase().trim();
                 const filtered = companiesList.filter(c => c.name && c.name.toLowerCase().includes(query));
                 
-                let html = `<div onclick="window.selectSearchableCompany('', 'Select company', '')" class="p-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 text-slate-400 font-bold flex items-center space-x-2"><div class="h-6 w-6 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center text-[10px] shrink-0 font-extrabold">-</div><span>Select company</span></div>`;
+                let html = `<div onclick="window.selectSearchableCompany('', 'Select company')" class="p-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 text-slate-400 font-bold flex items-center space-x-2"><div class="h-6 w-6 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center text-[10px] shrink-0 font-extrabold">-</div><span>Select company</span></div>`;
                 if (filtered.length === 0) {
                     html += `<div class="p-3 text-slate-400 text-center">No companies found</div>`;
                 } else {
                     html += filtered.map(c => {
                         const logoHtml = window.getCompanyLogoHtml(c);
                         return `
-                            <div onclick="window.selectSearchableCompany('${c.id}', '${c.name.replace(/'/g, "\\'")}', '${logoHtml.replace(/'/g, "\\'")}')" class="p-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 text-slate-800 font-bold flex items-center space-x-2.5">
+                            <div onclick="window.selectSearchableCompany('${c.id}', '${c.name.replace(/'/g, "\\'")}')" class="p-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 text-slate-800 font-bold flex items-center space-x-2.5">
                                 ${logoHtml}
                                 <span>${c.name}</span>
                             </div>
@@ -9030,7 +9031,7 @@ window.showScheduleMeetingForm = async function(container) {
             });
         };
 
-        window.selectSearchableCompany = function(id, name, logoHtml) {
+        window.selectSearchableCompany = function(id, name) {
             const input = document.getElementById('company-search-input');
             const hiddenInput = document.getElementById('company-id-hidden-input');
             const dropdown = document.getElementById('company-search-dropdown');
@@ -9049,7 +9050,9 @@ window.showScheduleMeetingForm = async function(container) {
                 
                 const buildingIcon = parent.querySelector('[data-lucide="building"]');
                 
-                if (id && logoHtml) {
+                if (id) {
+                    const comp = (window.currentCRMCompaniesList || []).find(c => String(c.id) === String(id));
+                    const logoHtml = comp ? window.getCompanyLogoHtml(comp) : '';
                     logoContainer.innerHTML = logoHtml;
                     logoContainer.classList.remove('hidden');
                     if (buildingIcon) buildingIcon.classList.add('hidden');
@@ -9076,7 +9079,7 @@ window.showScheduleMeetingForm = async function(container) {
                 const query = filter.toLowerCase().trim();
                 const filtered = contactsList.filter(c => c.name && c.name.toLowerCase().includes(query));
                 
-                let html = `<div onclick="window.selectSearchableContact('', 'Select contact', '')" class="p-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 text-slate-400 font-bold flex items-center space-x-2"><div class="h-6 w-6 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center text-[10px] shrink-0 font-extrabold">-</div><span>Select contact</span></div>`;
+                let html = `<div onclick="window.selectSearchableContact('', 'Select contact')" class="p-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 text-slate-400 font-bold flex items-center space-x-2"><div class="h-6 w-6 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center text-[10px] shrink-0 font-extrabold">-</div><span>Select contact</span></div>`;
                 if (filtered.length === 0) {
                     html += `<div class="p-3 text-slate-400 text-center">No contacts found</div>`;
                 } else {
@@ -9084,7 +9087,7 @@ window.showScheduleMeetingForm = async function(container) {
                         const initials = (c.name || 'C').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
                         const contactBadge = `<div class="h-6 w-6 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center text-[9px] shrink-0">${initials}</div>`;
                         return `
-                            <div onclick="window.selectSearchableContact('${c.id}', '${c.name.replace(/'/g, "\\'")}', '${contactBadge.replace(/'/g, "\\'")}')" class="p-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 text-slate-800 font-bold flex items-center space-x-2.5">
+                            <div onclick="window.selectSearchableContact('${c.id}', '${c.name.replace(/'/g, "\\'")}')" class="p-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 text-slate-800 font-bold flex items-center space-x-2.5">
                                 ${contactBadge}
                                 <span>${c.name}</span>
                             </div>
@@ -9110,7 +9113,7 @@ window.showScheduleMeetingForm = async function(container) {
             });
         };
 
-        window.selectSearchableContact = function(id, name, badgeHtml) {
+        window.selectSearchableContact = function(id, name) {
             const input = document.getElementById('contact-search-input');
             const hiddenInput = document.getElementById('contact-id-hidden-input');
             const dropdown = document.getElementById('contact-search-dropdown');
@@ -9129,8 +9132,11 @@ window.showScheduleMeetingForm = async function(container) {
                 
                 const userIcon = parent.querySelector('[data-lucide="user"]');
                 
-                if (id && badgeHtml) {
-                    badgeContainer.innerHTML = badgeHtml;
+                if (id) {
+                    const c = (window.currentCRMContacts || []).find(contact => String(contact.id) === String(id));
+                    const initials = c ? (c.name || 'C').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'C';
+                    const contactBadge = `<div class="h-6 w-6 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center text-[9px] shrink-0">${initials}</div>`;
+                    badgeContainer.innerHTML = contactBadge;
                     badgeContainer.classList.remove('hidden');
                     if (userIcon) userIcon.classList.add('hidden');
                     input.classList.remove('pl-10');

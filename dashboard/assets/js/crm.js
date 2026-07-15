@@ -6945,6 +6945,7 @@ async function renderTasks(container) {
                             <span>Add New Task</span>
                         </button>
                     </div>
+                </div>
 
                 <!-- Tabs filtering row -->
                 <div class="flex items-center space-x-1 border-b border-slate-200 pb-px text-left w-full overflow-x-auto">

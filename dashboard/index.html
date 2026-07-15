@@ -181,6 +181,33 @@
                 <!-- Separator -->
                 <hr class="border-slate-800/20 my-2">
 
+                <!-- Section: Apps -->
+                <h6 class="px-3 mb-1.5 mt-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Apps</h6>
+                <div class="space-y-1">
+                    <button onclick="toggleAppsMenu()"
+                        class="w-full flex items-center justify-between sidebar-nav-link text-slate-300 transition duration-150 focus:outline-none bg-slate-900/30">
+                        <div class="flex items-center">
+                            <i data-lucide="layout-grid" class="h-4 w-4 mr-2.5 shrink-0"></i>
+                            <span class="font-bold text-slate-200">Apps</span>
+                        </div>
+                        <i id="apps-chevron" data-lucide="chevron-down"
+                            class="h-3.5 w-3.5 transform transition-transform duration-200"></i>
+                    </button>
+                    <div id="apps-submenu" class="hidden pl-6 space-y-1 text-[11px]">
+                        <a href="#/install-extensions"
+                            class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
+                            <i data-lucide="puzzle" class="h-3 w-3 mr-2 shrink-0"></i>Internal Apps
+                        </a>
+                        <a href="#/external-apps"
+                            class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
+                            <i data-lucide="globe" class="h-3 w-3 mr-2 shrink-0"></i>External Apps
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Separator -->
+                <hr class="border-slate-800/20 my-2">
+
                 <!-- Section: Settings -->
                 <a href="#/settings" class="sidebar-nav-link text-slate-300 transition duration-150 mt-1">
                     <i data-lucide="settings" class="h-4 w-4 mr-2.5"></i><span>Settings</span>
@@ -517,6 +544,18 @@
             }
         }
 
+        function toggleAppsMenu() {
+            const menu = document.getElementById('apps-submenu');
+            const chev = document.getElementById('apps-chevron');
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                chev.classList.add('rotate-180');
+            } else {
+                menu.classList.add('hidden');
+                chev.classList.remove('rotate-180');
+            }
+        }
+
         function toggleSidebarMenu() {
             const sidebar = document.getElementById('sidebar-panel');
             if (!sidebar) return;
@@ -563,8 +602,8 @@
             const sidebar = document.getElementById('sidebar-panel');
             if (sidebar) {
                 sidebar.querySelectorAll('a, button').forEach(el => {
-                    // Skip WhatsApp menu toggler button
-                    if (el.getAttribute('onclick') === 'toggleWhatsAppMenu()') return;
+                    // Skip WhatsApp and Apps menu toggler buttons
+                    if (el.getAttribute('onclick') === 'toggleWhatsAppMenu()' || el.getAttribute('onclick') === 'toggleAppsMenu()') return;
                     
                     el.addEventListener('click', () => {
                         if (window.innerWidth < 1024) {

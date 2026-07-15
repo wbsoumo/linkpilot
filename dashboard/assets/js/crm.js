@@ -357,6 +357,14 @@ async function navigateTo(view, params = {}) {
             if (waChevron) waChevron.classList.add('rotate-180');
         }
 
+        const isAppsView = view === 'install-extensions' || view === 'external-apps';
+        const appsSubmenu = document.getElementById('apps-submenu');
+        const appsChevron = document.getElementById('apps-chevron');
+        if (isAppsView && appsSubmenu) {
+            appsSubmenu.classList.remove('hidden');
+            if (appsChevron) appsChevron.classList.add('rotate-180');
+        }
+
         const contentArea = document.getElementById('main-content-viewport');
         if (!contentArea) return;
         
@@ -16766,38 +16774,39 @@ function stopBuilderAutoSave() {
 // ----------------------------------------------------
 async function renderInstallExtensions(container) {
     container.innerHTML = `
-        <div class="space-y-8 animate-fade-in text-slate-800 font-sans">
-            <div>
-                <h1 class="text-3xl font-extrabold text-white font-sans">Browser Extensions Hub</h1>
-                <p class="text-slate-400 text-sm mt-1 font-sans">Supercharge your daily workflow with our productivity extensions.</p>
+        <div class="space-y-6 pt-4 animate-fade-in text-xs max-w-7xl mx-auto text-left font-sans">
+            <!-- Header -->
+            <div class="border-b border-slate-150 pb-4">
+                <h1 class="text-2xl font-extrabold text-slate-800">Internal Apps (Extensions)</h1>
+                <p class="text-slate-500 text-xs mt-1">Supercharge your daily workflow with our productivity extensions.</p>
             </div>
 
             <!-- 3 Columns Extensions Grid -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- 1. Active Extension -->
-                <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-6 flex flex-col justify-between hover:border-blue-500/35 transition duration-200 shadow-xl relative overflow-hidden group">
+                <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl flex flex-col justify-between hover:shadow-md transition relative overflow-hidden group">
                     <!-- Badge -->
-                    <div class="absolute top-4 right-4 bg-teal-500/10 text-teal-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-teal-500/20 font-sans">
+                    <div class="absolute top-4 right-4 bg-emerald-50 text-emerald-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-100 font-sans">
                         Active
                     </div>
                     
                     <div class="space-y-4">
                         <!-- Icon -->
-                        <div class="h-12 w-12 rounded-xl bg-blue-600/10 border border-blue-500/20 text-blue-500 flex items-center justify-center">
+                        <div class="h-12 w-12 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center">
                             <i data-lucide="puzzle" class="h-6 w-6"></i>
                         </div>
                         
                         <div>
-                            <h3 class="text-lg font-bold text-white group-hover:text-blue-400 transition font-sans">LinkedIn Outreach Assistant</h3>
-                            <p class="text-slate-400 text-xs mt-1.5 leading-relaxed font-sans">
+                            <h3 class="text-base font-extrabold text-slate-800 mt-4 group-hover:text-blue-600 transition font-sans">LinkedIn Outreach Assistant</h3>
+                            <p class="text-slate-500 text-xs mt-1.5 leading-relaxed font-sans">
                                 Contextualizes LinkedIn posts, extracts verified email addresses from the Clearbit database, and drafts personalized outreach emails, comments, and WhatsApp messages.
                             </p>
                         </div>
                     </div>
 
                     <!-- Install Actions Block -->
-                    <div class="mt-6 pt-4 border-t border-slate-800/50 space-y-4 text-center" id="extension-install-actions">
-                        <a href="https://chromewebstore.google.com/detail/gnemddfomigfkpidiakgcdpighonkjga?utm_source=item-share-cb" target="_blank" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-xs transition flex items-center justify-center space-x-1.5 font-sans">
+                    <div class="mt-6 pt-4 border-t border-slate-100 space-y-4 text-center" id="extension-install-actions">
+                        <a href="https://chromewebstore.google.com/detail/gnemddfomigfkpidiakgcdpighonkjga?utm_source=item-share-cb" target="_blank" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-xs transition flex items-center justify-center space-x-1.5 font-sans" style="color: #ffffff !important;">
                             <i data-lucide="chrome" class="h-3.5 w-3.5 mr-1.5"></i>
                             <span>Install Extension</span>
                         </a>
@@ -16805,68 +16814,68 @@ async function renderInstallExtensions(container) {
                 </div>
 
                 <!-- 2. Placeholder Extension 1 -->
-                <div class="border border-dashed border-slate-800 rounded-2xl p-6 flex flex-col justify-between min-h-[300px]">
-                    <div class="space-y-4 opacity-50">
-                        <div class="h-12 w-12 rounded-xl bg-slate-800/10 border border-slate-800 text-slate-400 flex items-center justify-center">
+                <div class="border border-dashed border-slate-200 rounded-2xl p-5 flex flex-col justify-between min-h-[300px] bg-slate-50/50 text-left">
+                    <div class="space-y-4 opacity-60">
+                        <div class="h-12 w-12 rounded-xl bg-slate-100 border border-slate-200 text-slate-400 flex items-center justify-center">
                             <i data-lucide="mail" class="h-6 w-6"></i>
                         </div>
                         <div>
-                            <h3 class="text-lg font-bold text-slate-400 font-sans">Gmail Sync & Lead Extractor</h3>
+                            <h3 class="text-base font-extrabold text-slate-600 font-sans mt-4">Gmail Sync & Lead Extractor</h3>
                             <p class="text-slate-500 text-xs mt-1.5 leading-relaxed font-sans">
                                 Connect with Google Workspace to automatically capture CRM leads, sync email communications, and search contact details directly inside Gmail.
                             </p>
                         </div>
                     </div>
-                    <div class="mt-6 pt-4 border-t border-slate-800/50">
-                        <span class="inline-block text-[10px] font-bold text-slate-600 uppercase tracking-widest font-sans">Coming Soon</span>
+                    <div class="mt-6 pt-4 border-t border-slate-200/60">
+                        <span class="inline-block text-[10px] font-bold text-slate-450 uppercase tracking-widest font-sans">Coming Soon</span>
                     </div>
                 </div>
 
                 <!-- 3. Placeholder Extension 2 -->
-                <div class="border border-dashed border-slate-800 rounded-2xl p-6 flex flex-col justify-between min-h-[300px]">
-                    <div class="space-y-4 opacity-50">
-                        <div class="h-12 w-12 rounded-xl bg-slate-800/10 border border-slate-800 text-slate-400 flex items-center justify-center">
+                <div class="border border-dashed border-slate-200 rounded-2xl p-5 flex flex-col justify-between min-h-[300px] bg-slate-50/50 text-left">
+                    <div class="space-y-4 opacity-60">
+                        <div class="h-12 w-12 rounded-xl bg-slate-100 border border-slate-200 text-slate-400 flex items-center justify-center">
                             <i data-lucide="phone-call" class="h-6 w-6"></i>
                         </div>
                         <div>
-                            <h3 class="text-lg font-bold text-slate-400 font-sans">CRM Sales Dialer</h3>
+                            <h3 class="text-base font-extrabold text-slate-600 font-sans mt-4">CRM Sales Dialer</h3>
                             <p class="text-slate-500 text-xs mt-1.5 leading-relaxed font-sans">
                                 Automate outbound calling, log calls directly inside the lead timeline, and capture call recordings for subsequent AI processing.
                             </p>
                         </div>
                     </div>
-                    <div class="mt-6 pt-4 border-t border-slate-800/50">
-                        <span class="inline-block text-[10px] font-bold text-slate-600 uppercase tracking-widest font-sans">Coming Soon</span>
+                    <div class="mt-6 pt-4 border-t border-slate-200/60">
+                        <span class="inline-block text-[10px] font-bold text-slate-450 uppercase tracking-widest font-sans">Coming Soon</span>
                     </div>
                 </div>
             </div>
 
             <!-- Chrome Web Store Installation Guide -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 mt-8 space-y-4 shadow-xl">
-                <div class="flex items-center space-x-2 text-white font-bold text-base font-sans">
-                    <i data-lucide="chrome" class="h-5 w-5 text-blue-500"></i>
+            <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl mt-8 space-y-4 shadow-sm">
+                <div class="flex items-center space-x-2 text-slate-800 font-bold text-base font-sans">
+                    <i data-lucide="chrome" class="h-5 w-5 text-blue-600"></i>
                     <span>Guide: Installing Extension from the Chrome Web Store</span>
                 </div>
                 
-                <div class="text-slate-300 text-xs space-y-3 leading-relaxed font-sans">
+                <div class="text-slate-650 text-xs space-y-3 leading-relaxed font-sans">
                     <p>To install LinkPilot AI directly on Google Chrome or any Chromium-based browser (such as Edge or Brave):</p>
-                    <ol class="list-decimal list-inside space-y-2.5 text-slate-400 pl-2">
+                    <ol class="list-decimal list-inside space-y-2.5 text-slate-500 pl-2">
                         <li>
-                            <strong class="text-white">Open the Web Store Page:</strong> Click the <strong class="text-white">Install Extension</strong> button above to visit the official listing on the Chrome Web Store.
+                            <strong class="text-slate-700">Open the Web Store Page:</strong> Click the <strong class="text-slate-700">Install Extension</strong> button above to visit the official listing on the Chrome Web Store.
                         </li>
                         <li>
-                            <strong class="text-white">Add to Chrome:</strong> On the Chrome Web Store page, click the blue <strong class="text-white">Add to Chrome</strong> button.
+                            <strong class="text-slate-700">Add to Chrome:</strong> On the Chrome Web Store page, click the blue <strong class="text-slate-700">Add to Chrome</strong> button.
                         </li>
                         <li>
-                            <strong class="text-white">Confirm Installation:</strong> In the browser pop-up prompt, click <strong class="text-white">Add extension</strong> to confirm.
+                            <strong class="text-slate-700">Confirm Installation:</strong> In the browser pop-up prompt, click <strong class="text-slate-700">Add extension</strong> to confirm.
                         </li>
                         <li>
-                            <strong class="text-white">Pin the Extension:</strong> Click the Extensions icon (puzzle piece) in the top-right corner of Chrome, locate LinkPilot, and click the pushpin icon next to it to pin it to your toolbar.
+                            <strong class="text-slate-700">Pin the Extension:</strong> Click the Extensions icon (puzzle piece) in the top-right corner of Chrome, locate LinkPilot, and click the pushpin icon next to it to pin it to your toolbar.
                         </li>
                     </ol>
-                    <div class="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-start space-x-3">
-                        <i data-lucide="info" class="h-5 w-5 text-blue-500 shrink-0 mt-0.5"></i>
-                        <p class="text-[11px] text-slate-400">Once pinned, click the LinkPilot icon in your toolbar, log in with your CRM credentials, and navigate to LinkedIn to start generating smart post outreach immediately.</p>
+                    <div class="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-xl flex items-start space-x-3">
+                        <i data-lucide="info" class="h-5 w-5 text-blue-600 shrink-0 mt-0.5"></i>
+                        <p class="text-[11px] text-slate-500">Once pinned, click the LinkPilot icon in your toolbar, log in with your CRM credentials, and navigate to LinkedIn to start generating smart post outreach immediately.</p>
                     </div>
                 </div>
             </div>

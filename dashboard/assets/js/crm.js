@@ -7199,33 +7199,36 @@ window.showQuickTaskModal = function() {
     }
     
     const modalHTML = `
-        <div id="quick-task-modal" class="fixed inset-0 z-[150] flex items-start justify-center pt-24 bg-slate-955/80 backdrop-blur-md animate-fade-in" onclick="event.target.id === 'quick-task-modal' && closeQuickTaskModal()">
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col text-slate-100 animate-slide-up transform duration-300 hover:shadow-indigo-500/10">
+        <div id="quick-task-modal" class="fixed inset-0 z-[150] flex items-start justify-center pt-24 bg-slate-900/60 backdrop-blur-sm animate-fade-in" onclick="event.target.id === 'quick-task-modal' && closeQuickTaskModal()">
+            <div class="bg-white rounded-2xl w-full max-w-xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col text-slate-800 animate-slide-up transform duration-300 hover:shadow-indigo-100/50">
                 <!-- Top search-style bar -->
-                <div class="px-6 py-4 border-b border-slate-800 flex items-center space-x-3 bg-slate-900/50">
-                    <i data-lucide="sparkles" class="h-5 w-5 text-indigo-400 animate-pulse"></i>
-                    <input type="text" id="quick-task-title" placeholder="Create a new task..." autofocus class="bg-transparent text-sm w-full text-slate-100 placeholder-slate-500 focus:outline-none font-bold" onkeydown="handleQuickTaskKey(event)">
-                    <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-slate-800 border border-slate-750 text-slate-450 tracking-wider shrink-0 uppercase shadow-inner">ESC to Close</span>
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center space-x-3 bg-slate-55">
+                    <i data-lucide="sparkles" class="h-5 w-5 text-indigo-600 animate-pulse"></i>
+                    <input type="text" id="quick-task-title" placeholder="Create a new task..." autofocus 
+                           class="bg-transparent text-sm w-full text-slate-800 placeholder-slate-400 font-bold" 
+                           style="border: none !important; box-shadow: none !important; outline: none !important; background: transparent !important;"
+                           onkeydown="handleQuickTaskKey(event)">
+                    <span class="text-[9px] font-extrabold px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-500 tracking-wider shrink-0 uppercase shadow-inner">ESC to Close</span>
                 </div>
                 
                 <!-- Inputs Section -->
                 <div class="p-6 space-y-4 text-xs text-left">
                     <div>
-                        <label class="block text-[9px] font-bold text-slate-455 uppercase tracking-wider mb-2">Category</label>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-2">Category</label>
                         <div class="flex flex-wrap gap-2" id="quick-task-category-pills">
-                            <button onclick="selectQuickCategory('Follow-up')" class="quick-cat-pill px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-850 text-slate-300 hover:bg-slate-800 font-bold transition flex items-center space-x-1" id="quick-pill-Follow-up">
+                            <button onclick="selectQuickCategory('Follow-up')" class="quick-cat-pill px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-800 font-bold transition flex items-center space-x-1.5" id="quick-pill-Follow-up">
                                 <span>📞</span> <span>Follow-up</span>
                             </button>
-                            <button onclick="selectQuickCategory('Reply')" class="quick-cat-pill px-3 py-1.5 rounded-lg border border-indigo-650 bg-indigo-900/30 text-indigo-400 font-bold transition flex items-center space-x-1" id="quick-pill-Reply">
+                            <button onclick="selectQuickCategory('Reply')" class="quick-cat-pill px-3 py-1.5 rounded-lg border border-emerald-250 bg-emerald-50 text-emerald-700 font-bold transition flex items-center space-x-1.5 shadow-sm" id="quick-pill-Reply">
                                 <span>✉️</span> <span>Reply</span>
                             </button>
-                            <button onclick="selectQuickCategory('Meeting')" class="quick-cat-pill px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-850 text-slate-300 hover:bg-slate-800 font-bold transition flex items-center space-x-1" id="quick-pill-Meeting">
+                            <button onclick="selectQuickCategory('Meeting')" class="quick-cat-pill px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-800 font-bold transition flex items-center space-x-1.5" id="quick-pill-Meeting">
                                 <span>📅</span> <span>Meeting</span>
                             </button>
-                            <button onclick="selectQuickCategory('Arrange')" class="quick-cat-pill px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-850 text-slate-300 hover:bg-slate-800 font-bold transition flex items-center space-x-1" id="quick-pill-Arrange">
+                            <button onclick="selectQuickCategory('Arrange')" class="quick-cat-pill px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-800 font-bold transition flex items-center space-x-1.5" id="quick-pill-Arrange">
                                 <span>⚙️</span> <span>Arrange</span>
                             </button>
-                            <button onclick="selectQuickCategory('General')" class="quick-cat-pill px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-850 text-slate-300 hover:bg-slate-800 font-bold transition flex items-center space-x-1" id="quick-pill-General">
+                            <button onclick="selectQuickCategory('General')" class="quick-cat-pill px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-800 font-bold transition flex items-center space-x-1.5" id="quick-pill-General">
                                 <span>📋</span> <span>General</span>
                             </button>
                         </div>
@@ -7234,12 +7237,12 @@ window.showQuickTaskModal = function() {
                     
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-[9px] font-bold text-slate-455 uppercase tracking-wider mb-1.5">Due Date</label>
-                            <input type="date" id="quick-task-duedate" class="w-full px-3 py-2 bg-slate-850 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500">
+                            <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Due Date</label>
+                            <input type="date" id="quick-task-duedate" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-slate-800 focus:outline-none" style="background-color: #ffffff !important; color: #0f172a !important;">
                         </div>
                         <div>
-                            <label class="block text-[9px] font-bold text-slate-455 uppercase tracking-wider mb-1.5">Priority</label>
-                            <select id="quick-task-priority" class="w-full px-3 py-2 bg-slate-850 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500">
+                            <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Priority</label>
+                            <select id="quick-task-priority" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-slate-800 focus:outline-none bg-white" style="background-color: #ffffff !important; color: #0f172a !important;">
                                 <option value="low">Low</option>
                                 <option value="medium" selected>Medium</option>
                                 <option value="high">High</option>
@@ -7248,15 +7251,15 @@ window.showQuickTaskModal = function() {
                     </div>
                     
                     <div>
-                        <label class="block text-[9px] font-bold text-slate-455 uppercase tracking-wider mb-1.5">Description</label>
-                        <textarea id="quick-task-desc" rows="2" placeholder="Brief notes (optional)..." class="w-full px-3 py-2 bg-slate-850 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 font-sans"></textarea>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Description</label>
+                        <textarea id="quick-task-desc" rows="2" placeholder="Brief notes (optional)..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-slate-800 focus:outline-none font-sans" style="background-color: #ffffff !important; color: #0f172a !important;"></textarea>
                     </div>
                 </div>
                 
                 <!-- Footer buttons -->
-                <div class="px-6 py-4 border-t border-slate-800 bg-slate-900/80 flex justify-end space-x-2.5">
-                    <button onclick="closeQuickTaskModal()" class="px-4 py-2 text-slate-455 hover:text-slate-200 bg-transparent rounded-lg font-bold transition">Cancel</button>
-                    <button onclick="submitQuickTask(this)" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold transition flex items-center space-x-1.5 shadow-md shadow-blue-600/10 hover:shadow-blue-500/20">
+                <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end space-x-2">
+                    <button onclick="closeQuickTaskModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 rounded-lg font-bold transition" style="background-color: #ffffff !important; color: #475569 !important;">Cancel</button>
+                    <button onclick="submitQuickTask(this)" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold transition flex items-center space-x-1.5 shadow-md shadow-blue-600/10 hover:shadow-blue-500/20" style="color: #ffffff !important;">
                         <i data-lucide="check" class="h-4 w-4"></i>
                         <span>Create Task</span>
                     </button>
@@ -7273,13 +7276,25 @@ window.showQuickTaskModal = function() {
 
 window.selectQuickCategory = function(cat) {
     document.getElementById('quick-task-category-val').value = cat;
-    document.querySelectorAll('.quick-cat-pill').forEach(btn => {
-        btn.className = 'quick-cat-pill px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-850 text-slate-300 hover:bg-slate-800 font-bold transition flex items-center space-x-1';
+    
+    const pills = {
+        'Follow-up': { active: 'border-indigo-250 bg-indigo-50 text-indigo-700 shadow-sm' },
+        'Reply': { active: 'border-emerald-250 bg-emerald-50 text-emerald-700 shadow-sm' },
+        'Meeting': { active: 'border-blue-250 bg-blue-50 text-blue-700 shadow-sm' },
+        'Arrange': { active: 'border-amber-250 bg-amber-50 text-amber-700 shadow-sm' },
+        'General': { active: 'border-slate-300 bg-slate-100 text-slate-800 shadow-sm' }
+    };
+    
+    Object.keys(pills).forEach(pKey => {
+        const btn = document.getElementById(`quick-pill-${pKey}`);
+        if (btn) {
+            if (pKey === cat) {
+                btn.className = `quick-cat-pill px-3 py-1.5 rounded-lg border font-bold transition flex items-center space-x-1.5 ${pills[pKey].active}`;
+            } else {
+                btn.className = `quick-cat-pill px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-800 font-bold transition flex items-center space-x-1.5`;
+            }
+        }
     });
-    const selectedBtn = document.getElementById(`quick-pill-${cat}`);
-    if (selectedBtn) {
-        selectedBtn.className = 'quick-cat-pill px-3 py-1.5 rounded-lg border border-indigo-600 bg-indigo-900/30 text-indigo-400 font-bold transition flex items-center space-x-1';
-    }
 };
 
 window.closeQuickTaskModal = function() {

@@ -195,11 +195,17 @@
             <!-- 2. USER ANALYTICS PANE -->
             <div id="admin-user-analytics-pane" class="hidden space-y-6">
                 <!-- Sub tabs navigation -->
-                <div class="flex items-center space-x-2 border-b border-slate-800 pb-3" id="analytics-sub-tabs">
-                    <button onclick="switchAnalyticsSubTab('sessions')" id="subtab-sessions-btn" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 text-white transition active">Sessions & Traffic</button>
-                    <button onclick="switchAnalyticsSubTab('events')" id="subtab-events-btn" class="px-4 py-1.5 text-xs font-semibold rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition">Universal Events Log</button>
-                    <button onclick="switchAnalyticsSubTab('errors')" id="subtab-errors-btn" class="px-4 py-1.5 text-xs font-semibold rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition">Exceptions & Errors</button>
-                    <button onclick="switchAnalyticsSubTab('performance')" id="subtab-performance-btn" class="px-4 py-1.5 text-xs font-semibold rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition">Performance Telemetry</button>
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-800 pb-3 gap-2" id="analytics-sub-tabs">
+                    <div class="flex items-center space-x-2">
+                        <button onclick="switchAnalyticsSubTab('sessions')" id="subtab-sessions-btn" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 text-white transition active">Sessions & Traffic</button>
+                        <button onclick="switchAnalyticsSubTab('events')" id="subtab-events-btn" class="px-4 py-1.5 text-xs font-semibold rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition">Universal Events Log</button>
+                        <button onclick="switchAnalyticsSubTab('errors')" id="subtab-errors-btn" class="px-4 py-1.5 text-xs font-semibold rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition">Exceptions & Errors</button>
+                        <button onclick="switchAnalyticsSubTab('performance')" id="subtab-performance-btn" class="px-4 py-1.5 text-xs font-semibold rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition">Performance Telemetry</button>
+                    </div>
+                    <button onclick="downloadAnalyticsExport()" class="px-4 py-1.5 text-xs font-bold bg-indigo-650 hover:bg-indigo-700 text-white rounded-lg transition flex items-center space-x-1.5 shadow-md shadow-indigo-600/10" style="color: #ffffff !important; background-color: #4f46e5 !important;">
+                        <i data-lucide="download" class="h-3.5 w-3.5 text-white"></i>
+                        <span>Download Analytics Report</span>
+                    </button>
                 </div>
 
                 <!-- Sub Tab: Sessions & Traffic -->
@@ -2010,7 +2016,15 @@
             });
         }
 
-        // 2. USER ANALYTICS TRAFFIC DATA LOADERS
+        window.downloadAnalyticsExport = function() {
+            const token = getAuthToken();
+            if (!token) {
+                showNotification('error', 'Authentication token missing.');
+                return;
+            }
+            window.location.href = `${API_BASE_URL}/admin/export_analytics.php?token=${encodeURIComponent(token)}`;
+        };
+
         let deviceChart = null;
         window.switchAnalyticsSubTab = function(subtab) {
             // Update active buttons styles

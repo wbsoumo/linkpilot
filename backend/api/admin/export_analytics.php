@@ -11,6 +11,9 @@ $db = Database::getConnection();
 
 function xmlEscape($val) {
     if (is_null($val)) return '';
+    if (is_array($val) || is_object($val)) {
+        return htmlspecialchars(json_encode($val), ENT_XML1, 'UTF-8');
+    }
     return htmlspecialchars((string)$val, ENT_XML1, 'UTF-8');
 }
 
@@ -55,6 +58,11 @@ try {
         });
     }
 
+
+    // Clear any previous output or buffering to prevent leading whitespace/warnings
+    if (ob_get_length()) {
+        ob_clean();
+    }
 
     // 2. Set headers for native Excel XML download
     header("Content-Type: application/vnd.ms-excel; charset=utf-8");

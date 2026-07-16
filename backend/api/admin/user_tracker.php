@@ -28,17 +28,33 @@ try {
             sendJsonResponse('error', 'Session not found.', [], 404);
         }
         
+        // 1. Fetch raw clicks and pageviews
         $stmtActivities = $db->prepare("
-            SELECT * FROM visitor_activities 
-            WHERE session_id = ? 
-            ORDER BY id ASC
+            SELECT id, 'activity' AS entry_type, activity_type, page_url, page_title, element_tag, element_id, element_class, element_text, created_at 
+            FROM visitor_activities 
+            WHERE session_id = ?
         ");
         $stmtActivities->execute([$sessionId]);
         $activities = $stmtActivities->fetchAll(PDO::FETCH_ASSOC);
+
+        // 2. Fetch custom universal events for this session token
+        $stmtEvents = $db->prepare("
+            SELECT id, 'event' AS entry_type, event_name, event_category, event_action, event_label, page_url, page_title, metadata_json, created_at
+            FROM universal_events
+            WHERE session_token = ?
+        ");
+        $stmtEvents->execute([$session['session_token']]);
+        $events = $stmtEvents->fetchAll(PDO::FETCH_ASSOC);
+
+        // Merge and sort chronologically by created_at / ID
+        $timeline = array_merge($activities, $events);
+        usort($timeline, function($a, $b) {
+            return strcmp($a['created_at'], $b['created_at']);
+        });
         
         sendJsonResponse('success', 'Session details loaded.', [
             'session' => $session,
-            'activities' => $activities
+            'timeline' => $timeline
         ]);
         exit;
     }
@@ -78,6 +94,32 @@ try {
     ");
     $sessions = $stmtRecent->fetchAll(PDO::FETCH_ASSOC);
 
+    // 5. Fetch Platform Error Logs
+    $stmtErrors = $db->query("
+        SELECT * FROM platform_errors 
+        ORDER BY id DESC 
+        LIMIT 100
+    ");
+    $errors = $stmtErrors->fetchAll(PDO::FETCH_ASSOC);
+
+    // 6. Fetch Performance Latencies
+    $stmtPerf = $db->query("
+        SELECT * FROM performance_metrics 
+        ORDER BY id DESC 
+        LIMIT 100
+    ");
+    $performance = $stmtPerf->fetchAll(PDO::FETCH_ASSOC);
+
+    // 7. Fetch Universal Events
+    $stmtUniv = $db->query("
+        SELECT e.*, u.name AS user_name, u.email AS user_email
+        FROM universal_events e
+        LEFT JOIN users u ON e.user_id = u.id
+        ORDER BY e.id DESC
+        LIMIT 100
+    ");
+    $universalEvents = $stmtUniv->fetchAll(PDO::FETCH_ASSOC);
+
     sendJsonResponse('success', 'Analytics data loaded successfully.', [
         'counters' => [
             'total_sessions' => $totalSessions,
@@ -85,7 +127,10 @@ try {
         ],
         'devices' => $deviceStats,
         'countries' => $countryStats,
-        'sessions' => $sessions
+        'sessions' => $sessions,
+        'errors' => $errors,
+        'performance' => $performance,
+        'universal_events' => $universalEvents
     ]);
 
 } catch (Exception $e) {

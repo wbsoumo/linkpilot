@@ -194,58 +194,142 @@
 
             <!-- 2. USER ANALYTICS PANE -->
             <div id="admin-user-analytics-pane" class="hidden space-y-6">
-                <!-- Analytics Charts and Distributions -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4">
-                        <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide border-b border-slate-100 pb-2">Devices Distribution</h4>
-                        <div class="relative h-[200px] flex items-center justify-center">
-                            <canvas id="analytics-devices-chart"></canvas>
+                <!-- Sub tabs navigation -->
+                <div class="flex items-center space-x-2 border-b border-slate-800 pb-3" id="analytics-sub-tabs">
+                    <button onclick="switchAnalyticsSubTab('sessions')" id="subtab-sessions-btn" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 text-white transition active">Sessions & Traffic</button>
+                    <button onclick="switchAnalyticsSubTab('events')" id="subtab-events-btn" class="px-4 py-1.5 text-xs font-semibold rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition">Universal Events Log</button>
+                    <button onclick="switchAnalyticsSubTab('errors')" id="subtab-errors-btn" class="px-4 py-1.5 text-xs font-semibold rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition">Exceptions & Errors</button>
+                    <button onclick="switchAnalyticsSubTab('performance')" id="subtab-performance-btn" class="px-4 py-1.5 text-xs font-semibold rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition">Performance Telemetry</button>
+                </div>
+
+                <!-- Sub Tab: Sessions & Traffic -->
+                <div id="analytics-sub-sessions" class="space-y-6">
+                    <!-- Analytics Charts and Distributions -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4">
+                            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide border-b border-slate-100 pb-2">Devices Distribution</h4>
+                            <div class="relative h-[200px] flex items-center justify-center">
+                                <canvas id="analytics-devices-chart"></canvas>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4">
-                        <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide border-b border-slate-100 pb-2">Geographic Distribution</h4>
-                        <div class="overflow-y-auto max-h-[200px] text-xs space-y-2.5" id="analytics-countries-list">
-                            <p class="text-slate-400">Loading country stats...</p>
+                        
+                        <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4">
+                            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide border-b border-slate-100 pb-2">Geographic Distribution</h4>
+                            <div class="overflow-y-auto max-h-[200px] text-xs space-y-2.5" id="analytics-countries-list">
+                                <p class="text-slate-400">Loading country stats...</p>
+                            </div>
+                        </div>
+
+                        <div class="glass-panel p-5 bg-slate-900/40 text-slate-300 rounded-2xl space-y-4">
+                            <h4 class="text-xs font-bold text-white uppercase tracking-wide border-b border-slate-800 pb-2">Real-Time Traffic Info</h4>
+                            <div class="space-y-3 text-xs">
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">Active sessions (last 15m)</span>
+                                    <span class="font-bold text-emerald-400" id="tracker-active-count">0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">Total tracked sessions</span>
+                                    <span class="font-bold text-white" id="tracker-total-count">0</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="glass-panel p-5 bg-slate-900/40 text-slate-300 rounded-2xl space-y-4">
-                        <h4 class="text-xs font-bold text-white uppercase tracking-wide border-b border-slate-800 pb-2">Real-Time Traffic Info</h4>
-                        <div class="space-y-3 text-xs">
-                            <div class="flex justify-between">
-                                <span class="text-slate-400">Active sessions (last 15m)</span>
-                                <span class="font-bold text-emerald-400" id="tracker-active-count">0</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-400">Total tracked sessions</span>
-                                <span class="font-bold text-white" id="tracker-total-count">0</span>
-                            </div>
+                    <!-- Sessions List -->
+                    <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
+                        <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center">
+                            <i data-lucide="eye" class="h-4 w-4 text-sky-400 mr-2"></i>
+                            <span>Visitor Sessions & Device Footprint</span>
+                        </h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse custom-table text-xs">
+                                <thead>
+                                    <tr class="border-b border-slate-800">
+                                        <th>Session ID</th>
+                                        <th>User Account</th>
+                                        <th>Geo Location / IP</th>
+                                        <th>Device / OS / Browser</th>
+                                        <th>Clicks</th>
+                                        <th>Latest Hit</th>
+                                        <th class="text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="analytics-sessions-tbody">
+                                    <tr><td colspan="7" class="text-center py-6 text-slate-500">Loading sessions...</td></tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- Sessions List -->
-                <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
+                <!-- Sub Tab: Universal Events -->
+                <div id="analytics-sub-events" class="hidden glass-panel p-5 bg-slate-900/40 space-y-4">
                     <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center">
-                        <i data-lucide="eye" class="h-4 w-4 text-sky-400 mr-2"></i>
-                        <span>Visitor Sessions & Device Footprint</span>
+                        <i data-lucide="activity" class="h-4 w-4 text-emerald-400 mr-2"></i>
+                        <span>Universal Events Activity Stream</span>
                     </h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse custom-table text-xs">
                             <thead>
                                 <tr class="border-b border-slate-800">
-                                    <th>Session ID</th>
+                                    <th>Event Name</th>
+                                    <th>Category</th>
                                     <th>User Account</th>
-                                    <th>Geo Location / IP</th>
-                                    <th>Device / OS / Browser</th>
-                                    <th>Clicks</th>
-                                    <th>Latest Hit</th>
-                                    <th class="text-right">Actions</th>
+                                    <th>Page Title / URL</th>
+                                    <th>Metadata JSON</th>
+                                    <th>Device / OS</th>
+                                    <th>Logged At</th>
                                 </tr>
                             </thead>
-                            <tbody id="analytics-sessions-tbody">
-                                <tr><td colspan="7" class="text-center py-6 text-slate-500">Loading sessions...</td></tr>
+                            <tbody id="analytics-events-tbody">
+                                <tr><td colspan="7" class="text-center py-6 text-slate-500">Loading events...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Sub Tab: Exceptions & Errors -->
+                <div id="analytics-sub-errors" class="hidden glass-panel p-5 bg-slate-900/40 space-y-4">
+                    <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center">
+                        <i data-lucide="alert-triangle" class="h-4 w-4 text-rose-500 mr-2"></i>
+                        <span>Uncaught Exceptions & Browser Console Logs</span>
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse custom-table text-xs">
+                            <thead>
+                                <tr class="border-b border-slate-800">
+                                    <th>Error Type</th>
+                                    <th>Error Code / Message</th>
+                                    <th>Page URL</th>
+                                    <th>Stack Trace</th>
+                                    <th>Logged At</th>
+                                </tr>
+                            </thead>
+                            <tbody id="analytics-errors-tbody">
+                                <tr><td colspan="5" class="text-center py-6 text-slate-500">Loading platform errors...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Sub Tab: Performance Telemetry -->
+                <div id="analytics-sub-performance" class="hidden glass-panel p-5 bg-slate-900/40 space-y-4">
+                    <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center">
+                        <i data-lucide="gauge" class="h-4 w-4 text-indigo-400 mr-2"></i>
+                        <span>System Latencies & Load Speeds</span>
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse custom-table text-xs">
+                            <thead>
+                                <tr class="border-b border-slate-800">
+                                    <th>Page Load Speed</th>
+                                    <th>API Handshake Latency</th>
+                                    <th>DB Handshake Latency</th>
+                                    <th>Logged At</th>
+                                </tr>
+                            </thead>
+                            <tbody id="analytics-perf-tbody">
+                                <tr><td colspan="4" class="text-center py-6 text-slate-500">Loading latency records...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -1928,6 +2012,28 @@
 
         // 2. USER ANALYTICS TRAFFIC DATA LOADERS
         let deviceChart = null;
+        window.switchAnalyticsSubTab = function(subtab) {
+            // Update active buttons styles
+            document.querySelectorAll('#analytics-sub-tabs button').forEach(btn => {
+                btn.classList.remove('bg-slate-800', 'text-white', 'active');
+                btn.classList.add('text-slate-400', 'hover:bg-slate-800', 'hover:text-white');
+            });
+            const activeBtn = document.getElementById(`subtab-${subtab}-btn`);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-slate-400', 'hover:bg-slate-800', 'hover:text-white');
+                activeBtn.classList.add('bg-slate-800', 'text-white', 'active');
+            }
+
+            // Hide all subpanes
+            document.getElementById('analytics-sub-sessions').classList.add('hidden');
+            document.getElementById('analytics-sub-events').classList.add('hidden');
+            document.getElementById('analytics-sub-errors').classList.add('hidden');
+            document.getElementById('analytics-sub-performance').classList.add('hidden');
+
+            // Show selected
+            document.getElementById(`analytics-sub-${subtab}`).classList.remove('hidden');
+        };
+
         window.loadAdminUserAnalyticsData = async function() {
             try {
                 const res = await apiCall('admin/user_tracker.php');
@@ -1995,6 +2101,60 @@
                         `;
                     }).join('');
                 }
+
+                // Render Universal Events List
+                const eventsTbody = document.getElementById('analytics-events-tbody');
+                if (!res.universal_events || res.universal_events.length === 0) {
+                    eventsTbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-500">No events logged yet.</td></tr>`;
+                } else {
+                    eventsTbody.innerHTML = res.universal_events.map(e => {
+                        const userText = e.user_name ? `${e.user_name}<div class="text-[9px] text-slate-500 font-medium">${e.user_email}</div>` : `<span class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-400 font-bold text-[8px] uppercase">Guest</span>`;
+                        const metaText = e.metadata_json ? `<code>${JSON.stringify(JSON.parse(e.metadata_json))}</code>` : `<span class="text-slate-400">-</span>`;
+                        return `
+                            <tr class="hover:bg-slate-50 border-b border-slate-100">
+                                <td class="py-2.5 px-4 font-bold text-slate-800">${e.event_name}</td>
+                                <td class="py-2.5 px-4 font-mono font-bold text-slate-500 text-[10px]">${e.event_category}</td>
+                                <td class="py-2.5 px-4">${userText}</td>
+                                <td class="py-2.5 px-4 truncate max-w-[200px]" title="${e.page_url}">${e.page_title || e.page_url}</td>
+                                <td class="py-2.5 px-4 text-[10px] text-slate-500 font-mono truncate max-w-[250px]" title='${e.metadata_json || ""}'>${metaText}</td>
+                                <td class="py-2.5 px-4 text-slate-600">${e.os || 'Unknown OS'} / ${e.browser || 'Unknown'}</td>
+                                <td class="py-2.5 px-4 text-slate-550 font-mono font-semibold text-[10px]">${new Date(e.created_at).toLocaleString()}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+
+                // Render Exceptions & Errors List
+                const errorsTbody = document.getElementById('analytics-errors-tbody');
+                if (!res.errors || res.errors.length === 0) {
+                    errorsTbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-500">No platform errors logged.</td></tr>`;
+                } else {
+                    errorsTbody.innerHTML = res.errors.map(err => `
+                        <tr class="hover:bg-slate-50 border-b border-slate-100">
+                            <td class="py-2.5 px-4 font-bold text-rose-600">${err.error_type}</td>
+                            <td class="py-2.5 px-4 font-semibold text-slate-800">${err.error_code}</td>
+                            <td class="py-2.5 px-4 truncate max-w-[200px]" title="${err.page_url}">${err.page_url}</td>
+                            <td class="py-2.5 px-4 font-mono text-[9px] text-slate-500 whitespace-pre-wrap truncate max-w-[300px]" title="${err.stack_trace || ''}">${(err.stack_trace || '').substring(0, 150)}</td>
+                            <td class="py-2.5 px-4 text-slate-550 font-mono font-semibold text-[10px]">${new Date(err.created_at).toLocaleString()}</td>
+                        </tr>
+                    `).join('');
+                }
+
+                // Render Performance Latencies List
+                const perfTbody = document.getElementById('analytics-perf-tbody');
+                if (!res.performance || res.performance.length === 0) {
+                    perfTbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-500">No performance metrics loaded.</td></tr>`;
+                } else {
+                    perfTbody.innerHTML = res.performance.map(p => `
+                        <tr class="hover:bg-slate-50 border-b border-slate-100">
+                            <td class="py-2.5 px-4 font-bold text-indigo-600 font-mono">${p.page_load_ms ? p.page_load_ms + ' ms' : '-'}</td>
+                            <td class="py-2.5 px-4 font-bold text-slate-700 font-mono">${p.api_latency_ms ? p.api_latency_ms + ' ms' : '-'}</td>
+                            <td class="py-2.5 px-4 font-bold text-slate-700 font-mono">${p.db_time_ms ? p.db_time_ms + ' ms' : '-'}</td>
+                            <td class="py-2.5 px-4 text-slate-550 font-mono font-semibold text-[10px]">${new Date(p.created_at).toLocaleString()}</td>
+                        </tr>
+                    `).join('');
+                }
+
                 lucide.createIcons();
             } catch (err) {
                 showNotification('error', 'Failed to load tracker stats: ' + err.message);
@@ -2156,14 +2316,29 @@
             try {
                 const res = await apiCall(`admin/user_tracker.php?session_id=${sessionId}`);
                 const session = res.session;
-                const activities = res.activities || [];
+                const activities = res.timeline || [];
 
                 const existing = document.getElementById('admin-session-activities-modal');
                 if (existing) existing.remove();
 
                 const activityRows = activities.map(act => {
                     const timeStr = new Date(act.created_at).toLocaleTimeString();
-                    if (act.activity_type === 'page_view') {
+                    if (act.entry_type === 'event') {
+                        const metaString = act.metadata_json ? `<pre class="bg-slate-50 p-1.5 rounded text-[9px] font-mono text-slate-500 mt-1 border border-slate-100 overflow-x-auto whitespace-pre-wrap">${JSON.stringify(JSON.parse(act.metadata_json), null, 2)}</pre>` : '';
+                        return `
+                            <div class="flex items-start space-x-3 text-slate-650">
+                                <div class="h-6 w-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 text-[10px] font-bold border border-emerald-200">EV</div>
+                                <div class="flex-grow">
+                                    <span class="font-bold text-slate-800">Event: <span class="text-emerald-700">${act.event_name}</span></span> at <span class="font-mono text-slate-400">${timeStr}</span>
+                                    <div class="text-[10px] text-slate-500 font-semibold bg-slate-50 p-2 rounded border border-slate-100 mt-1">
+                                        <div><strong>Category:</strong> ${act.event_category}</div>
+                                        ${act.page_title ? `<div><strong>Page:</strong> ${act.page_title}</div>` : ''}
+                                        ${metaString}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else if (act.activity_type === 'page_view') {
                         return `
                             <div class="flex items-start space-x-3 text-slate-650">
                                 <div class="h-6 w-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 text-[10px] font-bold border border-blue-200">PV</div>

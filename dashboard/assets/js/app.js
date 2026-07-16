@@ -107,6 +107,31 @@ async function apiCall(endpoint, method = 'GET', body = null, isUrlEncoded = fal
             throw new Error(data.message || 'API request failed.');
         }
 
+        // Auto-emit tracking events for mutating endpoints
+        if (response.ok && method !== 'GET' && window.LinkPilotTracker) {
+            try {
+                const ep = endpoint.toLowerCase();
+                const user = getCurrentUser();
+                const meta = { endpoint: endpoint, method: method };
+
+                if (ep.includes('create_contact') || ep.includes('contacts.php?action=create') || ep.includes('contacts/create')) {
+                    window.LinkPilotTracker.trackEvent('create_contact', 'crm', 'create', meta);
+                } else if (ep.includes('delete_contact') || ep.includes('contacts.php?action=delete')) {
+                    window.LinkPilotTracker.trackEvent('delete_contact', 'crm', 'delete', meta);
+                } else if (ep.includes('generate/email') || ep.includes('email.php')) {
+                    window.LinkPilotTracker.trackEvent('ai_generate_email', 'ai', 'generate_email', meta);
+                } else if (ep.includes('generate/comment') || ep.includes('comment.php')) {
+                    window.LinkPilotTracker.trackEvent('ai_generate_comment', 'ai', 'generate_comment', meta);
+                } else if (ep.includes('recharge/verify_payment')) {
+                    window.LinkPilotTracker.trackEvent('buy_credits', 'billing', 'buy_credits', meta);
+                } else if (ep.includes('login.php')) {
+                    window.LinkPilotTracker.trackEvent('login', 'auth', 'user_login', meta);
+                } else if (ep.includes('register.php')) {
+                    window.LinkPilotTracker.trackEvent('register', 'auth', 'user_registered', meta);
+                }
+            } catch (e) {}
+        }
+
         return data;
     } catch (error) {
         console.error(`API Call failed (${endpoint}):`, error);
@@ -116,8 +141,14 @@ async function apiCall(endpoint, method = 'GET', body = null, isUrlEncoded = fal
 
 // Log out user
 function logout() {
-    removeAuthToken();
-    window.location.href = 'login.html';
+    if (window.LinkPilotTracker) {
+        window.LinkPilotTracker.trackEvent('logout', 'auth', 'user_logout');
+    }
+    // Give a short delay to ensure keepalive event finishes
+    setTimeout(() => {
+        removeAuthToken();
+        window.location.href = 'login.html';
+    }, 100);
 }
 
 // Dynamic unread count badge loader

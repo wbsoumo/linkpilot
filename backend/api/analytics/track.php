@@ -101,8 +101,8 @@ try {
     } else {
         $sessionId = (int)$session['id'];
         
-        // If user logged in, associate anonymous session retrospectively
-        if ($userId && empty($session['user_id'])) {
+        // If user logged in, associate or update session user ID
+        if ($userId && (int)$session['user_id'] !== $userId) {
             $stmtUpdateSession = $db->prepare("UPDATE visitor_sessions SET user_id = ? WHERE id = ?");
             $stmtUpdateSession->execute([$userId, $sessionId]);
         }

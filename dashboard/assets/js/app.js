@@ -37,11 +37,13 @@ function getAuthToken() {
 
 function setAuthToken(token) {
     localStorage.setItem('linkpilot_token', token);
+    localStorage.removeItem('linkpilot_session_token');
 }
 
 function removeAuthToken() {
     localStorage.removeItem('linkpilot_token');
     localStorage.removeItem('linkpilot_user');
+    localStorage.removeItem('linkpilot_session_token');
 }
 
 function getCurrentUser() {

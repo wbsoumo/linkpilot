@@ -44,6 +44,35 @@ try {
     $stmt->execute($params);
     $leads = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
+    // Define all allowed columns and their CSV headers
+    $allowedColumns = [
+        'name' => 'Name',
+        'company_name' => 'Company Name',
+        'linkedin_url' => 'LinkedIn URL',
+        'email' => 'Email',
+        'phone_number' => 'Phone Number',
+        'post_url' => 'Post URL',
+        'source' => 'Source',
+        'created_at' => 'Date Added'
+    ];
+
+    // Determine which columns to export based on user selection
+    $selectedColumns = [];
+    if (!empty($_GET['columns'])) {
+        $cols = explode(',', $_GET['columns']);
+        foreach ($cols as $col) {
+            $col = trim($col);
+            if (isset($allowedColumns[$col])) {
+                $selectedColumns[$col] = $allowedColumns[$col];
+            }
+        }
+    }
+
+    // Default to all columns if none specified or invalid
+    if (empty($selectedColumns)) {
+        $selectedColumns = $allowedColumns;
+    }
+
     // Set headers for download
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="linkpilot_leads_' . date('Y-m-d') . '.csv"');
@@ -52,20 +81,15 @@ try {
     $output = fopen('php://output', 'w');
     
     // CSV Header row
-    fputcsv($output, ['Name', 'Company Name', 'LinkedIn URL', 'Email', 'Phone Number', 'Post URL', 'Source', 'Date Added']);
+    fputcsv($output, array_values($selectedColumns));
     
     // CSV Data rows
     foreach ($leads as $lead) {
-        fputcsv($output, [
-            $lead['name'] ?? '',
-            $lead['company_name'] ?? '',
-            $lead['linkedin_url'] ?? '',
-            $lead['email'] ?? '',
-            $lead['phone_number'] ?? '',
-            $lead['post_url'] ?? '',
-            $lead['source'] ?? '',
-            $lead['created_at'] ?? ''
-        ]);
+        $row = [];
+        foreach (array_keys($selectedColumns) as $colKey) {
+            $row[] = $lead[$colKey] ?? '';
+        }
+        fputcsv($output, $row);
     }
     
     fclose($output);

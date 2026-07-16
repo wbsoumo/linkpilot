@@ -130,6 +130,139 @@
         </div>
     </main>
 
+    <!-- Advanced Export Config Modal Overlay -->
+    <div id="export-modal-backdrop" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-xs transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div id="export-modal" class="glass-panel max-w-lg w-full bg-slate-900 border border-slate-800 text-white rounded-xl shadow-2xl p-6 transform scale-95 transition-all duration-300 opacity-0 mx-4">
+            <!-- Header -->
+            <div class="flex items-start justify-between border-b border-slate-800/80 pb-4 mb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-teal-500/10 text-teal-400 border border-teal-500/20 rounded-lg">
+                        <i data-lucide="file-spreadsheet" class="h-5 w-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white tracking-wide">Export Configuration</h3>
+                        <p class="text-slate-400 text-xs mt-0.5">Customize fields for your Lead Vault spreadsheet download</p>
+                    </div>
+                </div>
+                <button onclick="closeExportModal()" class="text-slate-400 hover:text-red-400 transition p-1 hover:bg-slate-800/50 rounded-lg">
+                    <i data-lucide="x" class="h-4.5 w-4.5"></i>
+                </button>
+            </div>
+
+            <!-- Presets Section -->
+            <div class="mb-4">
+                <span class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-2">Column Selection Presets</span>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="applyExportPreset('all')" class="px-2.5 py-1 text-xs border border-slate-800 hover:border-slate-700 bg-slate-800 hover:bg-slate-750 rounded-md font-semibold text-slate-300 hover:text-white transition">
+                        Select All
+                    </button>
+                    <button onclick="applyExportPreset('none')" class="px-2.5 py-1 text-xs border border-slate-800 hover:border-slate-700 bg-slate-800 hover:bg-slate-750 rounded-md font-semibold text-slate-300 hover:text-white transition">
+                        Deselect All
+                    </button>
+                    <button onclick="applyExportPreset('basic')" class="px-2.5 py-1 text-xs border border-slate-800 hover:border-slate-700 bg-slate-800 hover:bg-slate-750 rounded-md font-semibold text-slate-300 hover:text-white transition">
+                        Basic Info
+                    </button>
+                    <button onclick="applyExportPreset('contacts')" class="px-2.5 py-1 text-xs border border-slate-800 hover:border-slate-700 bg-slate-800 hover:bg-slate-750 rounded-md font-semibold text-slate-300 hover:text-white transition">
+                        Contacts Only
+                    </button>
+                </div>
+            </div>
+
+            <!-- Columns Checklist Grid -->
+            <div class="mb-6">
+                <span class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-2">Check columns to export</span>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1">
+                    <label class="flex items-center space-x-3 p-3 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-800/50 hover:border-slate-700 rounded-xl transition cursor-pointer select-none">
+                        <input type="checkbox" value="name" checked class="export-col-checkbox w-4.5 h-4.5 rounded border-slate-700 bg-slate-900 text-teal-500 focus:ring-teal-500 focus:ring-offset-slate-900 focus:ring-2">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-semibold text-white">Full Name</span>
+                            <span class="text-[9px] text-slate-400 leading-tight">Prospect's name</span>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center space-x-3 p-3 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-800/50 hover:border-slate-700 rounded-xl transition cursor-pointer select-none">
+                        <input type="checkbox" value="company_name" checked class="export-col-checkbox w-4.5 h-4.5 rounded border-slate-700 bg-slate-900 text-teal-500 focus:ring-teal-500 focus:ring-offset-slate-900 focus:ring-2">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-semibold text-white">Company Name</span>
+                            <span class="text-[9px] text-slate-400 leading-tight">Current organization</span>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center space-x-3 p-3 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-800/50 hover:border-slate-700 rounded-xl transition cursor-pointer select-none">
+                        <input type="checkbox" value="linkedin_url" checked class="export-col-checkbox w-4.5 h-4.5 rounded border-slate-700 bg-slate-900 text-teal-500 focus:ring-teal-500 focus:ring-offset-slate-900 focus:ring-2">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-semibold text-white">LinkedIn URL</span>
+                            <span class="text-[9px] text-slate-400 leading-tight">LinkedIn profile link</span>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center space-x-3 p-3 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-800/50 hover:border-slate-700 rounded-xl transition cursor-pointer select-none">
+                        <input type="checkbox" value="email" checked class="export-col-checkbox w-4.5 h-4.5 rounded border-slate-700 bg-slate-900 text-teal-500 focus:ring-teal-500 focus:ring-offset-slate-900 focus:ring-2">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-semibold text-white">Email Address</span>
+                            <span class="text-[9px] text-slate-400 leading-tight">Primary contact email</span>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center space-x-3 p-3 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-800/50 hover:border-slate-700 rounded-xl transition cursor-pointer select-none">
+                        <input type="checkbox" value="phone_number" checked class="export-col-checkbox w-4.5 h-4.5 rounded border-slate-700 bg-slate-900 text-teal-500 focus:ring-teal-500 focus:ring-offset-slate-900 focus:ring-2">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-semibold text-white">Phone Number</span>
+                            <span class="text-[9px] text-slate-400 leading-tight">Direct phone line</span>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center space-x-3 p-3 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-800/50 hover:border-slate-700 rounded-xl transition cursor-pointer select-none">
+                        <input type="checkbox" value="post_url" checked class="export-col-checkbox w-4.5 h-4.5 rounded border-slate-700 bg-slate-900 text-teal-500 focus:ring-teal-500 focus:ring-offset-slate-900 focus:ring-2">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-semibold text-white">Post URL</span>
+                            <span class="text-[9px] text-slate-400 leading-tight">Link to source post</span>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center space-x-3 p-3 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-800/50 hover:border-slate-700 rounded-xl transition cursor-pointer select-none">
+                        <input type="checkbox" value="source" checked class="export-col-checkbox w-4.5 h-4.5 rounded border-slate-700 bg-slate-900 text-teal-500 focus:ring-teal-500 focus:ring-offset-slate-900 focus:ring-2">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-semibold text-white">Capture Source</span>
+                            <span class="text-[9px] text-slate-400 leading-tight">Extension source page</span>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center space-x-3 p-3 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-800/50 hover:border-slate-700 rounded-xl transition cursor-pointer select-none">
+                        <input type="checkbox" value="created_at" checked class="export-col-checkbox w-4.5 h-4.5 rounded border-slate-700 bg-slate-900 text-teal-500 focus:ring-teal-500 focus:ring-offset-slate-900 focus:ring-2">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-semibold text-white">Date Added</span>
+                            <span class="text-[9px] text-slate-400 leading-tight">Database registration date</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Format Preference Section -->
+            <div class="flex items-center justify-between p-3.5 bg-slate-800/20 border border-slate-800 rounded-xl mb-6 text-xs text-slate-300">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="file-text" class="h-4 w-4 text-teal-400"></i>
+                    <span>Export File Format</span>
+                </div>
+                <div class="font-bold text-white bg-slate-950 px-3 py-1.5 border border-slate-800 rounded-lg flex items-center space-x-1">
+                    <i data-lucide="file-spreadsheet" class="h-3.5 w-3.5 text-teal-400"></i>
+                    <span>CSV Spreadsheet</span>
+                </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="flex items-center justify-end space-x-3 border-t border-slate-800/80 pt-4">
+                <button onclick="closeExportModal()" class="px-4 py-2 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white rounded-lg text-sm transition">
+                    Cancel
+                </button>
+                <button onclick="confirmExportLeads()" class="flex items-center space-x-2 px-5 py-2 bg-teal-400 hover:bg-teal-300 text-slate-950 font-bold rounded-lg text-sm transition shadow-lg shadow-teal-500/10">
+                    <i data-lucide="download" class="h-4 w-4"></i>
+                    <span>Download Spreadsheet</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Central JS Handler -->
     <script src="assets/js/app.js"></script>
     <script>
@@ -257,18 +390,75 @@
         }
 
         function exportLeads() {
+            openExportModal();
+        }
+
+        function openExportModal() {
+            const backdrop = document.getElementById('export-modal-backdrop');
+            const modal = document.getElementById('export-modal');
+            
+            backdrop.classList.remove('pointer-events-none');
+            backdrop.classList.add('opacity-100');
+            modal.classList.remove('scale-95', 'opacity-0');
+            modal.classList.add('scale-100', 'opacity-100');
+            
+            // Re-render icons inside modal
+            lucide.createIcons();
+        }
+
+        function closeExportModal() {
+            const backdrop = document.getElementById('export-modal-backdrop');
+            const modal = document.getElementById('export-modal');
+            
+            backdrop.classList.add('pointer-events-none');
+            backdrop.classList.remove('opacity-100');
+            modal.classList.add('scale-95', 'opacity-0');
+            modal.classList.remove('scale-100', 'opacity-100');
+        }
+
+        function applyExportPreset(preset) {
+            const checkboxes = document.querySelectorAll('.export-col-checkbox');
+            checkboxes.forEach(cb => {
+                const val = cb.value;
+                if (preset === 'all') {
+                    cb.checked = true;
+                } else if (preset === 'none') {
+                    cb.checked = false;
+                } else if (preset === 'basic') {
+                    cb.checked = ['name', 'company_name', 'linkedin_url'].includes(val);
+                } else if (preset === 'contacts') {
+                    cb.checked = ['email', 'phone_number'].includes(val);
+                }
+            });
+        }
+
+        function confirmExportLeads() {
+            const checkboxes = document.querySelectorAll('.export-col-checkbox');
+            const selectedCols = [];
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    selectedCols.push(cb.value);
+                }
+            });
+
+            if (selectedCols.length === 0) {
+                showNotification('warning', 'Please select at least one column to export.');
+                return;
+            }
+
             const search = document.getElementById('lead-search').value;
             const company = document.getElementById('filter-company').value;
             const source = document.getElementById('filter-source').value;
             const token = getAuthToken();
             
-            let exportUrl = `${API_BASE_URL}/leads/export.php?token=${token}`;
+            let exportUrl = `${API_BASE_URL}/leads/export.php?token=${token}&columns=${selectedCols.join(',')}`;
             if (search) exportUrl += `&search=${encodeURIComponent(search)}`;
             if (company) exportUrl += `&company=${encodeURIComponent(company)}`;
             if (source) exportUrl += `&source=${encodeURIComponent(source)}`;
             
             window.open(exportUrl, '_blank');
-            showNotification('success', 'Exporting Lead database to CSV...');
+            closeExportModal();
+            showNotification('success', 'Exporting customized Lead database to CSV...');
         }
 
         // Initialize on load

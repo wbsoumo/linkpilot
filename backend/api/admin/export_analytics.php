@@ -9,14 +9,6 @@ $admin = JWTHelper::requireAdmin();
 
 $db = Database::getConnection();
 
-function xmlEscape($val) {
-    if (is_null($val)) return '';
-    if (is_array($val) || is_object($val)) {
-        return htmlspecialchars(json_encode($val), ENT_XML1, 'UTF-8');
-    }
-    return htmlspecialchars((string)$val, ENT_XML1, 'UTF-8');
-}
-
 try {
     // 1. Fetch all tables from active database dynamically
     $tables = $db->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
@@ -58,88 +50,107 @@ try {
         });
     }
 
+    if (empty($tables)) {
+        throw new Exception("No tables selected for export.");
+    }
 
     // Clear any previous output or buffering to prevent leading whitespace/warnings
     if (ob_get_length()) {
         ob_clean();
     }
 
-    // 2. Set headers for native Excel XML download
-    header("Content-Type: application/vnd.ms-excel; charset=utf-8");
-    header("Content-Disposition: attachment; filename=linkpilot_database_report_" . date('Ymd_His') . ".xls");
-    header("Pragma: no-cache");
-    header("Expires: 0");
-
-    // 3. Output XML SpreadsheetML header
-    echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-    echo '<?mso-application progid="Excel.Sheet"?>' . "\n";
-    echo '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"' . "\n";
-    echo ' xmlns:o="urn:schemas-microsoft-com:office:office"' . "\n";
-    echo ' xmlns:x="urn:schemas-microsoft-com:office:excel"' . "\n";
-    echo ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"' . "\n";
-    echo ' xmlns:html="http://www.w3.org/TR/REC-html40">' . "\n";
-    
-    echo ' <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">' . "\n";
-    echo '  <Author>LinkPilot AI</Author>' . "\n";
-    echo '  <Created>' . date('Y-m-d\TH:i:s\Z') . '</Created>' . "\n";
-    echo ' </DocumentProperties>' . "\n";
-
-    echo ' <Styles>' . "\n";
-    echo '  <Style ss:ID="Default" ss:Name="Normal">' . "\n";
-    echo '   <Alignment ss:Vertical="Bottom"/>' . "\n";
-    echo '   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#000000"/>' . "\n";
-    echo '  </Style>' . "\n";
-    echo '  <Style ss:ID="Header">' . "\n";
-    echo '   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#FFFFFF" ss:Bold="1"/>' . "\n";
-    echo '   <Interior ss:Color="#4F46E5" ss:Pattern="Solid"/>' . "\n";
-    echo '  </Style>' . "\n";
-    echo ' </Styles>' . "\n";
-
-    // 4. Output tables as sheets
-    foreach ($tables as $tableName) {
-        // Limit sheet name to 31 chars (Excel limit) and clean characters
-        $sheetName = substr($tableName, 0, 31);
-        $sheetName = str_replace(['\\', '/', '?', '*', '[', ']'], '', $sheetName);
-
-        // Fetch all rows
+    if (count($tables) === 1) {
+        // Single table selected - download directly as CSV
+        $tableName = reset($tables);
+        
+        header("Content-Type: text/csv; charset=utf-8");
+        header("Content-Disposition: attachment; filename=linkpilot_" . $tableName . "_" . date('Ymd_His') . ".csv");
+        header("Pragma: no-cache");
+        header("Expires: 0");
+        
+        $output = fopen('php://output', 'w');
+        
+        // Fetch rows
         $rows = $db->query("SELECT * FROM `$tableName` LIMIT 5000")->fetchAll(PDO::FETCH_ASSOC);
         
-        // Get column headers dynamically
+        // Headers
         if (!empty($rows)) {
             $headers = array_keys($rows[0]);
         } else {
             $headers = $db->query("DESCRIBE `$tableName`")->fetchAll(PDO::FETCH_COLUMN);
         }
-
-        echo ' <Worksheet ss:Name="' . xmlEscape($sheetName) . '">' . "\n";
-        echo '  <Table>' . "\n";
         
-        // Header Row
-        echo '   <Row>' . "\n";
-        foreach ($headers as $header) {
-            echo '    <Cell ss:StyleID="Header"><Data ss:Type="String">' . xmlEscape($header) . '</Data></Cell>' . "\n";
-        }
-        echo '   </Row>' . "\n";
-
-        // Data Rows
+        fputcsv($output, $headers);
+        
         foreach ($rows as $row) {
-            echo '   <Row>' . "\n";
+            $formattedRow = [];
             foreach ($row as $val) {
-                if (is_numeric($val) && !preg_match('/^0[0-9]+/', $val)) {
-                    echo '    <Cell><Data ss:Type="Number">' . $val . '</Data></Cell>' . "\n";
+                if (is_array($val) || is_object($val)) {
+                    $formattedRow[] = json_encode($val);
                 } else {
-                    echo '    <Cell><Data ss:Type="String">' . xmlEscape($val) . '</Data></Cell>' . "\n";
+                    $formattedRow[] = (string)$val;
                 }
             }
-            echo '   </Row>' . "\n";
+            fputcsv($output, $formattedRow);
         }
-
-        echo '  </Table>' . "\n";
-        echo ' </Worksheet>' . "\n";
+        
+        fclose($output);
+        exit;
+    } else {
+        // Multiple tables selected - download as ZIP containing CSVs
+        $zipName = sys_get_temp_dir() . '/linkpilot_db_report_' . uniqid() . '.zip';
+        $zip = new ZipArchive();
+        
+        if ($zip->open($zipName, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            throw new Exception("Cannot create ZIP file");
+        }
+        
+        foreach ($tables as $tableName) {
+            // Fetch rows
+            $rows = $db->query("SELECT * FROM `$tableName` LIMIT 5000")->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Headers
+            if (!empty($rows)) {
+                $headers = array_keys($rows[0]);
+            } else {
+                $headers = $db->query("DESCRIBE `$tableName`")->fetchAll(PDO::FETCH_COLUMN);
+            }
+            
+            // Create a temporary stream for CSV content
+            $tempStream = fopen('php://temp', 'r+');
+            fputcsv($tempStream, $headers);
+            
+            foreach ($rows as $row) {
+                $formattedRow = [];
+                foreach ($row as $val) {
+                    if (is_array($val) || is_object($val)) {
+                        $formattedRow[] = json_encode($val);
+                    } else {
+                        $formattedRow[] = (string)$val;
+                    }
+                }
+                fputcsv($tempStream, $formattedRow);
+            }
+            
+            rewind($tempStream);
+            $csvContent = stream_get_contents($tempStream);
+            fclose($tempStream);
+            
+            $zip->addFromString($tableName . '.csv', $csvContent);
+        }
+        
+        $zip->close();
+        
+        header("Content-Type: application/zip");
+        header("Content-Disposition: attachment; filename=linkpilot_database_report_" . date('Ymd_His') . ".zip");
+        header("Content-Length: " . filesize($zipName));
+        header("Pragma: no-cache");
+        header("Expires: 0");
+        
+        readfile($zipName);
+        unlink($zipName);
+        exit;
     }
-
-    echo '</Workbook>' . "\n";
-    exit;
 
 } catch (Exception $e) {
     header("HTTP/1.1 500 Internal Server Error");

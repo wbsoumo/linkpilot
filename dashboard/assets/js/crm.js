@@ -8420,7 +8420,7 @@ async function renderMeetings(container) {
                                 </p>
                             </div>
                             <button onclick="window.connectZoomMeetings()" class="w-full py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2.5 shadow-sm" style="color: #ffffff !important;">
-                                <img src="https://source.zoom.us/zoom-logo.png" class="h-4 w-4 object-contain" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3670/3670151.png'" alt="Zoom">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/9/94/Zoom_App_Icon_June_2022.svg" class="h-4 w-4 object-contain" alt="Zoom">
                                 <span>Connect Zoom Meetings</span>
                             </button>
                         </div>
@@ -8502,7 +8502,7 @@ window.renderMeetingsList = async function(container, activeTab = null, searchQu
         if (zoomConnected) {
             connectionButtons += `
                 <button onclick="window.disconnectZoomMeetings(document.getElementById('main-content-viewport'))" class="px-3.5 py-2 bg-emerald-50 border border-emerald-100 hover:bg-rose-50 hover:border-rose-100 text-emerald-600 hover:text-rose-600 rounded-xl font-bold transition flex items-center space-x-1.5 text-[11px] group">
-                    <img src="https://source.zoom.us/zoom-logo.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3670/3670151.png'" class="h-4 w-4 mr-1 object-contain" alt="Zoom">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/94/Zoom_App_Icon_June_2022.svg" class="h-4 w-4 mr-1 object-contain" alt="Zoom">
                     <span class="group-hover:hidden">Zoom Connected</span>
                     <span class="hidden group-hover:inline">Disconnect Zoom</span>
                 </button>
@@ -8510,7 +8510,7 @@ window.renderMeetingsList = async function(container, activeTab = null, searchQu
         } else {
             connectionButtons += `
                 <button onclick="window.connectZoomMeetings()" class="px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold transition flex items-center space-x-1.5 text-[11px]">
-                    <img src="https://source.zoom.us/zoom-logo.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3670/3670151.png'" class="h-4 w-4 mr-1 object-contain" alt="Zoom">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/94/Zoom_App_Icon_June_2022.svg" class="h-4 w-4 mr-1 object-contain" alt="Zoom">
                     <span>Connect Zoom</span>
                 </button>
             `;
@@ -17173,7 +17173,7 @@ async function renderExternalApps(container) {
                         <div>
                             <div class="flex justify-between items-start">
                                 <div class="h-12 w-12 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-center p-2.5 shrink-0">
-                                    <img src="https://source.zoom.us/zoom-logo.png" class="h-full w-full object-contain" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3670/3670151.png'" alt="Zoom">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/94/Zoom_App_Icon_June_2022.svg" class="h-full w-full object-contain" alt="Zoom">
                                 </div>
                                 ${buildStatusBadge(zoomConn.connected)}
                             </div>

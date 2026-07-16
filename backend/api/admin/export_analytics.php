@@ -42,6 +42,19 @@ try {
         return !in_array($tableName, $excludedTables);
     });
 
+    // Check for API request to list tables
+    if (isset($_GET['action']) && $_GET['action'] === 'list_tables') {
+        sendJsonResponse('success', 'Tables list retrieved', ['tables' => array_values($tables)]);
+    }
+
+    // Filter tables if specified
+    if (!empty($_GET['tables'])) {
+        $selectedList = explode(',', $_GET['tables']);
+        $tables = array_filter($tables, function($t) use ($selectedList) {
+            return in_array($t, $selectedList);
+        });
+    }
+
 
     // 2. Set headers for native Excel XML download
     header("Content-Type: application/vnd.ms-excel; charset=utf-8");

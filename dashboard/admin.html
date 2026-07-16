@@ -13,6 +13,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="assets/img/logo.png">
     <title>Admin Portal - LinkPilot AI</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons CDN -->
@@ -20,7 +23,7 @@
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="assets/css/style.css?v=3.9">
+    <link rel="stylesheet" href="assets/css/style.css?v=4.0">
 </head>
 <body class="h-full bg-[#f8fafc] text-slate-800 flex overflow-hidden">
 
@@ -941,6 +944,73 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- Advanced Database Export Modal Overlay -->
+    <div id="db-export-modal-backdrop" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div id="db-export-modal" class="glass-panel max-w-lg w-full bg-slate-900 border border-slate-800 text-white rounded-xl shadow-2xl p-6 transform scale-95 transition-all duration-300 opacity-0 mx-4">
+            <!-- Header -->
+            <div class="flex items-start justify-between border-b border-slate-800/80 pb-4 mb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg">
+                        <i data-lucide="database" class="h-5 w-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white tracking-wide">Database Export Settings</h3>
+                        <p class="text-slate-400 text-xs mt-0.5">Select sheets to include in your Excel workbook download</p>
+                    </div>
+                </div>
+                <button onclick="closeDbExportModal()" class="text-slate-400 hover:text-red-400 transition p-1 hover:bg-slate-800/50 rounded-lg">
+                    <i data-lucide="x" class="h-4.5 w-4.5"></i>
+                </button>
+            </div>
+
+            <!-- Presets Section -->
+            <div class="mb-4">
+                <span class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-2">Sheet Selection Presets</span>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="applyDbExportPreset('all')" class="px-2.5 py-1 text-xs border border-slate-800 hover:border-slate-700 bg-slate-800 hover:bg-slate-750 rounded-md font-semibold text-slate-300 hover:text-white transition">
+                        Select All
+                    </button>
+                    <button onclick="applyDbExportPreset('none')" class="px-2.5 py-1 text-xs border border-slate-800 hover:border-slate-700 bg-slate-800 hover:bg-slate-750 rounded-md font-semibold text-slate-300 hover:text-white transition">
+                        Deselect All
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sheets Checklist Grid (Populated dynamically) -->
+            <div class="mb-6">
+                <span class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-2">Check sheets to export</span>
+                <div id="db-export-sheets-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1">
+                    <div class="col-span-full py-6 text-center text-slate-500 text-xs">
+                        <i data-lucide="loader-2" class="h-4 w-4 animate-spin inline mr-1.5"></i> Loading active database tables...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Format Preference Section -->
+            <div class="flex items-center justify-between p-3.5 bg-slate-800/20 border border-slate-800 rounded-xl mb-6 text-xs text-slate-300">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="file-spreadsheet" class="h-4 w-4 text-indigo-400"></i>
+                    <span>Export File Format</span>
+                </div>
+                <div class="font-bold text-white bg-slate-950 px-3 py-1.5 border border-slate-800 rounded-lg flex items-center space-x-1">
+                    <i data-lucide="file-spreadsheet" class="h-3.5 w-3.5 text-indigo-400"></i>
+                    <span>Excel XML Workbook (.xls)</span>
+                </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="flex items-center justify-end space-x-3 border-t border-slate-800/80 pt-4">
+                <button onclick="closeDbExportModal()" class="px-4 py-2 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white rounded-lg text-sm transition">
+                    Cancel
+                </button>
+                <button onclick="confirmDbExport()" class="flex items-center space-x-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-sm transition shadow-lg shadow-indigo-500/10">
+                    <i data-lucide="download" class="h-4 w-4"></i>
+                    <span>Download Report</span>
+                </button>
+            </div>
+        </div>
     </div>
 
     <script src="assets/js/app.js?v=4.0"></script>
@@ -2017,12 +2087,96 @@
         }
 
         window.downloadAnalyticsExport = function() {
+            window.openDbExportModal();
+        };
+
+        window.openDbExportModal = async function() {
+            const backdrop = document.getElementById('db-export-modal-backdrop');
+            const modal = document.getElementById('db-export-modal');
+            
+            backdrop.classList.remove('pointer-events-none');
+            backdrop.classList.add('opacity-100');
+            modal.classList.remove('scale-95', 'opacity-0');
+            modal.classList.add('scale-100', 'opacity-100');
+            
+            lucide.createIcons();
+            
+            // Load tables list dynamically
+            const grid = document.getElementById('db-export-sheets-grid');
+            try {
+                const res = await apiCall('admin/export_analytics.php?action=list_tables');
+                if (res && res.status === 'success' && res.tables) {
+                    if (res.tables.length === 0) {
+                        grid.innerHTML = '<div class="col-span-full py-6 text-center text-slate-500 text-xs">No tables available to export.</div>';
+                        return;
+                    }
+                    grid.innerHTML = res.tables.map(table => {
+                        // Humanize table name for display label
+                        const displayLabel = table.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                        return `
+                            <label class="flex items-center space-x-3 p-3 bg-slate-805/40 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-xl transition cursor-pointer select-none">
+                                <input type="checkbox" value="${table}" checked class="db-export-col-checkbox w-4.5 h-4.5 rounded border-slate-750 bg-slate-950 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-slate-900 focus:ring-2">
+                                <div class="flex flex-col">
+                                    <span class="text-xs font-semibold text-white truncate max-w-[160px]">${displayLabel}</span>
+                                    <span class="text-[9px] text-slate-400 leading-tight">Table: ${table}</span>
+                                </div>
+                            </label>
+                        `;
+                    }).join('');
+                    lucide.createIcons();
+                } else {
+                    grid.innerHTML = '<div class="col-span-full py-6 text-center text-red-500 text-xs">Failed to load tables list.</div>';
+                }
+            } catch (err) {
+                grid.innerHTML = `<div class="col-span-full py-6 text-center text-red-500 text-xs">Error: ${err.message}</div>`;
+            }
+        };
+
+        window.closeDbExportModal = function() {
+            const backdrop = document.getElementById('db-export-modal-backdrop');
+            const modal = document.getElementById('db-export-modal');
+            
+            backdrop.classList.add('pointer-events-none');
+            backdrop.classList.remove('opacity-100');
+            modal.classList.add('scale-95', 'opacity-0');
+            modal.classList.remove('scale-100', 'opacity-100');
+        };
+
+        window.applyDbExportPreset = function(preset) {
+            const checkboxes = document.querySelectorAll('.db-export-col-checkbox');
+            checkboxes.forEach(cb => {
+                if (preset === 'all') {
+                    cb.checked = true;
+                } else if (preset === 'none') {
+                    cb.checked = false;
+                }
+            });
+        };
+
+        window.confirmDbExport = function() {
+            const checkboxes = document.querySelectorAll('.db-export-col-checkbox');
+            const selectedTables = [];
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    selectedTables.push(cb.value);
+                }
+            });
+
+            if (selectedTables.length === 0) {
+                showNotification('warning', 'Please select at least one database sheet to export.');
+                return;
+            }
+
             const token = getAuthToken();
             if (!token) {
                 showNotification('error', 'Authentication token missing.');
                 return;
             }
-            window.location.href = `${API_BASE_URL}/admin/export_analytics.php?token=${encodeURIComponent(token)}`;
+
+            const exportUrl = `${API_BASE_URL}/admin/export_analytics.php?token=${encodeURIComponent(token)}&tables=${selectedTables.join(',')}`;
+            window.location.href = exportUrl;
+            closeDbExportModal();
+            showNotification('success', 'Generating customized Excel Database workbook...');
         };
 
         let deviceChart = null;

@@ -200,6 +200,40 @@ try {
                 sendJsonResponse('error', 'API Key connection test failed: ' . $errMessage);
             }
 
+        } elseif ($action === 'test_all') {
+            // Retrieve all keys for the current user
+            $stmt = $db->prepare("SELECT id, provider, api_key FROM user_ai_keys WHERE user_id = ?");
+            $stmt->execute([$userId]);
+            $keys = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $results = [];
+            foreach ($keys as $k) {
+                $keyId = $k['id'];
+                $decrypted = decryptData($k['api_key']);
+                $apiKey = ($decrypted !== false) ? $decrypted : $k['api_key'];
+
+                try {
+                    testAIKeyConnection($k['provider'], $apiKey);
+
+                    // Update DB
+                    $stmtUpdate = $db->prepare("UPDATE user_ai_keys SET status = 'active', error_message = NULL WHERE id = ?");
+                    $stmtUpdate->execute([$keyId]);
+                    $results[$keyId] = ['success' => true];
+                } catch (Exception $ex) {
+                    $errMessage = $ex->getMessage();
+                    $status = 'limit_exceeded';
+                    if (strpos($errMessage, '401') !== false || strpos(strtolower($errMessage), 'unauthorized') !== false) {
+                        $status = 'invalid';
+                    }
+
+                    // Update DB
+                    $stmtUpdate = $db->prepare("UPDATE user_ai_keys SET status = ?, error_message = ? WHERE id = ?");
+                    $stmtUpdate->execute([$status, $errMessage, $keyId]);
+                    $results[$keyId] = ['success' => false, 'error' => $errMessage];
+                }
+            }
+            sendJsonResponse('success', 'All API Keys synchronized and validated successfully.', ['results' => $results]);
+
         } else {
             sendJsonResponse('error', 'Invalid action specified.', [], 400);
         }

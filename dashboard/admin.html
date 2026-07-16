@@ -163,9 +163,15 @@
                     <div class="glass-panel p-6 space-y-6 md:col-span-2">
                         <div class="flex justify-between items-center border-b border-slate-150 pb-2">
                             <h3 class="text-sm font-bold text-slate-800">Central AI API Keys Manager</h3>
-                            <button onclick="toggleAdminAddKeyForm()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-bold transition shadow-sm" id="admin-add-key-toggle-btn">
-                                <span>Add API Key</span>
-                            </button>
+                            <div class="flex space-x-2">
+                                <button onclick="syncAllAdminAIKeys(this)" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold transition shadow-sm flex items-center space-x-1.5" id="admin-sync-all-btn" style="color: #ffffff !important;">
+                                    <i data-lucide="refresh-cw" class="h-3.5 w-3.5 text-white"></i>
+                                    <span>Sync All</span>
+                                </button>
+                                <button onclick="toggleAdminAddKeyForm()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold transition shadow-sm" id="admin-add-key-toggle-btn" style="color: #ffffff !important;">
+                                    <span>Add API Key</span>
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Inline Add Key Form -->
@@ -1185,6 +1191,31 @@
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalContent;
+            }
+        };
+
+        window.syncAllAdminAIKeys = async function(btn) {
+            const originalContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="inline-block animate-spin mr-1">🔄</span> Syncing...';
+            try {
+                const res = await apiCall('profile/manage_ai_keys.php', 'POST', {
+                    action: 'test_all'
+                });
+                if (res.status === 'success') {
+                    showNotification('success', res.message || 'All API Keys tested and synced successfully.');
+                    loadAdminAISettingsData();
+                } else {
+                    showNotification('error', res.message || 'Sync failed.');
+                    loadAdminAISettingsData();
+                }
+            } catch (err) {
+                showNotification('error', 'Sync connection error: ' + err.message);
+                loadAdminAISettingsData();
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+                lucide.createIcons();
             }
         };
 

@@ -37,11 +37,23 @@
         <div class="flex-grow overflow-y-auto p-5">
             <!-- Sidebar Navigation Links -->
             <nav class="space-y-1.5 flex flex-col text-xs" id="admin-navigation-container">
-                <button onclick="switchAdminTab('health', this)" class="sidebar-nav-link text-slate-300 transition w-full text-left active">
-                    <i data-lucide="shield-check" class="h-4 w-4 mr-2.5"></i><span>System Health</span>
+                <button onclick="switchAdminTab('overview', this)" class="sidebar-nav-link text-slate-300 transition w-full text-left active">
+                    <i data-lucide="bar-chart-2" class="h-4 w-4 mr-2.5 text-indigo-400"></i><span>Overview & Stats</span>
+                </button>
+                <button onclick="switchAdminTab('user-analytics', this)" class="sidebar-nav-link text-slate-300 transition w-full text-left">
+                    <i data-lucide="eye" class="h-4 w-4 mr-2.5 text-sky-400"></i><span>User Analytics</span>
                 </button>
                 <button onclick="switchAdminTab('users', this)" class="sidebar-nav-link text-slate-300 transition w-full text-left">
                     <i data-lucide="users" class="h-4 w-4 mr-2.5"></i><span>User Accounts</span>
+                </button>
+                <button onclick="switchAdminTab('ledger', this)" class="sidebar-nav-link text-slate-300 transition w-full text-left">
+                    <i data-lucide="receipt" class="h-4 w-4 mr-2.5 text-emerald-400"></i><span>Financial Ledger</span>
+                </button>
+                <button onclick="switchAdminTab('emails', this)" class="sidebar-nav-link text-slate-300 transition w-full text-left">
+                    <i data-lucide="mail" class="h-4 w-4 mr-2.5 text-amber-400"></i><span>SMTP Email Logs</span>
+                </button>
+                <button onclick="switchAdminTab('health', this)" class="sidebar-nav-link text-slate-300 transition w-full text-left">
+                    <i data-lucide="shield-check" class="h-4 w-4 mr-2.5"></i><span>System Health</span>
                 </button>
                 <button onclick="switchAdminTab('ai-settings', this)" class="sidebar-nav-link text-slate-300 transition w-full text-left">
                     <i data-lucide="cpu" class="h-4 w-4 mr-2.5"></i><span>AI & Prompts</span>
@@ -84,8 +96,247 @@
 
         <!-- Main Admin Content Container -->
         <main class="flex-grow p-6 md:p-8 overflow-y-auto max-w-7xl w-full mx-auto" id="admin-main-viewport">
+            <!-- 1. OVERVIEW & ANALYTICS PANE -->
+            <div id="admin-overview-pane" class="space-y-6">
+                <!-- Summary Stats Row -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+                    <div class="glass-panel p-4 bg-slate-900/40 border border-slate-800/10 rounded-2xl flex items-center space-x-3.5">
+                        <div class="h-9 w-9 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0">
+                            <i data-lucide="users" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-slate-400 font-semibold text-[10px] uppercase">Registered Users</span>
+                            <span class="text-lg font-black text-white" id="stat-total-users">0</span>
+                            <span class="block text-[9px] text-indigo-400 font-medium" id="stat-active-users-7d">0 active (7d)</span>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-4 bg-slate-900/40 border border-slate-800/10 rounded-2xl flex items-center space-x-3.5">
+                        <div class="h-9 w-9 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center shrink-0">
+                            <i data-lucide="eye" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-slate-400 font-semibold text-[10px] uppercase">Live Sessions</span>
+                            <span class="text-lg font-black text-white" id="stat-active-sessions">0</span>
+                            <span class="block text-[9px] text-sky-400 font-medium" id="stat-total-sessions">0 total sessions</span>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-4 bg-slate-900/40 border border-slate-800/10 rounded-2xl flex items-center space-x-3.5">
+                        <div class="h-9 w-9 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+                            <i data-lucide="award" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-slate-400 font-semibold text-[10px] uppercase">Platform Leads</span>
+                            <span class="text-lg font-black text-white" id="stat-total-leads">0</span>
+                            <span class="block text-[9px] text-emerald-400 font-medium">Synced in Lead Vault</span>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-4 bg-slate-900/40 border border-slate-800/10 rounded-2xl flex items-center space-x-3.5">
+                        <div class="h-9 w-9 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center shrink-0">
+                            <i data-lucide="cpu" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-slate-400 font-semibold text-[10px] uppercase">AI Keys status</span>
+                            <span class="text-lg font-black text-white" id="stat-active-keys">0 active</span>
+                            <span class="block text-[9px] text-rose-400 font-medium" id="stat-invalid-keys">0 inactive / invalid</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Graphs Block -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Main Activity Trend -->
+                    <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl lg:col-span-2 space-y-4 shadow-xs">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-sm font-bold text-slate-800">Platform Traffic & Deliveries</h3>
+                            <span class="text-[10px] font-semibold text-slate-400 uppercase">Last 15 Days</span>
+                        </div>
+                        <div class="relative h-[280px]">
+                            <canvas id="overview-activity-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Platform AI Key health checklist & diagnostic stats -->
+                    <div class="glass-panel p-5 bg-slate-900/40 text-slate-300 rounded-2xl space-y-4">
+                        <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center">
+                            <i data-lucide="cpu" class="h-4 w-4 text-indigo-400 mr-2"></i>
+                            <span>AI Performance Overview</span>
+                        </h3>
+                        <div class="space-y-3.5 text-xs">
+                            <div class="flex justify-between py-1 border-b border-slate-800/30">
+                                <span class="text-slate-450">Platform Total AI Tokens</span>
+                                <span class="font-bold text-white font-mono" id="stat-total-tokens">0</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-800/30">
+                                <span class="text-slate-450">Estimated AI Key Savings</span>
+                                <span class="font-bold text-emerald-400 font-mono" id="stat-estimated-savings">$0.00</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-800/30">
+                                <span class="text-slate-450">SaaS Wallet Purchases</span>
+                                <span class="font-bold text-indigo-400 font-mono" id="stat-total-revenue">₹0.00</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick actions -->
+                        <div class="pt-4 border-t border-slate-800 space-y-2">
+                            <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest">Admin Quick Actions</span>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="switchAdminTab('ai-settings')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold rounded-lg transition flex items-center justify-center">
+                                    <i data-lucide="key" class="h-3 w-3 mr-1"></i> AI Keys
+                                </button>
+                                <button onclick="switchAdminTab('users')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold rounded-lg transition flex items-center justify-center">
+                                    <i data-lucide="users" class="h-3 w-3 mr-1"></i> User Accounts
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. USER ANALYTICS PANE -->
+            <div id="admin-user-analytics-pane" class="hidden space-y-6">
+                <!-- Analytics Charts and Distributions -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4">
+                        <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide border-b border-slate-100 pb-2">Devices Distribution</h4>
+                        <div class="relative h-[200px] flex items-center justify-center">
+                            <canvas id="analytics-devices-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4">
+                        <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide border-b border-slate-100 pb-2">Geographic Distribution</h4>
+                        <div class="overflow-y-auto max-h-[200px] text-xs space-y-2.5" id="analytics-countries-list">
+                            <p class="text-slate-400">Loading country stats...</p>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-5 bg-slate-900/40 text-slate-300 rounded-2xl space-y-4">
+                        <h4 class="text-xs font-bold text-white uppercase tracking-wide border-b border-slate-800 pb-2">Real-Time Traffic Info</h4>
+                        <div class="space-y-3 text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Active sessions (last 15m)</span>
+                                <span class="font-bold text-emerald-400" id="tracker-active-count">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Total tracked sessions</span>
+                                <span class="font-bold text-white" id="tracker-total-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sessions List -->
+                <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
+                    <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center">
+                        <i data-lucide="eye" class="h-4 w-4 text-sky-400 mr-2"></i>
+                        <span>Visitor Sessions & Device Footprint</span>
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse custom-table text-xs">
+                            <thead>
+                                <tr class="border-b border-slate-800">
+                                    <th>Session ID</th>
+                                    <th>User Account</th>
+                                    <th>Geo Location / IP</th>
+                                    <th>Device / OS / Browser</th>
+                                    <th>Clicks</th>
+                                    <th>Latest Hit</th>
+                                    <th class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="analytics-sessions-tbody">
+                                <tr><td colspan="7" class="text-center py-6 text-slate-500">Loading sessions...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. FINANCIAL LEDGER PANE -->
+            <div id="admin-ledger-pane" class="hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Transactions log -->
+                    <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
+                        <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center">
+                            <i data-lucide="receipt" class="h-4 w-4 text-emerald-400 mr-2"></i>
+                            <span>Credit Wallet Transaction Feed</span>
+                        </h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse custom-table text-xs">
+                                <thead>
+                                    <tr class="border-b border-slate-800">
+                                        <th>Tx ID</th>
+                                        <th>User</th>
+                                        <th>Type</th>
+                                        <th>Credits</th>
+                                        <th>Amount</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ledger-tx-tbody">
+                                    <tr><td colspan="6" class="text-center py-6 text-slate-500">Loading wallet records...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Payment Orders log -->
+                    <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
+                        <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center">
+                            <i data-lucide="credit-card" class="h-4 w-4 text-indigo-400 mr-2"></i>
+                            <span>Razorpay Checkout Orders</span>
+                        </h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse custom-table text-xs">
+                                <thead>
+                                    <tr class="border-b border-slate-800">
+                                        <th>Razorpay ID</th>
+                                        <th>User</th>
+                                        <th>Amount</th>
+                                        <th>Credits</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ledger-orders-tbody">
+                                    <tr><td colspan="6" class="text-center py-6 text-slate-500">Loading order records...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. SMTP EMAIL LOGS PANE -->
+            <div id="admin-emails-pane" class="hidden space-y-6">
+                <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
+                    <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center">
+                        <i data-lucide="mail" class="h-4 w-4 text-amber-400 mr-2"></i>
+                        <span>System SMTP Email Logs & Delivery Debugger</span>
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse custom-table text-xs">
+                            <thead>
+                                <tr class="border-b border-slate-800">
+                                    <th>Log ID</th>
+                                    <th>User Initiator</th>
+                                    <th>Recipient</th>
+                                    <th>Subject</th>
+                                    <th>Status</th>
+                                    <th>Delivery Time</th>
+                                    <th class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="emails-logs-tbody">
+                                <tr><td colspan="7" class="text-center py-6 text-slate-500">Loading delivery logs...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- Dynamic tab render containers -->
-            <div id="admin-health-pane" class="space-y-6">
+            <div id="admin-health-pane" class="hidden space-y-6">
                 <!-- System Health check grid -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
                     <!-- Health Checklist -->
@@ -614,9 +865,20 @@
         function switchAdminTab(tab, btn) {
             // Highlight button
             document.querySelectorAll('#admin-navigation-container button').forEach(b => b.classList.remove('active'));
-            if (btn) btn.classList.add('active');
+            
+            // If triggered programmatically (e.g. DOMContentLoaded), find and highlight the match button
+            if (btn) {
+                btn.classList.add('active');
+            } else {
+                const matchedBtn = Array.from(document.querySelectorAll('#admin-navigation-container button')).find(b => b.getAttribute('onclick').includes(`'${tab}'`));
+                if (matchedBtn) matchedBtn.classList.add('active');
+            }
 
             // Hide panes
+            document.getElementById('admin-overview-pane').classList.add('hidden');
+            document.getElementById('admin-user-analytics-pane').classList.add('hidden');
+            document.getElementById('admin-ledger-pane').classList.add('hidden');
+            document.getElementById('admin-emails-pane').classList.add('hidden');
             document.getElementById('admin-health-pane').classList.add('hidden');
             document.getElementById('admin-users-pane').classList.add('hidden');
             document.getElementById('admin-ai-settings-pane').classList.add('hidden');
@@ -628,6 +890,10 @@
             // Show target
             document.getElementById(`admin-${tab}-pane`).classList.remove('hidden');
             
+            if (tab === 'overview') loadAdminOverviewData();
+            if (tab === 'user-analytics') loadAdminUserAnalyticsData();
+            if (tab === 'ledger') loadAdminLedgerData();
+            if (tab === 'emails') loadAdminEmailLogsData();
             if (tab === 'health') loadAdminHealthData();
             if (tab === 'users') loadAdminUsersData();
             if (tab === 'ai-settings') loadAdminAISettingsData();
@@ -692,6 +958,7 @@
                         </td>
                         <td class="py-3 px-4 text-slate-500">${new Date(u.created_at).toLocaleDateString()}</td>
                         <td class="py-3 px-4 text-right">
+                            <button onclick="impersonateUser(${u.id})" class="text-[10px] px-2 py-1 bg-emerald-50 border border-emerald-200 text-emerald-755 rounded hover:bg-emerald-100 transition mr-2" style="color: #059669 !important;">Login As User</button>
                             <button onclick="openManageUserModal(${u.id})" class="text-[10px] px-2 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded hover:bg-indigo-100 transition mr-2" style="color: #4f46e5 !important;">Manage</button>
                             <button onclick="toggleUserAdminRole(${u.id})" class="text-[10px] px-2 py-1 bg-white border border-slate-200 rounded text-slate-600 hover:border-indigo-600 hover:text-indigo-600 transition mr-2">Toggle Role</button>
                             <button onclick="deleteUserPermanently(${u.id})" class="text-[10px] px-2 py-1 bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 transition" style="color: #dc2626 !important;">Delete</button>
@@ -1299,7 +1566,11 @@
                                             </div>
                                         </div>
                                         
-                                        <div class="border-t border-slate-100 pt-4 flex justify-end">
+                                        <div class="border-t border-slate-100 pt-4 flex justify-between items-center">
+                                            <button type="button" onclick="impersonateUser(${user.id})" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold transition flex items-center space-x-1.5 shadow-md shadow-emerald-600/10" style="color: #ffffff !important; background-color: #059669 !important;">
+                                                <i data-lucide="shield-alert" class="h-4 w-4 text-white"></i>
+                                                <span>Login As User</span>
+                                            </button>
                                             <button type="submit" class="px-5 py-2 bg-indigo-650 hover:bg-indigo-700 text-white rounded-lg font-bold transition flex items-center space-x-1.5 shadow-md shadow-indigo-600/10" style="color: #ffffff !important; background-color: #4f46e5 !important;">
                                                 <i data-lucide="save" class="h-4 w-4 text-white"></i>
                                                 <span>Save User Details</span>
@@ -1551,9 +1822,426 @@
             }
         };
 
+        // Global variables for caching email body preview
+        window.loadedEmailLogs = [];
+
+        // 1. OVERVIEW & ANALYTICS DATA LOADERS
+        let overviewChart = null;
+        window.loadAdminOverviewData = async function() {
+            try {
+                const res = await apiCall('admin/analytics_dashboard.php');
+                const s = res.summary;
+                
+                // Update stats counters
+                document.getElementById('stat-total-users').textContent = s.total_users;
+                document.getElementById('stat-active-users-7d').textContent = `${s.active_users_7d} active (7d)`;
+                document.getElementById('stat-total-leads').textContent = s.total_leads;
+                document.getElementById('stat-active-keys').textContent = `${s.active_ai_keys} active`;
+                document.getElementById('stat-invalid-keys').textContent = `${s.invalid_ai_keys} inactive / invalid`;
+                document.getElementById('stat-total-tokens').textContent = Number(s.total_tokens || 0).toLocaleString();
+                
+                // Estimate AI cost savings (approx 0.15$ per 1k tokens)
+                const savings = (s.total_tokens || 0) * 0.00015;
+                document.getElementById('stat-estimated-savings').textContent = `$${savings.toFixed(2)}`;
+                
+                // Format revenue in INR
+                const revenue = s.total_revenue || 0;
+                document.getElementById('stat-total-revenue').textContent = `₹${Number(revenue).toLocaleString()}`;
+                
+                // Render Graph
+                renderOverviewChart(res.chart_data || []);
+                lucide.createIcons();
+            } catch (err) {
+                showNotification('error', 'Failed to load analytical stats: ' + err.message);
+            }
+        };
+
+        function renderOverviewChart(chartData) {
+            const ctx = document.getElementById('overview-activity-chart').getContext('2d');
+            if (overviewChart) {
+                overviewChart.destroy();
+            }
+
+            const labels = chartData.map(d => d.date);
+            const pageviews = chartData.map(d => d.pageviews);
+            const emails = chartData.map(d => d.emails);
+            const whatsapp = chartData.map(d => d.whatsapp);
+
+            overviewChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Page Views / Hits',
+                            data: pageviews,
+                            borderColor: '#38bdf8',
+                            backgroundColor: 'rgba(56, 189, 248, 0.05)',
+                            fill: true,
+                            tension: 0.35,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'SMTP Emails',
+                            data: emails,
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245, 158, 11, 0.05)',
+                            fill: true,
+                            tension: 0.35,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'WhatsApp Sent',
+                            data: whatsapp,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                            fill: true,
+                            tension: 0.35,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#475569',
+                                font: { weight: 'bold', size: 10 }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#64748b', font: { size: 9 } }
+                        },
+                        y: {
+                            grid: { color: '#f1f5f9' },
+                            ticks: { color: '#64748b', font: { size: 9 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 2. USER ANALYTICS TRAFFIC DATA LOADERS
+        let deviceChart = null;
+        window.loadAdminUserAnalyticsData = async function() {
+            try {
+                const res = await apiCall('admin/user_tracker.php');
+                
+                // Update Traffic indicators
+                document.getElementById('tracker-active-count').textContent = res.counters.active_sessions;
+                document.getElementById('tracker-total-count').textContent = res.counters.total_sessions;
+                document.getElementById('stat-active-sessions').textContent = res.counters.active_sessions;
+                document.getElementById('stat-total-sessions').textContent = res.counters.total_sessions;
+
+                // Render Countries List
+                const countriesList = document.getElementById('analytics-countries-list');
+                if (res.countries.length === 0) {
+                    countriesList.innerHTML = `<p class="text-slate-400 py-4 text-center">No location metrics available.</p>`;
+                } else {
+                    countriesList.innerHTML = res.countries.map(c => `
+                        <div class="flex justify-between items-center text-slate-700 font-semibold mb-2">
+                            <span class="flex items-center">
+                                <span class="mr-2 text-slate-450">📍</span>
+                                <span>${c.label}</span>
+                            </span>
+                            <span class="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-[10px] text-slate-500">${c.count} visitors</span>
+                        </div>
+                    `).join('');
+                }
+
+                // Render Device Donut Chart
+                renderDevicesChart(res.devices || []);
+
+                // Render Sessions List
+                const tbody = document.getElementById('analytics-sessions-tbody');
+                if (res.sessions.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-500">No session activities logged yet.</td></tr>`;
+                } else {
+                    tbody.innerHTML = res.sessions.map(s => {
+                        const userText = s.user_name ? `${s.user_name}<div class="text-[10px] text-slate-500 font-medium">${s.user_email}</div>` : `<span class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-400 font-bold text-[9px] uppercase">Anonymous Guest</span>`;
+                        const latestTime = new Date(s.updated_at).toLocaleString();
+                        const deviceIcon = s.device_type === 'Mobile' ? 'smartphone' : 'monitor';
+                        
+                        return `
+                            <tr class="hover:bg-slate-50 border-b border-slate-100">
+                                <td class="py-3 px-4 font-mono font-bold text-slate-500 truncate max-w-[100px]" title="${s.session_token}">${s.session_token.split('_')[1] || s.session_token}</td>
+                                <td class="py-3 px-4 font-bold text-slate-800">${userText}</td>
+                                <td class="py-3 px-4 font-bold text-slate-800">
+                                    <div class="flex items-center">
+                                        <span class="mr-1.5 text-xs">🌐</span>
+                                        <div>
+                                            <span>${s.country || 'Unknown'}</span>
+                                            <div class="text-[9px] text-slate-450 font-mono font-semibold">${s.ip_address}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4 text-slate-650">
+                                    <div class="flex items-center space-x-1.5">
+                                        <i data-lucide="${deviceIcon}" class="h-3.5 w-3.5 text-slate-400"></i>
+                                        <span>${s.os || 'Unknown OS'} / ${s.browser || 'Unknown'}</span>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-650 font-bold font-mono text-[10px]">${s.activity_count} hits</span></td>
+                                <td class="py-3 px-4 text-slate-500 font-semibold font-mono text-[10px]">${latestTime}</td>
+                                <td class="py-3 px-4 text-right">
+                                    <button onclick="viewSessionClickstream(${s.id})" class="text-[10px] px-2 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded hover:bg-indigo-100 transition" style="color: #4f46e5 !important;">View clicks</button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+                lucide.createIcons();
+            } catch (err) {
+                showNotification('error', 'Failed to load tracker stats: ' + err.message);
+            }
+        };
+
+        function renderDevicesChart(devices) {
+            const ctx = document.getElementById('analytics-devices-chart').getContext('2d');
+            if (deviceChart) {
+                deviceChart.destroy();
+            }
+            
+            const labels = devices.map(d => d.label);
+            const counts = devices.map(d => d.count);
+
+            deviceChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: counts,
+                        backgroundColor: ['#6366f1', '#10b981', '#f59e0b'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { font: { size: 9, weight: 'bold' }, color: '#475569' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 3. FINANCIAL LEDGER DATA LOADERS
+        window.loadAdminLedgerData = async function() {
+            try {
+                const res = await apiCall('admin/financial_ledger.php');
+                
+                // Render Transaction feed
+                const txBody = document.getElementById('ledger-tx-tbody');
+                if (res.transactions.length === 0) {
+                    txBody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-500">No credit adjustments logged.</td></tr>`;
+                } else {
+                    txBody.innerHTML = res.transactions.map(tx => `
+                        <tr class="hover:bg-slate-50 border-b border-slate-100">
+                            <td class="py-2.5 px-4 font-mono font-bold text-slate-500">#${tx.id}</td>
+                            <td class="py-2.5 px-4 font-bold text-slate-800">${tx.user_name || 'System'}<div class="text-[9px] text-slate-500 font-medium">${tx.user_email || ''}</div></td>
+                            <td class="py-2.5 px-4">
+                                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${tx.type === 'recharge' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-100 text-slate-500 border border-slate-200'}">
+                                    ${tx.type}
+                                </span>
+                            </td>
+                            <td class="py-2.5 px-4 font-bold text-slate-700 font-mono">${tx.credits > 0 ? '+' : ''}${tx.credits}</td>
+                            <td class="py-2.5 px-4 font-bold text-slate-700 font-mono">₹${tx.amount}</td>
+                            <td class="py-2.5 px-4 text-slate-550 font-semibold font-mono text-[10px]">${new Date(tx.created_at).toLocaleString()}</td>
+                        </tr>
+                    `).join('');
+                }
+
+                // Render Checkout Orders feed
+                const orderBody = document.getElementById('ledger-orders-tbody');
+                if (res.orders.length === 0) {
+                    orderBody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-500">No payment orders found.</td></tr>`;
+                } else {
+                    orderBody.innerHTML = res.orders.map(o => `
+                        <tr class="hover:bg-slate-50 border-b border-slate-100">
+                            <td class="py-2.5 px-4 font-mono font-bold text-slate-500 truncate max-w-[120px]" title="${o.order_id}">${o.order_id}</td>
+                            <td class="py-2.5 px-4 font-bold text-slate-800">${o.user_name || 'System'}<div class="text-[9px] text-slate-500 font-medium">${o.user_email || ''}</div></td>
+                            <td class="py-2.5 px-4 font-bold text-slate-700 font-mono">₹${(o.amount/100).toFixed(2)}</td>
+                            <td class="py-2.5 px-4 font-bold text-slate-700 font-mono">+${o.credits}</td>
+                            <td class="py-2.5 px-4">
+                                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${o.status === 'paid' || o.status === 'captured' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'}">
+                                    ${o.status}
+                                </span>
+                            </td>
+                            <td class="py-2.5 px-4 text-slate-555 font-semibold font-mono text-[10px]">${new Date(o.created_at).toLocaleString()}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (err) {
+                showNotification('error', 'Failed to load ledger: ' + err.message);
+            }
+        };
+
+        // 4. SMTP EMAIL DELIVERIES DATA LOADERS
+        window.loadAdminEmailLogsData = async function() {
+            try {
+                const res = await apiCall('admin/email_logs.php');
+                window.loadedEmailLogs = res.emails || [];
+
+                const tbody = document.getElementById('emails-logs-tbody');
+                if (window.loadedEmailLogs.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-500">No outbound system emails logged yet.</td></tr>`;
+                } else {
+                    tbody.innerHTML = window.loadedEmailLogs.map(e => `
+                        <tr class="hover:bg-slate-50 border-b border-slate-100">
+                            <td class="py-2.5 px-4 font-mono font-bold text-slate-500">#${e.id}</td>
+                            <td class="py-2.5 px-4 font-bold text-slate-800">${e.user_name || 'System'}<div class="text-[9px] text-slate-500 font-medium">${e.user_email || ''}</div></td>
+                            <td class="py-2.5 px-4 font-semibold text-slate-700">${e.recipient_email}</td>
+                            <td class="py-2.5 px-4 truncate max-w-[200px]" title="${e.subject}">${e.subject}</td>
+                            <td class="py-2.5 px-4">
+                                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${e.status === 'sent' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'}" title="${e.error_message || ''}">
+                                    ${e.status}
+                                </span>
+                            </td>
+                            <td class="py-2.5 px-4 text-slate-550 font-semibold font-mono text-[10px]">${new Date(e.created_at).toLocaleString()}</td>
+                            <td class="py-2.5 px-4 text-right">
+                                <button onclick="viewEmailContent(${e.id})" class="text-[10px] px-2 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-650 rounded transition">View body</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+                lucide.createIcons();
+            } catch (err) {
+                showNotification('error', 'Failed to load email logs: ' + err.message);
+            }
+        };
+
+        // 5. VIEW EMAIL BODY PREVIEW MODAL
+        window.viewEmailContent = function(emailId) {
+            const email = window.loadedEmailLogs.find(e => e.id == emailId);
+            if (!email) return;
+
+            const existing = document.getElementById('admin-email-body-modal');
+            if (existing) existing.remove();
+
+            const modalHTML = `
+                <div id="admin-email-body-modal" class="fixed inset-0 z-[160] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+                    <div class="bg-white rounded-2xl w-full max-w-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[70vh] text-slate-800 animate-slide-up transform duration-300">
+                        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                            <div class="text-left">
+                                <h3 class="text-xs font-bold text-slate-800">Email Outbox Viewer</h3>
+                                <p class="text-[9px] text-slate-400 mt-0.5">Recipient: ${email.recipient_email}</p>
+                            </div>
+                            <button onclick="document.getElementById('admin-email-body-modal').remove()" class="h-7 w-7 rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition">
+                                <i data-lucide="x" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+                        <div class="p-6 overflow-y-auto flex-grow text-xs text-left bg-slate-50 font-mono space-y-4">
+                            <div><span class="font-bold text-slate-400">Subject:</span> ${email.subject}</div>
+                            ${email.error_message ? `<div class="p-3 bg-rose-50 border border-rose-100 rounded-lg text-rose-600 font-sans"><span class="font-bold">Error Info:</span> ${email.error_message}</div>` : ''}
+                            <hr class="border-slate-200" />
+                            <div class="bg-white p-4 border border-slate-200 rounded-xl overflow-x-auto whitespace-pre-wrap">${email.body}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            lucide.createIcons();
+        };
+
+        // 6. VIEW SESSION CLICKSTREAM TIMELINE MODAL
+        window.viewSessionClickstream = async function(sessionId) {
+            try {
+                const res = await apiCall(`admin/user_tracker.php?session_id=${sessionId}`);
+                const session = res.session;
+                const activities = res.activities || [];
+
+                const existing = document.getElementById('admin-session-activities-modal');
+                if (existing) existing.remove();
+
+                const activityRows = activities.map(act => {
+                    const timeStr = new Date(act.created_at).toLocaleTimeString();
+                    if (act.activity_type === 'page_view') {
+                        return `
+                            <div class="flex items-start space-x-3 text-slate-650">
+                                <div class="h-6 w-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 text-[10px] font-bold border border-blue-200">PV</div>
+                                <div class="flex-grow">
+                                    <span class="font-bold text-slate-800">Page View</span> at <span class="font-mono text-slate-400">${timeStr}</span>
+                                    <div class="text-[10px] text-slate-500 font-semibold truncate bg-slate-50 p-1.5 rounded border border-slate-100 mt-1" title="${act.page_url}">
+                                        <strong>Page Title:</strong> ${act.page_title || 'Workspace'}<br/>
+                                        <strong>URL:</strong> ${act.page_url}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        return `
+                            <div class="flex items-start space-x-3 text-slate-650">
+                                <div class="h-6 w-6 rounded-full bg-indigo-50 text-indigo-650 flex items-center justify-center shrink-0 text-[10px] font-bold border border-indigo-200">CL</div>
+                                <div class="flex-grow">
+                                    <span class="font-bold text-slate-800">Clicked Element</span> at <span class="font-mono text-slate-450">${timeStr}</span>
+                                    <div class="text-[10px] text-slate-500 font-semibold bg-slate-50 p-2 rounded border border-slate-100 mt-1 space-y-1">
+                                        <div><strong>Tag Name:</strong> &lt;${act.element_tag || 'element'}&gt;</div>
+                                        ${act.element_text ? `<div><strong>Inner Text:</strong> <span class="text-indigo-600 font-extrabold">"${act.element_text}"</span></div>` : ''}
+                                        ${act.element_id ? `<div><strong>ID:</strong> <code>#${act.element_id}</code></div>` : ''}
+                                        ${act.element_class ? `<div><strong>Classes:</strong> <code>.${act.element_class.split(' ').slice(0, 3).join('.')}</code></div>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }).join('<hr class="border-slate-150 my-3" />') || '<p class="text-slate-455 text-center py-6 font-semibold">No activities logged in this session.</p>';
+
+                const modalHTML = `
+                    <div id="admin-session-activities-modal" class="fixed inset-0 z-[160] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+                        <div class="bg-white rounded-2xl w-full max-w-xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[75vh] text-slate-800 animate-slide-up transform duration-300">
+                            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                                <div class="text-left">
+                                    <h3 class="text-xs font-bold text-slate-800">Visitor Clickstream Logs</h3>
+                                    <p class="text-[9px] text-slate-400 mt-0.5">${session.browser} on ${session.os} (${session.ip_address})</p>
+                                </div>
+                                <button onclick="document.getElementById('admin-session-activities-modal').remove()" class="h-7 w-7 rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition">
+                                    <i data-lucide="x" class="h-4 w-4"></i>
+                                </button>
+                            </div>
+                            <div class="p-6 overflow-y-auto flex-grow text-xs space-y-4 text-left">
+                                ${activityRows}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML('beforeend', modalHTML);
+                lucide.createIcons();
+            } catch (err) {
+                showNotification('error', err.message);
+            }
+        };
+
+        // 7. SECURE USER IMPERSONATION SYSTEM
+        window.impersonateUser = async function(userId) {
+            if (!confirm('Are you sure you want to securely log in as this user? This redirects you into their workspace.')) return;
+            try {
+                const res = await apiCall('admin/impersonate.php', 'POST', { user_id: userId });
+                
+                // Open new tab, write impersonation token to local storage securely, and load workspace
+                const clientWin = window.open('', '_blank');
+                if (clientWin) {
+                    clientWin.localStorage.setItem('linkpilot_token', res.token);
+                    clientWin.localStorage.setItem('linkpilot_user', JSON.stringify(res.user));
+                    clientWin.location.href = 'index.html';
+                } else {
+                    showNotification('warning', 'Pop-up blocked. Please enable popups to open client dashboard.');
+                }
+            } catch (err) {
+                showNotification('error', 'Impersonation failed: ' + err.message);
+            }
+        };
+
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
-            loadAdminHealthData();
+            switchAdminTab('overview');
             lucide.createIcons();
             
             // Hook logoutBtn
@@ -1566,5 +2254,6 @@
             }
         });
     </script>
+    <script src="assets/js/tracker.js"></script>
 </body>
 </html>

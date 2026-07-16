@@ -157,6 +157,49 @@ try {
             logActivity($userId, "Deleted API key for provider: {$keyRow['provider']}");
             sendJsonResponse('success', 'API Key deleted successfully.');
 
+        } elseif ($action === 'test') {
+            if (empty($input['id'])) {
+                sendJsonResponse('error', 'Invalid input parameters.', [], 400);
+            }
+
+            $keyId = (int)$input['id'];
+
+            // Verify key ownership
+            $stmtCheck = $db->prepare("SELECT provider, api_key FROM user_ai_keys WHERE id = ? AND user_id = ?");
+            $stmtCheck->execute([$keyId, $userId]);
+            $keyRow = $stmtCheck->fetch();
+            if (!$keyRow) {
+                sendJsonResponse('error', 'Key not found or access denied.', [], 404);
+            }
+
+            $decrypted = decryptData($keyRow['api_key']);
+            $apiKey = ($decrypted !== false) ? $decrypted : $keyRow['api_key'];
+
+            try {
+                // Test the key connection
+                testAIKeyConnection($keyRow['provider'], $apiKey);
+
+                // Success: mark as active
+                $stmtUpdate = $db->prepare("UPDATE user_ai_keys SET status = 'active', error_message = NULL WHERE id = ?");
+                $stmtUpdate->execute([$keyId]);
+
+                sendJsonResponse('success', 'API Key connection test succeeded. Key is working!');
+            } catch (Exception $ex) {
+                $errMessage = $ex->getMessage();
+                
+                // Determine error status
+                $status = 'limit_exceeded';
+                if (strpos($errMessage, '401') !== false || strpos(strtolower($errMessage), 'unauthorized') !== false) {
+                    $status = 'invalid';
+                }
+
+                // Update status in DB
+                $stmtUpdate = $db->prepare("UPDATE user_ai_keys SET status = ?, error_message = ? WHERE id = ?");
+                $stmtUpdate->execute([$status, $errMessage, $keyId]);
+
+                sendJsonResponse('error', 'API Key connection test failed: ' . $errMessage);
+            }
+
         } else {
             sendJsonResponse('error', 'Invalid action specified.', [], 400);
         }

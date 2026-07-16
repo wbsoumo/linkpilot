@@ -413,3 +413,128 @@ if (!function_exists('callOpenRouter')) {
         return callAI($systemPrompt, $userPrompt, $userId);
     }
 }
+
+if (!function_exists('testAIKeyConnection')) {
+    function testAIKeyConnection($provider, $apiKey) {
+        $systemPrompt = "You are a connectivity test bot. Reply with one word: Success.";
+        $userPrompt = "ping";
+        
+        if ($provider === 'github_models') {
+            $model = "gpt-4o-mini";
+            $headers = [
+                "Authorization: Bearer " . $apiKey,
+                "Content-Type: application/json",
+                "User-Agent: LinkPilot-AI"
+            ];
+            $postFields = [
+                "model" => $model,
+                "messages" => [
+                    ["role" => "system", "content" => $systemPrompt],
+                    ["role" => "user", "content" => $userPrompt]
+                ],
+                "max_tokens" => 5
+            ];
+            
+            $ch = curl_init("https://models.inference.ai.azure.com/chat/completions");
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
+            curl_close($ch);
+            
+            if ($error) {
+                throw new Exception("Connection failed: " . $error);
+            }
+            $data = json_decode($response, true);
+            if ($httpCode !== 200) {
+                $msg = $data['message'] ?? ($data['error']['message'] ?? "HTTP error {$httpCode}");
+                throw new Exception($msg);
+            }
+            return true;
+            
+        } elseif ($provider === 'google_ai_studio') {
+            $model = "gemini-2.5-flash";
+            $headers = [
+                "Authorization: Bearer " . $apiKey,
+                "Content-Type: application/json"
+            ];
+            $postFields = [
+                "model" => $model,
+                "messages" => [
+                    ["role" => "system", "content" => $systemPrompt],
+                    ["role" => "user", "content" => $userPrompt]
+                ],
+                "max_tokens" => 5
+            ];
+            
+            $ch = curl_init("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions");
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
+            curl_close($ch);
+            
+            if ($error) {
+                throw new Exception("Connection failed: " . $error);
+            }
+            $data = json_decode($response, true);
+            if ($httpCode !== 200) {
+                $msg = $data['message'] ?? ($data['error']['message'] ?? "HTTP error {$httpCode}");
+                throw new Exception($msg);
+            }
+            return true;
+            
+        } else { // openrouter
+            $model = "google/gemini-2.0-flash-lite:free";
+            $headers = [
+                "Authorization: Bearer " . $apiKey,
+                "Content-Type: application/json",
+                "HTTP-Referer: https://linkpilot.work",
+                "X-Title: LinkPilot AI"
+            ];
+            $postFields = [
+                "model" => $model,
+                "messages" => [
+                    ["role" => "system", "content" => $systemPrompt],
+                    ["role" => "user", "content" => $userPrompt]
+                ],
+                "max_tokens" => 5
+            ];
+            
+            $ch = curl_init("https://openrouter.ai/api/v1/chat/completions");
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
+            curl_close($ch);
+            
+            if ($error) {
+                throw new Exception("Connection failed: " . $error);
+            }
+            $data = json_decode($response, true);
+            if ($httpCode !== 200) {
+                $msg = $data['error']['message'] ?? "HTTP error {$httpCode}";
+                throw new Exception($msg);
+            }
+            return true;
+        }
+    }
+}

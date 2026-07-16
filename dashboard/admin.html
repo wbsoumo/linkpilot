@@ -1062,11 +1062,14 @@
                                 <td class="py-2.5 px-4 font-bold text-slate-800">${providerLabel}</td>
                                 <td class="py-2.5 px-4 font-mono text-slate-500">${k.masked_key}</td>
                                 <td class="py-2.5 px-4">
-                                    <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${badgeColor}">${k.status.replace('_', ' ')}</span>
+                                    <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${badgeColor}" title="${k.error_message ? k.error_message.replace(/"/g, '&quot;') : 'Key is active and working'}">${k.status.replace('_', ' ')}</span>
                                 </td>
                                 <td class="py-2.5 px-4 text-slate-600 font-semibold">${k.total_calls.toLocaleString()}</td>
                                 <td class="py-2.5 px-4 text-slate-600 font-semibold">${k.calls_24h.toLocaleString()}</td>
                                 <td class="py-2.5 px-4 text-right">
+                                    <button onclick="testAdminAIKey(${k.id}, this)" class="text-[10px] px-2 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded hover:bg-indigo-100 hover:border-indigo-300 transition mr-2" title="Test Connection">
+                                        Test
+                                    </button>
                                     <button onclick="toggleAdminAIKeyStatus(${k.id}, '${k.status}')" class="text-[10px] px-2 py-1 bg-white border border-slate-200 rounded text-slate-600 hover:border-indigo-600 hover:text-indigo-600 transition mr-2" title="${pausePlayTitle}">
                                         ${k.status === 'paused' ? 'Resume' : 'Pause'}
                                     </button>
@@ -1157,6 +1160,31 @@
                 }
             } catch (err) {
                 showNotification('error', err.message);
+            }
+        };
+
+        window.testAdminAIKey = async function(keyId, btn) {
+            const originalContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="inline-block animate-spin mr-1">🔄</span> Testing...';
+            try {
+                const res = await apiCall('profile/manage_ai_keys.php', 'POST', {
+                    action: 'test',
+                    id: keyId
+                });
+                if (res.status === 'success') {
+                    showNotification('success', res.message || 'API Key is working successfully.');
+                    loadAdminAISettingsData();
+                } else {
+                    showNotification('error', res.message || 'API Key validation failed.');
+                    loadAdminAISettingsData();
+                }
+            } catch (err) {
+                showNotification('error', 'Connection error: ' + err.message);
+                loadAdminAISettingsData();
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
             }
         };
 

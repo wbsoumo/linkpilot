@@ -10,8 +10,23 @@
     const isDashboard = window.location.pathname.includes('/dashboard/');
     const apiPath = isDashboard ? '../backend/api/analytics/track.php' : 'backend/api/analytics/track.php';
 
+    // Configure whether to write telemetry to local Database or offload to Google Tag Manager / GA4
+    const OFFLOAD_TO_GTM = true; // Set to true to disable local database writes and use GTM/GA4 dataLayer instead
+
     // Helper to send payloads to tracking API
     async function sendTrackingPayload(type, payload) {
+        if (OFFLOAD_TO_GTM) {
+            // Push to GTM/GA4 dataLayer
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+                event: 'linkpilot_telemetry',
+                telemetry_type: type,
+                session_token: sessionToken,
+                payload: payload
+            });
+            return;
+        }
+
         try {
             const token = localStorage.getItem('linkpilot_token');
             const headers = { 'Content-Type': 'application/json' };
@@ -37,6 +52,20 @@
     // Expose public emitter API
     window.LinkPilotTracker = {
         trackEvent: function(eventName, eventCategory = 'general', eventAction = null, metadata = {}) {
+            if (OFFLOAD_TO_GTM) {
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push({
+                    event: eventName,
+                    eventCategory: eventCategory,
+                    eventAction: eventAction,
+                    page_url: window.location.href,
+                    page_title: document.title,
+                    referrer: document.referrer || null,
+                    metadata: metadata
+                });
+                return;
+            }
+
             sendTrackingPayload('event', {
                 event_name: eventName,
                 event_category: eventCategory,

@@ -9,65 +9,90 @@ $admin = JWTHelper::requireAdmin();
 
 $db = Database::getConnection();
 
-// Helper to generate clean CSV format strings safely
-function generateCsv($headers, $rows) {
-    $fp = fopen('php://temp', 'r+');
-    fputcsv($fp, $headers);
-    foreach ($rows as $row) {
-        fputcsv($fp, array_map(function($val) {
-            return is_null($val) ? '' : $val;
-        }, $row));
-    }
-    rewind($fp);
-    $csv = stream_get_contents($fp);
-    fclose($fp);
-    return $csv;
+function xmlEscape($val) {
+    if (is_null($val)) return '';
+    return htmlspecialchars((string)$val, ENT_XML1, 'UTF-8');
 }
 
 try {
     // 1. Fetch all tables from active database dynamically
     $tables = $db->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
 
-    if (class_exists('ZipArchive') && !empty($tables)) {
-        $zipName = tempnam(sys_get_temp_dir(), 'analytics_export_');
-        $zip = new ZipArchive();
-        
-        if ($zip->open($zipName, ZipArchive::CREATE) === TRUE) {
-            foreach ($tables as $tableName) {
-                // Fetch all rows for this table
-                $rows = $db->query("SELECT * FROM `$tableName`")->fetchAll(PDO::FETCH_ASSOC);
-                
-                // Get column headers dynamically
-                if (!empty($rows)) {
-                    $headers = array_keys($rows[0]);
-                } else {
-                    $headers = $db->query("DESCRIBE `$tableName`")->fetchAll(PDO::FETCH_COLUMN);
-                }
-                
-                // Build CSV string
-                $csvContent = generateCsv($headers, $rows);
-                
-                // Add sheet to zip archive
-                $zip->addFromString($tableName . '.csv', $csvContent);
-            }
-            $zip->close();
+    // 2. Set headers for native Excel XML download
+    header("Content-Type: application/vnd.ms-excel; charset=utf-8");
+    header("Content-Disposition: attachment; filename=linkpilot_database_report_" . date('Ymd_His') . ".xls");
+    header("Pragma: no-cache");
+    header("Expires: 0");
 
-            header("Content-Type: application/zip");
-            header("Content-Disposition: attachment; filename=linkpilot_database_export_" . date('Ymd_His') . ".zip");
-            header("Content-Length: " . filesize($zipName));
-            readfile($zipName);
-            unlink($zipName);
-            exit;
+    // 3. Output XML SpreadsheetML header
+    echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+    echo '<?mso-application progid="Excel.Sheet"?>' . "\n";
+    echo '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"' . "\n";
+    echo ' xmlns:o="urn:schemas-microsoft-com:office:office"' . "\n";
+    echo ' xmlns:x="urn:schemas-microsoft-com:office:excel"' . "\n";
+    echo ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"' . "\n";
+    echo ' xmlns:html="http://www.w3.org/TR/REC-html40">' . "\n";
+    
+    echo ' <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">' . "\n";
+    echo '  <Author>LinkPilot AI</Author>' . "\n";
+    echo '  <Created>' . date('Y-m-d\TH:i:s\Z') . '</Created>' . "\n";
+    echo ' </DocumentProperties>' . "\n";
+
+    echo ' <Styles>' . "\n";
+    echo '  <Style ss:ID="Default" ss:Name="Normal">' . "\n";
+    echo '   <Alignment ss:Vertical="Bottom"/>' . "\n";
+    echo '   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#000000"/>' . "\n";
+    echo '  </Style>' . "\n";
+    echo '  <Style ss:ID="Header">' . "\n";
+    echo '   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#FFFFFF" ss:Bold="1"/>' . "\n";
+    echo '   <Interior ss:Color="#4F46E5" ss:Pattern="Solid"/>' . "\n";
+    echo '  </Style>' . "\n";
+    echo ' </Styles>' . "\n";
+
+    // 4. Output tables as sheets
+    foreach ($tables as $tableName) {
+        // Limit sheet name to 31 chars (Excel limit) and clean characters
+        $sheetName = substr($tableName, 0, 31);
+        $sheetName = str_replace(['\\', '/', '?', '*', '[', ']'], '', $sheetName);
+
+        // Fetch all rows
+        $rows = $db->query("SELECT * FROM `$tableName` LIMIT 5000")->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Get column headers dynamically
+        if (!empty($rows)) {
+            $headers = array_keys($rows[0]);
+        } else {
+            $headers = $db->query("DESCRIBE `$tableName`")->fetchAll(PDO::FETCH_COLUMN);
         }
+
+        echo ' <Worksheet ss:Name="' . xmlEscape($sheetName) . '">' . "\n";
+        echo '  <Table>' . "\n";
+        
+        // Header Row
+        echo '   <Row>' . "\n";
+        foreach ($headers as $header) {
+            echo '    <Cell ss:StyleID="Header"><Data ss:Type="String">' . xmlEscape($header) . '</Data></Cell>' . "\n";
+        }
+        echo '   </Row>' . "\n";
+
+        // Data Rows
+        foreach ($rows as $row) {
+            echo '   <Row>' . "\n";
+            foreach ($row as $val) {
+                if (is_numeric($val) && !preg_match('/^0[0-9]+/', $val)) {
+                    echo '    <Cell><Data ss:Type="Number">' . $val . '</Data></Cell>' . "\n";
+                } else {
+                    echo '    <Cell><Data ss:Type="String">' . xmlEscape($val) . '</Data></Cell>' . "\n";
+                }
+            }
+            echo '   </Row>' . "\n";
+        }
+
+        echo '  </Table>' . "\n";
+        echo ' </Worksheet>' . "\n";
     }
 
-    // Fallback: If ZipArchive class is missing, output universal_events CSV directly
-    $events = $db->query("SELECT * FROM `universal_events` LIMIT 5000")->fetchAll(PDO::FETCH_ASSOC);
-    $headers = !empty($events) ? array_keys($events[0]) : ['id', 'event_name'];
-    
-    header("Content-Type: text/csv");
-    header("Content-Disposition: attachment; filename=linkpilot_universal_events_export_" . date('Ymd_His') . ".csv");
-    echo generateCsv($headers, $events);
+    echo '</Workbook>' . "\n";
     exit;
 
 } catch (Exception $e) {

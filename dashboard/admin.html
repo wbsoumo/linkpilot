@@ -683,13 +683,18 @@
                 const tbody = document.getElementById('admin-users-tbody');
                 
                 tbody.innerHTML = res.users.map(u => `
-                    <tr class="hover:bg-slate-900/40">
-                        <td class="py-3 px-4 font-bold text-white">${u.name}<div class="text-[10px] text-slate-500 font-medium">${u.email}</div></td>
-                        <td class="py-3 px-4"><span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${u.role === 'admin' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-slate-850 text-slate-400'}">${u.role.toUpperCase()}</span></td>
-                        <td class="py-3 px-4 text-slate-400">${new Date(u.created_at).toLocaleDateString()}</td>
+                    <tr class="hover:bg-slate-50 border-b border-slate-100">
+                        <td class="py-3 px-4 font-bold text-slate-800">${u.name}<div class="text-[10px] text-slate-500 font-medium">${u.email}</div></td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${u.role === 'admin' ? 'bg-rose-50 text-rose-600 border border-rose-200' : 'bg-slate-100 text-slate-500 border border-slate-200'}">
+                                ${u.role.toUpperCase()}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-slate-500">${new Date(u.created_at).toLocaleDateString()}</td>
                         <td class="py-3 px-4 text-right">
-                            <button onclick="toggleUserAdminRole(${u.id})" class="text-[10px] px-2 py-1 bg-slate-850 border border-slate-700 rounded hover:border-indigo-400 hover:text-indigo-400 transition mr-2">Toggle Role</button>
-                            <button onclick="deleteUserPermanently(${u.id})" class="text-[10px] px-2 py-1 bg-red-950/20 text-red-400 border border-red-900/20 rounded hover:bg-red-900/20 transition">Delete</button>
+                            <button onclick="openManageUserModal(${u.id})" class="text-[10px] px-2 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded hover:bg-indigo-100 transition mr-2" style="color: #4f46e5 !important;">Manage</button>
+                            <button onclick="toggleUserAdminRole(${u.id})" class="text-[10px] px-2 py-1 bg-white border border-slate-200 rounded text-slate-600 hover:border-indigo-600 hover:text-indigo-600 transition mr-2">Toggle Role</button>
+                            <button onclick="deleteUserPermanently(${u.id})" class="text-[10px] px-2 py-1 bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 transition" style="color: #dc2626 !important;">Delete</button>
                         </td>
                     </tr>
                 `).join('');
@@ -1216,6 +1221,317 @@
                 btn.disabled = false;
                 btn.innerHTML = originalContent;
                 lucide.createIcons();
+            }
+        };
+
+        };
+
+        window.openManageUserModal = async function(userId) {
+            try {
+                const data = await apiCall(`admin/users.php?user_id=${userId}`);
+                const user = data.user;
+                const credits = data.credits;
+                const logs = data.logs || [];
+                const txs = data.transactions || [];
+                
+                const existing = document.getElementById('admin-manage-user-modal');
+                if (existing) existing.remove();
+                
+                const modalHTML = `
+                    <div id="admin-manage-user-modal" class="fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+                        <div class="bg-white rounded-2xl w-full max-w-4xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[85vh] text-slate-800 animate-slide-up transform duration-300">
+                            <!-- Modal Header -->
+                            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                                <div class="flex items-center space-x-2">
+                                    <div class="h-8 w-8 bg-indigo-50 text-indigo-650 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="user-cog" class="h-4.5 w-4.5 text-indigo-600"></i>
+                                    </div>
+                                    <div class="text-left">
+                                        <h3 class="text-sm font-bold text-slate-800">Manage User Account</h3>
+                                        <p class="text-[10px] text-slate-400 mt-0.5">Edit details, view activity, and adjust credits for User ID: ${user.id}</p>
+                                    </div>
+                                </div>
+                                <button onclick="closeManageUserModal()" class="h-7 w-7 rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition">
+                                    <i data-lucide="x" class="h-4 w-4"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Tabs Selection -->
+                            <div class="flex border-b border-slate-100 bg-slate-50/50 px-6 text-xs font-bold text-slate-500">
+                                <button onclick="switchUserManageTab('details')" id="user-tab-details" class="user-manage-tab py-3 px-4 border-b-2 border-indigo-600 text-indigo-600 transition">Profile Details</button>
+                                <button onclick="switchUserManageTab('credits')" id="user-tab-credits" class="user-manage-tab py-3 px-4 border-b-2 border-transparent hover:text-slate-800 transition">Adjust Credits</button>
+                                <button onclick="switchUserManageTab('logs')" id="user-tab-logs" class="user-manage-tab py-3 px-4 border-b-2 border-transparent hover:text-slate-800 transition">Activity Logs (${logs.length})</button>
+                                <button onclick="switchUserManageTab('transactions')" id="user-tab-transactions" class="user-manage-tab py-3 px-4 border-b-2 border-transparent hover:text-slate-800 transition">Transactions (${txs.length})</button>
+                            </div>
+                            
+                            <!-- Scrollable Modal Body -->
+                            <div class="flex-grow overflow-y-auto p-6 space-y-6 text-xs text-left" id="user-manage-modal-body">
+                                
+                                <!-- TAB: DETAILS -->
+                                <div id="user-pane-details" class="user-manage-pane space-y-4">
+                                    <form onsubmit="submitEditUserForm(event, ${user.id})" class="space-y-4">
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Full Name</label>
+                                                <input type="text" id="edit-user-name" value="${user.name || ''}" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500" style="background-color: #ffffff !important; color: #0f172a !important;">
+                                            </div>
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Email Address</label>
+                                                <input type="email" id="edit-user-email" value="${user.email || ''}" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500" style="background-color: #ffffff !important; color: #0f172a !important;">
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-3 gap-4">
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Phone Number</label>
+                                                <input type="text" id="edit-user-phone" value="${user.phone_number || ''}" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500" style="background-color: #ffffff !important; color: #0f172a !important;" placeholder="Optional">
+                                            </div>
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Privilege Role</label>
+                                                <select id="edit-user-role" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500" style="background-color: #ffffff !important; color: #0f172a !important;">
+                                                    <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+                                                    <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Verification Status</label>
+                                                <select id="edit-user-verified" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500" style="background-color: #ffffff !important; color: #0f172a !important;">
+                                                    <option value="0" ${user.is_verified == 0 ? 'selected' : ''}>Unverified</option>
+                                                    <option value="1" ${user.is_verified == 1 ? 'selected' : ''}>Verified</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="border-t border-slate-100 pt-4 flex justify-end">
+                                            <button type="submit" class="px-5 py-2 bg-indigo-650 hover:bg-indigo-700 text-white rounded-lg font-bold transition flex items-center space-x-1.5 shadow-md shadow-indigo-600/10" style="color: #ffffff !important; background-color: #4f46e5 !important;">
+                                                <i data-lucide="save" class="h-4 w-4 text-white"></i>
+                                                <span>Save User Details</span>
+                                            </button>
+                                        </div>
+                                    </form>
+                                    
+                                    <!-- Profile Additional Details (Read Only) -->
+                                    <div class="p-4 bg-slate-50 border border-slate-150 rounded-xl space-y-3">
+                                        <h4 class="font-bold text-slate-700 uppercase text-[9px] tracking-wider">Additional CRM Profile Info</h4>
+                                        <div class="grid grid-cols-2 gap-4 text-xs text-slate-650">
+                                            <div><span class="font-semibold text-slate-400">User Type:</span> ${user.user_type || 'Not Configured'}</div>
+                                            <div><span class="font-semibold text-slate-400">Job Title:</span> ${user.job_title || 'Not Configured'}</div>
+                                            <div><span class="font-semibold text-slate-400">Company Name:</span> ${user.company_name || 'Not Configured'}</div>
+                                            <div><span class="font-semibold text-slate-400">Website:</span> ${user.website ? `<a href="${user.website}" target="_blank" class="text-indigo-650 hover:underline">${user.website}</a>` : 'Not Configured'}</div>
+                                            <div class="col-span-2"><span class="font-semibold text-slate-400">LinkedIn:</span> ${user.linkedin_url ? `<a href="${user.linkedin_url}" target="_blank" class="text-indigo-650 hover:underline">${user.linkedin_url}</a>` : 'Not Configured'}</div>
+                                            <div class="col-span-2"><span class="font-semibold text-slate-400">About Me:</span> ${user.about_me || 'Not Configured'}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- TAB: CREDITS -->
+                                <div id="user-pane-credits" class="user-manage-pane space-y-4 hidden">
+                                    <!-- Balance Stats -->
+                                    <div class="grid grid-cols-4 gap-4">
+                                        <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-center">
+                                            <span class="block text-[9px] text-indigo-500 font-bold uppercase tracking-wider">Remaining Credits</span>
+                                            <span class="text-lg font-extrabold text-indigo-700">${credits.remaining_credits}</span>
+                                        </div>
+                                        <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-center">
+                                            <span class="block text-[9px] text-emerald-500 font-bold uppercase tracking-wider">Free Credits</span>
+                                            <span class="text-lg font-extrabold text-emerald-700">${credits.free_credits}</span>
+                                        </div>
+                                        <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 text-center">
+                                            <span class="block text-[9px] text-blue-500 font-bold uppercase tracking-wider">Purchased Credits</span>
+                                            <span class="text-lg font-extrabold text-blue-700">${credits.purchased_credits}</span>
+                                        </div>
+                                        <div class="bg-slate-50 border border-slate-150 rounded-xl p-3 text-center">
+                                            <span class="block text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Credits</span>
+                                            <span class="text-lg font-extrabold text-slate-650">${credits.total_credits}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Adjust Wallet Form -->
+                                    <div class="p-4 bg-slate-50 border border-slate-150 rounded-xl space-y-4">
+                                        <h4 class="font-bold text-slate-700 uppercase text-[9px] tracking-wider text-left">Manually Adjust Credit Balance</h4>
+                                        <form onsubmit="submitAdjustCreditsForm(event, ${user.id})" class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+                                            <div>
+                                                <label class="block text-[9px] font-bold text-slate-450 uppercase mb-1">Adjustment Type</label>
+                                                <select id="adj-user-type" class="w-full px-2.5 py-1.5 border border-slate-200 bg-white rounded-lg text-slate-800 focus:outline-none" style="background-color: #ffffff !important; color: #0f172a !important;">
+                                                    <option value="recharge">Recharge (Add)</option>
+                                                    <option value="refund">Refund (Add)</option>
+                                                    <option value="deduction">Deduction (Subtract)</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-[9px] font-bold text-slate-455 uppercase mb-1">Credits Amount</label>
+                                                <input type="number" id="adj-user-credits" min="1" required class="w-full px-2.5 py-1.5 border border-slate-200 bg-white rounded-lg text-slate-800 focus:outline-none" style="background-color: #ffffff !important; color: #0f172a !important;">
+                                            </div>
+                                            <div>
+                                                <label class="block text-[9px] font-bold text-slate-455 uppercase mb-1">Adjustment Reason</label>
+                                                <input type="text" id="adj-user-reason" placeholder="e.g. Refund" required class="w-full px-2.5 py-1.5 border border-slate-200 bg-white rounded-lg text-slate-800 focus:outline-none" style="background-color: #ffffff !important; color: #0f172a !important;">
+                                            </div>
+                                            <div>
+                                                <button type="submit" class="w-full py-1.5 bg-indigo-650 hover:bg-indigo-700 text-white rounded-lg font-bold transition flex items-center justify-center space-x-1" style="color: #ffffff !important; background-color: #4f46e5 !important;">
+                                                    <i data-lucide="plus-circle" class="h-3.5 w-3.5 text-white"></i>
+                                                    <span>Apply Adjustment</span>
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                
+                                <!-- TAB: ACTIVITY LOGS -->
+                                <div id="user-pane-logs" class="user-manage-pane hidden space-y-2">
+                                    <h4 class="font-bold text-slate-700 uppercase text-[9px] tracking-wider mb-2">Recent Session Activity Logs</h4>
+                                    ${logs.length > 0 ? `
+                                        <div class="overflow-x-auto border border-slate-100 rounded-xl">
+                                            <table class="w-full text-left border-collapse custom-table text-[10px]">
+                                                <thead>
+                                                    <tr class="bg-slate-50 text-slate-450 font-bold uppercase tracking-wider text-[8px]">
+                                                        <th class="py-2 px-3">Action</th>
+                                                        <th class="py-2 px-3">IP Address</th>
+                                                        <th class="py-2 px-3">Timestamp</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    ${logs.map(log => `
+                                                        <tr class="hover:bg-slate-50/50">
+                                                            <td class="py-2 px-3 font-semibold text-slate-700">${log.action}</td>
+                                                            <td class="py-2 px-3 font-mono text-slate-400">${log.ip_address || 'N/A'}</td>
+                                                            <td class="py-2 px-3 text-slate-400">${new Date(log.created_at).toLocaleString()}</td>
+                                                        </tr>
+                                                    `).join('')}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    ` : `
+                                        <div class="text-center py-8 text-slate-400 font-semibold bg-slate-50 border border-slate-100 rounded-xl">No activity logs recorded for this user.</div>
+                                    `}
+                                </div>
+                                
+                                <!-- TAB: TRANSACTIONS -->
+                                <div id="user-pane-transactions" class="user-manage-pane hidden space-y-2">
+                                    <h4 class="font-bold text-slate-700 uppercase text-[9px] tracking-wider mb-2">Credit Adjustment & Purchase Ledger</h4>
+                                    ${txs.length > 0 ? `
+                                        <div class="overflow-x-auto border border-slate-100 rounded-xl">
+                                            <table class="w-full text-left border-collapse custom-table text-[10px]">
+                                                <thead>
+                                                    <tr class="bg-slate-50 text-slate-455 font-bold uppercase tracking-wider text-[8px]">
+                                                        <th class="py-2 px-3">Type</th>
+                                                        <th class="py-2 px-3">Credits</th>
+                                                        <th class="py-2 px-3">Reference/Reason</th>
+                                                        <th class="py-2 px-3">Status</th>
+                                                        <th class="py-2 px-3">Timestamp</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    ${txs.map(tx => {
+                                                        let sign = tx.credits >= 0 ? '+' : '';
+                                                        let valColor = tx.credits >= 0 ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold';
+                                                        return `
+                                                            <tr class="hover:bg-slate-50/50">
+                                                                <td class="py-2 px-3 font-bold uppercase text-slate-500">${tx.type}</td>
+                                                                <td class="py-2 px-3 font-extrabold ${valColor}">${sign}${tx.credits}</td>
+                                                                <td class="py-2 px-3 text-slate-650 font-medium">${tx.payment_id || 'Adjustment'}</td>
+                                                                <td class="py-2 px-3">
+                                                                    <span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${tx.status === 'success' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}">${tx.status}</span>
+                                                                </td>
+                                                                <td class="py-2 px-3 text-slate-400">${new Date(tx.created_at).toLocaleString()}</td>
+                                                            </tr>
+                                                        `;
+                                                    }).join('')}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    ` : `
+                                        <div class="text-center py-8 text-slate-400 font-semibold bg-slate-50 border border-slate-100 rounded-xl">No transactions found for this user.</div>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', modalHTML);
+                lucide.createIcons();
+            } catch (err) {
+                showNotification('error', 'Failed to fetch user details: ' + err.message);
+            }
+        };
+
+        window.closeManageUserModal = function() {
+            const el = document.getElementById('admin-manage-user-modal');
+            if (el) el.remove();
+        };
+
+        window.switchUserManageTab = function(tabName) {
+            document.querySelectorAll('.user-manage-tab').forEach(btn => {
+                btn.className = 'user-manage-tab py-3 px-4 border-b-2 border-transparent hover:text-slate-800 transition';
+            });
+            const activeTab = document.getElementById(`user-tab-${tabName}`);
+            if (activeTab) {
+                activeTab.className = 'user-manage-tab py-3 px-4 border-b-2 border-indigo-600 text-indigo-600 transition';
+            }
+            
+            document.querySelectorAll('.user-manage-pane').forEach(pane => {
+                pane.classList.add('hidden');
+            });
+            const activePane = document.getElementById(`user-pane-${tabName}`);
+            if (activePane) {
+                activePane.classList.remove('hidden');
+            }
+        };
+
+        window.submitEditUserForm = async function(event, userId) {
+            event.preventDefault();
+            const name = document.getElementById('edit-user-name').value.trim();
+            const email = document.getElementById('edit-user-email').value.trim();
+            const phoneNumber = document.getElementById('edit-user-phone').value.trim();
+            const role = document.getElementById('edit-user-role').value;
+            const isVerified = document.getElementById('edit-user-verified').value;
+            
+            try {
+                const res = await apiCall('admin/users.php', 'POST', {
+                    action: 'edit_user',
+                    user_id: userId,
+                    name,
+                    email,
+                    phone_number: phoneNumber,
+                    role,
+                    is_verified: isVerified
+                });
+                
+                if (res.status === 'success') {
+                    showNotification('success', 'User details updated successfully.');
+                    loadAdminUsersData();
+                    openManageUserModal(userId);
+                } else {
+                    showNotification('error', res.message || 'Failed to update details.');
+                }
+            } catch (err) {
+                showNotification('error', err.message);
+            }
+        };
+
+        window.submitAdjustCreditsForm = async function(event, userId) {
+            event.preventDefault();
+            const type = document.getElementById('adj-user-type').value;
+            const credits = parseInt(document.getElementById('adj-user-credits').value);
+            const reason = document.getElementById('adj-user-reason').value.trim();
+            
+            try {
+                const res = await apiCall('admin/adjust_user_credits.php', 'POST', {
+                    user_id: userId,
+                    adjustment_type: type,
+                    credits,
+                    reason
+                });
+                
+                if (res.status === 'success') {
+                    showNotification('success', 'Credits adjusted successfully.');
+                    document.getElementById('adj-user-credits').value = '';
+                    document.getElementById('adj-user-reason').value = '';
+                    openManageUserModal(userId);
+                } else {
+                    showNotification('error', res.message || 'Failed to adjust credits.');
+                }
+            } catch (err) {
+                showNotification('error', err.message);
             }
         };
 

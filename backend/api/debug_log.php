@@ -17,6 +17,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $input = json_decode(file_get_contents('php://input'), true);
 if ($input) {
     $logFile = __DIR__ . '/debug.log';
+    
+    // Rotate log file if it exceeds 10MB
+    if (file_exists($logFile) && filesize($logFile) > 10 * 1024 * 1024) {
+        @rename($logFile, __DIR__ . '/debug.log.old');
+    }
+    
     $entry = "[" . date('Y-m-d H:i:s') . "] " . json_encode($input, JSON_PRETTY_PRINT) . "\n\n";
     file_put_contents($logFile, $entry, FILE_APPEND);
 }

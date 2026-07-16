@@ -18,6 +18,31 @@ try {
     // 1. Fetch all tables from active database dynamically
     $tables = $db->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
 
+    // Exclude high-volume telemetry, raw event logs, caches, and system logging tables
+    $excludedTables = [
+        'universal_events',
+        'visitor_sessions',
+        'visitor_activities',
+        'performance_metrics',
+        'platform_errors',
+        'activity_logs',
+        'otp_verifications',
+        'email_cache',
+        'user_ai_key_logs',
+        'extension_events',
+        'scraper_requests_log',
+        'email_processing_logs',
+        'workflow_execution_logs',
+        'whatsapp_webhook_logs',
+        'whatsapp_automation_logs',
+        'whatsapp_campaign_logs'
+    ];
+
+    $tables = array_filter($tables, function($tableName) use ($excludedTables) {
+        return !in_array($tableName, $excludedTables);
+    });
+
+
     // 2. Set headers for native Excel XML download
     header("Content-Type: application/vnd.ms-excel; charset=utf-8");
     header("Content-Disposition: attachment; filename=linkpilot_database_report_" . date('Ymd_His') . ".xls");

@@ -339,9 +339,14 @@
                     </div>
                     <div class="flex items-start space-x-3">
                         <i data-lucide="video" class="h-4.5 w-4.5 text-indigo-500 shrink-0 mt-0.5"></i>
-                        <div>
+                        <div class="flex-grow min-w-0">
                             <div id="success-location-label" class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Location</div>
-                            <a id="success-location" href="#" target="_blank" class="font-extrabold text-indigo-650 hover:underline truncate block max-w-xs sm:max-w-sm mt-0.5"></a>
+                            <div class="flex items-center space-x-2 mt-1 min-w-0">
+                                <a id="success-location" href="#" target="_blank" class="font-extrabold text-indigo-650 hover:underline truncate block max-w-[200px] sm:max-w-[240px] text-xs"></a>
+                                <button id="copy-meeting-link" type="button" class="p-1 text-slate-400 hover:text-[#006bff] hover:bg-slate-100 rounded-md transition-all shrink-0 focus:outline-none" title="Copy meeting link">
+                                    <i data-lucide="copy" class="h-3.5 w-3.5"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -364,6 +369,16 @@
                             <span>Outlook Calendar</span>
                         </a>
                     </div>
+                </div>
+
+                <!-- Share on WhatsApp -->
+                <div class="w-full max-w-md border-t border-slate-100 pt-5">
+                    <button id="share-whatsapp-btn" type="button" class="w-full px-4 py-2.5 bg-[#25D366] hover:bg-[#20ba5a] text-white font-extrabold rounded-xl transition text-xs shadow-xxs flex items-center justify-center space-x-2 focus:outline-none select-none">
+                        <svg class="h-4 w-4 fill-current mr-1" viewBox="0 0 24 24">
+                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.73-1.455L0 24zm6.59-4.846c1.6.95 3.197 1.489 4.887 1.491 5.485.002 9.947-4.461 9.95-9.95.001-2.658-1.034-5.157-2.91-7.037C16.697 1.777 14.2 .743 11.534.743c-5.495 0-9.957 4.463-9.96 9.953-.002 1.814.48 3.586 1.394 5.161l-1.008 3.687 3.79-.994c1.554.848 3.238 1.295 4.898 1.296zM17.06 13.91c-.272-.136-1.61-.795-1.86-.886-.25-.091-.432-.136-.613.136-.18.272-.7.886-.857 1.068-.157.182-.314.205-.586.069-.272-.136-1.15-.424-2.19-1.353-.809-.722-1.355-1.614-1.514-1.886-.159-.272-.017-.419.12-.555.123-.122.272-.318.408-.477.136-.159.182-.272.272-.453.091-.182.045-.34-.023-.477-.068-.136-.613-1.477-.84-2.023-.222-.534-.488-.461-.67-.47l-.57-.008c-.195 0-.51.073-.777.363-.266.29-1.02 1.0-1.02 2.438 0 1.439 1.045 2.827 1.19 3.023.145.195 2.057 3.14 4.985 4.403.696.3 1.24.48 1.664.615.7.222 1.338.19 1.843.115.56-.083 1.61-.659 1.838-1.264.227-.605.227-1.127.159-1.236-.068-.11-.25-.19-.523-.326z"/>
+                        </svg>
+                        <span>Share on WhatsApp</span>
+                    </button>
                 </div>
             </div>
 
@@ -933,6 +948,50 @@
                         const lottieContainer = document.getElementById('lottie-success-container');
                         if (lottieContainer) {
                             lottieContainer.innerHTML = `<dotlottie-wc src="https://lottie.host/d2d360bf-c917-4f4e-bfdf-084feff39f6d/ecK9yzms4J.lottie" width="130" height="130" style="width: 130px; height: 130px; display: block; margin: 0 auto; flex-shrink: 0;" autoplay loop></dotlottie-wc>`;
+                        }
+
+                        // Copy meeting link functionality
+                        const copyBtn = document.getElementById('copy-meeting-link');
+                        if (copyBtn) {
+                            copyBtn.onclick = () => {
+                                const locEl = document.getElementById('success-location');
+                                const hrefAttr = locEl.getAttribute('href');
+                                const textToCopy = (hrefAttr && hrefAttr !== '#' && hrefAttr.startsWith('http')) ? hrefAttr : locEl.textContent;
+                                if (textToCopy) {
+                                    navigator.clipboard.writeText(textToCopy).then(() => {
+                                        copyBtn.innerHTML = '<i data-lucide="check" class="h-3.5 w-3.5 text-green-500"></i>';
+                                        lucide.createIcons();
+                                        setTimeout(() => {
+                                            copyBtn.innerHTML = '<i data-lucide="copy" class="h-3.5 w-3.5"></i>';
+                                            lucide.createIcons();
+                                        }, 2000);
+                                    });
+                                }
+                            };
+                        }
+
+                        // Share on WhatsApp functionality
+                        const shareWhatsappBtn = document.getElementById('share-whatsapp-btn');
+                        if (shareWhatsappBtn) {
+                            shareWhatsappBtn.onclick = () => {
+                                const hostName = document.getElementById('success-host-name')?.textContent || 'Host';
+                                const datetime = document.getElementById('success-datetime')?.textContent || '';
+                                const timezone = document.getElementById('success-timezone')?.textContent || '';
+                                const locEl = document.getElementById('success-location');
+                                const hrefAttr = locEl.getAttribute('href');
+                                const location = (hrefAttr && hrefAttr !== '#' && hrefAttr.startsWith('http')) ? hrefAttr : locEl.textContent;
+                                
+                                // Format professional WhatsApp message
+                                const text = `*Meeting Confirmed!* 🗓️\n\n` +
+                                             `Meeting scheduled with *${hostName}*\n\n` +
+                                             `📅 *Details:* ${datetime}\n` +
+                                             `🌐 *Timezone:* ${timezone}\n` +
+                                             `📍 *Join Link:* ${location}\n\n` +
+                                             `Looking forward to it!`;
+                                
+                                const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+                                window.open(whatsappUrl, '_blank');
+                            };
                         }
                         
                         lucide.createIcons();

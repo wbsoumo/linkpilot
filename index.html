@@ -232,7 +232,7 @@
         'Trial': 'Trial',
         'Expired': 'Expired',
         'Welcome back': 'Welcome back',
-        'schedule_a_demo_calendly_link': 'https://calendly.com/wbsoumo/30min',
+        'schedule_a_demo_calendly_link': 'https://linkpilot.work/m/5445730035281284',
         'Total:': 'Total:',
         'message': 'message',
         '2-step verification required': '2-step verification required',
@@ -359,7 +359,7 @@
 
 <body class="">
     
-  <div id="page" data-calendly-url="https://calendly.com/wbsoumo/30min">
+  <div id="page" data-calendly-url="https://linkpilot.work/m/5445730035281284">
     <div class="invisible absolute -z-10">
       <img loading="lazy" class="js-preview-image" width="160" height="160"
         src="//pcfcdn.kommo.com/static/assets/images/link-share-cover/cover_en.png"
@@ -12816,6 +12816,48 @@
           window.location.href = "dashboard/login.html";
         }
       }, true);
+
+      // Intercept clicks on Get a Demo buttons to load our own scheduler link
+      const demoButtons = document.querySelectorAll('.js-get-a-demo');
+      const modal = document.getElementById('calendly-widget');
+      const container = document.querySelector('.js-calendly-parent-element');
+      const closeBtn = document.querySelector('#calendly-widget .js-modal-close-button');
+
+      function openDemoModal(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Load our scheduling link in an iframe
+        container.innerHTML = `
+          <iframe src="https://linkpilot.work/m/5445730035281284" 
+                  style="width: 100%; height: 100%; min-height: 550px; border: none; border-radius: 12px; background: white;"
+                  frameborder="0">
+          </iframe>
+        `;
+        
+        // Remove padding-top class that offsets the iframe
+        container.classList.remove('pt-80');
+        
+        // Show modal
+        modal.classList.remove('hidden');
+      }
+
+      function closeDemoModal(e) {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        modal.classList.add('hidden');
+        container.innerHTML = ''; // Clear iframe to stop loading
+      }
+
+      demoButtons.forEach(btn => {
+        btn.addEventListener('click', openDemoModal, true); // Use capture phase to intercept GTM/Webpack handlers
+      });
+
+      if (closeBtn) {
+        closeBtn.addEventListener('click', closeDemoModal, true);
+      }
     });
   </script>
   

@@ -21,6 +21,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Lottie Files -->
+    <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.14/dist/dotlottie-wc.js" type="module"></script>
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -302,18 +304,10 @@
 
             <!-- STEP 3: Success Confirmation View (Full Width) -->
             <div id="step-success" class="hidden md:col-span-3 p-8 flex flex-col items-center justify-center space-y-6 overflow-y-auto max-h-[580px] custom-scrollbar text-center w-full mx-auto">
-                <!-- Checkmark Icon Circle -->
+                <!-- Checkmark Lottie Animation -->
                 <div class="flex flex-col items-center relative mt-2">
-                    <div class="relative flex justify-center">
-                        <div class="h-14 w-14 bg-emerald-50 border border-emerald-200 rounded-full flex items-center justify-center text-emerald-600 relative">
-                            <i data-lucide="check" class="h-6 w-6 stroke-[3px]"></i>
-                        </div>
-                        <span class="absolute left-[-16px] top-[-8px] text-indigo-400">
-                            <i data-lucide="sparkles" class="h-4.5 w-4.5 animate-pulse"></i>
-                        </span>
-                        <span class="absolute right-[-16px] bottom-[-8px] text-teal-400">
-                            <i data-lucide="sparkles" class="h-4 w-4 animate-pulse"></i>
-                        </span>
+                    <div class="relative flex justify-center w-[160px] h-[160px] overflow-hidden items-center">
+                        <dotlottie-wc src="https://lottie.host/d2d360bf-c917-4f4e-bfdf-084feff39f6d/ecK9yzms4J.lottie" style="width: 220px; height: 220px; position: absolute;" autoplay loop></dotlottie-wc>
                     </div>
                     <h3 class="text-2xl font-black text-slate-800 mt-4 leading-tight">Confirmed</h3>
                     <p class="text-xs text-slate-400 font-bold mt-1.5 max-w-md">
@@ -354,14 +348,7 @@
                             <span>Google Calendar</span>
                         </a>
                         <a id="add-outlook-cal" href="#" target="_blank" class="w-full sm:w-auto px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-extrabold rounded-xl transition text-xs shadow-xxs flex items-center justify-center focus:outline-none select-none">
-                            <svg class="h-4.5 w-4.5 mr-1.5" viewBox="0 0 24 24" fill="none">
-                                <path d="M12.5 2H21.5C22.3 2 23 2.7 23 3.5V20.5C23 21.3 22.3 22 21.5 22H12.5V2Z" fill="#106EBE"/>
-                                <path d="M12.5 6.5H20V8H12.5V6.5ZM12.5 11H20V12.5H12.5V11ZM12.5 15.5H17V17H12.5V15.5Z" fill="#FFFFFF"/>
-                                <path d="M13.5 22L1 18.5V5.5L13.5 2V22Z" fill="#0078D4"/>
-                                <path d="M7.25 7C5.17893 7 3.5 8.67893 3.5 10.75C3.5 12.8211 5.17893 14.5 7.25 14.5C9.32107 14.5 11 12.8211 11 10.75C11 8.67893 9.32107 7 7.25 7Z" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M7.25 9V11" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round"/>
-                                <path d="M6 10.25H8.5" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round"/>
-                            </svg>
+                            <img src="https://avatars.slack-edge.com/2021-03-10/1838871109573_71ad0844bfc452d4fb6e_512.png" class="h-4 w-4 mr-2 shrink-0" alt="Outlook">
                             <span>Outlook Calendar</span>
                         </a>
                     </div>

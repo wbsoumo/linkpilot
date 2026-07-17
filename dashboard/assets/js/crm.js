@@ -11866,6 +11866,7 @@ function renderVisualCanvas(container) {
         stopBuilderAutoSave();
     }
 
+    if (activeTab === 'builder') {
         let onboardingCardHTML = '';
         if (window.wfState.onboardingStep) {
             const step = window.wfState.onboardingStep;

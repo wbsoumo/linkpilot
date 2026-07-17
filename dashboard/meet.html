@@ -54,42 +54,43 @@
         .calendar-day-btn {
             aspect-ratio: 1;
             border-radius: 9999px;
-            font-weight: 600;
-            font-size: 0.8rem;
+            font-weight: 700;
+            font-size: 0.85rem;
             transition: all 0.2s;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            outline: none;
         }
         .calendar-day-btn.available {
-            color: #4f46e5;
-            background-color: #f5f3ff;
+            color: #006bff;
+            background-color: #f0f7ff;
+        }
+        .calendar-day-btn.available::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            width: 4px;
+            height: 4px;
+            border-radius: 9999px;
+            background-color: #006bff;
         }
         .calendar-day-btn.available:hover {
-            background-color: #ddd6fe;
+            background-color: #dbeafe;
             transform: scale(1.05);
         }
         .calendar-day-btn.selected {
-            background-color: #4f46e5 !important;
+            background-color: #006bff !important;
             color: #ffffff !important;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 107, 255, 0.3);
+        }
+        .calendar-day-btn.selected::after {
+            background-color: #ffffff !important;
         }
         .calendar-day-btn.disabled {
-            color: #94a3b8;
+            color: #b2bac2;
             cursor: not-allowed;
-        }
-        /* Custom Time Slot Cards */
-        .time-card {
-            border: 1px solid #e2e8f0;
-            background-color: #ffffff;
-            transition: all 0.2s ease-in-out;
-            cursor: pointer;
-        }
-        .time-card:hover {
-            border-color: #c084fc;
-            background-color: #faf5ff;
-        }
-        .time-card.selected {
-            border-color: #6366f1;
-            background-color: #f5f3ff;
-            box-shadow: 0 0 0 1px #6366f1;
         }
         /* Ribbon badge */
         .ribbon {
@@ -142,105 +143,63 @@
         <div class="grid grid-cols-1 md:grid-cols-4 flex-grow min-h-[480px]">
             
             <!-- LEFT PANEL: Host details and schedule info (1 column) -->
-            <div class="md:col-span-1 bg-[#f5f6ff] border-r border-[#e2e8f0]/60 p-4 md:p-6 flex flex-col justify-between text-left">
-                <div class="space-y-4 md:space-y-6">
+            <div class="md:col-span-1 bg-white border-r border-slate-100 p-6 flex flex-col justify-between text-left">
+                <div class="space-y-6">
                     <!-- Back Button link -->
-                    <button id="back-btn" class="flex items-center space-x-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 transition focus:outline-none select-none">
+                    <button id="back-btn" class="flex items-center space-x-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition focus:outline-none select-none">
                         <i data-lucide="chevron-left" class="h-4 w-4"></i>
                         <span>Back</span>
                     </button>
 
-                    <!-- Circular Calendar Icon -->
-                    <div class="hidden md:flex h-12 w-12 rounded-full bg-indigo-50 items-center justify-center border border-indigo-100/50 text-indigo-600">
-                        <i data-lucide="calendar" class="h-5 w-5"></i>
-                    </div>
-
                     <!-- Host & Meeting Title -->
-                    <div>
-                        <span id="host-name" class="text-slate-400 font-bold text-[10px] md:text-xs tracking-wide">Host Name</span>
-                        <h2 id="meeting-title" class="text-xl md:text-3xl font-black text-slate-800 mt-1 md:mt-2 leading-tight">
-                            <span class="text-indigo-600 font-extrabold" id="meeting-duration-val">30</span> Minute Meeting
+                    <div class="space-y-2">
+                        <span id="host-name" class="text-slate-500 font-medium text-sm tracking-wide">Soumojit Saha</span>
+                        <h2 id="meeting-title" class="text-2xl font-bold text-slate-800 leading-tight">
+                            <span id="meeting-duration-val">30</span> Minute Meeting
                         </h2>
                     </div>
 
                     <!-- Meeting Meta -->
-                    <div class="flex md:block md:space-y-4 space-x-4 md:space-x-0 text-[11px] md:text-xs font-semibold text-slate-600">
-                        <div class="flex items-center space-x-2 md:space-x-3">
-                            <div class="p-1 bg-slate-50 border border-slate-100 rounded-lg text-indigo-600">
-                                <i data-lucide="clock" class="h-3.5 w-3.5 md:h-4 md:w-4"></i>
-                            </div>
-                            <div>
-                                <span class="font-bold text-slate-850" id="meeting-duration-lbl">30 minutes</span>
-                            </div>
+                    <div class="space-y-4 text-sm font-semibold text-slate-650">
+                        <div class="flex items-center space-x-3">
+                            <i data-lucide="clock" class="h-4 w-4 text-slate-500 shrink-0"></i>
+                            <span id="meeting-duration-lbl" class="font-bold text-slate-700">30 min</span>
                         </div>
 
-                        <div class="flex items-center space-x-2 md:space-x-3">
-                            <div class="p-1 bg-slate-50 border border-slate-100 rounded-lg text-indigo-600">
-                                <i data-lucide="video" class="h-3.5 w-3.5 md:h-4 md:w-4"></i>
-                            </div>
-                            <div>
-                                <span class="font-bold text-slate-850">Google Meet / Zoom</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Selected Slot Info Card -->
-                    <div id="selected-datetime-info" class="hidden border-t border-slate-100 pt-5 space-y-3">
-                        <div class="flex items-start space-x-2.5">
-                            <i data-lucide="calendar-check" class="text-indigo-600 h-4.5 w-4.5 mt-0.5"></i>
-                            <span id="slot-time-formatted" class="text-xs font-extrabold text-slate-800"></span>
-                        </div>
-                        <div class="flex items-center space-x-2.5 text-slate-400">
-                            <i data-lucide="globe" class="h-4 w-4 shrink-0"></i>
-                            <span id="slot-timezone-formatted" class="font-bold text-[10px] uppercase"></span>
+                        <div class="flex items-start space-x-3">
+                            <i data-lucide="video" class="h-4 w-4 text-slate-500 shrink-0 mt-0.5"></i>
+                            <span class="text-slate-700 font-bold leading-normal">Web conferencing details provided upon confirmation.</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Nice sparkling bottom promo card & Footer Links -->
-                <div class="hidden md:block mt-auto pt-6 space-y-6">
-                    <div class="bg-indigo-50/50 border border-indigo-100/50 rounded-2xl p-4 flex items-start space-x-3">
-                        <i data-lucide="sparkles" class="h-5 w-5 text-indigo-600 shrink-0 mt-0.5"></i>
-                        <div>
-                            <div class="font-bold text-xs text-slate-800">Quick & Easy Scheduling</div>
-                            <div class="text-[10px] text-slate-400 leading-normal mt-0.5">Pick a date and time that works best for you. We'll handle the rest.</div>
-                        </div>
-                    </div>
-
-                    <div class="pt-4 border-t border-indigo-100/30 flex flex-col space-y-3.5 text-[10px] font-bold text-slate-450 uppercase tracking-wider select-none">
-                        <button onclick="openPrivacyPolicyPopup()" class="flex items-center space-x-2.5 hover:text-indigo-600 text-left transition focus:outline-none">
-                            <i data-lucide="shield" class="h-4 w-4 text-indigo-500"></i>
-                            <span>Privacy Policy</span>
-                        </button>
-                        <button onclick="openCookieSettingsPopup()" class="flex items-center space-x-2.5 hover:text-indigo-600 text-left transition focus:outline-none">
-                            <i data-lucide="cookie" class="h-4 w-4 text-indigo-500"></i>
-                            <span>Cookie Settings</span>
-                        </button>
-                    </div>
+                <!-- Footer Links at Bottom Left -->
+                <div class="pt-6 flex items-center space-x-4 text-xs font-semibold text-indigo-600 select-none">
+                    <button onclick="openCookieSettingsPopup()" class="hover:underline transition focus:outline-none">Cookie settings</button>
+                    <button onclick="openPrivacyPolicyPopup()" class="hover:underline transition focus:outline-none">Privacy Policy</button>
                 </div>
             </div>
 
             <!-- STEP 1: Date & Time Picker Content Area (3 columns) -->
-            <div id="step-picker" class="md:col-span-3 grid grid-cols-1 sm:grid-cols-2 flex-grow text-left">
+            <div id="step-picker" class="md:col-span-3 grid grid-cols-1 md:grid-cols-5 flex-grow text-left bg-white">
                 <!-- Middle Column: Calendar view -->
-                <div class="p-6 md:p-8 flex flex-col justify-between">
+                <div id="calendar-col" class="md:col-span-5 p-6 md:p-8 flex flex-col justify-between transition-all duration-300">
                     <div>
-                        <h3 class="text-base font-extrabold text-slate-800 tracking-tight">1. Select Date</h3>
-                        <p class="text-[10px] text-slate-400 font-bold uppercase mt-0.5 tracking-wider">Choose a convenient date</p>
+                        <h3 class="text-xl font-bold text-slate-800 tracking-tight">Select a Date & Time</h3>
                         
                         <!-- Calendar navigation -->
                         <div class="flex items-center justify-between mt-6 border-b border-slate-100 pb-3">
                             <button id="prev-month-btn" class="h-8 w-8 hover:bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-slate-550 transition focus:outline-none">
                                 <i data-lucide="chevron-left" class="h-4 w-4"></i>
                             </button>
-                            <span id="calendar-month-year" class="text-sm font-black text-slate-750">July 2026</span>
+                            <span id="calendar-month-year" class="text-sm font-bold text-slate-750">July 2026</span>
                             <button id="next-month-btn" class="h-8 w-8 hover:bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-slate-550 transition focus:outline-none">
                                 <i data-lucide="chevron-right" class="h-4 w-4"></i>
                             </button>
                         </div>
 
                         <!-- Calendar table grid -->
-                        <div class="grid grid-cols-7 gap-1 text-center mt-4 text-[9px] font-extrabold text-slate-400 uppercase tracking-wide">
+                        <div class="grid grid-cols-7 gap-1 text-center mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-wide">
                             <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
                         </div>
                         <div id="calendar-days-container" class="grid grid-cols-7 gap-1.5 mt-2 text-center">
@@ -262,19 +221,18 @@
                 </div>
 
                 <!-- Right Column: Scrollable time slot picker -->
-                <div class="border-l border-slate-100 p-6 md:p-8 flex flex-col">
-                    <h3 class="text-base font-extrabold text-slate-800 tracking-tight">2. Select Time</h3>
-                    <p id="slots-header" class="text-[10px] text-slate-400 font-bold uppercase mt-0.5 tracking-wider">Available time slots for date</p>
+                <div id="slots-col" class="hidden border-l border-slate-100 p-6 md:p-8 flex flex-col transition-all duration-300">
+                    <div id="slots-header" class="text-sm font-bold text-slate-650 mb-6 tracking-wide">Friday, July 17</div>
                     
-                    <div id="slots-scrollable" class="flex-grow overflow-y-auto max-h-[340px] mt-6 pr-2 custom-scrollbar space-y-2">
+                    <div id="slots-scrollable" class="flex-grow overflow-y-auto max-h-[340px] pr-2 custom-scrollbar space-y-3">
                         <!-- Dynamic time slot cards load here -->
-                        <div class="text-[11px] text-slate-400 italic font-bold py-16 text-center select-none" id="slots-placeholder">
+                        <div class="text-xs text-slate-450 italic font-bold py-16 text-center select-none" id="slots-placeholder">
                             Select a date to check available time slots.
                         </div>
                     </div>
 
                     <!-- Under slots description -->
-                    <div class="mt-4 pt-3 border-t border-slate-50 flex items-center space-x-1.5 text-[10px] text-slate-400 font-bold tracking-wide">
+                    <div class="mt-4 pt-3 border-t border-slate-50 flex items-center space-x-1.5 text-[9px] text-slate-400 font-bold tracking-wide">
                         <i data-lucide="clock" class="h-3.5 w-3.5 text-slate-350"></i>
                         <span id="timezone-footer-lbl">All times are in Asia/Kolkata (GMT+05:30)</span>
                     </div>
@@ -650,6 +608,23 @@
             lucide.createIcons();
         }
 
+        // Reset date/time selection layout back to full-width calendar
+        function resetPickerLayout() {
+            selectedDate = null;
+            selectedTime = null;
+            updateFooterButtonState();
+            
+            const calendarCol = document.getElementById('calendar-col');
+            const slotsCol = document.getElementById('slots-col');
+            
+            if (calendarCol && slotsCol) {
+                calendarCol.classList.remove('md:col-span-3');
+                calendarCol.classList.add('md:col-span-5');
+                slotsCol.classList.add('hidden');
+                slotsCol.classList.remove('md:col-span-2', 'block');
+            }
+        }
+
         // Select booking Date
         window.selectDate = function(dateStr) {
             selectedDate = dateStr;
@@ -661,9 +636,20 @@
             const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
             const dateParts = dateStr.split('-');
             const dateObj = new Date(dateParts[0], parseInt(dateParts[1]) - 1, dateParts[2]);
-            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             
-            document.getElementById('slots-header').textContent = `Available time slots for ${dayNames[dateObj.getDay()]}, ${dateObj.getDate()} ${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+            document.getElementById('slots-header').textContent = `${dayNames[dateObj.getDay()]}, ${months[dateObj.getMonth()]} ${dateObj.getDate()}`;
+            
+            // Expand calendar col to 3 columns and show slots col as 2 columns on desktop
+            const calendarCol = document.getElementById('calendar-col');
+            const slotsCol = document.getElementById('slots-col');
+            
+            if (calendarCol && slotsCol) {
+                calendarCol.classList.remove('md:col-span-5');
+                calendarCol.classList.add('md:col-span-3');
+                slotsCol.classList.remove('hidden');
+                slotsCol.classList.add('md:col-span-2', 'block');
+            }
             
             fetchTimeSlots(dateStr);
         };
@@ -684,51 +670,26 @@
                 if (res.success && res.data && res.data.slots) {
                     const slots = res.data.slots;
                     if (slots.length === 0) {
-                        container.innerHTML = `<div class="text-[11px] text-slate-400 font-bold py-16 text-center">No available slots for this day.</div>`;
+                        container.innerHTML = `<div class="text-xs text-slate-450 font-bold py-16 text-center">No available slots for this day.</div>`;
                         return;
                     }
 
-                    // Render slots with period icons/labels
+                    // Render slots as clean Calendly-style buttons
                     let html = '';
                     slots.forEach(slot => {
-                        const h = parseInt(slot.split(':')[0]);
-                        let periodLabel = 'Morning';
-                        let periodIcon = 'sunrise';
-
-                        if (h >= 12 && h < 15) {
-                            periodLabel = 'Noon';
-                            periodIcon = 'sun';
-                        } else if (h >= 15 && h < 18) {
-                            periodLabel = 'Afternoon';
-                            periodIcon = 'sunset';
-                        } else if (h >= 18) {
-                            periodLabel = 'Evening';
-                            periodIcon = 'moon';
-                        }
-
                         const isSelected = selectedTime === slot;
-
+                        const timeClean = slot.replace(':', '-');
+                        
                         html += `
-                            <div onclick="selectTimeSlot('${slot}')" class="time-card p-3 rounded-xl flex items-center justify-between transition-all ${isSelected ? 'selected' : ''}" id="time-card-${slot.replace(':', '-')}">
-                                <div class="flex items-center space-x-3 text-left">
-                                    <div class="h-8 w-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 ${isSelected ? 'bg-indigo-50 border-indigo-100 text-indigo-600' : 'text-slate-400'}">
-                                        <i data-lucide="${periodIcon}" class="h-4 w-4"></i>
-                                    </div>
-                                    <span class="text-xs font-bold text-slate-800">${formatTimeTo12h(slot)}</span>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <span class="text-[10px] text-slate-400 font-semibold">${periodLabel}</span>
-                                    ${isSelected ? `
-                                        <div class="h-5 w-5 rounded-full bg-indigo-600 text-white flex items-center justify-center">
-                                            <i data-lucide="check" class="h-3 w-3"></i>
-                                        </div>
-                                    ` : ''}
-                                </div>
-                            </div>
+                            <button onclick="selectTimeSlot('${slot}')" 
+                                    id="time-slot-${timeClean}" 
+                                    class="w-full py-3 px-6 border border-indigo-650 hover:bg-indigo-50 text-indigo-600 font-bold rounded-xl text-sm transition-all text-center block focus:outline-none ${isSelected ? 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700' : 'bg-white'}"
+                            >
+                                ${formatTimeTo12h(slot)}
+                            </button>
                         `;
                     });
                     container.innerHTML = html;
-                    lucide.createIcons();
                 } else {
                     container.innerHTML = `<div class="text-xs text-red-500 font-bold text-center py-8">Error loading slots.</div>`;
                 }
@@ -742,10 +703,10 @@
             const parts = time24.split(':');
             let h = parseInt(parts[0]);
             const m = parts[1] || '00';
-            const ampm = h >= 12 ? 'PM' : 'AM';
+            const ampm = h >= 12 ? 'pm' : 'am';
             h = h % 12;
             h = h ? h : 12;
-            return `${String(h).padStart(2, '0')}:${m} ${ampm}`;
+            return `${h}:${m}${ampm}`;
         }
 
         // Select booking time slot
@@ -753,41 +714,17 @@
             selectedTime = slot;
             updateFooterButtonState();
             
-            // Re-render slot list to apply styles and checkbox
-            document.querySelectorAll('.time-card').forEach(card => {
-                const cardTime = card.id.replace('time-card-', '').replace('-', ':');
-                const isSelected = cardTime === slot;
+            // Re-render slot list styles
+            document.querySelectorAll('[id^="time-slot-"]').forEach(btn => {
+                const btnTime = btn.id.replace('time-slot-', '').replace('-', ':');
+                const isSelected = btnTime === slot;
                 
-                const iconContainer = card.querySelector('.h-8');
-                const badgeContainer = card.querySelector('.flex.items-center.space-x-2');
-                
-                // Get period details
-                const h = parseInt(cardTime.split(':')[0]);
-                let label = 'Morning';
-                let icon = 'sunrise';
-                if (h >= 12 && h < 15) { label = 'Noon'; icon = 'sun'; }
-                else if (h >= 15 && h < 18) { label = 'Afternoon'; icon = 'sunset'; }
-                else if (h >= 18) { label = 'Evening'; icon = 'moon'; }
-
                 if (isSelected) {
-                    card.className = "time-card p-3 rounded-xl flex items-center justify-between transition-all selected";
-                    iconContainer.className = "h-8 w-8 rounded-lg bg-indigo-50 flex items-center justify-center border border-indigo-100 text-indigo-600";
-                    iconContainer.innerHTML = `<i data-lucide="${icon}" class="h-4 w-4"></i>`;
-                    badgeContainer.innerHTML = `
-                        <span class="text-[10px] text-slate-400 font-semibold">${label}</span>
-                        <div class="h-5 w-5 rounded-full bg-indigo-600 text-white flex items-center justify-center">
-                            <i data-lucide="check" class="h-3 w-3"></i>
-                        </div>
-                    `;
+                    btn.className = "w-full py-3 px-6 border border-indigo-600 text-white bg-indigo-600 font-bold rounded-xl text-sm transition-all text-center block focus:outline-none";
                 } else {
-                    card.className = "time-card p-3 rounded-xl flex items-center justify-between transition-all";
-                    iconContainer.className = "h-8 w-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 text-slate-450";
-                    iconContainer.innerHTML = `<i data-lucide="${icon}" class="h-4 w-4"></i>`;
-                    badgeContainer.innerHTML = `<span class="text-[10px] text-slate-400 font-semibold">${label}</span>`;
+                    btn.className = "w-full py-3 px-6 border border-indigo-650 hover:bg-indigo-50 bg-white text-indigo-600 font-bold rounded-xl text-sm transition-all text-center block focus:outline-none";
                 }
             });
-            
-            lucide.createIcons();
         };
 
         // Enable or disable footer booking button
@@ -867,6 +804,7 @@
                         activeMonth = 11;
                         activeYear--;
                     }
+                    resetPickerLayout();
                     renderCalendar();
                 }
             };
@@ -877,6 +815,7 @@
                     activeMonth = 0;
                     activeYear++;
                 }
+                resetPickerLayout();
                 renderCalendar();
             };
 

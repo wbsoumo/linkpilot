@@ -369,6 +369,22 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
     $messages[] = "Table 'email_processing_logs' checked/created.";
 
+    // 16. WhatsApp AI Agents Table
+    $db->exec("CREATE TABLE IF NOT EXISTS `whatsapp_agents` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `phone_number` VARCHAR(50) NOT NULL,
+        `website_url` VARCHAR(255) DEFAULT NULL,
+        `capabilities` VARCHAR(255) DEFAULT 'faq_support,human_handoff',
+        `ground_rules` TEXT DEFAULT NULL,
+        `knowledge_base` LONGTEXT DEFAULT NULL,
+        `status` VARCHAR(50) DEFAULT 'idle',
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        CONSTRAINT `fk_wa_agents_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+    $messages[] = "Table 'whatsapp_agents' checked/created.";
+
     // 16. Admin Global Settings Table
     $db->exec("CREATE TABLE IF NOT EXISTS `admin_settings` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,

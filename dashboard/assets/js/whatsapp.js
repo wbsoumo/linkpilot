@@ -6396,7 +6396,6 @@ window.openLinkCompanyFromWa = function () {
             </form>
         </div>
     `;
-
     document.body.appendChild(modal);
     lucide.createIcons();
 
@@ -6418,3 +6417,689 @@ window.openLinkCompanyFromWa = function () {
         });
     };
 };
+
+// ----------------------------------------------------
+// AI AGENT TRAINING VIEW & SETUP WIZARD
+// ----------------------------------------------------
+window.renderWhatsAppTrain = async function(container) {
+    if (container) {
+        container.className = "flex-grow p-6 md:p-8 overflow-y-auto max-w-7xl w-full mx-auto";
+    }
+    
+    // Add local CSS styling specifically for the wizard stepper and the interactive simulator
+    let style = document.getElementById('agent-train-styles');
+    if (!style) {
+        style = document.createElement('style');
+        style.id = 'agent-train-styles';
+        style.innerHTML = `
+            .wa-agent-card {
+                background: #ffffff;
+                border: 1px solid #e2e8f0;
+                border-radius: 24px;
+                box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            }
+            .step-node-active {
+                border-color: #0f766e !important;
+                color: #0f766e !important;
+                background-color: #f0fdfa !important;
+            }
+            .step-node-done {
+                background-color: #0f766e !important;
+                border-color: #0f766e !important;
+                color: #ffffff !important;
+            }
+            .step-text-active {
+                color: #0f766e !important;
+                font-weight: 800 !important;
+            }
+            .capability-card {
+                border: 1px solid #e2e8f0;
+                background-color: #ffffff;
+                transition: all 0.2s ease-in-out;
+            }
+            .capability-card.selected {
+                border-color: #0f766e;
+                background-color: #f0fdfa;
+            }
+            .phone-simulator {
+                border: 12px solid #1e293b;
+                border-radius: 36px;
+                background-color: #efeae2;
+                box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+                overflow: hidden;
+                width: 320px;
+                height: 520px;
+                position: relative;
+            }
+            .phone-screen {
+                display: flex;
+                flex-col: column;
+                height: 100%;
+                width: 100%;
+            }
+            .phone-header {
+                background-color: #075e54;
+                color: #ffffff;
+                padding: 10px 14px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .chat-messages {
+                flex-grow: 1;
+                overflow-y: auto;
+                padding: 12px;
+                background-image: url('assets/js/chatbg.jpg');
+                background-size: cover;
+                background-repeat: no-repeat;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            .bubble {
+                max-width: 80%;
+                padding: 8px 12px;
+                font-size: 11px;
+                line-height: 1.4;
+                border-radius: 12px;
+                word-wrap: break-word;
+            }
+            .bubble.incoming {
+                background-color: #ffffff;
+                color: #334155;
+                align-self: flex-start;
+                border-top-left-radius: 0;
+            }
+            .bubble.outgoing {
+                background-color: #d9fdd3;
+                color: #111b21;
+                align-self: flex-end;
+                border-top-right-radius: 0;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    try {
+        const data = await apiCall('whatsapp/agent.php');
+        const agent = data.agent || {
+            phone_number: '',
+            website_url: '',
+            capabilities: 'faq_support,human_handoff',
+            ground_rules: '',
+            knowledge_base: '',
+            status: 'idle'
+        };
+        
+        window.activeWaAgent = agent;
+        
+        if (agent.status === 'live') {
+            renderAgentDashboard(container);
+        } else {
+            renderAgentWizard(container, 0); // Start at initial input step
+        }
+    } catch (e) {
+        showNotification('error', 'Failed loading AI Agent panel: ' + e.getMessage());
+    }
+};
+
+function renderAgentWizard(container, step) {
+    const agent = window.activeWaAgent;
+    
+    // Calculate Stepper HTML
+    let stepperHTML = '';
+    if (step > 0) {
+        stepperHTML = `
+            <div class="flex items-center justify-between w-full select-none border-b border-slate-100 pb-5 mb-5 font-sans">
+                <!-- Step 1: Train -->
+                <div class="flex items-center space-x-2">
+                    <div class="h-7 w-7 rounded-full border-2 text-[10px] font-bold flex items-center justify-center shrink-0 ${step === 1 ? 'step-node-active' : 'step-node-done'}">
+                        ${step > 1 ? '<i data-lucide="check" class="h-3.5 w-3.5"></i>' : '<i data-lucide="search" class="h-3.5 w-3.5"></i>'}
+                    </div>
+                    <span class="text-xs font-bold ${step === 1 ? 'step-text-active' : 'text-slate-500'}">Train</span>
+                </div>
+                <div class="flex-grow h-0.5 mx-4 ${step > 1 ? 'bg-teal-600' : 'bg-slate-200'}"></div>
+                
+                <!-- Step 2: Enable agents -->
+                <div class="flex items-center space-x-2">
+                    <div class="h-7 w-7 rounded-full border-2 text-[10px] font-bold flex items-center justify-center shrink-0 ${step === 2 ? 'step-node-active' : (step > 2 ? 'step-node-done' : 'border-slate-200 text-slate-400 bg-slate-50')}">
+                        ${step > 2 ? '<i data-lucide="check" class="h-3.5 w-3.5"></i>' : '<i data-lucide="zap" class="h-3.5 w-3.5"></i>'}
+                    </div>
+                    <span class="text-xs font-bold ${step === 2 ? 'step-text-active' : 'text-slate-400'}">Enable agents</span>
+                </div>
+                <div class="flex-grow h-0.5 mx-4 ${step > 2 ? 'bg-teal-600' : 'bg-slate-200'}"></div>
+                
+                <!-- Step 3: Guide -->
+                <div class="flex items-center space-x-2">
+                    <div class="h-7 w-7 rounded-full border-2 text-[10px] font-bold flex items-center justify-center shrink-0 ${step === 3 ? 'step-node-active' : 'border-slate-200 text-slate-400 bg-slate-50'}">
+                        <i data-lucide="book-open" class="h-3.5 w-3.5"></i>
+                    </div>
+                    <span class="text-xs font-bold ${step === 3 ? 'step-text-active' : 'text-slate-400'}">Guide</span>
+                </div>
+            </div>
+        `;
+    }
+
+    container.innerHTML = `
+        <div class="wa-agent-card p-6 md:p-8 max-w-2xl mx-auto text-slate-800 text-xs font-sans mt-4 relative text-left">
+            <!-- Header -->
+            <div class="flex items-center justify-between pb-4 border-b border-slate-150 mb-5">
+                <div class="flex items-center space-x-2.5">
+                    <div class="h-8 w-8 rounded-xl bg-teal-600/10 text-teal-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="bot" class="h-5 w-5 text-teal-600"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-sm font-black text-slate-800 tracking-tight">Set up your AI Agent</h2>
+                        <p class="text-[10px] text-slate-500 font-medium">Build a smart automated responder for your business phone.</p>
+                    </div>
+                </div>
+                <button onclick="navigateTo('whatsapp-dashboard')" class="text-slate-400 hover:text-slate-600 transition"><i data-lucide="x" class="h-4.5 w-4.5"></i></button>
+            </div>
+            
+            ${stepperHTML}
+            
+            <!-- Step Content -->
+            <div id="wizard-step-body" class="py-2 min-h-[220px]">
+                ${getStepHTML(step)}
+            </div>
+            
+            <!-- Step Footer -->
+            <div id="wizard-step-footer" class="pt-5 border-t border-slate-100 flex items-center justify-between mt-6">
+                ${getStepFooterHTML(step)}
+            </div>
+        </div>
+    `;
+
+    lucide.createIcons();
+    
+    // Bind dynamic input listener for website box in Step 0
+    if (step === 0) {
+        const input = document.getElementById('agent-website');
+        if (input) {
+            input.addEventListener('input', function() {
+                toggleGetWebsiteButton(this);
+            });
+        }
+    }
+}
+
+function getStepHTML(step) {
+    const agent = window.activeWaAgent;
+    
+    if (step === 0) {
+        return `
+            <div class="space-y-4">
+                <div class="space-y-1">
+                    <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider block">Business Mobile Number</h3>
+                    <p class="text-[10px] text-slate-450 font-semibold">Enter the phone number connected to your WhatsApp Business API.</p>
+                    <input type="text" id="agent-phone" placeholder="e.g. +919876543210" value="${agent.phone_number || ''}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 font-semibold text-slate-800 shadow-sm">
+                </div>
+                
+                <div class="space-y-1 relative">
+                    <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider block">Website URL (Optional)</h3>
+                    <p class="text-[10px] text-slate-450 font-semibold">Provide your website so the AI Agent can read details and answer support requests.</p>
+                    <div class="relative flex items-center">
+                        <input type="url" id="agent-website" placeholder="e.g. https://yourbusiness.com" value="${agent.website_url || ''}" class="w-full pl-3 pr-28 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 font-semibold text-slate-800 shadow-sm">
+                        <button id="get-website-btn" onclick="autofillWebsite()" class="absolute right-2 px-2.5 py-1 bg-teal-50 hover:bg-teal-100 text-teal-700 hover:text-teal-800 rounded-lg text-[10px] font-extrabold transition shadow-2xs">Get website Now!</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    else if (step === 1) {
+        return `
+            <div class="flex flex-col items-center justify-center text-center py-4 space-y-4">
+                <div class="h-12 w-12 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 relative z-10 shadow-sm animate-bounce">
+                    <i data-lucide="check" class="h-6 w-6"></i>
+                </div>
+                <div class="space-y-2">
+                    <h3 class="text-sm font-black text-slate-900 tracking-tight">Your agent is live 🎉</h3>
+                    <p class="text-slate-500 text-[11px] leading-relaxed font-semibold max-w-md mx-auto">
+                        Your agent is answering on your test number now. We're reading your site in the background — it'll keep getting sharper as the crawl finishes. You can continue or finish; nothing is blocking you.
+                    </p>
+                </div>
+                
+                <button class="px-4 py-2 bg-teal-50 border border-teal-100/50 text-teal-700 font-bold text-[10px] rounded-xl flex items-center space-x-1.5 shadow-2xs cursor-default">
+                    <i data-lucide="refresh-cw" class="h-3.5 w-3.5 animate-spin"></i>
+                    <span>Reading your site in the background</span>
+                </button>
+            </div>
+        `;
+    }
+    
+    else if (step === 2) {
+        const capabilities = agent.capabilities ? agent.capabilities.split(',') : [];
+        const faqChecked = capabilities.includes('faq_support');
+        const handoffChecked = capabilities.includes('human_handoff');
+        
+        return `
+            <div class="space-y-4 text-left">
+                <div>
+                    <h3 class="text-sm font-black text-slate-900 tracking-tight">What should your agent do?</h3>
+                    <p class="text-slate-500 text-[10px] font-semibold">Core capabilities are pre-selected. Add or change anything — you can edit all of this later.</p>
+                </div>
+                
+                <div class="space-y-3">
+                    <div id="card-faq" onclick="toggleCapability('faq')" class="capability-card rounded-2xl p-4 flex items-start space-x-3.5 cursor-pointer hover:shadow-sm ${faqChecked ? 'selected' : ''}">
+                        <div class="h-8 w-8 rounded-xl bg-teal-50 flex items-center justify-center shrink-0 border border-teal-100">
+                            <i data-lucide="zap" class="h-4 w-4 text-teal-600"></i>
+                        </div>
+                        <div class="flex-grow space-y-0.5">
+                            <h4 class="font-extrabold text-slate-800 text-xs">FAQ / Support</h4>
+                            <p class="text-[10px] text-slate-500 leading-relaxed font-medium">
+                                The contact asks a general question about the business — products, pricing, policies, hours, location, delivery areas, services, or "do you have/do you offer X". Use this whenever the answer should come from the business's own knowledge. Do NOT use it for order-specific lookups, for a buyer who wants to purchase/qualify, or for returns.
+                            </p>
+                        </div>
+                        <input type="checkbox" id="check-faq" ${faqChecked ? 'checked' : ''} class="h-3.5 w-3.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 mt-1 pointer-events-none">
+                    </div>
+                    
+                    <div id="card-handoff" onclick="toggleCapability('handoff')" class="capability-card rounded-2xl p-4 flex items-start space-x-3.5 cursor-pointer hover:shadow-sm ${handoffChecked ? 'selected' : ''}">
+                        <div class="h-8 w-8 rounded-xl bg-teal-50 flex items-center justify-center shrink-0 border border-teal-100">
+                            <i data-lucide="zap" class="h-4 w-4 text-teal-600"></i>
+                        </div>
+                        <div class="flex-grow space-y-0.5">
+                            <h4 class="font-extrabold text-slate-800 text-xs">Human Handoff</h4>
+                            <p class="text-[10px] text-slate-500 leading-relaxed font-medium">
+                                The contact explicitly asks for a human/agent/manager, is clearly frustrated after you've tried to help, raises something out of the bot's scope, or the matter is sensitive (billing dispute, fraud, complaint, legal). Use it to hand off cleanly — not as an escape from questions you haven't tried to answer yet.
+                            </p>
+                        </div>
+                        <input type="checkbox" id="check-handoff" ${handoffChecked ? 'checked' : ''} class="h-3.5 w-3.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 mt-1 pointer-events-none">
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    else if (step === 3) {
+        return `
+            <div class="space-y-4 text-left">
+                <div>
+                    <h3 class="text-sm font-black text-slate-900 tracking-tight">Anything special it should know?</h3>
+                    <p class="text-slate-500 text-[10px] font-semibold">Optional. Add a ground rule or two. Skip it and your agent still works.</p>
+                </div>
+                
+                <div class="space-y-1">
+                    <label class="block text-slate-650 font-bold mb-1 uppercase text-[9px] tracking-wider">Ground rules (optional)</label>
+                    <textarea id="agent-ground-rules" rows="5" placeholder="e.g. Never promise same-day delivery. Always mention the festive 15% off above ₹1,000." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 font-semibold text-slate-800 shadow-sm resize-none">${agent.ground_rules || ''}</textarea>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function getStepFooterHTML(step) {
+    if (step === 0) {
+        return `
+            <div></div>
+            <button onclick="submitStep0()" class="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold flex items-center space-x-1.5 shadow-sm transition">
+                <span>Start Training Agent</span>
+                <i data-lucide="arrow-right" class="h-4 w-4"></i>
+            </button>
+        `;
+    }
+    
+    else if (step === 1) {
+        return `
+            <button onclick="wizardFinishLater()" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl font-bold transition">
+                Finish — I'll refine later
+            </button>
+            <button onclick="renderAgentWizard(document.getElementById('main-content-viewport'), 2)" class="px-5 py-2 bg-teal-800 hover:bg-teal-900 text-white rounded-xl font-bold flex items-center space-x-1.5 shadow-sm transition" style="background-color: #0f766e !important;">
+                <span>Continue setup</span>
+                <i data-lucide="arrow-right" class="h-4 w-4"></i>
+            </button>
+        `;
+    }
+    
+    else if (step === 2) {
+        return `
+            <button onclick="renderAgentWizard(document.getElementById('main-content-viewport'), 1)" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl font-bold transition flex items-center space-x-1.5">
+                <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                <span>Back</span>
+            </button>
+            <div class="flex items-center space-x-2">
+                <button onclick="renderAgentWizard(document.getElementById('main-content-viewport'), 3)" class="px-4 py-2 text-slate-550 hover:text-slate-800 font-bold transition">
+                    Skip
+                </button>
+                <button onclick="submitStep2()" class="px-5 py-2 bg-teal-800 hover:bg-teal-900 text-white rounded-xl font-bold flex items-center space-x-1.5 shadow-sm transition" style="background-color: #0f766e !important;">
+                    <span>Continue</span>
+                    <i data-lucide="arrow-right" class="h-4 w-4"></i>
+                </button>
+            </div>
+        `;
+    }
+    
+    else if (step === 3) {
+        return `
+            <button onclick="renderAgentWizard(document.getElementById('main-content-viewport'), 2)" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl font-bold transition flex items-center space-x-1.5">
+                <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                <span>Back</span>
+            </button>
+            <button onclick="submitStep3()" class="px-5 py-2 bg-teal-800 hover:bg-teal-900 text-white rounded-xl font-bold flex items-center space-x-1.5 shadow-sm transition" style="background-color: #0f766e !important;">
+                <i data-lucide="grid" class="h-4 w-4"></i>
+                <span>Go to agent</span>
+            </button>
+        `;
+    }
+}
+
+window.toggleGetWebsiteButton = function(input) {
+    const btn = document.getElementById('get-website-btn');
+    if (btn) {
+        if (input.value.trim().length > 0) {
+            btn.classList.add('hidden');
+        } else {
+            btn.classList.remove('hidden');
+        }
+    }
+};
+
+window.autofillWebsite = function() {
+    const input = document.getElementById('agent-website');
+    if (input) {
+        input.value = 'https://linkpilot.work';
+        window.toggleGetWebsiteButton(input);
+        showNotification('success', 'Business website loaded successfully!');
+    }
+};
+
+window.toggleCapability = function(type) {
+    const card = document.getElementById(`card-${type}`);
+    const check = document.getElementById(`check-${type}`);
+    if (card && check) {
+        check.checked = !check.checked;
+        if (check.checked) {
+            card.classList.add('selected');
+        } else {
+            card.classList.remove('selected');
+        }
+    }
+};
+
+window.submitStep0 = async function() {
+    const phone = document.getElementById('agent-phone').value.trim();
+    const website = document.getElementById('agent-website').value.trim();
+    
+    if (!phone) {
+        showNotification('error', 'Please enter your Business Mobile Number.');
+        return;
+    }
+    
+    showNotification('warning', 'Saving config & initiating crawler...');
+    
+    try {
+        // Save initial config
+        await apiCall('whatsapp/agent.php', 'POST', {
+            phone_number: phone,
+            website_url: website,
+            status: 'training'
+        });
+        
+        window.activeWaAgent.phone_number = phone;
+        window.activeWaAgent.website_url = website;
+        window.activeWaAgent.status = 'training';
+        
+        // Transition to Step 1 (crawler view)
+        const container = document.getElementById('main-content-viewport');
+        renderAgentWizard(container, 1);
+        
+        // Start background crawler in API
+        apiCall('whatsapp/agent.php?action=crawl', 'POST', {
+            phone_number: phone,
+            website_url: website
+        }).then(res => {
+            showNotification('success', 'Website read and agent trained successfully!');
+            if (res.knowledge_base) {
+                window.activeWaAgent.knowledge_base = res.knowledge_base;
+                window.activeWaAgent.status = 'live';
+            }
+        }).catch(err => {
+            console.error("Crawler background error: ", err);
+        });
+        
+    } catch (e) {
+        showNotification('error', 'Failed to save config: ' + e.getMessage());
+    }
+};
+
+window.submitStep2 = function() {
+    const checkFaq = document.getElementById('check-faq').checked;
+    const checkHandoff = document.getElementById('check-handoff').checked;
+    
+    const caps = [];
+    if (checkFaq) caps.push('faq_support');
+    if (checkHandoff) caps.push('human_handoff');
+    
+    window.activeWaAgent.capabilities = caps.join(',');
+    
+    // Continue to Step 3
+    renderAgentWizard(document.getElementById('main-content-viewport'), 3);
+};
+
+window.submitStep3 = async function() {
+    const groundRules = document.getElementById('agent-ground-rules').value.trim();
+    window.activeWaAgent.ground_rules = groundRules;
+    window.activeWaAgent.status = 'live';
+    
+    showNotification('warning', 'Activating AI Chat Agent...');
+    
+    try {
+        // Save complete config
+        await apiCall('whatsapp/agent.php', 'POST', {
+            phone_number: window.activeWaAgent.phone_number,
+            website_url: window.activeWaAgent.website_url,
+            capabilities: window.activeWaAgent.capabilities,
+            ground_rules: window.activeWaAgent.ground_rules,
+            status: 'live'
+        });
+        
+        // Trigger visual confetti celebration!
+        if (typeof showConfettiCelebration === 'function') {
+            showConfettiCelebration();
+        }
+        
+        showNotification('success', '🎉 Your AI WhatsApp Chat Agent is now fully active!');
+        
+        // Render Dashboard
+        renderAgentDashboard(document.getElementById('main-content-viewport'));
+    } catch(e) {
+        showNotification('error', 'Failed activating agent: ' + e.getMessage());
+    }
+};
+
+window.wizardFinishLater = function() {
+    window.activeWaAgent.status = 'live';
+    showNotification('success', 'AI Agent saved.');
+    renderAgentDashboard(document.getElementById('main-content-viewport'));
+};
+
+function renderAgentDashboard(container) {
+    const agent = window.activeWaAgent;
+    
+    container.innerHTML = `
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in font-sans text-xs">
+            <!-- Left panel: Configuration Summary -->
+            <div class="lg:col-span-2 space-y-6 text-left">
+                <div class="bg-white border border-slate-200 rounded-[24px] shadow-sm p-6 space-y-5">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                        <div class="flex items-center space-x-2.5">
+                            <div class="h-8 w-8 rounded-xl bg-teal-600/10 text-teal-600 flex items-center justify-center shrink-0">
+                                <i data-lucide="bot" class="h-5 w-5 text-teal-600"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-sm font-black text-slate-800">WhatsApp AI Agent Status</h2>
+                                <p class="text-[10px] text-slate-500 font-medium">Your agent is actively listening and replying to inbound customer chats.</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-teal-50 text-teal-650 border border-teal-100 flex items-center space-x-1">
+                            <span class="h-1.5 w-1.5 rounded-full bg-teal-500 animate-pulse"></span>
+                            <span>Live & Active</span>
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-slate-50/50 rounded-xl p-3 border border-slate-100">
+                            <h4 class="font-bold text-slate-500 uppercase tracking-wider text-[8px] mb-1">Business Mobile Number</h4>
+                            <p class="font-extrabold text-slate-800 text-xs">${agent.phone_number || 'Not connected'}</p>
+                        </div>
+                        
+                        <div class="bg-slate-50/50 rounded-xl p-3 border border-slate-100">
+                            <h4 class="font-bold text-slate-500 uppercase tracking-wider text-[8px] mb-1">Trained Website URL</h4>
+                            <p class="font-extrabold text-slate-800 text-xs truncate">
+                                ${agent.website_url ? `<a href="${agent.website_url}" target="_blank" class="text-teal-650 hover:underline flex items-center space-x-1"><span>${agent.website_url}</span><i data-lucide="external-link" class="h-3 w-3 inline"></i></a>` : 'No website provided'}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <h4 class="font-bold text-slate-500 uppercase tracking-wider text-[8px]">Enabled Agent Roles</h4>
+                        <div class="flex flex-wrap gap-2">
+                            ${agent.capabilities && agent.capabilities.includes('faq_support') ? '<span class="px-2 py-1 rounded-lg bg-teal-50 text-teal-700 font-bold border border-teal-100/50">FAQ / Support</span>' : ''}
+                            ${agent.capabilities && agent.capabilities.includes('human_handoff') ? '<span class="px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 font-bold border border-indigo-100/50">Human Handoff (Escalations)</span>' : ''}
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <h4 class="font-bold text-slate-500 uppercase tracking-wider text-[8px]">Ground Rules & Prompts</h4>
+                        <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-100 font-medium text-slate-700 italic max-h-32 overflow-y-auto leading-relaxed">
+                            ${agent.ground_rules ? agent.ground_rules.replace(/\n/g, '<br>') : 'No extra rules configured. Defaulting to general support agent profile.'}
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-1.5">
+                        <h4 class="font-bold text-slate-500 uppercase tracking-wider text-[8px]">Knowledge Base (Website Data Source)</h4>
+                        <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-100 font-mono text-[9px] text-slate-600 max-h-48 overflow-y-auto leading-relaxed whitespace-pre-wrap">
+                            ${agent.knowledge_base || 'No crawled data cached yet.'}
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-100 flex justify-end">
+                        <button onclick="retrainAgent()" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl font-bold transition flex items-center space-x-1.5 shadow-sm text-slate-700">
+                            <i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i>
+                            <span>Re-train Agent</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right panel: Interactive Live Chat Simulator -->
+            <div class="flex flex-col items-center justify-center">
+                <div class="phone-simulator">
+                    <div class="phone-screen">
+                        <!-- Head -->
+                        <div class="phone-header">
+                            <div class="h-7 w-7 rounded-full bg-teal-700 flex items-center justify-center text-white font-bold shrink-0 border border-teal-500">
+                                <i data-lucide="bot" class="h-4 w-4"></i>
+                            </div>
+                            <div class="text-left">
+                                <h4 class="font-bold text-xs leading-tight">LinkPilot AI Agent</h4>
+                                <p class="text-[9px] text-emerald-300 font-semibold flex items-center"><span class="h-1.5 w-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse"></span>online</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Messages Body -->
+                        <div class="chat-messages" id="sim-messages-body">
+                            <div class="bubble incoming">
+                                Hi there! I am your AI Business Assistant. How can I help you today?
+                            </div>
+                        </div>
+                        
+                        <!-- Chat Input Footer -->
+                        <div class="p-2 border-t border-slate-200 bg-white flex items-center space-x-2 shrink-0">
+                            <input type="text" id="sim-chat-input" onkeydown="handleSimChatKeyDown(event)" placeholder="Type a message..." class="flex-grow border border-slate-200 rounded-full px-3 py-1.5 text-[10px] focus:outline-none focus:border-teal-500 shadow-2xs">
+                            <button onclick="sendSimChatMessage()" class="h-7 w-7 bg-teal-700 hover:bg-teal-600 text-white rounded-full flex items-center justify-center shrink-0 transition shadow-sm">
+                                <i data-lucide="send" class="h-3.5 w-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    lucide.createIcons();
+}
+
+window.retrainAgent = function() {
+    window.activeWaAgent.status = 'idle';
+    renderAgentWizard(document.getElementById('main-content-viewport'), 0);
+};
+
+window.handleSimChatKeyDown = function(e) {
+    if (e.key === 'Enter') {
+        sendSimChatMessage();
+    }
+};
+
+window.sendSimChatMessage = function() {
+    const input = document.getElementById('sim-chat-input');
+    const msg = input.value.trim();
+    if (!msg) return;
+    
+    input.value = '';
+    
+    const chatBody = document.getElementById('sim-messages-body');
+    
+    // Append user message
+    const userBubble = document.createElement('div');
+    userBubble.className = 'bubble outgoing';
+    userBubble.innerText = msg;
+    chatBody.appendChild(userBubble);
+    chatBody.scrollTop = chatBody.scrollHeight;
+    
+    // Add typing bubble
+    const typingBubble = document.createElement('div');
+    typingBubble.id = 'sim-typing-bubble';
+    typingBubble.className = 'bubble incoming italic text-slate-450 font-bold';
+    typingBubble.innerText = 'AI Agent is typing...';
+    chatBody.appendChild(typingBubble);
+    chatBody.scrollTop = chatBody.scrollHeight;
+    
+    // Formulate response
+    setTimeout(() => {
+        // Remove typing bubble
+        const typing = document.getElementById('sim-typing-bubble');
+        if (typing) typing.remove();
+        
+        let responseText = '';
+        const lowercase = msg.toLowerCase();
+        
+        const agent = window.activeWaAgent;
+        const domain = agent.website_url ? (parse_url(agent.website_url, 'host') || agent.website_url) : 'our site';
+        
+        if (lowercase.includes('human') || lowercase.includes('manager') || lowercase.includes('agent') || lowercase.includes('help')) {
+            responseText = "Understood. I am flagging this conversation for a human representative. One of our managers will connect with you shortly!";
+        } else if (lowercase.includes('price') || lowercase.includes('pricing') || lowercase.includes('cost')) {
+            responseText = `Regarding our pricing and packages, you can find the complete list on our site at ${agent.website_url || 'https://linkpilot.work/'}. Let me know if you would like me to schedule a demo call!`;
+        } else if (lowercase.includes('hour') || lowercase.includes('time') || lowercase.includes('open')) {
+            responseText = "Our business hours are Monday to Friday, 9:00 AM to 6:00 PM. We reply instantly to support inquiries during these timings.";
+        } else if (lowercase.includes('hello') || lowercase.includes('hi') || lowercase.includes('hey')) {
+            responseText = `Hello! How can I assist you with details regarding ${domain} today?`;
+        } else {
+            // General business reply using rules/website context
+            if (agent.ground_rules) {
+                responseText = `I can help with that! Adhering to our business guidelines: "${agent.ground_rules.substring(0, 100)}...", feel free to let me know how else we can assist.`;
+            } else {
+                responseText = `Thanks for reaching out! For detailed info, you can check ${agent.website_url || 'our website'}. Let me know if you have specific product or service questions!`;
+            }
+        }
+        
+        const replyBubble = document.createElement('div');
+        replyBubble.className = 'bubble incoming';
+        replyBubble.innerText = responseText;
+        chatBody.appendChild(replyBubble);
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }, 1200);
+};
+
+// Simple helper to parse hostnames
+function parse_url(url, element) {
+    try {
+        const el = document.createElement('a');
+        el.href = url;
+        if (element === 'host') return el.hostname;
+        return el.href;
+    } catch(e) {
+        return url;
+    }
+}

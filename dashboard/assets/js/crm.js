@@ -471,6 +471,9 @@ async function navigateTo(view, params = {}) {
             case 'whatsapp-automation':
                 await renderWhatsAppAutomation(contentArea);
                 break;
+            case 'whatsapp-train':
+                await renderWhatsAppTrain(contentArea);
+                break;
             case 'whatsapp-reports':
                 await renderWhatsAppReports(contentArea);
                 break;

@@ -854,15 +854,17 @@
                         
                         const locEl = document.getElementById('success-location');
                         const locLabelEl = document.getElementById('success-location-label');
-                        if (m.location && (m.location.startsWith('http://') || m.location.startsWith('https://'))) {
+                         if (m.location && (m.location.startsWith('http://') || m.location.startsWith('https://'))) {
                             locEl.href = m.location;
-                            locEl.textContent = m.location;
                             locEl.classList.add('hover:underline', 'text-indigo-650');
                             if (m.location.includes('zoom.us')) {
+                                locEl.textContent = 'Join Zoom Meeting';
                                 if (locLabelEl) locLabelEl.textContent = 'Join with Zoom';
                             } else if (m.location.includes('google.com')) {
+                                locEl.textContent = 'Join Google Meet';
                                 if (locLabelEl) locLabelEl.textContent = 'Join with Google Meet';
                             } else {
+                                locEl.textContent = 'Join Video Meeting';
                                 if (locLabelEl) locLabelEl.textContent = 'Conferencing Link';
                             }
                         } else {

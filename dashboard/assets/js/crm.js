@@ -16138,9 +16138,16 @@ function duplicateNodeById(nodeId) {
 }
 
 function deleteNodeById(nodeId) {
-    if (nodeId === 'node-trigger') {
-        showNotification('error', 'Cannot delete trigger node.');
-        return;
+    const wf = window.wfState.activeWorkflow;
+    const nodeToDelete = wf.nodes.find(n => n.id === nodeId);
+    
+    // If it's a trigger node, ensure we don't delete the last trigger node in the workflow
+    if (nodeToDelete && (nodeToDelete.category === 'TRIGGERS' || nodeToDelete.id === 'node-trigger')) {
+        const triggerNodes = wf.nodes.filter(n => n.category === 'TRIGGERS' || n.id === 'node-trigger');
+        if (triggerNodes.length <= 1) {
+            showNotification('error', 'Cannot delete the only trigger node. A workflow must have at least one trigger.');
+            return;
+        }
     }
     saveUndoState();
     

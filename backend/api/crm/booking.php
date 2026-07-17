@@ -573,6 +573,6 @@ try {
             sendJsonResponse('error', 'Method not allowed', [], 405);
         }
     }
-} catch (Exception $e) {
+} catch (Throwable $e) {
     sendJsonResponse('error', 'Booking operation failed: ' . $e->getMessage(), [], 500);
 }

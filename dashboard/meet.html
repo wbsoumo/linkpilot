@@ -303,12 +303,12 @@
             </div>
 
             <!-- STEP 3: Success Confirmation View (Full Width) -->
-            <div id="step-success" class="hidden md:col-span-3 p-8 flex flex-col items-center justify-center space-y-6 overflow-y-auto max-h-[580px] custom-scrollbar text-center w-full mx-auto">
+            <div id="step-success" class="hidden md:col-span-3 p-6 md:p-8 flex flex-col items-center justify-center space-y-5 overflow-y-auto max-h-[580px] custom-scrollbar text-center w-full mx-auto">
                 <!-- Checkmark Lottie Animation -->
-                <div class="flex flex-col items-center relative mt-2 shrink-0">
-                    <dotlottie-wc src="https://lottie.host/d2d360bf-c917-4f4e-bfdf-084feff39f6d/ecK9yzms4J.lottie" class="w-[140px] h-[140px] md:w-[180px] md:h-[180px] block shrink-0 mx-auto" autoplay loop></dotlottie-wc>
-                    <h3 class="text-2xl font-black text-slate-800 mt-2 md:mt-4 leading-tight">Confirmed</h3>
-                    <p class="text-xs text-slate-400 font-bold mt-1.5 max-w-md">
+                <div class="flex flex-col items-center relative mt-1 shrink-0">
+                    <dotlottie-wc src="https://lottie.host/d2d360bf-c917-4f4e-bfdf-084feff39f6d/ecK9yzms4J.lottie" style="width: 130px; height: 130px; display: block; margin: 0 auto; flex-shrink: 0;" autoplay loop></dotlottie-wc>
+                    <h3 class="text-2xl font-black text-slate-800 mt-2 leading-tight">Confirmed</h3>
+                    <p class="text-xs text-slate-400 font-bold mt-1 max-w-md">
                         You are scheduled with <span id="success-host-name" class="text-slate-700 font-black">Soumojit Saha</span>.<br>A calendar invitation has been sent to your email address.
                     </p>
                 </div>
@@ -895,14 +895,24 @@
                         
                         document.getElementById('booking-footer').classList.add('hidden'); // Hide footer completely
                         
-                        // Hide left panel and make success step occupy full grid width (4 columns)
+                        // Layout optimization based on viewport (Desktop vs Mobile)
                         const leftPanel = document.getElementById('left-panel');
-                        if (leftPanel) leftPanel.classList.add('hidden');
-                        
                         const successPanel = document.getElementById('step-success');
-                        if (successPanel) {
-                            successPanel.classList.replace('md:col-span-3', 'md:col-span-4');
-                            successPanel.classList.remove('hidden');
+                        
+                        if (window.innerWidth < 768) {
+                            // On Mobile: Hide left panel, success spans full width (4 columns)
+                            if (leftPanel) leftPanel.classList.add('hidden');
+                            if (successPanel) {
+                                successPanel.classList.replace('md:col-span-3', 'md:col-span-4');
+                                successPanel.classList.remove('hidden');
+                            }
+                        } else {
+                            // On Desktop: Keep left panel visible to fill empty space, success takes 3 columns
+                            if (leftPanel) leftPanel.classList.remove('hidden');
+                            if (successPanel) {
+                                successPanel.classList.replace('md:col-span-4', 'md:col-span-3');
+                                successPanel.classList.remove('hidden');
+                            }
                         }
                         lucide.createIcons();
                     } else {

@@ -35,7 +35,8 @@ class WorkflowRunner {
             $isTrigger = ($n['id'] === 'node-trigger' || 
                           ($n['category'] ?? '') === 'TRIGGERS' || 
                           $n['type'] === 'email_received' || 
-                          $n['type'] === 'whatsapp_received');
+                          $n['type'] === 'whatsapp_received' ||
+                          $n['type'] === 'meeting_scheduled');
             if ($isTrigger) {
                 $triggerNode = $n;
                 break;

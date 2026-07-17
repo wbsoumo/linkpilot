@@ -24,7 +24,8 @@ try {
     $db = Database::getConnection();
     
     // Fetch all active settings where next sync is due or never synced
-    $stmt = $db->query("SELECT user_id, last_sync_at, next_sync_at FROM email_intelligence_settings WHERE is_active = 1 AND (next_sync_at <= NOW() OR next_sync_at IS NULL)");
+    $stmt = $db->prepare("SELECT user_id, last_sync_at, next_sync_at FROM email_intelligence_settings WHERE is_active = 1 AND (next_sync_at <= ? OR next_sync_at IS NULL)");
+    $stmt->execute([date('Y-m-d H:i:s')]);
     $jobs = $stmt->fetchAll();
     
     $jobsCount = count($jobs);

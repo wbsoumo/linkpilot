@@ -347,14 +347,15 @@ You MUST return your response as a valid, parsable JSON block with the following
         $db = Database::getConnection();
         
         // Fetch up to 20 pending items across all users
-        $stmt = $db->query("
+        $stmt = $db->prepare("
             SELECT q.*, a.access_token, a.phone_number_id
             FROM whatsapp_queue q
             JOIN whatsapp_accounts a ON q.user_id = a.user_id AND a.status = 'connected'
-            WHERE q.status = 'pending' AND (q.scheduled_at <= NOW() OR q.scheduled_at IS NULL)
+            WHERE q.status = 'pending' AND (q.scheduled_at <= ? OR q.scheduled_at IS NULL)
             ORDER BY q.created_at ASC
             LIMIT 20
         ");
+        $stmt->execute([date('Y-m-d H:i:s')]);
         $pendingItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         $count = count($pendingItems);

@@ -6421,7 +6421,7 @@ window.openLinkCompanyFromWa = function () {
 // ----------------------------------------------------
 // AI AGENT TRAINING VIEW & SETUP WIZARD
 // ----------------------------------------------------
-window.renderWhatsAppTrain = async function(container) {
+async function renderWhatsAppTrain(container) {
     if (container) {
         container.className = "flex-grow p-6 md:p-8 overflow-y-auto max-w-7xl w-full mx-auto";
     }

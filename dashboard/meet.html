@@ -577,6 +577,13 @@
                 calendarCol.classList.add('md:col-span-3');
                 slotsCol.classList.remove('hidden');
                 slotsCol.classList.add('md:col-span-2', 'block');
+
+                // Smooth scroll to slots column on mobile devices
+                if (window.innerWidth < 768) {
+                    setTimeout(() => {
+                        slotsCol.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 150);
+                }
             }
             
             fetchTimeSlots(dateStr);

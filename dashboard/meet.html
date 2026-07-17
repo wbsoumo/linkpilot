@@ -125,6 +125,12 @@
             right: -36px;
             text-transform: uppercase;
         }
+        dotlottie-wc {
+            display: block !important;
+            width: 130px !important;
+            height: 130px !important;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 md:p-6 lg:p-8">
@@ -304,9 +310,8 @@
 
             <!-- STEP 3: Success Confirmation View (Full Width) -->
             <div id="step-success" class="hidden md:col-span-3 p-6 md:p-8 flex flex-col items-center justify-center space-y-5 overflow-y-auto max-h-[580px] custom-scrollbar text-center w-full mx-auto">
-                <!-- Checkmark Lottie Animation -->
                 <div class="flex flex-col items-center relative mt-1 shrink-0">
-                    <dotlottie-wc src="https://lottie.host/d2d360bf-c917-4f4e-bfdf-084feff39f6d/ecK9yzms4J.lottie" width="130" height="130" style="width: 130px; height: 130px; display: block; margin: 0 auto; flex-shrink: 0;" autoplay loop></dotlottie-wc>
+                    <div id="lottie-success-container" class="w-[130px] h-[130px] flex items-center justify-center shrink-0 mx-auto"></div>
                     <h3 class="text-2xl font-black text-slate-800 mt-2 leading-tight">Confirmed</h3>
                     <p class="text-xs text-slate-400 font-bold mt-1 max-w-md">
                         You are scheduled with <span id="success-host-name" class="text-slate-700 font-black">Soumojit Saha</span>.<br>A calendar invitation has been sent to your email address.
@@ -914,6 +919,13 @@
                                 successPanel.classList.remove('hidden');
                             }
                         }
+
+                        // Dynamically render the Lottie checkmark animation *after* parent element becomes visible
+                        const lottieContainer = document.getElementById('lottie-success-container');
+                        if (lottieContainer) {
+                            lottieContainer.innerHTML = `<dotlottie-wc src="https://lottie.host/d2d360bf-c917-4f4e-bfdf-084feff39f6d/ecK9yzms4J.lottie" width="130" height="130" style="width: 130px; height: 130px; display: block; margin: 0 auto; flex-shrink: 0;" autoplay loop></dotlottie-wc>`;
+                        }
+                        
                         lucide.createIcons();
                     } else {
                         alert(res.message || 'Failed to schedule meeting.');

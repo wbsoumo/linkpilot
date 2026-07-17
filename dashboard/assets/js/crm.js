@@ -15768,14 +15768,21 @@ function renderConfigSidebarHTML() {
             </button>
         </div>
         <div class="p-4 space-y-4 flex-grow overflow-y-auto text-xs text-slate-600 bg-white">
-            <div class="flex items-center space-x-2 pb-2 border-b border-slate-200">
-                <div class="h-7 w-7 bg-slate-100 rounded-md flex items-center justify-center text-indigo-650 shrink-0">
-                    ${getNodeIconHTML(selectedNode.type, selectedNode.icon)}
+            <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+                <div class="flex items-center space-x-2">
+                    <div class="h-7 w-7 bg-slate-100 rounded-md flex items-center justify-center text-indigo-650 shrink-0">
+                        ${getNodeIconHTML(selectedNode.type, selectedNode.icon)}
+                    </div>
+                    <div>
+                        <h5 class="font-bold text-slate-800 text-[11px] leading-tight truncate">${selectedNode.name}</h5>
+                        <p class="text-[8px] text-slate-400 uppercase font-semibold">${selectedNode.category} Node</p>
+                    </div>
                 </div>
-                <div>
-                    <h5 class="font-bold text-slate-800 text-[11px] leading-tight truncate">${selectedNode.name}</h5>
-                    <p class="text-[8px] text-slate-400 uppercase font-semibold">${selectedNode.category} Node</p>
-                </div>
+                ${selectedNode.type === 'whatsapp_outbound' ? `
+                    <button onclick="showWhatsAppVariablesHelp()" class="p-1 rounded-md hover:bg-slate-100 text-indigo-600 hover:text-indigo-750 transition flex items-center justify-center shrink-0" title="Supported Variables Info">
+                        <i data-lucide="info" class="h-4 w-4"></i>
+                    </button>
+                ` : ''}
             </div>
             
             ${formsHTML}
@@ -16164,6 +16171,125 @@ function deleteNodeById(nodeId) {
 function deselectNode() {
     window.wfState.selectedNodeId = null;
     refreshBuilderCanvasInline();
+}
+
+function copyVariableToClipboard(val) {
+    navigator.clipboard.writeText(val).then(() => {
+        showNotification('success', 'Copied variable ' + val + ' to clipboard!');
+    }).catch(err => {
+        console.error('Failed to copy variable', err);
+    });
+}
+
+function showWhatsAppVariablesHelp() {
+    const existing = document.getElementById('wf-variables-help-modal');
+    if (existing) existing.remove();
+    
+    const modal = document.createElement('div');
+    modal.id = 'wf-variables-help-modal';
+    modal.className = 'fixed inset-0 z-[2000] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4';
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in flex flex-col text-slate-700">
+            <!-- Header -->
+            <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
+                <div>
+                    <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center space-x-1.5">
+                        <i data-lucide="info" class="h-4 w-4 text-indigo-600"></i>
+                        <span>WhatsApp Message Variables</span>
+                    </h4>
+                    <p class="text-[9px] text-slate-400">Click any variable below to copy it to your clipboard</p>
+                </div>
+                <button onclick="document.getElementById('wf-variables-help-modal').remove()" class="h-6 w-6 rounded-full hover:bg-slate-100 text-slate-400 flex items-center justify-center transition">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            </div>
+            <!-- Body -->
+            <div class="p-4 flex-grow overflow-y-auto max-h-[60vh] space-y-4">
+                <div class="overflow-hidden border border-slate-150 rounded-xl shadow-sm">
+                    <table class="min-w-full divide-y divide-slate-150 text-[10px]">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th scope="col" class="px-3 py-2 text-left font-bold text-slate-500 uppercase tracking-wider">Variable</th>
+                                <th scope="col" class="px-3 py-2 text-left font-bold text-slate-500 uppercase tracking-wider">Description</th>
+                                <th scope="col" class="px-3 py-2 text-left font-bold text-slate-500 uppercase tracking-wider">Example Value</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            <tr class="hover:bg-slate-50/50 transition">
+                                <td class="px-3 py-2.5 font-mono text-indigo-600 font-bold cursor-pointer hover:underline" onclick="copyVariableToClipboard('{contact.name}')" title="Click to copy">{contact.name}</td>
+                                <td class="px-3 py-2.5 text-slate-600 font-medium">Contact Full Name</td>
+                                <td class="px-3 py-2.5 text-slate-400 italic font-semibold">John Doe</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 transition">
+                                <td class="px-3 py-2.5 font-mono text-indigo-600 font-bold cursor-pointer hover:underline" onclick="copyVariableToClipboard('{contact.email}')" title="Click to copy">{contact.email}</td>
+                                <td class="px-3 py-2.5 text-slate-600 font-medium">Contact Email Address</td>
+                                <td class="px-3 py-2.5 text-slate-400 italic font-semibold">customer@example.com</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 transition">
+                                <td class="px-3 py-2.5 font-mono text-indigo-600 font-bold cursor-pointer hover:underline" onclick="copyVariableToClipboard('{contact.phone}')" title="Click to copy">{contact.phone}</td>
+                                <td class="px-3 py-2.5 text-slate-600 font-medium">Contact Phone Number</td>
+                                <td class="px-3 py-2.5 text-slate-400 italic font-semibold">8016222991</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 transition">
+                                <td class="px-3 py-2.5 font-mono text-indigo-600 font-bold cursor-pointer hover:underline" onclick="copyVariableToClipboard('{contact.company}')" title="Click to copy">{contact.company}</td>
+                                <td class="px-3 py-2.5 text-slate-600 font-medium">Contact Company Name</td>
+                                <td class="px-3 py-2.5 text-slate-400 italic font-semibold">Acme Corp</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 transition">
+                                <td class="px-3 py-2.5 font-mono text-indigo-600 font-bold cursor-pointer hover:underline" onclick="copyVariableToClipboard('{lead.name}')" title="Click to copy">{lead.name}</td>
+                                <td class="px-3 py-2.5 text-slate-600 font-medium">CRM Lead Title</td>
+                                <td class="px-3 py-2.5 text-slate-400 italic font-semibold">Enterprise Deal</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 transition">
+                                <td class="px-3 py-2.5 font-mono text-indigo-600 font-bold cursor-pointer hover:underline" onclick="copyVariableToClipboard('{lead.budget}')" title="Click to copy">{lead.budget}</td>
+                                <td class="px-3 py-2.5 text-slate-600 font-medium">Lead Budget Value</td>
+                                <td class="px-3 py-2.5 text-slate-400 italic font-semibold">$5,000</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 transition">
+                                <td class="px-3 py-2.5 font-mono text-indigo-600 font-bold cursor-pointer hover:underline" onclick="copyVariableToClipboard('{lead.priority}')" title="Click to copy">{lead.priority}</td>
+                                <td class="px-3 py-2.5 text-slate-600 font-medium">Lead Priority Tier</td>
+                                <td class="px-3 py-2.5 text-slate-400 italic font-semibold">high / medium / low</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 transition">
+                                <td class="px-3 py-2.5 font-mono text-indigo-600 font-bold cursor-pointer hover:underline" onclick="copyVariableToClipboard('{lead.stage}')" title="Click to copy">{lead.stage}</td>
+                                <td class="px-3 py-2.5 text-slate-600 font-medium">Lead Pipeline Stage</td>
+                                <td class="px-3 py-2.5 text-slate-400 italic font-semibold">Proposal Sent</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 transition">
+                                <td class="px-3 py-2.5 font-mono text-indigo-600 font-bold cursor-pointer hover:underline" onclick="copyVariableToClipboard('{meeting_title}')" title="Click to copy">{meeting_title}</td>
+                                <td class="px-3 py-2.5 text-slate-600 font-medium">Scheduled Meeting Topic</td>
+                                <td class="px-3 py-2.5 text-slate-400 italic font-semibold">30min Consultation</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 transition">
+                                <td class="px-3 py-2.5 font-mono text-indigo-600 font-bold cursor-pointer hover:underline" onclick="copyVariableToClipboard('{meeting_location}')" title="Click to copy">{meeting_location}</td>
+                                <td class="px-3 py-2.5 text-slate-600 font-medium">Video URL / Physical Loc</td>
+                                <td class="px-3 py-2.5 text-slate-400 italic font-semibold">https://meet.google.com/abc-defg-hij</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 transition">
+                                <td class="px-3 py-2.5 font-mono text-indigo-600 font-bold cursor-pointer hover:underline" onclick="copyVariableToClipboard('{time}')" title="Click to copy">{time}</td>
+                                <td class="px-3 py-2.5 text-slate-600 font-medium">Scheduled Event Time</td>
+                                <td class="px-3 py-2.5 text-slate-400 italic font-semibold">10:30 AM</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 transition">
+                                <td class="px-3 py-2.5 font-mono text-indigo-600 font-bold cursor-pointer hover:underline" onclick="copyVariableToClipboard('{date}')" title="Click to copy">{date}</td>
+                                <td class="px-3 py-2.5 text-slate-600 font-medium">Scheduled Event Date</td>
+                                <td class="px-3 py-2.5 text-slate-400 italic font-semibold">Monday, 20 July 2026</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div class="p-3 border-t border-slate-200 bg-slate-50/50 flex justify-end">
+                <button onclick="document.getElementById('wf-variables-help-modal').remove()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-[10px] shadow-sm transition">
+                    Close Help
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    lucide.createIcons();
 }
 
 function updateNodeConfig(field, value) {

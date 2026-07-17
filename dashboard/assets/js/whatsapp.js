@@ -6539,27 +6539,62 @@ async function renderWhatsAppTrain(container) {
             renderAgentWizard(container, 0); // Start at initial input step
         }
     } catch (e) {
-        showNotification('error', 'Failed loading AI Agent panel: ' + e.message);
-        container.innerHTML = `
-            <div class="wa-agent-card p-8 max-w-md mx-auto text-center space-y-4 mt-12 text-slate-850 font-sans text-xs">
-                <div class="h-12 w-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto border border-rose-100">
-                    <i data-lucide="alert-circle" class="h-6 w-6"></i>
+        const errorMsg = e.message || '';
+        if (errorMsg.includes('whatsapp_agents') && (errorMsg.includes("doesn't exist") || errorMsg.includes("not found"))) {
+            showNotification('warning', 'AI Agent database table not found. Attempting to run database migrations automatically...');
+            container.innerHTML = `
+                <div class="wa-agent-card p-8 max-w-md mx-auto text-center space-y-4 mt-12 text-slate-855 font-sans text-xs">
+                    <div class="h-12 w-12 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center mx-auto border border-teal-100">
+                        <i data-lucide="refresh-cw" class="h-6 w-6 animate-spin"></i>
+                    </div>
+                    <div class="space-y-1.5">
+                        <h3 class="font-bold text-slate-800 text-sm">Running Database Migrations</h3>
+                        <p class="text-[10px] text-slate-500 font-semibold leading-relaxed">
+                            We noticed the required AI Agent database tables are missing on your server. We are executing the database migrations automatically now. Please wait...
+                        </p>
+                    </div>
                 </div>
-                <div class="space-y-1.5">
-                    <h3 class="font-bold text-slate-800 text-sm">Failed to load AI Agent settings</h3>
-                    <p class="text-[10px] text-slate-500 font-semibold leading-relaxed">
-                        There was an error communicating with the server: ${e.message}. Please make sure you have pulled the latest changes on your server and executed the database migrations.
-                    </p>
-                </div>
-                <button onclick="renderWhatsAppTrain(document.getElementById('main-content-viewport'))" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition flex items-center justify-center space-x-1.5 mx-auto text-[10px] shadow-sm">
-                    <i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i>
-                    <span>Retry Connection</span>
-                </button>
-            </div>
-        `;
-        lucide.createIcons();
+            `;
+            lucide.createIcons();
+            
+            // Trigger migration using authenticated apiCall
+            apiCall('crm/migrate.php')
+                .then(() => {
+                    showNotification('success', 'Database migrations executed successfully! Retrying agent panel load...');
+                    renderWhatsAppTrain(container);
+                })
+                .catch(migrationErr => {
+                    showNotification('error', 'Failed running migrations: ' + migrationErr.message);
+                    renderErrorCard(container, e);
+                });
+            return;
+        }
+        
+        renderErrorCard(container, e);
     }
 };
+
+function renderErrorCard(container, e) {
+    showNotification('error', 'Failed loading AI Agent panel: ' + e.message);
+    container.innerHTML = `
+        <div class="wa-agent-card p-8 max-w-md mx-auto text-center space-y-4 mt-12 text-slate-850 font-sans text-xs">
+            <div class="h-12 w-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto border border-rose-100">
+                <i data-lucide="alert-circle" class="h-6 w-6"></i>
+            </div>
+            <div class="space-y-1.5">
+                <h3 class="font-bold text-slate-800 text-sm">Failed to load AI Agent settings</h3>
+                <p class="text-[10px] text-slate-500 font-semibold leading-relaxed">
+                    There was an error communicating with the server: ${e.message}. Please make sure you have pulled the latest changes on your server and executed the database migrations.
+                </p>
+            </div>
+            <button onclick="renderWhatsAppTrain(document.getElementById('main-content-viewport'))" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition flex items-center justify-center space-x-1.5 mx-auto text-[10px] shadow-sm">
+                <i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i>
+                <span>Retry Connection</span>
+            </button>
+        </div>
+    `;
+    lucide.createIcons();
+}
 
 function renderAgentWizard(container, step) {
     const agent = window.activeWaAgent;

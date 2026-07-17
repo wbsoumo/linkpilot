@@ -6540,6 +6540,24 @@ async function renderWhatsAppTrain(container) {
         }
     } catch (e) {
         showNotification('error', 'Failed loading AI Agent panel: ' + e.getMessage());
+        container.innerHTML = `
+            <div class="wa-agent-card p-8 max-w-md mx-auto text-center space-y-4 mt-12 text-slate-850 font-sans text-xs">
+                <div class="h-12 w-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto border border-rose-100">
+                    <i data-lucide="alert-circle" class="h-6 w-6"></i>
+                </div>
+                <div class="space-y-1.5">
+                    <h3 class="font-bold text-slate-800 text-sm">Failed to load AI Agent settings</h3>
+                    <p class="text-[10px] text-slate-500 font-semibold leading-relaxed">
+                        There was an error communicating with the server: ${e.message}. Please make sure you have pulled the latest changes on your server and executed the database migrations.
+                    </p>
+                </div>
+                <button onclick="renderWhatsAppTrain(document.getElementById('main-content-viewport'))" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition flex items-center justify-center space-x-1.5 mx-auto text-[10px] shadow-sm">
+                    <i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i>
+                    <span>Retry Connection</span>
+                </button>
+            </div>
+        `;
+        lucide.createIcons();
     }
 };
 

@@ -383,7 +383,8 @@ async function navigateTo(view, params = {}) {
         contentArea.innerHTML = getSkeletonLoader(view);
 
         // Render corresponding screen
-        switch (view) {
+        try {
+            switch (view) {
             case 'dashboard':
                 await renderDashboard(contentArea);
                 break;
@@ -482,6 +483,16 @@ async function navigateTo(view, params = {}) {
                 break;
             default:
                 await renderDashboard(contentArea);
+        }
+    } catch (routeErr) {
+            console.error("Routing error for view " + view + ":", routeErr);
+            showNotification('error', "Routing Error: " + routeErr.message);
+            contentArea.innerHTML = `
+                <div class="p-8 text-center text-rose-600 bg-rose-50 border border-rose-150 rounded-2xl max-w-md mx-auto mt-12 font-sans text-xs">
+                    <h3 class="font-bold text-sm">Navigation/Routing Error</h3>
+                    <p class="mt-2 font-medium text-slate-650">${routeErr.stack || routeErr.message}</p>
+                </div>
+            `;
         }
     } finally {
         completeProgressBar();

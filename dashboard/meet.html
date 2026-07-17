@@ -52,7 +52,8 @@
         }
         /* Calendar UI overrides */
         .calendar-day-btn {
-            aspect-ratio: 1;
+            width: 38px;
+            height: 38px;
             border-radius: 9999px;
             font-weight: 700;
             font-size: 0.85rem;
@@ -62,6 +63,7 @@
             align-items: center;
             justify-content: center;
             outline: none;
+            margin: 0 auto;
         }
         .calendar-day-btn.available {
             color: #006bff;
@@ -184,7 +186,7 @@
             <div id="step-picker" class="md:col-span-3 grid grid-cols-1 md:grid-cols-5 flex-grow text-left bg-white">
                 <!-- Middle Column: Calendar view -->
                 <div id="calendar-col" class="md:col-span-5 p-6 md:p-8 flex flex-col justify-between transition-all duration-300">
-                    <div>
+                    <div class="max-w-[380px] w-full mx-auto">
                         <h3 class="text-xl font-bold text-slate-800 tracking-tight">Select a Date & Time</h3>
                         
                         <!-- Calendar navigation -->
@@ -192,7 +194,7 @@
                             <button id="prev-month-btn" class="h-8 w-8 hover:bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-slate-550 transition focus:outline-none">
                                 <i data-lucide="chevron-left" class="h-4 w-4"></i>
                             </button>
-                            <span id="calendar-month-year" class="text-sm font-bold text-slate-750">July 2026</span>
+                            <span id="calendar-month-year" class="text-sm font-bold text-slate-755">July 2026</span>
                             <button id="next-month-btn" class="h-8 w-8 hover:bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-slate-550 transition focus:outline-none">
                                 <i data-lucide="chevron-right" class="h-4 w-4"></i>
                             </button>
@@ -208,7 +210,7 @@
                     </div>
 
                     <!-- Timezone field selector -->
-                    <div class="mt-8 p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer select-none">
+                    <div class="max-w-[380px] w-full mx-auto mt-8 p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer select-none">
                         <div class="flex items-center space-x-2.5">
                             <span id="timezone-flag" class="text-base shrink-0 select-none mr-0.5">🇮🇳</span>
                             <div class="text-left">

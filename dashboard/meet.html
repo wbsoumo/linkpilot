@@ -432,6 +432,7 @@
         let activeYear = 2026;
         let activeMonth = 6; // 0-indexed (July = 6)
         let currentStep = 'picker'; // 'picker' or 'form' or 'success'
+        const bookingDoneSound = new Audio('../assets/sounds/booking-done.mp3');
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!linkId) {
@@ -916,6 +917,17 @@
 
                         // Switch view
                         currentStep = 'success';
+                        
+                        // Play booking done sound and trigger haptic tap
+                        try {
+                            bookingDoneSound.play().catch(e => console.log('Audio play blocked:', e));
+                        } catch (audioErr) {
+                            console.log('Audio error:', audioErr);
+                        }
+                        if (navigator.vibrate) {
+                            navigator.vibrate(25); // Trigger a gentle 25ms haptic tap
+                        }
+                        
                         document.getElementById('step-form').classList.add('hidden');
                         document.getElementById('back-btn').classList.add('invisible');
                         

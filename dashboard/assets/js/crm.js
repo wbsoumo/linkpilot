@@ -16151,7 +16151,6 @@ function deleteNodeById(nodeId) {
     }
     saveUndoState();
     
-    const wf = window.wfState.activeWorkflow;
     wf.nodes = wf.nodes.filter(n => n.id !== nodeId);
     wf.connections = wf.connections.filter(c => c.from !== nodeId && c.to !== nodeId);
     

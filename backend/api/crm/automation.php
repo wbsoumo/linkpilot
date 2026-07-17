@@ -27,12 +27,39 @@ try {
         $stmt->execute([$userId]);
         $workflows = $stmt->fetchAll();
         
-        // Decode actions_json for user frontend formatting
+        // Decode actions_json for user frontend formatting and count actual executions
         foreach ($workflows as &$wf) {
             $wf['actions'] = json_decode($wf['actions_json'], true);
+            
+            // Get actual executions count
+            $stmtCount = $db->prepare("SELECT COUNT(*) as count FROM workflow_execution_logs WHERE workflow_id = ?");
+            $stmtCount->execute([$wf['id']]);
+            $countRow = $stmtCount->fetch();
+            $wf['executions_count'] = (int)($countRow['count'] ?? 0);
         }
         
-        sendJsonResponse('success', 'Automation workflows retrieved successfully', ['workflows' => $workflows]);
+        // Get aggregated statistics
+        $stmtStats = $db->prepare("SELECT 
+            COUNT(*) as total_executions,
+            SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) as success_executions,
+            SUM(CASE WHEN created_at >= DATE_FORMAT(NOW(), '%Y-%m-01') THEN 1 ELSE 0 END) as monthly_executions
+            FROM workflow_execution_logs WHERE user_id = ?");
+        $stmtStats->execute([$userId]);
+        $stats = $stmtStats->fetch() ?: ['total_executions' => 0, 'success_executions' => 0, 'monthly_executions' => 0];
+        
+        $totalExec = (int)($stats['total_executions'] ?? 0);
+        $successExec = (int)($stats['success_executions'] ?? 0);
+        $monthlyExec = (int)($stats['monthly_executions'] ?? 0);
+        $successRate = $totalExec > 0 ? round(($successExec / $totalExec) * 100, 1) : 100.0;
+        
+        sendJsonResponse('success', 'Automation workflows retrieved successfully', [
+            'workflows' => $workflows,
+            'stats' => [
+                'total_executions' => $totalExec,
+                'monthly_executions' => $monthlyExec,
+                'success_rate' => $successRate
+            ]
+        ]);
     }
     
     elseif ($method === 'TEST_SEND_EMAIL') {

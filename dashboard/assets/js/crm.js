@@ -11337,15 +11337,13 @@ function renderAutomationList() {
         id: w.id,
         name: w.name,
         description: "Visual Workflow Creator",
-        status: w.is_active ? "Active" : "Paused",
-        executions: 48,
-        last_updated: new Date(w.created_at || Date.now()).toLocaleDateString() + " ago",
+        status: parseInt(w.is_active) === 1 ? "Active" : "Paused",
+        executions: w.executions_count || 0,
+        last_updated: new Date(w.updated_at || w.created_at || Date.now()).toLocaleDateString() + " ago",
         type: w.trigger_type === 'whatsapp_received' ? 'whatsapp' : 'email',
         icon: w.trigger_type === 'whatsapp_received' ? 'message-square' : 'mail',
         is_active: parseInt(w.is_active)
     }));
-
-    allList = [...allList, ...window.seedWorkflows];
 
     const totalCountVal = allList.length;
     const activeCountVal = allList.filter(w => w.is_active === 1).length;
@@ -11494,7 +11492,40 @@ async function renderAutomation(container) {
 
     try {
         const data = await apiCall('crm/automation.php');
-        window.fetchedWorkflows = data.workflows || [];
+        window.fetchedWorkflows = data.workflows || (data.data && data.data.workflows) || [];
+        window.wfStats = data.stats || (data.data && data.data.stats) || { total_executions: 0, monthly_executions: 0, success_rate: 100.0 };
+        
+        if (window.fetchedWorkflows.length === 0) {
+            container.innerHTML = `
+                <div class="flex-grow flex flex-col items-center justify-center text-center p-8 pt-20 animate-fade-in max-w-xl mx-auto space-y-6">
+                    <div class="relative flex items-center justify-center">
+                        <div class="absolute inset-0 bg-blue-100 rounded-full scale-150 blur-xl opacity-30 animate-pulse"></div>
+                        <div class="h-16 w-16 bg-blue-50 border border-blue-100 rounded-3xl flex items-center justify-center text-blue-600 relative z-10 shadow-sm">
+                            <i data-lucide="zap" class="h-8 w-8 text-blue-650"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <h2 class="text-xl font-black text-slate-900 tracking-tight">Create Your First Automation</h2>
+                        <p class="text-slate-500 text-[11px] leading-relaxed font-semibold">
+                            Welcome to LinkPilot Automations! Connect triggers like scheduled meetings to instant actions like sending WhatsApp reminders and notifications.
+                        </p>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-sm pt-2">
+                        <button onclick="startOnboardingWizard()" class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 shadow-md hover:shadow-lg">
+                            <i data-lucide="sparkles" class="h-4 w-4 text-white"></i>
+                            <span>Start Onboarding Wizard</span>
+                        </button>
+                        <button onclick="createNewVisualWorkflow()" class="w-full sm:w-auto px-6 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-sm">
+                            <span>Blank Canvas</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+            return;
+        }
         
         container.innerHTML = `
             <div class="space-y-6 animate-fade-in pt-2 pb-12">
@@ -11545,10 +11576,10 @@ async function renderAutomation(container) {
                     <div class="bg-white border border-slate-100 rounded-[20px] p-5 shadow-xs flex justify-between items-center relative overflow-hidden text-left">
                         <div class="space-y-1">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Executions (This Month)</span>
-                            <h3 class="text-2xl font-black text-slate-800 leading-tight">1,240</h3>
+                            <h3 class="text-2xl font-black text-slate-800 leading-tight">${(window.wfStats.monthly_executions || 0).toLocaleString()}</h3>
                             <span class="text-[10px] text-emerald-500 font-extrabold flex items-center">
                                 <i data-lucide="arrow-up" class="h-3.5 w-3.5 mr-0.5"></i>
-                                <span>18% this month</span>
+                                <span>Active tracking</span>
                             </span>
                         </div>
                         <div class="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100/50">
@@ -11558,10 +11589,10 @@ async function renderAutomation(container) {
                     <div class="bg-white border border-slate-100 rounded-[20px] p-5 shadow-xs flex justify-between items-center relative overflow-hidden text-left">
                         <div class="space-y-1">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Success Rate</span>
-                            <h3 class="text-2xl font-black text-slate-800 leading-tight">98.6%</h3>
+                            <h3 class="text-2xl font-black text-slate-800 leading-tight">${(window.wfStats.success_rate || 0.0).toFixed(1)}%</h3>
                             <span class="text-[10px] text-emerald-500 font-extrabold flex items-center">
                                 <i data-lucide="arrow-up" class="h-3.5 w-3.5 mr-0.5"></i>
-                                <span>2.6% this month</span>
+                                <span>Operational</span>
                             </span>
                         </div>
                         <div class="h-10 w-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center border border-amber-100/50">
@@ -11661,7 +11692,7 @@ async function loadRecentExecutionLogs() {
     if (!list) return;
     try {
         const data = await apiCall('crm/automation.php?action=get_logs');
-        const logs = data.logs || [];
+        const logs = data.logs || (data.data && data.data.logs) || [];
         
         const dbLogs = logs.slice(0, 5).map(l => {
             const isSuccess = l.status === 'success';
@@ -11678,9 +11709,16 @@ async function loadRecentExecutionLogs() {
             };
         });
 
-        const mergedList = [...dbLogs, ...MOCK_EXECUTIONS].slice(0, 5);
+        if (dbLogs.length === 0) {
+            list.innerHTML = `
+                <div class="py-6 text-center text-slate-400 text-[10px] font-semibold">
+                    No workflow executions recorded yet.
+                </div>
+            `;
+            return;
+        }
         
-        list.innerHTML = mergedList.map(item => `
+        list.innerHTML = dbLogs.map(item => `
             <div class="flex items-center justify-between border-b border-slate-50 pb-3 last:border-b-0">
                 <div class="flex items-center space-x-3 text-left">
                     <div class="h-9 w-9 rounded-xl ${item.iconClass} flex items-center justify-center shrink-0 border">
@@ -11724,7 +11762,7 @@ async function editVisualWorkflow(id) {
     window.wfState.activeTab = 'builder';
     try {
         const data = await apiCall('crm/automation.php');
-        const workflows = data.workflows || [];
+        const workflows = data.workflows || (data.data && data.data.workflows) || [];
         const found = workflows.find(w => (w.id === id));
         if (found) {
             let actions = found.actions || {};
@@ -11828,7 +11866,57 @@ function renderVisualCanvas(container) {
         stopBuilderAutoSave();
     }
 
-    if (activeTab === 'builder') {
+        let onboardingCardHTML = '';
+        if (window.wfState.onboardingStep) {
+            const step = window.wfState.onboardingStep;
+            let stepTitle = '';
+            let stepText = '';
+            let progressPercent = 0;
+            
+            if (step === 1) {
+                stepTitle = '1. Add Starting Trigger';
+                stepText = 'Click the highlighted <b>Meeting Scheduled</b> trigger in the left sidebar to add it to your canvas.';
+                progressPercent = 20;
+            } else if (step === 2) {
+                stepTitle = '2. Add Action Node';
+                stepText = 'Click the highlighted <b>Send WhatsApp</b> action in the left sidebar to add it.';
+                progressPercent = 40;
+            } else if (step === 3) {
+                stepTitle = '3. Connect the Nodes';
+                stepText = 'Drag a line from the output dot of <b>Meeting Scheduled</b> to the input dot of <b>Send WhatsApp</b>.';
+                progressPercent = 60;
+            } else if (step === 4) {
+                stepTitle = '4. Configure Details';
+                stepText = 'Click on the <b>Send WhatsApp</b> canvas node, then configure the message body on the right panel.';
+                progressPercent = 80;
+            } else if (step === 5) {
+                stepTitle = '5. Publish Automation';
+                stepText = 'Ready to go live! Click the blue <b>Publish</b> button in the top-right corner to save and run your automation.';
+                progressPercent = 95;
+            }
+            
+            onboardingCardHTML = `
+                <div id="wf-onboarding-panel" class="absolute bottom-6 right-6 z-[40] bg-white border border-indigo-150 rounded-2xl shadow-xl p-4 w-72 text-left animate-fade-in flex flex-col space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[9px] font-extrabold text-indigo-650 bg-indigo-50 border border-indigo-100 rounded-md px-1.5 py-0.5 uppercase tracking-wider">Step ${step} of 5</span>
+                        <button onclick="skipOnboardingTour()" class="text-[9px] font-bold text-slate-400 hover:text-slate-600 transition uppercase tracking-wider">Skip Tour</button>
+                    </div>
+                    <div class="space-y-1">
+                        <h4 class="text-xs font-bold text-slate-800 flex items-center">
+                            <i data-lucide="sparkles" class="h-3.5 w-3.5 text-indigo-650 mr-1.5 animate-pulse"></i>
+                            <span>${stepTitle}</span>
+                        </h4>
+                        <p class="text-[10px] text-slate-550 leading-relaxed">${stepText}</p>
+                    </div>
+                    <div class="space-y-1.5">
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-indigo-605 h-full rounded-full transition-all duration-300" style="width: ${progressPercent}%"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         const groupsHTML = getGroupsHTML(window.wfState.searchTerm || '');
 
         container.innerHTML = `
@@ -11993,6 +12081,8 @@ function renderVisualCanvas(container) {
                                 <span>Execute Workflow</span>
                             </button>
                         </div>
+                        
+                        ${onboardingCardHTML}
                     </div>
 
                     <!-- Right Sidebar (Node Configuration) -->
@@ -12228,18 +12318,30 @@ function getGroupsHTML(searchTerm) {
         
         if (nodesInCat.length === 0) continue;
         
-        const nodesHTML = nodesInCat.map(n => `
-            <div draggable="true" ondragstart="handleNodeDragStart(event, '${n.type}')" class="p-2 bg-white border border-slate-200 hover:border-indigo-500 rounded-xl space-y-0.5 transition cursor-grab select-none text-left hover:shadow-md">
-                <div class="flex items-center space-x-2">
-                    <div class="h-6 w-6 bg-slate-100 rounded-md flex items-center justify-center text-indigo-650 shrink-0">
-                        ${getNodeIconHTML(n.type, n.icon)}
-                    </div>
-                    <div class="overflow-hidden">
-                        <h5 class="font-bold text-slate-800 text-[10px] leading-tight truncate">${n.name}</h5>
+        const nodesHTML = nodesInCat.map(n => {
+            let highlightClass = 'border-slate-200 hover:border-indigo-500';
+            if (window.wfState.onboardingStep === 1 && n.type === 'meeting_scheduled') {
+                highlightClass = 'border-indigo-600 ring-2 ring-indigo-500/40 animate-pulse shadow-md';
+            } else if (window.wfState.onboardingStep === 2 && n.type === 'whatsapp_outbound') {
+                highlightClass = 'border-indigo-600 ring-2 ring-indigo-500/40 animate-pulse shadow-md';
+            }
+            
+            return `
+                <div draggable="true" ondragstart="handleNodeDragStart(event, '${n.type}')" onclick="addNodeToCanvasClick('${n.type}')" class="p-2 bg-white border ${highlightClass} rounded-xl space-y-0.5 transition cursor-grab select-none text-left hover:shadow-md">
+                    <div class="flex items-center space-x-2">
+                        <div class="h-6 w-6 bg-slate-100 rounded-md flex items-center justify-center text-indigo-650 shrink-0">
+                            ${getNodeIconHTML(n.type, n.icon)}
+                        </div>
+                        <div class="overflow-hidden flex-grow">
+                            <h5 class="font-bold text-slate-800 text-[10px] leading-tight truncate">${n.name}</h5>
+                        </div>
+                        ${((window.wfState.onboardingStep === 1 && n.type === 'meeting_scheduled') || (window.wfState.onboardingStep === 2 && n.type === 'whatsapp_outbound')) ? `
+                            <span class="h-1.5 w-1.5 rounded-full bg-indigo-600 flex shrink-0"></span>
+                        ` : ''}
                     </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
         
         let displayCatName = catName;
         if (catName === 'TRIGGERS') displayCatName = '⚡ Triggers';
@@ -12278,7 +12380,7 @@ window.refreshWfExecutions = async function() {
     
     try {
         const data = await apiCall('crm/automation.php?action=get_logs');
-        const logs = data.logs || [];
+        const logs = data.logs || (data.data && data.data.logs) || [];
         if (logs.length === 0) {
             listContainer.innerHTML = `
                 <div class="text-center text-slate-500 py-12 italic text-[11px]">
@@ -12321,7 +12423,7 @@ window.selectWfExecution = async function(runId) {
     
     try {
         const data = await apiCall('crm/automation.php?action=get_logs');
-        const logs = data.logs || [];
+        const logs = data.logs || (data.data && data.data.logs) || [];
         const found = logs.find(l => l.id == runId);
         if (!found) {
             detailsContainer.innerHTML = `<div class="text-center text-slate-500 py-12">Execution run not found.</div>`;
@@ -12388,7 +12490,7 @@ window.loadWfFullLogs = async function() {
     
     try {
         const data = await apiCall('crm/automation.php?action=get_logs');
-        const logs = data.logs || [];
+        const logs = data.logs || (data.data && data.data.logs) || [];
         if (logs.length === 0) {
             container.innerHTML = `<div class="text-slate-500 italic text-[11px] text-center py-12">No execution runs logged yet.</div>`;
             return;
@@ -12437,7 +12539,7 @@ window.loadWfAnalytics = async function() {
     
     try {
         const data = await apiCall('crm/automation.php?action=get_logs');
-        const logs = data.logs || [];
+        const logs = data.logs || (data.data && data.data.logs) || [];
         
         // Calculate metrics
         const total = logs.length;
@@ -15830,6 +15932,91 @@ function handleNodeDrop(e) {
     window.wfState.selectedNodeId = newNode.id;
     
     refreshBuilderCanvasInline();
+    if (window.wfState.onboardingStep) {
+        checkOnboardingProgress();
+    }
+}
+
+function addNodeToCanvasClick(nodeType) {
+    const template = AVAILABLE_NODES.find(n => n.type === nodeType);
+    if (!template) return;
+    
+    saveUndoState();
+    
+    // Add to center of visible canvas
+    const x = 300 + (window.wfState.activeWorkflow.nodes.length * 20) % 100;
+    const y = 150 + (window.wfState.activeWorkflow.nodes.length * 30) % 150;
+    
+    const newNode = {
+        id: 'node-' + Date.now(),
+        type: template.type,
+        name: template.name,
+        category: template.category,
+        icon: template.icon,
+        x: x,
+        y: y,
+        config: {}
+    };
+    
+    window.wfState.activeWorkflow.nodes.push(newNode);
+    window.wfState.selectedNodeId = newNode.id;
+    
+    refreshBuilderCanvasInline();
+    
+    // If onboarding is active, trigger step check
+    if (window.wfState.onboardingStep) {
+        checkOnboardingProgress();
+    }
+}
+
+function checkOnboardingProgress() {
+    if (!window.wfState.onboardingStep) return;
+    
+    const wf = window.wfState.activeWorkflow;
+    if (!wf) return;
+    
+    const step = window.wfState.onboardingStep;
+    
+    // Step 1: Add a meeting_scheduled trigger
+    if (step === 1) {
+        const hasTrigger = wf.nodes.some(n => n.type === 'meeting_scheduled');
+        if (hasTrigger) {
+            window.wfState.onboardingStep = 2;
+            showNotification('success', 'Step 1 Complete: Starting trigger added!');
+            refreshBuilderCanvasInline();
+        }
+    }
+    // Step 2: Add a whatsapp_outbound action
+    else if (step === 2) {
+        const hasAction = wf.nodes.some(n => n.type === 'whatsapp_outbound');
+        if (hasAction) {
+            window.wfState.onboardingStep = 3;
+            showNotification('success', 'Step 2 Complete: WhatsApp action added!');
+            refreshBuilderCanvasInline();
+        }
+    }
+    // Step 3: Connect them
+    else if (step === 3) {
+        const triggerNode = wf.nodes.find(n => n.type === 'meeting_scheduled');
+        const actionNode = wf.nodes.find(n => n.type === 'whatsapp_outbound');
+        if (triggerNode && actionNode) {
+            const isConnected = wf.connections.some(c => c.from === triggerNode.id && c.to === actionNode.id);
+            if (isConnected) {
+                window.wfState.onboardingStep = 4;
+                showNotification('success', 'Step 3 Complete: Nodes connected successfully!');
+                refreshBuilderCanvasInline();
+            }
+        }
+    }
+    // Step 4: Click the WhatsApp node to configure
+    else if (step === 4) {
+        const actionNode = wf.nodes.find(n => n.type === 'whatsapp_outbound');
+        if (actionNode && window.wfState.selectedNodeId === actionNode.id) {
+            window.wfState.onboardingStep = 5;
+            showNotification('success', 'Step 4 Complete: Node selected for configuration.');
+            refreshBuilderCanvasInline();
+        }
+    }
 }
 
 function handleCanvasScroll(e) {
@@ -15888,6 +16075,10 @@ function handleNodeMouseDown(e, nodeId) {
     const sidebar = document.getElementById('wf-config-sidebar');
     if (sidebar) sidebar.innerHTML = renderConfigSidebarHTML();
     lucide.createIcons();
+    
+    if (window.wfState.onboardingStep) {
+        checkOnboardingProgress();
+    }
     
     const nodeObj = window.wfState.activeWorkflow.nodes.find(n => n.id === nodeId);
     const startX = e.clientX;
@@ -15974,6 +16165,10 @@ function handleConnectionMouseDown(e, nodeId, handleType) {
                     to: targetNodeId,
                     handle: handleType
                 });
+                
+                if (window.wfState.onboardingStep) {
+                    checkOnboardingProgress();
+                }
             }
         }
         drawConnections();
@@ -16773,6 +16968,12 @@ async function saveActiveWorkflow() {
 
 function toggleWorkflowActiveState() {
     window.wfState.activeWorkflow.is_active = window.wfState.activeWorkflow.is_active ? 0 : 1;
+    
+    if (window.wfState.onboardingStep === 5 && window.wfState.activeWorkflow.is_active === 1) {
+        window.wfState.onboardingStep = null;
+        showNotification('success', '🎉 Congratulations! Your first workflow automation is now live!');
+    }
+    
     saveActiveWorkflow();
     refreshBuilderCanvasInline();
 }
@@ -16859,7 +17060,7 @@ async function loadDrawerExecutionLogs() {
     if (!body) return;
     try {
         const data = await apiCall('crm/automation.php?action=get_logs');
-        const logs = data.logs || [];
+        const logs = data.logs || (data.data && data.data.logs) || [];
         if (logs.length === 0) {
             body.innerHTML = `<div class="text-slate-500 italic text-[11px] text-center py-12">No execution runs logged. Run a simulation test first.</div>`;
             return;
@@ -20423,4 +20624,25 @@ function showConfettiCelebration() {
             p.remove();
         }, 4000);
     }
+}
+
+function startOnboardingWizard() {
+    window.wfState.activeTab = 'builder';
+    window.wfState.onboardingStep = 1;
+    window.wfState.activeWorkflow = {
+        id: 0,
+        name: "My First Automation",
+        trigger_type: "visual_workflow",
+        trigger_value: "canvas",
+        is_active: 0,
+        nodes: [],
+        connections: []
+    };
+    navigateTo('automation');
+}
+
+function skipOnboardingTour() {
+    window.wfState.onboardingStep = null;
+    refreshBuilderCanvasInline();
+    showNotification('info', 'Onboarding tour skipped.');
 }

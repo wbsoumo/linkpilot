@@ -408,6 +408,44 @@ try {
             error_log("Failed to send booking confirmation email: " . $mailEx->getMessage());
         }
 
+        // Fetch contact phone if available
+        $senderPhone = '';
+        $stmtCPhone = $db->prepare("SELECT phone, whatsapp FROM crm_contacts WHERE id = ?");
+        $stmtCPhone->execute([$contactId]);
+        $cPhone = $stmtCPhone->fetch();
+        if ($cPhone) {
+            $senderPhone = !empty($cPhone['whatsapp']) ? $cPhone['whatsapp'] : (!empty($cPhone['phone']) ? $cPhone['phone'] : '');
+        }
+
+        // Trigger active visual workflows for meeting_scheduled
+        try {
+            require_once __DIR__ . '/../../workflow_runner.php';
+            $stmtVisual = $db->prepare("SELECT * FROM automation_workflows WHERE user_id = ? AND trigger_type = 'meeting_scheduled' AND is_active = 1");
+            $stmtVisual->execute([$hostUserId]);
+            $visualWfs = $stmtVisual->fetchAll();
+            
+            $vContext = [
+                'sender_email' => $guestEmail,
+                'sender_name' => $guestName,
+                'sender_phone' => $senderPhone,
+                'guest_email' => $guestEmail,
+                'guest_name' => $guestName,
+                'meeting_title' => $title,
+                'meeting_start' => $startStr,
+                'meeting_end' => $endStr,
+                'meeting_location' => $location,
+                'time' => date('h:i A', strtotime($startStr)),
+                'date' => date('l, d F Y', strtotime($startStr)),
+                'contact_id' => $contactId
+            ];
+            
+            foreach ($visualWfs as $vwf) {
+                WorkflowRunner::execute($hostUserId, $vwf, $vContext);
+            }
+        } catch (Throwable $vEx) {
+            error_log("Failed to trigger meeting_scheduled workflow: " . $vEx->getMessage());
+        }
+
         // Log to timeline
         $timelineStmt = $db->prepare("
             INSERT INTO crm_timeline (user_id, contact_id, activity_type, description) 

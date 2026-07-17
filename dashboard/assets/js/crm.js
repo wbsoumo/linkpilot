@@ -15494,7 +15494,8 @@ const NODE_FIELDS_MAP = {
     ],
     whatsapp_outbound: [
         { key: 'to', label: 'Recipient Phone', type: 'text', placeholder: 'e.g. +1234567890 or {{contact.phone}}' },
-        { key: 'message', label: 'WhatsApp Message Body', type: 'textarea', placeholder: 'Type your WhatsApp message content here...' }
+        { key: 'message', label: 'WhatsApp Message Body', type: 'textarea', placeholder: 'Type your WhatsApp message content here...', helper: 'Tip: You can use variables like {time} and {date} to insert meeting details.' },
+        { key: 'reminderOffset', label: 'Reminder Offset', type: 'select', options: ['None (Send Immediately)', '5 minutes before meeting', '15 minutes before meeting', '30 minutes before meeting', '1 hour before meeting', '1 day before meeting'] }
     ],
     send_notification: [
         { key: 'targetUser', label: 'Target System User', type: 'select', options: ['All Active Admins', 'Soumojit Saha'] },
@@ -15728,10 +15729,12 @@ function renderConfigSidebarHTML() {
                     </div>
                 `;
             } else if (f.type === 'textarea') {
+                const helperHTML = f.helper ? `<p class="text-[9px] text-indigo-600 font-semibold mt-1">${f.helper}</p>` : '';
                 return `
                     <div class="space-y-1">
                         <label class="text-[9px] font-bold text-slate-500 uppercase">${f.label}</label>
                         <textarea rows="3" placeholder="${f.placeholder || ''}" oninput="updateNodeConfig('${f.key}', this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-[10px] focus:outline-none focus:border-indigo-500 font-sans">${val}</textarea>
+                        ${helperHTML}
                     </div>
                 `;
             } else if (f.type === 'number') {

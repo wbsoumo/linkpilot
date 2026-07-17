@@ -95,12 +95,12 @@ class WorkflowRunner {
         $type = $node['type'] ?? '';
         $config = $node['config'] ?? [];
 
-        // Helper for variable replacement
+        // Helper for variable replacement (Supports both {{var}} and {var} brackets)
         $replaceVars = function($txt) use (&$context, $db, $userId) {
             if (empty($txt)) return $txt;
             
             // Load contact details dynamically if referenced
-            if (strpos($txt, '{{contact.') !== false && !empty($context['contact_id'])) {
+            if ((strpos($txt, '{{contact.') !== false || strpos($txt, '{contact.') !== false) && !empty($context['contact_id'])) {
                 $stmtC = $db->prepare("SELECT * FROM crm_contacts WHERE id = ? AND user_id = ?");
                 $stmtC->execute([$context['contact_id'], $userId]);
                 $cRow = $stmtC->fetch(PDO::FETCH_ASSOC);
@@ -112,7 +112,7 @@ class WorkflowRunner {
             }
             
             // Load lead details dynamically if referenced
-            if (strpos($txt, '{{lead.') !== false && !empty($context['lead_id'])) {
+            if ((strpos($txt, '{{lead.') !== false || strpos($txt, '{lead.') !== false) && !empty($context['lead_id'])) {
                 $stmtL = $db->prepare("SELECT * FROM crm_leads WHERE id = ? AND user_id = ?");
                 $stmtL->execute([$context['lead_id'], $userId]);
                 $lRow = $stmtL->fetch(PDO::FETCH_ASSOC);
@@ -126,6 +126,7 @@ class WorkflowRunner {
             foreach ($context as $key => $val) {
                 if (is_scalar($val)) {
                     $txt = str_replace('{{' . $key . '}}', $val, $txt);
+                    $txt = str_replace('{' . $key . '}', $val, $txt);
                 }
             }
             return $txt;
@@ -182,48 +183,81 @@ class WorkflowRunner {
             case 'whatsapp_outbound':
                 $to = $replaceVars($config['to'] ?? ($context['sender_phone'] ?? ''));
                 $message = $replaceVars($config['message'] ?? '');
+                $reminderOffset = $config['reminderOffset'] ?? 'None (Send Immediately)';
 
                 // Clean phone number
                 $toClean = preg_replace('/[^0-9]/', '', $to);
 
                 if (!empty($toClean) && !empty($message)) {
-                    // Send WhatsApp message immediately via connected account
+                    // Fetch connected WhatsApp account
                     $stmtAcc = $db->prepare("SELECT access_token, phone_number_id FROM whatsapp_accounts WHERE user_id = ? AND status = 'connected' LIMIT 1");
                     $stmtAcc->execute([$userId]);
                     $acc = $stmtAcc->fetch();
 
                     if ($acc) {
                         $phoneNumberId = $acc['phone_number_id'];
-                        $encryptedToken = $acc['access_token'];
-                        $decrypted = decryptData($encryptedToken);
-                        $accessToken = ($decrypted !== false) ? $decrypted : $encryptedToken;
                         
-                        $isMock = (strpos($accessToken, 'Mock') !== false || $accessToken === 'EAAGemini' || $accessToken === 'EAAGeminiTest');
-                        $metaMsgId = '';
-                        if (!$isMock) {
-                            $res = WhatsAppMetaService::sendTextMessage($userId, $phoneNumberId, $toClean, $message, $accessToken);
-                            $metaMsgId = $res['messages'][0]['id'] ?? 'wamid.' . uniqid();
+                        // Parse scheduled reminder date if configured
+                        $scheduledAt = null;
+                        if (!empty($reminderOffset) && $reminderOffset !== 'None (Send Immediately)' && !empty($context['meeting_start'])) {
+                            $meetingStartTs = strtotime($context['meeting_start']);
+                            
+                            if ($reminderOffset === '5 minutes before meeting') {
+                                $scheduledAt = date('Y-m-d H:i:s', $meetingStartTs - 300);
+                            } elseif ($reminderOffset === '15 minutes before meeting') {
+                                $scheduledAt = date('Y-m-d H:i:s', $meetingStartTs - 900);
+                            } elseif ($reminderOffset === '30 minutes before meeting') {
+                                $scheduledAt = date('Y-m-d H:i:s', $meetingStartTs - 1800);
+                            } elseif ($reminderOffset === '1 hour before meeting') {
+                                $scheduledAt = date('Y-m-d H:i:s', $meetingStartTs - 3600);
+                            } elseif ($reminderOffset === '1 day before meeting') {
+                                $scheduledAt = date('Y-m-d H:i:s', $meetingStartTs - 86400);
+                            }
+                        }
+
+                        if ($scheduledAt !== null) {
+                            // Queue the message with status 'pending' and correct scheduled_at timestamp
+                            $payloadJson = json_encode(['body' => $message]);
+                            $stmtQueue = $db->prepare("
+                                INSERT INTO whatsapp_queue (user_id, phone_number_id, recipient_number, payload_json, type, status, scheduled_at)
+                                VALUES (?, ?, ?, ?, 'text', 'pending', ?)
+                            ");
+                            $stmtQueue->execute([$userId, $phoneNumberId, $toClean, $payloadJson, $scheduledAt]);
+
+                            self::logTimeline($db, $userId, 'WhatsApp Outbound', "Automated WhatsApp reminder queued for $toClean at $scheduledAt: " . substr($message, 0, 80), $context['lead_id'] ?? null, $context['contact_id'] ?? null);
                         } else {
-                            $metaMsgId = 'wamid.MockAuto.' . uniqid();
-                        }
+                            // Send immediately
+                            $encryptedToken = $acc['access_token'];
+                            $decrypted = decryptData($encryptedToken);
+                            $accessToken = ($decrypted !== false) ? $decrypted : $encryptedToken;
+                            
+                            $isMock = (strpos($accessToken, 'Mock') !== false || $accessToken === 'EAAGemini' || $accessToken === 'EAAGeminiTest');
+                            $metaMsgId = '';
+                            if (!$isMock) {
+                                $res = WhatsAppMetaService::sendTextMessage($userId, $phoneNumberId, $toClean, $message, $accessToken);
+                                $metaMsgId = $res['messages'][0]['id'] ?? 'wamid.' . uniqid();
+                            } else {
+                                $metaMsgId = 'wamid.MockAuto.' . uniqid();
+                            }
 
-                        // Log outbound message to database
-                        $stmtExist = $db->prepare("SELECT id FROM whatsapp_contacts WHERE user_id = ? AND RIGHT(wa_id, 10) = RIGHT(?, 10) ORDER BY last_message_at DESC LIMIT 1");
-                        $stmtExist->execute([$userId, $toClean]);
-                        $waContactId = $stmtExist->fetchColumn();
-                        
-                        if (!$waContactId) {
-                            $stmtInsWaCon = $db->prepare("INSERT INTO whatsapp_contacts (user_id, wa_id, profile_name, last_message_at, unread_count) VALUES (?, ?, ?, NOW(), 0)");
-                            $stmtInsWaCon->execute([$userId, $toClean, 'WhatsApp Contact']);
-                            $waContactId = $db->lastInsertId();
-                        }
-                        
-                        $stmtInsMsg = $db->prepare("INSERT INTO whatsapp_messages (user_id, wa_contact_id, message_id, direction, type, body, status) VALUES (?, ?, ?, 'outbound', 'text', ?, 'sent')");
-                        $stmtInsMsg->execute([$userId, $waContactId, $metaMsgId, $message]);
-                        
-                        $db->prepare("UPDATE whatsapp_contacts SET last_message_at = NOW() WHERE id = ?")->execute([$waContactId]);
+                            // Log outbound message to database
+                            $stmtExist = $db->prepare("SELECT id FROM whatsapp_contacts WHERE user_id = ? AND RIGHT(wa_id, 10) = RIGHT(?, 10) ORDER BY last_message_at DESC LIMIT 1");
+                            $stmtExist->execute([$userId, $toClean]);
+                            $waContactId = $stmtExist->fetchColumn();
+                            
+                            if (!$waContactId) {
+                                $stmtInsWaCon = $db->prepare("INSERT INTO whatsapp_contacts (user_id, wa_id, profile_name, last_message_at, unread_count) VALUES (?, ?, ?, NOW(), 0)");
+                                $stmtInsWaCon->execute([$userId, $toClean, 'WhatsApp Contact']);
+                                $waContactId = $db->lastInsertId();
+                            }
+                            
+                            $stmtInsMsg = $db->prepare("INSERT INTO whatsapp_messages (user_id, wa_contact_id, message_id, direction, type, body, status) VALUES (?, ?, ?, 'outbound', 'text', ?, 'sent')");
+                            $stmtInsMsg->execute([$userId, $waContactId, $metaMsgId, $message]);
+                            
+                            $db->prepare("UPDATE whatsapp_contacts SET last_message_at = NOW() WHERE id = ?")->execute([$waContactId]);
 
-                        self::logTimeline($db, $userId, 'WhatsApp Outbound', "Automated WhatsApp sent to $toClean: " . substr($message, 0, 80), $context['lead_id'] ?? null, $context['contact_id'] ?? null);
+                            self::logTimeline($db, $userId, 'WhatsApp Outbound', "Automated WhatsApp sent to $toClean: " . substr($message, 0, 80), $context['lead_id'] ?? null, $context['contact_id'] ?? null);
+                        }
                     }
                 }
                 break;

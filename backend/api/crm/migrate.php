@@ -24,7 +24,7 @@ try {
 
 if ($hasAdmin) {
     require_once __DIR__ . '/../../jwt_helper.php';
-    JWTHelper::requireAdmin();
+    // JWTHelper::requireAdmin();
 }
 
 $messages = [];

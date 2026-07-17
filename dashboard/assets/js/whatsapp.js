@@ -6539,7 +6539,7 @@ async function renderWhatsAppTrain(container) {
             renderAgentWizard(container, 0); // Start at initial input step
         }
     } catch (e) {
-        showNotification('error', 'Failed loading AI Agent panel: ' + e.getMessage());
+        showNotification('error', 'Failed loading AI Agent panel: ' + e.message);
         container.innerHTML = `
             <div class="wa-agent-card p-8 max-w-md mx-auto text-center space-y-4 mt-12 text-slate-850 font-sans text-xs">
                 <div class="h-12 w-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto border border-rose-100">
@@ -6876,7 +6876,7 @@ window.submitStep0 = async function() {
         });
         
     } catch (e) {
-        showNotification('error', 'Failed to save config: ' + e.getMessage());
+        showNotification('error', 'Failed to save config: ' + e.message);
     }
 };
 
@@ -6921,7 +6921,7 @@ window.submitStep3 = async function() {
         // Render Dashboard
         renderAgentDashboard(document.getElementById('main-content-viewport'));
     } catch(e) {
-        showNotification('error', 'Failed activating agent: ' + e.getMessage());
+        showNotification('error', 'Failed activating agent: ' + e.message);
     }
 };
 

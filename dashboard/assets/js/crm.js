@@ -17190,16 +17190,20 @@ window.openEmailComposerModal = function(templateId) {
                                 </div>
 
                                 <!-- Group 2: Font Family Dropdown -->
-                                <div class="flex items-center bg-white border border-slate-300/80 rounded-lg px-2.5 py-1 space-x-1 shadow-2xs">
-                                    <i data-lucide="type" class="h-3.5 w-3.5 text-slate-400"></i>
-                                    <select onchange="execRichCmd('fontName', this.value)" class="bg-transparent border-none text-xs font-bold text-slate-800 focus:outline-none cursor-pointer">
-                                        <option value="Source Sans Pro" selected>Source Sans Pro</option>
-                                        <option value="Inter">Inter</option>
-                                        <option value="Arial">Arial</option>
-                                        <option value="Roboto">Roboto</option>
-                                        <option value="Georgia">Georgia</option>
-                                        <option value="Monospace">Monospace</option>
-                                    </select>
+                                <div class="relative inline-block text-left" id="composer-font-dropdown-container">
+                                    <button type="button" onclick="toggleComposerFontDropdown(event)" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 flex items-center space-x-1.5 shadow-2xs hover:bg-slate-50 transition cursor-pointer text-xs font-bold text-slate-700">
+                                        <i data-lucide="type" class="h-3.5 w-3.5 text-slate-400"></i>
+                                        <span id="composer-selected-font-label">Source Sans Pro</span>
+                                        <i data-lucide="chevron-down" class="h-3 w-3 text-slate-400"></i>
+                                    </button>
+                                    <div id="composer-font-dropdown-menu" class="hidden absolute left-0 mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1.5 animate-scale-up font-sans text-xs">
+                                        <button type="button" onclick="selectComposerFont('Source Sans Pro')" class="w-full text-left px-3 py-2 hover:bg-indigo-50 hover:text-indigo-600 font-bold transition text-slate-700" style="font-family: 'Source Sans Pro', sans-serif;">Source Sans Pro</button>
+                                        <button type="button" onclick="selectComposerFont('Inter')" class="w-full text-left px-3 py-2 hover:bg-indigo-50 hover:text-indigo-600 font-bold transition text-slate-700" style="font-family: 'Inter', sans-serif;">Inter</button>
+                                        <button type="button" onclick="selectComposerFont('Arial')" class="w-full text-left px-3 py-2 hover:bg-indigo-50 hover:text-indigo-600 font-bold transition text-slate-700" style="font-family: Arial, sans-serif;">Arial</button>
+                                        <button type="button" onclick="selectComposerFont('Roboto')" class="w-full text-left px-3 py-2 hover:bg-indigo-50 hover:text-indigo-600 font-bold transition text-slate-700" style="font-family: Roboto, sans-serif;">Roboto</button>
+                                        <button type="button" onclick="selectComposerFont('Georgia')" class="w-full text-left px-3 py-2 hover:bg-indigo-50 hover:text-indigo-600 font-bold transition text-slate-700" style="font-family: Georgia, serif;">Georgia</button>
+                                        <button type="button" onclick="selectComposerFont('Monospace')" class="w-full text-left px-3 py-2 hover:bg-indigo-50 hover:text-indigo-600 font-mono transition text-slate-700">Monospace</button>
+                                    </div>
                                 </div>
 
                                 <!-- Group 3: Text Color Picker (A with Yellow Background Accent) -->
@@ -17270,12 +17274,100 @@ window.openEmailComposerModal = function(templateId) {
                             </div>
                         </div>
 
-                        <!-- EDITABLE CANVAS & RAW CODE TEXTAREA -->
+                        <!-- EDITABLE CANVAS & VS CODE CODE EDITOR -->
                         <div class="relative w-full min-h-[360px] bg-white">
                             <div id="rich-email-editor" contenteditable="true" class="w-full min-h-[360px] max-h-[520px] p-5 bg-white focus:outline-none overflow-y-auto leading-relaxed text-slate-800 text-sm">
                                 ${getTemplateHtmlPreview(t)}
                             </div>
-                            <textarea id="raw-html-source-editor" class="hidden w-full min-h-[360px] max-h-[520px] p-5 font-mono text-xs text-emerald-400 bg-slate-900 focus:outline-none overflow-y-auto border-none resize-none leading-relaxed"></textarea>
+                            <!-- VS CODE CONTAINER -->
+                            <div id="composer-vscode-container" class="hidden w-full min-h-[360px] max-h-[520px] bg-[#1e1e1e] flex flex-col font-mono text-xs text-[#d4d4d4] overflow-hidden border border-[#3c3c3c] rounded-xl shadow-inner">
+                                <!-- Top Tab Bar -->
+                                <div class="bg-[#252526] flex border-b border-[#1e1e1e] select-none shrink-0 overflow-x-auto">
+                                    <div class="bg-[#1E1E1E] text-white border-t-2 border-indigo-500 px-4 py-2 text-xs flex items-center space-x-2 shrink-0">
+                                        <span class="text-orange-500 font-bold">&lt;&gt;</span>
+                                        <span class="font-semibold">template.html</span>
+                                        <span class="text-slate-500 hover:text-slate-300 text-[10px] ml-1 cursor-pointer">×</span>
+                                    </div>
+                                    <div class="bg-[#2D2D2D] text-slate-400 px-4 py-2 text-xs flex items-center space-x-2 shrink-0 hover:bg-[#2e2e2f] cursor-pointer">
+                                        <span class="text-blue-400 font-bold">{}</span>
+                                        <span>variables.json</span>
+                                    </div>
+                                    <div class="bg-[#2D2D2D] text-slate-400 px-4 py-2 text-xs flex items-center space-x-2 shrink-0 hover:bg-[#2e2e2f] cursor-pointer">
+                                        <span class="text-teal-400 font-bold">#</span>
+                                        <span>styles.css</span>
+                                    </div>
+                                </div>
+                                <!-- Activity Bar + Sidebar + Main Code Area -->
+                                <div class="flex flex-row flex-grow min-h-[320px] max-h-[460px]">
+                                    <!-- Mini Activity Bar (VS Code left side) -->
+                                    <div class="w-[44px] bg-[#333333] flex flex-col justify-between items-center py-3 shrink-0 select-none border-r border-[#1e1e1e]">
+                                        <div class="flex flex-col items-center space-y-4 w-full">
+                                            <div class="text-white border-l-2 border-indigo-500 w-full flex justify-center py-1 cursor-pointer" title="Explorer">
+                                                <i data-lucide="files" class="h-4 w-4"></i>
+                                            </div>
+                                            <div class="text-slate-400 hover:text-slate-200 py-1 cursor-pointer" title="Search">
+                                                <i data-lucide="search" class="h-4 w-4"></i>
+                                            </div>
+                                            <div class="text-slate-400 hover:text-slate-200 py-1 cursor-pointer" title="Source Control">
+                                                <i data-lucide="git-branch" class="h-4 w-4"></i>
+                                            </div>
+                                            <div class="text-slate-400 hover:text-slate-200 py-1 cursor-pointer" title="Extensions">
+                                                <i data-lucide="play-square" class="h-4 w-4"></i>
+                                            </div>
+                                        </div>
+                                        <div class="text-slate-400 hover:text-slate-200 cursor-pointer" title="Settings">
+                                            <i data-lucide="settings" class="h-4 w-4"></i>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Sidebar Folder Explorer -->
+                                    <div class="w-[140px] bg-[#252526] border-r border-[#1e1e1e] flex flex-col text-slate-400 select-none py-3 text-[10px] font-bold tracking-wider shrink-0 hidden sm:flex font-sans">
+                                        <div class="px-3 pb-2 text-[9px] text-slate-500 uppercase tracking-widest">EXPLORER</div>
+                                        <div class="px-3 font-semibold text-slate-300 flex items-center space-x-1 mb-1 truncate">
+                                            <i data-lucide="chevron-down" class="h-3 w-3 text-slate-400"></i>
+                                            <span>LINKPILOT_AI</span>
+                                        </div>
+                                        <div class="pl-5 pr-2 py-1 bg-[#37373D] text-white flex items-center space-x-1.5 cursor-pointer truncate">
+                                            <span class="text-orange-500 text-[9px] font-bold">&lt;&gt;</span>
+                                            <span>template.html</span>
+                                        </div>
+                                        <div class="pl-5 pr-2 py-1 hover:bg-[#2A2D2E] flex items-center space-x-1.5 cursor-pointer truncate">
+                                            <span class="text-blue-400 text-[9px] font-bold">{}</span>
+                                            <span>variables.json</span>
+                                        </div>
+                                        <div class="pl-5 pr-2 py-1 hover:bg-[#2A2D2E] flex items-center space-x-1.5 cursor-pointer truncate">
+                                            <span class="text-teal-400 text-[9px] font-bold">#</span>
+                                            <span>styles.css</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Editor Workspace -->
+                                    <div class="flex-grow flex flex-row bg-[#1e1e1e] relative min-w-0">
+                                        <!-- Line numbers gutter -->
+                                        <div id="composer-editor-gutter" class="bg-[#1e1e1e] text-[#858585] text-right font-mono text-[11px] select-none pr-3 pl-2 py-4 border-r border-[#3c3c3c] leading-5 w-12 shrink-0 overflow-y-hidden">
+                                            <div>1</div>
+                                        </div>
+                                        <!-- Textarea -->
+                                        <textarea id="raw-html-source-editor" onscroll="syncVSCodeGutter(this, 'composer-editor-gutter')" oninput="updateVSCodeGutter(this, 'composer-editor-gutter'); updateVSCodeCursorPos(this, 'composer-editor-position');" onkeyup="updateVSCodeCursorPos(this, 'composer-editor-position');" onclick="updateVSCodeCursorPos(this, 'composer-editor-position');" class="w-full h-full p-4 font-mono text-[11px] text-[#D4D4D4] bg-[#1e1e1e] focus:outline-none overflow-y-auto border-none resize-none leading-5 caret-white outline-none" style="white-space: pre; overflow-wrap: normal; font-family: Consolas, Monaco, monospace;"></textarea>
+                                    </div>
+                                </div>
+                                <!-- Bottom Status Bar -->
+                                <div class="bg-[#007ACC] text-white text-[10px] font-medium flex items-center justify-between px-3 py-1 shrink-0 select-none font-sans">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="flex items-center space-x-1 hover:bg-white/10 px-1 rounded cursor-pointer">
+                                            <i data-lucide="git-branch" class="h-3 w-3"></i>
+                                            <span>main*</span>
+                                        </div>
+                                        <span class="hover:bg-white/10 px-1 rounded cursor-pointer">0 ⓧ 0 ⚠</span>
+                                    </div>
+                                    <div class="flex items-center space-x-3">
+                                        <span id="composer-editor-position" class="hover:bg-white/10 px-1 rounded cursor-pointer">Ln 1, Col 1</span>
+                                        <span class="hover:bg-white/10 px-1 rounded cursor-pointer">Spaces: 4</span>
+                                        <span class="hover:bg-white/10 px-1 rounded cursor-pointer">UTF-8</span>
+                                        <span class="hover:bg-white/10 px-1 rounded cursor-pointer bg-white/10">HTML</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- BOTTOM RESIZE HANDLE BAR -->
@@ -17341,18 +17433,26 @@ window.toggleHtmlSourceView = function() {
     
     const editor = isWizard ? document.getElementById('wizard-rich-editor') : document.getElementById('rich-email-editor');
     const textarea = isWizard ? document.getElementById('wizard-raw-editor') : document.getElementById('raw-html-source-editor');
+    const vscodeContainer = isWizard ? document.getElementById('wizard-vscode-container') : document.getElementById('composer-vscode-container');
     const btn = isWizard ? document.getElementById('wizard-html-source-toggle-btn') : document.getElementById('html-source-toggle-btn');
-    if (!editor || !textarea) return;
+    if (!editor || !textarea || !vscodeContainer) return;
     
-    if (textarea.classList.contains('hidden')) {
+    if (vscodeContainer.classList.contains('hidden')) {
         textarea.value = editor.innerHTML;
         editor.classList.add('hidden');
-        textarea.classList.remove('hidden');
+        vscodeContainer.classList.remove('hidden');
+        vscodeContainer.classList.add('flex');
+        
+        // Sync line numbers and cursor position
+        updateVSCodeGutter(textarea, isWizard ? 'wizard-editor-gutter' : 'composer-editor-gutter');
+        updateVSCodeCursorPos(textarea, isWizard ? 'wizard-editor-position' : 'composer-editor-position');
+        
         if (btn) btn.classList.add('bg-indigo-600', 'text-white');
-        showNotification('info', 'Switched to Raw HTML Code Source view');
+        showNotification('info', 'Switched to VS Code Editor view');
     } else {
         editor.innerHTML = textarea.value;
-        textarea.classList.add('hidden');
+        vscodeContainer.classList.add('hidden');
+        vscodeContainer.classList.remove('flex');
         editor.classList.remove('hidden');
         if (btn) btn.classList.remove('bg-indigo-600', 'text-white');
         showNotification('info', 'Switched back to Visual WYSIWYG mode');
@@ -23951,32 +24051,48 @@ function getWizardStepHtml(step) {
                                     <!-- Group 3: Font & Merge Tags -->
                                     <div class="flex items-center space-x-1.5">
                                         <!-- Font Family selector -->
-                                        <div class="relative bg-white border border-slate-200 rounded-lg px-2.5 py-1 flex items-center shadow-2xs">
-                                            <select onchange="execRichCmd('fontName', this.value)" class="bg-transparent border-none text-[11px] font-bold text-slate-700 focus:outline-none cursor-pointer appearance-none pr-5">
-                                                <option value="Source Sans Pro" selected>Source Sans Pro</option>
-                                                <option value="Inter">Inter</option>
-                                                <option value="Arial">Arial</option>
-                                                <option value="Roboto">Roboto</option>
-                                                <option value="Georgia">Georgia</option>
-                                                <option value="Monospace">Monospace</option>
-                                            </select>
-                                            <div class="absolute inset-y-0 right-2 flex items-center pointer-events-none text-slate-400">
-                                                <i data-lucide="chevron-down" class="h-3 w-3"></i>
+                                        <div class="relative inline-block text-left" id="wizard-font-dropdown-container">
+                                            <button type="button" onclick="toggleWizardFontDropdown(event)" class="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 flex items-center space-x-1.5 shadow-2xs hover:bg-slate-50 transition cursor-pointer text-[11px] font-bold text-slate-700">
+                                                <span id="wizard-selected-font-label">Source Sans Pro</span>
+                                                <i data-lucide="chevron-down" class="h-3 w-3 text-slate-400"></i>
+                                            </button>
+                                            <div id="wizard-font-dropdown-menu" class="hidden absolute left-0 mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1.5 animate-scale-up font-sans text-xs">
+                                                <button type="button" onclick="selectWizardFont('Source Sans Pro')" class="w-full text-left px-3 py-2 hover:bg-indigo-50 hover:text-indigo-600 font-bold transition text-slate-700" style="font-family: 'Source Sans Pro', sans-serif;">Source Sans Pro</button>
+                                                <button type="button" onclick="selectWizardFont('Inter')" class="w-full text-left px-3 py-2 hover:bg-indigo-50 hover:text-indigo-600 font-bold transition text-slate-700" style="font-family: 'Inter', sans-serif;">Inter</button>
+                                                <button type="button" onclick="selectWizardFont('Arial')" class="w-full text-left px-3 py-2 hover:bg-indigo-50 hover:text-indigo-600 font-bold transition text-slate-700" style="font-family: Arial, sans-serif;">Arial</button>
+                                                <button type="button" onclick="selectWizardFont('Roboto')" class="w-full text-left px-3 py-2 hover:bg-indigo-50 hover:text-indigo-600 font-bold transition text-slate-700" style="font-family: Roboto, sans-serif;">Roboto</button>
+                                                <button type="button" onclick="selectWizardFont('Georgia')" class="w-full text-left px-3 py-2 hover:bg-indigo-50 hover:text-indigo-600 font-bold transition text-slate-700" style="font-family: Georgia, serif;">Georgia</button>
+                                                <button type="button" onclick="selectWizardFont('Monospace')" class="w-full text-left px-3 py-2 hover:bg-[#333333] hover:text-indigo-600 font-mono transition text-slate-700">Monospace</button>
                                             </div>
                                         </div>
                                         
                                         <!-- Merge Tags Dropdown -->
-                                        <div class="relative bg-white border border-slate-200 rounded-lg px-2.5 py-1 flex items-center shadow-2xs">
-                                            <select onchange="if(this.value) { execRichCmd('insertHTML', this.value); this.value=''; }" class="bg-transparent border-none text-[11px] font-bold text-slate-700 focus:outline-none cursor-pointer appearance-none pr-5">
-                                                <option value="">Merge Tags</option>
-                                                <option value="{first_name}">First Name</option>
-                                                <option value="{last_name}">Last Name</option>
-                                                <option value="{email}">Email Address</option>
-                                                <option value="{company_name}">Company Name</option>
-                                                <option value="{city}">City</option>
-                                            </select>
-                                            <div class="absolute inset-y-0 right-2 flex items-center pointer-events-none text-slate-400">
-                                                <i data-lucide="chevron-down" class="h-3 w-3"></i>
+                                        <div class="relative inline-block text-left" id="wizard-tags-dropdown-container">
+                                            <button type="button" onclick="toggleWizardTagsDropdown(event)" class="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 flex items-center space-x-1.5 shadow-2xs hover:bg-slate-50 transition cursor-pointer text-[11px] font-bold text-slate-700">
+                                                <span>Merge Tags</span>
+                                                <i data-lucide="chevron-down" class="h-3 w-3 text-slate-400"></i>
+                                            </button>
+                                            <div id="wizard-tags-dropdown-menu" class="hidden absolute left-0 mt-1 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1.5 animate-scale-up font-sans text-xs">
+                                                <button type="button" onclick="insertWizardMergeTag('{first_name}')" class="w-full text-left px-3 py-2 hover:bg-indigo-50 hover:text-indigo-600 font-bold transition flex items-center justify-between text-slate-700">
+                                                    <span>First Name</span>
+                                                    <span class="text-[9px] font-mono text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded">{first_name}</span>
+                                                </button>
+                                                <button type="button" onclick="insertWizardMergeTag('{last_name}')" class="w-full text-left px-3 py-2 hover:bg-indigo-50 hover:text-indigo-600 font-bold transition flex items-center justify-between text-slate-700">
+                                                    <span>Last Name</span>
+                                                    <span class="text-[9px] font-mono text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded">{last_name}</span>
+                                                </button>
+                                                <button type="button" onclick="insertWizardMergeTag('{email}')" class="w-full text-left px-3 py-2 hover:bg-indigo-50 hover:text-indigo-600 font-bold transition flex items-center justify-between text-slate-700">
+                                                    <span>Email Address</span>
+                                                    <span class="text-[9px] font-mono text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded">{email}</span>
+                                                </button>
+                                                <button type="button" onclick="insertWizardMergeTag('{company_name}')" class="w-full text-left px-3 py-2 hover:bg-indigo-50 hover:text-indigo-600 font-bold transition flex items-center justify-between text-slate-700">
+                                                    <span>Company Name</span>
+                                                    <span class="text-[9px] font-mono text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded">{company_name}</span>
+                                                </button>
+                                                <button type="button" onclick="insertWizardMergeTag('{city}')" class="w-full text-left px-3 py-2 hover:bg-indigo-50 hover:text-indigo-600 font-bold transition flex items-center justify-between text-slate-700">
+                                                    <span>City</span>
+                                                    <span class="text-[9px] font-mono text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded">{city}</span>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -23991,12 +24107,84 @@ function getWizardStepHtml(step) {
                                 </button>
                             </div>
 
-                            <!-- EDITABLE CANVAS & RAW CODE TEXTAREA -->
+                            <!-- EDITABLE CANVAS & VS CODE CODE EDITOR -->
                             <div class="relative w-full min-h-[300px] bg-slate-50/20">
                                 <div id="wizard-rich-editor" contenteditable="true" class="${st.editor_mode === 'html' ? 'hidden' : ''} w-full min-h-[300px] max-h-[450px] p-6 bg-white focus:outline-none overflow-y-auto leading-relaxed text-slate-800 text-sm">
                                     ${st.body_html}
                                 </div>
-                                <textarea id="wizard-raw-editor" class="${st.editor_mode !== 'html' ? 'hidden' : ''} w-full min-h-[300px] max-h-[450px] p-6 font-mono text-xs text-emerald-400 bg-slate-900 focus:outline-none overflow-y-auto border-none resize-none leading-relaxed">${escapeHtml(st.body_html)}</textarea>
+                                <!-- VS CODE CONTAINER -->
+                                <div id="wizard-vscode-container" class="${st.editor_mode !== 'html' ? 'hidden' : 'flex'} w-full min-h-[300px] max-h-[450px] bg-[#1e1e1e] flex-col font-mono text-xs text-[#d4d4d4] overflow-hidden border border-[#3c3c3c] rounded-xl shadow-inner">
+                                    <!-- Top Tab Bar -->
+                                    <div class="bg-[#252526] flex border-b border-[#1e1e1e] select-none shrink-0 overflow-x-auto">
+                                        <div class="bg-[#1E1E1E] text-white border-t-2 border-indigo-500 px-4 py-2 text-xs flex items-center space-x-2 shrink-0">
+                                            <span class="text-orange-500 font-bold">&lt;&gt;</span>
+                                            <span class="font-semibold">campaign.html</span>
+                                            <span class="text-slate-500 hover:text-slate-300 text-[10px] ml-1 cursor-pointer">×</span>
+                                        </div>
+                                        <div class="bg-[#2D2D2D] text-slate-400 px-4 py-2 text-xs flex items-center space-x-2 shrink-0 hover:bg-[#2e2e2f] cursor-pointer">
+                                            <span class="text-blue-400 font-bold">{}</span>
+                                            <span>recipients.csv</span>
+                                        </div>
+                                    </div>
+                                    <!-- Activity Bar + Sidebar + Main Code Area -->
+                                    <div class="flex flex-row flex-grow min-h-[260px] max-h-[380px]">
+                                        <!-- Activity Bar -->
+                                        <div class="w-[44px] bg-[#333333] flex flex-col justify-between items-center py-3 shrink-0 select-none border-r border-[#1e1e1e]">
+                                            <div class="flex flex-col items-center space-y-4 w-full">
+                                                <div class="text-white border-l-2 border-indigo-500 w-full flex justify-center py-1 cursor-pointer" title="Explorer">
+                                                    <i data-lucide="files" class="h-4 w-4"></i>
+                                                </div>
+                                                <div class="text-slate-400 hover:text-slate-200 py-1 cursor-pointer" title="Search">
+                                                    <i data-lucide="search" class="h-4 w-4"></i>
+                                                </div>
+                                            </div>
+                                            <div class="text-slate-400 hover:text-slate-200 cursor-pointer" title="Settings">
+                                                <i data-lucide="settings" class="h-4 w-4"></i>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Sidebar Explorer -->
+                                        <div class="w-[140px] bg-[#252526] border-r border-[#1e1e1e] flex flex-col text-slate-400 select-none py-3 text-[10px] font-bold tracking-wider shrink-0 hidden sm:flex font-sans">
+                                            <div class="px-3 pb-2 text-[9px] text-slate-500 uppercase tracking-widest">EXPLORER</div>
+                                            <div class="px-3 font-semibold text-slate-300 flex items-center space-x-1 mb-1 truncate">
+                                                <i data-lucide="chevron-down" class="h-3 w-3 text-slate-400"></i>
+                                                <span>CAMPAIGN_WIZARD</span>
+                                            </div>
+                                            <div class="pl-5 pr-2 py-1 bg-[#37373D] text-white flex items-center space-x-1.5 cursor-pointer truncate">
+                                                <span class="text-orange-500 text-[9px] font-bold">&lt;&gt;</span>
+                                                <span>campaign.html</span>
+                                            </div>
+                                            <div class="pl-5 pr-2 py-1 hover:bg-[#2A2D2E] flex items-center space-x-1.5 cursor-pointer truncate">
+                                                <span class="text-blue-400 text-[9px] font-bold">{}</span>
+                                                <span>recipients.csv</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Editor Workspace -->
+                                        <div class="flex-grow flex flex-row bg-[#1e1e1e] relative min-w-0">
+                                            <!-- Line numbers gutter -->
+                                            <div id="wizard-editor-gutter" class="bg-[#1e1e1e] text-[#858585] text-right font-mono text-[11px] select-none pr-3 pl-2 py-4 border-r border-[#3c3c3c] leading-5 w-12 shrink-0 overflow-y-hidden">
+                                                <div>1</div>
+                                            </div>
+                                            <!-- Textarea -->
+                                            <textarea id="wizard-raw-editor" onscroll="syncVSCodeGutter(this, 'wizard-editor-gutter')" oninput="updateVSCodeGutter(this, 'wizard-editor-gutter'); handleMailBodyInput(); updateVSCodeCursorPos(this, 'wizard-editor-position');" onkeyup="updateVSCodeCursorPos(this, 'wizard-editor-position');" onclick="updateVSCodeCursorPos(this, 'wizard-editor-position');" class="w-full h-full p-4 font-mono text-[11px] text-[#D4D4D4] bg-[#1e1e1e] focus:outline-none overflow-y-auto border-none resize-none leading-5 caret-white outline-none" style="white-space: pre; overflow-wrap: normal; font-family: Consolas, Monaco, monospace;">${escapeHtml(st.body_html)}</textarea>
+                                        </div>
+                                    </div>
+                                    <!-- Bottom Status Bar -->
+                                    <div class="bg-[#007ACC] text-white text-[10px] font-medium flex items-center justify-between px-3 py-1 shrink-0 select-none font-sans">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="flex items-center space-x-1 hover:bg-white/10 px-1 rounded cursor-pointer">
+                                                <i data-lucide="git-branch" class="h-3 w-3"></i>
+                                                <span>main*</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-3">
+                                            <span id="wizard-editor-position" class="hover:bg-white/10 px-1 rounded cursor-pointer">Ln 1, Col 1</span>
+                                            <span class="hover:bg-white/10 px-1 rounded cursor-pointer">Spaces: 4</span>
+                                            <span class="hover:bg-white/10 px-1 rounded cursor-pointer bg-white/10">HTML</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -24515,20 +24703,32 @@ window.switchWizardEditorMode = function(mode) {
     window._ecWizardState.editor_mode = mode;
     const richEd = document.getElementById('wizard-rich-editor');
     const rawEd = document.getElementById('wizard-raw-editor');
+    const vscodeContainer = document.getElementById('wizard-vscode-container');
     const visualBtn = document.getElementById('wizard-visual-toggle-tab');
     const htmlBtn = document.getElementById('wizard-html-toggle-tab');
     if (!richEd || !rawEd) return;
     
     if (mode === 'visual') {
         richEd.innerHTML = rawEd.value;
-        rawEd.classList.add('hidden');
+        if (vscodeContainer) {
+            vscodeContainer.classList.add('hidden');
+            vscodeContainer.classList.remove('flex');
+        } else {
+            rawEd.classList.add('hidden');
+        }
         richEd.classList.remove('hidden');
         if (visualBtn) visualBtn.className = 'px-3 py-1 text-[10px] font-bold rounded-md bg-indigo-600 text-white shadow-2xs cursor-pointer transition';
         if (htmlBtn) htmlBtn.className = 'px-3 py-1 text-[10px] font-bold rounded-md text-slate-600 hover:text-slate-900 cursor-pointer transition';
     } else {
         rawEd.value = richEd.innerHTML;
         richEd.classList.add('hidden');
-        rawEd.classList.remove('hidden');
+        if (vscodeContainer) {
+            vscodeContainer.classList.remove('hidden');
+            vscodeContainer.classList.add('flex');
+            updateVSCodeGutter(rawEd, 'wizard-editor-gutter');
+        } else {
+            rawEd.classList.remove('hidden');
+        }
         if (visualBtn) visualBtn.className = 'px-3 py-1 text-[10px] font-bold rounded-md text-slate-600 hover:text-slate-900 cursor-pointer transition';
         if (htmlBtn) htmlBtn.className = 'px-3 py-1 text-[10px] font-bold rounded-md bg-indigo-600 text-white shadow-2xs cursor-pointer transition';
     }
@@ -24816,4 +25016,108 @@ window.openEmailCampaignReportModal = async function(campId) {
     } catch(err) {
         console.error("Report load error:", err);
     }
+};
+
+window.syncVSCodeGutter = function(textarea, gutterId) {
+    const gutter = document.getElementById(gutterId);
+    if (gutter) {
+        gutter.scrollTop = textarea.scrollTop;
+    }
+};
+
+window.updateVSCodeGutter = function(textarea, gutterId) {
+    if (!textarea) return;
+    const gutter = document.getElementById(gutterId);
+    if (!gutter) return;
+    const lines = textarea.value.split('\n').length;
+    let numbersHtml = '';
+    for (let i = 1; i <= lines; i++) {
+        numbersHtml += `<div>${i}</div>`;
+    }
+    gutter.innerHTML = numbersHtml;
+    gutter.scrollTop = textarea.scrollTop;
+};
+
+window.updateVSCodeCursorPos = function(textarea, posElementId) {
+    const text = textarea.value;
+    const selStart = textarea.selectionStart;
+    const lines = text.substring(0, selStart).split('\n');
+    const line = lines.length;
+    const col = lines[lines.length - 1].length + 1;
+    const elem = document.getElementById(posElementId);
+    if (elem) {
+        elem.innerText = `Ln ${line}, Col ${col}`;
+    }
+};
+
+document.addEventListener('click', function(e) {
+    const wfMenu = document.getElementById('wizard-font-dropdown-menu');
+    const wfContainer = document.getElementById('wizard-font-dropdown-container');
+    if (wfMenu && wfContainer && !wfContainer.contains(e.target)) {
+        wfMenu.classList.add('hidden');
+    }
+    const wtMenu = document.getElementById('wizard-tags-dropdown-menu');
+    const wtContainer = document.getElementById('wizard-tags-dropdown-container');
+    if (wtMenu && wtContainer && !wtContainer.contains(e.target)) {
+        wtMenu.classList.add('hidden');
+    }
+    const cfMenu = document.getElementById('composer-font-dropdown-menu');
+    const cfContainer = document.getElementById('composer-font-dropdown-container');
+    if (cfMenu && cfContainer && !cfContainer.contains(e.target)) {
+        cfMenu.classList.add('hidden');
+    }
+});
+
+window.toggleWizardFontDropdown = function(e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    const fontMenu = document.getElementById('wizard-font-dropdown-menu');
+    if (fontMenu) fontMenu.classList.toggle('hidden');
+    const tagsMenu = document.getElementById('wizard-tags-dropdown-menu');
+    if (tagsMenu) tagsMenu.classList.add('hidden');
+};
+
+window.toggleWizardTagsDropdown = function(e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    const tagsMenu = document.getElementById('wizard-tags-dropdown-menu');
+    if (tagsMenu) tagsMenu.classList.toggle('hidden');
+    const fontMenu = document.getElementById('wizard-font-dropdown-menu');
+    if (fontMenu) fontMenu.classList.add('hidden');
+};
+
+window.selectWizardFont = function(fontName) {
+    const label = document.getElementById('wizard-selected-font-label');
+    if (label) label.innerText = fontName;
+    execRichCmd('fontName', fontName);
+    const fontMenu = document.getElementById('wizard-font-dropdown-menu');
+    if (fontMenu) fontMenu.classList.add('hidden');
+};
+
+window.insertWizardMergeTag = function(tagValue) {
+    execRichCmd('insertHTML', tagValue);
+    const tagsMenu = document.getElementById('wizard-tags-dropdown-menu');
+    if (tagsMenu) tagsMenu.classList.add('hidden');
+    if (typeof handleMailBodyInput === 'function') handleMailBodyInput();
+};
+
+window.toggleComposerFontDropdown = function(e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    const fontMenu = document.getElementById('composer-font-dropdown-menu');
+    if (fontMenu) fontMenu.classList.toggle('hidden');
+};
+
+window.selectComposerFont = function(fontName) {
+    const label = document.getElementById('composer-selected-font-label');
+    if (label) label.innerText = fontName;
+    execRichCmd('fontName', fontName);
+    const fontMenu = document.getElementById('composer-font-dropdown-menu');
+    if (fontMenu) fontMenu.classList.add('hidden');
 };

@@ -23705,55 +23705,91 @@ window.renderWizardStepInline = function(container) {
                 <div class="text-xs font-semibold text-slate-400">Campaign Studio / New Campaign</div>
             </div>
 
-            <!-- Header Card -->
-            <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
-                <div class="flex items-center space-x-3.5">
-                    <div class="h-11 w-11 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shadow-2xs">
-                        <i data-lucide="wand-2" class="h-5 w-5 animate-pulse"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-lg font-black text-slate-900 tracking-tight">Campaign Creation Wizard</h2>
-                        <p class="text-xs font-semibold text-slate-500 mt-0.5">Rate-throttled smart delivery configuration step ${s} of 5</p>
-                    </div>
-                </div>
-            </div>
-
             <!-- Steps Visual Stepper Grid -->
             <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs">
-                <div class="flex items-center justify-between text-xs font-bold text-slate-500 select-none overflow-x-auto gap-4 py-2">
-                    <div class="flex items-center space-x-2 shrink-0 ${s === 1 ? 'text-indigo-600' : (s > 1 ? 'text-emerald-600' : 'text-slate-400')}">
-                        <span class="h-6 w-6 rounded-full ${s === 1 ? 'bg-indigo-600 text-white animate-bounce' : (s > 1 ? 'bg-emerald-600 text-white' : 'bg-slate-100 border border-slate-200 text-slate-400')} flex items-center justify-center text-[10px] font-black">
-                            ${s > 1 ? '<i data-lucide="check" class="h-3.5 w-3.5 text-white"></i>' : '1'}
-                        </span>
-                        <span>1. Campaign & Content</span>
+                <div class="flex flex-col lg:flex-row items-center justify-between text-xs font-bold text-slate-500 select-none gap-6 max-w-6xl mx-auto py-2">
+                    <!-- Step 1 -->
+                    <div class="flex flex-col items-start shrink-0">
+                        <div class="flex items-center space-x-3">
+                            <span class="h-8 w-8 rounded-full ${s === 1 ? 'bg-indigo-600 text-white font-bold ring-4 ring-indigo-100' : (s > 1 ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-100 border border-slate-200 text-slate-400')} flex items-center justify-center text-xs">
+                                ${s > 1 ? '<i data-lucide="check" class="h-4 w-4 text-white"></i>' : '1'}
+                            </span>
+                            <div class="text-left">
+                                <div class="text-[12px] font-extrabold ${s === 1 ? 'text-indigo-600 font-extrabold' : 'text-slate-800'}">Campaign & Content</div>
+                                <div class="text-[10px] text-slate-400 font-semibold mt-0.5">Create your email content</div>
+                            </div>
+                        </div>
+                        <div class="mt-2 flex justify-center w-8 text-center">
+                            <i data-lucide="pencil" class="h-3.5 w-3.5 mx-auto ${s === 1 ? 'text-indigo-600' : (s > 1 ? 'text-emerald-600' : 'text-slate-400')}"></i>
+                        </div>
                     </div>
-                    <div class="h-px bg-slate-200 flex-grow min-w-[20px]"></div>
-                    <div class="flex items-center space-x-2 shrink-0 ${s === 2 ? 'text-indigo-600' : (s > 2 ? 'text-emerald-600' : 'text-slate-400')}">
-                        <span class="h-6 w-6 rounded-full ${s === 2 ? 'bg-indigo-600 text-white animate-bounce' : (s > 2 ? 'bg-emerald-600 text-white' : 'bg-slate-100 border border-slate-200 text-slate-400')} flex items-center justify-center text-[10px] font-black">
-                            ${s > 2 ? '<i data-lucide="check" class="h-3.5 w-3.5 text-white"></i>' : '2'}
-                        </span>
-                        <span>2. Recipients Import</span>
+                    <div class="hidden lg:block h-px bg-slate-200 flex-grow min-w-[10px] -mt-6"></div>
+
+                    <!-- Step 2 -->
+                    <div class="flex flex-col items-start shrink-0">
+                        <div class="flex items-center space-x-3">
+                            <span class="h-8 w-8 rounded-full ${s === 2 ? 'bg-indigo-600 text-white font-bold ring-4 ring-indigo-100' : (s > 2 ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-100 border border-slate-200 text-slate-400')} flex items-center justify-center text-xs">
+                                ${s > 2 ? '<i data-lucide="check" class="h-4 w-4 text-white"></i>' : '2'}
+                            </span>
+                            <div class="text-left">
+                                <div class="text-[12px] font-extrabold ${s === 2 ? 'text-indigo-600 font-extrabold' : 'text-slate-800'}">Recipients Import</div>
+                                <div class="text-[10px] text-slate-400 font-semibold mt-0.5">Add & manage recipients</div>
+                            </div>
+                        </div>
+                        <div class="mt-2 flex justify-center w-8 text-center">
+                            <i data-lucide="users" class="h-3.5 w-3.5 mx-auto ${s === 2 ? 'text-indigo-600' : (s > 2 ? 'text-emerald-600' : 'text-slate-400')}"></i>
+                        </div>
                     </div>
-                    <div class="h-px bg-slate-200 flex-grow min-w-[20px]"></div>
-                    <div class="flex items-center space-x-2 shrink-0 ${s === 3 ? 'text-indigo-600' : (s > 3 ? 'text-emerald-600' : 'text-slate-400')}">
-                        <span class="h-6 w-6 rounded-full ${s === 3 ? 'bg-indigo-600 text-white animate-bounce' : (s > 3 ? 'bg-emerald-600 text-white' : 'bg-slate-100 border border-slate-200 text-slate-400')} flex items-center justify-center text-[10px] font-black">
-                            ${s > 3 ? '<i data-lucide="check" class="h-3.5 w-3.5 text-white"></i>' : '3'}
-                        </span>
-                        <span>3. Variable Preview</span>
+                    <div class="hidden lg:block h-px bg-slate-200 flex-grow min-w-[10px] -mt-6"></div>
+
+                    <!-- Step 3 -->
+                    <div class="flex flex-col items-start shrink-0">
+                        <div class="flex items-center space-x-3">
+                            <span class="h-8 w-8 rounded-full ${s === 3 ? 'bg-indigo-600 text-white font-bold ring-4 ring-indigo-100' : (s > 3 ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-100 border border-slate-200 text-slate-400')} flex items-center justify-center text-xs">
+                                ${s > 3 ? '<i data-lucide="check" class="h-4 w-4 text-white"></i>' : '3'}
+                            </span>
+                            <div class="text-left">
+                                <div class="text-[12px] font-extrabold ${s === 3 ? 'text-indigo-600 font-extrabold' : 'text-slate-800'}">Variable Preview</div>
+                                <div class="text-[10px] text-slate-400 font-semibold mt-0.5">Preview dynamic content</div>
+                            </div>
+                        </div>
+                        <div class="mt-2 flex justify-center w-8 text-center">
+                            <i data-lucide="code" class="h-3.5 w-3.5 mx-auto ${s === 3 ? 'text-indigo-600' : (s > 3 ? 'text-emerald-600' : 'text-slate-400')}"></i>
+                        </div>
                     </div>
-                    <div class="h-px bg-slate-200 flex-grow min-w-[20px]"></div>
-                    <div class="flex items-center space-x-2 shrink-0 ${s === 4 ? 'text-indigo-600' : (s > 4 ? 'text-emerald-600' : 'text-slate-400')}">
-                        <span class="h-6 w-6 rounded-full ${s === 4 ? 'bg-indigo-600 text-white animate-bounce' : (s > 4 ? 'bg-emerald-600 text-white' : 'bg-slate-100 border border-slate-200 text-slate-400')} flex items-center justify-center text-[10px] font-black">
-                            ${s > 4 ? '<i data-lucide="check" class="h-3.5 w-3.5 text-white"></i>' : '4'}
-                        </span>
-                        <span>4. Anti-Spam Throttle</span>
+                    <div class="hidden lg:block h-px bg-slate-200 flex-grow min-w-[10px] -mt-6"></div>
+
+                    <!-- Step 4 -->
+                    <div class="flex flex-col items-start shrink-0">
+                        <div class="flex items-center space-x-3">
+                            <span class="h-8 w-8 rounded-full ${s === 4 ? 'bg-indigo-600 text-white font-bold ring-4 ring-indigo-100' : (s > 4 ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-100 border border-slate-200 text-slate-400')} flex items-center justify-center text-xs">
+                                ${s > 4 ? '<i data-lucide="check" class="h-4 w-4 text-white"></i>' : '4'}
+                            </span>
+                            <div class="text-left">
+                                <div class="text-[12px] font-extrabold ${s === 4 ? 'text-indigo-600 font-extrabold' : 'text-slate-800'}">Anti-Spam Throttle</div>
+                                <div class="text-[10px] text-slate-400 font-semibold mt-0.5">Protect deliverability</div>
+                            </div>
+                        </div>
+                        <div class="mt-2 flex justify-center w-8 text-center">
+                            <i data-lucide="shield" class="h-3.5 w-3.5 mx-auto ${s === 4 ? 'text-indigo-600' : (s > 4 ? 'text-emerald-600' : 'text-slate-400')}"></i>
+                        </div>
                     </div>
-                    <div class="h-px bg-slate-200 flex-grow min-w-[20px]"></div>
-                    <div class="flex items-center space-x-2 shrink-0 ${s === 5 ? 'text-indigo-600' : 'text-slate-400'}">
-                        <span class="h-6 w-6 rounded-full ${s === 5 ? 'bg-indigo-600 text-white animate-bounce' : 'bg-slate-100 border border-slate-200 text-slate-400'} flex items-center justify-center text-[10px] font-black">
-                            5
-                        </span>
-                        <span>5. Review & Launch</span>
+                    <div class="hidden lg:block h-px bg-slate-200 flex-grow min-w-[10px] -mt-6"></div>
+
+                    <!-- Step 5 -->
+                    <div class="flex flex-col items-start shrink-0">
+                        <div class="flex items-center space-x-3">
+                            <span class="h-8 w-8 rounded-full ${s === 5 ? 'bg-indigo-600 text-white font-bold ring-4 ring-indigo-100' : 'bg-slate-100 border border-slate-200 text-slate-400'} flex items-center justify-center text-xs">
+                                5
+                            </span>
+                            <div class="text-left">
+                                <div class="text-[12px] font-extrabold ${s === 5 ? 'text-indigo-600 font-extrabold' : 'text-slate-800'}">Review</div>
+                                <div class="text-[10px] text-slate-400 font-semibold mt-0.5">Review & launch</div>
+                            </div>
+                        </div>
+                        <div class="mt-2 flex justify-center w-8 text-center">
+                            <i data-lucide="clipboard-check" class="h-3.5 w-3.5 mx-auto ${s === 5 ? 'text-indigo-600' : 'text-slate-400'}"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -23764,7 +23800,7 @@ window.renderWizardStepInline = function(container) {
             </div>
 
             <!-- Footer Controls Bar -->
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between ${s === 1 ? 'hidden' : ''}">
                 <button onclick="prevWizardStep()" ${s === 1 ? 'disabled class="opacity-40 pointer-events-none px-5 py-2.5 border border-slate-300 rounded-xl text-xs font-bold text-slate-400 bg-white"' : 'class="px-5 py-2.5 border border-slate-300 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-700 bg-white cursor-pointer transition"'}>
                     &larr; Back
                 </button>
@@ -23791,174 +23827,267 @@ function getWizardStepHtml(step) {
     const st = window._ecWizardState;
 
     if (step === 1) {
+        if (!st.reply_setting) st.reply_setting = 'default';
+        if (!st.reply_custom_email) st.reply_custom_email = 'wbsoumo@gmail.com';
+        
         return `
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 font-sans">
-                <!-- Left Side: Fields -->
-                <div class="space-y-4">
-                    <div class="space-y-1">
-                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Campaign Name:</label>
-                        <input type="text" id="ec-wizard-name" value="${escapeHtml(st.campaign_name)}" placeholder="e.g. Q3 Sales Outreach" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none focus:border-indigo-500">
-                    </div>
-                    
-                    <div class="space-y-1">
-                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Email Subject Line:</label>
-                        <input type="text" id="ec-wizard-subject" value="${escapeHtml(st.subject)}" placeholder="e.g. Special invitation for {first_name}" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-500">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 font-sans">
+                <!-- Left Side: Campaign Details Card (span 5) -->
+                <div class="lg:col-span-5 bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-6">
+                    <div class="space-y-5">
+                        <h3 class="text-base font-bold text-slate-800">Campaign Details</h3>
+                        
+                        <!-- Campaign Name -->
+                        <div class="space-y-1 relative">
+                            <label class="block text-xs font-bold text-slate-700">Campaign Name</label>
+                            <input type="text" id="ec-wizard-name" value="${escapeHtml(st.campaign_name)}" placeholder="e.g. Outbound Campaign 2026-07-20" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none focus:border-indigo-500">
+                            <div class="text-right text-[10px] text-slate-400 font-medium mt-1">
+                                <span id="wizard-name-char-count">${st.campaign_name.length}</span>/100
+                            </div>
+                        </div>
+                        
+                        <!-- Email Subject Line -->
+                        <div class="space-y-1 relative">
+                            <label class="block text-xs font-bold text-slate-700">Email Subject Line</label>
+                            <input type="text" id="ec-wizard-subject" value="${escapeHtml(st.subject)}" placeholder="e.g. Special invitation for {first_name}" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none focus:border-indigo-500">
+                            <div class="text-right text-[10px] text-slate-400 font-medium mt-1">
+                                <span id="wizard-subject-char-count">${st.subject.length}</span>/150
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Variables Detected Card -->
+                        <div class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4 flex items-start space-x-3">
+                            <div class="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                <i data-lucide="sparkles" class="h-4 w-4"></i>
+                            </div>
+                            <div class="flex-grow space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold text-indigo-950">Dynamic Variables Detected</span>
+                                    <a href="#" onclick="event.preventDefault(); showNotification('info', 'Variables are automatically parsed from your content when you use {TAG_NAME}.');" class="text-[10px] text-indigo-600 hover:underline font-extrabold">Learn more</a>
+                                </div>
+                                <p class="text-[11px] text-indigo-700 font-medium leading-relaxed">
+                                    We found <span id="wizard-vars-count" class="font-bold">${st.variables_detected.length}</span> dynamic variables in your content.
+                                </p>
+                                <div id="wizard-vars-pills-container" class="flex flex-wrap gap-1.5 pt-1">
+                                    ${st.variables_detected.map(v => `
+                                        <span class="bg-white border border-indigo-200 px-2 py-0.5 rounded text-[10px] font-mono text-indigo-700 font-bold">{${v}}</span>
+                                    `).join('')}
+                                    ${st.variables_detected.length === 0 ? '<span class="text-[10px] text-slate-400 italic">No variables detected yet</span>' : ''}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Load HTML Preset Template -->
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold text-slate-700">Load HTML Preset Template</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="relative">
+                                    <select id="wizard-preset-select" onchange="handleWizardPresetSelect(this.value)" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none focus:border-indigo-500 appearance-none cursor-pointer">
+                                        <option value="">Select a saved template</option>
+                                        ${EMAIL_TEMPLATES_DATA.map(t => `<option value="${t.id}">${t.title}</option>`).join('')}
+                                    </select>
+                                    <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-slate-400">
+                                        <i data-lucide="chevron-down" class="h-4 w-4"></i>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="openWizardTemplatesGallery()" class="w-full px-4 py-2.5 bg-white hover:bg-slate-50 text-indigo-600 border border-slate-200 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-2xs cursor-pointer">
+                                    <i data-lucide="folder" class="h-4 w-4"></i>
+                                    <span>Browse Templates</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Template Helper Bar -->
-                    <div class="bg-indigo-50/70 border border-indigo-100 p-4 rounded-xl space-y-2">
-                        <div class="text-xs font-bold text-indigo-900 leading-relaxed">
-                            💡 Declare dynamic merge tags inside your template using <code class="bg-white px-1.5 py-0.5 rounded text-indigo-700 border border-indigo-200 font-mono">{VARIABLE_NAME}</code>!
+                    <!-- Looks good & Save Next footer inside left column card -->
+                    <div class="border-t border-slate-100 pt-4 flex items-center justify-between">
+                        <div class="flex items-center space-x-2 text-emerald-600 bg-emerald-50/50 border border-emerald-100 px-3 py-2 rounded-xl">
+                            <i data-lucide="check-circle" class="h-4 w-4 shrink-0"></i>
+                            <span class="text-[10px] font-bold text-emerald-800">Looks good! You can move to the next step.</span>
                         </div>
-                        <button type="button" onclick="loadSampleTemplateIntoWizard()" class="px-3.5 py-1.5 bg-white hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-extrabold transition cursor-pointer">
-                            Load HTML Preset Template
+                        <button type="button" onclick="nextWizardStep()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer shadow-md" style="color: #ffffff !important; background-color:#4F46E5 !important;">
+                            <span>Save & Next</span>
+                            <i data-lucide="arrow-right" class="h-3.5 w-3.5 text-white"></i>
                         </button>
-                    </div>
-
-                    <!-- Dynamic Variable Detector Badge -->
-                    <div id="wizard-vars-badge" class="px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-xs font-bold text-amber-800 flex items-center justify-between">
-                        <div class="flex items-center space-x-2">
-                            <i data-lucide="sparkles" class="h-4 w-4 text-amber-600"></i>
-                            <span id="wizard-vars-text">Detected ${st.variables_detected.length} Dynamic Variables: ${st.variables_detected.map(v => '{'+v+'}').join(', ')}</span>
-                        </div>
                     </div>
                 </div>
 
-                <!-- Right Side: WYSIWYG Editor Container -->
-                <div class="space-y-2">
-                    <div class="flex items-center justify-between font-bold text-slate-600 text-xs tracking-wider uppercase">
-                        <div class="flex items-center space-x-1.5 text-slate-700 font-extrabold text-xs">
-                            <span class="text-indigo-600 font-black">&lt;/&gt;</span>
-                            <span>MAIL CONTENT BODY (VISUAL / HTML SOURCE)</span>
+                <!-- Right Side: Editor & Reply Settings (span 7) -->
+                <div class="lg:col-span-7 space-y-6">
+                    <!-- Email Editor Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <!-- Tabs -->
+                            <div class="flex space-x-4">
+                                <button class="pb-2 text-xs font-bold border-b-2 border-indigo-600 text-indigo-600 cursor-pointer">Email Editor</button>
+                                <button onclick="openWizardPreviewModal()" class="pb-2 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-600 cursor-pointer">Preview</button>
+                            </div>
+                            <!-- Toggle buttons -->
+                            <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+                                <button id="wizard-visual-toggle-tab" onclick="switchWizardEditorMode('visual')" class="px-3 py-1 text-[10px] font-bold rounded-md bg-indigo-600 text-white shadow-2xs cursor-pointer transition">Visual</button>
+                                <button id="wizard-html-toggle-tab" onclick="switchWizardEditorMode('html')" class="px-3 py-1 text-[10px] font-bold rounded-md text-slate-600 hover:text-slate-900 cursor-pointer transition">HTML</button>
+                            </div>
                         </div>
-                        <span class="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full font-extrabold flex items-center">
-                            <i data-lucide="sparkles" class="h-3 w-3 mr-1 text-emerald-500"></i>DIRECT VISUAL WYSIWYG MODE
-                        </span>
-                    </div>
 
-                    <!-- PREMIUM WYSIWYG TOOLBAR & CONTAINER -->
-                    <div class="border border-slate-300 rounded-xl overflow-hidden shadow-2xs bg-white">
-                        <!-- PREMIUM LUCIDE SVG TOOLBAR -->
-                        <div class="bg-[#F8FAFC] border-b border-slate-300 p-2 flex items-center justify-between flex-wrap gap-2 text-xs select-none shadow-2xs">
-                            <div class="flex items-center flex-wrap gap-1.5">
-                                <!-- Group 1: AI Wand, Bold, Underline, Strikethrough, Eraser -->
-                                <div class="flex items-center space-x-0.5 bg-white border border-slate-300/80 rounded-lg p-0.5 shadow-2xs">
-                                    <button type="button" onclick="execAiWandAssist()" title="AI Magic Wand Tone Improver" class="px-2 py-1 hover:bg-indigo-50 rounded text-indigo-600 font-bold flex items-center space-x-1 cursor-pointer transition">
-                                        <i data-lucide="sparkles" class="h-3.5 w-3.5 text-indigo-600"></i>
-                                        <i data-lucide="chevron-down" class="h-2.5 w-2.5 text-indigo-400"></i>
-                                    </button>
-                                    <button type="button" onclick="execRichCmd('bold')" title="Bold (Ctrl+B)" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 font-bold cursor-pointer transition">
-                                        <i data-lucide="bold" class="h-3.5 w-3.5"></i>
-                                    </button>
-                                    <button type="button" onclick="execRichCmd('underline')" title="Underline (Ctrl+U)" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 underline font-bold cursor-pointer transition">
-                                        <i data-lucide="underline" class="h-3.5 w-3.5"></i>
-                                    </button>
-                                    <button type="button" onclick="execRichCmd('strikethrough')" title="Strikethrough" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
-                                        <i data-lucide="strikethrough" class="h-3.5 w-3.5"></i>
-                                    </button>
-                                    <button type="button" onclick="execRichCmd('removeFormat')" title="Clear Formatting" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
-                                        <i data-lucide="eraser" class="h-3.5 w-3.5 text-amber-600"></i>
-                                    </button>
-                                </div>
+                        <!-- PREMIUM WYSIWYG TOOLBAR & CONTAINER -->
+                        <div class="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                            <!-- PREMIUM LUCIDE SVG TOOLBAR -->
+                            <div class="bg-[#F8FAFC] border-b border-slate-200 p-2 flex items-center justify-between flex-wrap gap-2 text-xs select-none">
+                                <div class="flex items-center flex-wrap gap-1.5">
+                                    <!-- Group 1: AI Wand, Bold, Italic, Underline, Strikethrough, Link, Image -->
+                                    <div class="flex items-center space-x-0.5 bg-white border border-slate-200 rounded-lg p-0.5 shadow-2xs">
+                                        <button type="button" onclick="execAiWandAssist()" title="AI Magic Wand Tone Improver" class="px-2 py-1 hover:bg-indigo-50 rounded text-indigo-600 font-bold flex items-center space-x-1 cursor-pointer transition">
+                                            <i data-lucide="sparkles" class="h-3.5 w-3.5 text-indigo-600"></i>
+                                            <i data-lucide="chevron-down" class="h-2.5 w-2.5 text-indigo-400"></i>
+                                        </button>
+                                        <button type="button" onclick="execRichCmd('bold')" title="Bold (Ctrl+B)" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 font-bold cursor-pointer transition">
+                                            <i data-lucide="bold" class="h-3.5 w-3.5"></i>
+                                        </button>
+                                        <button type="button" onclick="execRichCmd('italic')" title="Italic (Ctrl+I)" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 italic font-bold cursor-pointer transition">
+                                            <i data-lucide="italic" class="h-3.5 w-3.5"></i>
+                                        </button>
+                                        <button type="button" onclick="execRichCmd('underline')" title="Underline (Ctrl+U)" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 underline font-bold cursor-pointer transition">
+                                            <i data-lucide="underline" class="h-3.5 w-3.5"></i>
+                                        </button>
+                                        <button type="button" onclick="execRichCmd('strikethrough')" title="Strikethrough" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                            <i data-lucide="strikethrough" class="h-3.5 w-3.5"></i>
+                                        </button>
+                                        <button type="button" onclick="promptInsertLink()" title="Insert Hyperlink" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                            <i data-lucide="link" class="h-3.5 w-3.5"></i>
+                                        </button>
+                                        <button type="button" onclick="openComposerImagePickerModal()" title="Upload or Insert Image" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                            <i data-lucide="image" class="h-3.5 w-3.5"></i>
+                                        </button>
+                                    </div>
 
-                                <!-- Group 2: Font Family Dropdown -->
-                                <div class="flex items-center bg-white border border-slate-300/80 rounded-lg px-2.5 py-1 space-x-1 shadow-2xs">
-                                    <i data-lucide="type" class="h-3.5 w-3.5 text-slate-400"></i>
-                                    <select onchange="execRichCmd('fontName', this.value)" class="bg-transparent border-none text-xs font-bold text-slate-800 focus:outline-none cursor-pointer">
-                                        <option value="Source Sans Pro" selected>Source Sans Pro</option>
-                                        <option value="Inter">Inter</option>
-                                        <option value="Arial">Arial</option>
-                                        <option value="Roboto">Roboto</option>
-                                        <option value="Georgia">Georgia</option>
-                                        <option value="Monospace">Monospace</option>
-                                    </select>
-                                </div>
+                                    <!-- Group 2: Table, Unordered/Ordered Lists, Alignment -->
+                                    <div class="flex items-center space-x-0.5 bg-white border border-slate-200 rounded-lg p-0.5 shadow-2xs">
+                                        <button type="button" onclick="insertTableInEditor()" title="Insert Table" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition flex items-center">
+                                            <i data-lucide="table" class="h-3.5 w-3.5 text-slate-700"></i>
+                                        </button>
+                                        <button type="button" onclick="execRichCmd('insertUnorderedList')" title="Bullet List" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                            <i data-lucide="list" class="h-3.5 w-3.5"></i>
+                                        </button>
+                                        <button type="button" onclick="execRichCmd('insertOrderedList')" title="Numbered List" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                            <i data-lucide="list-ordered" class="h-3.5 w-3.5"></i>
+                                        </button>
+                                        <button type="button" onclick="execRichCmd('justifyLeft')" title="Align Left" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                            <i data-lucide="align-left" class="h-3.5 w-3.5"></i>
+                                        </button>
+                                        <button type="button" onclick="execRichCmd('justifyCenter')" title="Align Center" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                            <i data-lucide="align-center" class="h-3.5 w-3.5"></i>
+                                        </button>
+                                        <button type="button" onclick="execRichCmd('justifyRight')" title="Align Right" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                            <i data-lucide="align-right" class="h-3.5 w-3.5"></i>
+                                        </button>
+                                        <button type="button" onclick="showMoreEditorOptions()" title="More Options" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition font-bold text-xs">
+                                            ...
+                                        </button>
+                                    </div>
 
-                                <!-- Group 3: Text Color Picker -->
-                                <div class="flex items-center space-x-0.5 bg-white border border-slate-300/80 rounded-lg p-0.5 shadow-2xs">
-                                    <label title="Text Color" class="p-1.5 hover:bg-slate-100 rounded cursor-pointer relative flex items-center justify-center">
-                                        <i data-lucide="palette" class="h-3.5 w-3.5 text-indigo-600"></i>
-                                        <input type="color" onchange="execRichCmd('foreColor', this.value)" class="opacity-0 absolute inset-0 w-full h-full cursor-pointer">
-                                    </label>
-                                    <label title="Background Highlight" class="p-1.5 hover:bg-slate-100 rounded cursor-pointer relative flex items-center justify-center">
-                                        <i data-lucide="highlighter" class="h-3.5 w-3.5 text-amber-500"></i>
-                                        <input type="color" onchange="execRichCmd('hiliteColor', this.value)" class="opacity-0 absolute inset-0 w-full h-full cursor-pointer">
-                                    </label>
-                                </div>
-
-                                <!-- Group 4: Lists & Alignment -->
-                                <div class="flex items-center space-x-0.5 bg-white border border-slate-300/80 rounded-lg p-0.5 shadow-2xs">
-                                    <button type="button" onclick="execRichCmd('insertUnorderedList')" title="Bullet List" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
-                                        <i data-lucide="list" class="h-3.5 w-3.5"></i>
-                                    </button>
-                                    <button type="button" onclick="execRichCmd('insertOrderedList')" title="Numbered List" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
-                                        <i data-lucide="list-ordered" class="h-3.5 w-3.5"></i>
-                                    </button>
-                                    <button type="button" onclick="execRichCmd('justifyLeft')" title="Align Left" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
-                                        <i data-lucide="align-left" class="h-3.5 w-3.5"></i>
-                                    </button>
-                                    <button type="button" onclick="execRichCmd('justifyCenter')" title="Align Center" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
-                                        <i data-lucide="align-center" class="h-3.5 w-3.5"></i>
-                                    </button>
-                                    <button type="button" onclick="execRichCmd('justifyRight')" title="Align Right" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
-                                        <i data-lucide="align-right" class="h-3.5 w-3.5"></i>
-                                    </button>
-                                </div>
-
-                                <!-- Group 5: Table -->
-                                <div class="flex items-center bg-white border border-slate-300/80 rounded-lg p-0.5 shadow-2xs">
-                                    <button type="button" onclick="insertTableInEditor()" title="Insert Table" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold flex items-center space-x-1 cursor-pointer transition">
-                                        <i data-lucide="table" class="h-3.5 w-3.5 text-slate-700"></i>
-                                        <i data-lucide="chevron-down" class="h-2.5 w-2.5 text-slate-400"></i>
-                                    </button>
-                                </div>
-
-                                <!-- Group 6: Link, Device Image, Video -->
-                                <div class="flex items-center space-x-0.5 bg-white border border-slate-300/80 rounded-lg p-0.5 shadow-2xs">
-                                    <button type="button" onclick="promptInsertLink()" title="Insert Hyperlink" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
-                                        <i data-lucide="link" class="h-3.5 w-3.5"></i>
-                                    </button>
-                                    <button type="button" onclick="openComposerImagePickerModal()" title="Upload or Insert Image (Max 2MB)" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md font-bold flex items-center space-x-1 cursor-pointer transition border border-indigo-200">
-                                        <i data-lucide="image-plus" class="h-3.5 w-3.5 text-indigo-600"></i>
-                                        <span class="text-[11px] font-extrabold text-indigo-700">Import Image</span>
-                                    </button>
-                                    <button type="button" onclick="promptInsertVideo()" title="Insert Video Link" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
-                                        <i data-lucide="video" class="h-3.5 w-3.5"></i>
-                                    </button>
+                                    <!-- Group 3: Font & Merge Tags -->
+                                    <div class="flex items-center space-x-1.5">
+                                        <!-- Font Family selector -->
+                                        <div class="relative bg-white border border-slate-200 rounded-lg px-2.5 py-1 flex items-center shadow-2xs">
+                                            <select onchange="execRichCmd('fontName', this.value)" class="bg-transparent border-none text-[11px] font-bold text-slate-700 focus:outline-none cursor-pointer appearance-none pr-5">
+                                                <option value="Source Sans Pro" selected>Source Sans Pro</option>
+                                                <option value="Inter">Inter</option>
+                                                <option value="Arial">Arial</option>
+                                                <option value="Roboto">Roboto</option>
+                                                <option value="Georgia">Georgia</option>
+                                                <option value="Monospace">Monospace</option>
+                                            </select>
+                                            <div class="absolute inset-y-0 right-2 flex items-center pointer-events-none text-slate-400">
+                                                <i data-lucide="chevron-down" class="h-3 w-3"></i>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Merge Tags Dropdown -->
+                                        <div class="relative bg-white border border-slate-200 rounded-lg px-2.5 py-1 flex items-center shadow-2xs">
+                                            <select onchange="if(this.value) { execRichCmd('insertHTML', this.value); this.value=''; }" class="bg-transparent border-none text-[11px] font-bold text-slate-700 focus:outline-none cursor-pointer appearance-none pr-5">
+                                                <option value="">Merge Tags</option>
+                                                <option value="{first_name}">First Name</option>
+                                                <option value="{last_name}">Last Name</option>
+                                                <option value="{email}">Email Address</option>
+                                                <option value="{company_name}">Company Name</option>
+                                                <option value="{city}">City</option>
+                                            </select>
+                                            <div class="absolute inset-y-0 right-2 flex items-center pointer-events-none text-slate-400">
+                                                <i data-lucide="chevron-down" class="h-3 w-3"></i>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Group 7: Code View, Help -->
-                            <div class="flex items-center space-x-0.5 bg-white border border-slate-300/80 rounded-lg p-0.5 shadow-2xs">
-                                <button type="button" onclick="toggleHtmlSourceView()" id="wizard-html-source-toggle-btn" title="Toggle Raw HTML Code" class="p-1.5 hover:bg-slate-100 rounded text-indigo-600 font-extrabold cursor-pointer transition flex items-center">
-                                    <i data-lucide="code" class="h-3.5 w-3.5 text-indigo-600"></i>
+                            <!-- Import Image Bar -->
+                            <div class="px-4 py-2 border-b border-slate-200 bg-slate-50/50 flex items-center justify-between">
+                                <button type="button" onclick="openComposerImagePickerModal()" class="px-3 py-1 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-extrabold text-slate-700 flex items-center space-x-1 cursor-pointer shadow-2xs">
+                                    <i data-lucide="upload" class="h-3 w-3 text-slate-500"></i>
+                                    <span>Import Image</span>
                                 </button>
-                                <button type="button" onclick="showEditorHelpModal()" title="Help & Shortcuts" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
-                                    <i data-lucide="help-circle" class="h-3.5 w-3.5"></i>
-                                </button>
                             </div>
-                        </div>
 
-                        <!-- EDITABLE CANVAS & RAW CODE TEXTAREA -->
-                        <div class="relative w-full min-h-[300px] bg-white">
-                            <div id="wizard-rich-editor" contenteditable="true" class="w-full min-h-[300px] max-h-[450px] p-5 bg-white focus:outline-none overflow-y-auto leading-relaxed text-slate-800 text-sm">
-                                ${st.body_html}
+                            <!-- EDITABLE CANVAS & RAW CODE TEXTAREA -->
+                            <div class="relative w-full min-h-[300px] bg-slate-50/20">
+                                <div id="wizard-rich-editor" contenteditable="true" class="w-full min-h-[300px] max-h-[450px] p-6 bg-white focus:outline-none overflow-y-auto leading-relaxed text-slate-800 text-sm">
+                                    ${st.body_html}
+                                </div>
+                                <textarea id="wizard-raw-editor" class="hidden w-full min-h-[300px] max-h-[450px] p-6 font-mono text-xs text-emerald-400 bg-slate-900 focus:outline-none overflow-y-auto border-none resize-none leading-relaxed">${escapeHtml(st.body_html)}</textarea>
                             </div>
-                            <textarea id="wizard-raw-editor" class="hidden w-full min-h-[300px] max-h-[450px] p-5 font-mono text-xs text-emerald-400 bg-slate-900 focus:outline-none overflow-y-auto border-none resize-none leading-relaxed">${escapeHtml(st.body_html)}</textarea>
-                        </div>
-
-                        <!-- BOTTOM RESIZE HANDLE BAR -->
-                        <div class="bg-slate-100 border-t border-slate-200 py-1 flex justify-center items-center text-slate-400 text-[10px] select-none">
-                            <span class="tracking-widest">≡≡≡</span>
                         </div>
                     </div>
 
-                    <!-- Live Preview Render Button -->
-                    <div class="flex justify-end pt-2">
-                        <button type="button" onclick="openWizardPreviewModal()" class="px-5 py-2 bg-white border border-cyan-500 hover:bg-cyan-50 text-cyan-700 text-xs font-extrabold rounded-xl transition flex items-center space-x-2 cursor-pointer shadow-2xs">
-                            <i data-lucide="eye" class="h-4 w-4 text-cyan-600"></i>
-                            <span class="text-cyan-700 font-extrabold">Live Preview Render</span>
-                        </button>
+                    <!-- Reply Settings Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+                        <div>
+                            <h4 class="text-sm font-bold text-slate-800">Reply Settings</h4>
+                            <p class="text-[11px] text-slate-400 font-semibold">Choose how recipients can reply to this email.</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                            <!-- Option 1: Default Reply -->
+                            <div onclick="selectWizardReplySetting('default')" class="border-2 rounded-xl p-3.5 flex items-start space-x-3 cursor-pointer transition ${st.reply_setting === 'default' ? 'border-indigo-600 bg-indigo-50/5' : 'border-slate-200 hover:border-slate-300 bg-white'}">
+                                <div class="h-8 w-8 rounded-lg ${st.reply_setting === 'default' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-50 text-slate-500'} flex items-center justify-center shrink-0 transition">
+                                    <i data-lucide="mail" class="h-4 w-4"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs font-bold text-slate-800">Reply to</div>
+                                    <div class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">your email</div>
+                                </div>
+                            </div>
+
+                            <!-- Option 2: Custom Reply -->
+                            <div onclick="selectWizardReplySetting('custom')" class="border-2 rounded-xl p-3.5 flex items-start space-x-3 cursor-pointer transition ${st.reply_setting === 'custom' ? 'border-indigo-600 bg-indigo-50/5' : 'border-slate-200 hover:border-slate-300 bg-white'}">
+                                <div class="h-8 w-8 rounded-lg ${st.reply_setting === 'custom' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-50 text-slate-500'} flex items-center justify-center shrink-0 transition font-black text-sm">
+                                    @
+                                </div>
+                                <div>
+                                    <div class="text-xs font-bold text-slate-800">Custom email</div>
+                                    <div class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Set different</div>
+                                </div>
+                            </div>
+
+                            <!-- Option 3: No-reply -->
+                            <div onclick="selectWizardReplySetting('noreply')" class="border-2 rounded-xl p-3.5 flex items-start space-x-3 cursor-pointer transition ${st.reply_setting === 'noreply' ? 'border-indigo-600 bg-indigo-50/5' : 'border-slate-200 hover:border-slate-300 bg-white'}">
+                                <div class="h-8 w-8 rounded-lg ${st.reply_setting === 'noreply' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-50 text-slate-500'} flex items-center justify-center shrink-0 transition">
+                                    <i data-lucide="bell-off" class="h-4 w-4"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs font-bold text-slate-800">No-reply</div>
+                                    <div class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Disable replies</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-2 text-slate-500 text-[11px] pt-1">
+                            <i data-lucide="info" class="h-3.5 w-3.5 text-slate-400"></i>
+                            <span>
+                                ${st.reply_setting === 'default' ? `Replies will be received at <span class="font-bold text-slate-700">wbsoumo@gmail.com</span>.` : ''}
+                                ${st.reply_setting === 'custom' ? `Replies will be received at <span class="font-bold text-slate-700">${st.reply_custom_email}</span>.` : ''}
+                                ${st.reply_setting === 'noreply' ? `Replies will be disabled (no-reply@linkpilot.work).` : ''}
+                            </span>
+                            <button onclick="selectWizardReplySetting('custom')" class="text-indigo-600 hover:underline font-extrabold text-[11px] ml-1 bg-transparent border-none cursor-pointer">Change</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -24328,6 +24457,155 @@ function detectVariablesInMailBody(text) {
     });
     return Array.from(vars);
 }
+
+window.selectWizardReplySetting = function(type) {
+    window._ecWizardState.reply_setting = type;
+    if (type === 'custom') {
+        const customEmail = prompt("Enter custom email for replies:", window._ecWizardState.reply_custom_email || "outbound@linkpilot.work");
+        if (customEmail) {
+            window._ecWizardState.reply_custom_email = customEmail;
+        } else {
+            window._ecWizardState.reply_setting = 'default';
+        }
+    }
+    renderWizardStepInline(window._ecWizardContainer);
+};
+
+window.openWizardTemplatesGallery = function() {
+    let modal = document.getElementById('wizard-templates-gallery-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'wizard-templates-gallery-modal';
+        modal.className = 'fixed inset-0 z-[10000] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 md:p-6 animate-fade-in';
+        document.body.appendChild(modal);
+    }
+    window._wizardGalleryActiveCategory = 'All';
+    renderWizardGalleryContent(modal);
+};
+
+window.renderWizardGalleryContent = function(modal) {
+    const categories = ['All', 'Sales', 'Meetings', 'Onboarding', 'Follow-ups', 'Support', 'Invoices', 'Feedback', 'Networking'];
+    const activeCat = window._wizardGalleryActiveCategory || 'All';
+    
+    let filtered = EMAIL_TEMPLATES_DATA;
+    if (activeCat !== 'All') {
+        filtered = EMAIL_TEMPLATES_DATA.filter(t => t.category.toLowerCase() === activeCat.toLowerCase());
+    } else {
+        filtered = getMixedUpTemplates(EMAIL_TEMPLATES_DATA);
+    }
+    
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-5xl flex flex-col overflow-hidden animate-scale-up font-sans max-h-[90vh]">
+            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                <div class="flex items-center space-x-2">
+                    <div class="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <i data-lucide="folder-open" class="h-4 w-4"></i>
+                    </div>
+                    <span class="text-sm font-bold text-slate-800">Browse Marketing Templates Gallery</span>
+                </div>
+                <button onclick="document.getElementById('wizard-templates-gallery-modal').remove()" class="h-8 w-8 rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer">
+                    ✕
+                </button>
+            </div>
+            
+            <div class="px-6 py-3 border-b border-slate-100 flex items-center space-x-2 overflow-x-auto bg-white">
+                ${categories.map(cat => {
+                    const count = cat === 'All' ? EMAIL_TEMPLATES_DATA.length : EMAIL_TEMPLATES_DATA.filter(x => x.category.toLowerCase() === cat.toLowerCase()).length;
+                    const isActive = activeCat === cat;
+                    return `
+                        <button onclick="switchWizardGalleryCategory('${cat}')" class="px-3 py-1.5 rounded-full text-xs font-bold transition shrink-0 cursor-pointer ${isActive ? 'bg-indigo-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}">
+                            ${cat} (${count})
+                        </button>
+                    `;
+                }).join('')}
+            </div>
+            
+            <div class="flex-grow p-6 overflow-y-auto bg-slate-50 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                ${filtered.map(t => {
+                    const previewHtml = getTemplateHtmlPreview(t);
+                    return `
+                        <div class="group bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs hover:shadow-md hover:border-indigo-400 transition relative flex flex-col h-[340px]">
+                            <div class="flex-grow bg-slate-100 relative overflow-hidden flex items-center justify-center p-3">
+                                <div class="w-[760px] h-[480px] bg-white border border-slate-200/60 rounded shadow-2xs origin-center select-none pointer-events-none overflow-hidden" style="transform: scale(0.33); shrink-0;">
+                                    ${previewHtml}
+                                </div>
+                                <div class="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                    <button onclick="selectWizardTemplateFromGallery('${t.id}')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold rounded-xl shadow transition cursor-pointer">
+                                        Import Template
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="p-4 border-t border-slate-100 flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-xs font-bold text-slate-800">${escapeHtml(t.title)}</h4>
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase mt-0.5 tracking-wider">${escapeHtml(t.category)}</p>
+                                </div>
+                                <span class="px-2 py-0.5 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded text-[9px] font-extrabold capitalize">${escapeHtml(t.badge)}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+};
+
+window.switchWizardGalleryCategory = function(cat) {
+    window._wizardGalleryActiveCategory = cat;
+    const modal = document.getElementById('wizard-templates-gallery-modal');
+    if (modal) renderWizardGalleryContent(modal);
+};
+
+window.selectWizardTemplateFromGallery = function(id) {
+    const t = EMAIL_TEMPLATES_DATA.find(x => x.id === id);
+    if (t) {
+        const html = getTemplateHtmlPreview(t);
+        window._ecWizardState.body_html = html;
+        showNotification('success', `Imported "${t.title}" template into editor!`);
+    }
+    const modal = document.getElementById('wizard-templates-gallery-modal');
+    if (modal) modal.remove();
+    renderWizardStepInline(window._ecWizardContainer);
+};
+
+window.handleWizardPresetSelect = function(templateId) {
+    if (!templateId) return;
+    const t = EMAIL_TEMPLATES_DATA.find(x => x.id === templateId);
+    if (t) {
+        const html = getTemplateHtmlPreview(t);
+        window._ecWizardState.body_html = html;
+        showNotification('success', `Loaded "${t.title}" template!`);
+    }
+    renderWizardStepInline(window._ecWizardContainer);
+};
+
+window.switchWizardEditorMode = function(mode) {
+    const richEd = document.getElementById('wizard-rich-editor');
+    const rawEd = document.getElementById('wizard-raw-editor');
+    const visualBtn = document.getElementById('wizard-visual-toggle-tab');
+    const htmlBtn = document.getElementById('wizard-html-toggle-tab');
+    if (!richEd || !rawEd) return;
+    
+    if (mode === 'visual') {
+        richEd.innerHTML = rawEd.value;
+        rawEd.classList.add('hidden');
+        richEd.classList.remove('hidden');
+        if (visualBtn) visualBtn.className = 'px-3 py-1 text-[10px] font-bold rounded-md bg-indigo-600 text-white shadow-2xs cursor-pointer transition';
+        if (htmlBtn) htmlBtn.className = 'px-3 py-1 text-[10px] font-bold rounded-md text-slate-600 hover:text-slate-900 cursor-pointer transition';
+    } else {
+        rawEd.value = richEd.innerHTML;
+        richEd.classList.add('hidden');
+        rawEd.classList.remove('hidden');
+        if (visualBtn) visualBtn.className = 'px-3 py-1 text-[10px] font-bold rounded-md text-slate-600 hover:text-slate-900 cursor-pointer transition';
+        if (htmlBtn) htmlBtn.className = 'px-3 py-1 text-[10px] font-bold rounded-md bg-indigo-600 text-white shadow-2xs cursor-pointer transition';
+    }
+    if (typeof handleMailBodyInput === 'function') handleMailBodyInput();
+};
+
+window.showMoreEditorOptions = function() {
+    showNotification('info', 'Use toolbar tools to customize text formatting, align elements, and add images/tables/links.');
+};
 
 window.loadSampleTemplateIntoWizard = function() {
     window._ecWizardState.body_html = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #E2E8F0; border-radius: 16px;">\n  <h2 style="color: #4F46E5;">Hi {first_name},</h2>\n  <p>We are thrilled to present an exclusive offer for <strong>{company_name}</strong>.</p>\n  <a href="https://linkpilot.work" style="display:inline-block; padding: 12px 24px; background: #4F46E5; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold;">Claim Offer</a>\n</div>`;

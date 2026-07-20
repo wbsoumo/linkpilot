@@ -371,7 +371,7 @@ async function navigateTo(view, params = {}) {
             }
         });
 
-        const isEmailView = view === 'inbox' || view === 'email-intelligence' || view === 'followups' || view === 'email-followups';
+        const isEmailView = view === 'inbox' || view === 'email-intelligence' || view === 'followups' || view === 'email-followups' || view === 'email-settings';
         const emailSubmenu = document.getElementById('email-submenu');
         const emailChevron = document.getElementById('email-chevron');
         if (isEmailView && emailSubmenu) {
@@ -420,6 +420,9 @@ async function navigateTo(view, params = {}) {
                 break;
             case 'email-intelligence':
                 await renderEmailIntelligence(contentArea);
+                break;
+            case 'email-settings':
+                await renderEmailSettings(contentArea);
                 break;
             case 'inbox':
                 await renderInbox(contentArea, params.emailId);
@@ -2210,7 +2213,625 @@ async function syncNowFromDashboard(btn) {
     }
 }
 
-// ---------------------------------------------// 3. INBOX VIEW (AI SUGGESTED REPLY / FILTERS)
+// ---------------------------------------------
+// EMAIL SETTINGS HUB (10 SECTIONS)
+// ---------------------------------------------
+async function renderEmailSettings(container) {
+    container.innerHTML = `
+        <div class="flex items-center justify-center py-20">
+            <div class="loader-spinner !w-8 !h-8 !border-3"></div>
+        </div>
+    `;
+
+    try {
+        const res = await apiCall('crm/email_settings.php');
+        const data = res.data || {};
+        
+        window.emailSettingsState = {
+            activeTab: window.emailSettingsState?.activeTab || 'smtp',
+            credentials: data.credentials || {},
+            domains: data.domains || [],
+            signatures: data.signatures || [],
+            advanced: data.advanced || {}
+        };
+
+        renderEmailSettingsLayout(container);
+    } catch (err) {
+        container.innerHTML = `
+            <div class="p-6 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-400">
+                <h3 class="font-bold text-lg mb-1">Failed to load Email Settings</h3>
+                <p class="text-sm">${err.message}</p>
+                <button onclick="renderEmailSettings(document.getElementById('main-content-viewport'))" class="mt-4 px-4 py-2 bg-red-600 text-white font-bold rounded-xl text-xs">Retry</button>
+            </div>
+        `;
+    }
+}
+
+function renderEmailSettingsLayout(container) {
+    const { activeTab, credentials, domains, signatures, advanced } = window.emailSettingsState;
+
+    const tabs = [
+        { id: 'smtp', label: 'SMTP Servers', icon: 'server', badge: credentials.smtp_host ? 'Active' : 'Unset', badgeColor: credentials.smtp_host ? 'emerald' : 'slate' },
+        { id: 'imap', label: 'IMAP Accounts', icon: 'inbox', badge: credentials.imap_host ? 'Active' : 'Unset', badgeColor: credentials.imap_host ? 'emerald' : 'slate' },
+        { id: 'domains', label: 'Sending Domains', icon: 'globe', badge: `${domains.length} Domains`, badgeColor: 'blue' },
+        { id: 'signatures', label: 'Email Signatures', icon: 'pen-tool', badge: `${signatures.length} Active`, badgeColor: 'indigo' },
+        { id: 'replyto', label: 'Default Reply-To', icon: 'reply', badge: advanced.default_reply_to ? 'Configured' : 'Default', badgeColor: 'sky' },
+        { id: 'warmup', label: 'Warm-up Settings', icon: 'flame', badge: advanced.warmup_enabled ? 'Enabled' : 'Paused', badgeColor: advanced.warmup_enabled ? 'amber' : 'slate' },
+        { id: 'opentracking', label: 'Open Tracking', icon: 'eye', badge: advanced.open_tracking_enabled ? 'Active' : 'Off', badgeColor: advanced.open_tracking_enabled ? 'emerald' : 'slate' },
+        { id: 'clicktracking', label: 'Click Tracking', icon: 'mouse-pointer', badge: advanced.click_tracking_enabled ? 'Active' : 'Off', badgeColor: advanced.click_tracking_enabled ? 'emerald' : 'slate' },
+        { id: 'bouncetracking', label: 'Bounce Tracking', icon: 'shield-alert', badge: 'Auto-Protect', badgeColor: 'purple' },
+        { id: 'unsubscribe', label: 'Unsubscribe Settings', icon: 'user-x', badge: advanced.unsubscribe_enabled ? 'Active' : 'Off', badgeColor: 'rose' }
+    ];
+
+    container.innerHTML = `
+        <div class="space-y-6">
+            <!-- Top Header -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/60 p-6 rounded-3xl border border-slate-800 backdrop-blur-xl">
+                <div>
+                    <div class="flex items-center space-x-3 mb-1">
+                        <div class="p-2.5 bg-gradient-to-tr from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 rounded-2xl">
+                            <i data-lucide="mail-check" class="h-6 w-6 text-cyan-400"></i>
+                        </div>
+                        <h1 class="text-2xl font-black text-white tracking-tight">Email Settings & Infrastructure</h1>
+                    </div>
+                    <p class="text-xs text-slate-400 ml-1">Configure SMTP, IMAP, Sending Domains, Signatures, Warm-up & Deliverability policies.</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button onclick="saveAllEmailSettings(this)" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-black rounded-xl shadow-lg shadow-blue-500/20 transition flex items-center space-x-2">
+                        <i data-lucide="save" class="h-4 w-4"></i>
+                        <span>Save All Settings</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Settings Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Sidebar Tabs Navigation (10 Sections) -->
+                <div class="lg:col-span-4 xl:col-span-3 space-y-1.5 bg-slate-900/40 p-3 rounded-3xl border border-slate-800/80">
+                    <div class="px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-400">Navigation</div>
+                    ${tabs.map(tab => `
+                        <button onclick="switchEmailSettingsTab('${tab.id}')" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition text-left ${activeTab === tab.id ? 'bg-gradient-to-r from-blue-600/20 to-cyan-600/20 text-white border border-cyan-500/30 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}">
+                            <div class="flex items-center space-x-2.5 truncate">
+                                <i data-lucide="${tab.icon}" class="h-4 w-4 shrink-0 ${activeTab === tab.id ? 'text-cyan-400' : 'text-slate-400'}"></i>
+                                <span class="truncate">${tab.label}</span>
+                            </div>
+                            <span class="text-[9px] font-black px-2 py-0.5 rounded-full border ${tab.badgeColor === 'emerald' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : tab.badgeColor === 'amber' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : tab.badgeColor === 'blue' ? 'bg-blue-500/10 border-blue-500/30 text-blue-400' : tab.badgeColor === 'indigo' ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400' : tab.badgeColor === 'sky' ? 'bg-sky-500/10 border-sky-500/30 text-sky-400' : tab.badgeColor === 'purple' ? 'bg-purple-500/10 border-purple-500/30 text-purple-400' : tab.badgeColor === 'rose' ? 'bg-rose-500/10 border-rose-500/30 text-rose-400' : 'bg-slate-800 border-slate-700 text-slate-400'}">${tab.badge}</span>
+                        </button>
+                    `).join('')}
+                </div>
+
+                <!-- Tab Content Display Panel -->
+                <div class="lg:col-span-8 xl:col-span-9 bg-slate-900/60 p-6 md:p-8 rounded-3xl border border-slate-800 backdrop-blur-xl">
+                    <div id="email-settings-tab-content">
+                        ${renderEmailSettingsTabContent(activeTab)}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    lucide.createIcons();
+}
+
+function switchEmailSettingsTab(tabId) {
+    window.emailSettingsState.activeTab = tabId;
+    const contentContainer = document.getElementById('main-content-viewport');
+    if (contentContainer) {
+        renderEmailSettingsLayout(contentContainer);
+    }
+}
+
+function renderEmailSettingsTabContent(tabId) {
+    const { credentials, domains, signatures, advanced } = window.emailSettingsState;
+
+    switch (tabId) {
+        case 'smtp':
+            return `
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                        <div>
+                            <h2 class="text-lg font-black text-white">1. Outbound SMTP Server Configuration</h2>
+                            <p class="text-xs text-slate-400">Configure standard outgoing mail server credentials for cold outreach & transactional emails.</p>
+                        </div>
+                        <span class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-black rounded-full flex items-center space-x-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span>AWS EC2 Worker Proxy Active</span>
+                        </span>
+                    </div>
+
+                    <form id="smtp-settings-form" onsubmit="event.preventDefault(); saveSmtpFromSettings(this);" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-300 mb-1.5">SMTP Host</label>
+                                <input type="text" id="es_smtp_host" value="${credentials.smtp_host || 'mail.ibiffindia.com'}" placeholder="mail.yourdomain.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-300 mb-1.5">SMTP Port</label>
+                                <input type="number" id="es_smtp_port" value="${credentials.smtp_port || 465}" placeholder="465 or 587" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-300 mb-1.5">Encryption</label>
+                                <select id="es_smtp_encryption" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                                    <option value="ssl" ${credentials.smtp_encryption === 'ssl' || credentials.smtp_port == 465 ? 'selected' : ''}>SSL (Port 465)</option>
+                                    <option value="tls" ${credentials.smtp_encryption === 'tls' || credentials.smtp_port == 587 ? 'selected' : ''}>TLS / STARTTLS (Port 587)</option>
+                                    <option value="none" ${credentials.smtp_encryption === 'none' ? 'selected' : ''}>None (Plain Text)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-300 mb-1.5">SMTP Username (Email)</label>
+                                <input type="email" id="es_smtp_username" value="${credentials.smtp_username || 'hello@ibiffindia.com'}" placeholder="hello@yourdomain.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-300 mb-1.5">SMTP Password</label>
+                                <input type="password" id="es_smtp_password" placeholder="••••••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                            </div>
+                        </div>
+
+                        <div class="pt-3 flex items-center justify-between border-t border-slate-800/80">
+                            <button type="button" onclick="testSmtpFromSettings(this)" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2">
+                                <i data-lucide="zap" class="h-3.5 w-3.5 text-amber-400"></i>
+                                <span>Test SMTP Connection</span>
+                            </button>
+                            <div id="smtp-test-result-settings" class="text-xs"></div>
+                        </div>
+                    </form>
+                </div>
+            `;
+
+        case 'imap':
+            return `
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                        <div>
+                            <h2 class="text-lg font-black text-white">2. Inbound IMAP Account Configuration</h2>
+                            <p class="text-xs text-slate-400">Receive and synchronize customer replies, thread histories, and automated inbox responses.</p>
+                        </div>
+                    </div>
+
+                    <form id="imap-settings-form" onsubmit="event.preventDefault(); saveImapFromSettings(this);" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-300 mb-1.5">IMAP Host</label>
+                                <input type="text" id="es_imap_host" value="${credentials.imap_host || 'mail.ibiffindia.com'}" placeholder="mail.yourdomain.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-300 mb-1.5">IMAP Port</label>
+                                <input type="number" id="es_imap_port" value="${credentials.imap_port || 993}" placeholder="993 or 143" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-300 mb-1.5">Encryption</label>
+                                <select id="es_imap_encryption" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                                    <option value="ssl" ${credentials.imap_encryption === 'ssl' || credentials.imap_port == 993 ? 'selected' : ''}>SSL (Port 993)</option>
+                                    <option value="tls" ${credentials.imap_encryption === 'tls' || credentials.imap_port == 143 ? 'selected' : ''}>TLS (Port 143)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-300 mb-1.5">IMAP Username (Email)</label>
+                                <input type="email" id="es_imap_username" value="${credentials.imap_username || 'hello@ibiffindia.com'}" placeholder="hello@yourdomain.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-300 mb-1.5">IMAP Password</label>
+                                <input type="password" id="es_imap_password" placeholder="••••••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                            </div>
+                        </div>
+
+                        <div class="pt-3 flex items-center justify-between border-t border-slate-800/80">
+                            <button type="button" onclick="testImapFromSettings(this)" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2">
+                                <i data-lucide="zap" class="h-3.5 w-3.5 text-amber-400"></i>
+                                <span>Test IMAP Connection</span>
+                            </button>
+                            <div id="imap-test-result-settings" class="text-xs"></div>
+                        </div>
+                    </form>
+                </div>
+            `;
+
+        case 'domains':
+            return `
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                        <div>
+                            <h2 class="text-lg font-black text-white">3. Sending Domains & DNS Verification</h2>
+                            <p class="text-xs text-slate-400">Verify SPF, DKIM, and DMARC DNS records to ensure high inbox deliverability.</p>
+                        </div>
+                        <button onclick="promptAddSendingDomain()" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition flex items-center space-x-1.5">
+                            <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                            <span>Add Sending Domain</span>
+                        </button>
+                    </div>
+
+                    <div class="space-y-4">
+                        ${domains.map(d => `
+                            <div class="p-4 bg-slate-950 border border-slate-800 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div>
+                                    <div class="flex items-center space-x-2 mb-1">
+                                        <i data-lucide="globe" class="h-4 w-4 text-cyan-400"></i>
+                                        <span class="font-black text-sm text-white">${d.domain}</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2 text-[10px]">
+                                        <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold">SPF ✓</span>
+                                        <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold">DKIM ✓</span>
+                                        <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold">DMARC ✓</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="deleteSendingDomain(${d.id})" class="px-3 py-1.5 bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 text-xs font-bold rounded-xl transition">Remove</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="p-4 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-2">
+                        <h4 class="text-xs font-bold text-slate-200">Recommended DNS Records for ${domains[0]?.domain || 'your domain'}:</h4>
+                        <div class="text-[11px] font-mono text-slate-400 bg-slate-900 p-3 rounded-xl border border-slate-800/80 space-y-1">
+                            <div><strong class="text-cyan-400">TXT Record (SPF):</strong> v=spf1 include:linkpilot.work ~all</div>
+                            <div><strong class="text-cyan-400">TXT Record (DMARC):</strong> v=DMARC1; p=none; rua=mailto:dmarc@linkpilot.work</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+        case 'signatures':
+            return `
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                        <div>
+                            <h2 class="text-lg font-black text-white">4. Email Signatures</h2>
+                            <p class="text-xs text-slate-400">Create rich HTML signatures with dynamic tags (<code>{{sender_name}}</code>, <code>{{company}}</code>).</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-4">
+                        ${signatures.map(s => `
+                            <div class="p-4 bg-slate-950 border border-slate-800 rounded-2xl space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="font-bold text-sm text-white">${s.name}</span>
+                                        ${s.is_default ? '<span class="px-2 py-0.5 bg-indigo-500/20 text-indigo-400 text-[10px] font-black rounded-full border border-indigo-500/30">DEFAULT</span>' : ''}
+                                    </div>
+                                    <button onclick="deleteSignature(${s.id})" class="text-xs text-red-400 hover:underline">Delete</button>
+                                </div>
+                                <div class="p-3 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-300">
+                                    ${s.body_html}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+        case 'replyto':
+            return `
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                        <div>
+                            <h2 class="text-lg font-black text-white">5. Default Reply-To Address</h2>
+                            <p class="text-xs text-slate-400">Specify where customer responses should be routed when replying to outgoing campaigns.</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 max-w-xl">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Default Reply-To Address</label>
+                            <input type="email" id="es_default_reply_to" value="${advanced.default_reply_to || ''}" placeholder="support@yourdomain.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Default Sender Name</label>
+                            <input type="text" id="es_default_sender_name" value="${advanced.default_sender_name || ''}" placeholder="Sales Team" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+                </div>
+            `;
+
+        case 'warmup':
+            return `
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                        <div>
+                            <h2 class="text-lg font-black text-white">6. Automated Email Warm-up Settings</h2>
+                            <p class="text-xs text-slate-400">Gradually ramp up daily send limits to build domain sender reputation.</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="es_warmup_enabled" ${advanced.warmup_enabled ? 'checked' : ''} class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Max Daily Limit</label>
+                            <input type="number" id="es_warmup_daily_limit" value="${advanced.warmup_daily_limit || 50}" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Daily Increment Step</label>
+                            <input type="number" id="es_warmup_increment" value="${advanced.warmup_increment || 5}" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+                </div>
+            `;
+
+        case 'opentracking':
+            return `
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                        <div>
+                            <h2 class="text-lg font-black text-white">7. Email Open Tracking Settings</h2>
+                            <p class="text-xs text-slate-400">Track email open rates using transparent tracking pixels.</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="es_open_tracking_enabled" ${advanced.open_tracking_enabled ? 'checked' : ''} class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                        </label>
+                    </div>
+
+                    <div class="space-y-4 max-w-xl">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Custom Tracking Domain</label>
+                            <input type="text" id="es_open_tracking_domain" value="${advanced.open_tracking_domain || 'open.linkpilot.work'}" placeholder="open.yourdomain.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Exclude Internal Team IPs (Comma Separated)</label>
+                            <textarea id="es_open_tracking_exclude_ips" rows="2" placeholder="103.86.176.168, 127.0.0.1" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">${advanced.open_tracking_exclude_ips || ''}</textarea>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+        case 'clicktracking':
+            return `
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                        <div>
+                            <h2 class="text-lg font-black text-white">8. Link Click Tracking</h2>
+                            <p class="text-xs text-slate-400">Track link clicks across outgoing emails and campaigns.</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="es_click_tracking_enabled" ${advanced.click_tracking_enabled ? 'checked' : ''} class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                        </label>
+                    </div>
+
+                    <div class="space-y-4 max-w-xl">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Custom Click Tracking Domain</label>
+                            <input type="text" id="es_click_tracking_domain" value="${advanced.click_tracking_domain || 'track.linkpilot.work'}" placeholder="track.yourdomain.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+                </div>
+            `;
+
+        case 'bouncetracking':
+            return `
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                        <div>
+                            <h2 class="text-lg font-black text-white">9. Bounce Tracking & Deliverability Safeguards</h2>
+                            <p class="text-xs text-slate-400">Automatically handle soft and hard bounces to protect domain sender score.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Max Hard Bounces Before Auto-Suppress</label>
+                            <select id="es_bounce_max_hard_bounces" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                                <option value="1" ${advanced.bounce_max_hard_bounces == 1 ? 'selected' : ''}>1 Hard Bounce (Strict & Recommended)</option>
+                                <option value="2" ${advanced.bounce_max_hard_bounces == 2 ? 'selected' : ''}>2 Hard Bounces</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">High Bounce Rate Alert Threshold (%)</label>
+                            <input type="number" step="0.5" id="es_bounce_alert_threshold" value="${advanced.bounce_alert_threshold || 3.0}" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+                </div>
+            `;
+
+        case 'unsubscribe':
+            return `
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                        <div>
+                            <h2 class="text-lg font-black text-white">10. Unsubscribe Link & Footer Policy</h2>
+                            <p class="text-xs text-slate-400">Include RFC 8058 One-Click Unsubscribe headers and compliant email footers.</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="es_unsubscribe_enabled" ${advanced.unsubscribe_enabled ? 'checked' : ''} class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500"></div>
+                        </label>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Unsubscribe Footer HTML Template</label>
+                            <textarea id="es_unsubscribe_footer_html" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500 font-mono">${advanced.unsubscribe_footer_html || ''}</textarea>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+        default:
+            return `<div class="text-slate-400 text-xs">Select a settings tab on the left.</div>`;
+    }
+}
+
+async function testSmtpFromSettings(btn) {
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<div class="loader-spinner !w-3 !h-3 mr-1"></div> Testing...`;
+
+    const resultDiv = document.getElementById('smtp-test-result-settings');
+    if (resultDiv) {
+        resultDiv.className = 'text-xs text-slate-400 font-bold';
+        resultDiv.textContent = 'Testing connection via AWS Worker...';
+    }
+
+    try {
+        const payload = {
+            smtp_host: document.getElementById('es_smtp_host').value,
+            smtp_port: parseInt(document.getElementById('es_smtp_port').value),
+            smtp_username: document.getElementById('es_smtp_username').value,
+            smtp_password: document.getElementById('es_smtp_password').value,
+            smtp_encryption: document.getElementById('es_smtp_encryption').value
+        };
+
+        const res = await apiCall('crm/email_intelligence/settings.php?action=test_smtp', 'POST', payload);
+        if (res.status === 'success') {
+            if (resultDiv) {
+                resultDiv.className = 'text-xs text-emerald-400 font-bold';
+                resultDiv.textContent = '✓ ' + res.message;
+            }
+            showNotification('success', 'SMTP Connection Successful!');
+        } else {
+            if (resultDiv) {
+                resultDiv.className = 'text-xs text-red-400 font-bold';
+                resultDiv.textContent = '✕ ' + res.message;
+            }
+        }
+    } catch (err) {
+        if (resultDiv) {
+            resultDiv.className = 'text-xs text-red-400 font-bold';
+            resultDiv.textContent = '✕ ' + err.message;
+        }
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+    }
+}
+
+async function testImapFromSettings(btn) {
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<div class="loader-spinner !w-3 !h-3 mr-1"></div> Testing...`;
+
+    const resultDiv = document.getElementById('imap-test-result-settings');
+    if (resultDiv) {
+        resultDiv.className = 'text-xs text-slate-400 font-bold';
+        resultDiv.textContent = 'Testing IMAP connection via AWS Worker...';
+    }
+
+    try {
+        const payload = {
+            imap_host: document.getElementById('es_imap_host').value,
+            imap_port: parseInt(document.getElementById('es_imap_port').value),
+            imap_username: document.getElementById('es_imap_username').value,
+            imap_password: document.getElementById('es_imap_password').value,
+            imap_encryption: document.getElementById('es_imap_encryption').value
+        };
+
+        const res = await apiCall('crm/email_intelligence/settings.php?action=test_imap', 'POST', payload);
+        if (res.status === 'success') {
+            if (resultDiv) {
+                resultDiv.className = 'text-xs text-emerald-400 font-bold';
+                resultDiv.textContent = '✓ ' + res.message;
+            }
+            showNotification('success', 'IMAP Connection Successful!');
+        } else {
+            if (resultDiv) {
+                resultDiv.className = 'text-xs text-red-400 font-bold';
+                resultDiv.textContent = '✕ ' + res.message;
+            }
+        }
+    } catch (err) {
+        if (resultDiv) {
+            resultDiv.className = 'text-xs text-red-400 font-bold';
+            resultDiv.textContent = '✕ ' + err.message;
+        }
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+    }
+}
+
+async function promptAddSendingDomain() {
+    const domain = prompt("Enter your new sending domain (e.g. outreach.company.com):");
+    if (!domain || !domain.trim()) return;
+
+    try {
+        const res = await apiCall('crm/email_settings.php?action=save_domain', 'POST', { domain: domain.trim() });
+        if (res.status === 'success') {
+            showNotification('success', 'Sending domain added successfully.');
+            renderEmailSettings(document.getElementById('main-content-viewport'));
+        } else {
+            showNotification('error', res.message);
+        }
+    } catch (err) {
+        showNotification('error', err.message);
+    }
+}
+
+async function deleteSendingDomain(domainId) {
+    if (!confirm("Remove this sending domain?")) return;
+
+    try {
+        const res = await apiCall('crm/email_settings.php?action=delete_domain', 'POST', { domain_id: domainId });
+        if (res.status === 'success') {
+            showNotification('success', 'Sending domain removed.');
+            renderEmailSettings(document.getElementById('main-content-viewport'));
+        }
+    } catch (err) {
+        showNotification('error', err.message);
+    }
+}
+
+async function deleteSignature(sigId) {
+    if (!confirm("Delete this signature?")) return;
+
+    try {
+        const res = await apiCall('crm/email_settings.php?action=delete_signature', 'POST', { signature_id: sigId });
+        if (res.status === 'success') {
+            showNotification('success', 'Signature deleted.');
+            renderEmailSettings(document.getElementById('main-content-viewport'));
+        }
+    } catch (err) {
+        showNotification('error', err.message);
+    }
+}
+
+async function saveAllEmailSettings(btn) {
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<div class="loader-spinner !w-3.5 !h-3.5 mr-1.5"></div> Saving...`;
+
+    try {
+        const payload = {
+            default_reply_to: document.getElementById('es_default_reply_to')?.value || '',
+            default_sender_name: document.getElementById('es_default_sender_name')?.value || '',
+            warmup_enabled: document.getElementById('es_warmup_enabled')?.checked ? 1 : 0,
+            warmup_daily_limit: parseInt(document.getElementById('es_warmup_daily_limit')?.value || 50),
+            warmup_increment: parseInt(document.getElementById('es_warmup_increment')?.value || 5),
+            open_tracking_enabled: document.getElementById('es_open_tracking_enabled')?.checked ? 1 : 0,
+            open_tracking_domain: document.getElementById('es_open_tracking_domain')?.value || '',
+            open_tracking_exclude_ips: document.getElementById('es_open_tracking_exclude_ips')?.value || '',
+            click_tracking_enabled: document.getElementById('es_click_tracking_enabled')?.checked ? 1 : 0,
+            click_tracking_domain: document.getElementById('es_click_tracking_domain')?.value || '',
+            bounce_max_hard_bounces: parseInt(document.getElementById('es_bounce_max_hard_bounces')?.value || 1),
+            bounce_alert_threshold: parseFloat(document.getElementById('es_bounce_alert_threshold')?.value || 3.0),
+            unsubscribe_enabled: document.getElementById('es_unsubscribe_enabled')?.checked ? 1 : 0,
+            unsubscribe_footer_html: document.getElementById('es_unsubscribe_footer_html')?.value || ''
+        };
+
+        const res = await apiCall('crm/email_settings.php?action=save_advanced', 'POST', payload);
+        if (res.status === 'success') {
+            showNotification('success', 'All email settings updated successfully!');
+            renderEmailSettings(document.getElementById('main-content-viewport'));
+        } else {
+            showNotification('error', res.message);
+        }
+    } catch (err) {
+        showNotification('error', err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+    }
+}
+
+// ---------------------------------------------
+// 3. INBOX VIEW (AI SUGGESTED REPLY / FILTERS)
 const getEmailDomain = (emailStr) => {
     if (!emailStr) return 'globe';
     const parts = emailStr.split('@');

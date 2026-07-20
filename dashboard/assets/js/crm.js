@@ -17281,90 +17281,33 @@ window.openEmailComposerModal = function(templateId) {
                             </div>
                             <!-- VS CODE CONTAINER -->
                             <div id="composer-vscode-container" class="hidden w-full min-h-[360px] max-h-[520px] bg-[#1e1e1e] flex flex-col font-mono text-xs text-[#d4d4d4] overflow-hidden border border-[#3c3c3c] rounded-xl shadow-inner">
-                                <!-- Top Tab Bar -->
-                                <div class="bg-[#252526] flex border-b border-[#1e1e1e] select-none shrink-0 overflow-x-auto">
-                                    <div class="bg-[#1E1E1E] text-white border-t-2 border-indigo-500 px-4 py-2 text-xs flex items-center space-x-2 shrink-0">
-                                        <span class="text-orange-500 font-bold">&lt;&gt;</span>
-                                        <span class="font-semibold">template.html</span>
-                                        <span class="text-slate-500 hover:text-slate-300 text-[10px] ml-1 cursor-pointer">×</span>
-                                    </div>
-                                    <div class="bg-[#2D2D2D] text-slate-400 px-4 py-2 text-xs flex items-center space-x-2 shrink-0 hover:bg-[#2e2e2f] cursor-pointer">
-                                        <span class="text-blue-400 font-bold">{}</span>
-                                        <span>variables.json</span>
-                                    </div>
-                                    <div class="bg-[#2D2D2D] text-slate-400 px-4 py-2 text-xs flex items-center space-x-2 shrink-0 hover:bg-[#2e2e2f] cursor-pointer">
-                                        <span class="text-teal-400 font-bold">#</span>
-                                        <span>styles.css</span>
-                                    </div>
-                                </div>
-                                <!-- Activity Bar + Sidebar + Main Code Area -->
+                                <!-- Main Code Area -->
                                 <div class="flex flex-row flex-grow min-h-[320px] max-h-[460px]">
-                                    <!-- Mini Activity Bar (VS Code left side) -->
-                                    <div class="w-[44px] bg-[#333333] flex flex-col justify-between items-center py-3 shrink-0 select-none border-r border-[#1e1e1e]">
-                                        <div class="flex flex-col items-center space-y-4 w-full">
-                                            <div class="text-white border-l-2 border-indigo-500 w-full flex justify-center py-1 cursor-pointer" title="Explorer">
-                                                <i data-lucide="files" class="h-4 w-4"></i>
-                                            </div>
-                                            <div class="text-slate-400 hover:text-slate-200 py-1 cursor-pointer" title="Search">
-                                                <i data-lucide="search" class="h-4 w-4"></i>
-                                            </div>
-                                            <div class="text-slate-400 hover:text-slate-200 py-1 cursor-pointer" title="Source Control">
-                                                <i data-lucide="git-branch" class="h-4 w-4"></i>
-                                            </div>
-                                            <div class="text-slate-400 hover:text-slate-200 py-1 cursor-pointer" title="Extensions">
-                                                <i data-lucide="play-square" class="h-4 w-4"></i>
-                                            </div>
-                                        </div>
-                                        <div class="text-slate-400 hover:text-slate-200 cursor-pointer" title="Settings">
-                                            <i data-lucide="settings" class="h-4 w-4"></i>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Sidebar Folder Explorer -->
-                                    <div class="w-[140px] bg-[#252526] border-r border-[#1e1e1e] flex flex-col text-slate-400 select-none py-3 text-[10px] font-bold tracking-wider shrink-0 hidden sm:flex font-sans">
-                                        <div class="px-3 pb-2 text-[9px] text-slate-500 uppercase tracking-widest">EXPLORER</div>
-                                        <div class="px-3 font-semibold text-slate-300 flex items-center space-x-1 mb-1 truncate">
-                                            <i data-lucide="chevron-down" class="h-3 w-3 text-slate-400"></i>
-                                            <span>LINKPILOT_AI</span>
-                                        </div>
-                                        <div class="pl-5 pr-2 py-1 bg-[#37373D] text-white flex items-center space-x-1.5 cursor-pointer truncate">
-                                            <span class="text-orange-500 text-[9px] font-bold">&lt;&gt;</span>
-                                            <span>template.html</span>
-                                        </div>
-                                        <div class="pl-5 pr-2 py-1 hover:bg-[#2A2D2E] flex items-center space-x-1.5 cursor-pointer truncate">
-                                            <span class="text-blue-400 text-[9px] font-bold">{}</span>
-                                            <span>variables.json</span>
-                                        </div>
-                                        <div class="pl-5 pr-2 py-1 hover:bg-[#2A2D2E] flex items-center space-x-1.5 cursor-pointer truncate">
-                                            <span class="text-teal-400 text-[9px] font-bold">#</span>
-                                            <span>styles.css</span>
-                                        </div>
-                                    </div>
-                                    
                                     <!-- Editor Workspace -->
                                     <div class="flex-grow flex flex-row bg-[#1e1e1e] relative min-w-0">
                                         <!-- Line numbers gutter -->
-                                        <div id="composer-editor-gutter" class="bg-[#1e1e1e] text-[#858585] text-right font-mono text-[11px] select-none pr-3 pl-2 py-4 border-r border-[#3c3c3c] leading-5 w-12 shrink-0 overflow-y-hidden">
+                                        <div id="composer-editor-gutter" class="bg-[#1e1e1e] text-[#858585] text-right font-mono text-[13px] select-none pr-3.5 pl-3 py-4 border-r border-[#2d2d2d] leading-6 w-12 shrink-0 overflow-y-hidden">
                                             <div>1</div>
                                         </div>
-                                        <!-- Textarea -->
-                                        <textarea id="raw-html-source-editor" onscroll="syncVSCodeGutter(this, 'composer-editor-gutter')" oninput="updateVSCodeGutter(this, 'composer-editor-gutter'); updateVSCodeCursorPos(this, 'composer-editor-position');" onkeyup="updateVSCodeCursorPos(this, 'composer-editor-position');" onclick="updateVSCodeCursorPos(this, 'composer-editor-position');" class="w-full h-full p-4 font-mono text-[11px] text-[#D4D4D4] bg-[#1e1e1e] focus:outline-none overflow-y-auto border-none resize-none leading-5 caret-white outline-none" style="white-space: pre; overflow-wrap: normal; font-family: Consolas, Monaco, monospace;"></textarea>
+                                        <!-- Real-time Syntax Highlight Layer (Pre) -->
+                                        <div class="relative flex-grow h-full min-w-0">
+                                            <pre id="composer-editor-highlight" class="absolute inset-0 p-4 font-mono text-[13px] leading-6 text-[#D4D4D4] bg-[#1e1e1e] pointer-events-none overflow-hidden whitespace-pre select-none" style="font-family: Consolas, Monaco, monospace; margin: 0; border: none;"></pre>
+                                            <!-- Transparent Textarea on top -->
+                                            <textarea id="raw-html-source-editor" onscroll="syncVSCodeGutter(this, 'composer-editor-gutter', 'composer-editor-highlight')" oninput="updateVSCodeGutter(this, 'composer-editor-gutter', 'composer-editor-highlight'); updateVSCodeCursorPos(this, 'composer-editor-position');" onkeyup="updateVSCodeCursorPos(this, 'composer-editor-position');" onclick="updateVSCodeCursorPos(this, 'composer-editor-position');" class="absolute inset-0 p-4 font-mono text-[13px] leading-6 text-transparent caret-white bg-transparent focus:outline-none overflow-auto resize-none" style="white-space: pre; overflow-wrap: normal; font-family: Consolas, Monaco, monospace; -webkit-text-fill-color: transparent;"></textarea>
+                                        </div>
                                     </div>
                                 </div>
                                 <!-- Bottom Status Bar -->
-                                <div class="bg-[#007ACC] text-white text-[10px] font-medium flex items-center justify-between px-3 py-1 shrink-0 select-none font-sans">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="flex items-center space-x-1 hover:bg-white/10 px-1 rounded cursor-pointer">
-                                            <i data-lucide="git-branch" class="h-3 w-3"></i>
-                                            <span>main*</span>
+                                <div class="bg-[#252526] border-t border-[#1e1e1e] text-[#858585] text-[11px] font-medium flex items-center justify-end px-4 py-1.5 shrink-0 select-none font-sans">
+                                    <div class="flex items-center space-x-6">
+                                        <span>LF</span>
+                                        <span id="composer-editor-position">Line 1:1</span>
+                                        <span>UTF8</span>
+                                        <span>2 spaces</span>
+                                        <div class="flex items-center space-x-1.5">
+                                            <i data-lucide="git-branch" class="h-3.5 w-3.5 text-[#858585]"></i>
+                                            <span>main</span>
                                         </div>
-                                        <span class="hover:bg-white/10 px-1 rounded cursor-pointer">0 ⓧ 0 ⚠</span>
-                                    </div>
-                                    <div class="flex items-center space-x-3">
-                                        <span id="composer-editor-position" class="hover:bg-white/10 px-1 rounded cursor-pointer">Ln 1, Col 1</span>
-                                        <span class="hover:bg-white/10 px-1 rounded cursor-pointer">Spaces: 4</span>
-                                        <span class="hover:bg-white/10 px-1 rounded cursor-pointer">UTF-8</span>
-                                        <span class="hover:bg-white/10 px-1 rounded cursor-pointer bg-white/10">HTML</span>
                                     </div>
                                 </div>
                             </div>
@@ -17444,7 +17387,7 @@ window.toggleHtmlSourceView = function() {
         vscodeContainer.classList.add('flex');
         
         // Sync line numbers and cursor position
-        updateVSCodeGutter(textarea, isWizard ? 'wizard-editor-gutter' : 'composer-editor-gutter');
+        updateVSCodeGutter(textarea, isWizard ? 'wizard-editor-gutter' : 'composer-editor-gutter', isWizard ? 'wizard-editor-highlight' : 'composer-editor-highlight');
         updateVSCodeCursorPos(textarea, isWizard ? 'wizard-editor-position' : 'composer-editor-position');
         
         if (btn) btn.classList.add('bg-indigo-600', 'text-white');
@@ -24114,74 +24057,33 @@ function getWizardStepHtml(step) {
                                 </div>
                                 <!-- VS CODE CONTAINER -->
                                 <div id="wizard-vscode-container" class="${st.editor_mode !== 'html' ? 'hidden' : 'flex'} w-full min-h-[300px] max-h-[450px] bg-[#1e1e1e] flex-col font-mono text-xs text-[#d4d4d4] overflow-hidden border border-[#3c3c3c] rounded-xl shadow-inner">
-                                    <!-- Top Tab Bar -->
-                                    <div class="bg-[#252526] flex border-b border-[#1e1e1e] select-none shrink-0 overflow-x-auto">
-                                        <div class="bg-[#1E1E1E] text-white border-t-2 border-indigo-500 px-4 py-2 text-xs flex items-center space-x-2 shrink-0">
-                                            <span class="text-orange-500 font-bold">&lt;&gt;</span>
-                                            <span class="font-semibold">campaign.html</span>
-                                            <span class="text-slate-500 hover:text-slate-300 text-[10px] ml-1 cursor-pointer">×</span>
-                                        </div>
-                                        <div class="bg-[#2D2D2D] text-slate-400 px-4 py-2 text-xs flex items-center space-x-2 shrink-0 hover:bg-[#2e2e2f] cursor-pointer">
-                                            <span class="text-blue-400 font-bold">{}</span>
-                                            <span>recipients.csv</span>
-                                        </div>
-                                    </div>
-                                    <!-- Activity Bar + Sidebar + Main Code Area -->
+                                    <!-- Main Code Area -->
                                     <div class="flex flex-row flex-grow min-h-[260px] max-h-[380px]">
-                                        <!-- Activity Bar -->
-                                        <div class="w-[44px] bg-[#333333] flex flex-col justify-between items-center py-3 shrink-0 select-none border-r border-[#1e1e1e]">
-                                            <div class="flex flex-col items-center space-y-4 w-full">
-                                                <div class="text-white border-l-2 border-indigo-500 w-full flex justify-center py-1 cursor-pointer" title="Explorer">
-                                                    <i data-lucide="files" class="h-4 w-4"></i>
-                                                </div>
-                                                <div class="text-slate-400 hover:text-slate-200 py-1 cursor-pointer" title="Search">
-                                                    <i data-lucide="search" class="h-4 w-4"></i>
-                                                </div>
-                                            </div>
-                                            <div class="text-slate-400 hover:text-slate-200 cursor-pointer" title="Settings">
-                                                <i data-lucide="settings" class="h-4 w-4"></i>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Sidebar Explorer -->
-                                        <div class="w-[140px] bg-[#252526] border-r border-[#1e1e1e] flex flex-col text-slate-400 select-none py-3 text-[10px] font-bold tracking-wider shrink-0 hidden sm:flex font-sans">
-                                            <div class="px-3 pb-2 text-[9px] text-slate-500 uppercase tracking-widest">EXPLORER</div>
-                                            <div class="px-3 font-semibold text-slate-300 flex items-center space-x-1 mb-1 truncate">
-                                                <i data-lucide="chevron-down" class="h-3 w-3 text-slate-400"></i>
-                                                <span>CAMPAIGN_WIZARD</span>
-                                            </div>
-                                            <div class="pl-5 pr-2 py-1 bg-[#37373D] text-white flex items-center space-x-1.5 cursor-pointer truncate">
-                                                <span class="text-orange-500 text-[9px] font-bold">&lt;&gt;</span>
-                                                <span>campaign.html</span>
-                                            </div>
-                                            <div class="pl-5 pr-2 py-1 hover:bg-[#2A2D2E] flex items-center space-x-1.5 cursor-pointer truncate">
-                                                <span class="text-blue-400 text-[9px] font-bold">{}</span>
-                                                <span>recipients.csv</span>
-                                            </div>
-                                        </div>
-                                        
                                         <!-- Editor Workspace -->
                                         <div class="flex-grow flex flex-row bg-[#1e1e1e] relative min-w-0">
                                             <!-- Line numbers gutter -->
-                                            <div id="wizard-editor-gutter" class="bg-[#1e1e1e] text-[#858585] text-right font-mono text-[11px] select-none pr-3 pl-2 py-4 border-r border-[#3c3c3c] leading-5 w-12 shrink-0 overflow-y-hidden">
+                                            <div id="wizard-editor-gutter" class="bg-[#1e1e1e] text-[#858585] text-right font-mono text-[13px] select-none pr-3.5 pl-3 py-4 border-r border-[#2d2d2d] leading-6 w-12 shrink-0 overflow-y-hidden">
                                                 <div>1</div>
                                             </div>
-                                            <!-- Textarea -->
-                                            <textarea id="wizard-raw-editor" onscroll="syncVSCodeGutter(this, 'wizard-editor-gutter')" oninput="updateVSCodeGutter(this, 'wizard-editor-gutter'); handleMailBodyInput(); updateVSCodeCursorPos(this, 'wizard-editor-position');" onkeyup="updateVSCodeCursorPos(this, 'wizard-editor-position');" onclick="updateVSCodeCursorPos(this, 'wizard-editor-position');" class="w-full h-full p-4 font-mono text-[11px] text-[#D4D4D4] bg-[#1e1e1e] focus:outline-none overflow-y-auto border-none resize-none leading-5 caret-white outline-none" style="white-space: pre; overflow-wrap: normal; font-family: Consolas, Monaco, monospace;">${escapeHtml(st.body_html)}</textarea>
+                                            <!-- Real-time Syntax Highlight Layer (Pre) -->
+                                            <div class="relative flex-grow h-full min-w-0">
+                                                <pre id="wizard-editor-highlight" class="absolute inset-0 p-4 font-mono text-[13px] leading-6 text-[#D4D4D4] bg-[#1e1e1e] pointer-events-none overflow-hidden whitespace-pre select-none" style="font-family: Consolas, Monaco, monospace; margin: 0; border: none;"></pre>
+                                                <!-- Transparent Textarea on top -->
+                                                <textarea id="wizard-raw-editor" onscroll="syncVSCodeGutter(this, 'wizard-editor-gutter', 'wizard-editor-highlight')" oninput="updateVSCodeGutter(this, 'wizard-editor-gutter', 'wizard-editor-highlight'); handleMailBodyInput(); updateVSCodeCursorPos(this, 'wizard-editor-position');" onkeyup="updateVSCodeCursorPos(this, 'wizard-editor-position');" onclick="updateVSCodeCursorPos(this, 'wizard-editor-position');" class="absolute inset-0 p-4 font-mono text-[13px] leading-6 text-transparent caret-white bg-transparent focus:outline-none overflow-auto resize-none" style="white-space: pre; overflow-wrap: normal; font-family: Consolas, Monaco, monospace; -webkit-text-fill-color: transparent;">${escapeHtml(st.body_html)}</textarea>
+                                            </div>
                                         </div>
                                     </div>
                                     <!-- Bottom Status Bar -->
-                                    <div class="bg-[#007ACC] text-white text-[10px] font-medium flex items-center justify-between px-3 py-1 shrink-0 select-none font-sans">
-                                        <div class="flex items-center space-x-3">
-                                            <div class="flex items-center space-x-1 hover:bg-white/10 px-1 rounded cursor-pointer">
-                                                <i data-lucide="git-branch" class="h-3 w-3"></i>
-                                                <span>main*</span>
+                                    <div class="bg-[#252526] border-t border-[#1e1e1e] text-[#858585] text-[11px] font-medium flex items-center justify-end px-4 py-1.5 shrink-0 select-none font-sans">
+                                        <div class="flex items-center space-x-6">
+                                            <span>LF</span>
+                                            <span id="wizard-editor-position">Line 1:1</span>
+                                            <span>UTF8</span>
+                                            <span>2 spaces</span>
+                                            <div class="flex items-center space-x-1.5">
+                                                <i data-lucide="git-branch" class="h-3.5 w-3.5 text-[#858585]"></i>
+                                                <span>main</span>
                                             </div>
-                                        </div>
-                                        <div class="flex items-center space-x-3">
-                                            <span id="wizard-editor-position" class="hover:bg-white/10 px-1 rounded cursor-pointer">Ln 1, Col 1</span>
-                                            <span class="hover:bg-white/10 px-1 rounded cursor-pointer">Spaces: 4</span>
-                                            <span class="hover:bg-white/10 px-1 rounded cursor-pointer bg-white/10">HTML</span>
                                         </div>
                                     </div>
                                 </div>
@@ -24827,7 +24729,7 @@ window.switchWizardEditorMode = function(mode) {
         if (vscodeContainer) {
             vscodeContainer.classList.remove('hidden');
             vscodeContainer.classList.add('flex');
-            updateVSCodeGutter(rawEd, 'wizard-editor-gutter');
+            updateVSCodeGutter(rawEd, 'wizard-editor-gutter', 'wizard-editor-highlight');
         } else {
             rawEd.classList.remove('hidden');
         }
@@ -25209,24 +25111,66 @@ window.openEmailCampaignReportModal = async function(campId) {
     }
 };
 
-window.syncVSCodeGutter = function(textarea, gutterId) {
+window.highlightHTML = function(code) {
+    if (!code) return '';
+    let val = code
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+        
+    // 1. Comments
+    val = val.replace(/(&lt;!--[\s\S]*?--&gt;)/g, '<span class="text-[#6A9955] font-normal">$1</span>');
+    
+    // 2. Variables {first_name}
+    val = val.replace(/(\{([a-zA-Z0-9_]+)\})/g, '<span class="text-[#C586C0] font-bold">$1</span>');
+    
+    // 3. HTML tags & attributes
+    val = val.replace(/(&lt;\/?[a-zA-Z0-9:-]+)([\s\S]*?)(\/?&gt;)/g, function(match, p1, p2, p3) {
+        let tagSpan = `<span class="text-[#569CD6]">${p1}</span>`;
+        let attrs = p2;
+        if (attrs) {
+            attrs = attrs.replace(/(=)(["'][^"']*["'])/g, '$1<span class="text-[#CE9178]">$2</span>');
+            attrs = attrs.replace(/(\s)([a-zA-Z0-9:-]+)(=)/g, '$1<span class="text-[#9CDCFE]">$2</span>$3');
+        }
+        let endSpan = `<span class="text-[#569CD6]">${p3}</span>`;
+        return tagSpan + attrs + endSpan;
+    });
+    
+    return val;
+};
+
+window.syncVSCodeGutter = function(textarea, gutterId, highlightId) {
     const gutter = document.getElementById(gutterId);
     if (gutter) {
         gutter.scrollTop = textarea.scrollTop;
     }
+    const highlight = document.getElementById(highlightId);
+    if (highlight) {
+        highlight.scrollTop = textarea.scrollTop;
+        highlight.scrollLeft = textarea.scrollLeft;
+    }
 };
 
-window.updateVSCodeGutter = function(textarea, gutterId) {
+window.updateVSCodeGutter = function(textarea, gutterId, highlightId) {
     if (!textarea) return;
     const gutter = document.getElementById(gutterId);
-    if (!gutter) return;
-    const lines = textarea.value.split('\n').length;
-    let numbersHtml = '';
-    for (let i = 1; i <= lines; i++) {
-        numbersHtml += `<div>${i}</div>`;
+    if (gutter) {
+        const lines = textarea.value.split('\n').length;
+        let numbersHtml = '';
+        for (let i = 1; i <= lines; i++) {
+            numbersHtml += `<div>${i}</div>`;
+        }
+        gutter.innerHTML = numbersHtml;
+        gutter.scrollTop = textarea.scrollTop;
     }
-    gutter.innerHTML = numbersHtml;
-    gutter.scrollTop = textarea.scrollTop;
+    if (highlightId) {
+        const highlight = document.getElementById(highlightId);
+        if (highlight) {
+            highlight.innerHTML = window.highlightHTML(textarea.value);
+            highlight.scrollTop = textarea.scrollTop;
+            highlight.scrollLeft = textarea.scrollLeft;
+        }
+    }
 };
 
 window.updateVSCodeCursorPos = function(textarea, posElementId) {
@@ -25237,7 +25181,7 @@ window.updateVSCodeCursorPos = function(textarea, posElementId) {
     const col = lines[lines.length - 1].length + 1;
     const elem = document.getElementById(posElementId);
     if (elem) {
-        elem.innerText = `Ln ${line}, Col ${col}`;
+        elem.innerText = `Line ${line}:${col}`;
     }
 };
 

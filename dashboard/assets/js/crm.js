@@ -25578,8 +25578,8 @@ window.openWizardAiWriterModal = function() {
             <div class="h-10 w-10 mx-auto rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-md">
                 <i data-lucide="sparkles" class="h-5 w-5"></i>
             </div>
-            <h4 class="text-xs font-bold text-slate-800">AI Email Architect Ready</h4>
-            <p class="text-[11px] text-slate-500 max-w-md mx-auto">Describe the email template you want to build or edit. The AI will write modern, responsive HTML code line-by-line in real time!</p>
+            <h4 class="text-xs font-bold text-slate-800">Stripo-Grade AI Email Architect Ready</h4>
+            <p class="text-[11px] text-slate-500 max-w-md mx-auto">Describe the email template you want to build or edit. AI generates Stripo.email-quality premium layouts and writes the HTML code line-by-line in real time!</p>
         </div>
     ` : window._aiWriterChatHistory.map(item => `
         <div class="space-y-2">
@@ -25606,8 +25606,8 @@ window.openWizardAiWriterModal = function() {
                         <i data-lucide="sparkles" class="h-5 w-5"></i>
                     </div>
                     <div>
-                        <h3 class="text-sm font-extrabold tracking-tight">AI Email Template Architect</h3>
-                        <p class="text-[11px] text-indigo-200 font-medium">Generate or edit production-ready email HTML code effortlessly</p>
+                        <h3 class="text-sm font-extrabold tracking-tight">AI Email Architect (Stripo Template Standard)</h3>
+                        <p class="text-[11px] text-indigo-200 font-medium">Generate or edit Stripo.email-grade premium HTML email templates</p>
                     </div>
                 </div>
                 <button onclick="document.getElementById('wizard-aiwriter-modal').remove()" class="h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer">
@@ -25622,21 +25622,21 @@ window.openWizardAiWriterModal = function() {
 
             <!-- Quick Suggestions Chips -->
             <div class="px-6 py-2.5 bg-white border-t border-slate-100 flex items-center space-x-2 overflow-x-auto text-[11px] font-bold select-none">
-                <span class="text-slate-400 shrink-0 uppercase tracking-wider text-[9px]">Quick Ideas:</span>
-                <button onclick="fillAiWriterQuickPrompt('Write a sleek SaaS launch email with a dark purple CTA button, 3 key feature bullets, and dynamic tags {first_name} and {company_name}')" class="px-2.5 py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg border border-indigo-200/60 shrink-0 transition cursor-pointer">🚀 SaaS Product Launch</button>
-                <button onclick="fillAiWriterQuickPrompt('Create a 20% discount promotional email with a countdown banner and vibrant action button')" class="px-2.5 py-1 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg border border-amber-200/60 shrink-0 transition cursor-pointer">🎁 Special Discount</button>
-                <button onclick="fillAiWriterQuickPrompt('Write a professional cold outreach email requesting a 15 min demo call with {first_name}')" class="px-2.5 py-1 bg-cyan-50 text-cyan-600 hover:bg-cyan-100 rounded-lg border border-cyan-200/60 shrink-0 transition cursor-pointer">📅 Meeting Request</button>
+                <span class="text-slate-400 shrink-0 uppercase tracking-wider text-[9px]">Stripo Styles:</span>
+                <button onclick="fillAiWriterQuickPrompt('Write a Stripo-style SaaS product launch email with a hero banner, 3-card feature grid, dark purple CTA button, and dynamic tags {first_name} and {company_name}')" class="px-2.5 py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg border border-indigo-200/60 shrink-0 transition cursor-pointer">⚡ Stripo Product Launch</button>
+                <button onclick="fillAiWriterQuickPrompt('Design a Stripo-style ecommerce promo email with discount countdown badge, product grid, and vibrant buy CTA')" class="px-2.5 py-1 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg border border-amber-200/60 shrink-0 transition cursor-pointer">🎁 Stripo Promo Newsletter</button>
+                <button onclick="fillAiWriterQuickPrompt('Create a Stripo-style executive cold outreach email requesting a 15-min call with {first_name} at {company_name}')" class="px-2.5 py-1 bg-cyan-50 text-cyan-600 hover:bg-cyan-100 rounded-lg border border-cyan-200/60 shrink-0 transition cursor-pointer">📅 Stripo B2B Outreach</button>
             </div>
 
             <!-- Input Form -->
             <div class="p-4 bg-white border-t border-slate-200 space-y-3">
                 <div class="relative">
-                    <textarea id="ai-writer-prompt-input" rows="3" placeholder="Describe the email template you want to write or edit (e.g. 'Change background color to #f8fafc and make button text say Claim 50% Off Now')..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 font-sans leading-relaxed resize-none shadow-inner"></textarea>
+                    <textarea id="ai-writer-prompt-input" rows="3" placeholder="Describe the Stripo-style template you want to create or edit (e.g. 'Create a modern Black Friday sales email with dark theme background and neon green CTA button')..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 font-sans leading-relaxed resize-none shadow-inner"></textarea>
                 </div>
                 <div class="flex items-center justify-between flex-wrap gap-2">
                     <div class="text-[11px] text-slate-400 font-medium flex items-center space-x-1">
                         <i data-lucide="info" class="h-3.5 w-3.5 text-indigo-500"></i>
-                        <span>AI will write code line-by-line directly in the HTML Editor</span>
+                        <span>AI will write Stripo HTML code line-by-line in the HTML Editor</span>
                     </div>
                     <button id="ai-writer-submit-btn" onclick="submitAiWriterPrompt()" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-2 shadow-md cursor-pointer">
                         <i data-lucide="send" class="h-3.5 w-3.5 text-white"></i>

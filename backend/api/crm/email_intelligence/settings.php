@@ -54,7 +54,7 @@ try {
                 sendJsonResponse('error', 'SMTP Host, Username, and Password are required.', [], 400);
             }
 
-            $test = SMTPHelper::testConnection($host, $port, $username, $password, $senderName, $senderEmail);
+            $test = SMTPHelper::testConnection($host, $port, $username, $password, $senderName, $senderEmail, $encryption);
             if ($test['status']) {
                 sendJsonResponse('success', $test['message']);
             } else {

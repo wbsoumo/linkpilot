@@ -180,10 +180,11 @@ class SMTPHelper {
             // Port and Security
             $port = (int)$smtp['port'];
             $mail->Port = $port;
+            $enc = strtolower(trim((string)($smtp['encryption'] ?? $smtp['smtp_encryption'] ?? '')));
             
-            if ($port === 465) {
+            if ($enc === 'ssl' || $enc === 'smtps' || ($port === 465 && empty($enc))) {
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-            } elseif ($port === 587) {
+            } elseif ($enc === 'tls' || $enc === 'starttls' || ($port === 587 && empty($enc))) {
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             } else {
                 $mail->SMTPSecure = '';
@@ -254,21 +255,22 @@ class SMTPHelper {
     /**
      * Test SMTP configuration settings
      */
-    public static function testConnection($host, $port, $username, $password, $senderName, $senderEmail) {
+    public static function testConnection($host, $port, $username, $password, $senderName, $senderEmail, $encryption = null) {
         $mail = new PHPMailer(true);
         try {
             $mail->CharSet    = 'UTF-8';
             $mail->isSMTP();
-            $mail->Timeout     = 10; // Set SMTP connection timeout to 10 seconds
+            $mail->Timeout    = 10; // Set SMTP connection timeout to 10 seconds
             $mail->Host       = $host;
             $mail->SMTPAuth   = true;
             $mail->Username   = $username;
             $mail->Password   = $password;
             $mail->Port       = (int)$port;
             
-            if ((int)$port === 465) {
+            $enc = strtolower(trim((string)$encryption));
+            if ($enc === 'ssl' || $enc === 'smtps' || ((int)$port === 465 && empty($enc))) {
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-            } elseif ((int)$port === 587) {
+            } elseif ($enc === 'tls' || $enc === 'starttls' || ((int)$port === 587 && empty($enc))) {
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             } else {
                 $mail->SMTPSecure = '';
@@ -284,22 +286,27 @@ class SMTPHelper {
                 ]
             ];
             
-            $mail->setFrom($senderEmail, $senderName);
-            $mail->addAddress($senderEmail); // send to self for testing
-            
-            $mail->isHTML(true);
-            $mail->Subject = 'LinkPilot AI SMTP Test Connection';
-            $mail->Body    = '<h3>SMTP Setup Test</h3><p>Hello! If you are reading this email, your SMTP configuration inside LinkPilot AI is working perfectly.</p>';
-            
-            $mail->send();
-            return [
-                "status" => true,
-                "message" => "SMTP Connection Test Successful. Verification email sent."
-            ];
+            // Perform direct socket connection and authentication handshake
+            if ($mail->smtpConnect()) {
+                $mail->smtpClose();
+                return [
+                    "status" => true,
+                    "message" => "SMTP Connection Test Successful! Host, port, encryption, and login credentials verified."
+                ];
+            } else {
+                return [
+                    "status" => false,
+                    "message" => "SMTP Connection Failed. Unable to authenticate with server."
+                ];
+            }
         } catch (Exception $e) {
+            $err = $mail->ErrorInfo ?: $e->getMessage();
+            if (stripos($err, 'timed out') !== false || stripos($err, 'code: 110') !== false) {
+                $err .= " Tip: Port " . $port . " appears blocked by host firewall. Try switching Port to 465 with SSL encryption.";
+            }
             return [
                 "status" => false,
-                "message" => "SMTP Test Failed: " . ($mail->ErrorInfo ?: $e->getMessage())
+                "message" => "SMTP Test Failed: " . $err
             ];
         }
     }

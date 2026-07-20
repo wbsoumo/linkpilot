@@ -6473,7 +6473,7 @@ async function renderWhatsAppTrain(container) {
             }
             .phone-screen {
                 display: flex;
-                flex-col: column;
+                flex-direction: column;
                 height: 100%;
                 width: 100%;
             }
@@ -6489,9 +6489,7 @@ async function renderWhatsAppTrain(container) {
                 flex-grow: 1;
                 overflow-y: auto;
                 padding: 12px;
-                background-image: url('assets/js/chatbg.jpg');
-                background-size: cover;
-                background-repeat: no-repeat;
+                background-color: #efeae2;
                 display: flex;
                 flex-direction: column;
                 gap: 8px;

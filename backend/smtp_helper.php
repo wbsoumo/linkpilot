@@ -34,6 +34,25 @@ class SMTPHelper {
 
         if ($trackingEnabled) {
             $trackingId = bin2hex(random_bytes(16));
+            
+            // Rewrite <a href="..."> links for click tracking
+            $body = preg_replace_callback('/<a\s+(?:[^>]*?\s+)?href=(["\'])(.*?)\1/i', function($matches) use ($trackingId) {
+                $quote = $matches[1];
+                $originalUrl = $matches[2];
+                if (preg_match('/^(mailto:|tel:|#|javascript:)/i', $originalUrl) || strpos($originalUrl, '/c/') !== false || strpos($originalUrl, '/u/') !== false || strpos($originalUrl, '/o/') !== false) {
+                    return $matches[0];
+                }
+                $trackedUrl = 'https://linkpilot.work/c/' . $trackingId . '?url=' . urlencode($originalUrl);
+                return str_replace($originalUrl, $trackedUrl, $matches[0]);
+            }, $body);
+
+            // Append unsubscribe link if not already present
+            if (strpos($body, '/u/') === false) {
+                $unsubUrl = 'https://linkpilot.work/u/' . $trackingId;
+                $unsubHtml = '<div style="margin-top:24px;padding-top:12px;border-top:1px solid #e2e8f0;font-size:11px;color:#94a3b8;text-align:center;">If you no longer wish to receive these emails, you can <a href="' . $unsubUrl . '" style="color:#64748b;text-decoration:underline;">unsubscribe here</a>.</div>';
+                $body .= $unsubHtml;
+            }
+
             $pixelUrl = "https://linkpilot.work/o/" . $trackingId;
             $pixelHtml = "\n" . '<img src="' . $pixelUrl . '" width="1" height="1" alt="" style="display:none;width:1px;height:1px;border:none;">';
             $body .= $pixelHtml;
@@ -47,6 +66,17 @@ class SMTPHelper {
                 $stmtInsTrack->execute([$trackingId, $userId, $emailType, $campaignLogId, $recipientEmail, $subject]);
             } catch (Exception $e) {
                 error_log("Failed to insert email_tracking record: " . $e->getMessage());
+            }
+
+            if (!empty($campaignLogId)) {
+                try {
+                    $stmtEvt = $db->prepare("
+                        INSERT INTO email_activity_events (campaign_log_id, tracking_id, event_type, event_label, event_data, created_at)
+                        VALUES (?, ?, ?, ?, ?, NOW())
+                    ");
+                    $stmtEvt->execute([$campaignLogId, $trackingId, 'Sent', 'Email dispatched', json_encode(['email' => $recipientEmail])]);
+                    $stmtEvt->execute([$campaignLogId, $trackingId, 'Delivered', 'Delivered to inbox', json_encode(['email' => $recipientEmail])]);
+                } catch (Exception $e) {}
             }
         }
 

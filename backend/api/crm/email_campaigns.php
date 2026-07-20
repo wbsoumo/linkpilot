@@ -93,15 +93,96 @@ try {
                 ORDER BY l.id ASC
             ");
             $stmtLogs->execute([$campId]);
-            $campaign['logs'] = $stmtLogs->fetchAll();
+            $logs = $stmtLogs->fetchAll(PDO::FETCH_ASSOC);
+
+            $logIds = array_column($logs, 'id');
+            $eventsMap = [];
+            $linkAnalytics = [];
+
+            if (!empty($logIds)) {
+                $inQuery = implode(',', array_fill(0, count($logIds), '?'));
+
+                // Fetch activity events
+                $stmtEvts = $db->prepare("
+                    SELECT * FROM email_activity_events
+                    WHERE campaign_log_id IN ({$inQuery})
+                    ORDER BY created_at ASC, id ASC
+                ");
+                $stmtEvts->execute($logIds);
+                $allEvts = $stmtEvts->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($allEvts as $evt) {
+                    $eventsMap[$evt['campaign_log_id']][] = $evt;
+                }
+
+                // Fetch link click analytics
+                $stmtLinks = $db->prepare("
+                    SELECT 
+                        link_url, 
+                        COUNT(*) as total_clicks, 
+                        COUNT(DISTINCT campaign_log_id) as unique_clicks 
+                    FROM email_click_tracking 
+                    WHERE campaign_log_id IN ({$inQuery}) 
+                    GROUP BY link_url 
+                    ORDER BY total_clicks DESC
+                ");
+                $stmtLinks->execute($logIds);
+                $linkAnalytics = $stmtLinks->fetchAll(PDO::FETCH_ASSOC);
+            }
+
+            // Attach events timeline to each log
+            foreach ($logs as &$logRow) {
+                $logRow['timeline'] = $eventsMap[$logRow['id']] ?? [];
+            }
+            unset($logRow);
+
+            $campaign['logs'] = $logs;
+            $campaign['link_analytics'] = $linkAnalytics;
             
             sendJsonResponse('success', 'Campaign details loaded.', ['campaign' => $campaign]);
         } else {
             $stmt = $db->prepare("SELECT * FROM email_campaigns WHERE user_id = ? ORDER BY id DESC");
             $stmt->execute([$userId]);
-            $campaigns = $stmt->fetchAll();
+            $campaigns = $stmt->fetchAll(PDO::FETCH_ASSOC);
             sendJsonResponse('success', 'Email campaigns list loaded.', ['campaigns' => $campaigns]);
         }
+    }
+    
+    elseif ($action === 'mark_event') {
+        $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+        $logId = (int)($input['log_id'] ?? 0);
+        $eventType = trim($input['event_type'] ?? '');
+
+        if (!$logId || empty($eventType)) {
+            sendJsonResponse('error', 'Log ID and event type required.', [], 400);
+        }
+
+        $stmtLog = $db->prepare("SELECT l.*, c.user_id FROM email_campaign_logs l JOIN email_campaigns c ON l.campaign_id = c.id WHERE l.id = ? AND c.user_id = ?");
+        $stmtLog->execute([$logId, $userId]);
+        $log = $stmtLog->fetch();
+        if (!$log) sendJsonResponse('error', 'Log record not found.', [], 404);
+
+        if ($eventType === 'Replied') {
+            $db->prepare("UPDATE email_campaign_logs SET is_replied = 1, replied_at = NOW() WHERE id = ?")->execute([$logId]);
+            $evtLabel = 'Recipient replied to email';
+        } elseif ($eventType === 'MeetingBooked') {
+            $db->prepare("UPDATE email_campaign_logs SET is_meeting_booked = 1, meeting_booked_at = NOW() WHERE id = ?")->execute([$logId]);
+            $evtLabel = 'Meeting booked with recipient';
+        } elseif ($eventType === 'Bounced') {
+            $db->prepare("UPDATE email_campaign_logs SET is_bounced = 1, status = 'Failed', error_message = 'Hard bounce detected' WHERE id = ?")->execute([$logId]);
+            $evtLabel = 'Email bounced';
+        } elseif ($eventType === 'Unsubscribed') {
+            $db->prepare("UPDATE email_campaign_logs SET is_unsubscribed = 1 WHERE id = ?")->execute([$logId]);
+            $evtLabel = 'Unsubscribed from campaign';
+        } else {
+            sendJsonResponse('error', 'Invalid event type.', [], 400);
+        }
+
+        $db->prepare("
+            INSERT INTO email_activity_events (campaign_log_id, event_type, event_label, created_at)
+            VALUES (?, ?, ?, NOW())
+        ")->execute([$logId, $eventType, $evtLabel]);
+
+        sendJsonResponse('success', "Event '{$eventType}' marked successfully.");
     }
     
     elseif ($method === 'POST' || $method === 'CREATE') {

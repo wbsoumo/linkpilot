@@ -122,6 +122,33 @@ if (!empty($trackingId)) {
             $isApplePrivacy,
             $trackingId
         ]);
+
+        // Log activity event
+        $stmtRow = $db->prepare("SELECT campaign_log_id, open_count FROM email_tracking WHERE tracking_id = ?");
+        $stmtRow->execute([$trackingId]);
+        $tRow = $stmtRow->fetch(PDO::FETCH_ASSOC);
+
+        if ($tRow && !empty($tRow['campaign_log_id'])) {
+            $cLogId = $tRow['campaign_log_id'];
+            $openCount = (int)($tRow['open_count'] ?? 1);
+            $eventType = ($openCount === 1) ? 'Opened' : 'OpenedAgain';
+            $eventLabel = ($openCount === 1) ? 'First open detected' : "Email opened again ({$openCount}x)";
+
+            $stmtEvt = $db->prepare("
+                INSERT INTO email_activity_events (campaign_log_id, tracking_id, event_type, event_label, event_data, created_at)
+                VALUES (?, ?, ?, ?, ?, NOW())
+            ");
+            $evtData = json_encode([
+                'ip' => $ip,
+                'device' => $uaInfo['device'],
+                'browser' => $uaInfo['browser'],
+                'os' => $uaInfo['os'],
+                'location' => implode(', ', array_filter([$geo['city'], $geo['country']])),
+                'is_google_proxy' => $isGoogleProxy,
+                'is_apple_privacy' => $isApplePrivacy
+            ]);
+            $stmtEvt->execute([$cLogId, $trackingId, $eventType, $eventLabel, $evtData]);
+        }
     } catch (Exception $e) {
         // Fail silently to always return the transparent pixel image to the email client
     }

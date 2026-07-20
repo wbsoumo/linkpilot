@@ -520,6 +520,62 @@ try {
         try { $db->exec("ALTER TABLE `email_tracking` MODIFY COLUMN `user_id` INT NULL"); } catch (Exception $e) {}
         $messages[] = "Table 'email_tracking' checked/created.";
 
+        // Email Click Tracking Table Check/Create
+        $db->exec("
+            CREATE TABLE IF NOT EXISTS `email_click_tracking` (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `tracking_id` VARCHAR(64) NOT NULL,
+                `campaign_log_id` INT NULL,
+                `link_url` TEXT NOT NULL,
+                `link_id` VARCHAR(64) NULL,
+                `ip_address` VARCHAR(45) NULL,
+                `user_agent` TEXT NULL,
+                `device` VARCHAR(100) NULL,
+                `browser` VARCHAR(100) NULL,
+                `os` VARCHAR(100) NULL,
+                `country` VARCHAR(100) DEFAULT 'Unknown',
+                `city` VARCHAR(100) DEFAULT 'Unknown',
+                `clicked_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                INDEX (`tracking_id`),
+                INDEX (`campaign_log_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        ");
+        $messages[] = "Table 'email_click_tracking' checked/created.";
+
+        // Email Activity Events Table Check/Create
+        $db->exec("
+            CREATE TABLE IF NOT EXISTS `email_activity_events` (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `campaign_log_id` INT NOT NULL,
+                `tracking_id` VARCHAR(64) NULL,
+                `event_type` VARCHAR(50) NOT NULL,
+                `event_label` VARCHAR(255) NULL,
+                `event_data` TEXT NULL,
+                `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                INDEX (`campaign_log_id`),
+                INDEX (`event_type`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        ");
+        $messages[] = "Table 'email_activity_events' checked/created.";
+
+        $colsToEnsure = [
+            'is_bounced' => 'TINYINT(1) DEFAULT 0',
+            'is_unsubscribed' => 'TINYINT(1) DEFAULT 0',
+            'is_replied' => 'TINYINT(1) DEFAULT 0',
+            'replied_at' => 'DATETIME NULL',
+            'is_meeting_booked' => 'TINYINT(1) DEFAULT 0',
+            'meeting_booked_at' => 'DATETIME NULL',
+            'click_count' => 'INT DEFAULT 0',
+            'first_clicked_at' => 'DATETIME NULL',
+            'last_clicked_at' => 'DATETIME NULL'
+        ];
+        foreach ($colsToEnsure as $col => $def) {
+            $cStmt = $db->query("SHOW COLUMNS FROM `email_campaign_logs` LIKE '{$col}'");
+            if (!$cStmt->fetch()) {
+                $db->exec("ALTER TABLE `email_campaign_logs` ADD COLUMN `{$col}` {$def}");
+            }
+        }
+
         // Column check for email_open_tracking
         $stmtCol = $db->query("SHOW COLUMNS FROM `user_profiles` LIKE 'email_open_tracking'");
         if (!$stmtCol->fetch()) {

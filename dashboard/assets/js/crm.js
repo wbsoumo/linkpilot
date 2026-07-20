@@ -16862,7 +16862,7 @@ function handleTemplatesSearch(val) {
 }
 
 window.previewTemplateModal = function(templateId) {
-    const t = EMAIL_TEMPLATES_DATA.find(x => x.id === templateId);
+    const t = EMAIL_TEMPLATES_DATA.find(x => String(x.id) === String(templateId));
     if (!t) return;
     
     let modal = document.getElementById('template-preview-modal');
@@ -17110,7 +17110,7 @@ window.applyImageToEditorOrReplace = function(url) {
 };
 
 window.openEmailComposerModal = function(templateId) {
-    const t = EMAIL_TEMPLATES_DATA.find(x => x.id === templateId) || EMAIL_TEMPLATES_DATA[0];
+    const t = EMAIL_TEMPLATES_DATA.find(x => String(x.id) === String(templateId)) || EMAIL_TEMPLATES_DATA[0];
     
     let modal = document.getElementById('email-composer-modal');
     if (!modal) {
@@ -23685,7 +23685,8 @@ window.openEmailCampaignWizardModal = function() {
         start_type: 'now',
         start_at: '',
         editor_mode: 'visual',
-        terms_accepted: false
+        terms_accepted: false,
+        template_id: ''
     };
 
     renderWizardStepInline(container);
@@ -23841,21 +23842,21 @@ function getWizardStepHtml(step) {
                         </div>
 
                         <!-- Load HTML Preset Template -->
-                        <div class="space-y-2">
-                            <label class="block text-xs font-bold text-slate-700">Load HTML Preset Template</label>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="space-y-2.5">
+                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Load HTML Preset Template</label>
+                            <div class="space-y-2">
                                 <div class="relative">
-                                    <select id="wizard-preset-select" onchange="handleWizardPresetSelect(this.value)" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none focus:border-indigo-500 appearance-none cursor-pointer">
+                                    <select id="wizard-preset-select" onchange="handleWizardPresetSelect(this.value)" class="w-full pl-3.5 pr-10 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500 appearance-none cursor-pointer">
                                         <option value="">Select a saved template</option>
-                                        ${EMAIL_TEMPLATES_DATA.map(t => `<option value="${t.id}">${t.title}</option>`).join('')}
+                                        ${EMAIL_TEMPLATES_DATA.map(t => `<option value="${t.id}" ${String(st.template_id) === String(t.id) ? 'selected' : ''}>${t.title}</option>`).join('')}
                                     </select>
-                                    <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-slate-400">
+                                    <div class="absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-slate-400">
                                         <i data-lucide="chevron-down" class="h-4 w-4"></i>
                                     </div>
                                 </div>
-                                <button type="button" onclick="openWizardTemplatesGallery()" class="w-full px-4 py-2.5 bg-white hover:bg-slate-50 text-indigo-600 border border-slate-200 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-2xs cursor-pointer">
-                                    <i data-lucide="folder" class="h-4 w-4"></i>
-                                    <span>Browse Templates</span>
+                                <button type="button" onclick="openWizardTemplatesGallery()" class="w-full px-4 py-2.5 bg-indigo-50/50 hover:bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-2xs cursor-pointer">
+                                    <i data-lucide="folder-open" class="h-4 w-4"></i>
+                                    <span>Browse Templates Gallery</span>
                                 </button>
                             </div>
                         </div>
@@ -24484,10 +24485,12 @@ window.switchWizardGalleryCategory = function(cat) {
 };
 
 window.selectWizardTemplateFromGallery = function(id) {
-    const t = EMAIL_TEMPLATES_DATA.find(x => x.id === id);
+    const t = EMAIL_TEMPLATES_DATA.find(x => String(x.id) === String(id));
     if (t) {
-        const html = getTemplateHtmlPreview(t);
+        const html = getTemplateHtmlPreview(t).replaceAll('{{', '{').replaceAll('}}', '}');
         window._ecWizardState.body_html = html;
+        window._ecWizardState.template_id = t.id;
+        window._ecWizardState.subject = (t.subject || '').replaceAll('{{', '{').replaceAll('}}', '}');
         showNotification('success', `Imported "${t.title}" template into editor!`);
     }
     const modal = document.getElementById('wizard-templates-gallery-modal');
@@ -24497,10 +24500,12 @@ window.selectWizardTemplateFromGallery = function(id) {
 
 window.handleWizardPresetSelect = function(templateId) {
     if (!templateId) return;
-    const t = EMAIL_TEMPLATES_DATA.find(x => x.id === templateId);
+    const t = EMAIL_TEMPLATES_DATA.find(x => String(x.id) === String(templateId));
     if (t) {
-        const html = getTemplateHtmlPreview(t);
+        const html = getTemplateHtmlPreview(t).replaceAll('{{', '{').replaceAll('}}', '}');
         window._ecWizardState.body_html = html;
+        window._ecWizardState.template_id = t.id;
+        window._ecWizardState.subject = (t.subject || '').replaceAll('{{', '{').replaceAll('}}', '}');
         showNotification('success', `Loaded "${t.title}" template!`);
     }
     renderWizardStepInline(window._ecWizardContainer);

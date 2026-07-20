@@ -25301,31 +25301,59 @@ window.syncWizardEditorContent = function() {
 
 window.openWizardPreviewModal = function() {
     syncWizardEditorContent();
-    const html = window._ecWizardState.body_html;
+    const html = window._ecWizardState.body_html || '';
     
     let modal = document.getElementById('wizard-preview-modal');
     if (!modal) {
         modal = document.createElement('div');
         modal.id = 'wizard-preview-modal';
-        modal.className = 'fixed inset-0 z-[10000] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 md:p-6 animate-fade-in';
+        modal.className = 'fixed inset-0 z-[10000] bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-3 md:p-6 animate-fade-in';
         document.body.appendChild(modal);
     }
     
     modal.innerHTML = `
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-3xl flex flex-col overflow-hidden animate-scale-up font-sans max-h-[90vh]">
-            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-                <div class="flex items-center space-x-2">
-                    <div class="h-8 w-8 rounded-lg bg-cyan-50 text-cyan-600 flex items-center justify-center">
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-5xl flex flex-col overflow-hidden animate-scale-up font-sans h-[92vh] max-h-[850px]">
+            <!-- Modal Header with Device Switcher -->
+            <div class="px-6 py-3.5 border-b border-slate-200 flex items-center justify-between bg-white flex-wrap gap-2 shrink-0 shadow-2xs">
+                <div class="flex items-center space-x-3">
+                    <div class="h-9 w-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
                         <i data-lucide="eye" class="h-4 w-4"></i>
                     </div>
-                    <span class="text-sm font-bold text-slate-800">Email HTML Live Preview</span>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h4 class="text-xs font-extrabold text-slate-800 tracking-tight">Email Live Preview</h4>
+                            <span id="preview-device-badge" class="bg-indigo-50 text-indigo-600 border border-indigo-200/60 text-[10px] font-bold px-2 py-0.5 rounded-full">Desktop View (Full Width)</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 font-medium">Test responsive rendering across Mobile, Tablet, & Desktop viewports</p>
+                    </div>
                 </div>
-                <button onclick="document.getElementById('wizard-preview-modal').remove()" class="h-8 w-8 rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer">
+
+                <!-- Device Controls -->
+                <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 space-x-1 font-bold text-xs select-none">
+                    <button id="preview-device-desktop" onclick="switchPreviewDevice('desktop')" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white shadow-2xs flex items-center space-x-1.5 transition cursor-pointer">
+                        <i data-lucide="monitor" class="h-3.5 w-3.5"></i>
+                        <span>Desktop</span>
+                    </button>
+                    <button id="preview-device-tablet" onclick="switchPreviewDevice('tablet')" class="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 flex items-center space-x-1.5 transition cursor-pointer">
+                        <i data-lucide="tablet" class="h-3.5 w-3.5"></i>
+                        <span>Tablet</span>
+                    </button>
+                    <button id="preview-device-mobile" onclick="switchPreviewDevice('mobile')" class="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 flex items-center space-x-1.5 transition cursor-pointer">
+                        <i data-lucide="smartphone" class="h-3.5 w-3.5"></i>
+                        <span>Mobile</span>
+                    </button>
+                </div>
+
+                <button onclick="document.getElementById('wizard-preview-modal').remove()" class="h-8 w-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer">
                     <i data-lucide="x" class="h-4 w-4"></i>
                 </button>
             </div>
-            <div class="flex-grow p-6 bg-slate-100 overflow-hidden flex flex-col h-[500px]">
-                <iframe id="wizard-preview-iframe" class="w-full h-full bg-white border border-slate-200 rounded-xl shadow-xs"></iframe>
+
+            <!-- Preview Canvas Area -->
+            <div class="flex-grow p-4 md:p-6 bg-slate-100/80 overflow-y-auto flex items-center justify-center relative">
+                <div id="wizard-preview-iframe-wrapper" class="w-full h-full bg-white border border-slate-200 rounded-xl shadow-xs transition-all duration-300">
+                    <iframe id="wizard-preview-iframe" class="w-full h-full rounded-xl border-none"></iframe>
+                </div>
             </div>
         </div>
     `;
@@ -25337,6 +25365,34 @@ window.openWizardPreviewModal = function() {
         doc.open();
         doc.write(html);
         doc.close();
+    }
+};
+
+window.switchPreviewDevice = function(device) {
+    const iframeWrapper = document.getElementById('wizard-preview-iframe-wrapper');
+    const desktopBtn = document.getElementById('preview-device-desktop');
+    const tabletBtn = document.getElementById('preview-device-tablet');
+    const mobileBtn = document.getElementById('preview-device-mobile');
+    const deviceBadge = document.getElementById('preview-device-badge');
+
+    const activeClass = 'bg-indigo-600 text-white shadow-2xs font-extrabold';
+    const inactiveClass = 'text-slate-600 hover:text-slate-900 bg-transparent';
+
+    if (desktopBtn) desktopBtn.className = `px-3.5 py-1.5 rounded-lg flex items-center space-x-1.5 transition cursor-pointer ${device === 'desktop' ? activeClass : inactiveClass}`;
+    if (tabletBtn) tabletBtn.className = `px-3.5 py-1.5 rounded-lg flex items-center space-x-1.5 transition cursor-pointer ${device === 'tablet' ? activeClass : inactiveClass}`;
+    if (mobileBtn) mobileBtn.className = `px-3.5 py-1.5 rounded-lg flex items-center space-x-1.5 transition cursor-pointer ${device === 'mobile' ? activeClass : inactiveClass}`;
+
+    if (!iframeWrapper) return;
+
+    if (device === 'mobile') {
+        iframeWrapper.className = 'w-[375px] h-[650px] bg-white border-[10px] border-slate-800 rounded-[40px] shadow-2xl transition-all duration-300 relative overflow-hidden flex flex-col my-auto';
+        if (deviceBadge) deviceBadge.innerText = 'Mobile View (375px × 650px)';
+    } else if (device === 'tablet') {
+        iframeWrapper.className = 'w-[768px] max-w-full h-[650px] bg-white border-[10px] border-slate-800 rounded-[32px] shadow-2xl transition-all duration-300 relative overflow-hidden flex flex-col my-auto';
+        if (deviceBadge) deviceBadge.innerText = 'Tablet View (768px × 650px)';
+    } else {
+        iframeWrapper.className = 'w-full h-full bg-white border border-slate-200 rounded-xl shadow-xs transition-all duration-300';
+        if (deviceBadge) deviceBadge.innerText = 'Desktop View (Full Width)';
     }
 };
 

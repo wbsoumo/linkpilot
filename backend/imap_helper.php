@@ -2,6 +2,7 @@
 // backend/imap_helper.php
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/smtp_helper.php';
 
 class IMAPHelper {
 
@@ -86,10 +87,6 @@ class IMAPHelper {
      * Fetch unseen emails from IMAP
      */
     public static function fetchNewEmails($userId, $limit = 20) {
-        if (!function_exists('imap_open')) {
-            throw new Exception("PHP IMAP extension is not enabled on this server.");
-        }
-
         $db = Database::getConnection();
 
         // 1. Fetch IMAP config
@@ -107,8 +104,15 @@ class IMAPHelper {
             throw new Exception("Failed to decrypt IMAP credentials. Please update settings.");
         }
 
+        $rawPortOk = false;
+        $fp = @fsockopen($config['imap_host'], (int)$config['imap_port'], $errno, $errstr, 1.5);
+        if ($fp) {
+            fclose($fp);
+            $rawPortOk = true;
+        }
+
         $mbox = null;
-        if (function_exists('imap_open')) {
+        if ($rawPortOk && function_exists('imap_open')) {
             $connectionString = self::getConnectionString($config['imap_host'], $config['imap_port'], $config['imap_encryption']) . "INBOX";
             @imap_timeout(IMAP_OPENTIMEOUT, 3);
             $mbox = @imap_open($connectionString, $config['imap_username'], $decryptedPassword, 0, 1, [

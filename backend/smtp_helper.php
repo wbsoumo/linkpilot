@@ -416,10 +416,10 @@ class SMTPHelper {
             if ($httpCode === 200 && !empty($response)) {
                 $res = json_decode($response, true);
                 if (is_array($res) && isset($res['status'])) {
-                    return [
+                    return array_merge($res, [
                         "status" => (bool)($res['status'] === 'success' || $res['status'] === true),
                         "message" => $res['message'] ?? 'Worker processed request'
-                    ];
+                    ]);
                 }
             } else {
                 $GLOBALS['aws_proxy_last_err'] = "URL=$workerUrl HTTP=$httpCode Err=$curlErr";

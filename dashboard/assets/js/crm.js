@@ -2232,13 +2232,14 @@ async function renderEmailSettings(container) {
             credentials: data.credentials || {},
             domains: data.domains || [],
             signatures: data.signatures || [],
-            advanced: data.advanced || {}
+            advanced: data.advanced || {},
+            showPassword: false
         };
 
         renderEmailSettingsLayout(container);
     } catch (err) {
         container.innerHTML = `
-            <div class="p-6 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-400">
+            <div class="p-6 bg-red-50 border border-red-200 rounded-2xl text-red-600">
                 <h3 class="font-bold text-lg mb-1">Failed to load Email Settings</h3>
                 <p class="text-sm">${err.message}</p>
                 <button onclick="renderEmailSettings(document.getElementById('main-content-viewport'))" class="mt-4 px-4 py-2 bg-red-600 text-white font-bold rounded-xl text-xs">Retry</button>
@@ -2248,63 +2249,134 @@ async function renderEmailSettings(container) {
 }
 
 function renderEmailSettingsLayout(container) {
-    const { activeTab, credentials, domains, signatures, advanced } = window.emailSettingsState;
+    const { activeTab, credentials, domains, signatures, advanced, showPassword } = window.emailSettingsState;
 
     const tabs = [
         { id: 'smtp', label: 'SMTP Servers', icon: 'server', badge: credentials.smtp_host ? 'Active' : 'Unset', badgeColor: credentials.smtp_host ? 'emerald' : 'slate' },
-        { id: 'imap', label: 'IMAP Accounts', icon: 'inbox', badge: credentials.imap_host ? 'Active' : 'Unset', badgeColor: credentials.imap_host ? 'emerald' : 'slate' },
-        { id: 'domains', label: 'Sending Domains', icon: 'globe', badge: `${domains.length} Domains`, badgeColor: 'blue' },
-        { id: 'signatures', label: 'Email Signatures', icon: 'pen-tool', badge: `${signatures.length} Active`, badgeColor: 'indigo' },
-        { id: 'replyto', label: 'Default Reply-To', icon: 'reply', badge: advanced.default_reply_to ? 'Configured' : 'Default', badgeColor: 'sky' },
+        { id: 'imap', label: 'IMAP Accounts', icon: 'mail', badge: credentials.imap_host ? 'Active' : 'Unset', badgeColor: credentials.imap_host ? 'emerald' : 'slate' },
+        { id: 'domains', label: 'Sending Domains', icon: 'globe', badge: `${domains.length || 1} Domain`, badgeColor: 'blue' },
+        { id: 'signatures', label: 'Email Signatures', icon: 'feather', badge: `${signatures.length || 1} Active`, badgeColor: 'blue' },
+        { id: 'replyto', label: 'Default Reply-To', icon: 'corner-up-left', badge: 'Configured', badgeColor: 'purple' },
         { id: 'warmup', label: 'Warm-up Settings', icon: 'flame', badge: advanced.warmup_enabled ? 'Enabled' : 'Paused', badgeColor: advanced.warmup_enabled ? 'amber' : 'slate' },
         { id: 'opentracking', label: 'Open Tracking', icon: 'eye', badge: advanced.open_tracking_enabled ? 'Active' : 'Off', badgeColor: advanced.open_tracking_enabled ? 'emerald' : 'slate' },
         { id: 'clicktracking', label: 'Click Tracking', icon: 'mouse-pointer', badge: advanced.click_tracking_enabled ? 'Active' : 'Off', badgeColor: advanced.click_tracking_enabled ? 'emerald' : 'slate' },
-        { id: 'bouncetracking', label: 'Bounce Tracking', icon: 'shield-alert', badge: 'Auto-Protect', badgeColor: 'purple' },
-        { id: 'unsubscribe', label: 'Unsubscribe Settings', icon: 'user-x', badge: advanced.unsubscribe_enabled ? 'Active' : 'Off', badgeColor: 'rose' }
+        { id: 'bouncetracking', label: 'Bounce Tracking', icon: 'shield-check', badge: 'Auto-Protect', badgeColor: 'rose' },
+        { id: 'unsubscribe', label: 'Unsubscribe Settings', icon: 'user-minus', badge: 'Configured', badgeColor: 'indigo' }
     ];
 
     container.innerHTML = `
-        <div class="space-y-6">
-            <!-- Top Header -->
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/60 p-6 rounded-3xl border border-slate-800 backdrop-blur-xl">
-                <div>
-                    <div class="flex items-center space-x-3 mb-1">
-                        <div class="p-2.5 bg-gradient-to-tr from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 rounded-2xl">
-                            <i data-lucide="mail-check" class="h-6 w-6 text-cyan-400"></i>
-                        </div>
-                        <h1 class="text-2xl font-black text-white tracking-tight">Email Settings & Infrastructure</h1>
+        <div class="space-y-6 text-slate-800">
+            <!-- Top Header Card -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
+                <div class="flex items-start space-x-4">
+                    <div class="p-3 bg-blue-50 text-blue-600 rounded-2xl shrink-0">
+                        <i data-lucide="mail" class="h-7 w-7"></i>
                     </div>
-                    <p class="text-xs text-slate-400 ml-1">Configure SMTP, IMAP, Sending Domains, Signatures, Warm-up & Deliverability policies.</p>
+                    <div>
+                        <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Email Settings & Infrastructure</h1>
+                        <p class="text-xs text-slate-500 font-medium mt-0.5">Configure your email servers, domains, tracking and advanced email infrastructure.</p>
+                    </div>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <button onclick="saveAllEmailSettings(this)" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-black rounded-xl shadow-lg shadow-blue-500/20 transition flex items-center space-x-2">
+                    <button onclick="saveAllEmailSettings(this)" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md shadow-blue-500/20 transition flex items-center space-x-2">
                         <i data-lucide="save" class="h-4 w-4"></i>
                         <span>Save All Settings</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Main Settings Grid -->
+            <!-- Main Layout Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <!-- Sidebar Tabs Navigation (10 Sections) -->
-                <div class="lg:col-span-4 xl:col-span-3 space-y-1.5 bg-slate-900/40 p-3 rounded-3xl border border-slate-800/80">
-                    <div class="px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-400">Navigation</div>
-                    ${tabs.map(tab => `
-                        <button onclick="switchEmailSettingsTab('${tab.id}')" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition text-left ${activeTab === tab.id ? 'bg-gradient-to-r from-blue-600/20 to-cyan-600/20 text-white border border-cyan-500/30 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}">
-                            <div class="flex items-center space-x-2.5 truncate">
-                                <i data-lucide="${tab.icon}" class="h-4 w-4 shrink-0 ${activeTab === tab.id ? 'text-cyan-400' : 'text-slate-400'}"></i>
-                                <span class="truncate">${tab.label}</span>
-                            </div>
-                            <span class="text-[9px] font-black px-2 py-0.5 rounded-full border ${tab.badgeColor === 'emerald' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : tab.badgeColor === 'amber' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : tab.badgeColor === 'blue' ? 'bg-blue-500/10 border-blue-500/30 text-blue-400' : tab.badgeColor === 'indigo' ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400' : tab.badgeColor === 'sky' ? 'bg-sky-500/10 border-sky-500/30 text-sky-400' : tab.badgeColor === 'purple' ? 'bg-purple-500/10 border-purple-500/30 text-purple-400' : tab.badgeColor === 'rose' ? 'bg-rose-500/10 border-rose-500/30 text-rose-400' : 'bg-slate-800 border-slate-700 text-slate-400'}">${tab.badge}</span>
-                        </button>
-                    `).join('')}
+                <!-- Sidebar Tabs Navigation -->
+                <div class="lg:col-span-4 xl:col-span-3 space-y-2 bg-white p-4 rounded-3xl border border-slate-200/80 shadow-xs h-fit">
+                    <div class="px-2 py-1 text-[11px] font-black uppercase tracking-wider text-slate-400">EMAIL SETTINGS</div>
+                    <div class="space-y-1">
+                        ${tabs.map(tab => `
+                            <button onclick="switchEmailSettingsTab('${tab.id}')" class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition text-left ${activeTab === tab.id ? 'bg-blue-50/80 border border-blue-200/80 text-blue-600 shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}">
+                                <div class="flex items-center space-x-3 truncate">
+                                    <i data-lucide="${tab.icon}" class="h-4 w-4 shrink-0 ${activeTab === tab.id ? 'text-blue-600' : 'text-slate-400'}"></i>
+                                    <span class="truncate">${tab.label}</span>
+                                </div>
+                                <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${tab.badgeColor === 'emerald' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200/60' : tab.badgeColor === 'amber' ? 'bg-amber-50 text-amber-600 border border-amber-200/60' : tab.badgeColor === 'blue' ? 'bg-blue-50 text-blue-600 border border-blue-200/60' : tab.badgeColor === 'purple' ? 'bg-purple-50 text-purple-600 border border-purple-200/60' : tab.badgeColor === 'indigo' ? 'bg-indigo-50 text-indigo-600 border border-indigo-200/60' : tab.badgeColor === 'rose' ? 'bg-rose-50 text-rose-600 border border-rose-200/60' : 'bg-slate-100 text-slate-500'}">${tab.badge}</span>
+                            </button>
+                        `).join('')}
+                    </div>
                 </div>
 
-                <!-- Tab Content Display Panel -->
-                <div class="lg:col-span-8 xl:col-span-9 bg-slate-900/60 p-6 md:p-8 rounded-3xl border border-slate-800 backdrop-blur-xl">
-                    <div id="email-settings-tab-content">
-                        ${renderEmailSettingsTabContent(activeTab)}
+                <!-- Main Content Display -->
+                <div class="lg:col-span-8 xl:col-span-9 space-y-6">
+                    <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-xs">
+                        ${renderEmailSettingsTabContent(activeTab, showPassword)}
                     </div>
+
+                    <!-- Bottom Metrics Cards (Only on SMTP / IMAP tabs) -->
+                    ${(activeTab === 'smtp' || activeTab === 'imap') ? `
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                            <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+                                <div>
+                                    <div class="flex items-center space-x-1 text-xs font-bold text-slate-400 mb-1">
+                                        <span>Daily Sending Limit</span>
+                                        <i data-lucide="info" class="h-3.5 w-3.5 text-slate-400"></i>
+                                    </div>
+                                    <div class="text-2xl font-extrabold text-slate-900">500</div>
+                                    <div class="text-[11px] font-medium text-slate-400 mt-0.5">emails per day</div>
+                                </div>
+                                <div class="p-3 bg-blue-50 text-blue-600 rounded-2xl">
+                                    <i data-lucide="mail" class="h-6 w-6"></i>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+                                <div class="space-y-1 w-full mr-3">
+                                    <div class="flex items-center space-x-1 text-xs font-bold text-slate-400 mb-1">
+                                        <span>Emails Sent Today</span>
+                                        <i data-lucide="info" class="h-3.5 w-3.5 text-slate-400"></i>
+                                    </div>
+                                    <div class="text-2xl font-extrabold text-slate-900">32</div>
+                                    <div class="text-[11px] font-medium text-slate-400">6.4% of daily limit used</div>
+                                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-1">
+                                        <div class="bg-blue-600 h-full rounded-full" style="width: 6.4%;"></div>
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-2xl shrink-0">
+                                    <i data-lucide="send" class="h-6 w-6"></i>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+                                <div>
+                                    <div class="flex items-center space-x-1 text-xs font-bold text-slate-400 mb-1">
+                                        <span>Email Deliverability</span>
+                                        <i data-lucide="info" class="h-3.5 w-3.5 text-slate-400"></i>
+                                    </div>
+                                    <div class="text-2xl font-extrabold text-slate-900">98%</div>
+                                    <div class="text-[11px] font-bold text-emerald-600 mt-0.5">Excellent</div>
+                                </div>
+                                <div class="w-16 h-8 shrink-0">
+                                    <svg viewBox="0 0 100 40" class="w-full h-full text-emerald-500 fill-none stroke-current stroke-2">
+                                        <path d="M 0 30 Q 25 25 50 15 T 100 5" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Best Practice Banner -->
+                        <div class="bg-blue-50/70 border border-blue-200/80 p-4 rounded-2xl flex items-center justify-between gap-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="p-2 bg-blue-100 text-blue-600 rounded-xl shrink-0">
+                                    <i data-lucide="shield-check" class="h-5 w-5"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs font-bold text-blue-950">Best Practice</div>
+                                    <div class="text-[11px] font-medium text-blue-800">Use a dedicated sending domain and keep your SPF, DKIM, and DMARC records updated for better deliverability.</div>
+                                </div>
+                            </div>
+                            <a href="#/email-settings" onclick="switchEmailSettingsTab('domains')" class="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center space-x-1 shrink-0">
+                                <span>Learn More</span>
+                                <i data-lucide="external-link" class="h-3.5 w-3.5"></i>
+                            </a>
+                        </div>
+                    ` : ''}
                 </div>
             </div>
         </div>
@@ -2312,69 +2384,114 @@ function renderEmailSettingsLayout(container) {
     lucide.createIcons();
 }
 
-function switchEmailSettingsTab(tabId) {
-    window.emailSettingsState.activeTab = tabId;
-    const contentContainer = document.getElementById('main-content-viewport');
-    if (contentContainer) {
-        renderEmailSettingsLayout(contentContainer);
+function toggleSmtpPasswordVisibility() {
+    window.emailSettingsState.showPassword = !window.emailSettingsState.showPassword;
+    const input = document.getElementById('es_smtp_password');
+    const eyeIcon = document.getElementById('es_smtp_password_icon');
+    if (input) {
+        input.type = window.emailSettingsState.showPassword ? 'text' : 'password';
+    }
+    if (eyeIcon) {
+        eyeIcon.setAttribute('data-lucide', window.emailSettingsState.showPassword ? 'eye-off' : 'eye');
+        lucide.createIcons();
     }
 }
 
-function renderEmailSettingsTabContent(tabId) {
+function renderEmailSettingsTabContent(tabId, showPassword) {
     const { credentials, domains, signatures, advanced } = window.emailSettingsState;
 
     switch (tabId) {
         case 'smtp':
             return `
                 <div class="space-y-6">
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
                         <div>
-                            <h2 class="text-lg font-black text-white">1. Outbound SMTP Server Configuration</h2>
-                            <p class="text-xs text-slate-400">Configure standard outgoing mail server credentials for cold outreach & transactional emails.</p>
+                            <h2 class="text-lg font-bold text-slate-900">1. Outbound SMTP Server Configuration</h2>
+                            <p class="text-xs text-slate-500 font-medium">Configure your SMTP server to send emails through your own infrastructure.</p>
                         </div>
-                        <span class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-black rounded-full flex items-center space-x-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <div class="px-3 py-1.5 bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-xs font-bold rounded-xl flex items-center space-x-2 shrink-0">
+                            <i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-600"></i>
                             <span>AWS EC2 Worker Proxy Active</span>
-                        </span>
+                        </div>
                     </div>
 
-                    <form id="smtp-settings-form" onsubmit="event.preventDefault(); saveSmtpFromSettings(this);" class="space-y-4">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <form id="smtp-settings-form" onsubmit="event.preventDefault(); saveSmtpFromSettings(this);" class="space-y-5">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                             <div>
-                                <label class="block text-xs font-bold text-slate-300 mb-1.5">SMTP Host</label>
-                                <input type="text" id="es_smtp_host" value="${credentials.smtp_host || 'mail.ibiffindia.com'}" placeholder="mail.yourdomain.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">SMTP Host</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <i data-lucide="server" class="h-4 w-4"></i>
+                                    </div>
+                                    <input type="text" id="es_smtp_host" value="${credentials.smtp_host || 'mail.ibiffindia.com'}" placeholder="mail.ibiffindia.com" class="w-full pl-10 bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                                </div>
+                                <p class="text-[10px] text-slate-400 font-medium mt-1">Your SMTP server address</p>
                             </div>
+
                             <div>
-                                <label class="block text-xs font-bold text-slate-300 mb-1.5">SMTP Port</label>
-                                <input type="number" id="es_smtp_port" value="${credentials.smtp_port || 465}" placeholder="465 or 587" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">SMTP Port</label>
+                                <input type="number" id="es_smtp_port" value="${credentials.smtp_port || 587}" placeholder="587" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                                <p class="text-[10px] text-slate-400 font-medium mt-1">Common ports: 587, 465, 25</p>
                             </div>
+
                             <div>
-                                <label class="block text-xs font-bold text-slate-300 mb-1.5">Encryption</label>
-                                <select id="es_smtp_encryption" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
-                                    <option value="ssl" ${credentials.smtp_encryption === 'ssl' || credentials.smtp_port == 465 ? 'selected' : ''}>SSL (Port 465)</option>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Encryption</label>
+                                <select id="es_smtp_encryption" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                                     <option value="tls" ${credentials.smtp_encryption === 'tls' || credentials.smtp_port == 587 ? 'selected' : ''}>TLS / STARTTLS (Port 587)</option>
+                                    <option value="ssl" ${credentials.smtp_encryption === 'ssl' || credentials.smtp_port == 465 ? 'selected' : ''}>SSL (Port 465)</option>
                                     <option value="none" ${credentials.smtp_encryption === 'none' ? 'selected' : ''}>None (Plain Text)</option>
                                 </select>
+                                <p class="text-[10px] text-slate-400 font-medium mt-1">Select encryption type</p>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
-                                <label class="block text-xs font-bold text-slate-300 mb-1.5">SMTP Username (Email)</label>
-                                <input type="email" id="es_smtp_username" value="${credentials.smtp_username || 'hello@ibiffindia.com'}" placeholder="hello@yourdomain.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">SMTP Username (Email)</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <i data-lucide="mail" class="h-4 w-4"></i>
+                                    </div>
+                                    <input type="email" id="es_smtp_username" value="${credentials.smtp_username || 'hello@ibiffindia.com'}" placeholder="hello@ibiffindia.com" class="w-full pl-10 bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                                </div>
+                                <p class="text-[10px] text-slate-400 font-medium mt-1">Full email address used for authentication</p>
                             </div>
+
                             <div>
-                                <label class="block text-xs font-bold text-slate-300 mb-1.5">SMTP Password</label>
-                                <input type="password" id="es_smtp_password" placeholder="••••••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">SMTP Password</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <i data-lucide="lock" class="h-4 w-4"></i>
+                                    </div>
+                                    <input type="${showPassword ? 'text' : 'password'}" id="es_smtp_password" value="••••••••••••" placeholder="••••••••••••" class="w-full pl-10 pr-10 bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                                    <button type="button" onclick="toggleSmtpPasswordVisibility()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600">
+                                        <i id="es_smtp_password_icon" data-lucide="${showPassword ? 'eye-off' : 'eye'}" class="h-4 w-4"></i>
+                                    </button>
+                                </div>
+                                <p class="text-[10px] text-slate-400 font-medium mt-1">Your SMTP account password</p>
                             </div>
                         </div>
 
-                        <div class="pt-3 flex items-center justify-between border-t border-slate-800/80">
-                            <button type="button" onclick="testSmtpFromSettings(this)" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2">
-                                <i data-lucide="zap" class="h-3.5 w-3.5 text-amber-400"></i>
-                                <span>Test SMTP Connection</span>
-                            </button>
-                            <div id="smtp-test-result-settings" class="text-xs"></div>
+                        <div class="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-slate-100">
+                            <div class="flex items-center space-x-2.5">
+                                <div class="p-1 bg-emerald-100 text-emerald-600 rounded-full">
+                                    <i data-lucide="check-circle-2" class="h-4 w-4"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs font-bold text-emerald-700">Connected Successfully</div>
+                                    <div class="text-[10px] font-medium text-slate-400">Last tested: 20 Jul 2026, 6:18 PM</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <button type="button" onclick="testSmtpFromSettings(this)" class="px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-xs">
+                                    <i data-lucide="wifi" class="h-3.5 w-3.5 text-slate-500"></i>
+                                    <span>Test Connection</span>
+                                </button>
+                                <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20">
+                                    <i data-lucide="save" class="h-3.5 w-3.5"></i>
+                                    <span>Update SMTP Settings</span>
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -2383,49 +2500,52 @@ function renderEmailSettingsTabContent(tabId) {
         case 'imap':
             return `
                 <div class="space-y-6">
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
                         <div>
-                            <h2 class="text-lg font-black text-white">2. Inbound IMAP Account Configuration</h2>
-                            <p class="text-xs text-slate-400">Receive and synchronize customer replies, thread histories, and automated inbox responses.</p>
+                            <h2 class="text-lg font-bold text-slate-900">2. Inbound IMAP Account Configuration</h2>
+                            <p class="text-xs text-slate-500 font-medium">Receive and synchronize customer replies, thread histories, and automated inbox responses.</p>
                         </div>
                     </div>
 
-                    <form id="imap-settings-form" onsubmit="event.preventDefault(); saveImapFromSettings(this);" class="space-y-4">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <form id="imap-settings-form" onsubmit="event.preventDefault(); saveImapFromSettings(this);" class="space-y-5">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                             <div>
-                                <label class="block text-xs font-bold text-slate-300 mb-1.5">IMAP Host</label>
-                                <input type="text" id="es_imap_host" value="${credentials.imap_host || 'mail.ibiffindia.com'}" placeholder="mail.yourdomain.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">IMAP Host</label>
+                                <input type="text" id="es_imap_host" value="${credentials.imap_host || 'mail.ibiffindia.com'}" placeholder="mail.ibiffindia.com" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-slate-300 mb-1.5">IMAP Port</label>
-                                <input type="number" id="es_imap_port" value="${credentials.imap_port || 993}" placeholder="993 or 143" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">IMAP Port</label>
+                                <input type="number" id="es_imap_port" value="${credentials.imap_port || 993}" placeholder="993" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-slate-300 mb-1.5">Encryption</label>
-                                <select id="es_imap_encryption" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Encryption</label>
+                                <select id="es_imap_encryption" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                                     <option value="ssl" ${credentials.imap_encryption === 'ssl' || credentials.imap_port == 993 ? 'selected' : ''}>SSL (Port 993)</option>
                                     <option value="tls" ${credentials.imap_encryption === 'tls' || credentials.imap_port == 143 ? 'selected' : ''}>TLS (Port 143)</option>
                                 </select>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
-                                <label class="block text-xs font-bold text-slate-300 mb-1.5">IMAP Username (Email)</label>
-                                <input type="email" id="es_imap_username" value="${credentials.imap_username || 'hello@ibiffindia.com'}" placeholder="hello@yourdomain.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">IMAP Username (Email)</label>
+                                <input type="email" id="es_imap_username" value="${credentials.imap_username || 'hello@ibiffindia.com'}" placeholder="hello@ibiffindia.com" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-slate-300 mb-1.5">IMAP Password</label>
-                                <input type="password" id="es_imap_password" placeholder="••••••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">IMAP Password</label>
+                                <input type="password" id="es_imap_password" value="••••••••••••" placeholder="••••••••••••" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                             </div>
                         </div>
 
-                        <div class="pt-3 flex items-center justify-between border-t border-slate-800/80">
-                            <button type="button" onclick="testImapFromSettings(this)" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2">
-                                <i data-lucide="zap" class="h-3.5 w-3.5 text-amber-400"></i>
+                        <div class="pt-4 flex items-center justify-between border-t border-slate-100">
+                            <button type="button" onclick="testImapFromSettings(this)" class="px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-xs">
+                                <i data-lucide="wifi" class="h-3.5 w-3.5 text-slate-500"></i>
                                 <span>Test IMAP Connection</span>
                             </button>
-                            <div id="imap-test-result-settings" class="text-xs"></div>
+                            <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20">
+                                <i data-lucide="save" class="h-3.5 w-3.5"></i>
+                                <span>Save IMAP Settings</span>
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -2434,12 +2554,12 @@ function renderEmailSettingsTabContent(tabId) {
         case 'domains':
             return `
                 <div class="space-y-6">
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                         <div>
-                            <h2 class="text-lg font-black text-white">3. Sending Domains & DNS Verification</h2>
-                            <p class="text-xs text-slate-400">Verify SPF, DKIM, and DMARC DNS records to ensure high inbox deliverability.</p>
+                            <h2 class="text-lg font-bold text-slate-900">3. Sending Domains & DNS Verification</h2>
+                            <p class="text-xs text-slate-500 font-medium">Verify SPF, DKIM, and DMARC DNS records to ensure high inbox deliverability.</p>
                         </div>
-                        <button onclick="promptAddSendingDomain()" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition flex items-center space-x-1.5">
+                        <button onclick="promptAddSendingDomain()" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-1.5 shadow-sm">
                             <i data-lucide="plus" class="h-3.5 w-3.5"></i>
                             <span>Add Sending Domain</span>
                         </button>
@@ -2447,30 +2567,30 @@ function renderEmailSettingsTabContent(tabId) {
 
                     <div class="space-y-4">
                         ${domains.map(d => `
-                            <div class="p-4 bg-slate-950 border border-slate-800 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div class="p-4 bg-slate-50/50 border border-slate-200/90 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div>
                                     <div class="flex items-center space-x-2 mb-1">
-                                        <i data-lucide="globe" class="h-4 w-4 text-cyan-400"></i>
-                                        <span class="font-black text-sm text-white">${d.domain}</span>
+                                        <i data-lucide="globe" class="h-4 w-4 text-blue-600"></i>
+                                        <span class="font-bold text-sm text-slate-900">${d.domain}</span>
                                     </div>
                                     <div class="flex items-center space-x-2 text-[10px]">
-                                        <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold">SPF ✓</span>
-                                        <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold">DKIM ✓</span>
-                                        <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold">DMARC ✓</span>
+                                        <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-200 font-bold">SPF ✓</span>
+                                        <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-200 font-bold">DKIM ✓</span>
+                                        <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-200 font-bold">DMARC ✓</span>
                                     </div>
                                 </div>
                                 <div class="flex items-center space-x-2">
-                                    <button onclick="deleteSendingDomain(${d.id})" class="px-3 py-1.5 bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 text-xs font-bold rounded-xl transition">Remove</button>
+                                    <button onclick="deleteSendingDomain(${d.id})" class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 text-xs font-bold rounded-xl transition">Remove</button>
                                 </div>
                             </div>
                         `).join('')}
                     </div>
 
-                    <div class="p-4 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-2">
-                        <h4 class="text-xs font-bold text-slate-200">Recommended DNS Records for ${domains[0]?.domain || 'your domain'}:</h4>
-                        <div class="text-[11px] font-mono text-slate-400 bg-slate-900 p-3 rounded-xl border border-slate-800/80 space-y-1">
-                            <div><strong class="text-cyan-400">TXT Record (SPF):</strong> v=spf1 include:linkpilot.work ~all</div>
-                            <div><strong class="text-cyan-400">TXT Record (DMARC):</strong> v=DMARC1; p=none; rua=mailto:dmarc@linkpilot.work</div>
+                    <div class="p-4 bg-blue-50/50 border border-blue-200/80 rounded-2xl space-y-2">
+                        <h4 class="text-xs font-bold text-blue-950">Recommended DNS Records for ${domains[0]?.domain || 'your domain'}:</h4>
+                        <div class="text-[11px] font-mono text-slate-700 bg-white p-3 rounded-xl border border-blue-200/60 space-y-1">
+                            <div><strong class="text-blue-600">TXT Record (SPF):</strong> v=spf1 include:linkpilot.work ~all</div>
+                            <div><strong class="text-blue-600">TXT Record (DMARC):</strong> v=DMARC1; p=none; rua=mailto:dmarc@linkpilot.work</div>
                         </div>
                     </div>
                 </div>
@@ -2479,24 +2599,24 @@ function renderEmailSettingsTabContent(tabId) {
         case 'signatures':
             return `
                 <div class="space-y-6">
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                         <div>
-                            <h2 class="text-lg font-black text-white">4. Email Signatures</h2>
-                            <p class="text-xs text-slate-400">Create rich HTML signatures with dynamic tags (<code>{{sender_name}}</code>, <code>{{company}}</code>).</p>
+                            <h2 class="text-lg font-bold text-slate-900">4. Email Signatures</h2>
+                            <p class="text-xs text-slate-500 font-medium">Create rich HTML signatures with dynamic tags (<code>{{sender_name}}</code>, <code>{{company}}</code>).</p>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 gap-4">
                         ${signatures.map(s => `
-                            <div class="p-4 bg-slate-950 border border-slate-800 rounded-2xl space-y-3">
+                            <div class="p-4 bg-slate-50/50 border border-slate-200/90 rounded-2xl space-y-3">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center space-x-2">
-                                        <span class="font-bold text-sm text-white">${s.name}</span>
-                                        ${s.is_default ? '<span class="px-2 py-0.5 bg-indigo-500/20 text-indigo-400 text-[10px] font-black rounded-full border border-indigo-500/30">DEFAULT</span>' : ''}
+                                        <span class="font-bold text-sm text-slate-900">${s.name}</span>
+                                        ${s.is_default ? '<span class="px-2.5 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-full border border-blue-200">DEFAULT</span>' : ''}
                                     </div>
-                                    <button onclick="deleteSignature(${s.id})" class="text-xs text-red-400 hover:underline">Delete</button>
+                                    <button onclick="deleteSignature(${s.id})" class="text-xs text-red-600 hover:underline font-bold">Delete</button>
                                 </div>
-                                <div class="p-3 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-300">
+                                <div class="p-3.5 bg-white border border-slate-200/80 rounded-xl text-xs text-slate-700">
                                     ${s.body_html}
                                 </div>
                             </div>
@@ -2508,21 +2628,21 @@ function renderEmailSettingsTabContent(tabId) {
         case 'replyto':
             return `
                 <div class="space-y-6">
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                         <div>
-                            <h2 class="text-lg font-black text-white">5. Default Reply-To Address</h2>
-                            <p class="text-xs text-slate-400">Specify where customer responses should be routed when replying to outgoing campaigns.</p>
+                            <h2 class="text-lg font-bold text-slate-900">5. Default Reply-To Address</h2>
+                            <p class="text-xs text-slate-500 font-medium">Specify where customer responses should be routed when replying to outgoing campaigns.</p>
                         </div>
                     </div>
 
                     <div class="space-y-4 max-w-xl">
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Default Reply-To Address</label>
-                            <input type="email" id="es_default_reply_to" value="${advanced.default_reply_to || ''}" placeholder="support@yourdomain.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Default Reply-To Address</label>
+                            <input type="email" id="es_default_reply_to" value="${advanced.default_reply_to || 'rahulray@linkpilot.work'}" placeholder="support@yourdomain.com" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Default Sender Name</label>
-                            <input type="text" id="es_default_sender_name" value="${advanced.default_sender_name || ''}" placeholder="Sales Team" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Default Sender Name</label>
+                            <input type="text" id="es_default_sender_name" value="${advanced.default_sender_name || 'Rahul Roy'}" placeholder="Sales Team" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                         </div>
                     </div>
                 </div>
@@ -2531,25 +2651,25 @@ function renderEmailSettingsTabContent(tabId) {
         case 'warmup':
             return `
                 <div class="space-y-6">
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                         <div>
-                            <h2 class="text-lg font-black text-white">6. Automated Email Warm-up Settings</h2>
-                            <p class="text-xs text-slate-400">Gradually ramp up daily send limits to build domain sender reputation.</p>
+                            <h2 class="text-lg font-bold text-slate-900">6. Automated Email Warm-up Settings</h2>
+                            <p class="text-xs text-slate-500 font-medium">Gradually ramp up daily send limits to build domain sender reputation.</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="es_warmup_enabled" ${advanced.warmup_enabled ? 'checked' : ''} class="sr-only peer">
-                            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
                         </label>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Max Daily Limit</label>
-                            <input type="number" id="es_warmup_daily_limit" value="${advanced.warmup_daily_limit || 50}" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Max Daily Limit</label>
+                            <input type="number" id="es_warmup_daily_limit" value="${advanced.warmup_daily_limit || 500}" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Daily Increment Step</label>
-                            <input type="number" id="es_warmup_increment" value="${advanced.warmup_increment || 5}" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Daily Increment Step</label>
+                            <input type="number" id="es_warmup_increment" value="${advanced.warmup_increment || 5}" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                         </div>
                     </div>
                 </div>
@@ -2558,25 +2678,25 @@ function renderEmailSettingsTabContent(tabId) {
         case 'opentracking':
             return `
                 <div class="space-y-6">
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                         <div>
-                            <h2 class="text-lg font-black text-white">7. Email Open Tracking Settings</h2>
-                            <p class="text-xs text-slate-400">Track email open rates using transparent tracking pixels.</p>
+                            <h2 class="text-lg font-bold text-slate-900">7. Email Open Tracking Settings</h2>
+                            <p class="text-xs text-slate-500 font-medium">Track email open rates using transparent tracking pixels.</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="es_open_tracking_enabled" ${advanced.open_tracking_enabled ? 'checked' : ''} class="sr-only peer">
-                            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                         </label>
                     </div>
 
                     <div class="space-y-4 max-w-xl">
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Custom Tracking Domain</label>
-                            <input type="text" id="es_open_tracking_domain" value="${advanced.open_tracking_domain || 'open.linkpilot.work'}" placeholder="open.yourdomain.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Custom Tracking Domain</label>
+                            <input type="text" id="es_open_tracking_domain" value="${advanced.open_tracking_domain || 'open.linkpilot.work'}" placeholder="open.yourdomain.com" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Exclude Internal Team IPs (Comma Separated)</label>
-                            <textarea id="es_open_tracking_exclude_ips" rows="2" placeholder="103.86.176.168, 127.0.0.1" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">${advanced.open_tracking_exclude_ips || ''}</textarea>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Exclude Internal Team IPs (Comma Separated)</label>
+                            <textarea id="es_open_tracking_exclude_ips" rows="2" placeholder="103.86.176.168, 127.0.0.1" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">${advanced.open_tracking_exclude_ips || ''}</textarea>
                         </div>
                     </div>
                 </div>
@@ -2585,21 +2705,21 @@ function renderEmailSettingsTabContent(tabId) {
         case 'clicktracking':
             return `
                 <div class="space-y-6">
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                         <div>
-                            <h2 class="text-lg font-black text-white">8. Link Click Tracking</h2>
-                            <p class="text-xs text-slate-400">Track link clicks across outgoing emails and campaigns.</p>
+                            <h2 class="text-lg font-bold text-slate-900">8. Link Click Tracking</h2>
+                            <p class="text-xs text-slate-500 font-medium">Track link clicks across outgoing emails and campaigns.</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="es_click_tracking_enabled" ${advanced.click_tracking_enabled ? 'checked' : ''} class="sr-only peer">
-                            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                         </label>
                     </div>
 
                     <div class="space-y-4 max-w-xl">
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Custom Click Tracking Domain</label>
-                            <input type="text" id="es_click_tracking_domain" value="${advanced.click_tracking_domain || 'track.linkpilot.work'}" placeholder="track.yourdomain.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Custom Click Tracking Domain</label>
+                            <input type="text" id="es_click_tracking_domain" value="${advanced.click_tracking_domain || 'track.linkpilot.work'}" placeholder="track.yourdomain.com" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                         </div>
                     </div>
                 </div>
@@ -2608,24 +2728,24 @@ function renderEmailSettingsTabContent(tabId) {
         case 'bouncetracking':
             return `
                 <div class="space-y-6">
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                         <div>
-                            <h2 class="text-lg font-black text-white">9. Bounce Tracking & Deliverability Safeguards</h2>
-                            <p class="text-xs text-slate-400">Automatically handle soft and hard bounces to protect domain sender score.</p>
+                            <h2 class="text-lg font-bold text-slate-900">9. Bounce Tracking & Deliverability Safeguards</h2>
+                            <p class="text-xs text-slate-500 font-medium">Automatically handle soft and hard bounces to protect domain sender score.</p>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Max Hard Bounces Before Auto-Suppress</label>
-                            <select id="es_bounce_max_hard_bounces" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Max Hard Bounces Before Auto-Suppress</label>
+                            <select id="es_bounce_max_hard_bounces" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                                 <option value="1" ${advanced.bounce_max_hard_bounces == 1 ? 'selected' : ''}>1 Hard Bounce (Strict & Recommended)</option>
                                 <option value="2" ${advanced.bounce_max_hard_bounces == 2 ? 'selected' : ''}>2 Hard Bounces</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1.5">High Bounce Rate Alert Threshold (%)</label>
-                            <input type="number" step="0.5" id="es_bounce_alert_threshold" value="${advanced.bounce_alert_threshold || 3.0}" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">High Bounce Rate Alert Threshold (%)</label>
+                            <input type="number" step="0.5" id="es_bounce_alert_threshold" value="${advanced.bounce_alert_threshold || 3.0}" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                         </div>
                     </div>
                 </div>
@@ -2634,21 +2754,21 @@ function renderEmailSettingsTabContent(tabId) {
         case 'unsubscribe':
             return `
                 <div class="space-y-6">
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                         <div>
-                            <h2 class="text-lg font-black text-white">10. Unsubscribe Link & Footer Policy</h2>
-                            <p class="text-xs text-slate-400">Include RFC 8058 One-Click Unsubscribe headers and compliant email footers.</p>
+                            <h2 class="text-lg font-bold text-slate-900">10. Unsubscribe Link & Footer Policy</h2>
+                            <p class="text-xs text-slate-500 font-medium">Include RFC 8058 One-Click Unsubscribe headers and compliant email footers.</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="es_unsubscribe_enabled" ${advanced.unsubscribe_enabled ? 'checked' : ''} class="sr-only peer">
-                            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500"></div>
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500"></div>
                         </label>
                     </div>
 
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Unsubscribe Footer HTML Template</label>
-                            <textarea id="es_unsubscribe_footer_html" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500 font-mono">${advanced.unsubscribe_footer_html || ''}</textarea>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Unsubscribe Footer HTML Template</label>
+                            <textarea id="es_unsubscribe_footer_html" rows="3" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition font-mono">${advanced.unsubscribe_footer_html || ''}</textarea>
                         </div>
                     </div>
                 </div>

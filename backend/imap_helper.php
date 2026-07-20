@@ -25,9 +25,29 @@ class IMAPHelper {
      * Test IMAP connection configurations
      */
     public static function testConnection($host, $port, $username, $password, $encryption) {
+        // Fast 2-second socket pre-check to prevent C-client imap_open hanging on firewalled ports
+        $prefix = (strtolower((string)$encryption) === 'ssl' || (int)$port === 993) ? 'ssl://' : '';
+        $fp = @fsockopen($prefix . $host, (int)$port, $errno, $errstr, 2);
+
+        if (!$fp) {
+            // Direct socket to host blocked by firewall -> call AWS Proxy Worker immediately
+            $proxyRes = SMTPHelper::callAwsProxyWorker('test_imap', [
+                'imap_host' => $host,
+                'imap_port' => (int)$port,
+                'imap_username' => $username,
+                'imap_password' => $password,
+                'imap_encryption' => $encryption
+            ]);
+            if ($proxyRes !== null) {
+                return $proxyRes;
+            }
+        } else {
+            fclose($fp);
+        }
+
         if (function_exists('imap_open')) {
             $connectionString = self::getConnectionString($host, $port, $encryption) . "INBOX";
-            @imap_timeout(IMAP_OPENTIMEOUT, 4);
+            @imap_timeout(IMAP_OPENTIMEOUT, 3);
             $mbox = @imap_open($connectionString, $username, $password, OP_HALFOPEN, 1, [
                 'DISABLE_AUTHENTICATOR' => 'GSSAPI'
             ]);
@@ -41,18 +61,7 @@ class IMAPHelper {
             }
         }
 
-        // Try direct socket connection
-        $prefix = (strtolower($encryption) === 'ssl' || (int)$port === 993) ? 'ssl://' : '';
-        $fp = @fsockopen($prefix . $host, (int)$port, $errno, $errstr, 4);
-        if ($fp) {
-            fclose($fp);
-            return [
-                "status" => true,
-                "message" => "IMAP Connection Test Successful! Port " . $port . " verified."
-            ];
-        }
-
-        // Fallback to AWS Proxy Worker
+        // Fallback to AWS Proxy Worker if imap_open failed
         $proxyRes = SMTPHelper::callAwsProxyWorker('test_imap', [
             'imap_host' => $host,
             'imap_port' => (int)$port,

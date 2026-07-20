@@ -6478,33 +6478,41 @@ async function renderWhatsAppTrain(container) {
                 width: 100%;
             }
             .phone-header {
-                background-color: #075e54;
-                color: #ffffff;
-                padding: 10px 14px;
+                background-color: #f0f2f5;
+                color: #111b21;
+                padding: 7px 12px;
                 display: flex;
                 align-items: center;
-                gap: 8px;
+                justify-content: space-between;
+                border-bottom: 1px solid #e2e8f0;
+                height: 48px;
+                flex-shrink: 0;
             }
             .chat-messages {
                 flex-grow: 1;
                 overflow-y: auto;
-                padding: 12px;
+                padding: 14px;
                 background-color: #efeae2;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%23e5ddd5' fill-opacity='0.4'%3E%3Cpath d='M10 10h5v5h-5zm10 0h5v5h-5zm-10 10h5v5h-5zm10 0h5v5h-5zm20-20h5v5h-5zm10 0h5v5h-5zm-10 10h5v5h-5zm10 0h5v5h-5zm20 0h5v5h-5zm10 0h5v5h-5zm-10 10h5v5h-5zm10 0h5v5h-5zm-40 20h5v5h-5zm10 0h5v5h-5zm-10 10h5v5h-5zm10 0h5v5h-5zm20-20h5v5h-5zm10 0h5v5h-5zm-10 10h5v5h-5zm10 0h5v5h-5zm20 0h5v5h-5zm10 0h5v5h-5zm-10 10h5v5h-5zm10 0h5v5h-5z'/%3E%3C/g%3E%3C/svg%3E");
                 display: flex;
                 flex-direction: column;
                 gap: 8px;
             }
             .bubble {
                 max-width: 80%;
-                padding: 8px 12px;
+                padding: 6px 10px 6px 10px;
                 font-size: 11px;
-                line-height: 1.4;
-                border-radius: 12px;
+                line-height: 1.35;
+                border-radius: 8px;
                 word-wrap: break-word;
+                position: relative;
+                box-shadow: 0 1px 0.5px rgba(11,20,26,.13);
+                display: flex;
+                flex-direction: column;
             }
             .bubble.incoming {
                 background-color: #ffffff;
-                color: #334155;
+                color: #111b21;
                 align-self: flex-start;
                 border-top-left-radius: 0;
             }
@@ -6513,6 +6521,47 @@ async function renderWhatsAppTrain(container) {
                 color: #111b21;
                 align-self: flex-end;
                 border-top-right-radius: 0;
+            }
+            .bubble-text {
+                margin-bottom: 2px;
+                text-align: left;
+            }
+            .bubble-meta {
+                align-self: flex-end;
+                font-size: 8px;
+                color: #667781;
+                display: flex;
+                align-items: center;
+                gap: 3px;
+                margin-top: 1px;
+                margin-left: auto;
+            }
+            .typing-bubble {
+                background-color: #ffffff;
+                color: #334155;
+                align-self: flex-start;
+                border-radius: 8px;
+                border-top-left-radius: 0;
+                padding: 8px 12px;
+                display: flex;
+                align-items: center;
+                gap: 3.5px;
+                min-width: 45px;
+                height: 26px;
+                box-shadow: 0 1px 0.5px rgba(11,20,26,.13);
+            }
+            .typing-dot {
+                width: 4px;
+                height: 4px;
+                background-color: #667781;
+                border-radius: 50%;
+                animation: typing-bounce 1.4s infinite ease-in-out both;
+            }
+            .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+            .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+            @keyframes typing-bounce {
+                0%, 80%, 100% { transform: scale(0.3); }
+                40% { transform: scale(1); }
             }
         `;
         document.head.appendChild(style);
@@ -7071,27 +7120,43 @@ function renderAgentDashboard(container) {
                     <div class="phone-screen">
                         <!-- Head -->
                         <div class="phone-header">
-                            <div class="h-7 w-7 rounded-full bg-teal-700 flex items-center justify-center text-white font-bold shrink-0 border border-teal-500">
-                                <i data-lucide="bot" class="h-4 w-4"></i>
+                            <div class="flex items-center space-x-2 flex-grow">
+                                <i data-lucide="chevron-left" class="h-4.5 w-4.5 text-[#54656f] cursor-pointer -ml-1 shrink-0"></i>
+                                <div class="h-8 w-8 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center shrink-0 border border-slate-300">
+                                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=LinkPilot" class="h-full w-full object-cover">
+                                </div>
+                                <div class="text-left">
+                                    <h4 class="font-extrabold text-slate-800 text-[11px] leading-tight">LinkPilot AI Agent</h4>
+                                    <p id="sim-header-status" class="text-[9px] text-[#54656f] font-semibold leading-none mt-0.5">online</p>
+                                </div>
                             </div>
-                            <div class="text-left">
-                                <h4 class="font-bold text-xs leading-tight">LinkPilot AI Agent</h4>
-                                <p class="text-[9px] text-emerald-300 font-semibold flex items-center"><span class="h-1.5 w-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse"></span>online</p>
+                            <div class="flex items-center space-x-2.5 text-[#54656f] shrink-0">
+                                <i data-lucide="video" class="h-4 w-4 cursor-pointer hover:text-slate-800"></i>
+                                <i data-lucide="phone" class="h-3.5 w-3.5 cursor-pointer hover:text-slate-800"></i>
+                                <i data-lucide="more-vertical" class="h-3.5 w-3.5 cursor-pointer hover:text-slate-800"></i>
                             </div>
                         </div>
                         
                         <!-- Messages Body -->
                         <div class="chat-messages" id="sim-messages-body">
                             <div class="bubble incoming">
-                                Hi there! I am your AI Business Assistant. How can I help you today?
+                                <div class="bubble-text">Hi there! I am your AI Business Assistant. How can I help you today?</div>
+                                <div class="bubble-meta">
+                                    <span>${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                </div>
                             </div>
                         </div>
                         
                         <!-- Chat Input Footer -->
-                        <div class="p-2 border-t border-slate-200 bg-white flex items-center space-x-2 shrink-0">
-                            <input type="text" id="sim-chat-input" onkeydown="handleSimChatKeyDown(event)" placeholder="Type a message..." class="flex-grow border border-slate-200 rounded-full px-3 py-1.5 text-[10px] focus:outline-none focus:border-teal-500 shadow-2xs">
-                            <button onclick="sendSimChatMessage()" class="h-7 w-7 bg-teal-700 hover:bg-teal-600 text-white rounded-full flex items-center justify-center shrink-0 transition shadow-sm">
-                                <i data-lucide="send" class="h-3.5 w-3.5"></i>
+                        <div class="p-2 bg-[#f0f2f5] flex items-center space-x-2 shrink-0 border-t border-slate-200">
+                            <div class="flex-grow bg-white rounded-full px-3 py-1.5 flex items-center space-x-2 shadow-2xs border border-slate-100">
+                                <i data-lucide="smile" class="h-4.5 w-4.5 text-[#54656f] cursor-pointer hover:text-slate-800"></i>
+                                <input type="text" id="sim-chat-input" onkeydown="handleSimChatKeyDown(event)" oninput="toggleSimSendIcon(this)" placeholder="Type a message" class="flex-grow text-[10px] focus:outline-none bg-transparent text-slate-850">
+                                <i data-lucide="paperclip" class="h-4 w-4 text-[#54656f] cursor-pointer hover:text-slate-800 rotate-45"></i>
+                                <i data-lucide="camera" class="h-4 w-4 text-[#54656f] cursor-pointer hover:text-slate-800"></i>
+                            </div>
+                            <button id="sim-send-btn" onclick="sendSimChatMessage()" class="h-7 w-7 bg-[#00a884] hover:bg-[#008f72] text-white rounded-full flex items-center justify-center shrink-0 transition shadow-sm">
+                                <i id="sim-send-icon" data-lucide="mic" class="h-4 w-4"></i>
                             </button>
                         </div>
                     </div>
@@ -7114,27 +7179,61 @@ window.handleSimChatKeyDown = function(e) {
     }
 };
 
+window.toggleSimSendIcon = function(input) {
+    const iconEl = document.getElementById('sim-send-icon');
+    if (iconEl) {
+        if (input.value.trim().length > 0) {
+            iconEl.removeAttribute('data-lucide');
+            iconEl.setAttribute('data-lucide', 'send');
+        } else {
+            iconEl.removeAttribute('data-lucide');
+            iconEl.setAttribute('data-lucide', 'mic');
+        }
+        lucide.createIcons();
+    }
+};
+
 window.sendSimChatMessage = function() {
     const input = document.getElementById('sim-chat-input');
     const msg = input.value.trim();
     if (!msg) return;
     
     input.value = '';
+    window.toggleSimSendIcon(input);
     
     const chatBody = document.getElementById('sim-messages-body');
+    const timeNow = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     
     // Append user message
     const userBubble = document.createElement('div');
     userBubble.className = 'bubble outgoing';
-    userBubble.innerText = msg;
+    userBubble.innerHTML = `
+        <div class="bubble-text">${msg}</div>
+        <div class="bubble-meta">
+            <span>${timeNow}</span>
+            <i data-lucide="check-check" class="h-3 w-3 text-[#53bdeb]"></i>
+        </div>
+    `;
     chatBody.appendChild(userBubble);
     chatBody.scrollTop = chatBody.scrollHeight;
+    lucide.createIcons();
+    
+    // Update status in header to green typing...
+    const statusEl = document.getElementById('sim-header-status');
+    if (statusEl) {
+        statusEl.innerText = 'typing...';
+        statusEl.style.color = '#00a884';
+    }
     
     // Add typing bubble
     const typingBubble = document.createElement('div');
     typingBubble.id = 'sim-typing-bubble';
-    typingBubble.className = 'bubble incoming italic text-slate-450 font-bold';
-    typingBubble.innerText = 'AI Agent is typing...';
+    typingBubble.className = 'typing-bubble';
+    typingBubble.innerHTML = `
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+    `;
     chatBody.appendChild(typingBubble);
     chatBody.scrollTop = chatBody.scrollHeight;
     
@@ -7143,6 +7242,12 @@ window.sendSimChatMessage = function() {
         // Remove typing bubble
         const typing = document.getElementById('sim-typing-bubble');
         if (typing) typing.remove();
+        
+        // Restore status in header to online
+        if (statusEl) {
+            statusEl.innerText = 'online';
+            statusEl.style.color = '#54656f';
+        }
         
         let responseText = '';
         const lowercase = msg.toLowerCase();
@@ -7186,10 +7291,16 @@ window.sendSimChatMessage = function() {
         
         const replyBubble = document.createElement('div');
         replyBubble.className = 'bubble incoming';
-        replyBubble.innerText = responseText;
+        replyBubble.innerHTML = `
+            <div class="bubble-text">${responseText}</div>
+            <div class="bubble-meta">
+                <span>${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            </div>
+        `;
         chatBody.appendChild(replyBubble);
         chatBody.scrollTop = chatBody.scrollHeight;
-    }, 1200);
+        lucide.createIcons();
+    }, 1500);
 };
 
 // Simple helper to parse hostnames

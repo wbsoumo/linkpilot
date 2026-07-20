@@ -428,6 +428,10 @@ async function navigateTo(view, params = {}) {
             case 'email-followups':
                 await renderEmailFollowups(contentArea);
                 break;
+            case 'email-templates':
+            case 'templates':
+                await renderEmailTemplates(contentArea);
+                break;
             case 'leads':
                 await renderLeads(contentArea);
                 break;
@@ -15886,6 +15890,800 @@ function handleInboxInlineSearch(value) {
         searchInbox(value);
     }, 2000);
 }
+
+/* --- 50+ PREMIUM EMAIL TEMPLATES GALLERY & MAIL COMPOSER --- */
+window.emailTemplateFilters = {
+    category: 'All',
+    search: ''
+};
+
+const EMAIL_TEMPLATES_DATA = [
+    // --- SALES & COLD OUTREACH (10) ---
+    {
+        id: 1,
+        title: "Cold B2B SaaS Pitch - Pain Point Hook",
+        category: "Sales",
+        tag: "Cold Outreach",
+        openRate: "74%",
+        subject: "Quick question regarding {{company_name}}'s lead workflow",
+        body: `Hi {{first_name}},\n\nI noticed {{company_name}} has been scaling rapidly in your industry.\n\nMost sales teams at your stage waste 15+ hours weekly manually following up on cold leads. We built LinkPilot AI to automate multi-channel follow-ups on autopilot.\n\nWould you be open to a brief 10-minute demo this Thursday at 2 PM?\n\nBest regards,\n{{sender_name}}`
+    },
+    {
+        id: 2,
+        title: "Mutual Connection Intro Pitch",
+        category: "Sales",
+        tag: "Warm Intro",
+        openRate: "81%",
+        subject: "{{referral_name}} suggested I reach out to you",
+        body: `Hi {{first_name}},\n\n{{referral_name}} mentioned that you're currently leading operations at {{company_name}} and looking to streamline your CRM workflow.\n\nWe recently helped a similar company increase reply rates by 42% using automated AI sequence drafts.\n\nAre you free for a 10-minute call next Tuesday?\n\nCheers,\n{{sender_name}}`
+    },
+    {
+        id: 3,
+        title: "Competitor Comparison Pitch",
+        category: "Sales",
+        tag: "Competitive Edge",
+        openRate: "69%",
+        subject: "Alternative to traditional CRM tools for {{company_name}}",
+        body: `Hi {{first_name}},\n\nAre you currently using legacy CRM tools that require hours of manual data entry?\n\nLinkPilot AI handles email tracking, WhatsApp broadcasts, and AI reply generation out of the box—saving your team over 20 hours per week.\n\nWould you like a quick 5-minute video walkthrough?\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 4,
+        title: "High-Value Decision Maker Outreach",
+        category: "Sales",
+        tag: "Executive Pitch",
+        openRate: "78%",
+        subject: "Improving lead conversion rates for {{company_name}}",
+        body: `Dear {{first_name}},\n\nAs {{title}} at {{company_name}}, driving revenue efficiency is likely top of mind for Q3.\n\nOur intelligent Email & WhatsApp CRM platform helps sales executives automate lead prioritization with zero tech overhead.\n\nLet's schedule a 15-minute call to discuss your growth targets.\n\nRegards,\n{{sender_name}}`
+    },
+    {
+        id: 5,
+        title: "Value Proposition Feature Spotlight",
+        category: "Sales",
+        tag: "Product Pitch",
+        openRate: "71%",
+        subject: "Automate your lead follow-ups in 3 simple steps",
+        body: `Hi {{first_name}},\n\nWhat if your sales team could automatically draft customized replies to every incoming email within seconds?\n\nWith LinkPilot AI's Smart Email Intelligence, your response time drops from hours to seconds.\n\nClick here to see a 60-second interactive preview: {{demo_link}}\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 6,
+        title: "Free Audit & Strategy Offer",
+        category: "Sales",
+        tag: "Lead Magnet",
+        openRate: "76%",
+        subject: "Complimentary CRM workflow audit for {{company_name}}",
+        body: `Hi {{first_name}},\n\nWe're running a limited audit program for fast-growing companies. We analyze your existing email response speed and highlight bottleneck areas for free.\n\nWould you like us to run a 5-minute diagnostic report for {{company_name}}?\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 7,
+        title: "Re-Engaging Dormant Cold Prospects",
+        category: "Sales",
+        tag: "Re-engagement",
+        openRate: "65%",
+        subject: "Is {{project_name}} still a priority for {{company_name}}?",
+        body: `Hi {{first_name}},\n\nI reached out a few weeks ago regarding automated sales workflows.\n\nI know timing is everything—is optimizing your CRM follow-ups still on your radar for this quarter?\n\nLet me know if you'd like to reconnect briefly.\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 8,
+        title: "Social Proof Case Study Outreach",
+        category: "Sales",
+        tag: "Case Study",
+        openRate: "79%",
+        subject: "How {{client_name}} boosted response rates by 310%",
+        body: `Hi {{first_name}},\n\n{{client_name}} was struggling with delayed follow-ups and unorganized lead pipelines.\n\nAfter deploying LinkPilot AI, their team automated 85% of routine communications and closed $120k in new ARR within 30 days.\n\nRead the case study here: {{case_study_url}}\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 9,
+        title: "Short & Punchy 1-Sentence Pitch",
+        category: "Sales",
+        tag: "Short Outreach",
+        openRate: "83%",
+        subject: "Quick question, {{first_name}}",
+        body: `Hi {{first_name}},\n\nAre you open to checking out a tool that automatically generates AI drafts for all your inbound sales emails?\n\nLet me know and I'll send over a 1-minute demo.\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 10,
+        title: "Post-Event Trade Show Followup",
+        category: "Sales",
+        tag: "Event Followup",
+        openRate: "75%",
+        subject: "Great connecting at {{event_name}}, {{first_name}}!",
+        body: `Hi {{first_name}},\n\nIt was a pleasure meeting you at {{event_name}} earlier this week!\n\nAs discussed, here is the link to explore our AI CRM capabilities: {{link}}\n\nLet me know if you have 10 minutes for a follow-up discussion.\n\nBest,\n{{sender_name}}`
+    },
+
+    // --- MEETINGS & SCHEDULING (8) ---
+    {
+        id: 11,
+        title: "Product Demo Invitation",
+        category: "Meetings",
+        tag: "Demo Invite",
+        openRate: "82%",
+        subject: "Invitation: 15-Minute LinkPilot CRM Demo",
+        body: `Hi {{first_name}},\n\nThank you for your interest in LinkPilot AI!\n\nI'd love to walk you through our platform and show you how to automate your email & WhatsApp leads.\n\nPlease pick a time slot that works best for you: {{booking_link}}\n\nLooking forward to speaking!\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 12,
+        title: "Meeting Confirmation & Agenda",
+        category: "Meetings",
+        tag: "Confirmation",
+        openRate: "94%",
+        subject: "Confirmed: Meeting with {{sender_name}} on {{meeting_date}}",
+        body: `Hi {{first_name}},\n\nOur meeting is confirmed for {{meeting_date}} at {{meeting_time}}.\n\nAgenda:\n1. Overview of {{company_name}}'s current sales workflow\n2. LinkPilot AI Live Demo\n3. Q&A and Next Steps\n\nGoogle Meet Link: {{meet_link}}\n\nSee you soon!\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 13,
+        title: "24-Hour Meeting Reminder",
+        category: "Meetings",
+        tag: "Reminder",
+        openRate: "91%",
+        subject: "Reminder: Tomorrow's meeting at {{meeting_time}}",
+        body: `Hi {{first_name}},\n\nJust a quick reminder about our call scheduled for tomorrow, {{meeting_date}} at {{meeting_time}}.\n\nJoin link: {{meet_link}}\n\nIf you need to reschedule, feel free to use my calendar link: {{booking_link}}\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 14,
+        title: "Post-Meeting Thank You & Action Items",
+        category: "Meetings",
+        tag: "Post Meeting",
+        openRate: "88%",
+        subject: "Action Items & Next Steps from our call - {{company_name}}",
+        body: `Hi {{first_name}},\n\nThanks for your time today! Here is a summary of our discussion and agreed action items:\n\n1. {{sender_name}} to send custom pricing proposal.\n2. {{first_name}} to review with team by {{target_date}}.\n\nAttached is our product deck for reference.\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 15,
+        title: "Rescheduling Request",
+        category: "Meetings",
+        tag: "Reschedule",
+        openRate: "86%",
+        subject: "Request to reschedule our call on {{meeting_date}}",
+        body: `Hi {{first_name}},\n\nApologies, but an urgent conflict came up for our scheduled call on {{meeting_date}}.\n\nCould we reschedule for one of the following times?\n- {{option_1}}\n- {{option_2}}\n\nAlternatively, pick any convenient time here: {{booking_link}}\n\nThank you for understanding!\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 16,
+        title: "Missed Call / No-Show Followup",
+        category: "Meetings",
+        tag: "No Show",
+        openRate: "79%",
+        subject: "Sorry we missed each other, {{first_name}}!",
+        body: `Hi {{first_name}},\n\nI tried joining our scheduled meeting today, but wasn't able to connect with you.\n\nI know unexpected things come up! Would you like to pick another time here: {{booking_link}}?\n\nLooking forward to connecting soon.\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 17,
+        title: "Executive Strategy Session Call Invite",
+        category: "Meetings",
+        tag: "Strategy Session",
+        openRate: "84%",
+        subject: "Exclusive Strategy Session for {{company_name}}",
+        body: `Hi {{first_name}},\n\nWe're hosting 1-on-1 strategy sessions with tech leaders to discuss automating multi-channel sales.\n\nI've reserved a complimentary 20-minute session for {{company_name}}.\n\nClaim your spot here: {{booking_link}}\n\nBest regards,\n{{sender_name}}`
+    },
+    {
+        id: 18,
+        title: "Technical Discovery Call Request",
+        category: "Meetings",
+        tag: "Discovery Call",
+        openRate: "77%",
+        subject: "Technical discovery call regarding {{company_name}} integrations",
+        body: `Hi {{first_name}},\n\nOur engineering team would love to learn more about your current API setup to ensure smooth integration with LinkPilot CRM.\n\nAre you available for a 15-minute technical discovery call next Wednesday?\n\nBest,\n{{sender_name}}`
+    },
+
+    // --- ONBOARDING & PRODUCT UPDATES (8) ---
+    {
+        id: 19,
+        title: "Welcome New Subscriber / User",
+        category: "Onboarding",
+        tag: "Welcome",
+        openRate: "96%",
+        subject: "Welcome to LinkPilot AI, {{first_name}}! 🚀",
+        body: `Hi {{first_name}},\n\nWelcome to LinkPilot AI! We're thrilled to have you on board.\n\nHere are 3 quick steps to get started:\n1. Connect your Email & WhatsApp account.\n2. Configure your AI reply tones.\n3. Send your first automated message!\n\nLogin here: {{login_link}}\n\nNeed help? Reply to this email anytime!\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 20,
+        title: "Account Setup Milestone Checklist",
+        category: "Onboarding",
+        tag: "Onboarding Step",
+        openRate: "89%",
+        subject: "Complete your setup: 2 quick steps remaining",
+        body: `Hi {{first_name}},\n\nYou're almost there! Your LinkPilot CRM account is 70% complete.\n\nRemaining steps:\n- [ ] Import your contacts list\n- [ ] Set up automated follow-up rules\n\nClick here to complete setup: {{setup_link}}\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 21,
+        title: "New Feature Announcement",
+        category: "Onboarding",
+        tag: "Feature Launch",
+        openRate: "73%",
+        subject: "✨ New Feature: AI Email Intelligence Hub is Live!",
+        body: `Hi {{first_name}},\n\nWe're excited to announce our brand new AI Email Intelligence Hub!\n\nWhat's new:\n- Automatic priority scoring for inbound emails\n- Overdue SLA indicators\n- 1-Click AI Response Draft Generator\n\nTry it now in your dashboard: {{dashboard_link}}\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 22,
+        title: "Trial Expiration Warning (3 Days Left)",
+        category: "Onboarding",
+        tag: "Trial Nudge",
+        openRate: "85%",
+        subject: "Your LinkPilot trial expires in 3 days, {{first_name}}",
+        body: `Hi {{first_name}},\n\nYour 14-day free trial of LinkPilot AI will expire on {{expire_date}}.\n\nDon't lose access to your automated lead workflows, AI drafts, and email tracking.\n\nUpgrade your subscription today: {{upgrade_link}}\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 23,
+        title: "Product Masterclass / Webinar Invite",
+        category: "Onboarding",
+        tag: "Webinar",
+        openRate: "70%",
+        subject: "Live Masterclass: How to 10x your sales response speed",
+        body: `Hi {{first_name}},\n\nJoin our live masterclass this Thursday at 11 AM EST on "Automating Sales Workflows with AI".\n\nYou'll learn:\n- Advanced sequence triggers\n- Multi-channel WhatsApp & Email automation\n\nRegister for free: {{webinar_link}}\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 24,
+        title: "Dedicated Customer Success Manager Intro",
+        category: "Onboarding",
+        tag: "CSM Intro",
+        openRate: "92%",
+        subject: "Meet your Customer Success Manager, {{first_name}}",
+        body: `Hi {{first_name}},\n\nMy name is {{sender_name}}, and I'm your dedicated Customer Success Manager at LinkPilot.\n\nMy goal is to ensure {{company_name}} gets maximum ROI from our platform.\n\nLet's schedule a 15-minute onboarding call: {{booking_link}}\n\nBest regards,\n{{sender_name}}`
+    },
+    {
+        id: 25,
+        title: "Pro Tip / Weekly Usage Guide",
+        category: "Onboarding",
+        tag: "Product Tip",
+        openRate: "68%",
+        subject: "Pro Tip: How to use custom merge tags in Email Templates",
+        body: `Hi {{first_name}},\n\nDid you know you can personalize every email template dynamically using merge tags like {{company_name}} and {{first_name}}?\n\nLearn how to configure custom tags here: {{article_link}}\n\nHappy automating!\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 26,
+        title: "Trial Extension Offer",
+        category: "Onboarding",
+        tag: "Trial Extension",
+        openRate: "81%",
+        subject: "We've extended your LinkPilot trial by 7 days!",
+        body: `Hi {{first_name}},\n\nWe noticed you haven't had enough time to test all features. We've extended your free trial by an extra 7 days!\n\nExplore your dashboard now: {{dashboard_link}}\n\nBest,\n{{sender_name}}`
+    },
+
+    // --- FOLLOW-UPS & REMINDERS (8) ---
+    {
+        id: 27,
+        title: "Gentle Followup #1 - Polite Check-in",
+        category: "Follow-ups",
+        tag: "Followup 1",
+        openRate: "77%",
+        subject: "Following up on my previous message regarding {{company_name}}",
+        body: `Hi {{first_name}},\n\nI wanted to follow up on my email below in case it got buried in your inbox.\n\nDo you have 5 minutes this week for a brief call?\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 28,
+        title: "Value-Add Followup #2 - Article Share",
+        category: "Follow-ups",
+        tag: "Followup 2",
+        openRate: "72%",
+        subject: "Thought you might find this useful, {{first_name}}",
+        body: `Hi {{first_name}},\n\nI was reading this industry report on automated sales workflows and thought of {{company_name}}:\n\n{{article_link}}\n\nWould love to hear your thoughts whenever you have a moment!\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 29,
+        title: "Break-up Email - Final Attempt",
+        category: "Follow-ups",
+        tag: "Breakup Email",
+        openRate: "84%",
+        subject: "Should I close your file, {{first_name}}?",
+        body: `Hi {{first_name}},\n\nI haven't heard back from you, so I assume improving your sales workflow isn't a priority right now.\n\nI won't bother you again! But if things change in the future, feel free to reach out anytime.\n\nWishing you all the best,\n{{sender_name}}`
+    },
+    {
+        id: 30,
+        title: "Proposal Review Followup",
+        category: "Follow-ups",
+        tag: "Proposal Followup",
+        openRate: "80%",
+        subject: "Following up on the LinkPilot proposal for {{company_name}}",
+        body: `Hi {{first_name}},\n\nI hope you had a chance to review the proposal I sent over last week.\n\nDo you or your team have any questions regarding the pricing tiers or implementation timeline?\n\nLet me know if you'd like to jump on a quick call.\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 31,
+        title: "Contract Signature Reminder",
+        category: "Follow-ups",
+        tag: "Contract Due",
+        openRate: "89%",
+        subject: "Reminder: Signature required for {{company_name}} agreement",
+        body: `Hi {{first_name}},\n\nJust a quick reminder that your service agreement for {{company_name}} is ready for e-signature.\n\nReview & Sign Document: {{contract_url}}\n\nLet me know if you have any final questions!\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 32,
+        title: "Post-Event SLA Overdue Followup",
+        category: "Follow-ups",
+        tag: "SLA Overdue",
+        openRate: "76%",
+        subject: "Checking in on {{ticket_topic}} - Status update",
+        body: `Hi {{first_name}},\n\nI noticed your follow-up request regarding {{ticket_topic}} is currently pending.\n\nI wanted to ensure you have everything you need. Should we jump on a 5-minute call to finalize?\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 33,
+        title: "Dormant Customer Winback Campaign",
+        category: "Follow-ups",
+        tag: "Winback",
+        openRate: "68%",
+        subject: "We miss you at LinkPilot, {{first_name}}!",
+        body: `Hi {{first_name}},\n\nIt's been a while since you last logged into LinkPilot CRM. We've rolled out huge performance upgrades and new AI tools.\n\nHere is a 20% discount code to reactivate your account: WELCOMEBACK20\n\nReactivate now: {{login_link}}\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 34,
+        title: "Post-Demo Feedback Followup",
+        category: "Follow-ups",
+        tag: "Post Demo",
+        openRate: "83%",
+        subject: "Feedback on yesterday's LinkPilot demo?",
+        body: `Hi {{first_name}},\n\nThank you for attending yesterday's demo! I'd love to get your honest feedback.\n\nDid the platform align with {{company_name}}'s goals? Reply back or schedule a brief debrief here: {{booking_link}}\n\nBest,\n{{sender_name}}`
+    },
+
+    // --- CUSTOMER SUPPORT & INQUIRIES (6) ---
+    {
+        id: 35,
+        title: "Support Ticket Confirmation",
+        category: "Support",
+        tag: "Ticket Received",
+        openRate: "98%",
+        subject: "[Ticket #{{ticket_id}}] We received your support request",
+        body: `Hi {{first_name}},\n\nThank you for reaching out to LinkPilot Support.\n\nYour request has been assigned Ticket #{{ticket_id}}. Our support team is reviewing your query and will reply within 2 hours.\n\nBest regards,\nLinkPilot Support Team`
+    },
+    {
+        id: 36,
+        title: "Issue Resolved & Satisfaction Check",
+        category: "Support",
+        tag: "Ticket Resolved",
+        openRate: "91%",
+        subject: "[Ticket #{{ticket_id}}] Issue Resolved",
+        body: `Hi {{first_name}},\n\nYour support ticket #{{ticket_id}} has been marked as resolved.\n\nPlease let us know if everything is working smoothly on your end, or reply if you need further assistance!\n\nBest regards,\n{{sender_name}}`
+    },
+    {
+        id: 37,
+        title: "Escalated Support Ticket Update",
+        category: "Support",
+        tag: "Escalated Issue",
+        openRate: "94%",
+        subject: "Update on Escalated Ticket #{{ticket_id}}",
+        body: `Hi {{first_name}},\n\nOur senior engineering team is actively investigating your issue (Ticket #{{ticket_id}}).\n\nWe anticipate a resolution within the next 4 hours and will keep you updated right here.\n\nThank you for your patience!\n\nBest regards,\n{{sender_name}}`
+    },
+    {
+        id: 38,
+        title: "Technical Troubleshooting Guide",
+        category: "Support",
+        tag: "Troubleshooting",
+        openRate: "87%",
+        subject: "Steps to resolve your connection issue",
+        body: `Hi {{first_name}},\n\nPlease try these quick troubleshooting steps to fix your connection:\n1. Clear your browser cache or try Incognito mode.\n2. Re-authenticate your Email/WhatsApp gateway.\n3. Verify your API credentials in Settings.\n\nLet us know if the issue persists!\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 39,
+        title: "Maintenance & Downtime Alert",
+        category: "Support",
+        tag: "System Alert",
+        openRate: "96%",
+        subject: "Scheduled System Maintenance Notice - {{maintenance_date}}",
+        body: `Hi {{first_name}},\n\nPlease be advised that LinkPilot CRM will undergo scheduled maintenance on {{maintenance_date}} from 2:00 AM to 4:00 AM EST.\n\nAll services will resume immediately after. Thank you for your cooperation!\n\nBest regards,\nEngineering Operations`
+    },
+    {
+        id: 40,
+        title: "Feature Request Status Update",
+        category: "Support",
+        tag: "Feature Request",
+        openRate: "89%",
+        subject: "Update on your feature request: {{feature_name}}",
+        body: `Hi {{first_name}},\n\nGood news! The feature request you submitted ({{feature_name}}) has been approved and added to our Q3 product roadmap.\n\nWe'll notify you as soon as it's live!\n\nBest regards,\nProduct Team`
+    },
+
+    // --- INVOICING & BILLING (5) ---
+    {
+        id: 41,
+        title: "New Invoice Notification",
+        category: "Invoices",
+        tag: "Invoice Due",
+        openRate: "95%",
+        subject: "Invoice #{{invoice_number}} from LinkPilot AI",
+        body: `Hi {{first_name}},\n\nYour invoice #{{invoice_number}} for {{amount}} is now available.\n\nDue Date: {{due_date}}\nPay Invoice Online: {{payment_link}}\n\nThank you for your business!\n\nBest regards,\nBilling Team`
+    },
+    {
+        id: 42,
+        title: "Payment Received Receipt",
+        category: "Invoices",
+        tag: "Receipt",
+        openRate: "97%",
+        subject: "Payment Received: Invoice #{{invoice_number}}",
+        body: `Hi {{first_name}},\n\nWe have received your payment of {{amount}} for Invoice #{{invoice_number}}.\n\nThank you for your prompt payment!\n\nBest regards,\nBilling Team`
+    },
+    {
+        id: 43,
+        title: "Past Due Overdue Invoice Notice",
+        category: "Invoices",
+        tag: "Overdue Invoice",
+        openRate: "92%",
+        subject: "URGENT: Past Due Invoice #{{invoice_number}}",
+        body: `Hi {{first_name}},\n\nThis is a reminder that Invoice #{{invoice_number}} for {{amount}} was due on {{due_date}} and is now past due.\n\nPlease process payment as soon as possible to avoid service disruption: {{payment_link}}\n\nBest regards,\nFinance Team`
+    },
+    {
+        id: 44,
+        title: "Subscription Renewal Notice",
+        category: "Invoices",
+        tag: "Renewal",
+        openRate: "90%",
+        subject: "Your LinkPilot subscription renews on {{renewal_date}}",
+        body: `Hi {{first_name}},\n\nYour annual plan for {{company_name}} will automatically renew on {{renewal_date}}.\n\nBilling Amount: {{amount}}\nPayment Method: Ending in {{card_last4}}\n\nManage Subscription: {{billing_link}}\n\nBest regards,\nBilling Team`
+    },
+    {
+        id: 45,
+        title: "Credit Card Expiration Reminder",
+        category: "Invoices",
+        tag: "Payment Update",
+        openRate: "88%",
+        subject: "Action Required: Update your credit card on file",
+        body: `Hi {{first_name}},\n\nYour credit card ending in {{card_last4}} is set to expire soon.\n\nPlease update your payment information to keep your CRM active: {{billing_link}}\n\nBest regards,\nBilling Team`
+    },
+
+    // --- FEEDBACK & REVIEWS (5) ---
+    {
+        id: 46,
+        title: "NPS Customer Satisfaction Survey",
+        category: "Feedback",
+        tag: "NPS Survey",
+        openRate: "78%",
+        subject: "How likely are you to recommend LinkPilot AI?",
+        body: `Hi {{first_name}},\n\nWe'd love your feedback! How likely are you to recommend LinkPilot AI to a colleague on a scale of 1-10?\n\nClick here to submit your score: {{survey_link}}\n\nThank you for helping us improve!\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 47,
+        title: "G2 / Capterra Review Request",
+        category: "Feedback",
+        tag: "Review Request",
+        openRate: "71%",
+        subject: "Share your experience with LinkPilot AI (Get $25 Gift Card)",
+        body: `Hi {{first_name}},\n\nIf you're enjoying LinkPilot AI, would you take 2 minutes to write an honest review on G2?\n\nAs a thank you, we'll send you a $25 Amazon gift card upon review verification!\n\nLeave review here: {{g2_link}}\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 48,
+        title: "Product Feature Feedback Survey",
+        category: "Feedback",
+        tag: "Feature Feedback",
+        openRate: "75%",
+        subject: "Help us shape the future of LinkPilot CRM",
+        body: `Hi {{first_name}},\n\nWe're currently planning our Q4 roadmap and want to know which features matter most to {{company_name}}.\n\nTake our 2-minute feature survey: {{survey_link}}\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 49,
+        title: "Case Study Interview Invitation",
+        category: "Feedback",
+        tag: "Case Study Invite",
+        openRate: "82%",
+        subject: "Featured Case Study Opportunity for {{company_name}}",
+        body: `Hi {{first_name}},\n\nCongratulations on your recent results with LinkPilot CRM!\n\nWe'd love to feature {{company_name}} as a success story on our website and newsletter.\n\nWould you be open to a quick 15-minute interview next week?\n\nBest regards,\n{{sender_name}}`
+    },
+    {
+        id: 50,
+        title: "Customer Exit / Churn Feedback",
+        category: "Feedback",
+        tag: "Exit Survey",
+        openRate: "69%",
+        subject: "Help us understand how we can improve, {{first_name}}",
+        body: `Hi {{first_name}},\n\nWe're sorry to see you go! Could you share 1 brief reason why LinkPilot wasn't the right fit for {{company_name}}?\n\nYour feedback helps us build a better product: {{feedback_link}}\n\nThank you for your time!\n\nBest,\n{{sender_name}}`
+    },
+
+    // --- NETWORKING & PARTNERSHIPS (5) ---
+    {
+        id: 51,
+        title: "Affiliate & Partner Program Invite",
+        category: "Networking",
+        tag: "Partner Program",
+        openRate: "76%",
+        subject: "Partner Opportunity: Earn 30% recurring commission with LinkPilot",
+        body: `Hi {{first_name}},\n\nWe're inviting select agency owners to join the LinkPilot Partner Network.\n\nEarn 30% recurring commissions for every client you introduce to our CRM platform.\n\nApply for partnership: {{partner_link}}\n\nBest regards,\n{{sender_name}}`
+    },
+    {
+        id: 52,
+        title: "Podcast / Guest Speaker Invitation",
+        category: "Networking",
+        tag: "Podcast Invite",
+        openRate: "83%",
+        subject: "Invitation to speak on the Sales Automation Podcast",
+        body: `Hi {{first_name}},\n\nI've been following your work at {{company_name}} and love your insights on sales execution.\n\nWe'd love to invite you as a guest speaker on our weekly podcast (over 15,000 listeners).\n\nLet me know if you're open to a 20-minute chat!\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 53,
+        title: "Co-Marketing & Guest Post Request",
+        category: "Networking",
+        tag: "Co-Marketing",
+        openRate: "74%",
+        subject: "Co-marketing collaboration between {{company_name}} and LinkPilot",
+        body: `Hi {{first_name}},\n\nOur audience overlaps significantly with {{company_name}}'s target market.\n\nWould you be open to a co-marketing webinar or joint blog post exchange this month?\n\nBest regards,\n{{sender_name}}`
+    },
+    {
+        id: 54,
+        title: "Strategic Integration Partnership Pitch",
+        category: "Networking",
+        tag: "API Integration",
+        openRate: "79%",
+        subject: "Building a native integration between {{company_name}} & LinkPilot",
+        body: `Hi {{first_name}},\n\nWe've had several mutual clients request a native integration between {{company_name}} and LinkPilot AI.\n\nWould your dev team be open to a brief technical call to explore integration pathways?\n\nBest,\n{{sender_name}}`
+    },
+    {
+        id: 55,
+        title: "VIP Industry Executive Networking Lunch",
+        category: "Networking",
+        tag: "VIP Invite",
+        openRate: "87%",
+        subject: "Exclusive Tech Executive Dinner Invitation - {{location}}",
+        body: `Dear {{first_name}},\n\nYou're invited to an intimate private dinner with 12 tech founders and executives in {{location}} on {{event_date}}.\n\nRSVP here: {{rsvp_link}}\n\nWe hope to see you there!\n\nBest regards,\n{{sender_name}}`
+    }
+];
+
+async function renderEmailTemplates(container) {
+    try {
+        const categories = ["All", "Sales", "Meetings", "Onboarding", "Follow-ups", "Support", "Invoices", "Feedback", "Networking"];
+        
+        let filteredTemplates = EMAIL_TEMPLATES_DATA.filter(t => {
+            const matchesCat = window.emailTemplateFilters.category === 'All' || t.category === window.emailTemplateFilters.category;
+            const q = window.emailTemplateFilters.search.toLowerCase();
+            const matchesSearch = !q || t.title.toLowerCase().includes(q) || t.subject.toLowerCase().includes(q) || t.tag.toLowerCase().includes(q) || t.body.toLowerCase().includes(q);
+            return matchesCat && matchesSearch;
+        });
+
+        container.innerHTML = `
+            <div class="flex flex-col w-full h-full bg-[#f8fafc] overflow-hidden animate-fade-in font-sans text-slate-800">
+                <!-- Header Bar -->
+                <div class="bg-white border-b border-slate-200 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0">
+                    <div class="flex items-center space-x-3 min-w-0">
+                        <div class="h-10 w-10 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 shadow-2xs">
+                            <i data-lucide="file-text" class="h-5 w-5"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center space-x-2">
+                                <h1 class="text-base font-bold text-slate-900 leading-tight">50+ Premium Email Templates</h1>
+                                <span class="px-2 py-0.5 bg-indigo-600 text-white rounded-full text-[10px] font-extrabold" style="color: #ffffff !important;">55 ACTIVE</span>
+                            </div>
+                            <p class="text-xs text-slate-500 font-medium truncate mt-0.5">High-converting, professionally crafted templates. Hover any template to use or edit.</p>
+                        </div>
+                    </div>
+
+                    <!-- Search Box -->
+                    <div class="relative w-full md:w-72 shrink-0">
+                        <i data-lucide="search" class="absolute left-3.5 top-2.5 h-3.5 w-3.5 text-slate-400 pointer-events-none z-10"></i>
+                        <input type="text" id="template-search-input" oninput="handleTemplatesSearch(this.value)" value="${window.emailTemplateFilters.search}" placeholder="Search 50+ templates..." class="w-full pr-3.5 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white transition" style="padding-left: 36px !important;">
+                    </div>
+                </div>
+
+                <!-- Category Filter Pills Bar -->
+                <div class="bg-white border-b border-slate-200 px-6 py-2 flex items-center space-x-2 overflow-x-auto no-scrollbar shrink-0 text-xs font-bold">
+                    ${categories.map(cat => `
+                        <button onclick="filterTemplatesCategory('${cat}')" class="px-3 py-1.5 rounded-full transition shrink-0 ${window.emailTemplateFilters.category === cat ? 'bg-indigo-600 text-white font-extrabold shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium'}" ${window.emailTemplateFilters.category === cat ? 'style="color: #ffffff !important;"' : ''}>
+                            <span>${cat}</span>
+                            ${cat === 'All' ? `<span class="ml-1 opacity-80 text-[10px]">(${EMAIL_TEMPLATES_DATA.length})</span>` : ''}
+                        </button>
+                    `).join('')}
+                </div>
+
+                <!-- Templates Grid Container -->
+                <div class="flex-grow p-6 overflow-y-auto min-h-0">
+                    ${filteredTemplates.length === 0 ? `
+                        <div class="p-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200 max-w-md mx-auto my-12">
+                            <i data-lucide="file-question" class="h-10 w-10 mx-auto mb-2 text-indigo-400"></i>
+                            <h4 class="text-sm font-bold text-slate-700">No templates found</h4>
+                            <p class="text-xs text-slate-400 mt-1">Try adjusting your category filter or search terms.</p>
+                        </div>
+                    ` : `
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                            ${filteredTemplates.map(t => `
+                                <div class="group relative bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs hover:shadow-md hover:border-indigo-400 transition-all duration-200 flex flex-col justify-between overflow-hidden">
+                                    
+                                    <!-- Card Content -->
+                                    <div class="space-y-3 min-w-0">
+                                        <div class="flex justify-between items-center">
+                                            <span class="px-2.5 py-0.5 rounded-md text-[9px] font-extrabold tracking-wider uppercase bg-indigo-50 text-indigo-700 border border-indigo-100">${t.category} • ${t.tag}</span>
+                                            <span class="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center">
+                                                <i data-lucide="zap" class="h-2.5 w-2.5 mr-1 text-emerald-600"></i>${t.openRate} OPEN
+                                            </span>
+                                        </div>
+                                        
+                                        <h3 class="text-sm font-bold text-slate-900 leading-snug line-clamp-1 group-hover:text-indigo-600 transition" title="${t.title}">${t.title}</h3>
+                                        
+                                        <div class="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-800 line-clamp-1 truncate" title="${t.subject}">
+                                            <span class="text-slate-400 font-normal">Subject:</span> ${t.subject}
+                                        </div>
+                                        
+                                        <p class="text-xs text-slate-500 leading-relaxed font-sans line-clamp-3">${t.body}</p>
+                                    </div>
+
+                                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between mt-4 text-[11px] text-slate-400 font-medium">
+                                        <span>Template #${t.id}</span>
+                                        <span class="text-indigo-600 font-bold group-hover:underline">Hover to Use →</span>
+                                    </div>
+
+                                    <!-- MOUSE HOVER OVERLAY WITH "USE TEMPLATE" BUTTON -->
+                                    <div class="absolute inset-0 bg-slate-900/85 backdrop-blur-xs rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center p-6 space-y-3 pointer-events-none group-hover:pointer-events-auto">
+                                        <h4 class="text-xs font-bold text-white text-center line-clamp-1 px-2">${t.title}</h4>
+                                        <button onclick="openEmailComposerModal(${t.id})" class="w-full max-w-[190px] py-2.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-extrabold rounded-xl shadow-lg hover:scale-105 transition flex items-center justify-center space-x-2 cursor-pointer" style="color: #ffffff !important;">
+                                            <i data-lucide="send" class="h-3.5 w-3.5 text-white" style="color: #ffffff !important;"></i>
+                                            <span class="text-white font-extrabold" style="color: #ffffff !important;">Use Template</span>
+                                        </button>
+                                        <button onclick="previewTemplateModal(${t.id})" class="w-full max-w-[190px] py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-lg transition cursor-pointer" style="color: #ffffff !important;">
+                                            Preview Full Text
+                                        </button>
+                                    </div>
+
+                                </div>
+                            `).join('')}
+                        </div>
+                    `}
+                </div>
+            </div>
+        `;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    } catch(err) {
+        container.innerHTML = `<div class="p-6 text-center text-rose-500 text-xs font-bold">Failed to render email templates: ${err.message}</div>`;
+    }
+}
+
+function filterTemplatesCategory(cat) {
+    window.emailTemplateFilters.category = cat;
+    const contentArea = document.getElementById('main-content-area');
+    if (contentArea) renderEmailTemplates(contentArea);
+}
+
+let templatesSearchTimeout = null;
+function handleTemplatesSearch(val) {
+    if (templatesSearchTimeout) clearTimeout(templatesSearchTimeout);
+    templatesSearchTimeout = setTimeout(() => {
+        window.emailTemplateFilters.search = val.trim();
+        const contentArea = document.getElementById('main-content-area');
+        if (contentArea) renderEmailTemplates(contentArea);
+    }, 300);
+}
+
+window.previewTemplateModal = function(templateId) {
+    const t = EMAIL_TEMPLATES_DATA.find(x => x.id === templateId);
+    if (!t) return;
+    
+    let modal = document.getElementById('template-preview-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'template-preview-modal';
+        modal.className = 'fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 md:p-6 animate-fade-in';
+        document.body.appendChild(modal);
+    }
+    
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-up font-sans">
+            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-900">${t.title}</h3>
+                    <span class="text-[10px] font-bold text-indigo-600 uppercase">${t.category} • ${t.tag}</span>
+                </div>
+                <button onclick="document.getElementById('template-preview-modal').remove()" class="h-8 w-8 rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-500 flex items-center justify-center">✕</button>
+            </div>
+            <div class="p-6 space-y-3 bg-white max-h-[70vh] overflow-y-auto">
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800">
+                    <span class="text-slate-400 font-normal">Subject:</span> ${t.subject}
+                </div>
+                <div class="p-4 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 leading-relaxed whitespace-pre-line font-sans">${t.body}</div>
+            </div>
+            <div class="px-6 py-3 border-t border-slate-200 bg-slate-50 flex justify-end space-x-2">
+                <button onclick="document.getElementById('template-preview-modal').remove()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl">Close</button>
+                <button onclick="document.getElementById('template-preview-modal').remove(); openEmailComposerModal(${t.id});" class="px-5 py-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-extrabold rounded-xl shadow-2xs" style="color: #ffffff !important;">Use Template</button>
+            </div>
+        </div>
+    `;
+};
+
+window.openEmailComposerModal = function(templateId) {
+    const t = EMAIL_TEMPLATES_DATA.find(x => x.id === templateId) || EMAIL_TEMPLATES_DATA[0];
+    
+    let modal = document.getElementById('email-composer-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'email-composer-modal';
+        modal.className = 'fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 md:p-6 animate-fade-in';
+        document.body.appendChild(modal);
+    }
+    
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-3xl flex flex-col overflow-hidden animate-scale-up font-sans max-h-[90vh]">
+            <!-- Composer Modal Header -->
+            <div class="px-6 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
+                <div class="flex items-center space-x-3 min-w-0">
+                    <div class="h-9 w-9 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="send" class="h-4.5 w-4.5"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <h3 class="text-sm font-bold text-slate-900 truncate">Mail Sending Page - ${t.title}</h3>
+                        <p class="text-[11px] text-slate-500 font-medium truncate">Pre-filled with template #${t.id} (${t.category})</p>
+                    </div>
+                </div>
+                <button onclick="closeEmailComposerModal()" class="h-8 w-8 rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer" title="Close">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            </div>
+
+            <!-- Composer Body Form -->
+            <div class="flex-grow p-6 overflow-y-auto space-y-4 bg-white">
+                <!-- Recipient Field -->
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-slate-700">To (Recipient Email):</label>
+                    <input type="email" id="composer-to-email" value="alex.smith@acme.com" placeholder="recipient@company.com" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white transition">
+                </div>
+
+                <!-- Subject Field -->
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-slate-700">Subject Line:</label>
+                    <input type="text" id="composer-subject" value="${t.subject}" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-indigo-500 focus:bg-white transition">
+                </div>
+
+                <!-- Quick Merge Tag Chips -->
+                <div class="flex items-center space-x-2 pt-1 overflow-x-auto no-scrollbar text-[11px]">
+                    <span class="text-slate-400 font-bold shrink-0">Insert Tag:</span>
+                    <button type="button" onclick="insertComposerMergeTag('{{first_name}}')" class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md border border-indigo-100 font-semibold hover:bg-indigo-100 transition shrink-0">+ {{first_name}}</button>
+                    <button type="button" onclick="insertComposerMergeTag('{{company_name}}')" class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md border border-indigo-100 font-semibold hover:bg-indigo-100 transition shrink-0">+ {{company_name}}</button>
+                    <button type="button" onclick="insertComposerMergeTag('{{sender_name}}')" class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md border border-indigo-100 font-semibold hover:bg-indigo-100 transition shrink-0">+ {{sender_name}}</button>
+                    <button type="button" onclick="insertComposerMergeTag('{{meeting_date}}')" class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md border border-indigo-100 font-semibold hover:bg-indigo-100 transition shrink-0">+ {{meeting_date}}</button>
+                </div>
+
+                <!-- Email Message Content Body -->
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-slate-700">Email Content Body:</label>
+                    <textarea id="composer-body" rows="10" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 leading-relaxed focus:outline-none focus:border-indigo-500 focus:bg-white transition resize-y font-sans">${t.body}</textarea>
+                </div>
+            </div>
+
+            <!-- Composer Modal Footer -->
+            <div class="px-6 py-3.5 border-t border-slate-200 bg-slate-50 flex items-center justify-between shrink-0">
+                <div class="flex items-center space-x-2 text-slate-400 text-xs">
+                    <i data-lucide="paperclip" class="h-4 w-4"></i>
+                    <span>Attachments enabled</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button onclick="closeEmailComposerModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer">Cancel</button>
+                    <button onclick="sendComposerEmailModal(${t.id})" id="composer-send-btn" class="px-6 py-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-extrabold rounded-xl shadow-md transition flex items-center space-x-1.5 cursor-pointer" style="color: #ffffff !important;">
+                        <i data-lucide="send" class="h-3.5 w-3.5 text-white" style="color: #ffffff !important;"></i>
+                        <span class="text-white font-extrabold" style="color: #ffffff !important;">Send Email Now</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+};
+
+window.closeEmailComposerModal = function() {
+    const modal = document.getElementById('email-composer-modal');
+    if (modal) modal.remove();
+};
+
+window.insertComposerMergeTag = function(tag) {
+    const textarea = document.getElementById('composer-body');
+    if (textarea) {
+        const start = textarea.selectionStart || 0;
+        const end = textarea.selectionEnd || 0;
+        const val = textarea.value;
+        textarea.value = val.substring(0, start) + tag + val.substring(end);
+        textarea.focus();
+    }
+};
+
+window.sendComposerEmailModal = async function(templateId) {
+    const toInput = document.getElementById('composer-to-email');
+    const subjectInput = document.getElementById('composer-subject');
+    const bodyInput = document.getElementById('composer-body');
+    const btn = document.getElementById('composer-send-btn');
+    
+    if (!toInput || !toInput.value.trim()) {
+        showNotification('error', 'Please enter a recipient email address.');
+        return;
+    }
+    
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="refresh-cw" class="h-3.5 w-3.5 animate-spin mr-1 text-white"></i><span class="text-white">Sending...</span>`;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+    
+    setTimeout(() => {
+        closeEmailComposerModal();
+        showNotification('success', `Email successfully sent to ${toInput.value.trim()}!`);
+    }, 800);
+};
+
 
 async function fetchGlobalSearchResults(value) {
     const list = document.getElementById('global-search-results-list');

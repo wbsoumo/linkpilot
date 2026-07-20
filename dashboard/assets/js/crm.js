@@ -15059,7 +15059,7 @@ async function checkInboxEmailAccountStatus() {
     }
 }
 
-/* --- EMAIL FOLLOWUPS HUB & AI REPLY STUDIO (REDESIGNED) --- */
+/* --- EMAIL FOLLOWUPS HUB & AI REPLY STUDIO (REDESIGNED EXACT MOCKUP) --- */
 window.followupFilters = {
     priority: '',
     category: '',
@@ -15070,7 +15070,6 @@ window.followupFilters = {
 };
 window.activeFollowupEmailId = null;
 window.selectedFollowupTone = 'Professional';
-window.showFollowupAIStudio = false;
 
 async function renderEmailFollowups(container) {
     try {
@@ -15079,34 +15078,33 @@ async function renderEmailFollowups(container) {
                 <!-- Top Filter Header Bar -->
                 <div class="bg-white border-b border-slate-200 px-6 py-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 shadow-2xs">
                     <div class="flex items-center space-x-3.5 min-w-0">
-                        <div class="h-10 w-10 rounded-2xl bg-blue-50 border border-blue-150 text-blue-600 flex items-center justify-center shrink-0 shadow-2xs">
+                        <div class="h-9 w-9 rounded-full bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0">
                             <i data-lucide="clock" class="h-5 w-5"></i>
                         </div>
-                        <div>
-                            <h1 class="text-base font-black text-slate-900 leading-tight">Email Followups Hub</h1>
+                        <div class="min-w-0">
+                            <h1 class="text-base font-extrabold text-slate-900 leading-tight">Email Followups Hub</h1>
                             <p class="text-xs text-slate-500 font-medium truncate">Prioritize emails needing responses, manage overdue threads, and draft follow-ups.</p>
                         </div>
                     </div>
                     
                     <!-- Search & Filter Controls -->
-                    <div class="flex flex-wrap items-center gap-2.5">
+                    <div class="flex flex-wrap items-center gap-2">
                         <!-- Search Box (Pill Shape) -->
                         <div class="relative w-48 sm:w-60">
                             <i data-lucide="search" class="absolute left-3.5 top-2.5 h-3.5 w-3.5 text-slate-400"></i>
-                            <input type="text" id="followup-search-input" oninput="handleFollowupSearch(this.value)" value="${window.followupFilters.search}" placeholder="Search followups..." class="w-full pl-9 pr-4 py-1.5 bg-slate-50/80 border border-slate-200 rounded-full text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white transition">
+                            <input type="text" id="followup-search-input" oninput="handleFollowupSearch(this.value)" value="${window.followupFilters.search}" placeholder="Search followups..." class="w-full pl-9 pr-4 py-1.5 bg-white border border-slate-250 rounded-full text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 transition">
                         </div>
                         
                         <!-- Priority Dropdown -->
-                        <select onchange="filterFollowups('priority', this.value)" class="py-1.5 px-3 bg-white border border-slate-200 rounded-xl text-xs font-extrabold text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer">
-                            <option value="">High Priority</option>
-                            <option value="high" ${window.followupFilters.priority==='high'?'selected':''}>High Priority Only</option>
+                        <select onchange="filterFollowups('priority', this.value)" class="py-1.5 px-3.5 bg-white border border-slate-250 rounded-full text-xs font-bold text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer">
+                            <option value="">All Priorities</option>
+                            <option value="high" ${window.followupFilters.priority==='high'?'selected':''}>High Priority</option>
                             <option value="medium" ${window.followupFilters.priority==='medium'?'selected':''}>Medium Priority</option>
                             <option value="low" ${window.followupFilters.priority==='low'?'selected':''}>Low Priority</option>
-                            <option value="" ${window.followupFilters.priority===''?'selected':''}>All Priorities</option>
                         </select>
 
                         <!-- Category Dropdown -->
-                        <select onchange="filterFollowups('category', this.value)" class="py-1.5 px-3 bg-white border border-slate-200 rounded-xl text-xs font-extrabold text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer">
+                        <select onchange="filterFollowups('category', this.value)" class="py-1.5 px-3.5 bg-white border border-slate-250 rounded-full text-xs font-bold text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer">
                             <option value="">All Categories</option>
                             <option value="New Lead" ${window.followupFilters.category==='New Lead'?'selected':''}>New Lead</option>
                             <option value="Existing Client" ${window.followupFilters.category==='Existing Client'?'selected':''}>Existing Client</option>
@@ -15116,40 +15114,40 @@ async function renderEmailFollowups(container) {
                         </select>
 
                         <!-- Status Dropdown -->
-                        <select onchange="filterFollowups('status', this.value)" class="py-1.5 px-3 bg-white border border-slate-200 rounded-xl text-xs font-extrabold text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer">
+                        <select onchange="filterFollowups('status', this.value)" class="py-1.5 px-3.5 bg-white border border-slate-250 rounded-full text-xs font-bold text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer">
                             <option value="needs_reply" ${window.followupFilters.status==='needs_reply'?'selected':''}>Needs Reply</option>
                             <option value="unread" ${window.followupFilters.status==='unread'?'selected':''}>Unread</option>
                             <option value="" ${window.followupFilters.status===''?'selected':''}>All Statuses</option>
                         </select>
 
                         <!-- Refresh Circular Button -->
-                        <button onclick="refreshFollowupsList()" class="h-8 w-8 flex items-center justify-center border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-600 transition" title="Refresh">
+                        <button onclick="refreshFollowupsList()" class="h-8 w-8 flex items-center justify-center border border-slate-250 hover:bg-slate-50 rounded-full text-slate-600 transition" title="Refresh">
                             <i data-lucide="rotate-cw" class="h-3.5 w-3.5"></i>
                         </button>
                     </div>
                 </div>
 
                 <!-- Sub-header Stat Tabs -->
-                <div class="bg-white border-b border-slate-200 px-6 py-2 flex items-center space-x-6 text-xs font-bold shrink-0">
-                    <button onclick="switchFollowupTab('all')" id="followup-tab-all" class="flex items-center space-x-2 py-1 px-2.5 rounded-lg transition text-slate-900 font-extrabold bg-blue-50 border border-blue-100">
+                <div class="bg-white border-b border-slate-200 px-6 py-2.5 flex items-center space-x-4 text-xs font-bold shrink-0">
+                    <button onclick="switchFollowupTab('all')" id="followup-tab-all" class="flex items-center space-x-2 py-1.5 px-4 rounded-full transition border border-blue-200 bg-white text-slate-900 font-extrabold shadow-2xs">
                         <span>Pending Followups</span>
-                        <span id="stat-pending-count" class="px-2 py-0.5 bg-blue-600 text-white rounded-full text-[10px] font-extrabold">0</span>
+                        <span id="stat-pending-count" class="px-2 py-0.5 bg-blue-600 text-white rounded-full text-[10px] font-black">20</span>
                     </button>
-                    <button onclick="switchFollowupTab('high')" id="followup-tab-high" class="flex items-center space-x-2 py-1 px-2.5 rounded-lg transition text-slate-500 hover:text-slate-800">
+                    <button onclick="switchFollowupTab('high')" id="followup-tab-high" class="flex items-center space-x-2 py-1.5 px-4 rounded-full transition bg-red-50/80 text-slate-700 hover:text-slate-900">
                         <span>High Priority</span>
-                        <span id="stat-high-priority-count" class="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-[10px] font-extrabold">0</span>
+                        <span id="stat-high-priority-count" class="px-2 py-0.5 bg-red-200 text-red-800 rounded-full text-[10px] font-black">2</span>
                     </button>
-                    <button onclick="switchFollowupTab('overdue')" id="followup-tab-overdue" class="flex items-center space-x-2 py-1 px-2.5 rounded-lg transition text-slate-500 hover:text-slate-800">
+                    <button onclick="switchFollowupTab('overdue')" id="followup-tab-overdue" class="flex items-center space-x-2 py-1.5 px-4 rounded-full transition bg-amber-50/80 text-slate-700 hover:text-slate-900">
                         <span>Overdue (>2 days)</span>
-                        <span id="stat-overdue-count" class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full text-[10px] font-extrabold">0</span>
+                        <span id="stat-overdue-count" class="px-2 py-0.5 bg-amber-200 text-amber-900 rounded-full text-[10px] font-black">13</span>
                     </button>
                 </div>
 
                 <!-- Split View Body -->
                 <div class="flex-grow flex flex-row divide-x divide-slate-200 overflow-hidden">
                     <!-- Left List Pane -->
-                    <div class="w-[410px] shrink-0 bg-slate-50/60 flex flex-col h-full overflow-hidden p-3.5 space-y-2.5">
-                        <div class="flex-grow overflow-y-auto space-y-2.5 pr-1" id="followups-list-container">
+                    <div class="w-[420px] shrink-0 bg-slate-50/60 flex flex-col h-full overflow-hidden p-4 space-y-3">
+                        <div class="flex-grow overflow-y-auto space-y-3 pr-1" id="followups-list-container">
                             <div class="p-8 text-center text-slate-400 text-xs">Loading followups...</div>
                         </div>
                     </div>
@@ -15178,14 +15176,13 @@ async function renderEmailFollowups(container) {
 window.switchFollowupTab = function(tab) {
     window.followupFilters.activeTab = tab;
     
-    // Update button styling
     ['all', 'high', 'overdue'].forEach(t => {
         const btn = document.getElementById(`followup-tab-${t}`);
         if (btn) {
             if (t === tab) {
-                btn.className = "flex items-center space-x-2 py-1 px-2.5 rounded-lg transition text-slate-900 font-extrabold bg-blue-50 border border-blue-100";
+                btn.className = "flex items-center space-x-2 py-1.5 px-4 rounded-full transition border border-blue-200 bg-white text-slate-900 font-extrabold shadow-2xs";
             } else {
-                btn.className = "flex items-center space-x-2 py-1 px-2.5 rounded-lg transition text-slate-500 hover:text-slate-800";
+                btn.className = "flex items-center space-x-2 py-1.5 px-4 rounded-full transition bg-slate-100/70 text-slate-700 hover:text-slate-900";
             }
         }
     });
@@ -15239,7 +15236,6 @@ async function refreshFollowupsList() {
         
         const now = new Date();
 
-        // Calculate counts
         const pendingCount = emails.length;
         const highPriorityCount = emails.filter(e => e.priority === 'high').length;
         const overdueCount = emails.filter(e => {
@@ -15273,7 +15269,6 @@ async function refreshFollowupsList() {
             return;
         }
         
-        // Auto-select first email if none selected
         if (!window.activeFollowupEmailId && emails.length > 0) {
             window.activeFollowupEmailId = emails[0].id;
             setTimeout(() => selectFollowupEmail(emails[0].id), 50);
@@ -15285,32 +15280,27 @@ async function refreshFollowupsList() {
             const isOverdue = ageDays >= 2;
             const isActive = m.id === window.activeFollowupEmailId;
             
-            // Priority Tag
-            const prioUpper = (m.priority || 'HIGH').toUpperCase();
+            const prioUpper = (m.priority || 'MEDIUM').toUpperCase();
             const categoryUpper = (m.category || 'MEETING REQUEST').toUpperCase();
 
-            // Brand avatar icon handling
             const domain = getEmailDomain(m.sender_email);
             
             return `
-                <div onclick="selectFollowupEmail(${m.id})" id="followup-card-${m.id}" class="p-4 rounded-2xl cursor-pointer transition flex flex-col justify-between relative ${isActive ? 'bg-[#EEF2FF] border-2 border-indigo-500 shadow-2xs' : 'bg-white border border-slate-200 hover:border-slate-300'}">
-                    <div class="flex items-start space-x-3">
-                        <img src="https://img.logo.dev/${domain}?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-10 w-10 object-contain rounded-xl border border-slate-100 bg-white shrink-0 mt-0.5 shadow-2xs" alt="${m.sender_name}" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(m.sender_name || m.sender_email)}&background=4F46E5&color=fff';">
+                <div onclick="selectFollowupEmail(${m.id})" id="followup-card-${m.id}" class="p-4 rounded-2xl cursor-pointer transition flex flex-col justify-between relative ${isActive ? 'bg-white border-2 border-indigo-500 shadow-xs' : 'bg-white border border-slate-200 hover:border-slate-300'}">
+                    <div class="flex items-start space-x-3.5">
+                        <img src="https://img.logo.dev/${domain}?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-11 w-11 object-contain rounded-xl border border-slate-100 bg-white shrink-0 mt-0.5 p-1 shadow-2xs" alt="${m.sender_name}" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(m.sender_name || m.sender_email)}&background=4F46E5&color=fff';">
                         <div class="min-w-0 flex-grow">
                             <div class="flex justify-between items-center">
-                                <span class="font-extrabold text-xs text-slate-900 truncate max-w-[150px]">${m.sender_name || m.sender_email}</span>
-                                <div class="flex items-center space-x-1 shrink-0">
-                                    <span class="text-[10px] text-slate-400 font-semibold">${dateStr}</span>
-                                    ${m.unread_count && m.unread_count > 1 ? `<span class="h-4 w-4 rounded-full bg-indigo-600 text-white text-[9px] font-black flex items-center justify-center ml-1">${m.unread_count}</span>` : ''}
-                                </div>
+                                <span class="font-extrabold text-xs text-slate-900 truncate max-w-[170px]">${m.sender_name || m.sender_email}</span>
+                                <span class="text-[10px] text-slate-400 font-semibold shrink-0">${dateStr}</span>
                             </div>
                             <div class="text-xs font-bold text-slate-800 truncate mt-1 leading-snug" title="${m.subject}">${m.subject}</div>
-                            <p class="text-[10px] text-slate-500 font-medium truncate mt-1 leading-relaxed">${m.ai_summary || m.body_text || 'Invitation to register for technical update...'}</p>
+                            <p class="text-[10px] text-slate-400 font-medium truncate mt-1 leading-relaxed">${m.ai_summary || m.body_text || 'Upcoming meeting details and registration info...'}</p>
                             
-                            <div class="flex flex-wrap items-center gap-1.5 mt-2.5">
-                                <span class="px-2 py-0.5 rounded-md text-[8px] font-black tracking-wider uppercase bg-red-50 text-red-600 border border-red-200/60">${prioUpper}</span>
-                                <span class="px-2 py-0.5 rounded-md text-[8px] font-black tracking-wider uppercase bg-purple-50 text-purple-600 border border-purple-200/60">${categoryUpper}</span>
-                                ${isOverdue ? `<span class="px-2 py-0.5 rounded-md text-[8px] font-black tracking-wider uppercase bg-amber-50 text-amber-700 border border-amber-200 flex items-center"><i data-lucide="clock" class="h-2.5 w-2.5 mr-1 text-amber-600"></i>${ageDays}D OVERDUE</span>` : ''}
+                            <div class="flex flex-wrap items-center gap-1.5 mt-3">
+                                <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-red-50 text-red-600 border border-red-200/60">${prioUpper}</span>
+                                <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-purple-50 text-purple-600 border border-purple-200/60">${categoryUpper}</span>
+                                ${isOverdue ? `<span class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-amber-50 text-amber-700 border border-amber-200 flex items-center"><i data-lucide="clock" class="h-2.5 w-2.5 mr-1 text-amber-600"></i>${ageDays}D OVERDUE</span>` : ''}
                             </div>
                         </div>
                     </div>
@@ -15324,41 +15314,28 @@ async function refreshFollowupsList() {
     }
 }
 
-window.toggleFollowupAIStudio = function() {
-    window.showFollowupAIStudio = !window.showFollowupAIStudio;
-    const studio = document.getElementById('followup-ai-studio-drawer');
-    if (studio) {
-        if (window.showFollowupAIStudio) {
-            studio.classList.remove('hidden');
-        } else {
-            studio.classList.add('hidden');
-        }
-    }
-};
-
 window.setFollowupTone = function(tone) {
     window.selectedFollowupTone = tone;
     document.querySelectorAll('.tone-preset-btn').forEach(btn => {
-        btn.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600');
-        btn.classList.add('bg-white', 'text-slate-700', 'border-slate-200');
+        btn.classList.remove('border-indigo-600', 'text-indigo-600', 'bg-indigo-50/40');
+        btn.classList.add('border-slate-200', 'text-slate-700', 'bg-white');
     });
     const activeBtn = document.getElementById(`tone-btn-${tone}`);
     if (activeBtn) {
-        activeBtn.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600');
-        activeBtn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200');
+        activeBtn.classList.add('border-indigo-600', 'text-indigo-600', 'bg-indigo-50/40');
+        activeBtn.classList.remove('border-slate-200', 'text-slate-700', 'bg-white');
     }
 };
 
 async function selectFollowupEmail(emailId) {
     window.activeFollowupEmailId = emailId;
     
-    // Active highlight in left list
     document.querySelectorAll('[id^="followup-card-"]').forEach(c => {
         c.className = 'p-4 rounded-2xl cursor-pointer transition flex flex-col justify-between relative bg-white border border-slate-200 hover:border-slate-300';
     });
     const card = document.getElementById(`followup-card-${emailId}`);
     if (card) {
-        card.className = 'p-4 rounded-2xl cursor-pointer transition flex flex-col justify-between relative bg-[#EEF2FF] border-2 border-indigo-500 shadow-2xs';
+        card.className = 'p-4 rounded-2xl cursor-pointer transition flex flex-col justify-between relative bg-white border-2 border-indigo-500 shadow-xs';
     }
     
     const container = document.getElementById('followup-detail-container');
@@ -15398,8 +15375,8 @@ async function selectFollowupEmail(emailId) {
                         <div class="text-right shrink-0 flex flex-col items-end">
                             <span class="text-[11px] font-bold text-slate-400 mb-1">${date}</span>
                             <div class="flex items-center space-x-1.5">
-                                <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase border border-indigo-200 text-indigo-600 bg-indigo-50/50">${email.priority || 'MEDIUM'}</span>
-                                <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase border border-purple-200 text-purple-600 bg-purple-50/50">${email.category || 'MEETING REQUEST'}</span>
+                                <span class="px-2.5 py-0.5 rounded text-[9px] font-black uppercase border border-blue-200 text-blue-600 bg-blue-50/50">${email.priority || 'MEDIUM'}</span>
+                                <span class="px-2.5 py-0.5 rounded text-[9px] font-black uppercase border border-purple-200 text-purple-600 bg-purple-50/50">${email.category || 'MEETING REQUEST'}</span>
                             </div>
                         </div>
                     </div>
@@ -15407,46 +15384,46 @@ async function selectFollowupEmail(emailId) {
                     <!-- Metadata 4 Status Summary Cards -->
                     <div class="grid grid-cols-4 gap-3 pt-2">
                         <!-- Due In Card -->
-                        <div class="bg-amber-50/60 border border-amber-200/70 rounded-xl p-3 flex items-center space-x-2.5">
-                            <div class="h-7 w-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                        <div class="bg-[#FFFBEB] border border-[#FEF08A] rounded-2xl p-3.5 flex items-center space-x-3 shadow-2xs">
+                            <div class="h-8 w-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
                                 <i data-lucide="clock" class="h-4 w-4"></i>
                             </div>
                             <div>
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Due in</span>
+                                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">DUE IN</span>
                                 <span class="text-xs font-black text-amber-900">2h 45m</span>
                             </div>
                         </div>
 
                         <!-- Priority Card -->
-                        <div class="bg-red-50/60 border border-red-200/70 rounded-xl p-3 flex items-center space-x-2.5">
-                            <div class="h-7 w-7 rounded-lg bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+                        <div class="bg-[#FFF1F2] border border-[#FECDD3] rounded-2xl p-3.5 flex items-center space-x-3 shadow-2xs">
+                            <div class="h-8 w-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0">
                                 <i data-lucide="alert-triangle" class="h-4 w-4"></i>
                             </div>
                             <div>
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Priority</span>
-                                <span class="text-xs font-black text-red-900">${(email.priority || 'High').toUpperCase()}</span>
+                                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">PRIORITY</span>
+                                <span class="text-xs font-black text-red-900">${(email.priority || 'MEDIUM').toUpperCase()}</span>
                             </div>
                         </div>
 
                         <!-- Status Card -->
-                        <div class="bg-indigo-50/60 border border-indigo-200/70 rounded-xl p-3 flex items-center space-x-2.5">
-                            <div class="h-7 w-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                        <div class="bg-[#EFF6FF] border border-[#BFDBFE] rounded-2xl p-3.5 flex items-center space-x-3 shadow-2xs">
+                            <div class="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
                                 <i data-lucide="reply" class="h-4 w-4"></i>
                             </div>
                             <div>
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Status</span>
-                                <span class="text-xs font-black text-indigo-900">Needs Reply</span>
+                                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">STATUS</span>
+                                <span class="text-xs font-black text-blue-900">Needs Reply</span>
                             </div>
                         </div>
 
                         <!-- Follow-up Card -->
-                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between">
-                            <div class="flex items-center space-x-2.5">
-                                <div class="h-7 w-7 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                        <div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-3.5 flex items-center justify-between shadow-2xs">
+                            <div class="flex items-center space-x-3">
+                                <div class="h-8 w-8 rounded-full bg-slate-200/80 text-slate-600 flex items-center justify-center shrink-0">
                                     <i data-lucide="file-text" class="h-4 w-4"></i>
                                 </div>
                                 <div>
-                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Follow-up #</span>
+                                    <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">FOLLOW-UP #</span>
                                     <span class="text-xs font-black text-slate-800">2 of 3</span>
                                 </div>
                             </div>
@@ -15463,91 +15440,57 @@ async function selectFollowupEmail(emailId) {
                     </div>
                 </div>
 
-                <!-- Email Message Content Scroll Area -->
-                <div class="flex-grow p-6 overflow-y-auto bg-slate-50/40 space-y-4">
+                <!-- Email Content Scroll Area -->
+                <div class="flex-grow p-6 overflow-y-auto bg-[#f8fafc]/40 space-y-4">
                     <div class="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-2xs space-y-3">
                         <div class="text-xs text-slate-800 leading-relaxed whitespace-pre-line font-sans">${email.body_text || email.body_html || 'No body text available.'}</div>
                     </div>
                 </div>
 
-                <!-- Reply Composer Container with Floating AI Sparkle Button -->
+                <!-- Always Visible AI Response Generator Studio (Matching Mockup Bottom Right) -->
                 <div class="p-6 bg-white shrink-0 border-t border-slate-200 relative">
-                    
-                    <!-- Floating Purple AI Sparkle Action Button -->
-                    <button onclick="toggleFollowupAIStudio()" class="absolute -top-5 right-8 h-11 w-11 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white shadow-md flex items-center justify-center hover:scale-105 transition group" title="Open AI Reply Studio">
-                        <i data-lucide="sparkles" class="h-5 w-5 group-hover:rotate-12 transition-transform"></i>
+                    <!-- Floating Purple Sparkle Circle Action Button -->
+                    <button class="absolute -top-5 right-6 h-11 w-11 rounded-full bg-[#7C3AED] text-white shadow-lg flex items-center justify-center hover:scale-105 transition" title="AI Assistant Active">
+                        <i data-lucide="sparkles" class="h-5 w-5"></i>
                     </button>
 
-                    <!-- AI Studio Drawer / Overlay -->
-                    <div id="followup-ai-studio-drawer" class="hidden mb-4 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-2xl space-y-3 animate-fade-in shadow-2xs">
+                    <!-- Floating White Chat Bubble Icon Container -->
+                    <div class="absolute -top-7 right-20 h-14 w-14 rounded-full bg-white border border-slate-200 text-indigo-600 shadow-md flex items-center justify-center">
+                        <i data-lucide="message-square-text" class="h-6 w-6"></i>
+                    </div>
+
+                    <!-- AI Studio Card Box -->
+                    <div class="bg-gradient-to-r from-blue-50/80 to-indigo-50/70 border border-indigo-200/80 rounded-2xl p-4 shadow-2xs space-y-3">
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-black text-indigo-950 flex items-center space-x-1.5">
                                 <i data-lucide="sparkles" class="h-4 w-4 text-indigo-600"></i>
                                 <span>AI Response Generator Studio</span>
                             </span>
-                            <button onclick="toggleFollowupAIStudio()" class="text-slate-400 hover:text-slate-700 text-xs">✕</button>
-                        </div>
-                        
-                        <div class="flex flex-wrap gap-1.5">
-                            <button type="button" onclick="setFollowupTone('Professional')" id="tone-btn-Professional" class="tone-preset-btn px-2.5 py-1 rounded-lg text-xs font-bold border transition ${window.selectedFollowupTone==='Professional'?'bg-indigo-600 text-white border-indigo-600':'bg-white text-slate-700 border-slate-200'}">👔 Professional</button>
-                            <button type="button" onclick="setFollowupTone('Friendly')" id="tone-btn-Friendly" class="tone-preset-btn px-2.5 py-1 rounded-lg text-xs font-bold border transition ${window.selectedFollowupTone==='Friendly'?'bg-indigo-600 text-white border-indigo-600':'bg-white text-slate-700 border-slate-200'}">😊 Friendly</button>
-                            <button type="button" onclick="setFollowupTone('Persuasive')" id="tone-btn-Persuasive" class="tone-preset-btn px-2.5 py-1 rounded-lg text-xs font-bold border transition ${window.selectedFollowupTone==='Persuasive'?'bg-indigo-600 text-white border-indigo-600':'bg-white text-slate-700 border-slate-200'}">🎯 Persuasive</button>
-                            <button type="button" onclick="setFollowupTone('Concise')" id="tone-btn-Concise" class="tone-preset-btn px-2.5 py-1 rounded-lg text-xs font-bold border transition ${window.selectedFollowupTone==='Concise'?'bg-indigo-600 text-white border-indigo-600':'bg-white text-slate-700 border-slate-200'}">⚡ Concise</button>
                         </div>
 
-                        <div class="flex items-center space-x-2">
-                            <input type="text" id="followup-custom-prompt" placeholder="Optional custom instruction..." class="flex-grow px-3 py-1.5 bg-white border border-slate-250 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none">
-                            <button onclick="generateFollowupAIReply(${email.id})" id="followup-ai-gen-btn" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold rounded-xl shadow-2xs transition shrink-0 flex items-center space-x-1">
+                        <!-- Tone Selection Row -->
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button type="button" onclick="setFollowupTone('Professional')" id="tone-btn-Professional" class="tone-preset-btn px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition flex items-center space-x-1 ${window.selectedFollowupTone==='Professional'?'border-indigo-600 text-indigo-600 bg-indigo-50/40':''}">
+                                <span>👔</span><span>Professional</span>
+                            </button>
+                            <button type="button" onclick="setFollowupTone('Friendly')" id="tone-btn-Friendly" class="tone-preset-btn px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition flex items-center space-x-1 ${window.selectedFollowupTone==='Friendly'?'border-indigo-600 text-indigo-600 bg-indigo-50/40':''}">
+                                <span>😊</span><span>Friendly</span>
+                            </button>
+                            <button type="button" onclick="setFollowupTone('Persuasive')" id="tone-btn-Persuasive" class="tone-preset-btn px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition flex items-center space-x-1 ${window.selectedFollowupTone==='Persuasive'?'border-indigo-600 text-indigo-600 bg-indigo-50/40':''}">
+                                <span>🎯</span><span>Persuasive</span>
+                            </button>
+                            <button type="button" onclick="setFollowupTone('Concise')" id="tone-btn-Concise" class="tone-preset-btn px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition flex items-center space-x-1 ${window.selectedFollowupTone==='Concise'?'border-indigo-600 text-indigo-600 bg-indigo-50/40':''}">
+                                <span>⚡</span><span>Concise</span>
+                            </button>
+                        </div>
+
+                        <!-- Prompt Input & Generate Button Row -->
+                        <div class="flex items-center space-x-2 pt-1">
+                            <input type="text" id="followup-custom-prompt" placeholder="Optional custom instruction..." class="flex-grow px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 transition">
+                            <button onclick="generateFollowupAIReply(${email.id})" id="followup-ai-gen-btn" class="px-5 py-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white font-extrabold rounded-xl text-xs shadow-2xs transition shrink-0 flex items-center space-x-1.5">
                                 <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
                                 <span>Generate Draft</span>
                             </button>
-                        </div>
-                    </div>
-
-                    <!-- Composer Header Actions (Reply / Reply All / Forward) -->
-                    <div class="flex items-center justify-between mb-2.5">
-                        <div class="flex items-center space-x-4 text-xs font-extrabold">
-                            <span class="text-slate-900 border-b-2 border-slate-900 pb-0.5">Reply</span>
-                            <button class="text-slate-400 hover:text-slate-700 flex items-center space-x-1">
-                                <i data-lucide="reply" class="h-3.5 w-3.5"></i>
-                                <span>Reply</span>
-                            </button>
-                            <button class="text-slate-400 hover:text-slate-700 flex items-center space-x-1">
-                                <i data-lucide="reply-all" class="h-3.5 w-3.5"></i>
-                                <span>Reply All</span>
-                            </button>
-                            <button class="text-slate-400 hover:text-slate-700 flex items-center space-x-1">
-                                <i data-lucide="forward" class="h-3.5 w-3.5"></i>
-                                <span>Forward</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Composer Box & Toolbar -->
-                    <div class="border border-slate-200 rounded-2xl bg-white shadow-2xs focus-within:border-indigo-500 transition overflow-hidden">
-                        <textarea id="followup-reply-body" rows="4" placeholder="Type your reply..." class="w-full p-4 text-xs text-slate-800 placeholder-slate-400 leading-relaxed focus:outline-none resize-none font-sans border-b border-slate-100">${email.ai_suggested_reply || ''}</textarea>
-                        
-                        <!-- Toolbar -->
-                        <div class="p-3 bg-slate-50/50 flex items-center justify-between">
-                            <div class="flex items-center space-x-3 text-slate-400">
-                                <button class="hover:text-slate-700 font-extrabold text-xs">A</button>
-                                <button class="hover:text-slate-700"><i data-lucide="paperclip" class="h-4 w-4"></i></button>
-                                <button class="hover:text-slate-700"><i data-lucide="link-2" class="h-4 w-4"></i></button>
-                                <button class="hover:text-slate-700"><i data-lucide="smile" class="h-4 w-4"></i></button>
-                                <button class="hover:text-slate-700"><i data-lucide="image" class="h-4 w-4"></i></button>
-                                <button class="hover:text-slate-700"><i data-lucide="calendar" class="h-4 w-4"></i></button>
-                                <button class="hover:text-slate-700"><i data-lucide="file-text" class="h-4 w-4"></i></button>
-                            </div>
-
-                            <!-- Send Split Primary Button -->
-                            <div class="inline-flex rounded-xl shadow-2xs">
-                                <button onclick="sendFollowupEmailReply(${email.id})" id="followup-send-btn" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-l-xl transition flex items-center space-x-1.5">
-                                    <span>Send Reply</span>
-                                </button>
-                                <button class="px-2 py-2 bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-black rounded-r-xl border-l border-indigo-600/50 transition">
-                                    <i data-lucide="chevron-down" class="h-3.5 w-3.5"></i>
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>

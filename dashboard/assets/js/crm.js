@@ -15059,7 +15059,7 @@ async function checkInboxEmailAccountStatus() {
     }
 }
 
-/* --- EMAIL FOLLOWUPS HUB & AI REPLY STUDIO (STRICT 1-LINE HEADER & HTML VIEW) --- */
+/* --- EMAIL FOLLOWUPS HUB & AI REPLY STUDIO (FIXED SEARCH & WHITE BUTTON TEXT) --- */
 window.followupFilters = {
     priority: '',
     category: '',
@@ -15076,8 +15076,8 @@ async function renderEmailFollowups(container) {
     try {
         container.innerHTML = `
             <div class="flex flex-col w-full h-full bg-[#f8fafc] overflow-hidden animate-fade-in font-sans text-slate-800">
-                <!-- Top Filter Header Bar (Strict 1 Line Layout, No Overlap) -->
-                <div class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between gap-3 shrink-0">
+                <!-- Top Filter Header Bar (Fixed Position Search & Single Line Controls) -->
+                <div class="bg-white border-b border-slate-200 px-6 py-3.5 flex items-center justify-between gap-3 shrink-0">
                     <div class="flex items-center space-x-3 min-w-0">
                         <div class="h-9 w-9 rounded-full bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0">
                             <i data-lucide="clock" class="h-4.5 w-4.5"></i>
@@ -15088,12 +15088,12 @@ async function renderEmailFollowups(container) {
                         </div>
                     </div>
                     
-                    <!-- Search & Filter Controls (Strict Single-Line Layout, No Overlap) -->
+                    <!-- Search & Filter Controls (Strict Single Line Layout, Fixed Placeholder Position) -->
                     <div class="flex items-center space-x-2 shrink-0 overflow-x-auto no-scrollbar py-0.5">
-                        <!-- Expandable Search Box -->
-                        <div class="relative flex items-center shrink-0">
-                            <i data-lucide="search" class="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400 pointer-events-none z-10"></i>
-                            <input type="text" id="followup-search-input" oninput="handleFollowupSearch(this.value)" value="${window.followupFilters.search}" placeholder="Search followups..." class="w-36 focus:w-60 md:w-44 md:focus:w-64 pl-8.5 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all duration-300">
+                        <!-- Fixed Position Search Box -->
+                        <div class="relative flex items-center shrink-0 w-44 md:w-56">
+                            <i data-lucide="search" class="absolute left-3.5 top-2.5 h-3.5 w-3.5 text-slate-400 pointer-events-none z-10"></i>
+                            <input type="text" id="followup-search-input" oninput="handleFollowupSearch(this.value)" value="${window.followupFilters.search}" placeholder="Search followups..." class="w-full pr-3.5 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white transition" style="padding-left: 36px !important;">
                         </div>
                         
                         <!-- Priority Dropdown -->
@@ -15129,19 +15129,19 @@ async function renderEmailFollowups(container) {
                     </div>
                 </div>
 
-                <!-- Sub-header Quick Stat Tabs (With Solid Filled Circles & White Bold Text) -->
+                <!-- Sub-header Quick Stat Tabs (Count Text Explicitly White) -->
                 <div class="bg-white border-b border-slate-200 px-6 py-2 flex items-center space-x-4 text-xs font-bold shrink-0">
                     <button onclick="switchFollowupTab('all')" id="followup-tab-all" class="flex items-center space-x-2 py-1 px-3 rounded-full transition text-slate-900 font-bold bg-blue-50/80 border border-blue-100">
                         <span>Pending Followups</span>
-                        <span id="stat-pending-count" class="px-2 py-0.5 bg-blue-600 text-white rounded-full text-[10px] font-extrabold">20</span>
+                        <span id="stat-pending-count" class="px-2 py-0.5 bg-blue-600 rounded-full text-[10px] font-extrabold" style="color: #ffffff !important;">20</span>
                     </button>
                     <button onclick="switchFollowupTab('high')" id="followup-tab-high" class="flex items-center space-x-2 py-1 px-3 rounded-full transition text-slate-600 hover:text-slate-900">
                         <span>High Priority</span>
-                        <span id="stat-high-priority-count" class="px-2 py-0.5 bg-red-600 text-white rounded-full text-[10px] font-extrabold">20</span>
+                        <span id="stat-high-priority-count" class="px-2 py-0.5 bg-red-600 rounded-full text-[10px] font-extrabold" style="color: #ffffff !important;">20</span>
                     </button>
                     <button onclick="switchFollowupTab('overdue')" id="followup-tab-overdue" class="flex items-center space-x-2 py-1 px-3 rounded-full transition text-slate-600 hover:text-slate-900">
                         <span>Overdue (>2 days)</span>
-                        <span id="stat-overdue-count" class="px-2 py-0.5 bg-amber-600 text-white rounded-full text-[10px] font-extrabold">19</span>
+                        <span id="stat-overdue-count" class="px-2 py-0.5 bg-amber-600 rounded-full text-[10px] font-extrabold" style="color: #ffffff !important;">19</span>
                     </button>
                 </div>
 
@@ -15583,9 +15583,9 @@ async function selectFollowupEmail(emailId) {
 
                         <div class="flex items-center space-x-2 pt-0.5">
                             <input type="text" id="followup-custom-prompt" placeholder="Optional custom instruction..." class="flex-grow px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500">
-                            <button onclick="generateFollowupAIReply(${email.id})" id="followup-ai-gen-btn" class="px-3.5 py-1.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white font-bold rounded-lg text-xs shadow-2xs transition shrink-0 flex items-center space-x-1">
-                                <i data-lucide="sparkles" class="h-3 w-3 text-white"></i>
-                                <span class="text-white">Generate Draft</span>
+                            <button onclick="generateFollowupAIReply(${email.id})" id="followup-ai-gen-btn" class="px-3.5 py-1.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white font-extrabold rounded-lg text-xs shadow-2xs transition shrink-0 flex items-center space-x-1" style="color: #ffffff !important;">
+                                <i data-lucide="sparkles" class="h-3 w-3 text-white" style="color: #ffffff !important;"></i>
+                                <span class="text-white font-extrabold" style="color: #ffffff !important;">Generate Draft</span>
                             </button>
                         </div>
                     </div>
@@ -15632,11 +15632,11 @@ async function selectFollowupEmail(emailId) {
 
                             <!-- Send Reply Button with Split Arrow Dropdown (White Bold Text) -->
                             <div class="inline-flex rounded-lg overflow-hidden shadow-2xs">
-                                <button onclick="sendFollowupEmailReply(${email.id})" id="followup-send-btn" class="px-5 py-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-extrabold transition flex items-center space-x-1.5 cursor-pointer">
-                                    <span class="text-white font-extrabold">Send Reply</span>
+                                <button onclick="sendFollowupEmailReply(${email.id})" id="followup-send-btn" class="px-5 py-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-extrabold transition flex items-center space-x-1.5 cursor-pointer" style="color: #ffffff !important;">
+                                    <span class="text-white font-extrabold" style="color: #ffffff !important;">Send Reply</span>
                                 </button>
-                                <button class="px-2.5 py-2 bg-[#4338CA] hover:bg-[#3730A3] text-white text-xs font-extrabold border-l border-indigo-400/30 transition cursor-pointer">
-                                    <i data-lucide="chevron-down" class="h-3.5 w-3.5 text-white"></i>
+                                <button class="px-2.5 py-2 bg-[#4338CA] hover:bg-[#3730A3] text-white text-xs font-extrabold border-l border-indigo-400/30 transition cursor-pointer" style="color: #ffffff !important;">
+                                    <i data-lucide="chevron-down" class="h-3.5 w-3.5 text-white" style="color: #ffffff !important;"></i>
                                 </button>
                             </div>
                         </div>

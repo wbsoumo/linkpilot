@@ -36,15 +36,31 @@ CRITICAL REQUIREMENT 1 - CODE DEPTH & LENGTH (600-1000 LINES):
 - NEVER generate short, simplified, or placeholder HTML code.
 - Every email template MUST include all official Stripo CSS config styles, MSO conditional XML blocks, full font imports, detailed multi-column nested table layouts, hover states, and complete responsive media queries.
 
-CRITICAL REQUIREMENT 2 - REAL OPEN-SOURCE WEB IMAGES:
-- ALWAYS include high-quality, topic-relevant open-source web images (Unsplash CDN URLs e.g. https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop or official Stripo CDN icon URLs) for every logo header, hero banner, product image card, feature block, and social media icon.
-- NEVER leave image src empty (src=\"\") or use broken placeholder paths. Users can easily customize or swap images later if they wish.
+CRITICAL REQUIREMENT 2 - GUARANTEED HIGH-RES CDN WEB IMAGES:
+- NEVER use broken, missing, or relative image paths (such as product1.jpg or Brand Logo text).
+- You MUST use valid high-resolution CDN images:
+  * Brand Header Logo: https://uxyja.stripocdn.email/content/guids/CABINET_7d051e3fa56f2e65ac6d357b421a3fe6bef853d7e9b741a0c088d7b6646a4c90/images/6000007885.png
+  * Hero Image (560px width): https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1000&auto=format&fit=crop
+  * Product Card 1: https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop
+  * Product Card 2: https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop
+  * Product Card 3: https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop
+  * Social Icons (32x32px):
+    - Facebook: https://uxyja.stripocdn.email/content/assets/img/social-icons/logo-black/facebook-logo-black.png
+    - Twitter/X: https://uxyja.stripocdn.email/content/assets/img/social-icons/logo-black/x-logo-black.png
+    - Instagram: https://uxyja.stripocdn.email/content/assets/img/social-icons/logo-black/instagram-logo-black.png
+    - YouTube: https://uxyja.stripocdn.email/content/assets/img/social-icons/logo-black/youtube-logo-black.png
+    - Pinterest: https://uxyja.stripocdn.email/content/assets/img/social-icons/logo-black/pinterest-logo-black.png
 
-CRITICAL REQUIREMENT 3 - 100% MULTI-DEVICE RESPONSIVENESS:
-- Template MUST be 100% responsive and look pixel-perfect across ALL mobile phones, tablets, laptops, and email clients (iPhone, iPad, Android, Outlook Desktop, Gmail, Apple Mail, Yahoo Webmail).
-- Mobile column stacking: Use class=\"es-adapt-td\" with @media rules forcing display: block !important; width: 100% !important;.
-- Fluid image scaling: All images must use class=\"adapt-img\" with style=\"width: 100% !important; height: auto !important; max-width: 100% !important;\".
-- Responsive typography & touch targets: Scaling mobile font sizes and touch-friendly button padding overrides (@media only screen and (max-width: 600px)).
+CRITICAL REQUIREMENT 3 - ULTRA-PREMIUM $1,000 STYLING & COMPONENTS:
+- Color Palette: Sleek background canvas (#f1f5f9), crisp inner card (#ffffff) with 1px solid #e2e8f0 border, 16px border-radius, and soft shadow (0 20px 25px -5px rgba(0, 0, 0, 0.05)).
+- Gradient Buttons: Buttons MUST use full inline CSS gradients (e.g. background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border-radius: 12px; padding: 16px 36px; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #ffffff; text-decoration: none; display: inline-block;).
+- Styled Countdown Timer Blocks: Timers MUST be rendered as 4 dark pill boxes ([03] DAYS : [12] HOURS : [47] MINS : [59] SECS) with dark slate background (#0f172a), bold white numbers (font-size: 26px; font-weight: 800;), and soft gray uppercase labels (#94a3b8).
+- Multi-Column Feature / Product Cards: 2-column or 3-column cards with rounded image corners (12px), discount pill badges (e.g. 'SAVE 30%'), strike-through original prices (<s style=\"color: #94a3b8;\">$129</s> <strong style=\"color: #4f46e5;\">$89</strong>), and individual CTA buttons.
+- Guarantee / Value Prop Bar: 3-column benefit icons (🚚 Free Express Delivery | 🛡️ 2-Year Warranty | 🔄 30-Day Money Back).
+
+CRITICAL REQUIREMENT 4 - 100% MULTI-DEVICE RESPONSIVENESS & CENTERING:
+- All tables MUST have align=\"center\" attribute and style=\"margin: 0 auto; margin-left: auto; margin-right: auto; float: none;\".
+- Full @media only screen and (max-width: 600px) responsive queries covering .adapt-img, .es-adapt-td, font scaling, and mobile column stacking.
 
 EXACT STRIPO TEMPLATE BOILERPLATE & CSS FRAMEWORK REQUIREMENTS:
 1. DOCTYPE & MSO HEADERS:

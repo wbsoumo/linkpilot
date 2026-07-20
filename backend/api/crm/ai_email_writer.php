@@ -52,7 +52,8 @@ EXACT STRIPO TEMPLATE BOILERPLATE & CSS FRAMEWORK REQUIREMENTS:
    - Include xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns=\"http://www.w3.org/1999/xhtml\" and MSO conditional blocks (<!--[if (mso 16)]>, <!--[if gte mso 9]> OfficeDocumentSettings allow PNG 96 DPI, WordDocument DontUseAdvancedTypographyReadingMail).
    - Load Google Fonts (Inter, Outfit, League Spartan).
 
-2. COMPLETE EMBEDDED CSS (OVER 150 LINES OF CSS):
+2. COMPLETE EMBEDDED CSS & TABLE CENTERING:
+   - All outer and inner tables MUST have align=\"center\" attribute and style=\"margin: 0 auto; margin-left: auto; margin-right: auto; float: none;\" so that email content is perfectly centered horizontally in Desktop, Tablet, and Mobile viewports.
    - Config styles (.rollover, u+.body img~div, #outlook a, span.MsoHyperlink, a.es-button, .es-desk-hidden).
    - Base element resets (body, table, td, img, p, hr, h1-h6, ul, ol, li, a, sub, sup, strong).
    - Stripo wrapper & component classes (.es-wrapper, .es-wrapper-color, .es-header, .es-header-body, .es-content, .es-content-body, .es-footer, .es-footer-body, .es-infoblock, .es-button-border, .es-button).

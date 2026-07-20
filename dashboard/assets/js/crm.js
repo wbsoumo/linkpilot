@@ -25322,7 +25322,7 @@ window.openWizardPreviewModal = function() {
                     <div>
                         <div class="flex items-center space-x-2">
                             <h4 class="text-xs font-extrabold text-slate-800 tracking-tight">Email Live Preview</h4>
-                            <span id="preview-device-badge" class="bg-indigo-50 text-indigo-600 border border-indigo-200/60 text-[10px] font-bold px-2 py-0.5 rounded-full">Desktop View (Full Width)</span>
+                            <span id="preview-device-badge" class="bg-indigo-50 text-indigo-600 border border-indigo-200/60 text-[10px] font-bold px-2 py-0.5 rounded-full">🖥️ Desktop View (Full Width)</span>
                         </div>
                         <p class="text-[10px] text-slate-400 font-medium">Test responsive rendering across Mobile, Tablet, & Desktop viewports</p>
                     </div>
@@ -25351,7 +25351,7 @@ window.openWizardPreviewModal = function() {
 
             <!-- Preview Canvas Area -->
             <div class="flex-grow p-4 md:p-6 bg-slate-100/80 overflow-y-auto flex items-center justify-center relative">
-                <div id="wizard-preview-iframe-wrapper" class="w-full h-full bg-white border border-slate-200 rounded-xl shadow-xs transition-all duration-300">
+                <div id="wizard-preview-iframe-wrapper" class="w-full h-full bg-white border border-slate-200 rounded-xl shadow-xs transition-all duration-300 overflow-hidden">
                     <iframe id="wizard-preview-iframe" class="w-full h-full rounded-xl border-none"></iframe>
                 </div>
             </div>
@@ -25361,9 +25361,46 @@ window.openWizardPreviewModal = function() {
     
     const iframe = document.getElementById('wizard-preview-iframe');
     if (iframe) {
+        let formattedHtml = html;
+        if (!formattedHtml.includes('/* LINKPILOT PREVIEW CENTERING RESET */')) {
+            const previewResetCss = `
+                <style id="linkpilot-preview-centering-reset">
+                    /* LINKPILOT PREVIEW CENTERING RESET */
+                    html, body {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        background-color: #f4f6f8 !important;
+                        width: 100% !important;
+                        min-height: 100vh !important;
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+                        text-align: center !important;
+                    }
+                    .es-wrapper-color, .es-wrapper {
+                        background-color: #f4f6f8 !important;
+                    }
+                    table, .es-wrapper, .es-header, .es-content, .es-footer, .es-header-body, .es-content-body, .es-footer-body {
+                        margin-left: auto !important;
+                        margin-right: auto !important;
+                        float: none !important;
+                    }
+                    img {
+                        max-width: 100% !important;
+                        height: auto !important;
+                    }
+                </style>
+            `;
+            if (formattedHtml.includes('</head>')) {
+                formattedHtml = formattedHtml.replace('</head>', previewResetCss + '</head>');
+            } else if (formattedHtml.includes('<body')) {
+                formattedHtml = previewResetCss + formattedHtml;
+            } else {
+                formattedHtml = previewResetCss + formattedHtml;
+            }
+        }
+
         const doc = iframe.contentDocument || iframe.contentWindow.document;
         doc.open();
-        doc.write(html);
+        doc.write(formattedHtml);
         doc.close();
     }
 };
@@ -25376,7 +25413,7 @@ window.switchPreviewDevice = function(device) {
     const deviceBadge = document.getElementById('preview-device-badge');
 
     const activeClass = 'bg-indigo-600 text-white shadow-2xs font-extrabold';
-    const inactiveClass = 'text-slate-600 hover:text-slate-900 bg-transparent';
+    const inactiveClass = 'text-slate-600 hover:text-slate-900 bg-transparent font-medium';
 
     if (desktopBtn) desktopBtn.className = `px-3.5 py-1.5 rounded-lg flex items-center space-x-1.5 transition cursor-pointer ${device === 'desktop' ? activeClass : inactiveClass}`;
     if (tabletBtn) tabletBtn.className = `px-3.5 py-1.5 rounded-lg flex items-center space-x-1.5 transition cursor-pointer ${device === 'tablet' ? activeClass : inactiveClass}`;
@@ -25385,14 +25422,14 @@ window.switchPreviewDevice = function(device) {
     if (!iframeWrapper) return;
 
     if (device === 'mobile') {
-        iframeWrapper.className = 'w-[375px] h-[650px] bg-white border-[10px] border-slate-800 rounded-[40px] shadow-2xl transition-all duration-300 relative overflow-hidden flex flex-col my-auto';
-        if (deviceBadge) deviceBadge.innerText = 'Mobile View (375px × 650px)';
+        iframeWrapper.className = 'w-[375px] h-[667px] max-h-full bg-white border-[10px] border-slate-900 rounded-[38px] shadow-2xl transition-all duration-300 relative overflow-hidden flex flex-col my-auto shrink-0 ring-1 ring-slate-900/10';
+        if (deviceBadge) deviceBadge.innerHTML = '📱 <span class="font-bold">Mobile View</span> (375px × 667px)';
     } else if (device === 'tablet') {
-        iframeWrapper.className = 'w-[768px] max-w-full h-[650px] bg-white border-[10px] border-slate-800 rounded-[32px] shadow-2xl transition-all duration-300 relative overflow-hidden flex flex-col my-auto';
-        if (deviceBadge) deviceBadge.innerText = 'Tablet View (768px × 650px)';
+        iframeWrapper.className = 'w-[768px] max-w-full h-[680px] max-h-full bg-white border-[10px] border-slate-900 rounded-[30px] shadow-2xl transition-all duration-300 relative overflow-hidden flex flex-col my-auto shrink-0 ring-1 ring-slate-900/10';
+        if (deviceBadge) deviceBadge.innerHTML = '📱 <span class="font-bold">Tablet View</span> (768px × 680px)';
     } else {
-        iframeWrapper.className = 'w-full h-full bg-white border border-slate-200 rounded-xl shadow-xs transition-all duration-300';
-        if (deviceBadge) deviceBadge.innerText = 'Desktop View (Full Width)';
+        iframeWrapper.className = 'w-full h-full bg-white border border-slate-200 rounded-xl shadow-xs transition-all duration-300 overflow-hidden';
+        if (deviceBadge) deviceBadge.innerHTML = '🖥️ <span class="font-bold">Desktop View</span> (Full Width)';
     }
 };
 

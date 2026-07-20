@@ -17090,9 +17090,18 @@ window.applyImageToEditorOrReplace = function(url) {
         window._activeTargetImgToReplace.src = url;
         window._activeTargetImgToReplace = null;
         showNotification('success', 'Template image replaced successfully!');
+        if (typeof handleMailBodyInput === 'function') handleMailBodyInput();
         return;
     }
     
+    const wizardRich = document.getElementById('wizard-rich-editor');
+    if (wizardRich && !wizardRich.classList.contains('hidden')) {
+        wizardRich.focus();
+        document.execCommand('insertHTML', false, `<img src="${url}" style="max-width:100%; height:auto; border-radius:12px; margin: 16px 0; display:block; box-shadow: 0 4px 12px rgba(0,0,0,0.08);" alt="Imported Banner" />`);
+        if (typeof handleMailBodyInput === 'function') handleMailBodyInput();
+        return;
+    }
+
     const editor = document.getElementById('rich-email-editor');
     if (editor) {
         editor.focus();
@@ -17318,15 +17327,21 @@ window.closeEmailComposerModal = function() {
 };
 
 window.execRichCmd = function(cmd, value = null) {
-    const editor = document.getElementById('rich-email-editor');
+    const composerModal = document.getElementById('email-composer-modal');
+    const isComposerActive = composerModal && !composerModal.classList.contains('hidden');
+    const editor = isComposerActive ? document.getElementById('rich-email-editor') : document.getElementById('wizard-rich-editor');
     if (editor) editor.focus();
     document.execCommand(cmd, false, value);
 };
 
 window.toggleHtmlSourceView = function() {
-    const editor = document.getElementById('rich-email-editor');
-    const textarea = document.getElementById('raw-html-source-editor');
-    const btn = document.getElementById('html-source-toggle-btn');
+    const composerModal = document.getElementById('email-composer-modal');
+    const isComposerActive = composerModal && !composerModal.classList.contains('hidden');
+    const isWizard = !isComposerActive && document.getElementById('wizard-rich-editor') !== null;
+    
+    const editor = isWizard ? document.getElementById('wizard-rich-editor') : document.getElementById('rich-email-editor');
+    const textarea = isWizard ? document.getElementById('wizard-raw-editor') : document.getElementById('raw-html-source-editor');
+    const btn = isWizard ? document.getElementById('wizard-html-source-toggle-btn') : document.getElementById('html-source-toggle-btn');
     if (!editor || !textarea) return;
     
     if (textarea.classList.contains('hidden')) {
@@ -17342,6 +17357,7 @@ window.toggleHtmlSourceView = function() {
         if (btn) btn.classList.remove('bg-indigo-600', 'text-white');
         showNotification('info', 'Switched back to Visual WYSIWYG mode');
     }
+    if (typeof handleMailBodyInput === 'function') handleMailBodyInput();
 };
 
 window.execAiWandAssist = function() {
@@ -23786,7 +23802,7 @@ function getWizardStepHtml(step) {
                     
                     <div class="space-y-1">
                         <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Email Subject Line:</label>
-                        <input type="text" id="ec-wizard-subject" value="${escapeHtml(st.subject)}" oninput="handleMailBodyInput()" placeholder="e.g. Special invitation for {first_name}" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-500">
+                        <input type="text" id="ec-wizard-subject" value="${escapeHtml(st.subject)}" placeholder="e.g. Special invitation for {first_name}" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-500">
                     </div>
 
                     <!-- Template Helper Bar -->
@@ -23808,10 +23824,142 @@ function getWizardStepHtml(step) {
                     </div>
                 </div>
 
-                <!-- Right Side: Body Textarea -->
-                <div class="space-y-1">
-                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Mail Content Body (Visual / HTML Source):</label>
-                    <textarea id="ec-wizard-body" oninput="handleMailBodyInput()" rows="12" class="w-full p-4 border border-slate-300 rounded-xl text-xs font-mono bg-slate-900 text-emerald-400 focus:outline-none leading-relaxed min-h-[300px]">${escapeHtml(st.body_html)}</textarea>
+                <!-- Right Side: WYSIWYG Editor Container -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between font-bold text-slate-600 text-xs tracking-wider uppercase">
+                        <div class="flex items-center space-x-1.5 text-slate-700 font-extrabold text-xs">
+                            <span class="text-indigo-600 font-black">&lt;/&gt;</span>
+                            <span>MAIL CONTENT BODY (VISUAL / HTML SOURCE)</span>
+                        </div>
+                        <span class="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full font-extrabold flex items-center">
+                            <i data-lucide="sparkles" class="h-3 w-3 mr-1 text-emerald-500"></i>DIRECT VISUAL WYSIWYG MODE
+                        </span>
+                    </div>
+
+                    <!-- PREMIUM WYSIWYG TOOLBAR & CONTAINER -->
+                    <div class="border border-slate-300 rounded-xl overflow-hidden shadow-2xs bg-white">
+                        <!-- PREMIUM LUCIDE SVG TOOLBAR -->
+                        <div class="bg-[#F8FAFC] border-b border-slate-300 p-2 flex items-center justify-between flex-wrap gap-2 text-xs select-none shadow-2xs">
+                            <div class="flex items-center flex-wrap gap-1.5">
+                                <!-- Group 1: AI Wand, Bold, Underline, Strikethrough, Eraser -->
+                                <div class="flex items-center space-x-0.5 bg-white border border-slate-300/80 rounded-lg p-0.5 shadow-2xs">
+                                    <button type="button" onclick="execAiWandAssist()" title="AI Magic Wand Tone Improver" class="px-2 py-1 hover:bg-indigo-50 rounded text-indigo-600 font-bold flex items-center space-x-1 cursor-pointer transition">
+                                        <i data-lucide="sparkles" class="h-3.5 w-3.5 text-indigo-600"></i>
+                                        <i data-lucide="chevron-down" class="h-2.5 w-2.5 text-indigo-400"></i>
+                                    </button>
+                                    <button type="button" onclick="execRichCmd('bold')" title="Bold (Ctrl+B)" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 font-bold cursor-pointer transition">
+                                        <i data-lucide="bold" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                    <button type="button" onclick="execRichCmd('underline')" title="Underline (Ctrl+U)" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 underline font-bold cursor-pointer transition">
+                                        <i data-lucide="underline" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                    <button type="button" onclick="execRichCmd('strikethrough')" title="Strikethrough" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                        <i data-lucide="strikethrough" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                    <button type="button" onclick="execRichCmd('removeFormat')" title="Clear Formatting" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                        <i data-lucide="eraser" class="h-3.5 w-3.5 text-amber-600"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Group 2: Font Family Dropdown -->
+                                <div class="flex items-center bg-white border border-slate-300/80 rounded-lg px-2.5 py-1 space-x-1 shadow-2xs">
+                                    <i data-lucide="type" class="h-3.5 w-3.5 text-slate-400"></i>
+                                    <select onchange="execRichCmd('fontName', this.value)" class="bg-transparent border-none text-xs font-bold text-slate-800 focus:outline-none cursor-pointer">
+                                        <option value="Source Sans Pro" selected>Source Sans Pro</option>
+                                        <option value="Inter">Inter</option>
+                                        <option value="Arial">Arial</option>
+                                        <option value="Roboto">Roboto</option>
+                                        <option value="Georgia">Georgia</option>
+                                        <option value="Monospace">Monospace</option>
+                                    </select>
+                                </div>
+
+                                <!-- Group 3: Text Color Picker -->
+                                <div class="flex items-center space-x-0.5 bg-white border border-slate-300/80 rounded-lg p-0.5 shadow-2xs">
+                                    <label title="Text Color" class="p-1.5 hover:bg-slate-100 rounded cursor-pointer relative flex items-center justify-center">
+                                        <i data-lucide="palette" class="h-3.5 w-3.5 text-indigo-600"></i>
+                                        <input type="color" onchange="execRichCmd('foreColor', this.value)" class="opacity-0 absolute inset-0 w-full h-full cursor-pointer">
+                                    </label>
+                                    <label title="Background Highlight" class="p-1.5 hover:bg-slate-100 rounded cursor-pointer relative flex items-center justify-center">
+                                        <i data-lucide="highlighter" class="h-3.5 w-3.5 text-amber-500"></i>
+                                        <input type="color" onchange="execRichCmd('hiliteColor', this.value)" class="opacity-0 absolute inset-0 w-full h-full cursor-pointer">
+                                    </label>
+                                </div>
+
+                                <!-- Group 4: Lists & Alignment -->
+                                <div class="flex items-center space-x-0.5 bg-white border border-slate-300/80 rounded-lg p-0.5 shadow-2xs">
+                                    <button type="button" onclick="execRichCmd('insertUnorderedList')" title="Bullet List" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                        <i data-lucide="list" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                    <button type="button" onclick="execRichCmd('insertOrderedList')" title="Numbered List" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                        <i data-lucide="list-ordered" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                    <button type="button" onclick="execRichCmd('justifyLeft')" title="Align Left" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                        <i data-lucide="align-left" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                    <button type="button" onclick="execRichCmd('justifyCenter')" title="Align Center" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                        <i data-lucide="align-center" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                    <button type="button" onclick="execRichCmd('justifyRight')" title="Align Right" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                        <i data-lucide="align-right" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Group 5: Table -->
+                                <div class="flex items-center bg-white border border-slate-300/80 rounded-lg p-0.5 shadow-2xs">
+                                    <button type="button" onclick="insertTableInEditor()" title="Insert Table" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold flex items-center space-x-1 cursor-pointer transition">
+                                        <i data-lucide="table" class="h-3.5 w-3.5 text-slate-700"></i>
+                                        <i data-lucide="chevron-down" class="h-2.5 w-2.5 text-slate-400"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Group 6: Link, Device Image, Video -->
+                                <div class="flex items-center space-x-0.5 bg-white border border-slate-300/80 rounded-lg p-0.5 shadow-2xs">
+                                    <button type="button" onclick="promptInsertLink()" title="Insert Hyperlink" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                        <i data-lucide="link" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                    <button type="button" onclick="openComposerImagePickerModal()" title="Upload or Insert Image (Max 2MB)" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md font-bold flex items-center space-x-1 cursor-pointer transition border border-indigo-200">
+                                        <i data-lucide="image-plus" class="h-3.5 w-3.5 text-indigo-600"></i>
+                                        <span class="text-[11px] font-extrabold text-indigo-700">Import Image</span>
+                                    </button>
+                                    <button type="button" onclick="promptInsertVideo()" title="Insert Video Link" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                        <i data-lucide="video" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Group 7: Code View, Help -->
+                            <div class="flex items-center space-x-0.5 bg-white border border-slate-300/80 rounded-lg p-0.5 shadow-2xs">
+                                <button type="button" onclick="toggleHtmlSourceView()" id="wizard-html-source-toggle-btn" title="Toggle Raw HTML Code" class="p-1.5 hover:bg-slate-100 rounded text-indigo-600 font-extrabold cursor-pointer transition flex items-center">
+                                    <i data-lucide="code" class="h-3.5 w-3.5 text-indigo-600"></i>
+                                </button>
+                                <button type="button" onclick="showEditorHelpModal()" title="Help & Shortcuts" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                    <i data-lucide="help-circle" class="h-3.5 w-3.5"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- EDITABLE CANVAS & RAW CODE TEXTAREA -->
+                        <div class="relative w-full min-h-[300px] bg-white">
+                            <div id="wizard-rich-editor" contenteditable="true" class="w-full min-h-[300px] max-h-[450px] p-5 bg-white focus:outline-none overflow-y-auto leading-relaxed text-slate-800 text-sm">
+                                ${st.body_html}
+                            </div>
+                            <textarea id="wizard-raw-editor" class="hidden w-full min-h-[300px] max-h-[450px] p-5 font-mono text-xs text-emerald-400 bg-slate-900 focus:outline-none overflow-y-auto border-none resize-none leading-relaxed">${escapeHtml(st.body_html)}</textarea>
+                        </div>
+
+                        <!-- BOTTOM RESIZE HANDLE BAR -->
+                        <div class="bg-slate-100 border-t border-slate-200 py-1 flex justify-center items-center text-slate-400 text-[10px] select-none">
+                            <span class="tracking-widest">≡≡≡</span>
+                        </div>
+                    </div>
+
+                    <!-- Live Preview Render Button -->
+                    <div class="flex justify-end pt-2">
+                        <button type="button" onclick="openWizardPreviewModal()" class="px-5 py-2 bg-white border border-cyan-500 hover:bg-cyan-50 text-cyan-700 text-xs font-extrabold rounded-xl transition flex items-center space-x-2 cursor-pointer shadow-2xs">
+                            <i data-lucide="eye" class="h-4 w-4 text-cyan-600"></i>
+                            <span class="text-cyan-700 font-extrabold">Live Preview Render</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
@@ -23865,14 +24013,6 @@ function getWizardStepHtml(step) {
         parseRecipientsFromState();
         const r1 = st.recipients[0] || { email: 'alex.smith@acme.com', variables: { first_name: 'Alex', company_name: 'Acme Corp' } };
         
-        // Render Row 1 Preview Body
-        let previewBody = st.body_html;
-        if (r1.variables) {
-            Object.keys(r1.variables).forEach(k => {
-                previewBody = previewBody.replaceAll('{' + k + '}', r1.variables[k]);
-            });
-        }
-
         return `
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 font-sans">
                 <!-- Left: Mock Mailbox Container -->
@@ -23891,8 +24031,8 @@ function getWizardStepHtml(step) {
                             <div><span class="font-bold">Subject:</span> ${escapeHtml(replaceVarsInText(st.subject, r1.variables))}</div>
                         </div>
                         <!-- HTML Content Area -->
-                        <div class="p-6 overflow-y-auto max-h-[300px] leading-relaxed text-xs">
-                            ${previewBody}
+                        <div class="h-[320px] w-full bg-white relative">
+                            <iframe id="wizard-step3-preview-iframe" class="w-full h-full border-none"></iframe>
                         </div>
                     </div>
                 </div>
@@ -24055,23 +24195,121 @@ function getWizardStepHtml(step) {
 function attachWizardStepListeners(step) {
     if (step === 1) {
         handleMailBodyInput();
+        const nameIn = document.getElementById('ec-wizard-name');
+        const subjIn = document.getElementById('ec-wizard-subject');
+        const richEd = document.getElementById('wizard-rich-editor');
+        const rawEd = document.getElementById('wizard-raw-editor');
+        
+        if (nameIn) nameIn.addEventListener('input', handleMailBodyInput);
+        if (subjIn) subjIn.addEventListener('input', handleMailBodyInput);
+        if (richEd) {
+            richEd.addEventListener('input', handleMailBodyInput);
+            richEd.addEventListener('click', function(e) {
+                if (e.target && e.target.tagName === 'IMG') {
+                    openComposerImagePickerModal(e.target);
+                }
+            });
+        }
+        if (rawEd) rawEd.addEventListener('input', handleMailBodyInput);
     }
     if (step === 2 && window._ecWizardState.import_tab === 'manual') {
         const text = document.getElementById('wizard-manual-text')?.value || '';
         handleManualTextChange(text);
     }
+    if (step === 3) {
+        const iframe = document.getElementById('wizard-step3-preview-iframe');
+        if (iframe) {
+            const r1 = window._ecWizardState.recipients[0] || { email: 'alex.smith@acme.com', variables: { first_name: 'Alex', company_name: 'Acme Corp' } };
+            let previewBody = window._ecWizardState.body_html;
+            if (r1.variables) {
+                Object.keys(r1.variables).forEach(k => {
+                    previewBody = previewBody.replaceAll('{' + k + '}', r1.variables[k]);
+                });
+            }
+            const doc = iframe.contentDocument || iframe.contentWindow.document;
+            doc.open();
+            doc.write(previewBody);
+            doc.close();
+        }
+    }
 }
+
+window.syncWizardEditorContent = function() {
+    const wizardRich = document.getElementById('wizard-rich-editor');
+    const wizardRaw = document.getElementById('wizard-raw-editor');
+    if (wizardRich && wizardRaw) {
+        if (wizardRaw.classList.contains('hidden')) {
+            window._ecWizardState.body_html = wizardRich.innerHTML;
+            wizardRaw.value = wizardRich.innerHTML;
+        } else {
+            window._ecWizardState.body_html = wizardRaw.value;
+            wizardRich.innerHTML = wizardRaw.value;
+        }
+    }
+};
+
+window.openWizardPreviewModal = function() {
+    syncWizardEditorContent();
+    const html = window._ecWizardState.body_html;
+    
+    let modal = document.getElementById('wizard-preview-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'wizard-preview-modal';
+        modal.className = 'fixed inset-0 z-[10000] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 md:p-6 animate-fade-in';
+        document.body.appendChild(modal);
+    }
+    
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-3xl flex flex-col overflow-hidden animate-scale-up font-sans max-h-[90vh]">
+            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                <div class="flex items-center space-x-2">
+                    <div class="h-8 w-8 rounded-lg bg-cyan-50 text-cyan-600 flex items-center justify-center">
+                        <i data-lucide="eye" class="h-4 w-4"></i>
+                    </div>
+                    <span class="text-sm font-bold text-slate-800">Email HTML Live Preview</span>
+                </div>
+                <button onclick="document.getElementById('wizard-preview-modal').remove()" class="h-8 w-8 rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            </div>
+            <div class="flex-grow p-6 bg-slate-100 overflow-hidden flex flex-col h-[500px]">
+                <iframe id="wizard-preview-iframe" class="w-full h-full bg-white border border-slate-200 rounded-xl shadow-xs"></iframe>
+            </div>
+        </div>
+    `;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    
+    const iframe = document.getElementById('wizard-preview-iframe');
+    if (iframe) {
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        doc.open();
+        doc.write(html);
+        doc.close();
+    }
+};
 
 window.handleMailBodyInput = function() {
     const nameIn = document.getElementById('ec-wizard-name');
     const subjIn = document.getElementById('ec-wizard-subject');
-    const bodyIn = document.getElementById('ec-wizard-body');
     
     if (nameIn) window._ecWizardState.campaign_name = nameIn.value;
     if (subjIn) window._ecWizardState.subject = subjIn.value;
-    if (bodyIn) window._ecWizardState.body_html = bodyIn.value;
+
+    const wizardRich = document.getElementById('wizard-rich-editor');
+    const wizardRaw = document.getElementById('wizard-raw-editor');
+    let bodyVal = window._ecWizardState.body_html;
     
-    const fullText = (subjIn ? subjIn.value : '') + ' ' + (bodyIn ? bodyIn.value : '');
+    if (wizardRich && wizardRaw) {
+        if (wizardRaw.classList.contains('hidden')) {
+            bodyVal = wizardRich.innerHTML;
+        } else {
+            bodyVal = wizardRaw.value;
+        }
+    }
+    window._ecWizardState.body_html = bodyVal;
+    
+    const fullText = (subjIn ? subjIn.value : '') + ' ' + bodyVal;
     const vars = detectVariablesInMailBody(fullText);
     window._ecWizardState.variables_detected = vars;
     

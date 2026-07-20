@@ -24905,10 +24905,35 @@ window.triggerManualValidation = function() {
 };
 
 window.downloadSampleCampaignCsv = function() {
-    const csvContent = "email,first_name,last_name,company\n" +
-                       "alex.smith@acme.com,Alex,Smith,Acme Corp\n" +
-                       "sarah.connor@tech.io,Sarah,Connor,TechIO\n" +
-                       "david.miller@co.org,David,Miller,CoOrg\n";
+    const detected = window._ecWizardState.variables_detected || [];
+    const extraCols = detected.filter(v => v.toLowerCase() !== 'email' && v.toLowerCase() !== 'emails');
+    const headers = ['email', ...extraCols];
+    
+    const emails = ['alex.smith@acme.com', 'sarah.connor@tech.io', 'david.miller@co.org'];
+    const sampleValueMap = {
+        first_name: ['Alex', 'Sarah', 'David'],
+        last_name: ['Smith', 'Connor', 'Miller'],
+        company_name: ['Acme Corp', 'TechIO', 'CoOrg'],
+        company: ['Acme Corp', 'TechIO', 'CoOrg'],
+        sender_name: ['John Doe', 'John Doe', 'John Doe'],
+        name: ['Alex', 'Sarah', 'David']
+    };
+    
+    const rows = [];
+    for (let i = 0; i < 3; i++) {
+        const row = [emails[i]];
+        extraCols.forEach(col => {
+            const key = col.toLowerCase().replace(/[^a-z0-9_]/g, '');
+            if (sampleValueMap[key]) {
+                row.push(sampleValueMap[key][i] || `val_${i + 1}`);
+            } else {
+                row.push(`value_${i + 1}`);
+            }
+        });
+        rows.push(row.join(','));
+    }
+    
+    const csvContent = headers.join(',') + '\n' + rows.join('\n') + '\n';
                        
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -24919,7 +24944,7 @@ window.downloadSampleCampaignCsv = function() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    showNotification('success', 'Downloaded sample CSV file!');
+    showNotification('success', 'Downloaded custom sample CSV file!');
 };
 
 window.handleWizardCsvFile = function(input) {

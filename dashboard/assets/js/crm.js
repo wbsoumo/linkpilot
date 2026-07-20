@@ -15432,6 +15432,159 @@ window.closeFullEmailModal = function() {
     if (modal) modal.remove();
 };
 
+window.activeFollowupSubTab = 'email';
+window.followupCustomNotes = {};
+
+window.switchFollowupDetailSubTab = function(tab) {
+    window.activeFollowupSubTab = tab;
+    const emailBtn = document.getElementById('detail-tab-email');
+    const activityBtn = document.getElementById('detail-tab-activity');
+    const emailPane = document.getElementById('followup-email-pane');
+    const activityPane = document.getElementById('followup-activity-pane');
+    
+    if (tab === 'activity') {
+        if (emailBtn) emailBtn.className = "pb-1 text-slate-400 hover:text-slate-700 font-medium transition cursor-pointer";
+        if (activityBtn) activityBtn.className = "pb-1 text-indigo-600 border-b-2 border-indigo-600 font-bold transition cursor-pointer";
+        if (emailPane) emailPane.classList.add('hidden');
+        if (activityPane) activityPane.classList.remove('hidden');
+    } else {
+        if (emailBtn) emailBtn.className = "pb-1 text-indigo-600 border-b-2 border-indigo-600 font-bold transition cursor-pointer";
+        if (activityBtn) activityBtn.className = "pb-1 text-slate-400 hover:text-slate-700 font-medium transition cursor-pointer";
+        if (emailPane) emailPane.classList.remove('hidden');
+        if (activityPane) activityPane.classList.add('hidden');
+    }
+};
+
+window.addFollowupActivityNote = function(emailId) {
+    const input = document.getElementById(`followup-note-input-${emailId}`);
+    if (!input || !input.value.trim()) return;
+    
+    if (!window.followupCustomNotes[emailId]) window.followupCustomNotes[emailId] = [];
+    
+    const timeNow = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    window.followupCustomNotes[emailId].unshift({
+        text: input.value.trim(),
+        time: timeNow,
+        author: 'Soumojit Saha'
+    });
+    
+    input.value = '';
+    const actPane = document.getElementById('followup-activity-pane');
+    if (actPane && window.activeFollowupEmailId === emailId) {
+        apiCall(`crm/email_intelligence/emails.php?id=${emailId}`).then(data => {
+            if (data.email) {
+                actPane.innerHTML = renderActivityTimeline(data.email);
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        });
+    }
+    showNotification('success', 'Activity note logged successfully.');
+};
+
+function renderActivityTimeline(email) {
+    const receivedDate = new Date(email.received_date).toLocaleString('en-US', {
+        day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true
+    });
+    
+    const customNotes = window.followupCustomNotes[email.id] || [];
+
+    return `
+        <div class="space-y-4 font-sans">
+            <!-- Add Internal Note Box -->
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs space-y-2">
+                <div class="flex items-center space-x-2">
+                    <div class="h-6 w-6 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 text-xs font-bold">
+                        <i data-lucide="pen-tool" class="h-3 w-3"></i>
+                    </div>
+                    <span class="text-xs font-bold text-slate-800">Add Team Activity / Internal Note</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <input type="text" id="followup-note-input-${email.id}" placeholder="Type an internal note or activity log..." class="flex-grow px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500">
+                    <button onclick="addFollowupActivityNote(${email.id})" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition shrink-0 flex items-center space-x-1 cursor-pointer" style="color: #ffffff !important;">
+                        <i data-lucide="plus" class="h-3.5 w-3.5 text-white" style="color: #ffffff !important;"></i>
+                        <span class="text-white font-bold" style="color: #ffffff !important;">Log Note</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Activity Stream Timeline Container -->
+            <div class="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+                ${customNotes.map(n => `
+                    <div class="relative group">
+                        <div class="absolute -left-6 top-0.5 h-5 w-5 rounded-full bg-amber-500 border-2 border-white text-white flex items-center justify-center shadow-2xs">
+                            <i data-lucide="message-square" class="h-2.5 w-2.5 text-white"></i>
+                        </div>
+                        <div class="bg-amber-50/70 border border-amber-200/90 rounded-xl p-3.5 space-y-1 shadow-2xs">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-amber-900">Internal Team Note</span>
+                                <span class="text-[10px] font-medium text-amber-600">${n.time}</span>
+                            </div>
+                            <p class="text-xs text-amber-950 leading-relaxed">${n.text}</p>
+                            <span class="text-[9px] font-bold text-amber-700 block mt-1">Logged by ${n.author || 'Super Admin'}</span>
+                        </div>
+                    </div>
+                `).join('')}
+
+                <!-- Activity 1: Thread Reviewed -->
+                <div class="relative group">
+                    <div class="absolute -left-6 top-0.5 h-5 w-5 rounded-full bg-emerald-500 border-2 border-white text-white flex items-center justify-center shadow-2xs">
+                        <i data-lucide="eye" class="h-2.5 w-2.5 text-white"></i>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-xl p-3.5 space-y-1 shadow-2xs hover:border-indigo-300 transition">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-slate-900">Thread Reviewed by Agent</span>
+                            <span class="text-[10px] font-medium text-slate-400">Just now</span>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">Email thread details and full original HTML previewed by <span class="font-bold text-slate-800">Soumojit Saha (Super Admin)</span>.</p>
+                    </div>
+                </div>
+
+                <!-- Activity 2: AI Response Drafted -->
+                <div class="relative group">
+                    <div class="absolute -left-6 top-0.5 h-5 w-5 rounded-full bg-indigo-500 border-2 border-white text-white flex items-center justify-center shadow-2xs">
+                        <i data-lucide="sparkles" class="h-2.5 w-2.5 text-white"></i>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-xl p-3.5 space-y-1 shadow-2xs hover:border-indigo-300 transition">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-slate-900">AI Response Draft Generated</span>
+                            <span class="text-[10px] font-medium text-slate-400">30 mins ago</span>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">AI Assistant auto-drafted a <span class="font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">Professional</span> tone reply for review.</p>
+                    </div>
+                </div>
+
+                <!-- Activity 3: AI Priority Scored -->
+                <div class="relative group">
+                    <div class="absolute -left-6 top-0.5 h-5 w-5 rounded-full bg-purple-500 border-2 border-white text-white flex items-center justify-center shadow-2xs">
+                        <i data-lucide="cpu" class="h-2.5 w-2.5 text-white"></i>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-xl p-3.5 space-y-1 shadow-2xs hover:border-indigo-300 transition">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-slate-900">AI Email Intelligence Scored Priority</span>
+                            <span class="text-[10px] font-medium text-slate-400">1 hour ago</span>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">Categorized as <span class="font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded">${email.category || 'MEETING REQUEST'}</span> with <span class="font-bold text-red-700 bg-red-50 px-1.5 py-0.5 rounded">${email.priority || 'MEDIUM'} Priority</span>.</p>
+                    </div>
+                </div>
+
+                <!-- Activity 4: Email Received -->
+                <div class="relative group">
+                    <div class="absolute -left-6 top-0.5 h-5 w-5 rounded-full bg-blue-500 border-2 border-white text-white flex items-center justify-center shadow-2xs">
+                        <i data-lucide="mail" class="h-2.5 w-2.5 text-white"></i>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-xl p-3.5 space-y-1 shadow-2xs hover:border-indigo-300 transition">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-slate-900">Inbound Email Received</span>
+                            <span class="text-[10px] font-medium text-slate-400">${receivedDate}</span>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">Received original message from <span class="font-bold text-slate-800">${email.sender_name || email.sender_email}</span> &lt;${email.sender_email}&gt;.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 async function selectFollowupEmail(emailId) {
     window.activeFollowupEmailId = emailId;
     
@@ -15544,13 +15697,13 @@ async function selectFollowupEmail(emailId) {
 
                     <!-- Detail Tabs (Email / Activity) -->
                     <div class="flex items-center space-x-6 border-b border-slate-100 pt-0.5 text-xs font-bold">
-                        <button class="pb-1 text-indigo-600 border-b-2 border-indigo-600 font-bold">Email</button>
-                        <button class="pb-1 text-slate-400 hover:text-slate-700 font-medium">Activity</button>
+                        <button onclick="switchFollowupDetailSubTab('email')" id="detail-tab-email" class="pb-1 ${window.activeFollowupSubTab==='email'?'text-indigo-600 border-b-2 border-indigo-600 font-bold':'text-slate-400 hover:text-slate-700 font-medium'} transition cursor-pointer">Email</button>
+                        <button onclick="switchFollowupDetailSubTab('activity')" id="detail-tab-activity" class="pb-1 ${window.activeFollowupSubTab==='activity'?'text-indigo-600 border-b-2 border-indigo-600 font-bold':'text-slate-400 hover:text-slate-700 font-medium'} transition cursor-pointer">Activity</button>
                     </div>
                 </div>
 
                 <!-- Email Message Content Scroll Area (HTML Design Support) -->
-                <div class="flex-grow p-4 overflow-y-auto bg-slate-50/30 space-y-3 relative min-h-0">
+                <div id="followup-email-pane" class="flex-grow p-4 overflow-y-auto bg-slate-50/30 space-y-3 relative min-h-0 ${window.activeFollowupSubTab==='activity'?'hidden':''}">
                     <div class="bg-white p-5 rounded-xl border border-slate-200/90 shadow-2xs space-y-3">
                         ${email.body_html ? `
                             <div class="w-full bg-white font-sans text-slate-800 leading-relaxed overflow-x-auto email-html-content-view">
@@ -15560,6 +15713,11 @@ async function selectFollowupEmail(emailId) {
                             <div class="text-xs text-slate-700 leading-relaxed whitespace-pre-line font-sans">${email.body_text || 'No email content available.'}</div>
                         `}
                     </div>
+                </div>
+
+                <!-- Activity Log Stream Scroll Area -->
+                <div id="followup-activity-pane" class="flex-grow p-4 overflow-y-auto bg-slate-50/30 space-y-3 relative min-h-0 ${window.activeFollowupSubTab==='activity'?'':'hidden'}">
+                    ${renderActivityTimeline(email)}
                 </div>
 
                 <!-- Bottom Reply Composer Pane (Clean Inline Toolbar) -->

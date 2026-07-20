@@ -24730,16 +24730,23 @@ function getWizardStepHtml(step) {
                 <div class="lg:col-span-7 space-y-6">
                     <!-- Email Editor Card -->
                     <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
                             <!-- Tabs -->
-                            <div class="flex space-x-4">
+                            <div class="flex items-center space-x-4">
                                 <button class="pb-2 text-xs font-bold border-b-2 border-indigo-600 text-indigo-600 cursor-pointer">Email Editor</button>
-                                <button onclick="openWizardPreviewModal()" class="pb-2 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-600 cursor-pointer">Preview</button>
+                                <button id="wizard-preview-tab-btn" onclick="openWizardPreviewModal()" class="pb-2 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-600 cursor-pointer transition flex items-center space-x-1.5">
+                                    <span>Preview</span>
+                                    <span id="wizard-preview-badge" class="hidden bg-emerald-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">Ready</span>
+                                </button>
                             </div>
                             <!-- Toggle buttons -->
-                            <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+                            <div class="flex items-center space-x-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
                                 <button id="wizard-visual-toggle-tab" onclick="switchWizardEditorMode('visual')" class="px-3 py-1 text-[10px] font-bold rounded-md ${st.editor_mode !== 'html' ? 'bg-indigo-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'} cursor-pointer transition">Visual</button>
                                 <button id="wizard-html-toggle-tab" onclick="switchWizardEditorMode('html')" class="px-3 py-1 text-[10px] font-bold rounded-md ${st.editor_mode === 'html' ? 'bg-indigo-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'} cursor-pointer transition">HTML</button>
+                                <button id="wizard-aiwriter-toggle-tab" onclick="openWizardAiWriterModal()" class="px-3 py-1 text-[10px] font-bold rounded-md bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white shadow-2xs hover:opacity-90 cursor-pointer transition flex items-center space-x-1">
+                                    <i data-lucide="sparkles" class="h-3 w-3"></i>
+                                    <span>AI Writer</span>
+                                </button>
                             </div>
                         </div>
 
@@ -25553,6 +25560,251 @@ window.switchWizardEditorMode = function(mode) {
 
 window.showMoreEditorOptions = function() {
     showNotification('info', 'Use toolbar tools to customize text formatting, align elements, and add images/tables/links.');
+};
+
+window._aiWriterChatHistory = window._aiWriterChatHistory || [];
+
+window.openWizardAiWriterModal = function() {
+    let modal = document.getElementById('wizard-aiwriter-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'wizard-aiwriter-modal';
+        modal.className = 'fixed inset-0 z-[10000] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 md:p-6 animate-fade-in';
+        document.body.appendChild(modal);
+    }
+
+    const historyHtml = window._aiWriterChatHistory.length === 0 ? `
+        <div class="text-center py-6 px-4 bg-indigo-50/50 border border-indigo-100/60 rounded-2xl space-y-2">
+            <div class="h-10 w-10 mx-auto rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-md">
+                <i data-lucide="sparkles" class="h-5 w-5"></i>
+            </div>
+            <h4 class="text-xs font-bold text-slate-800">AI Email Architect Ready</h4>
+            <p class="text-[11px] text-slate-500 max-w-md mx-auto">Describe the email template you want to build or edit. The AI will write modern, responsive HTML code line-by-line in real time!</p>
+        </div>
+    ` : window._aiWriterChatHistory.map(item => `
+        <div class="space-y-2">
+            <div class="flex items-start justify-end space-x-2">
+                <div class="bg-indigo-600 text-white text-xs px-3.5 py-2 rounded-2xl rounded-tr-xs font-medium max-w-[85%] shadow-2xs">
+                    ${escapeHtml(item.prompt)}
+                </div>
+            </div>
+            <div class="flex items-start space-x-2">
+                <div class="h-6 w-6 rounded-full bg-purple-600 text-white flex items-center justify-center text-[10px] shrink-0 font-bold">AI</div>
+                <div class="bg-white text-slate-800 text-xs px-3.5 py-2 rounded-2xl rounded-tl-xs font-medium max-w-[85%] border border-slate-200/80 shadow-2xs">
+                    ${escapeHtml(item.reply)}
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    modal.innerHTML = `
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-2xl flex flex-col overflow-hidden animate-scale-up font-sans max-h-[90vh]">
+            <!-- Header -->
+            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white">
+                <div class="flex items-center space-x-3">
+                    <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-md text-white">
+                        <i data-lucide="sparkles" class="h-5 w-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-extrabold tracking-tight">AI Email Template Architect</h3>
+                        <p class="text-[11px] text-indigo-200 font-medium">Generate or edit production-ready email HTML code effortlessly</p>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('wizard-aiwriter-modal').remove()" class="h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            </div>
+
+            <!-- Body Chat Content -->
+            <div class="p-6 space-y-4 overflow-y-auto max-h-[380px] bg-slate-50/50" id="ai-writer-chat-container">
+                ${historyHtml}
+            </div>
+
+            <!-- Quick Suggestions Chips -->
+            <div class="px-6 py-2.5 bg-white border-t border-slate-100 flex items-center space-x-2 overflow-x-auto text-[11px] font-bold select-none">
+                <span class="text-slate-400 shrink-0 uppercase tracking-wider text-[9px]">Quick Ideas:</span>
+                <button onclick="fillAiWriterQuickPrompt('Write a sleek SaaS launch email with a dark purple CTA button, 3 key feature bullets, and dynamic tags {first_name} and {company_name}')" class="px-2.5 py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg border border-indigo-200/60 shrink-0 transition cursor-pointer">🚀 SaaS Product Launch</button>
+                <button onclick="fillAiWriterQuickPrompt('Create a 20% discount promotional email with a countdown banner and vibrant action button')" class="px-2.5 py-1 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg border border-amber-200/60 shrink-0 transition cursor-pointer">🎁 Special Discount</button>
+                <button onclick="fillAiWriterQuickPrompt('Write a professional cold outreach email requesting a 15 min demo call with {first_name}')" class="px-2.5 py-1 bg-cyan-50 text-cyan-600 hover:bg-cyan-100 rounded-lg border border-cyan-200/60 shrink-0 transition cursor-pointer">📅 Meeting Request</button>
+            </div>
+
+            <!-- Input Form -->
+            <div class="p-4 bg-white border-t border-slate-200 space-y-3">
+                <div class="relative">
+                    <textarea id="ai-writer-prompt-input" rows="3" placeholder="Describe the email template you want to write or edit (e.g. 'Change background color to #f8fafc and make button text say Claim 50% Off Now')..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 font-sans leading-relaxed resize-none shadow-inner"></textarea>
+                </div>
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <div class="text-[11px] text-slate-400 font-medium flex items-center space-x-1">
+                        <i data-lucide="info" class="h-3.5 w-3.5 text-indigo-500"></i>
+                        <span>AI will write code line-by-line directly in the HTML Editor</span>
+                    </div>
+                    <button id="ai-writer-submit-btn" onclick="submitAiWriterPrompt()" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-2 shadow-md cursor-pointer">
+                        <i data-lucide="send" class="h-3.5 w-3.5 text-white"></i>
+                        <span>Generate & Write Code</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    const txt = document.getElementById('ai-writer-prompt-input');
+    if (txt) txt.focus();
+};
+
+window.fillAiWriterQuickPrompt = function(promptText) {
+    const txt = document.getElementById('ai-writer-prompt-input');
+    if (txt) {
+        txt.value = promptText;
+        txt.focus();
+    }
+};
+
+window.submitAiWriterPrompt = async function() {
+    const txt = document.getElementById('ai-writer-prompt-input');
+    const btn = document.getElementById('ai-writer-submit-btn');
+    if (!txt || !txt.value.trim()) {
+        showNotification('warning', 'Please enter your instructions for the AI.');
+        return;
+    }
+
+    const userPrompt = txt.value.trim();
+    const origBtnContent = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<div class="loader-spinner !w-3 !h-3 mr-1.5 border-white"></div> Architecting Template...`;
+
+    try {
+        const currentHtml = window._ecWizardState ? (window._ecWizardState.body_html || '') : '';
+        const res = await apiCall('crm/ai_email_writer.php', 'POST', {
+            prompt: userPrompt,
+            current_html: currentHtml,
+            history: window._aiWriterChatHistory || []
+        });
+
+        if (res.status === 'success' && res.data && res.data.html) {
+            window._aiWriterChatHistory.push({
+                prompt: userPrompt,
+                reply: res.data.reply || 'Generated HTML email code.'
+            });
+
+            const modal = document.getElementById('wizard-aiwriter-modal');
+            if (modal) modal.remove();
+
+            // Run Line-by-Line Code Typing Animation
+            typeWriterHtmlCode(res.data.html, res.data.subject_suggestion);
+        } else {
+            showNotification('error', res.message || 'Failed to generate email template code');
+            btn.disabled = false;
+            btn.innerHTML = origBtnContent;
+        }
+    } catch (err) {
+        showNotification('error', err.message);
+        btn.disabled = false;
+        btn.innerHTML = origBtnContent;
+    }
+};
+
+window.typeWriterHtmlCode = function(generatedHtml, subjectSuggestion) {
+    // 1. Ensure we are in HTML mode
+    switchWizardEditorMode('html');
+
+    const rawEd = document.getElementById('wizard-raw-editor');
+    const vscodeContainer = document.getElementById('wizard-vscode-container');
+    const subjIn = document.getElementById('ec-wizard-subject');
+
+    if (subjIn && subjectSuggestion && (!subjIn.value || subjIn.value.includes('Outbound Campaign'))) {
+        subjIn.value = subjectSuggestion;
+        if (window._ecWizardState) window._ecWizardState.subject = subjectSuggestion;
+    }
+
+    if (!rawEd) {
+        // Fallback
+        if (window._ecWizardState) window._ecWizardState.body_html = generatedHtml;
+        const richEd = document.getElementById('wizard-rich-editor');
+        if (richEd) richEd.innerHTML = generatedHtml;
+        showNotification('success', '✨ Email Written Successfully!');
+        return;
+    }
+
+    // 2. Add Live AI Typing Top Bar inside VS Code Container
+    let typingBar = document.getElementById('ai-code-typing-bar');
+    if (!typingBar && vscodeContainer) {
+        typingBar = document.createElement('div');
+        typingBar.id = 'ai-code-typing-bar';
+        typingBar.className = 'bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white text-xs font-mono px-4 py-2 flex items-center justify-between border-b border-indigo-800/80 shrink-0 font-bold select-none';
+        vscodeContainer.insertBefore(typingBar, vscodeContainer.firstChild);
+    }
+
+    if (typingBar) {
+        typingBar.innerHTML = `
+            <div class="flex items-center space-x-2">
+                <div class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></div>
+                <span class="text-indigo-200">⚡ AI is writing HTML code line-by-line...</span>
+            </div>
+            <span id="ai-code-typing-counter" class="text-emerald-400 font-extrabold">0%</span>
+        `;
+    }
+
+    const lines = generatedHtml.split('\n');
+    let currentLineIndex = 0;
+    rawEd.value = '';
+
+    // Human-like line-by-line typing animation speed
+    const linesPerTick = lines.length > 60 ? 3 : (lines.length > 30 ? 2 : 1);
+    const intervalMs = 25; // 25ms per line step
+
+    const timer = setInterval(() => {
+        currentLineIndex += linesPerTick;
+        if (currentLineIndex > lines.length) {
+            currentLineIndex = lines.length;
+        }
+
+        const linesSoFar = lines.slice(0, currentLineIndex).join('\n');
+        rawEd.value = linesSoFar;
+
+        // Sync gutter line numbers & syntax highlighting
+        updateVSCodeGutter(rawEd, 'wizard-editor-gutter', 'wizard-editor-highlight');
+        updateVSCodeCursorPos(rawEd, 'wizard-editor-position');
+
+        // Scroll raw textarea to bottom smoothly
+        rawEd.scrollTop = rawEd.scrollHeight;
+
+        const counterEl = document.getElementById('ai-code-typing-counter');
+        if (counterEl) {
+            const pct = Math.round((currentLineIndex / lines.length) * 100);
+            counterEl.innerText = `${pct}% (Line ${currentLineIndex}/${lines.length})`;
+        }
+
+        if (currentLineIndex >= lines.length) {
+            clearInterval(timer);
+
+            // Finalize HTML content state
+            window._ecWizardState.body_html = generatedHtml;
+            const richEd = document.getElementById('wizard-rich-editor');
+            if (richEd) richEd.innerHTML = generatedHtml;
+
+            // Remove typing banner
+            if (typingBar) typingBar.remove();
+
+            // Show Notification Toast
+            showNotification('success', '✨ Email Written Successfully!');
+
+            // Blink and Pulse Preview Tab
+            const previewBtn = document.getElementById('wizard-preview-tab-btn');
+            const previewBadge = document.getElementById('wizard-preview-badge');
+            if (previewBtn) {
+                previewBtn.classList.add('animate-bounce', '!text-indigo-600', '!border-indigo-600', 'font-extrabold');
+            }
+            if (previewBadge) {
+                previewBadge.classList.remove('hidden');
+                previewBadge.classList.add('animate-pulse');
+            }
+
+            setTimeout(() => {
+                if (previewBtn) previewBtn.classList.remove('animate-bounce');
+            }, 4000);
+        }
+    }, intervalMs);
 };
 
 window.loadSampleTemplateIntoWizard = function() {

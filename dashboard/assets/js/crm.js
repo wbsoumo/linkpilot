@@ -15059,7 +15059,7 @@ async function checkInboxEmailAccountStatus() {
     }
 }
 
-/* --- EMAIL FOLLOWUPS HUB & AI REPLY STUDIO (RESPONSIVE & CLEAN TYPOGRAPHY) --- */
+/* --- EMAIL FOLLOWUPS HUB & AI REPLY STUDIO (STRICT 1-LINE HEADER & HTML VIEW) --- */
 window.followupFilters = {
     priority: '',
     category: '',
@@ -15076,8 +15076,8 @@ async function renderEmailFollowups(container) {
     try {
         container.innerHTML = `
             <div class="flex flex-col w-full h-full bg-[#f8fafc] overflow-hidden animate-fade-in font-sans text-slate-800">
-                <!-- Top Filter Header Bar -->
-                <div class="bg-white border-b border-slate-200 px-6 py-3.5 flex flex-col xl:flex-row xl:items-center justify-between gap-3 shrink-0">
+                <!-- Top Filter Header Bar (Strict 1 Line Layout, No Overlap) -->
+                <div class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between gap-3 shrink-0">
                     <div class="flex items-center space-x-3 min-w-0">
                         <div class="h-9 w-9 rounded-full bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0">
                             <i data-lucide="clock" class="h-4.5 w-4.5"></i>
@@ -15088,16 +15088,16 @@ async function renderEmailFollowups(container) {
                         </div>
                     </div>
                     
-                    <!-- Search & Filter Controls (Single Clean Line Layout) -->
-                    <div class="flex flex-wrap items-center gap-2">
-                        <!-- Search Box (Pill Shape) -->
-                        <div class="relative w-full sm:w-52 md:w-60">
-                            <i data-lucide="search" class="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400"></i>
-                            <input type="text" id="followup-search-input" oninput="handleFollowupSearch(this.value)" value="${window.followupFilters.search}" placeholder="Search followups..." class="w-full pl-8.5 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white transition">
+                    <!-- Search & Filter Controls (Strict Single-Line Layout, No Overlap) -->
+                    <div class="flex items-center space-x-2 shrink-0 overflow-x-auto no-scrollbar py-0.5">
+                        <!-- Expandable Search Box -->
+                        <div class="relative flex items-center shrink-0">
+                            <i data-lucide="search" class="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400 pointer-events-none z-10"></i>
+                            <input type="text" id="followup-search-input" oninput="handleFollowupSearch(this.value)" value="${window.followupFilters.search}" placeholder="Search followups..." class="w-36 focus:w-60 md:w-44 md:focus:w-64 pl-8.5 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all duration-300">
                         </div>
                         
                         <!-- Priority Dropdown -->
-                        <select onchange="filterFollowups('priority', this.value)" class="py-1.5 px-3 bg-slate-50 border border-slate-200 rounded-full text-xs font-semibold text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer">
+                        <select onchange="filterFollowups('priority', this.value)" class="py-1.5 px-3 bg-slate-50 border border-slate-200 rounded-full text-xs font-semibold text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer shrink-0">
                             <option value="">High Priority</option>
                             <option value="high" ${window.followupFilters.priority==='high'?'selected':''}>High Priority Only</option>
                             <option value="medium" ${window.followupFilters.priority==='medium'?'selected':''}>Medium Priority</option>
@@ -15106,7 +15106,7 @@ async function renderEmailFollowups(container) {
                         </select>
 
                         <!-- Category Dropdown -->
-                        <select onchange="filterFollowups('category', this.value)" class="py-1.5 px-3 bg-slate-50 border border-slate-200 rounded-full text-xs font-semibold text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer">
+                        <select onchange="filterFollowups('category', this.value)" class="py-1.5 px-3 bg-slate-50 border border-slate-200 rounded-full text-xs font-semibold text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer shrink-0">
                             <option value="">All Categories</option>
                             <option value="New Lead" ${window.followupFilters.category==='New Lead'?'selected':''}>New Lead</option>
                             <option value="Existing Client" ${window.followupFilters.category==='Existing Client'?'selected':''}>Existing Client</option>
@@ -15116,7 +15116,7 @@ async function renderEmailFollowups(container) {
                         </select>
 
                         <!-- Status Dropdown -->
-                        <select onchange="filterFollowups('status', this.value)" class="py-1.5 px-3 bg-slate-50 border border-slate-200 rounded-full text-xs font-semibold text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer">
+                        <select onchange="filterFollowups('status', this.value)" class="py-1.5 px-3 bg-slate-50 border border-slate-200 rounded-full text-xs font-semibold text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer shrink-0">
                             <option value="needs_reply" ${window.followupFilters.status==='needs_reply'?'selected':''}>Needs Reply</option>
                             <option value="unread" ${window.followupFilters.status==='unread'?'selected':''}>Unread</option>
                             <option value="" ${window.followupFilters.status===''?'selected':''}>All Statuses</option>
@@ -15129,19 +15129,19 @@ async function renderEmailFollowups(container) {
                     </div>
                 </div>
 
-                <!-- Sub-header Quick Stat Tabs -->
+                <!-- Sub-header Quick Stat Tabs (With Solid Filled Circles & White Bold Text) -->
                 <div class="bg-white border-b border-slate-200 px-6 py-2 flex items-center space-x-4 text-xs font-bold shrink-0">
                     <button onclick="switchFollowupTab('all')" id="followup-tab-all" class="flex items-center space-x-2 py-1 px-3 rounded-full transition text-slate-900 font-bold bg-blue-50/80 border border-blue-100">
                         <span>Pending Followups</span>
-                        <span id="stat-pending-count" class="px-2 py-0.5 bg-blue-600 text-white rounded-full text-[10px] font-bold">20</span>
+                        <span id="stat-pending-count" class="px-2 py-0.5 bg-blue-600 text-white rounded-full text-[10px] font-extrabold">20</span>
                     </button>
                     <button onclick="switchFollowupTab('high')" id="followup-tab-high" class="flex items-center space-x-2 py-1 px-3 rounded-full transition text-slate-600 hover:text-slate-900">
                         <span>High Priority</span>
-                        <span id="stat-high-priority-count" class="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-[10px] font-bold">20</span>
+                        <span id="stat-high-priority-count" class="px-2 py-0.5 bg-red-600 text-white rounded-full text-[10px] font-extrabold">20</span>
                     </button>
                     <button onclick="switchFollowupTab('overdue')" id="followup-tab-overdue" class="flex items-center space-x-2 py-1 px-3 rounded-full transition text-slate-600 hover:text-slate-900">
                         <span>Overdue (>2 days)</span>
-                        <span id="stat-overdue-count" class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full text-[10px] font-bold">19</span>
+                        <span id="stat-overdue-count" class="px-2 py-0.5 bg-amber-600 text-white rounded-full text-[10px] font-extrabold">19</span>
                     </button>
                 </div>
 
@@ -15344,6 +15344,94 @@ window.setFollowupTone = function(tone) {
     }
 };
 
+window.openFullEmailModal = async function(emailId) {
+    let modal = document.getElementById('full-email-view-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'full-email-view-modal';
+        modal.className = 'fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 md:p-6 animate-fade-in';
+        document.body.appendChild(modal);
+    }
+    
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-scale-up font-sans">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
+                <div class="flex items-center space-x-3 min-w-0">
+                    <div class="h-9 w-9 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="mail" class="h-5 w-5"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <h3 class="text-sm font-bold text-slate-900 truncate">Email Details & Original Layout</h3>
+                        <p class="text-xs text-slate-500 font-medium">Full view in original HTML formatting</p>
+                    </div>
+                </div>
+                <button onclick="closeFullEmailModal()" class="h-8 w-8 rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition" title="Close">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Email Content -->
+            <div class="flex-grow p-6 overflow-y-auto space-y-4 bg-white" id="full-email-modal-body">
+                <div class="flex items-center justify-center py-12">
+                    <div class="loader-spinner !w-6 !h-6 !border-2"></div>
+                </div>
+            </div>
+        </div>
+    `;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    
+    try {
+        const data = await apiCall(`crm/email_intelligence/emails.php?id=${emailId}`);
+        const email = data.email;
+        const date = new Date(email.received_date).toLocaleString('en-US', {
+            day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true
+        });
+        
+        const modalBody = document.getElementById('full-email-modal-body');
+        if (modalBody) {
+            modalBody.innerHTML = `
+                <div class="space-y-4">
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                        <div class="flex justify-between items-start gap-4">
+                            <h2 class="text-base font-bold text-slate-900 leading-snug">${email.subject}</h2>
+                            <span class="text-xs text-slate-400 font-medium shrink-0">${date}</span>
+                        </div>
+                        <div class="flex items-center justify-between border-t border-slate-200/60 pt-2 text-xs">
+                            <div>
+                                <span class="font-bold text-slate-800">${email.sender_name || email.sender_email}</span>
+                                <span class="text-slate-400 font-normal ml-1">&lt;${email.sender_email}&gt;</span>
+                            </div>
+                            <div class="flex items-center space-x-1.5">
+                                <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-blue-50 text-blue-600 border border-blue-200">${email.priority || 'MEDIUM'}</span>
+                                <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-purple-50 text-purple-600 border border-purple-200">${email.category || 'MEETING REQUEST'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 bg-white border border-slate-200 rounded-xl space-y-3 min-h-[300px]">
+                        ${email.body_html ? `
+                            <div class="w-full bg-white font-sans text-slate-800 leading-relaxed overflow-x-auto email-html-content-view">
+                                ${email.body_html}
+                            </div>
+                        ` : `
+                            <div class="text-xs text-slate-800 leading-relaxed whitespace-pre-line font-sans">${email.body_text || 'No email content available.'}</div>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+    } catch(err) {
+        const modalBody = document.getElementById('full-email-modal-body');
+        if (modalBody) modalBody.innerHTML = `<div class="p-6 text-center text-rose-500 text-xs font-bold">Failed to load email content: ${err.message}</div>`;
+    }
+};
+
+window.closeFullEmailModal = function() {
+    const modal = document.getElementById('full-email-view-modal');
+    if (modal) modal.remove();
+};
+
 async function selectFollowupEmail(emailId) {
     window.activeFollowupEmailId = emailId;
     
@@ -15391,7 +15479,11 @@ async function selectFollowupEmail(emailId) {
 
                         <div class="text-right shrink-0 flex flex-col items-end">
                             <span class="text-[10px] font-medium text-slate-400 mb-1">${date}</span>
-                            <div class="flex items-center space-x-1.5">
+                            <div class="flex items-center space-x-2">
+                                <button onclick="openFullEmailModal(${email.id})" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition flex items-center space-x-1 shrink-0" title="View Full Email Modal">
+                                    <i data-lucide="maximize-2" class="h-3 w-3"></i>
+                                    <span>View Full Email</span>
+                                </button>
                                 <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase border border-blue-200 text-blue-600 bg-blue-50/40">${email.priority || 'MEDIUM'}</span>
                                 <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase border border-purple-200 text-purple-600 bg-purple-50/40">${email.category || 'MEETING REQUEST'}</span>
                             </div>
@@ -15457,10 +15549,16 @@ async function selectFollowupEmail(emailId) {
                     </div>
                 </div>
 
-                <!-- Email Message Content Scroll Area (Maximum Height & Crisp Typography) -->
+                <!-- Email Message Content Scroll Area (HTML Design Support) -->
                 <div class="flex-grow p-4 overflow-y-auto bg-slate-50/30 space-y-3 relative min-h-0">
                     <div class="bg-white p-5 rounded-xl border border-slate-200/90 shadow-2xs space-y-3">
-                        <div class="text-xs text-slate-700 leading-relaxed whitespace-pre-line font-sans">${email.body_text || email.body_html || 'No body text available.'}</div>
+                        ${email.body_html ? `
+                            <div class="w-full bg-white font-sans text-slate-800 leading-relaxed overflow-x-auto email-html-content-view">
+                                ${email.body_html}
+                            </div>
+                        ` : `
+                            <div class="text-xs text-slate-700 leading-relaxed whitespace-pre-line font-sans">${email.body_text || 'No email content available.'}</div>
+                        `}
                     </div>
                 </div>
 
@@ -15486,8 +15584,8 @@ async function selectFollowupEmail(emailId) {
                         <div class="flex items-center space-x-2 pt-0.5">
                             <input type="text" id="followup-custom-prompt" placeholder="Optional custom instruction..." class="flex-grow px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500">
                             <button onclick="generateFollowupAIReply(${email.id})" id="followup-ai-gen-btn" class="px-3.5 py-1.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white font-bold rounded-lg text-xs shadow-2xs transition shrink-0 flex items-center space-x-1">
-                                <i data-lucide="sparkles" class="h-3 w-3"></i>
-                                <span>Generate Draft</span>
+                                <i data-lucide="sparkles" class="h-3 w-3 text-white"></i>
+                                <span class="text-white">Generate Draft</span>
                             </button>
                         </div>
                     </div>
@@ -15511,7 +15609,7 @@ async function selectFollowupEmail(emailId) {
                         </div>
 
                         <!-- Clean Inline AI Reply Trigger Button -->
-                        <button onclick="toggleFollowupAIStudio()" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 rounded-lg text-xs font-bold transition flex items-center space-x-1">
+                        <button onclick="toggleFollowupAIStudio()" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 rounded-lg text-xs font-bold transition flex items-center space-x-1 cursor-pointer">
                             <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
                             <span>AI Assistant</span>
                         </button>
@@ -15532,13 +15630,13 @@ async function selectFollowupEmail(emailId) {
                                 <button class="hover:text-slate-700"><i data-lucide="file-text" class="h-3.5 w-3.5"></i></button>
                             </div>
 
-                            <!-- Send Reply Button with Split Arrow Dropdown -->
+                            <!-- Send Reply Button with Split Arrow Dropdown (White Bold Text) -->
                             <div class="inline-flex rounded-lg overflow-hidden shadow-2xs">
-                                <button onclick="sendFollowupEmailReply(${email.id})" id="followup-send-btn" class="px-4 py-1.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-bold transition flex items-center space-x-1.5">
-                                    <span>Send Reply</span>
+                                <button onclick="sendFollowupEmailReply(${email.id})" id="followup-send-btn" class="px-5 py-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-extrabold transition flex items-center space-x-1.5 cursor-pointer">
+                                    <span class="text-white font-extrabold">Send Reply</span>
                                 </button>
-                                <button class="px-2 py-1.5 bg-[#4338CA] hover:bg-[#3730A3] text-white text-xs font-bold border-l border-indigo-400/30 transition">
-                                    <i data-lucide="chevron-down" class="h-3.5 w-3.5"></i>
+                                <button class="px-2.5 py-2 bg-[#4338CA] hover:bg-[#3730A3] text-white text-xs font-extrabold border-l border-indigo-400/30 transition cursor-pointer">
+                                    <i data-lucide="chevron-down" class="h-3.5 w-3.5 text-white"></i>
                                 </button>
                             </div>
                         </div>

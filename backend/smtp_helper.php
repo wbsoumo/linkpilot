@@ -244,6 +244,28 @@ class SMTPHelper {
             
         } catch (Exception $e) {
             $errorMsg = $mail->ErrorInfo ?: $e->getMessage();
+            if (stripos($errorMsg, 'timed out') !== false || stripos($errorMsg, 'code: 110') !== false || stripos($errorMsg, 'Could not connect to SMTP host') !== false) {
+                $proxyRes = self::callAwsProxyWorker('send_email', [
+                    'userId' => $userId,
+                    'recipientEmail' => $recipientEmail,
+                    'subject' => $subject,
+                    'body' => $body,
+                    'templateId' => $templateId,
+                    'originalMessageId' => $originalMessageId,
+                    'ccEmails' => $ccEmails,
+                    'trackingId' => $trackingId,
+                    'smtp' => $smtp,
+                    'decryptedPassword' => $decryptedPassword
+                ]);
+                if ($proxyRes !== null) {
+                    if ($proxyRes['status']) {
+                        self::logSentEmail($userId, $recipientEmail, $subject, $body, 'sent', null, $trackingId);
+                        updateStatistic($userId, 'emails_sent');
+                        logActivity($userId, "Sent outreach email to: " . $recipientEmail . " (via AWS Worker)");
+                    }
+                    return $proxyRes;
+                }
+            }
             self::logSentEmail($userId, $recipientEmail, $subject, $body, 'failed', $errorMsg, $trackingId);
             return [
                 "status" => false,
@@ -301,14 +323,63 @@ class SMTPHelper {
             }
         } catch (Exception $e) {
             $err = $mail->ErrorInfo ?: $e->getMessage();
-            if (stripos($err, 'timed out') !== false || stripos($err, 'code: 110') !== false) {
-                $err .= " Tip: Port " . $port . " appears blocked by host firewall. Try switching Port to 465 with SSL encryption.";
+            
+            // If connection timed out or blocked by host firewall, auto-retry via AWS Proxy Worker (mailbaby.linkpilot.work)
+            if (stripos($err, 'timed out') !== false || stripos($err, 'code: 110') !== false || stripos($err, 'Could not connect to SMTP host') !== false) {
+                $proxyRes = self::callAwsProxyWorker('test_smtp', [
+                    'smtp_host' => $host,
+                    'smtp_port' => (int)$port,
+                    'smtp_username' => $username,
+                    'smtp_password' => $password,
+                    'smtp_encryption' => $encryption,
+                    'sender_name' => $senderName,
+                    'sender_email' => $senderEmail
+                ]);
+                if ($proxyRes !== null) {
+                    return $proxyRes;
+                }
             }
+
             return [
                 "status" => false,
                 "message" => "SMTP Test Failed: " . $err
             ];
         }
+    }
+
+    /**
+     * Call AWS EC2 Mail Worker (mailbaby.linkpilot.work)
+     */
+    public static function callAwsProxyWorker($action, $data) {
+        $workerUrl = "https://mailbaby.linkpilot.work/index.php?action=" . urlencode($action);
+        $secretKey = "LINKPILOT_AWS_SECRET_KEY_2026";
+
+        $ch = curl_init($workerUrl);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Content-Type: application/json",
+            "X-LinkPilot-Secret: " . $secretKey
+        ]);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 12);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode === 200 && !empty($response)) {
+            $res = json_decode($response, true);
+            if (is_array($res) && isset($res['status'])) {
+                return [
+                    "status" => (bool)($res['status'] === 'success' || $res['status'] === true),
+                    "message" => $res['message'] ?? 'Worker processed request'
+                ];
+            }
+        }
+        return null;
     }
     
     /**

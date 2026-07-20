@@ -17291,9 +17291,9 @@ window.openEmailComposerModal = function(templateId) {
                                         </div>
                                         <!-- Real-time Syntax Highlight Layer (Pre) -->
                                         <div class="relative flex-grow h-full min-w-0">
-                                            <pre id="composer-editor-highlight" class="absolute inset-0 p-4 font-mono text-[13px] leading-6 text-[#D4D4D4] bg-[#1e1e1e] pointer-events-none overflow-hidden whitespace-pre select-none" style="font-family: Consolas, Monaco, monospace; margin: 0; border: none;"></pre>
+                                            <pre id="composer-editor-highlight" class="absolute inset-0 p-4 font-mono text-[13px] leading-6 text-[#D4D4D4] bg-[#1e1e1e] pointer-events-none overflow-hidden whitespace-pre select-none" style="font-family: Consolas, Monaco, monospace; margin: 0; border: none; background: #1e1e1e !important; color: #d4d4d4 !important;"></pre>
                                             <!-- Transparent Textarea on top -->
-                                            <textarea id="raw-html-source-editor" onscroll="syncVSCodeGutter(this, 'composer-editor-gutter', 'composer-editor-highlight')" oninput="updateVSCodeGutter(this, 'composer-editor-gutter', 'composer-editor-highlight'); updateVSCodeCursorPos(this, 'composer-editor-position');" onkeyup="updateVSCodeCursorPos(this, 'composer-editor-position');" onclick="updateVSCodeCursorPos(this, 'composer-editor-position');" class="absolute inset-0 p-4 font-mono text-[13px] leading-6 text-transparent caret-white bg-transparent focus:outline-none overflow-auto resize-none" style="white-space: pre; overflow-wrap: normal; font-family: Consolas, Monaco, monospace; -webkit-text-fill-color: transparent;"></textarea>
+                                            <textarea id="raw-html-source-editor" onscroll="syncVSCodeGutter(this, 'composer-editor-gutter', 'composer-editor-highlight')" oninput="updateVSCodeGutter(this, 'composer-editor-gutter', 'composer-editor-highlight'); updateVSCodeCursorPos(this, 'composer-editor-position');" onkeyup="updateVSCodeCursorPos(this, 'composer-editor-position');" onclick="updateVSCodeCursorPos(this, 'composer-editor-position');" class="absolute inset-0 p-4 font-mono text-[13px] leading-6 text-transparent caret-white bg-transparent focus:outline-none overflow-auto resize-none" style="white-space: pre; overflow-wrap: normal; font-family: Consolas, Monaco, monospace; -webkit-text-fill-color: transparent; background: transparent !important; caret-color: #ffffff;"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -24067,9 +24067,9 @@ function getWizardStepHtml(step) {
                                             </div>
                                             <!-- Real-time Syntax Highlight Layer (Pre) -->
                                             <div class="relative flex-grow h-full min-w-0">
-                                                <pre id="wizard-editor-highlight" class="absolute inset-0 p-4 font-mono text-[13px] leading-6 text-[#D4D4D4] bg-[#1e1e1e] pointer-events-none overflow-hidden whitespace-pre select-none" style="font-family: Consolas, Monaco, monospace; margin: 0; border: none;"></pre>
+                                                <pre id="wizard-editor-highlight" class="absolute inset-0 p-4 font-mono text-[13px] leading-6 text-[#D4D4D4] bg-[#1e1e1e] pointer-events-none overflow-hidden whitespace-pre select-none" style="font-family: Consolas, Monaco, monospace; margin: 0; border: none; background: #1e1e1e !important; color: #d4d4d4 !important;"></pre>
                                                 <!-- Transparent Textarea on top -->
-                                                <textarea id="wizard-raw-editor" onscroll="syncVSCodeGutter(this, 'wizard-editor-gutter', 'wizard-editor-highlight')" oninput="updateVSCodeGutter(this, 'wizard-editor-gutter', 'wizard-editor-highlight'); handleMailBodyInput(); updateVSCodeCursorPos(this, 'wizard-editor-position');" onkeyup="updateVSCodeCursorPos(this, 'wizard-editor-position');" onclick="updateVSCodeCursorPos(this, 'wizard-editor-position');" class="absolute inset-0 p-4 font-mono text-[13px] leading-6 text-transparent caret-white bg-transparent focus:outline-none overflow-auto resize-none" style="white-space: pre; overflow-wrap: normal; font-family: Consolas, Monaco, monospace; -webkit-text-fill-color: transparent;">${escapeHtml(st.body_html)}</textarea>
+                                                <textarea id="wizard-raw-editor" onscroll="syncVSCodeGutter(this, 'wizard-editor-gutter', 'wizard-editor-highlight')" oninput="updateVSCodeGutter(this, 'wizard-editor-gutter', 'wizard-editor-highlight'); handleMailBodyInput(); updateVSCodeCursorPos(this, 'wizard-editor-position');" onkeyup="updateVSCodeCursorPos(this, 'wizard-editor-position');" onclick="updateVSCodeCursorPos(this, 'wizard-editor-position');" class="absolute inset-0 p-4 font-mono text-[13px] leading-6 text-transparent caret-white bg-transparent focus:outline-none overflow-auto resize-none" style="white-space: pre; overflow-wrap: normal; font-family: Consolas, Monaco, monospace; -webkit-text-fill-color: transparent; background: transparent !important; caret-color: #ffffff;">${escapeHtml(st.body_html)}</textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -24431,6 +24431,10 @@ function attachWizardStepListeners(step) {
         const subjIn = document.getElementById('ec-wizard-subject');
         const richEd = document.getElementById('wizard-rich-editor');
         const rawEd = document.getElementById('wizard-raw-editor');
+        if (rawEd) {
+            updateVSCodeGutter(rawEd, 'wizard-editor-gutter', 'wizard-editor-highlight');
+            updateVSCodeCursorPos(rawEd, 'wizard-editor-position');
+        }
         
         if (nameIn) nameIn.addEventListener('input', handleMailBodyInput);
         if (subjIn) subjIn.addEventListener('input', handleMailBodyInput);

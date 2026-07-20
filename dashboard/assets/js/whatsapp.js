@@ -6463,12 +6463,12 @@ async function renderWhatsAppTrain(container) {
             }
             .phone-simulator {
                 border: 12px solid #1e293b;
-                border-radius: 36px;
+                border-radius: 40px;
                 background-color: #efeae2;
                 box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
                 overflow: hidden;
-                width: 320px;
-                height: 520px;
+                width: 310px;
+                height: 630px;
                 position: relative;
             }
             .phone-screen {
@@ -6480,13 +6480,20 @@ async function renderWhatsAppTrain(container) {
             .phone-header {
                 background-color: #f0f2f5;
                 color: #111b21;
-                padding: 7px 12px;
+                padding: 16px 12px 6px 12px;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
                 border-bottom: 1px solid #e2e8f0;
-                height: 48px;
+                height: 58px;
                 flex-shrink: 0;
+            }
+            #sim-chat-input {
+                border: none !important;
+                outline: none !important;
+                background: transparent !important;
+                box-shadow: none !important;
+                padding: 0 !important;
             }
             .chat-messages {
                 flex-grow: 1;
@@ -7117,6 +7124,11 @@ function renderAgentDashboard(container) {
             <!-- Right panel: Interactive Live Chat Simulator -->
             <div class="flex flex-col items-center justify-center">
                 <div class="phone-simulator">
+                    <!-- Dynamic Island Notch -->
+                    <div class="absolute top-1.5 left-1/2 -translate-x-1/2 w-20 h-3.5 bg-[#1e293b] rounded-full z-30 flex items-center justify-center pointer-events-none">
+                        <div class="w-1 h-1 rounded-full bg-[#334155] mr-2"></div>
+                        <div class="w-1 h-1 rounded-full bg-[#0f172a]"></div>
+                    </div>
                     <div class="phone-screen">
                         <!-- Head -->
                         <div class="phone-header">

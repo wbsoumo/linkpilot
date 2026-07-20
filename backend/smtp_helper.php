@@ -329,6 +329,8 @@ class SMTPHelper {
                     ]);
                     if ($proxyRes !== null) {
                         return $proxyRes;
+                    } else {
+                        $err .= " (AWS Worker unreachable: " . ($GLOBALS['aws_proxy_last_err'] ?? 'Connection failed') . ")";
                     }
                 }
 
@@ -389,6 +391,7 @@ class SMTPHelper {
 
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlErr = curl_error($ch);
             curl_close($ch);
 
             if ($httpCode === 200 && !empty($response)) {
@@ -399,6 +402,9 @@ class SMTPHelper {
                         "message" => $res['message'] ?? 'Worker processed request'
                     ];
                 }
+            } else {
+                $GLOBALS['aws_proxy_last_err'] = "URL=$workerUrl HTTP=$httpCode Err=$curlErr";
+                error_log("AWS Worker Failed: URL=$workerUrl HTTP=$httpCode Error=$curlErr Response=$response");
             }
         }
         return null;

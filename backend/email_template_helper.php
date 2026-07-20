@@ -70,6 +70,11 @@ class EmailTemplateHelper {
             $signature .= "<p style='margin: 6px 0 0 0; font-size: 12px;'><a href='{$linkedin}' target='_blank' style='color: #14B8A6; text-decoration: none; font-weight: 500;'>Connect on LinkedIn</a></p>";
         }
 
+        // If $body is already a rich styled HTML template, return directly
+        if (strpos($body, 'max-width:') !== false || strpos($body, '<table') !== false || strpos($body, '<div style=') !== false || strpos($body, 'OUTREACH ENGINE') !== false) {
+            return $body;
+        }
+
         // Clean body to prevent double styling and make linebreaks look good
         $cleanedBody = $body;
 

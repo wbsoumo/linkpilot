@@ -17409,6 +17409,9 @@ window.showEditorHelpModal = function() {
 
 window.sendComposerEmailModal = async function(templateId) {
     const toInput = document.getElementById('composer-to-email');
+    const subjectInput = document.getElementById('composer-subject');
+    const editor = document.getElementById('rich-email-editor');
+    const rawEditor = document.getElementById('raw-html-source-editor');
     const btn = document.getElementById('composer-send-btn');
     
     if (!toInput || !toInput.value.trim()) {
@@ -17416,16 +17419,54 @@ window.sendComposerEmailModal = async function(templateId) {
         return;
     }
     
+    const recipientEmail = toInput.value.trim();
+    const subject = subjectInput ? subjectInput.value.trim() : 'LinkPilot HTML Email';
+    
+    let htmlBody = '';
+    if (rawEditor && !rawEditor.classList.contains('hidden')) {
+        htmlBody = rawEditor.value;
+    } else if (editor) {
+        htmlBody = editor.innerHTML;
+    }
+    
+    if (!htmlBody || !htmlBody.trim()) {
+        showNotification('error', 'Email content body cannot be empty.');
+        return;
+    }
+    
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = `<i data-lucide="refresh-cw" class="h-4 w-4 animate-spin text-white"></i><span class="text-white">Sending Outbound Email...</span>`;
+        btn.innerHTML = `<i data-lucide="refresh-cw" class="h-4 w-4 animate-spin text-white mr-1.5"></i><span class="text-white font-bold">Sending via SMTP / Gmail API...</span>`;
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
     
-    setTimeout(() => {
-        closeEmailComposerModal();
-        showNotification('success', `Outbound HTML Email successfully sent to ${toInput.value.trim()}!`);
-    }, 800);
+    try {
+        const response = await apiCall('generate/send_email.php', 'POST', {
+            recipient_email: recipientEmail,
+            subject: subject,
+            body: htmlBody
+        });
+        
+        if (response && response.status === 'success') {
+            closeEmailComposerModal();
+            showNotification('success', `Outbound HTML Email successfully delivered to ${recipientEmail}!`);
+        } else {
+            const errMsg = (response && response.message) ? response.message : 'Failed to send email. Please check your SMTP or Gmail integration settings.';
+            showNotification('error', errMsg);
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="send" class="h-4 w-4 text-white"></i><span class="text-white font-extrabold text-sm" style="color: #ffffff !important;">Send Outbound Email</span>`;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        }
+    } catch(err) {
+        showNotification('error', `Failed to send email: ${err.message || 'SMTP configuration error'}`);
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="send" class="h-4 w-4 text-white"></i><span class="text-white font-extrabold text-sm" style="color: #ffffff !important;">Send Outbound Email</span>`;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    }
 };
 
 async function fetchGlobalSearchResults(value) {

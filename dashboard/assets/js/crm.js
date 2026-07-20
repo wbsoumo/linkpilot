@@ -16400,6 +16400,8 @@ const EMAIL_TEMPLATES_DATA = [
         body: `Hi {{first_name}},\n\nWe've had several mutual clients request a native integration between {{company_name}} and LinkPilot AI.\n\nWould your dev team be open to a brief technical call to explore integration pathways?\n\nBest,\n{{sender_name}}`
     },
     {
+        id: 55,
+        title: "VIP Industry Executive Networking Lunch",
         category: "Networking",
         tag: "VIP Invite",
         openRate: "87%",
@@ -16419,32 +16421,57 @@ function getTemplateHtmlPreview(t) {
     ];
     const grad = bgGradients[t.id % bgGradients.length];
 
+    // High quality marketing hero banners
+    const sampleBanners = [
+        'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=800&auto=format&fit=crop&q=80'
+    ];
+    const heroImage = sampleBanners[t.id % sampleBanners.length];
+
     return `
         <div style="font-family: Inter, system-ui, sans-serif; background: #f8fafc; padding: 16px; min-height: 100%;">
-            <div style="max-width: 580px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                <!-- Header Banner -->
-                <div style="background: ${grad}; padding: 24px; text-align: center; color: #ffffff;">
-                    <div style="display: inline-block; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; color: #ffffff !important;">LINKPILOT CRM MARKETING</div>
-                    <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff !important; line-height: 1.3;">${t.title}</h2>
-                    <p style="margin: 6px 0 0 0; font-size: 11px; opacity: 0.9; color: #ffffff !important;">${t.subject}</p>
+            <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                <!-- Marketing Hero Image Banner -->
+                <div style="width: 100%; height: 160px; overflow: hidden; position: relative; background: #1e293b;">
+                    <img src="${heroImage}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.9;" alt="Marketing Banner">
+                    <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(15,23,42,0.8) 0%, transparent 60%); display: flex; items-end; padding: 16px;">
+                        <span style="background: rgba(255,255,255,0.25); backdrop-filter: blur(4px); color: #ffffff !important; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 20px; text-transform: uppercase;">PREMIUM MARKETING TEMPLATE</span>
+                    </div>
                 </div>
 
-                <!-- Email Body -->
-                <div style="padding: 20px; color: #334155; font-size: 12px; line-height: 1.6;">
-                    <div style="background: #f1f5f9; border-left: 4px solid #4F46E5; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600; color: #1e293b;">
-                        Subject: ${t.subject}
-                    </div>
-                    <p style="white-space: pre-line; margin: 0 0 16px 0; font-size: 12px; color: #475569;">${t.body}</p>
+                <!-- Header Gradient Accent -->
+                <div style="background: ${grad}; padding: 20px 24px; color: #ffffff; text-align: left;">
+                    <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff !important; line-height: 1.3;">${t.title}</h2>
+                    <p style="margin: 4px 0 0 0; font-size: 11px; opacity: 0.9; color: #ffffff !important;">Subject: ${t.subject}</p>
+                </div>
+
+                <!-- Email Body Content -->
+                <div style="padding: 24px; color: #334155; font-size: 13px; line-height: 1.7;">
+                    <p style="margin-top: 0;">Dear <strong>{{first_name}}</strong>,</p>
+                    <p style="white-space: pre-line; margin-bottom: 20px; color: #475569;">${t.body}</p>
                     
+                    <!-- Feature Callout Box -->
+                    <div style="background: #f1f5f9; border-left: 4px solid #4F46E5; padding: 14px 18px; border-radius: 8px; margin: 20px 0;">
+                        <h4 style="margin: 0 0 6px 0; color: #1e293b; font-size: 13px; font-weight: 700;">Key Takeaways for {{company_name}}:</h4>
+                        <ul style="margin: 0; padding-left: 18px; font-size: 12px; color: #475569;">
+                            <li>Automated multi-channel response tracking</li>
+                            <li>Instant AI personalized drafts</li>
+                            <li>Increased open and response rates by over 40%</li>
+                        </ul>
+                    </div>
+
                     <!-- Call To Action Button -->
-                    <div style="text-align: center; margin: 20px 0 10px 0;">
-                        <span style="background: #4F46E5; color: #ffffff !important; font-weight: 800; padding: 10px 24px; border-radius: 10px; display: inline-block; font-size: 12px; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);">Take Action &rarr;</span>
+                    <div style="text-align: center; margin: 28px 0 14px 0;">
+                        <a href="#" onclick="return false;" style="background: #4F46E5; color: #ffffff !important; font-weight: 800; padding: 12px 30px; border-radius: 12px; display: inline-block; font-size: 13px; text-decoration: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);">Take Action Now &rarr;</a>
                     </div>
                 </div>
 
                 <!-- Footer -->
-                <div style="background: #f8fafc; border-t: 1px solid #e2e8f0; padding: 12px; text-align: center; font-size: 10px; color: #94a3b8;">
-                    Sent via LinkPilot Marketing Automation &bull; Unsubscribe
+                <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 14px; text-align: center; font-size: 11px; color: #94a3b8;">
+                    Sent via LinkPilot Marketing Engine &bull; <a href="#" style="color: #64748b; text-decoration: underline;">Unsubscribe</a>
                 </div>
             </div>
         </div>
@@ -16475,7 +16502,7 @@ async function renderEmailTemplates(container) {
                                 <h1 class="text-base font-bold text-slate-900 leading-tight">50+ Premium HTML Marketing Templates</h1>
                                 <span class="px-2 py-0.5 bg-indigo-600 text-white rounded-full text-[10px] font-extrabold" style="color: #ffffff !important;">55 ACTIVE</span>
                             </div>
-                            <p class="text-xs text-slate-500 font-medium truncate mt-0.5">Live visual HTML previews. Hover any template to send or customize.</p>
+                            <p class="text-xs text-slate-500 font-medium truncate mt-0.5">Live visual HTML previews with rich images. Hover any template to edit directly.</p>
                         </div>
                     </div>
 
@@ -16530,17 +16557,17 @@ async function renderEmailTemplates(container) {
 
                                     <div class="pt-3 border-t border-slate-100 flex items-center justify-between mt-3 text-[11px] text-slate-400 font-medium">
                                         <span class="truncate max-w-[150px] font-semibold text-slate-700">${t.subject}</span>
-                                        <span class="text-indigo-600 font-bold group-hover:underline shrink-0">Hover to Use →</span>
+                                        <span class="text-indigo-600 font-bold group-hover:underline shrink-0">Hover to Use & Edit →</span>
                                     </div>
 
                                     <!-- MOUSE HOVER OVERLAY WITH "USE TEMPLATE" BUTTON -->
                                     <div class="absolute inset-0 bg-slate-900/85 backdrop-blur-xs rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center p-6 space-y-3 pointer-events-none group-hover:pointer-events-auto">
                                         <h4 class="text-xs font-bold text-white text-center line-clamp-1 px-2">${t.title}</h4>
-                                        <button onclick="openEmailComposerModal(${t.id})" class="w-full max-w-[200px] py-2.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-extrabold rounded-xl shadow-lg hover:scale-105 transition flex items-center justify-center space-x-2 cursor-pointer" style="color: #ffffff !important;">
-                                            <i data-lucide="send" class="h-3.5 w-3.5 text-white" style="color: #ffffff !important;"></i>
-                                            <span class="text-white font-extrabold" style="color: #ffffff !important;">Use HTML Template</span>
+                                        <button onclick="openEmailComposerModal(${t.id})" class="w-full max-w-[210px] py-2.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-extrabold rounded-xl shadow-lg hover:scale-105 transition flex items-center justify-center space-x-2 cursor-pointer" style="color: #ffffff !important;">
+                                            <i data-lucide="edit-3" class="h-3.5 w-3.5 text-white" style="color: #ffffff !important;"></i>
+                                            <span class="text-white font-extrabold" style="color: #ffffff !important;">Use & Edit HTML Template</span>
                                         </button>
-                                        <button onclick="previewTemplateModal(${t.id})" class="w-full max-w-[200px] py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-lg transition cursor-pointer" style="color: #ffffff !important;">
+                                        <button onclick="previewTemplateModal(${t.id})" class="w-full max-w-[210px] py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-lg transition cursor-pointer" style="color: #ffffff !important;">
                                             Preview HTML Modal
                                         </button>
                                     </div>
@@ -16605,10 +16632,85 @@ window.previewTemplateModal = function(templateId) {
             </div>
             <div class="px-6 py-3 border-t border-slate-200 bg-slate-50 flex justify-end space-x-2">
                 <button onclick="document.getElementById('template-preview-modal').remove()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl">Close</button>
-                <button onclick="document.getElementById('template-preview-modal').remove(); openEmailComposerModal(${t.id});" class="px-5 py-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-extrabold rounded-xl shadow-2xs" style="color: #ffffff !important;">Use HTML Template</button>
+                <button onclick="document.getElementById('template-preview-modal').remove(); openEmailComposerModal(${t.id});" class="px-5 py-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-extrabold rounded-xl shadow-2xs" style="color: #ffffff !important;">Use & Edit HTML Template</button>
             </div>
         </div>
     `;
+};
+
+/* --- DIRECT RICH TEXT BOX EDITOR & IMAGE IMPORTER --- */
+window.execRichEditorCmd = function(cmd, value = null) {
+    document.execCommand(cmd, false, value);
+};
+
+window.openComposerImagePickerModal = function() {
+    let modal = document.getElementById('composer-image-picker-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'composer-image-picker-modal';
+        modal.className = 'fixed inset-0 z-[10000] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in';
+        document.body.appendChild(modal);
+    }
+
+    const sampleImages = [
+        { title: "SIP / Financial Growth Banner", url: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&auto=format&fit=crop&q=80" },
+        { title: "SaaS Dashboard & Analytics Mockup", url: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=80" },
+        { title: "B2B Sales Growth Strategy", url: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=80" },
+        { title: "Live Masterclass & Webinar Speaker Banner", url: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80" },
+        { title: "E-Commerce Special Offer Banner", url: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=800&auto=format&fit=crop&q=80" }
+    ];
+
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-xl overflow-hidden animate-scale-up font-sans">
+            <div class="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                <h3 class="text-xs font-bold text-slate-900 flex items-center space-x-1.5">
+                    <i data-lucide="image" class="h-4 w-4 text-indigo-600"></i>
+                    <span>Import Marketing Image into Email</span>
+                </h3>
+                <button onclick="document.getElementById('composer-image-picker-modal').remove()" class="h-7 w-7 rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-500 flex items-center justify-center">✕</button>
+            </div>
+            <div class="p-5 space-y-4 bg-white">
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-slate-700">Paste Image URL:</label>
+                    <div class="flex items-center space-x-2">
+                        <input type="text" id="custom-image-url-input" placeholder="https://example.com/marketing-banner.png" class="flex-grow px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-indigo-500">
+                        <button onclick="insertImageFromInput()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer" style="color: #ffffff !important;">Insert</button>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-3">
+                    <label class="block text-xs font-bold text-slate-700 mb-2">Or Pick High-Res Stock Banner:</label>
+                    <div class="grid grid-cols-2 gap-3 max-h-56 overflow-y-auto pr-1">
+                        ${sampleImages.map(img => `
+                            <div onclick="insertImageFromUrl('${img.url}')" class="group border border-slate-200 rounded-xl overflow-hidden cursor-pointer hover:border-indigo-500 hover:shadow-sm transition">
+                                <img src="${img.url}" class="w-full h-20 object-cover group-hover:scale-105 transition duration-200">
+                                <div class="p-2 bg-slate-50 text-[10px] font-bold text-slate-700 truncate">${img.title}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+};
+
+window.insertImageFromInput = function() {
+    const input = document.getElementById('custom-image-url-input');
+    if (input && input.value.trim()) {
+        insertImageFromUrl(input.value.trim());
+    }
+};
+
+window.insertImageFromUrl = function(url) {
+    const modal = document.getElementById('composer-image-picker-modal');
+    if (modal) modal.remove();
+    
+    const editor = document.getElementById('rich-email-editor');
+    if (editor) {
+        editor.focus();
+        document.execCommand('insertHTML', false, `<img src="${url}" style="max-width:100%; height:auto; border-radius:12px; margin: 16px 0; display:block; box-shadow: 0 4px 12px rgba(0,0,0,0.08);" alt="Imported Banner" />`);
+    }
 };
 
 window.openEmailComposerModal = function(templateId) {
@@ -16623,16 +16725,16 @@ window.openEmailComposerModal = function(templateId) {
     }
     
     modal.innerHTML = `
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-4xl flex flex-col overflow-hidden animate-scale-up font-sans max-h-[90vh]">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-4xl flex flex-col overflow-hidden animate-scale-up font-sans max-h-[92vh]">
             <!-- Composer Modal Header -->
-            <div class="px-6 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
+            <div class="px-6 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
                 <div class="flex items-center space-x-3 min-w-0">
-                    <div class="h-9 w-9 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
-                        <i data-lucide="send" class="h-4.5 w-4.5"></i>
+                    <div class="h-9 w-9 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 shadow-2xs">
+                        <i data-lucide="edit-3" class="h-4.5 w-4.5"></i>
                     </div>
                     <div class="min-w-0">
-                        <h3 class="text-sm font-bold text-slate-900 truncate">Mail Sending Page - ${t.title}</h3>
-                        <p class="text-[11px] text-slate-500 font-medium truncate">HTML Marketing Template #${t.id} (${t.category})</p>
+                        <h3 class="text-sm font-bold text-slate-900 truncate">Rich Mail Editor - ${t.title}</h3>
+                        <p class="text-[11px] text-slate-500 font-medium truncate">Direct In-Place WYSIWYG HTML Editing Enabled</p>
                     </div>
                 </div>
                 <button onclick="closeEmailComposerModal()" class="h-8 w-8 rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer" title="Close">
@@ -16641,47 +16743,75 @@ window.openEmailComposerModal = function(templateId) {
             </div>
 
             <!-- Composer Body Form -->
-            <div class="flex-grow p-6 overflow-y-auto space-y-4 bg-white">
-                <!-- Recipient Field -->
-                <div class="space-y-1">
-                    <label class="block text-xs font-bold text-slate-700">To (Recipient Email):</label>
-                    <input type="email" id="composer-to-email" value="alex.smith@acme.com" placeholder="recipient@company.com" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white transition">
-                </div>
-
-                <!-- Subject Field -->
-                <div class="space-y-1">
-                    <label class="block text-xs font-bold text-slate-700">Subject Line:</label>
-                    <input type="text" id="composer-subject" value="${t.subject}" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-indigo-500 focus:bg-white transition">
-                </div>
-
-                <!-- View Mode Tabs (Live HTML Design vs Edit Raw Text) -->
-                <div class="flex items-center space-x-4 border-b border-slate-200 pt-2 text-xs font-bold">
-                    <button type="button" onclick="switchComposerTab('preview')" id="composer-tab-preview" class="pb-1.5 text-indigo-600 border-b-2 border-indigo-600 font-bold transition">🎨 Live HTML Design Preview</button>
-                    <button type="button" onclick="switchComposerTab('edit')" id="composer-tab-edit" class="pb-1.5 text-slate-400 hover:text-slate-700 font-medium transition">📝 Edit Raw Text & Code</button>
-                </div>
-
-                <!-- Live Rendered HTML Design Container -->
-                <div id="composer-view-preview" class="p-4 bg-slate-50 border border-slate-200 rounded-2xl overflow-y-auto max-h-[350px]">
-                    ${getTemplateHtmlPreview(t)}
-                </div>
-
-                <!-- Edit Textarea Container (Hidden by default) -->
-                <div id="composer-view-edit" class="hidden space-y-2">
-                    <div class="flex items-center space-x-2 text-[11px]">
-                        <span class="text-slate-400 font-bold shrink-0">Insert Tag:</span>
-                        <button type="button" onclick="insertComposerMergeTag('{{first_name}}')" class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md border border-indigo-100 font-semibold">+ {{first_name}}</button>
-                        <button type="button" onclick="insertComposerMergeTag('{{company_name}}')" class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md border border-indigo-100 font-semibold">+ {{company_name}}</button>
-                        <button type="button" onclick="insertComposerMergeTag('{{sender_name}}')" class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md border border-indigo-100 font-semibold">+ {{sender_name}}</button>
+            <div class="flex-grow p-5 overflow-y-auto space-y-3.5 bg-white">
+                <!-- Recipient & Subject Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase">To (Recipient):</label>
+                        <input type="email" id="composer-to-email" value="alex.smith@acme.com" placeholder="recipient@company.com" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white transition">
                     </div>
-                    <textarea id="composer-body" rows="8" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 leading-relaxed focus:outline-none focus:border-indigo-500 focus:bg-white transition resize-y font-sans">${t.body}</textarea>
+                    <div class="space-y-1">
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase">Subject Line:</label>
+                        <input type="text" id="composer-subject" value="${t.subject}" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-indigo-500 focus:bg-white transition">
+                    </div>
+                </div>
+
+                <!-- WYSIWYG RICH TEXT EDITOR TOOLBAR -->
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-2 flex items-center justify-between flex-wrap gap-1.5 text-xs">
+                    <div class="flex items-center space-x-1 shrink-0">
+                        <button type="button" onclick="execRichEditorCmd('bold')" title="Bold" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold"><i data-lucide="bold" class="h-3.5 w-3.5"></i></button>
+                        <button type="button" onclick="execRichEditorCmd('italic')" title="Italic" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 italic"><i data-lucide="italic" class="h-3.5 w-3.5"></i></button>
+                        <button type="button" onclick="execRichEditorCmd('underline')" title="Underline" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 underline"><i data-lucide="underline" class="h-3.5 w-3.5"></i></button>
+                        <button type="button" onclick="execRichEditorCmd('strikeThrough')" title="Strikethrough" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 line-through"><i data-lucide="strikethrough" class="h-3.5 w-3.5"></i></button>
+                    </div>
+
+                    <div class="h-4 w-px bg-slate-300"></div>
+
+                    <div class="flex items-center space-x-1 shrink-0">
+                        <button type="button" onclick="execRichEditorCmd('justifyLeft')" title="Align Left" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700"><i data-lucide="align-left" class="h-3.5 w-3.5"></i></button>
+                        <button type="button" onclick="execRichEditorCmd('justifyCenter')" title="Align Center" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700"><i data-lucide="align-center" class="h-3.5 w-3.5"></i></button>
+                        <button type="button" onclick="execRichEditorCmd('justifyRight')" title="Align Right" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700"><i data-lucide="align-right" class="h-3.5 w-3.5"></i></button>
+                    </div>
+
+                    <div class="h-4 w-px bg-slate-300"></div>
+
+                    <div class="flex items-center space-x-1 shrink-0">
+                        <button type="button" onclick="execRichEditorCmd('insertUnorderedList')" title="Bullet List" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700"><i data-lucide="list" class="h-3.5 w-3.5"></i></button>
+                        <button type="button" onclick="execRichEditorCmd('insertOrderedList')" title="Numbered List" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700"><i data-lucide="list-ordered" class="h-3.5 w-3.5"></i></button>
+                    </div>
+
+                    <div class="h-4 w-px bg-slate-300"></div>
+
+                    <!-- IMPORT IMAGE BUTTON -->
+                    <button type="button" onclick="openComposerImagePickerModal()" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold transition flex items-center space-x-1 cursor-pointer">
+                        <i data-lucide="image" class="h-3.5 w-3.5 text-indigo-600"></i>
+                        <span>Import Image</span>
+                    </button>
+
+                    <!-- INSERT TAG CHIPS -->
+                    <div class="flex items-center space-x-1 text-[10px]">
+                        <button type="button" onclick="execRichEditorCmd('insertHTML', '{{first_name}}')" class="px-1.5 py-0.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded">+ {{first_name}}</button>
+                        <button type="button" onclick="execRichEditorCmd('insertHTML', '{{company_name}}')" class="px-1.5 py-0.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded">+ {{company_name}}</button>
+                    </div>
+                </div>
+
+                <!-- DIRECT IN-PLACE EDITABLE HTML CANVAS -->
+                <div class="space-y-1">
+                    <div class="flex justify-between items-center text-[10px] text-slate-400 font-bold uppercase">
+                        <span>Direct Editable HTML Canvas (Click anywhere in the template to edit text directly):</span>
+                        <span class="text-indigo-600">✏️ Live Editing Mode Active</span>
+                    </div>
+                    <div id="rich-email-editor" contenteditable="true" class="w-full min-h-[360px] max-h-[500px] p-4 bg-white border border-slate-200 rounded-2xl focus:outline-none focus:border-indigo-500 shadow-inner overflow-y-auto leading-relaxed">
+                        ${getTemplateHtmlPreview(t)}
+                    </div>
                 </div>
             </div>
 
             <!-- Composer Modal Footer -->
-            <div class="px-6 py-3.5 border-t border-slate-200 bg-slate-50 flex items-center justify-between shrink-0">
-                <div class="flex items-center space-x-2 text-slate-400 text-xs">
-                    <i data-lucide="paperclip" class="h-4 w-4"></i>
-                    <span>HTML Marketing Engine Enabled</span>
+            <div class="px-6 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between shrink-0">
+                <div class="flex items-center space-x-2 text-slate-500 text-xs">
+                    <i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-500"></i>
+                    <span>Rich Text Box Editor Ready</span>
                 </div>
                 <div class="flex items-center space-x-3">
                     <button onclick="closeEmailComposerModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer">Cancel</button>
@@ -16696,39 +16826,9 @@ window.openEmailComposerModal = function(templateId) {
     if (typeof lucide !== 'undefined') lucide.createIcons();
 };
 
-window.switchComposerTab = function(tab) {
-    const previewBtn = document.getElementById('composer-tab-preview');
-    const editBtn = document.getElementById('composer-tab-edit');
-    const previewView = document.getElementById('composer-view-preview');
-    const editView = document.getElementById('composer-view-edit');
-    
-    if (tab === 'edit') {
-        if (previewBtn) previewBtn.className = "pb-1.5 text-slate-400 hover:text-slate-700 font-medium transition cursor-pointer";
-        if (editBtn) editBtn.className = "pb-1.5 text-indigo-600 border-b-2 border-indigo-600 font-bold transition cursor-pointer";
-        if (previewView) previewView.classList.add('hidden');
-        if (editView) editView.classList.remove('hidden');
-    } else {
-        if (previewBtn) previewBtn.className = "pb-1.5 text-indigo-600 border-b-2 border-indigo-600 font-bold transition cursor-pointer";
-        if (editBtn) editBtn.className = "pb-1.5 text-slate-400 hover:text-slate-700 font-medium transition cursor-pointer";
-        if (previewView) previewView.classList.remove('hidden');
-        if (editView) editView.classList.add('hidden');
-    }
-};
-
 window.closeEmailComposerModal = function() {
     const modal = document.getElementById('email-composer-modal');
     if (modal) modal.remove();
-};
-
-window.insertComposerMergeTag = function(tag) {
-    const textarea = document.getElementById('composer-body');
-    if (textarea) {
-        const start = textarea.selectionStart || 0;
-        const end = textarea.selectionEnd || 0;
-        const val = textarea.value;
-        textarea.value = val.substring(0, start) + tag + val.substring(end);
-        textarea.focus();
-    }
 };
 
 window.sendComposerEmailModal = async function(templateId) {
@@ -16748,10 +16848,9 @@ window.sendComposerEmailModal = async function(templateId) {
     
     setTimeout(() => {
         closeEmailComposerModal();
-        showNotification('success', `Email successfully sent to ${toInput.value.trim()}!`);
+        showNotification('success', `HTML Marketing email successfully sent to ${toInput.value.trim()}!`);
     }, 800);
 };
-
 
 async function fetchGlobalSearchResults(value) {
     const list = document.getElementById('global-search-results-list');

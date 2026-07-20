@@ -6701,6 +6701,19 @@ function getStepHTML(step) {
     }
     
     else if (step === 1) {
+        const isCrawlDone = (agent.status === 'live' || (agent.knowledge_base && agent.knowledge_base.trim().length > 0));
+        const statusHTML = isCrawlDone ? `
+            <div class="px-4 py-2 bg-emerald-50 border border-emerald-100 text-emerald-700 font-bold text-[10px] rounded-xl flex items-center space-x-1.5 shadow-2xs cursor-default">
+                <i data-lucide="check-circle" class="h-3.5 w-3.5 text-emerald-600"></i>
+                <span>Website read successfully!</span>
+            </div>
+        ` : `
+            <button class="px-4 py-2 bg-teal-50 border border-teal-100/50 text-teal-700 font-bold text-[10px] rounded-xl flex items-center space-x-1.5 shadow-2xs cursor-default">
+                <i data-lucide="refresh-cw" class="h-3.5 w-3.5 animate-spin"></i>
+                <span>Reading your site in the background</span>
+            </button>
+        `;
+        
         return `
             <div class="flex flex-col items-center justify-center text-center py-4 space-y-4">
                 <div class="h-12 w-12 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 relative z-10 shadow-sm animate-bounce">
@@ -6713,10 +6726,9 @@ function getStepHTML(step) {
                     </p>
                 </div>
                 
-                <button class="px-4 py-2 bg-teal-50 border border-teal-100/50 text-teal-700 font-bold text-[10px] rounded-xl flex items-center space-x-1.5 shadow-2xs cursor-default">
-                    <i data-lucide="refresh-cw" class="h-3.5 w-3.5 animate-spin"></i>
-                    <span>Reading your site in the background</span>
-                </button>
+                <div id="crawler-status-container">
+                    ${statusHTML}
+                </div>
             </div>
         `;
     }
@@ -6906,8 +6918,28 @@ window.submitStep0 = async function() {
                 window.activeWaAgent.knowledge_base = res.knowledge_base;
                 window.activeWaAgent.status = 'live';
             }
+            const statusEl = document.getElementById('crawler-status-container');
+            if (statusEl) {
+                statusEl.innerHTML = `
+                    <div class="px-4 py-2 bg-emerald-50 border border-emerald-100 text-emerald-700 font-bold text-[10px] rounded-xl flex items-center space-x-1.5 shadow-2xs cursor-default">
+                        <i data-lucide="check-circle" class="h-3.5 w-3.5 text-emerald-600"></i>
+                        <span>Website read successfully!</span>
+                    </div>
+                `;
+                lucide.createIcons();
+            }
         }).catch(err => {
             console.error("Crawler background error: ", err);
+            const statusEl = document.getElementById('crawler-status-container');
+            if (statusEl) {
+                statusEl.innerHTML = `
+                    <div class="px-4 py-2 bg-rose-50 border border-rose-100 text-rose-700 font-bold text-[10px] rounded-xl flex items-center space-x-1.5 shadow-2xs cursor-default">
+                        <i data-lucide="alert-circle" class="h-3.5 w-3.5 text-rose-600"></i>
+                        <span>Crawling failed. Proceeding with defaults.</span>
+                    </div>
+                `;
+                lucide.createIcons();
+            }
         });
         
     } catch (e) {
@@ -7120,6 +7152,21 @@ window.sendSimChatMessage = function() {
         const agent = window.activeWaAgent;
         const domain = agent.website_url ? (parse_url(agent.website_url, 'host') || agent.website_url) : 'our site';
         
+        // Local sentence matching over crawled website knowledge base
+        let kbExcerpt = "";
+        if (agent.knowledge_base) {
+            const sentences = agent.knowledge_base.split(/[.!?]\s+/);
+            const matches = sentences.filter(s => {
+                const words = lowercase.split(/\s+/);
+                return words.some(w => w.length > 3 && s.toLowerCase().includes(w));
+            });
+            if (matches.length > 0) {
+                kbExcerpt = matches[0].trim();
+            } else {
+                kbExcerpt = sentences.slice(0, 2).join('. ').trim();
+            }
+        }
+        
         if (lowercase.includes('human') || lowercase.includes('manager') || lowercase.includes('agent') || lowercase.includes('help')) {
             responseText = "Understood. I am flagging this conversation for a human representative. One of our managers will connect with you shortly!";
         } else if (lowercase.includes('price') || lowercase.includes('pricing') || lowercase.includes('cost')) {
@@ -7130,7 +7177,9 @@ window.sendSimChatMessage = function() {
             responseText = `Hello! How can I assist you with details regarding ${domain} today?`;
         } else {
             // General business reply using rules/website context
-            if (agent.ground_rules) {
+            if (kbExcerpt) {
+                responseText = `Based on our website data: "${kbExcerpt}".` + (agent.ground_rules ? ` Also, please note: ${agent.ground_rules.substring(0, 80)}...` : "");
+            } else if (agent.ground_rules) {
                 responseText = `I can help with that! Adhering to our business guidelines: "${agent.ground_rules.substring(0, 100)}...", feel free to let me know how else we can assist.`;
             } else {
                 responseText = `Thanks for reaching out! For detailed info, you can check ${agent.website_url || 'our website'}. Let me know if you have specific product or service questions!`;

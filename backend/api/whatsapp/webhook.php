@@ -335,15 +335,45 @@ try {
                                 $sender = ($ch['direction'] === 'inbound') ? $profileName : "You (AI)";
                                 $chatHistCtx .= "- [{$ch['created_at']}] $sender: {$ch['body']}\n";
                             }
+                    $stmtUser = $db->prepare("SELECT name FROM users WHERE id = ? LIMIT 1");
+                    $stmtUser->execute([$userId]);
+                    $userProfileName = $stmtUser->fetchColumn() ?: $accRow['business_name'];
 
-                            $stmtUser = $db->prepare("SELECT name FROM users WHERE id = ? LIMIT 1");
-                            $stmtUser->execute([$userId]);
-                            $userProfileName = $stmtUser->fetchColumn() ?: $accRow['business_name'];
+                    // Fetch trained agent settings
+                    $agentKb = "";
+                    $agentRules = "";
+                    $agentCaps = "";
+                    $websiteUrl = "";
+                    
+                    $stmtAgent = $db->prepare("SELECT * FROM whatsapp_agents WHERE user_id = ? AND status = 'live' LIMIT 1");
+                    $stmtAgent->execute([$userId]);
+                    $waAgent = $stmtAgent->fetch(PDO::FETCH_ASSOC);
+                    
+                    if ($waAgent) {
+                        $websiteUrl = $waAgent['website_url'] ?? '';
+                        if (!empty($waAgent['knowledge_base'])) {
+                            $agentKb = "\n--- BUSINESS KNOWLEDGE BASE (SCRAPED FROM " . $waAgent['website_url'] . ") ---\n" . $waAgent['knowledge_base'] . "\n";
+                        }
+                        if (!empty($waAgent['ground_rules'])) {
+                            $agentRules = "\n--- BUSINESS GROUND RULES & INSTRUCTIONS ---\n" . $waAgent['ground_rules'] . "\n";
+                        }
+                        if (!empty($waAgent['capabilities'])) {
+                            $capsArray = explode(',', $waAgent['capabilities']);
+                            $agentCaps = "\n--- AGENT CAPABILITIES ---\n";
+                            if (in_array('faq_support', $capsArray)) {
+                                $agentCaps .= "- FAQ / Support Role: Answer customer questions regarding the business using the business knowledge base details provided above. If the answer cannot be found in the knowledge base, state politely that you will double-check with the team and get back to them.\n";
+                            }
+                            if (in_array('human_handoff', $capsArray)) {
+                                $agentCaps .= "- Human Handoff Role: If the customer specifically asks to talk to a human, manager, or representative, OR expresses high frustration, acknowledge this request politely and state that a human manager has been notified and will contact them directly.\n";
+                            }
+                        }
+                    }
 
-                            $currentDate = date('Y-m-d');
-                            $currentTime = date('H:i:s');
-                            $systemPrompt = "You are a professional human representative/assistant for $userProfileName (representing the business '" . $accRow['business_name'] . "').
+                    $currentDate = date('Y-m-d');
+                    $currentTime = date('H:i:s');
+                    $systemPrompt = "You are a professional human representative/assistant for $userProfileName (representing the business '" . $accRow['business_name'] . "'" . (!empty($websiteUrl) ? " operating at $websiteUrl" : "") . ").
 Your goal is to reply to incoming customer messages on behalf of $userProfileName / " . $accRow['business_name'] . ".
+" . $agentCaps . $agentRules . $agentKb . "
 
 CRITICAL IDENTITY & CONVERSATIONAL RULES:
 1. Never say you are an 'AI', 'AI CRM', 'bot', 'AI assistant', 'CRM assistant', or a chatbot.

@@ -509,4 +509,98 @@ You MUST return your response as a valid, parsable JSON block with the following
         
         return $processedCount;
     }
+
+    /**
+     * Fetch pending email campaigns and process them.
+     */
+    public static function processEmailCampaignQueue() {
+        $db = Database::getConnection();
+        
+        // Find all active campaigns
+        $stmtCamps = $db->prepare("SELECT id, user_id, batch_size FROM email_campaigns WHERE status = 'Active'");
+        $stmtCamps->execute();
+        $activeCampaigns = $stmtCamps->fetchAll(PDO::FETCH_ASSOC);
+        
+        $processedCount = 0;
+        
+        require_once __DIR__ . '/smtp_helper.php';
+        
+        foreach ($activeCampaigns as $camp) {
+            $campaignId = (int)$camp['id'];
+            $userId = (int)$camp['user_id'];
+            $limit = (int)$camp['batch_size'];
+            
+            // Fetch pending logs for this campaign scheduled now or in the past
+            $stmtLogs = $db->prepare("
+                SELECT * FROM email_campaign_logs 
+                WHERE campaign_id = ? AND status = 'Pending' AND (scheduled_at IS NULL OR scheduled_at <= NOW())
+                LIMIT ?
+            ");
+            $stmtLogs->bindValue(1, $campaignId, PDO::PARAM_INT);
+            $stmtLogs->bindValue(2, $limit, PDO::PARAM_INT);
+            $stmtLogs->execute();
+            $pending = $stmtLogs->fetchAll(PDO::FETCH_ASSOC);
+            
+            if (empty($pending)) {
+                // If no more pending logs at all, complete the campaign
+                $stmtCheck = $db->prepare("SELECT COUNT(*) FROM email_campaign_logs WHERE campaign_id = ? AND status = 'Pending'");
+                $stmtCheck->execute([$campaignId]);
+                if ((int)$stmtCheck->fetchColumn() === 0) {
+                    $db->prepare("UPDATE email_campaigns SET status = 'Completed' WHERE id = ?")->execute([$campaignId]);
+                }
+                continue;
+            }
+            
+            $sentIncrement = 0;
+            $failedIncrement = 0;
+            
+            // Load campaign info
+            $stmtInfo = $db->prepare("SELECT subject, body_html FROM email_campaigns WHERE id = ?");
+            $stmtInfo->execute([$campaignId]);
+            $campInfo = $stmtInfo->fetch(PDO::FETCH_ASSOC);
+            if (!$campInfo) continue;
+            
+            foreach ($pending as $log) {
+                $email = $log['recipient_email'];
+                $vars = !empty($log['variable_data_json']) ? json_decode($log['variable_data_json'], true) : [];
+                
+                $subject = $campInfo['subject'];
+                $body = $campInfo['body_html'];
+                
+                if (!empty($vars) && is_array($vars)) {
+                    foreach ($vars as $k => $v) {
+                        $placeholder = '{' . $k . '}';
+                        $valStr = (string)$v;
+                        $subject = str_replace($placeholder, $valStr, $subject);
+                        $body = str_replace($placeholder, $valStr, $body);
+                    }
+                }
+                
+                try {
+                    $res = SMTPHelper::sendEmail($userId, $email, $subject, $body);
+                    if ($res && !empty($res['status'])) {
+                        $db->prepare("UPDATE email_campaign_logs SET status = 'Sent', sent_at = NOW() WHERE id = ?")->execute([$log['id']]);
+                        $sentIncrement++;
+                        $processedCount++;
+                    } else {
+                        $errMsg = $res['message'] ?? 'Sending failed';
+                        $db->prepare("UPDATE email_campaign_logs SET status = 'Failed', error_message = ? WHERE id = ?")->execute([$errMsg, $log['id']]);
+                        $failedIncrement++;
+                    }
+                } catch (Exception $e) {
+                    $db->prepare("UPDATE email_campaign_logs SET status = 'Failed', error_message = ? WHERE id = ?")->execute([$e->getMessage(), $log['id']]);
+                    $failedIncrement++;
+                }
+            }
+            
+            // Update campaign counters
+            $db->prepare("
+                UPDATE email_campaigns 
+                SET sent_count = sent_count + ?, failed_count = failed_count + ?
+                WHERE id = ?
+            ")->execute([$sentIncrement, $failedIncrement, $campaignId]);
+        }
+        
+        return $processedCount;
+    }
 }

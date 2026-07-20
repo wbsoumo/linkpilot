@@ -54,6 +54,9 @@ try {
         
         $processedWa = QueueWorker::processWhatsAppQueue();
         echo "WhatsApp queue complete. Dispatched $processedWa messages.\n";
+        
+        $processedEc = QueueWorker::processEmailCampaignQueue();
+        echo "Email campaigns queue complete. Dispatched $processedEc emails.\n";
     } catch (Throwable $e) {
         echo "Queue Processor Error: " . $e->getMessage() . "\n";
     }

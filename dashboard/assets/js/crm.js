@@ -432,6 +432,10 @@ async function navigateTo(view, params = {}) {
             case 'templates':
                 await renderEmailTemplates(contentArea);
                 break;
+            case 'email-campaigns':
+            case 'campaigns':
+                await renderEmailCampaigns(contentArea);
+                break;
             case 'leads':
                 await renderLeads(contentArea);
                 break;
@@ -23394,3 +23398,931 @@ document.addEventListener('DOMContentLoaded', () => {
         endDrag();
     });
 });
+
+/* ==========================================================================
+   EMAIL CAMPAIGNS SYSTEM (RATE-THROTTLED AUTOMATED OUTBOUND CAMPAIGN ENGINE)
+   ========================================================================== */
+
+window.renderEmailCampaigns = async function(container) {
+    container.innerHTML = `
+        <div class="space-y-6 animate-fade-in font-sans">
+            <!-- Header Bar -->
+            <div class="flex items-center justify-between flex-wrap gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs">
+                <div class="flex items-center space-x-3.5">
+                    <div class="h-12 w-12 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shadow-2xs">
+                        <i data-lucide="megaphone" class="h-6 w-6"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-black text-slate-900 tracking-tight">Email Campaigns System</h2>
+                        <p class="text-xs font-semibold text-slate-500 mt-0.5">Create, schedule, and execute rate-throttled automated HTML email outreach</p>
+                    </div>
+                </div>
+                <button onclick="openEmailCampaignWizardModal()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center space-x-2 cursor-pointer" style="color: #ffffff !important; background-color: #4F46E5 !important;">
+                    <i data-lucide="plus-circle" class="h-4 w-4 text-white" style="color: #ffffff !important;"></i>
+                    <span class="text-white font-extrabold text-sm" style="color: #ffffff !important;">Create Email Campaign</span>
+                </button>
+            </div>
+
+            <!-- Stats Dashboard Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="email-campaigns-stats">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+                    <div>
+                        <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Total Campaigns</div>
+                        <div class="text-2xl font-black text-slate-900 mt-1" id="stat-ec-total">0</div>
+                    </div>
+                    <div class="h-10 w-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <i data-lucide="send" class="h-5 w-5"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+                    <div>
+                        <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Total Recipients</div>
+                        <div class="text-2xl font-black text-slate-900 mt-1" id="stat-ec-recipients">0</div>
+                    </div>
+                    <div class="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <i data-lucide="users" class="h-5 w-5"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+                    <div>
+                        <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Emails Dispatched</div>
+                        <div class="text-2xl font-black text-slate-900 mt-1" id="stat-ec-sent">0</div>
+                    </div>
+                    <div class="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <i data-lucide="check-circle-2" class="h-5 w-5"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+                    <div>
+                        <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Delivery Rate</div>
+                        <div class="text-2xl font-black text-emerald-600 mt-1" id="stat-ec-rate">100%</div>
+                    </div>
+                    <div class="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <i data-lucide="trending-up" class="h-5 w-5"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between flex-wrap gap-3">
+                    <div class="flex items-center space-x-2">
+                        <h3 class="text-sm font-bold text-slate-800">All Outbound Campaigns</h3>
+                        <span id="ec-count-badge" class="bg-slate-200 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input type="text" id="ec-search-input" oninput="filterEmailCampaignsTable()" placeholder="Search campaigns..." class="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none focus:border-indigo-500 w-56">
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs font-medium text-slate-700">
+                        <thead class="bg-slate-100/80 text-[10px] uppercase tracking-wider text-slate-500 font-extrabold border-b border-slate-200">
+                            <tr>
+                                <th class="px-6 py-3.5">Campaign Name & Subject</th>
+                                <th class="px-6 py-3.5">Progress & Sent</th>
+                                <th class="px-6 py-3.5">Batch Throttle Rate</th>
+                                <th class="px-6 py-3.5">Status</th>
+                                <th class="px-6 py-3.5">Start / Est. End</th>
+                                <th class="px-6 py-3.5 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="email-campaigns-tbody" class="divide-y divide-slate-100 bg-white">
+                            <tr>
+                                <td colspan="6" class="p-8 text-center text-slate-400 font-medium">Loading email campaigns...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    `;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    await loadEmailCampaignsList();
+};
+
+window._cachedEmailCampaigns = [];
+
+window.loadEmailCampaignsList = async function() {
+    try {
+        const res = await apiCall('crm/email_campaigns.php');
+        const campaigns = (res && res.campaigns) ? res.campaigns : [];
+        window._cachedEmailCampaigns = campaigns;
+        
+        let totalSent = 0;
+        let totalRecipients = 0;
+        
+        campaigns.forEach(c => {
+            totalRecipients += parseInt(c.total_recipients || 0);
+            totalSent += parseInt(c.sent_count || 0);
+        });
+        
+        const totalElem = document.getElementById('stat-ec-total');
+        if (totalElem) totalElem.textContent = campaigns.length;
+        
+        const recipElem = document.getElementById('stat-ec-recipients');
+        if (recipElem) recipElem.textContent = totalRecipients.toLocaleString();
+        
+        const sentElem = document.getElementById('stat-ec-sent');
+        if (sentElem) sentElem.textContent = totalSent.toLocaleString();
+        
+        const rateElem = document.getElementById('stat-ec-rate');
+        if (rateElem) {
+            const pct = totalRecipients > 0 ? ((totalSent / totalRecipients) * 100).toFixed(1) : '100';
+            rateElem.textContent = `${pct}%`;
+        }
+        
+        renderEmailCampaignsTable(campaigns);
+    } catch(err) {
+        console.error("Campaigns load error:", err);
+        const tbody = document.getElementById('email-campaigns-tbody');
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-rose-500 font-bold">Failed to load campaigns: ${err.message}</td></tr>`;
+        }
+    }
+};
+
+window.renderEmailCampaignsTable = function(list) {
+    const tbody = document.getElementById('email-campaigns-tbody');
+    const badge = document.getElementById('ec-count-badge');
+    if (badge) badge.textContent = list.length;
+    if (!tbody) return;
+    
+    if (list.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="p-12 text-center text-slate-400 font-medium">
+                    <i data-lucide="megaphone" class="h-10 w-10 mx-auto text-slate-300 mb-2"></i>
+                    <div class="text-sm font-bold text-slate-700">No Email Campaigns Created Yet</div>
+                    <p class="text-xs text-slate-400 mt-1">Click "Create Email Campaign" to build your first rate-throttled outreach campaign.</p>
+                </td>
+            </tr>
+        `;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        return;
+    }
+    
+    tbody.innerHTML = list.map(c => {
+        const sent = parseInt(c.sent_count || 0);
+        const total = parseInt(c.total_recipients || 1);
+        const pct = Math.min(100, Math.round((sent / total) * 100));
+        
+        let statusBadge = '';
+        if (c.status === 'Active') {
+            statusBadge = `<span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 font-extrabold rounded-full text-[10px] flex items-center w-fit"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>Active</span>`;
+        } else if (c.status === 'Scheduled') {
+            statusBadge = `<span class="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 font-extrabold rounded-full text-[10px] flex items-center w-fit"><i data-lucide="clock" class="h-3 w-3 mr-1"></i>Scheduled</span>`;
+        } else if (c.status === 'Paused') {
+            statusBadge = `<span class="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 font-extrabold rounded-full text-[10px] flex items-center w-fit"><i data-lucide="pause" class="h-3 w-3 mr-1"></i>Paused</span>`;
+        } else {
+            statusBadge = `<span class="px-2.5 py-1 bg-slate-100 text-slate-700 border border-slate-200 font-extrabold rounded-full text-[10px] flex items-center w-fit"><i data-lucide="check" class="h-3 w-3 mr-1 text-emerald-500"></i>Completed</span>`;
+        }
+        
+        return `
+            <tr class="hover:bg-slate-50/70 transition">
+                <td class="px-6 py-4">
+                    <div class="font-bold text-slate-900 text-xs">${escapeHtml(c.campaign_name)}</div>
+                    <div class="text-[11px] text-slate-500 font-medium truncate max-w-xs mt-0.5">${escapeHtml(c.subject)}</div>
+                </td>
+                <td class="px-6 py-4 w-48">
+                    <div class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
+                        <span>${sent} / ${total} sent</span>
+                        <span class="text-indigo-600">${pct}%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                        <div class="bg-indigo-600 h-1.5 rounded-full transition-all" style="width: ${pct}%"></div>
+                    </div>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="text-xs font-bold text-slate-800">${c.batch_size} emails</div>
+                    <div class="text-[10px] text-slate-500 font-medium">Every ${c.interval_minutes} mins</div>
+                </td>
+                <td class="px-6 py-4">
+                    ${statusBadge}
+                </td>
+                <td class="px-6 py-4 text-[11px] text-slate-600">
+                    <div class="font-bold text-slate-800">${c.start_at ? c.start_at.slice(0, 16) : 'Immediately'}</div>
+                    <div class="text-[10px] text-slate-400">Est. End: ${c.estimated_end_at ? c.estimated_end_at.slice(0, 16) : '-'}</div>
+                </td>
+                <td class="px-6 py-4 text-right">
+                    <div class="flex items-center justify-end space-x-1.5">
+                        <button onclick="openEmailCampaignReportModal(${c.id})" title="View Campaign Logs" class="p-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg text-slate-600 transition cursor-pointer">
+                            <i data-lucide="bar-chart-2" class="h-4 w-4"></i>
+                        </button>
+                        <button onclick="togglePauseEmailCampaign(${c.id})" title="${c.status === 'Paused' ? 'Resume Campaign' : 'Pause Campaign'}" class="p-1.5 bg-slate-100 hover:bg-amber-50 hover:text-amber-600 rounded-lg text-slate-600 transition cursor-pointer">
+                            <i data-lucide="${c.status === 'Paused' ? 'play' : 'pause'}" class="h-4 w-4"></i>
+                        </button>
+                        <button onclick="deleteEmailCampaign(${c.id})" title="Delete Campaign" class="p-1.5 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 rounded-lg text-slate-600 transition cursor-pointer">
+                            <i data-lucide="trash-2" class="h-4 w-4"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+};
+
+window.filterEmailCampaignsTable = function() {
+    const q = (document.getElementById('ec-search-input')?.value || '').toLowerCase();
+    const filtered = window._cachedEmailCampaigns.filter(c => 
+        (c.campaign_name || '').toLowerCase().includes(q) ||
+        (c.subject || '').toLowerCase().includes(q)
+    );
+    renderEmailCampaignsTable(filtered);
+};
+
+/* ==========================================================================
+   MULTI-STEP WIZARD CREATION SYSTEM (EXACT MATCH TO REQUIREMENTS)
+   ========================================================================== */
+
+window._ecWizardState = {
+    step: 1,
+    campaign_name: '',
+    subject: '',
+    body_html: '',
+    variables_detected: [],
+    import_tab: 'manual', // 'manual' or 'csv'
+    manual_text: '',
+    csv_filename: '',
+    csv_headers: [],
+    csv_rows: [],
+    recipients: [], // [{ email: string, variables: {} }]
+    batch_size: 10,
+    interval_minutes: 10,
+    start_type: 'now', // 'now' or 'scheduled'
+    start_at: '',
+    terms_accepted: false
+};
+
+window.openEmailCampaignWizardModal = function() {
+    window._ecWizardState = {
+        step: 1,
+        campaign_name: 'Outbound Campaign ' + new Date().toISOString().slice(0, 10),
+        subject: 'Hey {first_name}, special update from {company_name}',
+        body_html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; color: #1E293B;">\n  <h2 style="color: #4F46E5;">Hello {first_name},</h2>\n  <p>We noticed your great work at <strong>{company_name}</strong> and wanted to share a custom proposal with you.</p>\n  <p>Best regards,<br>The Outreach Team</p>\n</div>`,
+        variables_detected: ['first_name', 'company_name'],
+        import_tab: 'manual',
+        manual_text: 'alex.smith@acme.com, Alex, Acme Corp\nsarah.connor@tech.io, Sarah, TechIO\ndavid.miller@co.org, David, CoOrg',
+        csv_filename: '',
+        csv_headers: [],
+        csv_rows: [],
+        recipients: [],
+        batch_size: 10,
+        interval_minutes: 10,
+        start_type: 'now',
+        start_at: '',
+        terms_accepted: false
+    };
+
+    let modal = document.getElementById('email-campaign-wizard-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'email-campaign-wizard-modal';
+        modal.className = 'fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 md:p-6 animate-fade-in font-sans';
+        document.body.appendChild(modal);
+    }
+
+    renderWizardStepContainer();
+};
+
+window.renderWizardStepContainer = function() {
+    const modal = document.getElementById('email-campaign-wizard-modal');
+    if (!modal) return;
+
+    const s = window._ecWizardState.step;
+
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-3xl flex flex-col overflow-hidden animate-scale-up max-h-[92vh]">
+            <!-- Wizard Header -->
+            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="h-9 w-9 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center font-black text-sm">
+                        ${s}
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Create New Email Campaign</h3>
+                        <p class="text-[11px] text-slate-500">Step ${s} of 5 &bull; Rate-Throttled Anti-Spam Setup</p>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('email-campaign-wizard-modal').remove()" class="text-slate-400 hover:text-slate-600 transition cursor-pointer">
+                    <i data-lucide="x" class="h-5 w-5"></i>
+                </button>
+            </div>
+
+            <!-- Steps Progress Bar -->
+            <div class="bg-slate-100 border-b border-slate-200 px-6 py-2.5 flex items-center justify-between text-[11px] font-bold text-slate-500 select-none overflow-x-auto">
+                <div class="flex items-center space-x-1.5 ${s >= 1 ? 'text-indigo-600 font-extrabold' : ''}">
+                    <span class="h-5 w-5 rounded-full ${s >= 1 ? 'bg-indigo-600 text-white' : 'bg-slate-300 text-slate-600'} flex items-center justify-center text-[10px]">1</span>
+                    <span>Campaign & Body</span>
+                </div>
+                <i data-lucide="chevron-right" class="h-3 w-3 text-slate-400 shrink-0"></i>
+                <div class="flex items-center space-x-1.5 ${s >= 2 ? 'text-indigo-600 font-extrabold' : ''}">
+                    <span class="h-5 w-5 rounded-full ${s >= 2 ? 'bg-indigo-600 text-white' : 'bg-slate-300 text-slate-600'} flex items-center justify-center text-[10px]">2</span>
+                    <span>Import Recipients</span>
+                </div>
+                <i data-lucide="chevron-right" class="h-3 w-3 text-slate-400 shrink-0"></i>
+                <div class="flex items-center space-x-1.5 ${s >= 3 ? 'text-indigo-600 font-extrabold' : ''}">
+                    <span class="h-5 w-5 rounded-full ${s >= 3 ? 'bg-indigo-600 text-white' : 'bg-slate-300 text-slate-600'} flex items-center justify-center text-[10px]">3</span>
+                    <span>Variable Preview</span>
+                </div>
+                <i data-lucide="chevron-right" class="h-3 w-3 text-slate-400 shrink-0"></i>
+                <div class="flex items-center space-x-1.5 ${s >= 4 ? 'text-indigo-600 font-extrabold' : ''}">
+                    <span class="h-5 w-5 rounded-full ${s >= 4 ? 'bg-indigo-600 text-white' : 'bg-slate-300 text-slate-600'} flex items-center justify-center text-[10px]">4</span>
+                    <span>Rate Throttle</span>
+                </div>
+                <i data-lucide="chevron-right" class="h-3 w-3 text-slate-400 shrink-0"></i>
+                <div class="flex items-center space-x-1.5 ${s >= 5 ? 'text-indigo-600 font-extrabold' : ''}">
+                    <span class="h-5 w-5 rounded-full ${s >= 5 ? 'bg-indigo-600 text-white' : 'bg-slate-300 text-slate-600'} flex items-center justify-center text-[10px]">5</span>
+                    <span>Review & Launch</span>
+                </div>
+            </div>
+
+            <!-- Step Body Content -->
+            <div class="flex-grow p-6 overflow-y-auto space-y-4" id="wizard-step-content-area">
+                ${getWizardStepHtml(s)}
+            </div>
+
+            <!-- Footer Navigation Controls -->
+            <div class="px-6 py-3.5 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+                <button onclick="prevWizardStep()" ${s === 1 ? 'disabled class="opacity-50 pointer-events-none px-4 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-400 bg-white"' : 'class="px-4 py-2 border border-slate-300 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-700 bg-white cursor-pointer transition"'}>
+                    Back
+                </button>
+                <div>
+                    ${s < 5 ? `
+                        <button onclick="nextWizardStep()" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-md cursor-pointer transition" style="color:#ffffff !important;">
+                            Next Step &rarr;
+                        </button>
+                    ` : `
+                        <button onclick="submitEmailCampaignWizard()" id="btn-launch-campaign" class="px-7 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-lg cursor-pointer transition flex items-center space-x-2" style="color:#ffffff !important; background-color:#10B981 !important;">
+                            <i data-lucide="rocket" class="h-4 w-4 text-white"></i>
+                            <span class="text-white font-extrabold text-sm" style="color:#ffffff !important;">Launch Email Campaign</span>
+                        </button>
+                    `}
+                </div>
+            </div>
+        </div>
+    `;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    attachWizardStepListeners(s);
+};
+
+function getWizardStepHtml(step) {
+    const st = window._ecWizardState;
+
+    if (step === 1) {
+        return `
+            <div class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Campaign Name:</label>
+                        <input type="text" id="ec-wizard-name" value="${escapeHtml(st.campaign_name)}" placeholder="e.g. Q3 Sales Outreach" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Email Subject Line:</label>
+                        <input type="text" id="ec-wizard-subject" value="${escapeHtml(st.subject)}" oninput="handleMailBodyInput()" placeholder="e.g. Special invitation for {first_name}" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <!-- Template Helper Bar -->
+                <div class="flex items-center justify-between bg-indigo-50/70 border border-indigo-100 p-3 rounded-xl">
+                    <div class="text-xs font-bold text-indigo-900">
+                        💡 Write words inside <code class="bg-white px-1.5 py-0.5 rounded text-indigo-700 border border-indigo-200 font-mono">{TEXT}</code> to declare dynamic variables!
+                    </div>
+                    <button type="button" onclick="loadSampleTemplateIntoWizard()" class="px-3 py-1 bg-white hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-extrabold transition cursor-pointer">
+                        Load HTML Preset
+                    </button>
+                </div>
+
+                <!-- Dynamic Variable Detector Badge -->
+                <div id="wizard-vars-badge" class="px-3.5 py-2 bg-amber-50 border border-amber-200 rounded-xl text-xs font-bold text-amber-800 flex items-center justify-between">
+                    <div class="flex items-center space-x-1.5">
+                        <i data-lucide="sparkles" class="h-4 w-4 text-amber-600"></i>
+                        <span id="wizard-vars-text">Detected ${st.variables_detected.length} Dynamic Variables: ${st.variables_detected.map(v => '{'+v+'}').join(', ')}</span>
+                    </div>
+                </div>
+
+                <!-- Mail Content Body -->
+                <div class="space-y-1">
+                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Mail Content Body (Visual / HTML):</label>
+                    <textarea id="ec-wizard-body" oninput="handleMailBodyInput()" rows="10" class="w-full p-4 border border-slate-300 rounded-xl text-xs font-mono bg-slate-900 text-emerald-400 focus:outline-none leading-relaxed">${escapeHtml(st.body_html)}</textarea>
+                </div>
+            </div>
+        `;
+    }
+
+    if (step === 2) {
+        return `
+            <div class="space-y-4">
+                <!-- 2 Tabs: Manual Entry vs CSV Import -->
+                <div class="flex border-b border-slate-200 space-x-6">
+                    <button onclick="switchWizardImportTab('manual')" class="pb-2.5 text-xs font-extrabold transition cursor-pointer border-b-2 ${st.import_tab === 'manual' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'}">
+                        📝 1. Manual Entry
+                    </button>
+                    <button onclick="switchWizardImportTab('csv')" class="pb-2.5 text-xs font-extrabold transition cursor-pointer border-b-2 ${st.import_tab === 'csv' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'}">
+                        📁 2. Import CSV File
+                    </button>
+                </div>
+
+                ${st.import_tab === 'manual' ? `
+                    <div class="space-y-2">
+                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Enter Emails (One email per line, or Email, Var1, Var2...):</label>
+                        <textarea id="wizard-manual-text" oninput="handleManualTextChange(this.value)" rows="9" placeholder="alex@acme.com, Alex, Acme Corp&#10;sarah@tech.io, Sarah, TechIO&#10;david@co.org, David, CoOrg" class="w-full p-3.5 border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none focus:border-indigo-500">${escapeHtml(st.manual_text)}</textarea>
+                        <div class="flex items-center justify-between text-xs font-bold bg-slate-50 p-2.5 border border-slate-200 rounded-xl">
+                            <span class="text-slate-600">Valid Mail Count:</span>
+                            <span id="wizard-valid-mail-count" class="text-indigo-600 font-extrabold bg-indigo-50 px-2.5 py-0.5 rounded border border-indigo-100">0 Valid Emails</span>
+                        </div>
+                    </div>
+                ` : `
+                    <div class="space-y-3">
+                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Upload CSV File (Header matching variables like 'Emails', 'first_name', 'company_name'):</label>
+                        <div class="border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-xl p-8 text-center bg-slate-50 transition cursor-pointer" onclick="document.getElementById('wizard-csv-file-input').click()">
+                            <input type="file" id="wizard-csv-file-input" accept=".csv" onchange="handleWizardCsvFile(this)" class="hidden">
+                            <i data-lucide="file-spreadsheet" class="h-10 w-10 mx-auto text-indigo-500 mb-2"></i>
+                            <div class="text-xs font-bold text-slate-800">Click to upload CSV File</div>
+                            <div class="text-[10px] text-slate-400 mt-1">Must contain an 'Emails' column header</div>
+                        </div>
+
+                        <div id="wizard-csv-summary" class="${st.csv_filename ? '' : 'hidden'} p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-800 flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-600"></i>
+                                <span id="wizard-csv-summary-text">Parsed ${st.recipients.length} contacts from CSV</span>
+                            </div>
+                        </div>
+                    </div>
+                `}
+            </div>
+        `;
+    }
+
+    if (step === 3) {
+        parseRecipientsFromState();
+        const r1 = st.recipients[0] || { email: 'alex@acme.com', variables: { first_name: 'Alex', company_name: 'Acme Corp' } };
+        
+        // Render Row 1 Preview Body
+        let previewBody = st.body_html;
+        if (r1.variables) {
+            Object.keys(r1.variables).forEach(k => {
+                previewBody = previewBody.replaceAll('{' + k + '}', r1.variables[k]);
+            });
+        }
+
+        return `
+            <div class="space-y-4 font-sans">
+                <div class="flex justify-between items-center bg-slate-50 p-3 border border-slate-200 rounded-xl">
+                    <div class="text-xs font-extrabold text-slate-800">
+                        🔍 Live Preview with Row 1 Data Sample (${escapeHtml(r1.email)})
+                    </div>
+                    <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">Total ${st.recipients.length} Recipients</span>
+                </div>
+
+                <!-- Preview Box -->
+                <div class="border border-slate-300 rounded-xl p-4 bg-white shadow-2xs max-h-64 overflow-y-auto leading-relaxed text-xs">
+                    <div class="pb-2 mb-2 border-b border-slate-200 text-xs font-bold text-slate-700">Subject: ${escapeHtml(replaceVarsInText(st.subject, r1.variables))}</div>
+                    <div>${previewBody}</div>
+                </div>
+
+                <!-- Variable Matching Table -->
+                <div class="space-y-1">
+                    <label class="block text-[11px] font-extrabold text-slate-600 uppercase tracking-wider">Detected Variables Mapping Matrix:</label>
+                    <div class="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                        <table class="w-full text-left text-xs font-medium">
+                            <thead class="bg-slate-100 text-[10px] font-bold text-slate-500 uppercase">
+                                <tr>
+                                    <th class="px-4 py-2">Variable Token</th>
+                                    <th class="px-4 py-2">Source Field</th>
+                                    <th class="px-4 py-2">Row 1 Sample Value</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${st.variables_detected.map(v => `
+                                    <tr>
+                                        <td class="px-4 py-2 font-mono text-indigo-600 font-bold">{${v}}</td>
+                                        <td class="px-4 py-2 text-slate-700">Header: ${v}</td>
+                                        <td class="px-4 py-2 text-emerald-600 font-bold">${escapeHtml(r1.variables ? r1.variables[v] || 'Alex' : 'Alex')}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    if (step === 4) {
+        parseRecipientsFromState();
+        const calc = calculateWizardScheduleTimes();
+
+        return `
+            <div class="space-y-4">
+                <div class="bg-amber-50/80 border border-amber-200 p-3.5 rounded-xl text-xs text-amber-900 font-medium">
+                    🛡️ <strong>Anti-Spam Rate Throttling:</strong> Sending emails in small throttled batches prevents SMTP server blockage and keeps your delivery score 100% clean.
+                </div>
+
+                <!-- Throttle Controls (2 Dropdowns) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 border border-slate-200 rounded-xl">
+                    <div class="space-y-1">
+                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">1. Emails per Batch:</label>
+                        <select id="wizard-batch-size" onchange="st.batch_size=parseInt(this.value); renderWizardStepContainer();" class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none cursor-pointer">
+                            <option value="5" ${st.batch_size === 5 ? 'selected' : ''}>5 emails / batch</option>
+                            <option value="10" ${st.batch_size === 10 ? 'selected' : ''}>10 emails / batch (Recommended)</option>
+                            <option value="20" ${st.batch_size === 20 ? 'selected' : ''}>20 emails / batch</option>
+                            <option value="50" ${st.batch_size === 50 ? 'selected' : ''}>50 emails / batch</option>
+                            <option value="100" ${st.batch_size === 100 ? 'selected' : ''}>100 emails / batch</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">2. Sending Interval Time:</label>
+                        <select id="wizard-interval" onchange="st.interval_minutes=parseInt(this.value); renderWizardStepContainer();" class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none cursor-pointer">
+                            <option value="1" ${st.interval_minutes === 1 ? 'selected' : ''}>Every 1 Minute</option>
+                            <option value="5" ${st.interval_minutes === 5 ? 'selected' : ''}>Every 5 Minutes</option>
+                            <option value="10" ${st.interval_minutes === 10 ? 'selected' : ''}>Every 10 Minutes (Recommended)</option>
+                            <option value="15" ${st.interval_minutes === 15 ? 'selected' : ''}>Every 15 Minutes</option>
+                            <option value="30" ${st.interval_minutes === 30 ? 'selected' : ''}>Every 30 Minutes</option>
+                            <option value="60" ${st.interval_minutes === 60 ? 'selected' : ''}>Every 60 Minutes</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Start Time Picker -->
+                <div class="space-y-2 bg-white p-4 border border-slate-200 rounded-xl">
+                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Start Campaign Schedule:</label>
+                    <div class="flex items-center space-x-6 text-xs font-bold text-slate-700">
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="radio" name="start_type" value="now" ${st.start_type === 'now' ? 'checked' : ''} onchange="st.start_type=this.value; renderWizardStepContainer();">
+                            <span>Start Immediately</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="radio" name="start_type" value="scheduled" ${st.start_type === 'scheduled' ? 'checked' : ''} onchange="st.start_type=this.value; renderWizardStepContainer();">
+                            <span>Schedule Date & Time</span>
+                        </label>
+                    </div>
+                    ${st.start_type === 'scheduled' ? `
+                        <input type="datetime-local" id="wizard-start-at" value="${st.start_at}" onchange="st.start_at=this.value; renderWizardStepContainer();" class="mt-2 px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-800">
+                    ` : ''}
+                </div>
+
+                <!-- Auto Schedule Calculation Display -->
+                <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl space-y-2 text-xs">
+                    <div class="font-extrabold text-indigo-900 uppercase tracking-wider text-[11px]">⏱️ Automatic Schedule & Completion Calculation:</div>
+                    <div class="grid grid-cols-2 gap-2 font-bold text-slate-700">
+                        <div>Total Recipients: <span class="text-indigo-700 font-extrabold">${calc.totalRecipients}</span></div>
+                        <div>Total Batches: <span class="text-indigo-700 font-extrabold">${calc.totalBatches}</span></div>
+                        <div>Start Time: <span class="text-indigo-700 font-extrabold">${calc.startTimeStr}</span></div>
+                        <div>Estimated Completion: <span class="text-emerald-600 font-extrabold">${calc.endTimeStr}</span></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    if (step === 5) {
+        parseRecipientsFromState();
+        const calc = calculateWizardScheduleTimes();
+
+        return `
+            <div class="space-y-4">
+                <div class="text-sm font-bold text-slate-800">Review & Launch Campaign</div>
+
+                <!-- Summary Box -->
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2 text-xs font-semibold text-slate-700">
+                    <div class="flex justify-between border-b border-slate-200 pb-2">
+                        <span class="text-slate-500 font-bold uppercase text-[10px]">Campaign Title:</span>
+                        <span class="font-bold text-slate-900">${escapeHtml(st.campaign_name)}</span>
+                    </div>
+                    <div class="flex justify-between border-b border-slate-200 pb-2">
+                        <span class="text-slate-500 font-bold uppercase text-[10px]">Subject Line:</span>
+                        <span class="font-bold text-slate-900">${escapeHtml(st.subject)}</span>
+                    </div>
+                    <div class="flex justify-between border-b border-slate-200 pb-2">
+                        <span class="text-slate-500 font-bold uppercase text-[10px]">Recipients Count:</span>
+                        <span class="font-extrabold text-indigo-600">${st.recipients.length} Contacts</span>
+                    </div>
+                    <div class="flex justify-between border-b border-slate-200 pb-2">
+                        <span class="text-slate-500 font-bold uppercase text-[10px]">Batch Rate Limit:</span>
+                        <span class="font-bold text-slate-900">${st.batch_size} emails every ${st.interval_minutes} minutes</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500 font-bold uppercase text-[10px]">Estimated End:</span>
+                        <span class="font-extrabold text-emerald-600">${calc.endTimeStr}</span>
+                    </div>
+                </div>
+
+                <!-- Terms & Conditions Checkbox -->
+                <div class="p-4 bg-amber-50/70 border border-amber-200 rounded-xl flex items-start space-x-3">
+                    <input type="checkbox" id="wizard-terms-check" ${st.terms_accepted ? 'checked' : ''} onchange="st.terms_accepted=this.checked;" class="mt-0.5 h-4 w-4 text-indigo-600 rounded cursor-pointer">
+                    <label for="wizard-terms-check" class="text-xs font-bold text-slate-800 cursor-pointer">
+                        I confirm that all recipient email addresses comply with double opt-in guidelines and CAN-SPAM regulations.
+                    </label>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function attachWizardStepListeners(step) {
+    if (step === 1) {
+        handleMailBodyInput();
+    }
+    if (step === 2 && window._ecWizardState.import_tab === 'manual') {
+        const text = document.getElementById('wizard-manual-text')?.value || '';
+        handleManualTextChange(text);
+    }
+}
+
+window.handleMailBodyInput = function() {
+    const nameIn = document.getElementById('ec-wizard-name');
+    const subjIn = document.getElementById('ec-wizard-subject');
+    const bodyIn = document.getElementById('ec-wizard-body');
+    
+    if (nameIn) window._ecWizardState.campaign_name = nameIn.value;
+    if (subjIn) window._ecWizardState.subject = subjIn.value;
+    if (bodyIn) window._ecWizardState.body_html = bodyIn.value;
+    
+    const fullText = (subjIn ? subjIn.value : '') + ' ' + (bodyIn ? bodyIn.value : '');
+    const vars = detectVariablesInMailBody(fullText);
+    window._ecWizardState.variables_detected = vars;
+    
+    const txt = document.getElementById('wizard-vars-text');
+    if (txt) {
+        txt.textContent = `Detected ${vars.length} Dynamic Variables: ${vars.map(v => '{'+v+'}').join(', ')}`;
+    }
+};
+
+function detectVariablesInMailBody(text) {
+    const matches = text.match(/\{([a-zA-Z0-9_]+)\}/g) || [];
+    const vars = new Set();
+    matches.forEach(m => {
+        const cleaned = m.replace('{', '').replace('}', '').trim();
+        if (cleaned) vars.add(cleaned);
+    });
+    return Array.from(vars);
+}
+
+window.loadSampleTemplateIntoWizard = function() {
+    window._ecWizardState.body_html = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #E2E8F0; border-radius: 16px;">\n  <h2 style="color: #4F46E5;">Hi {first_name},</h2>\n  <p>We are thrilled to present an exclusive offer for <strong>{company_name}</strong>.</p>\n  <a href="https://linkpilot.work" style="display:inline-block; padding: 12px 24px; background: #4F46E5; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold;">Claim Offer</a>\n</div>`;
+    renderWizardStepContainer();
+};
+
+window.switchWizardImportTab = function(tab) {
+    window._ecWizardState.import_tab = tab;
+    renderWizardStepContainer();
+};
+
+window.handleManualTextChange = function(text) {
+    window._ecWizardState.manual_text = text;
+    const matches = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g) || [];
+    const cntElem = document.getElementById('wizard-valid-mail-count');
+    if (cntElem) cntElem.textContent = `${matches.length} Valid Emails`;
+};
+
+window.handleWizardCsvFile = function(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    window._ecWizardState.csv_filename = file.name;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const text = e.target.result;
+        parseCsvTextForCampaign(text);
+        renderWizardStepContainer();
+    };
+    reader.readAsText(file);
+};
+
+function parseCsvTextForCampaign(text) {
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+    if (lines.length === 0) return;
+    
+    const headers = lines[0].split(',').map(h => h.replace(/^["']|["']$/g, '').trim());
+    window._ecWizardState.csv_headers = headers;
+    
+    // Find email column index
+    let emailIdx = headers.findIndex(h => /email/i.test(h));
+    if (emailIdx === -1) emailIdx = 0;
+    
+    const recipients = [];
+    for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(',').map(c => c.replace(/^["']|["']$/g, '').trim());
+        const email = cols[emailIdx] || '';
+        if (!/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(email)) continue;
+        
+        const vars = {};
+        headers.forEach((h, idx) => {
+            vars[h] = cols[idx] || '';
+        });
+        recipients.push({ email, variables: vars });
+    }
+    
+    window._ecWizardState.recipients = recipients;
+}
+
+function parseRecipientsFromState() {
+    const st = window._ecWizardState;
+    if (st.import_tab === 'manual') {
+        const lines = st.manual_text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+        const recipients = [];
+        lines.forEach(l => {
+            const parts = l.split(',').map(p => p.trim());
+            const email = parts[0];
+            if (/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(email)) {
+                recipients.push({
+                    email: email,
+                    variables: {
+                        first_name: parts[1] || 'Friend',
+                        company_name: parts[2] || 'Company'
+                    }
+                });
+            }
+        });
+        st.recipients = recipients;
+    }
+}
+
+function calculateWizardScheduleTimes() {
+    const st = window._ecWizardState;
+    const totalRecipients = st.recipients.length || 1;
+    const batchSize = Math.max(1, st.batch_size);
+    const intervalMins = Math.max(1, st.interval_minutes);
+    
+    const totalBatches = Math.ceil(totalRecipients / batchSize);
+    const totalMinutesNeeded = (totalBatches - 1) * intervalMins;
+    
+    let startTime = new Date();
+    if (st.start_type === 'scheduled' && st.start_at) {
+        startTime = new Date(st.start_at);
+    }
+    
+    const endTime = new Date(startTime.getTime() + totalMinutesNeeded * 60 * 1000);
+    
+    return {
+        totalRecipients,
+        totalBatches,
+        startTimeStr: startTime.toLocaleString(),
+        endTimeStr: endTime.toLocaleString()
+    };
+}
+
+function replaceVarsInText(text, varsObj) {
+    let res = text;
+    if (varsObj) {
+        Object.keys(varsObj).forEach(k => {
+            res = res.replaceAll('{' + k + '}', varsObj[k]);
+        });
+    }
+    return res;
+}
+
+window.nextWizardStep = function() {
+    if (window._ecWizardState.step < 5) {
+        window._ecWizardState.step++;
+        renderWizardStepContainer();
+    }
+};
+
+window.prevWizardStep = function() {
+    if (window._ecWizardState.step > 1) {
+        window._ecWizardState.step--;
+        renderWizardStepContainer();
+    }
+};
+
+window.submitEmailCampaignWizard = async function() {
+    const st = window._ecWizardState;
+    if (!st.terms_accepted) {
+        showNotification('error', 'Please accept anti-spam terms & conditions.');
+        return;
+    }
+    
+    const btn = document.getElementById('btn-launch-campaign');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="refresh-cw" class="h-4 w-4 animate-spin text-white"></i><span>Launching Campaign...</span>`;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+    
+    try {
+        const payload = {
+            campaign_name: st.campaign_name,
+            subject: st.subject,
+            body_html: st.body_html,
+            recipients: st.recipients,
+            batch_size: st.batch_size,
+            interval_minutes: st.interval_minutes,
+            start_at: st.start_type === 'scheduled' ? st.start_at : null
+        };
+        
+        const response = await apiCall('crm/email_campaigns.php', 'POST', payload);
+        if (response && response.status === 'success') {
+            document.getElementById('email-campaign-wizard-modal')?.remove();
+            showNotification('success', 'Email Campaign launched successfully!');
+            await loadEmailCampaignsList();
+        } else {
+            showNotification('error', response?.message || 'Failed to create campaign.');
+            if (btn) btn.disabled = false;
+        }
+    } catch(err) {
+        showNotification('error', `Campaign Creation Error: ${err.message}`);
+        if (btn) btn.disabled = false;
+    }
+};
+
+window.togglePauseEmailCampaign = async function(campId) {
+    try {
+        const res = await apiCall('crm/email_campaigns.php?action=toggle_pause', 'POST', { campaign_id: campId });
+        showNotification('success', res.message || 'Campaign status updated.');
+        await loadEmailCampaignsList();
+    } catch(err) {
+        showNotification('error', err.message);
+    }
+};
+
+window.deleteEmailCampaign = async function(campId) {
+    if (!confirm('Are you sure you want to delete this campaign and all its log history?')) return;
+    try {
+        await apiCall('crm/email_campaigns.php?action=delete', 'POST', { campaign_id: campId });
+        showNotification('success', 'Email Campaign deleted.');
+        await loadEmailCampaignsList();
+    } catch(err) {
+        showNotification('error', err.message);
+    }
+};
+
+window.openEmailCampaignReportModal = async function(campId) {
+    let modal = document.getElementById('email-campaign-report-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'email-campaign-report-modal';
+        modal.className = 'fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 md:p-6 animate-fade-in font-sans';
+        document.body.appendChild(modal);
+    }
+    
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-4xl flex flex-col overflow-hidden animate-scale-up max-h-[92vh]">
+            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <i data-lucide="bar-chart-2" class="h-4 w-4"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900">Campaign Outbound Delivery Report</h3>
+                </div>
+                <button onclick="document.getElementById('email-campaign-report-modal').remove()" class="text-slate-400 hover:text-slate-600 transition cursor-pointer">
+                    <i data-lucide="x" class="h-5 w-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto space-y-4">
+                <div id="ec-report-logs-body" class="p-6 text-center text-slate-400">Loading delivery logs...</div>
+            </div>
+        </div>
+    `;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    
+    try {
+        const res = await apiCall(`crm/email_campaigns.php?id=${campId}`);
+        const c = res.campaign || {};
+        const logs = c.logs || [];
+        
+        const bodyElem = document.getElementById('ec-report-logs-body');
+        if (bodyElem) {
+            bodyElem.innerHTML = `
+                <div class="space-y-4 text-left">
+                    <div class="grid grid-cols-3 gap-4 bg-slate-50 p-4 border border-slate-200 rounded-xl text-xs font-bold text-slate-700">
+                        <div>Campaign: <span class="text-indigo-600">${escapeHtml(c.campaign_name)}</span></div>
+                        <div>Sent Progress: <span class="text-emerald-600">${c.sent_count} / ${c.total_recipients}</span></div>
+                        <div>Status: <span class="text-slate-900">${c.status}</span></div>
+                    </div>
+                    
+                    <div class="border border-slate-200 rounded-xl overflow-hidden">
+                        <table class="w-full text-left text-xs font-medium text-slate-700">
+                            <thead class="bg-slate-100 text-[10px] uppercase font-extrabold text-slate-500">
+                                <tr>
+                                    <th class="px-4 py-3">Recipient Email</th>
+                                    <th class="px-4 py-3">Status</th>
+                                    <th class="px-4 py-3">Scheduled At</th>
+                                    <th class="px-4 py-3">Sent At / Error</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 bg-white">
+                                ${logs.length === 0 ? '<tr><td colspan="4" class="p-4 text-center text-slate-400">No logs found</td></tr>' : logs.map(l => `
+                                    <tr>
+                                        <td class="px-4 py-2.5 font-semibold text-slate-900">${escapeHtml(l.recipient_email)}</td>
+                                        <td class="px-4 py-2.5">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${l.status === 'Sent' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : (l.status === 'Failed' ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-blue-50 text-blue-700 border border-blue-200')}">${l.status}</span>
+                                        </td>
+                                        <td class="px-4 py-2.5 text-slate-500">${l.scheduled_at || '-'}</td>
+                                        <td class="px-4 py-2.5 text-slate-500">${l.sent_at || l.error_message || '-'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+    } catch(err) {
+        console.error("Report load error:", err);
+    }
+};

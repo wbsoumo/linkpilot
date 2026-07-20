@@ -20661,3 +20661,144 @@ function skipOnboardingTour() {
     refreshBuilderCanvasInline();
     showNotification('info', 'Onboarding tour skipped.');
 }
+
+// Initialize Draggable Floating AI Assistant Button
+document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('ai-chat-trigger-btn');
+    if (!btn) return;
+
+    // Restore saved position
+    const savedTop = localStorage.getItem('ai_chat_btn_top');
+    const savedSide = localStorage.getItem('ai_chat_btn_side');
+    if (savedTop && savedSide) {
+        btn.style.bottom = 'auto';
+        btn.style.top = savedTop;
+        if (savedSide === 'left') {
+            btn.style.left = '24px';
+            btn.style.right = 'auto';
+        } else {
+            btn.style.right = '24px';
+            btn.style.left = 'auto';
+        }
+    }
+
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let initialX = 0;
+    let initialY = 0;
+    let dragDistance = 0;
+    let dragStartTime = 0;
+
+    // Prevent inline onclick click handler execution
+    btn.removeAttribute('onclick');
+    
+    // Add event listener for click
+    btn.addEventListener('click', (e) => {
+        if (dragDistance > 8 || (Date.now() - dragStartTime > 250)) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+        toggleAIChatAssistant();
+    });
+
+    const startDrag = (clientX, clientY) => {
+        isDragging = true;
+        dragStartTime = Date.now();
+        dragDistance = 0;
+        
+        const rect = btn.getBoundingClientRect();
+        initialX = rect.left;
+        initialY = rect.top;
+        
+        startX = clientX;
+        startY = clientY;
+
+        btn.style.transition = 'none'; // disable transition while dragging
+    };
+
+    const drag = (clientX, clientY) => {
+        if (!isDragging) return;
+
+        const dx = clientX - startX;
+        const dy = clientY - startY;
+        dragDistance = Math.sqrt(dx * dx + dy * dy);
+
+        let newX = initialX + dx;
+        let newY = initialY + dy;
+
+        // Keep inside screen boundaries
+        const padding = 16;
+        const maxW = window.innerWidth - btn.offsetWidth - padding;
+        const maxH = window.innerHeight - btn.offsetHeight - padding;
+
+        newX = Math.max(padding, Math.min(newX, maxW));
+        newY = Math.max(padding, Math.min(newY, maxH));
+
+        btn.style.bottom = 'auto';
+        btn.style.left = newX + 'px';
+        btn.style.right = 'auto';
+        btn.style.top = newY + 'px';
+    };
+
+    const endDrag = () => {
+        if (!isDragging) return;
+        isDragging = false;
+
+        // Snapping logic: snap to nearest vertical edge (left or right side of screen)
+        const rect = btn.getBoundingClientRect();
+        const screenCenterX = window.innerWidth / 2;
+        const btnCenterX = rect.left + rect.width / 2;
+        
+        let side = 'right';
+        btn.style.transition = 'all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28)'; // smooth snap back animation
+
+        if (btnCenterX < screenCenterX) {
+            side = 'left';
+            btn.style.left = '24px';
+            btn.style.right = 'auto';
+        } else {
+            side = 'right';
+            btn.style.right = '24px';
+            btn.style.left = 'auto';
+        }
+
+        // Save position
+        localStorage.setItem('ai_chat_btn_top', btn.style.top);
+        localStorage.setItem('ai_chat_btn_side', side);
+    };
+
+    btn.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return; // only left click
+        startDrag(e.clientX, e.clientY);
+        
+        const onMouseMove = (moveEvent) => {
+            drag(moveEvent.clientX, moveEvent.clientY);
+        };
+        
+        const onMouseUp = () => {
+            endDrag();
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        };
+        
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    });
+
+    btn.addEventListener('touchstart', (e) => {
+        const touch = e.touches[0];
+        startDrag(touch.clientX, touch.clientY);
+    }, { passive: true });
+
+    btn.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        const touch = e.touches[0];
+        drag(touch.clientX, touch.clientY);
+    }, { passive: true });
+
+    btn.addEventListener('touchend', () => {
+        endDrag();
+    });
+});

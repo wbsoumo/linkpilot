@@ -2253,8 +2253,8 @@ function renderEmailSettingsLayout(container) {
     const { activeTab, credentials, domains, signatures, advanced, google_oauth, showPassword } = window.emailSettingsState;
 
     const tabs = [
-        { id: 'smtp', label: 'SMTP Servers', icon: 'server', badge: (google_oauth && google_oauth.connected) ? 'Gmail OAuth' : (credentials.smtp_host ? 'Active' : 'Unset'), badgeColor: (google_oauth && google_oauth.connected) ? 'blue' : (credentials.smtp_host ? 'emerald' : 'slate') },
-        { id: 'imap', label: 'IMAP Accounts', icon: 'mail', badge: (google_oauth && google_oauth.connected) ? 'Gmail OAuth' : (credentials.imap_host ? 'Active' : 'Unset'), badgeColor: (google_oauth && google_oauth.connected) ? 'blue' : (credentials.imap_host ? 'emerald' : 'slate') },
+        { id: 'smtp', label: 'SMTP Servers', icon: 'server', badge: (google_oauth && google_oauth.connected) ? 'OAuth' : (credentials.smtp_host ? 'Active' : 'Unset'), badgeColor: (google_oauth && google_oauth.connected) ? 'blue' : (credentials.smtp_host ? 'emerald' : 'slate') },
+        { id: 'imap', label: 'IMAP Accounts', icon: 'mail', badge: (google_oauth && google_oauth.connected) ? 'OAuth' : (credentials.imap_host ? 'Active' : 'Unset'), badgeColor: (google_oauth && google_oauth.connected) ? 'blue' : (credentials.imap_host ? 'emerald' : 'slate') },
         { id: 'replyto', label: 'Default Reply-To', icon: 'corner-up-left', badge: 'Configured', badgeColor: 'purple' },
         { id: 'opentracking', label: 'Open Tracking', icon: 'eye', badge: advanced.open_tracking_enabled ? 'Active' : 'Off', badgeColor: advanced.open_tracking_enabled ? 'emerald' : 'slate' },
         { id: 'clicktracking', label: 'Click Tracking', icon: 'mouse-pointer', badge: advanced.click_tracking_enabled ? 'Active' : 'Off', badgeColor: advanced.click_tracking_enabled ? 'emerald' : 'slate' },
@@ -2275,7 +2275,7 @@ function renderEmailSettingsLayout(container) {
                     </div>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <button onclick="saveAllEmailSettings(this)" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md shadow-blue-500/20 transition flex items-center space-x-2">
+                    <button onclick="saveAllEmailSettings(this)" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md shadow-blue-500/20 transition flex items-center space-x-2 cursor-pointer">
                         <i data-lucide="save" class="h-4 w-4"></i>
                         <span>Save All Settings</span>
                     </button>
@@ -2285,23 +2285,23 @@ function renderEmailSettingsLayout(container) {
             <!-- Main Layout Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <!-- Sidebar Tabs Navigation -->
-                <div class="lg:col-span-4 xl:col-span-3 space-y-2 bg-white p-4 rounded-3xl border border-slate-200/80 shadow-xs h-fit">
+                <div class="lg:col-span-5 xl:col-span-4 space-y-2 bg-white p-4 rounded-3xl border border-slate-200/80 shadow-xs h-fit">
                     <div class="px-2 py-1 text-[11px] font-black uppercase tracking-wider text-slate-400">EMAIL SETTINGS</div>
                     <div class="space-y-1">
                         ${tabs.map(tab => `
-                            <button type="button" data-tab="${tab.id}" onclick="window.switchEmailSettingsTab('${tab.id}')" class="email-settings-tab-btn w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition text-left cursor-pointer ${activeTab === tab.id ? 'bg-blue-50/80 border border-blue-200/80 text-blue-600 shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}">
-                                <div class="flex items-center space-x-3 truncate">
+                            <button type="button" data-tab="${tab.id}" onclick="window.switchEmailSettingsTab('${tab.id}')" class="email-settings-tab-btn w-full flex items-center justify-between gap-2 px-3.5 py-3 rounded-xl text-xs font-bold transition text-left cursor-pointer ${activeTab === tab.id ? 'bg-blue-50/80 border border-blue-200/80 text-blue-600 shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}">
+                                <div class="flex items-center space-x-2.5 min-w-0">
                                     <i data-lucide="${tab.icon}" class="h-4 w-4 shrink-0 ${activeTab === tab.id ? 'text-blue-600' : 'text-slate-400'}"></i>
-                                    <span class="truncate">${tab.label}</span>
+                                    <span class="whitespace-nowrap font-bold text-xs">${tab.label}</span>
                                 </div>
-                                <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${tab.badgeColor === 'emerald' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200/60' : tab.badgeColor === 'amber' ? 'bg-amber-50 text-amber-600 border border-amber-200/60' : tab.badgeColor === 'blue' ? 'bg-blue-50 text-blue-600 border border-blue-200/60' : tab.badgeColor === 'purple' ? 'bg-purple-50 text-purple-600 border border-purple-200/60' : tab.badgeColor === 'indigo' ? 'bg-indigo-50 text-indigo-600 border border-indigo-200/60' : tab.badgeColor === 'rose' ? 'bg-rose-50 text-rose-600 border border-rose-200/60' : 'bg-slate-100 text-slate-500'}">${tab.badge}</span>
+                                <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0 ${tab.badgeColor === 'emerald' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200/60' : tab.badgeColor === 'amber' ? 'bg-amber-50 text-amber-600 border border-amber-200/60' : tab.badgeColor === 'blue' ? 'bg-blue-50 text-blue-600 border border-blue-200/60' : tab.badgeColor === 'purple' ? 'bg-purple-50 text-purple-600 border border-purple-200/60' : tab.badgeColor === 'indigo' ? 'bg-indigo-50 text-indigo-600 border border-indigo-200/60' : tab.badgeColor === 'rose' ? 'bg-rose-50 text-rose-600 border border-rose-200/60' : 'bg-slate-100 text-slate-500'}">${tab.badge}</span>
                             </button>
                         `).join('')}
                     </div>
                 </div>
 
                 <!-- Main Content Display -->
-                <div class="lg:col-span-8 xl:col-span-9 space-y-6">
+                <div class="lg:col-span-7 xl:col-span-8 space-y-6">
                     <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-xs">
                         <div id="email-settings-tab-panel">
                             ${renderEmailSettingsTabContent(activeTab, showPassword)}

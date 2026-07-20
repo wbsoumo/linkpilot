@@ -23648,7 +23648,7 @@ window.filterEmailCampaignsTable = function() {
    ===================================================================== */
 
 window.openEmailCampaignWizardModal = function() {
-    const container = document.getElementById('main-content-area') || document.querySelector('.flex-1.overflow-y-auto') || document.getElementById('content-area');
+    const container = window._ecWizardContainer || document.getElementById('main-content-viewport') || document.getElementById('main-content-area');
     if (!container) return;
     
     window._ecWizardContainer = container;
@@ -24093,12 +24093,12 @@ function detectVariablesInMailBody(text) {
 
 window.loadSampleTemplateIntoWizard = function() {
     window._ecWizardState.body_html = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #E2E8F0; border-radius: 16px;">\n  <h2 style="color: #4F46E5;">Hi {first_name},</h2>\n  <p>We are thrilled to present an exclusive offer for <strong>{company_name}</strong>.</p>\n  <a href="https://linkpilot.work" style="display:inline-block; padding: 12px 24px; background: #4F46E5; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold;">Claim Offer</a>\n</div>`;
-    renderWizardStepContainer();
+    renderWizardStepInline(window._ecWizardContainer);
 };
 
 window.switchWizardImportTab = function(tab) {
     window._ecWizardState.import_tab = tab;
-    renderWizardStepContainer();
+    renderWizardStepInline(window._ecWizardContainer);
 };
 
 window.handleManualTextChange = function(text) {
@@ -24117,7 +24117,7 @@ window.handleWizardCsvFile = function(input) {
     reader.onload = function(e) {
         const text = e.target.result;
         parseCsvTextForCampaign(text);
-        renderWizardStepContainer();
+        renderWizardStepInline(window._ecWizardContainer);
     };
     reader.readAsText(file);
 };

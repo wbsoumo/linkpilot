@@ -2254,13 +2254,9 @@ function renderEmailSettingsLayout(container) {
     const tabs = [
         { id: 'smtp', label: 'SMTP Servers', icon: 'server', badge: credentials.smtp_host ? 'Active' : 'Unset', badgeColor: credentials.smtp_host ? 'emerald' : 'slate' },
         { id: 'imap', label: 'IMAP Accounts', icon: 'mail', badge: credentials.imap_host ? 'Active' : 'Unset', badgeColor: credentials.imap_host ? 'emerald' : 'slate' },
-        { id: 'domains', label: 'Sending Domains', icon: 'globe', badge: `${domains.length || 1} Domain`, badgeColor: 'blue' },
-        { id: 'signatures', label: 'Email Signatures', icon: 'feather', badge: `${signatures.length || 1} Active`, badgeColor: 'blue' },
         { id: 'replyto', label: 'Default Reply-To', icon: 'corner-up-left', badge: 'Configured', badgeColor: 'purple' },
-        { id: 'warmup', label: 'Warm-up Settings', icon: 'flame', badge: advanced.warmup_enabled ? 'Enabled' : 'Paused', badgeColor: advanced.warmup_enabled ? 'amber' : 'slate' },
         { id: 'opentracking', label: 'Open Tracking', icon: 'eye', badge: advanced.open_tracking_enabled ? 'Active' : 'Off', badgeColor: advanced.open_tracking_enabled ? 'emerald' : 'slate' },
         { id: 'clicktracking', label: 'Click Tracking', icon: 'mouse-pointer', badge: advanced.click_tracking_enabled ? 'Active' : 'Off', badgeColor: advanced.click_tracking_enabled ? 'emerald' : 'slate' },
-        { id: 'bouncetracking', label: 'Bounce Tracking', icon: 'shield-check', badge: 'Auto-Protect', badgeColor: 'rose' },
         { id: 'unsubscribe', label: 'Unsubscribe Settings', icon: 'user-minus', badge: 'Configured', badgeColor: 'indigo' }
     ];
 
@@ -2361,23 +2357,6 @@ function renderEmailSettingsLayout(container) {
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Best Practice Banner -->
-                        <div class="bg-blue-50/70 border border-blue-200/80 p-4 rounded-2xl flex items-center justify-between gap-4">
-                            <div class="flex items-center space-x-3">
-                                <div class="p-2 bg-blue-100 text-blue-600 rounded-xl shrink-0">
-                                    <i data-lucide="shield-check" class="h-5 w-5"></i>
-                                </div>
-                                <div>
-                                    <div class="text-xs font-bold text-blue-950">Best Practice</div>
-                                    <div class="text-[11px] font-medium text-blue-800">Use a dedicated sending domain and keep your SPF, DKIM, and DMARC records updated for better deliverability.</div>
-                                </div>
-                            </div>
-                            <a href="#/email-settings" onclick="switchEmailSettingsTab('domains')" class="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center space-x-1 shrink-0">
-                                <span>Learn More</span>
-                                <i data-lucide="external-link" class="h-3.5 w-3.5"></i>
-                            </a>
-                        </div>
                     ` : ''}
                 </div>
             </div>
@@ -2410,10 +2389,6 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                         <div>
                             <h2 class="text-lg font-bold text-slate-900">1. Outbound SMTP Server Configuration</h2>
                             <p class="text-xs text-slate-500 font-medium">Configure your SMTP server to send emails through your own infrastructure.</p>
-                        </div>
-                        <div class="px-3 py-1.5 bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-xs font-bold rounded-xl flex items-center space-x-2 shrink-0">
-                            <i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-600"></i>
-                            <span>AWS EC2 Worker Proxy Active</span>
                         </div>
                     </div>
 
@@ -2553,86 +2528,12 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                 </div>
             `;
 
-        case 'domains':
-            return `
-                <div class="space-y-6">
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-900">3. Sending Domains & DNS Verification</h2>
-                            <p class="text-xs text-slate-500 font-medium">Verify SPF, DKIM, and DMARC DNS records to ensure high inbox deliverability.</p>
-                        </div>
-                        <button onclick="promptAddSendingDomain()" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-1.5 shadow-sm">
-                            <i data-lucide="plus" class="h-3.5 w-3.5"></i>
-                            <span>Add Sending Domain</span>
-                        </button>
-                    </div>
-
-                    <div class="space-y-4">
-                        ${domains.map(d => `
-                            <div class="p-4 bg-slate-50/50 border border-slate-200/90 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                <div>
-                                    <div class="flex items-center space-x-2 mb-1">
-                                        <i data-lucide="globe" class="h-4 w-4 text-blue-600"></i>
-                                        <span class="font-bold text-sm text-slate-900">${d.domain}</span>
-                                    </div>
-                                    <div class="flex items-center space-x-2 text-[10px]">
-                                        <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-200 font-bold">SPF ✓</span>
-                                        <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-200 font-bold">DKIM ✓</span>
-                                        <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-200 font-bold">DMARC ✓</span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <button onclick="deleteSendingDomain(${d.id})" class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 text-xs font-bold rounded-xl transition">Remove</button>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-
-                    <div class="p-4 bg-blue-50/50 border border-blue-200/80 rounded-2xl space-y-2">
-                        <h4 class="text-xs font-bold text-blue-950">Recommended DNS Records for ${domains[0]?.domain || 'your domain'}:</h4>
-                        <div class="text-[11px] font-mono text-slate-700 bg-white p-3 rounded-xl border border-blue-200/60 space-y-1">
-                            <div><strong class="text-blue-600">TXT Record (SPF):</strong> v=spf1 include:linkpilot.work ~all</div>
-                            <div><strong class="text-blue-600">TXT Record (DMARC):</strong> v=DMARC1; p=none; rua=mailto:dmarc@linkpilot.work</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-        case 'signatures':
-            return `
-                <div class="space-y-6">
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-900">4. Email Signatures</h2>
-                            <p class="text-xs text-slate-500 font-medium">Create rich HTML signatures with dynamic tags (<code>{{sender_name}}</code>, <code>{{company}}</code>).</p>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 gap-4">
-                        ${signatures.map(s => `
-                            <div class="p-4 bg-slate-50/50 border border-slate-200/90 rounded-2xl space-y-3">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center space-x-2">
-                                        <span class="font-bold text-sm text-slate-900">${s.name}</span>
-                                        ${s.is_default ? '<span class="px-2.5 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-full border border-blue-200">DEFAULT</span>' : ''}
-                                    </div>
-                                    <button onclick="deleteSignature(${s.id})" class="text-xs text-red-600 hover:underline font-bold">Delete</button>
-                                </div>
-                                <div class="p-3.5 bg-white border border-slate-200/80 rounded-xl text-xs text-slate-700">
-                                    ${s.body_html}
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-
         case 'replyto':
             return `
                 <div class="space-y-6">
                     <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                         <div>
-                            <h2 class="text-lg font-bold text-slate-900">5. Default Reply-To Address</h2>
+                            <h2 class="text-lg font-bold text-slate-900">3. Default Reply-To Address</h2>
                             <p class="text-xs text-slate-500 font-medium">Specify where customer responses should be routed when replying to outgoing campaigns.</p>
                         </div>
                     </div>
@@ -2650,56 +2551,18 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                 </div>
             `;
 
-        case 'warmup':
-            return `
-                <div class="space-y-6">
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-900">6. Automated Email Warm-up Settings</h2>
-                            <p class="text-xs text-slate-500 font-medium">Gradually ramp up daily send limits to build domain sender reputation.</p>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="es_warmup_enabled" ${advanced.warmup_enabled ? 'checked' : ''} class="sr-only peer">
-                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
-                        </label>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Max Daily Limit</label>
-                            <input type="number" id="es_warmup_daily_limit" value="${advanced.warmup_daily_limit || 500}" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Daily Increment Step</label>
-                            <input type="number" id="es_warmup_increment" value="${advanced.warmup_increment || 5}" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
-                        </div>
-                    </div>
-                </div>
-            `;
-
         case 'opentracking':
             return `
                 <div class="space-y-6">
                     <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                         <div>
-                            <h2 class="text-lg font-bold text-slate-900">7. Email Open Tracking Settings</h2>
+                            <h2 class="text-lg font-bold text-slate-900">4. Email Open Tracking</h2>
                             <p class="text-xs text-slate-500 font-medium">Track email open rates using transparent tracking pixels.</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="es_open_tracking_enabled" ${advanced.open_tracking_enabled ? 'checked' : ''} class="sr-only peer">
                             <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                         </label>
-                    </div>
-
-                    <div class="space-y-4 max-w-xl">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Custom Tracking Domain</label>
-                            <input type="text" id="es_open_tracking_domain" value="${advanced.open_tracking_domain || 'open.linkpilot.work'}" placeholder="open.yourdomain.com" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Exclude Internal Team IPs (Comma Separated)</label>
-                            <textarea id="es_open_tracking_exclude_ips" rows="2" placeholder="103.86.176.168, 127.0.0.1" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">${advanced.open_tracking_exclude_ips || ''}</textarea>
-                        </div>
                     </div>
                 </div>
             `;
@@ -2709,46 +2572,13 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                 <div class="space-y-6">
                     <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                         <div>
-                            <h2 class="text-lg font-bold text-slate-900">8. Link Click Tracking</h2>
+                            <h2 class="text-lg font-bold text-slate-900">5. Link Click Tracking</h2>
                             <p class="text-xs text-slate-500 font-medium">Track link clicks across outgoing emails and campaigns.</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="es_click_tracking_enabled" ${advanced.click_tracking_enabled ? 'checked' : ''} class="sr-only peer">
                             <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                         </label>
-                    </div>
-
-                    <div class="space-y-4 max-w-xl">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Custom Click Tracking Domain</label>
-                            <input type="text" id="es_click_tracking_domain" value="${advanced.click_tracking_domain || 'track.linkpilot.work'}" placeholder="track.yourdomain.com" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
-                        </div>
-                    </div>
-                </div>
-            `;
-
-        case 'bouncetracking':
-            return `
-                <div class="space-y-6">
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-900">9. Bounce Tracking & Deliverability Safeguards</h2>
-                            <p class="text-xs text-slate-500 font-medium">Automatically handle soft and hard bounces to protect domain sender score.</p>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Max Hard Bounces Before Auto-Suppress</label>
-                            <select id="es_bounce_max_hard_bounces" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
-                                <option value="1" ${advanced.bounce_max_hard_bounces == 1 ? 'selected' : ''}>1 Hard Bounce (Strict & Recommended)</option>
-                                <option value="2" ${advanced.bounce_max_hard_bounces == 2 ? 'selected' : ''}>2 Hard Bounces</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1.5">High Bounce Rate Alert Threshold (%)</label>
-                            <input type="number" step="0.5" id="es_bounce_alert_threshold" value="${advanced.bounce_alert_threshold || 3.0}" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
-                        </div>
                     </div>
                 </div>
             `;
@@ -2758,7 +2588,7 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                 <div class="space-y-6">
                     <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                         <div>
-                            <h2 class="text-lg font-bold text-slate-900">10. Unsubscribe Link & Footer Policy</h2>
+                            <h2 class="text-lg font-bold text-slate-900">6. Unsubscribe Link & Footer Policy</h2>
                             <p class="text-xs text-slate-500 font-medium">Include RFC 8058 One-Click Unsubscribe headers and compliant email footers.</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
@@ -3020,28 +2850,32 @@ async function saveAllEmailSettings(btn) {
     btn.disabled = true;
     btn.innerHTML = `<div class="loader-spinner !w-3.5 !h-3.5 mr-1.5"></div> Saving...`;
 
+    const currentAdv = (window.emailSettingsState && window.emailSettingsState.advanced) || {};
+
     try {
         const payload = {
-            default_reply_to: document.getElementById('es_default_reply_to')?.value || '',
-            default_sender_name: document.getElementById('es_default_sender_name')?.value || '',
-            warmup_enabled: document.getElementById('es_warmup_enabled')?.checked ? 1 : 0,
-            warmup_daily_limit: parseInt(document.getElementById('es_warmup_daily_limit')?.value || 50),
-            warmup_increment: parseInt(document.getElementById('es_warmup_increment')?.value || 5),
-            open_tracking_enabled: document.getElementById('es_open_tracking_enabled')?.checked ? 1 : 0,
-            open_tracking_domain: document.getElementById('es_open_tracking_domain')?.value || '',
-            open_tracking_exclude_ips: document.getElementById('es_open_tracking_exclude_ips')?.value || '',
-            click_tracking_enabled: document.getElementById('es_click_tracking_enabled')?.checked ? 1 : 0,
-            click_tracking_domain: document.getElementById('es_click_tracking_domain')?.value || '',
-            bounce_max_hard_bounces: parseInt(document.getElementById('es_bounce_max_hard_bounces')?.value || 1),
-            bounce_alert_threshold: parseFloat(document.getElementById('es_bounce_alert_threshold')?.value || 3.0),
-            unsubscribe_enabled: document.getElementById('es_unsubscribe_enabled')?.checked ? 1 : 0,
-            unsubscribe_footer_html: document.getElementById('es_unsubscribe_footer_html')?.value || ''
+            default_reply_to: document.getElementById('es_default_reply_to')?.value ?? currentAdv.default_reply_to ?? '',
+            default_sender_name: document.getElementById('es_default_sender_name')?.value ?? currentAdv.default_sender_name ?? '',
+            warmup_enabled: document.getElementById('es_warmup_enabled') ? (document.getElementById('es_warmup_enabled').checked ? 1 : 0) : (currentAdv.warmup_enabled ? 1 : 0),
+            warmup_daily_limit: parseInt(document.getElementById('es_warmup_daily_limit')?.value ?? currentAdv.warmup_daily_limit ?? 500),
+            warmup_increment: parseInt(document.getElementById('es_warmup_increment')?.value ?? currentAdv.warmup_increment ?? 5),
+            open_tracking_enabled: document.getElementById('es_open_tracking_enabled') ? (document.getElementById('es_open_tracking_enabled').checked ? 1 : 0) : (currentAdv.open_tracking_enabled ? 1 : 0),
+            open_tracking_domain: document.getElementById('es_open_tracking_domain')?.value ?? currentAdv.open_tracking_domain ?? '',
+            open_tracking_exclude_ips: document.getElementById('es_open_tracking_exclude_ips')?.value ?? currentAdv.open_tracking_exclude_ips ?? '',
+            click_tracking_enabled: document.getElementById('es_click_tracking_enabled') ? (document.getElementById('es_click_tracking_enabled').checked ? 1 : 0) : (currentAdv.click_tracking_enabled ? 1 : 0),
+            click_tracking_domain: document.getElementById('es_click_tracking_domain')?.value ?? currentAdv.click_tracking_domain ?? '',
+            bounce_max_hard_bounces: parseInt(document.getElementById('es_bounce_max_hard_bounces')?.value ?? currentAdv.bounce_max_hard_bounces ?? 1),
+            bounce_alert_threshold: parseFloat(document.getElementById('es_bounce_alert_threshold')?.value ?? currentAdv.bounce_alert_threshold ?? 3.0),
+            unsubscribe_enabled: document.getElementById('es_unsubscribe_enabled') ? (document.getElementById('es_unsubscribe_enabled').checked ? 1 : 0) : (currentAdv.unsubscribe_enabled ? 1 : 0),
+            unsubscribe_footer_html: document.getElementById('es_unsubscribe_footer_html')?.value ?? currentAdv.unsubscribe_footer_html ?? ''
         };
 
         const res = await apiCall('crm/email_settings.php?action=save_advanced', 'POST', payload);
         if (res.status === 'success') {
             showNotification('success', 'All email settings updated successfully!');
-            renderEmailSettings(document.getElementById('main-content-viewport'));
+            if (window.emailSettingsState) {
+                window.emailSettingsState.advanced = { ...window.emailSettingsState.advanced, ...payload };
+            }
         } else {
             showNotification('error', res.message);
         }
@@ -3052,6 +2886,9 @@ async function saveAllEmailSettings(btn) {
         btn.innerHTML = origText;
     }
 }
+
+window.saveAllEmailSettings = saveAllEmailSettings;
+window.toggleSmtpPasswordVisibility = toggleSmtpPasswordVisibility;
 
 // ---------------------------------------------
 // 3. INBOX VIEW (AI SUGGESTED REPLY / FILTERS)

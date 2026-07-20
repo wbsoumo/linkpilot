@@ -16423,305 +16423,323 @@ function getTemplateHtmlPreview(t) {
     return getSalesCategoryHtml(t);
 }
 
-// 1. 🎯 SALES & COLD OUTREACH LAYOUT
+// 1. 🎯 SALES & COLD OUTREACH DESKTOP LAYOUT
 function getSalesCategoryHtml(t) {
     return `
-        <div style="font-family: Inter, system-ui, sans-serif; background: #f8fafc; padding: 16px; min-height: 100%;">
-            <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 6px 16px rgba(0,0,0,0.06);">
-                <div style="width: 100%; height: 160px; overflow: hidden; position: relative; background: #0f172a;">
+        <div style="font-family: Inter, system-ui, sans-serif; background: #f8fafc; padding: 20px; width: 100%; box-sizing: border-box;">
+            <div style="max-width: 720px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 6px 16px rgba(0,0,0,0.06);">
+                <div style="width: 100%; height: 180px; overflow: hidden; position: relative; background: #0f172a;">
                     <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=80" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85;" alt="Sales Analytics">
-                    <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(15,23,42,0.9) 0%, transparent 70%); display: flex; align-items: flex-end; padding: 16px;">
-                        <span style="background: #4F46E5; color: #ffffff !important; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 20px; text-transform: uppercase;">🎯 B2B OUTREACH ENGINE</span>
+                    <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(15,23,42,0.9) 0%, transparent 70%); display: flex; align-items: flex-end; padding: 20px;">
+                        <span style="background: #4F46E5; color: #ffffff !important; font-size: 11px; font-weight: 800; padding: 4px 14px; border-radius: 20px; text-transform: uppercase;">🎯 B2B OUTREACH ENGINE &bull; DESKTOP VIEW</span>
                     </div>
                 </div>
-                <div style="background: linear-gradient(135deg, #1E1B4B 0%, #4338CA 100%); padding: 20px 24px; color: #ffffff;">
-                    <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff !important;">${t.title}</h2>
-                    <p style="margin: 4px 0 0 0; font-size: 11px; opacity: 0.9; color: #ffffff !important;">Subject: ${t.subject}</p>
+                <div style="background: linear-gradient(135deg, #1E1B4B 0%, #4338CA 100%); padding: 22px 28px; color: #ffffff;">
+                    <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff !important;">${t.title}</h2>
+                    <p style="margin: 6px 0 0 0; font-size: 12px; opacity: 0.9; color: #ffffff !important;">Subject: ${t.subject}</p>
                 </div>
-                <div style="padding: 24px; color: #334155; font-size: 13px; line-height: 1.7;">
+                <div style="padding: 28px; color: #334155; font-size: 14px; line-height: 1.7;">
                     <p style="margin-top: 0;">Hi <strong>{{first_name}}</strong>,</p>
                     <p style="white-space: pre-line; color: #475569;">${t.body}</p>
-                    <div style="background: #f1f5f9; border-left: 4px solid #4F46E5; padding: 14px; border-radius: 8px; margin: 20px 0;">
-                        <h4 style="margin: 0 0 6px 0; color: #1e293b; font-size: 12px; font-weight: 800; text-transform: uppercase;">Proven ROI for {{company_name}}:</h4>
-                        <ul style="margin: 0; padding-left: 18px; font-size: 12px; color: #475569;">
+                    <div style="background: #f1f5f9; border-left: 4px solid #4F46E5; padding: 16px 20px; border-radius: 8px; margin: 24px 0;">
+                        <h4 style="margin: 0 0 8px 0; color: #1e293b; font-size: 13px; font-weight: 800; text-transform: uppercase;">Proven ROI for {{company_name}}:</h4>
+                        <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #475569;">
                             <li>✓ 4.2x Faster Response Time to Incoming Leads</li>
                             <li>✓ Automated WhatsApp & Email Follow-up Sequences</li>
                         </ul>
                     </div>
-                    <div style="text-align: center; margin-top: 24px;">
-                        <a href="#" onclick="return false;" style="background: #4F46E5; color: #ffffff !important; font-weight: 800; padding: 12px 28px; border-radius: 12px; text-decoration: none; font-size: 13px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);">Book 10-Min Demo &rarr;</a>
+                    <div style="text-align: center; margin-top: 28px;">
+                        <a href="#" onclick="return false;" style="background: #4F46E5; color: #ffffff !important; font-weight: 800; padding: 14px 32px; border-radius: 12px; text-decoration: none; font-size: 14px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);">Book 10-Min Demo &rarr;</a>
                     </div>
                 </div>
-                <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 12px; text-align: center; font-size: 10px; color: #94a3b8;">Sent via LinkPilot B2B Automation &bull; Unsubscribe</div>
+                <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 14px; text-align: center; font-size: 11px; color: #94a3b8;">Sent via LinkPilot B2B Automation &bull; Unsubscribe</div>
             </div>
         </div>
     `;
 }
 
-// 2. 📅 MEETINGS & SCHEDULING LAYOUT
+// 2. 📅 MEETINGS & SCHEDULING DESKTOP LAYOUT
 function getMeetingsCategoryHtml(t) {
     return `
-        <div style="font-family: Inter, system-ui, sans-serif; background: #f8fafc; padding: 16px; min-height: 100%;">
-            <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 6px 16px rgba(0,0,0,0.06);">
-                <div style="background: linear-gradient(135deg, #0284C7 0%, #2563EB 100%); padding: 24px; color: #ffffff; text-align: center;">
-                    <div style="display: inline-block; background: rgba(255,255,255,0.2); padding: 4px 14px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; color: #ffffff !important; margin-bottom: 8px;">📅 DEMO & MEETING INVITATION</div>
-                    <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff !important;">${t.title}</h2>
-                    <p style="margin: 6px 0 0 0; font-size: 12px; opacity: 0.9; color: #ffffff !important;">${t.subject}</p>
+        <div style="font-family: Inter, system-ui, sans-serif; background: #f8fafc; padding: 20px; width: 100%; box-sizing: border-box;">
+            <div style="max-width: 720px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 6px 16px rgba(0,0,0,0.06);">
+                <div style="background: linear-gradient(135deg, #0284C7 0%, #2563EB 100%); padding: 28px; color: #ffffff; text-align: center;">
+                    <div style="display: inline-block; background: rgba(255,255,255,0.2); padding: 4px 16px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #ffffff !important; margin-bottom: 10px;">📅 DEMO & MEETING INVITATION</div>
+                    <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: #ffffff !important;">${t.title}</h2>
+                    <p style="margin: 8px 0 0 0; font-size: 13px; opacity: 0.9; color: #ffffff !important;">${t.subject}</p>
                 </div>
-                <div style="padding: 24px; color: #334155; font-size: 13px; line-height: 1.7;">
-                    <!-- Calendar Date Card Widget -->
-                    <div style="background: #eff6ff; border: 2px dashed #93c5fd; padding: 16px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
-                        <div style="font-size: 11px; font-weight: 800; color: #1d4ed8; text-transform: uppercase;">PROPOSED MEETING TIME</div>
-                        <div style="font-size: 16px; font-weight: 900; color: #1e3a8a; margin-top: 4px;">🗓️ Thursday, Oct 24 &bull; 2:00 PM - 2:30 PM EST</div>
-                        <div style="font-size: 11px; color: #3b82f6; margin-top: 4px;">Host: Sarah Jenkins (Senior Product Specialist)</div>
+                <div style="padding: 28px; color: #334155; font-size: 14px; line-height: 1.7;">
+                    <div style="background: #eff6ff; border: 2px dashed #93c5fd; padding: 20px; border-radius: 14px; text-align: center; margin-bottom: 24px;">
+                        <div style="font-size: 12px; font-weight: 800; color: #1d4ed8; text-transform: uppercase;">PROPOSED MEETING TIME</div>
+                        <div style="font-size: 18px; font-weight: 900; color: #1e3a8a; margin-top: 6px;">🗓️ Thursday, Oct 24 &bull; 2:00 PM - 2:30 PM EST</div>
+                        <div style="font-size: 12px; color: #3b82f6; margin-top: 6px;">Host: Sarah Jenkins (Senior Product Specialist)</div>
                     </div>
                     <p style="margin-top: 0;">Hi <strong>{{first_name}}</strong>,</p>
                     <p style="white-space: pre-line; color: #475569;">${t.body}</p>
-                    <div style="text-align: center; margin-top: 24px;">
-                        <a href="#" onclick="return false;" style="background: #2563EB; color: #ffffff !important; font-weight: 800; padding: 12px 30px; border-radius: 12px; text-decoration: none; font-size: 13px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);">Confirm Time & Join Meeting &rarr;</a>
+                    <div style="text-align: center; margin-top: 28px;">
+                        <a href="#" onclick="return false;" style="background: #2563EB; color: #ffffff !important; font-weight: 800; padding: 14px 34px; border-radius: 12px; text-decoration: none; font-size: 14px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);">Confirm Time & Join Meeting &rarr;</a>
                     </div>
                 </div>
-                <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 12px; text-align: center; font-size: 10px; color: #94a3b8;">LinkPilot Calendar Sync &bull; Reschedule Link</div>
+                <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 14px; text-align: center; font-size: 11px; color: #94a3b8;">LinkPilot Calendar Sync &bull; Reschedule Link</div>
             </div>
         </div>
     `;
 }
 
-// 3. 🚀 ONBOARDING & PRODUCT UPDATES LAYOUT
+// 3. 🚀 ONBOARDING DESKTOP LAYOUT
 function getOnboardingCategoryHtml(t) {
     return `
-        <div style="font-family: Inter, system-ui, sans-serif; background: #f8fafc; padding: 16px; min-height: 100%;">
-            <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 6px 16px rgba(0,0,0,0.06);">
-                <div style="width: 100%; height: 150px; overflow: hidden; position: relative; background: #4c1d95;">
+        <div style="font-family: Inter, system-ui, sans-serif; background: #f8fafc; padding: 20px; width: 100%; box-sizing: border-box;">
+            <div style="max-width: 720px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 6px 16px rgba(0,0,0,0.06);">
+                <div style="width: 100%; height: 180px; overflow: hidden; position: relative; background: #4c1d95;">
                     <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=80" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85;" alt="SaaS Dashboard">
-                    <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(76,29,149,0.9) 0%, transparent 60%); display: flex; align-items: flex-end; padding: 16px;">
-                        <span style="background: #7C3AED; color: #ffffff !important; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 20px; text-transform: uppercase;">🚀 WELCOME TO LINKPILOT</span>
+                    <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(76,29,149,0.9) 0%, transparent 60%); display: flex; align-items: flex-end; padding: 20px;">
+                        <span style="background: #7C3AED; color: #ffffff !important; font-size: 11px; font-weight: 800; padding: 4px 14px; border-radius: 20px; text-transform: uppercase;">🚀 WELCOME TO LINKPILOT</span>
                     </div>
                 </div>
-                <div style="background: linear-gradient(135deg, #581C87 0%, #7C3AED 100%); padding: 20px 24px; color: #ffffff;">
-                    <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff !important;">${t.title}</h2>
-                    <p style="margin: 4px 0 0 0; font-size: 11px; opacity: 0.9; color: #ffffff !important;">Subject: ${t.subject}</p>
+                <div style="background: linear-gradient(135deg, #581C87 0%, #7C3AED 100%); padding: 22px 28px; color: #ffffff;">
+                    <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff !important;">${t.title}</h2>
+                    <p style="margin: 6px 0 0 0; font-size: 12px; opacity: 0.9; color: #ffffff !important;">Subject: ${t.subject}</p>
                 </div>
-                <div style="padding: 24px; color: #334155; font-size: 13px; line-height: 1.7;">
+                <div style="padding: 28px; color: #334155; font-size: 14px; line-height: 1.7;">
                     <p style="margin-top: 0;">Welcome aboard <strong>{{first_name}}</strong>!</p>
                     <p style="white-space: pre-line; color: #475569;">${t.body}</p>
-                    
-                    <!-- 3 Steps Getting Started Component -->
-                    <div style="display: grid; grid-template-cols: 1fr 1fr 1fr; gap: 8px; margin: 20px 0;">
-                        <div style="background: #f3e8ff; border: 1px solid #d8b4fe; padding: 10px; border-radius: 10px; text-align: center;">
-                            <div style="font-weight: 900; color: #6b21a8; font-size: 11px;">STEP 1</div>
-                            <div style="font-size: 10px; color: #7e22ce; margin-top: 2px;">Setup Profile</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 24px 0;">
+                        <div style="background: #f3e8ff; border: 1px solid #d8b4fe; padding: 14px; border-radius: 12px; text-align: center;">
+                            <div style="font-weight: 900; color: #6b21a8; font-size: 12px;">STEP 1</div>
+                            <div style="font-size: 11px; color: #7e22ce; margin-top: 4px;">Setup Profile</div>
                         </div>
-                        <div style="background: #f3e8ff; border: 1px solid #d8b4fe; padding: 10px; border-radius: 10px; text-align: center;">
-                            <div style="font-weight: 900; color: #6b21a8; font-size: 11px;">STEP 2</div>
-                            <div style="font-size: 10px; color: #7e22ce; margin-top: 2px;">Sync Leads</div>
+                        <div style="background: #f3e8ff; border: 1px solid #d8b4fe; padding: 14px; border-radius: 12px; text-align: center;">
+                            <div style="font-weight: 900; color: #6b21a8; font-size: 12px;">STEP 2</div>
+                            <div style="font-size: 11px; color: #7e22ce; margin-top: 4px;">Sync Leads</div>
                         </div>
-                        <div style="background: #f3e8ff; border: 1px solid #d8b4fe; padding: 10px; border-radius: 10px; text-align: center;">
-                            <div style="font-weight: 900; color: #6b21a8; font-size: 11px;">STEP 3</div>
-                            <div style="font-size: 10px; color: #7e22ce; margin-top: 2px;">Launch AI</div>
+                        <div style="background: #f3e8ff; border: 1px solid #d8b4fe; padding: 14px; border-radius: 12px; text-align: center;">
+                            <div style="font-weight: 900; color: #6b21a8; font-size: 12px;">STEP 3</div>
+                            <div style="font-size: 11px; color: #7e22ce; margin-top: 4px;">Launch AI</div>
                         </div>
                     </div>
-
-                    <div style="text-align: center; margin-top: 24px;">
-                        <a href="#" onclick="return false;" style="background: #7C3AED; color: #ffffff !important; font-weight: 800; padding: 12px 30px; border-radius: 12px; text-decoration: none; font-size: 13px; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);">Launch Workspace Dashboard &rarr;</a>
+                    <div style="text-align: center; margin-top: 28px;">
+                        <a href="#" onclick="return false;" style="background: #7C3AED; color: #ffffff !important; font-weight: 800; padding: 14px 34px; border-radius: 12px; text-decoration: none; font-size: 14px; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);">Launch Workspace Dashboard &rarr;</a>
                     </div>
                 </div>
-                <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 12px; text-align: center; font-size: 10px; color: #94a3b8;">LinkPilot Onboarding Engine &bull; Help Docs</div>
+                <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 14px; text-align: center; font-size: 11px; color: #94a3b8;">LinkPilot Onboarding Engine &bull; Help Docs</div>
             </div>
         </div>
     `;
 }
 
-// 4. 🔔 FOLLOW-UPS & OVERDUE SLA LAYOUT
+// 4. 🔔 FOLLOW-UPS DESKTOP LAYOUT
 function getFollowUpCategoryHtml(t) {
     return `
-        <div style="font-family: Inter, system-ui, sans-serif; background: #f8fafc; padding: 16px; min-height: 100%;">
-            <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 6px 16px rgba(0,0,0,0.06);">
-                <div style="background: linear-gradient(135deg, #92400E 0%, #D97706 100%); padding: 20px 24px; color: #ffffff;">
-                    <div style="display: inline-block; background: rgba(255,255,255,0.25); padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; color: #ffffff !important; margin-bottom: 6px;">🔔 ACTION REQUIRED - FOLLOW UP #2</div>
-                    <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff !important;">${t.title}</h2>
-                    <p style="margin: 4px 0 0 0; font-size: 11px; opacity: 0.9; color: #ffffff !important;">Subject: ${t.subject}</p>
+        <div style="font-family: Inter, system-ui, sans-serif; background: #f8fafc; padding: 20px; width: 100%; box-sizing: border-box;">
+            <div style="max-width: 720px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 6px 16px rgba(0,0,0,0.06);">
+                <div style="background: linear-gradient(135deg, #92400E 0%, #D97706 100%); padding: 24px 28px; color: #ffffff;">
+                    <div style="display: inline-block; background: rgba(255,255,255,0.25); padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #ffffff !important; margin-bottom: 8px;">🔔 ACTION REQUIRED - FOLLOW UP #2</div>
+                    <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff !important;">${t.title}</h2>
+                    <p style="margin: 6px 0 0 0; font-size: 12px; opacity: 0.9; color: #ffffff !important;">Subject: ${t.subject}</p>
                 </div>
-                <div style="padding: 24px; color: #334155; font-size: 13px; line-height: 1.7;">
+                <div style="padding: 28px; color: #334155; font-size: 14px; line-height: 1.7;">
                     <p style="margin-top: 0;">Hi <strong>{{first_name}}</strong>,</p>
                     <p style="white-space: pre-line; color: #475569;">${t.body}</p>
-                    <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 14px; border-radius: 8px; margin: 20px 0;">
-                        <div style="font-[900] color: #b45309; font-size: 12px; text-transform: uppercase;">⚠️ Pending Task Item:</div>
-                        <div style="font-size: 12px; color: #92400e; margin-top: 4px;">Review proposal for {{company_name}} & schedule Q3 call</div>
+                    <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 10px; margin: 24px 0;">
+                        <div style="font-weight: 900; color: #b45309; font-size: 13px; text-transform: uppercase;">⚠️ Pending Task Item:</div>
+                        <div style="font-size: 13px; color: #92400e; margin-top: 4px;">Review proposal for {{company_name}} & schedule Q3 call</div>
                     </div>
-                    <div style="text-align: center; margin-top: 24px;">
-                        <a href="#" onclick="return false;" style="background: #D97706; color: #ffffff !important; font-weight: 800; padding: 12px 30px; border-radius: 12px; text-decoration: none; font-size: 13px; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);">Reply & Resume Conversation &rarr;</a>
+                    <div style="text-align: center; margin-top: 28px;">
+                        <a href="#" onclick="return false;" style="background: #D97706; color: #ffffff !important; font-weight: 800; padding: 14px 34px; border-radius: 12px; text-decoration: none; font-size: 14px; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);">Reply & Resume Conversation &rarr;</a>
                     </div>
                 </div>
-                <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 12px; text-align: center; font-size: 10px; color: #94a3b8;">LinkPilot Smart Follow-up Engine</div>
+                <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 14px; text-align: center; font-size: 11px; color: #94a3b8;">LinkPilot Smart Follow-up Engine</div>
             </div>
         </div>
     `;
 }
 
-// 5. 🎧 CUSTOMER SUPPORT & INQUIRY LAYOUT
+// 5. 🎧 SUPPORT DESKTOP LAYOUT
 function getSupportCategoryHtml(t) {
     return `
-        <div style="font-family: Inter, system-ui, sans-serif; background: #f8fafc; padding: 16px; min-height: 100%;">
-            <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 6px 16px rgba(0,0,0,0.06);">
-                <div style="background: linear-gradient(135deg, #064E3B 0%, #059669 100%); padding: 20px 24px; color: #ffffff;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; color: #ffffff !important;">🎧 HELPDESK TICKET #TK-94820</span>
-                        <span style="background: #10b981; color: #ffffff !important; padding: 2px 8px; border-radius: 6px; font-size: 9px; font-weight: 900;">RESOLVED</span>
+        <div style="font-family: Inter, system-ui, sans-serif; background: #f8fafc; padding: 20px; width: 100%; box-sizing: border-box;">
+            <div style="max-width: 720px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 6px 16px rgba(0,0,0,0.06);">
+                <div style="background: linear-gradient(135deg, #064E3B 0%, #059669 100%); padding: 24px 28px; color: #ffffff;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="background: rgba(255,255,255,0.2); padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; color: #ffffff !important;">🎧 HELPDESK TICKET #TK-94820</span>
+                        <span style="background: #10b981; color: #ffffff !important; padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 900;">RESOLVED</span>
                     </div>
-                    <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff !important;">${t.title}</h2>
-                    <p style="margin: 4px 0 0 0; font-size: 11px; opacity: 0.9; color: #ffffff !important;">Subject: ${t.subject}</p>
+                    <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff !important;">${t.title}</h2>
+                    <p style="margin: 6px 0 0 0; font-size: 12px; opacity: 0.9; color: #ffffff !important;">Subject: ${t.subject}</p>
                 </div>
-                <div style="padding: 24px; color: #334155; font-size: 13px; line-height: 1.7;">
+                <div style="padding: 28px; color: #334155; font-size: 14px; line-height: 1.7;">
                     <p style="margin-top: 0;">Dear <strong>{{first_name}}</strong>,</p>
                     <p style="white-space: pre-line; color: #475569;">${t.body}</p>
-                    <div style="background: #ecfdf5; border: 1px solid #a7f3d0; padding: 14px; border-radius: 10px; margin: 20px 0;">
-                        <div style="font-weight: 800; color: #047857; font-size: 12px;">Support Agent Summary:</div>
-                        <div style="font-size: 12px; color: #065f46; margin-top: 4px;">Assigned to Alex (Priority Support Tier) &bull; Response Time: 4 Mins</div>
+                    <div style="background: #ecfdf5; border: 1px solid #a7f3d0; padding: 16px; border-radius: 12px; margin: 24px 0;">
+                        <div style="font-weight: 800; color: #047857; font-size: 13px;">Support Agent Summary:</div>
+                        <div style="font-size: 13px; color: #065f46; margin-top: 4px;">Assigned to Alex (Priority Support Tier) &bull; Response Time: 4 Mins</div>
                     </div>
-                    <div style="text-align: center; margin-top: 24px;">
-                        <a href="#" onclick="return false;" style="background: #059669; color: #ffffff !important; font-weight: 800; padding: 12px 30px; border-radius: 12px; text-decoration: none; font-size: 13px; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);">View Ticket Status & Rate &rarr;</a>
+                    <div style="text-align: center; margin-top: 28px;">
+                        <a href="#" onclick="return false;" style="background: #059669; color: #ffffff !important; font-weight: 800; padding: 14px 34px; border-radius: 12px; text-decoration: none; font-size: 14px; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);">View Ticket Status & Rate &rarr;</a>
                     </div>
                 </div>
-                <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 12px; text-align: center; font-size: 10px; color: #94a3b8;">LinkPilot 24/7 Customer Care Engine</div>
+                <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 14px; text-align: center; font-size: 11px; color: #94a3b8;">LinkPilot 24/7 Customer Care Engine</div>
             </div>
         </div>
     `;
 }
 
-// 6. 💳 INVOICING & BILLING RECEIPT LAYOUT (Matches User's Financial SIP Banner Screenshot!)
+// 6. 💳 INVOICING DESKTOP LAYOUT (Financial SIP Chart Banner)
 function getInvoiceCategoryHtml(t) {
     return `
-        <div style="font-family: Inter, system-ui, sans-serif; background: #f8fafc; padding: 16px; min-height: 100%;">
-            <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 6px 16px rgba(0,0,0,0.06);">
-                <!-- Financial SIP Mutual Fund Hero Image Banner (Matches Screenshot!) -->
-                <div style="width: 100%; height: 170px; overflow: hidden; position: relative; background: #0f172a;">
+        <div style="font-family: Inter, system-ui, sans-serif; background: #f8fafc; padding: 20px; width: 100%; box-sizing: border-box;">
+            <div style="max-width: 720px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 6px 16px rgba(0,0,0,0.06);">
+                <div style="width: 100%; height: 180px; overflow: hidden; position: relative; background: #0f172a;">
                     <img src="https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&auto=format&fit=crop&q=80" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.9;" alt="Financial Growth & Investment Calculator">
-                    <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(15,23,42,0.85) 0%, transparent 60%); display: flex; align-items: flex-end; padding: 16px;">
-                        <span style="background: #2563EB; color: #ffffff !important; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 20px; text-transform: uppercase;">💳 FINANCIAL & INVOICE STATEMENT</span>
+                    <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(15,23,42,0.85) 0%, transparent 60%); display: flex; align-items: flex-end; padding: 20px;">
+                        <span style="background: #2563EB; color: #ffffff !important; font-size: 11px; font-weight: 800; padding: 4px 14px; border-radius: 20px; text-transform: uppercase;">💳 FINANCIAL & INVOICE STATEMENT</span>
                     </div>
                 </div>
-                <div style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); padding: 20px 24px; color: #ffffff; display: flex; justify-content: space-between; align-items: center;">
+                <div style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); padding: 24px 28px; color: #ffffff; display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff !important;">${t.title}</h2>
-                        <p style="margin: 4px 0 0 0; font-size: 11px; opacity: 0.8; color: #ffffff !important;">Invoice #: INV-2026-8891</p>
+                        <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff !important;">${t.title}</h2>
+                        <p style="margin: 6px 0 0 0; font-size: 12px; opacity: 0.8; color: #ffffff !important;">Invoice #: INV-2026-8891</p>
                     </div>
-                    <div style="background: #10B981; color: #ffffff !important; font-weight: 900; font-size: 16px; padding: 6px 16px; border-radius: 10px;">
+                    <div style="background: #10B981; color: #ffffff !important; font-weight: 900; font-size: 18px; padding: 8px 20px; border-radius: 12px;">
                         $1,250.00
                     </div>
                 </div>
-                <div style="padding: 24px; color: #334155; font-size: 13px; line-height: 1.7;">
+                <div style="padding: 28px; color: #334155; font-size: 14px; line-height: 1.7;">
                     <p style="margin-top: 0;">Dear <strong>{{first_name}}</strong>,</p>
                     <p style="white-space: pre-line; color: #475569;">${t.body}</p>
-                    
-                    <!-- Itemized Invoice Table -->
-                    <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 12px;">
+                    <table style="width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 13px;">
                         <thead>
                             <tr style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1; text-align: left; color: #334155;">
-                                <th style="padding: 10px;">Description</th>
-                                <th style="padding: 10px; text-align: right;">Qty</th>
-                                <th style="padding: 10px; text-align: right;">Total</th>
+                                <th style="padding: 12px;">Description</th>
+                                <th style="padding: 12px; text-align: right;">Qty</th>
+                                <th style="padding: 12px; text-align: right;">Total</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr style="border-bottom: 1px solid #e2e8f0; color: #475569;">
-                                <td style="padding: 10px;">LinkPilot Enterprise License - Q3</td>
-                                <td style="padding: 10px; text-align: right;">1</td>
-                                <td style="padding: 10px; text-align: right;">$1,250.00</td>
+                                <td style="padding: 12px;">LinkPilot Enterprise License - Q3</td>
+                                <td style="padding: 12px; text-align: right;">1</td>
+                                <td style="padding: 12px; text-align: right;">$1,250.00</td>
                             </tr>
                         </tbody>
                     </table>
-
-                    <div style="text-align: center; margin-top: 24px;">
-                        <a href="#" onclick="return false;" style="background: #1E293B; color: #ffffff !important; font-weight: 800; padding: 12px 30px; border-radius: 12px; text-decoration: none; font-size: 13px; box-shadow: 0 4px 12px rgba(30, 41, 59, 0.3);">Download PDF Tax Receipt &rarr;</a>
+                    <div style="text-align: center; margin-top: 28px;">
+                        <a href="#" onclick="return false;" style="background: #1E293B; color: #ffffff !important; font-weight: 800; padding: 14px 34px; border-radius: 12px; text-decoration: none; font-size: 14px; box-shadow: 0 4px 12px rgba(30, 41, 59, 0.3);">Download PDF Tax Receipt &rarr;</a>
                     </div>
                 </div>
-                <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 12px; text-align: center; font-size: 10px; color: #94a3b8;">LinkPilot Billing Security &bull; Tax Reg #849204</div>
+                <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 14px; text-align: center; font-size: 11px; color: #94a3b8;">LinkPilot Billing Security &bull; Tax Reg #849204</div>
             </div>
         </div>
     `;
 }
 
-// 7. ⭐ FEEDBACK & REVIEWS LAYOUT
+// 7. ⭐ FEEDBACK DESKTOP LAYOUT
 function getFeedbackCategoryHtml(t) {
     return `
-        <div style="font-family: Inter, system-ui, sans-serif; background: #f8fafc; padding: 16px; min-height: 100%;">
-            <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 6px 16px rgba(0,0,0,0.06);">
-                <div style="background: linear-gradient(135deg, #B45309 0%, #F59E0B 100%); padding: 24px; color: #ffffff; text-align: center;">
-                    <div style="font-size: 24px; margin-bottom: 4px;">⭐ ⭐ ⭐ ⭐ ⭐</div>
-                    <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff !important;">${t.title}</h2>
-                    <p style="margin: 4px 0 0 0; font-size: 11px; opacity: 0.9; color: #ffffff !important;">Subject: ${t.subject}</p>
+        <div style="font-family: Inter, system-ui, sans-serif; background: #f8fafc; padding: 20px; width: 100%; box-sizing: border-box;">
+            <div style="max-width: 720px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 6px 16px rgba(0,0,0,0.06);">
+                <div style="background: linear-gradient(135deg, #B45309 0%, #F59E0B 100%); padding: 28px; color: #ffffff; text-align: center;">
+                    <div style="font-size: 28px; margin-bottom: 6px;">⭐ ⭐ ⭐ ⭐ ⭐</div>
+                    <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff !important;">${t.title}</h2>
+                    <p style="margin: 6px 0 0 0; font-size: 12px; opacity: 0.9; color: #ffffff !important;">Subject: ${t.subject}</p>
                 </div>
-                <div style="padding: 24px; color: #334155; font-size: 13px; line-height: 1.7;">
+                <div style="padding: 28px; color: #334155; font-size: 14px; line-height: 1.7;">
                     <p style="margin-top: 0;">Hi <strong>{{first_name}}</strong>,</p>
                     <p style="white-space: pre-line; color: #475569;">${t.body}</p>
-                    
-                    <!-- 1-Click Interactive Star Survey Widget -->
-                    <div style="background: #fffbeb; border: 1px solid #fde68a; padding: 16px; border-radius: 12px; text-align: center; margin: 20px 0;">
-                        <div style="font-weight: 800; color: #92400e; font-size: 12px; margin-bottom: 10px;">How would you rate {{company_name}}'s experience?</div>
-                        <div style="display: flex; justify-content: center; gap: 8px;">
-                            <span style="background: #ffffff; border: 1px solid #fcd34d; padding: 6px 12px; border-radius: 8px; font-weight: bold; color: #b45309; cursor: pointer;">1 ⭐</span>
-                            <span style="background: #ffffff; border: 1px solid #fcd34d; padding: 6px 12px; border-radius: 8px; font-weight: bold; color: #b45309; cursor: pointer;">2 ⭐</span>
-                            <span style="background: #ffffff; border: 1px solid #fcd34d; padding: 6px 12px; border-radius: 8px; font-weight: bold; color: #b45309; cursor: pointer;">3 ⭐</span>
-                            <span style="background: #ffffff; border: 1px solid #fcd34d; padding: 6px 12px; border-radius: 8px; font-weight: bold; color: #b45309; cursor: pointer;">4 ⭐</span>
-                            <span style="background: #f59e0b; color: #ffffff !important; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">5 ⭐</span>
+                    <div style="background: #fffbeb; border: 1px solid #fde68a; padding: 20px; border-radius: 14px; text-align: center; margin: 24px 0;">
+                        <div style="font-weight: 800; color: #92400e; font-size: 13px; margin-bottom: 12px;">How would you rate {{company_name}}'s experience?</div>
+                        <div style="display: flex; justify-content: center; gap: 10px;">
+                            <span style="background: #ffffff; border: 1px solid #fcd34d; padding: 8px 16px; border-radius: 8px; font-weight: bold; color: #b45309; cursor: pointer;">1 ⭐</span>
+                            <span style="background: #ffffff; border: 1px solid #fcd34d; padding: 8px 16px; border-radius: 8px; font-weight: bold; color: #b45309; cursor: pointer;">2 ⭐</span>
+                            <span style="background: #ffffff; border: 1px solid #fcd34d; padding: 8px 16px; border-radius: 8px; font-weight: bold; color: #b45309; cursor: pointer;">3 ⭐</span>
+                            <span style="background: #ffffff; border: 1px solid #fcd34d; padding: 8px 16px; border-radius: 8px; font-weight: bold; color: #b45309; cursor: pointer;">4 ⭐</span>
+                            <span style="background: #f59e0b; color: #ffffff !important; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer;">5 ⭐</span>
                         </div>
                     </div>
-
-                    <div style="text-align: center; margin-top: 24px;">
-                        <a href="#" onclick="return false;" style="background: #F59E0B; color: #ffffff !important; font-weight: 800; padding: 12px 30px; border-radius: 12px; text-decoration: none; font-size: 13px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">Submit 30-Sec Feedback &rarr;</a>
+                    <div style="text-align: center; margin-top: 28px;">
+                        <a href="#" onclick="return false;" style="background: #F59E0B; color: #ffffff !important; font-weight: 800; padding: 14px 34px; border-radius: 12px; text-decoration: none; font-size: 14px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">Submit 30-Sec Feedback &rarr;</a>
                     </div>
                 </div>
-                <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 12px; text-align: center; font-size: 10px; color: #94a3b8;">LinkPilot Satisfaction Engine</div>
+                <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 14px; text-align: center; font-size: 11px; color: #94a3b8;">LinkPilot Satisfaction Engine</div>
             </div>
         </div>
     `;
 }
 
-// 8. 🤝 NETWORKING & PARTNERSHIPS VIP LAYOUT
+// 8. 🤝 NETWORKING DESKTOP LAYOUT
 function getNetworkingCategoryHtml(t) {
     return `
-        <div style="font-family: Inter, system-ui, sans-serif; background: #f8fafc; padding: 16px; min-height: 100%;">
-            <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 6px 16px rgba(0,0,0,0.06);">
-                <div style="width: 100%; height: 150px; overflow: hidden; position: relative; background: #18181b;">
+        <div style="font-family: Inter, system-ui, sans-serif; background: #f8fafc; padding: 20px; width: 100%; box-sizing: border-box;">
+            <div style="max-width: 720px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 6px 16px rgba(0,0,0,0.06);">
+                <div style="width: 100%; height: 180px; overflow: hidden; position: relative; background: #18181b;">
                     <img src="https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&auto=format&fit=crop&q=80" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.8;" alt="VIP Networking Event">
-                    <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(24,24,27,0.9) 0%, transparent 60%); display: flex; align-items: flex-end; padding: 16px;">
-                        <span style="background: #d97706; color: #ffffff !important; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 20px; text-transform: uppercase;">👑 PRIVATE VIP EXECUTIVE INVITATION</span>
+                    <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(24,24,27,0.9) 0%, transparent 60%); display: flex; align-items: flex-end; padding: 20px;">
+                        <span style="background: #d97706; color: #ffffff !important; font-size: 11px; font-weight: 800; padding: 4px 14px; border-radius: 20px; text-transform: uppercase;">👑 PRIVATE VIP EXECUTIVE INVITATION</span>
                     </div>
                 </div>
-                <div style="background: linear-gradient(135deg, #18181B 0%, #3F3F46 100%); padding: 20px 24px; color: #ffffff;">
-                    <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff !important;">${t.title}</h2>
-                    <p style="margin: 4px 0 0 0; font-size: 11px; opacity: 0.8; color: #ffffff !important;">Subject: ${t.subject}</p>
+                <div style="background: linear-gradient(135deg, #18181B 0%, #3F3F46 100%); padding: 22px 28px; color: #ffffff;">
+                    <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff !important;">${t.title}</h2>
+                    <p style="margin: 6px 0 0 0; font-size: 12px; opacity: 0.8; color: #ffffff !important;">Subject: ${t.subject}</p>
                 </div>
-                <div style="padding: 24px; color: #334155; font-size: 13px; line-height: 1.7;">
+                <div style="padding: 28px; color: #334155; font-size: 14px; line-height: 1.7;">
                     <p style="margin-top: 0;">Dear <strong>{{first_name}}</strong>,</p>
                     <p style="white-space: pre-line; color: #475569;">${t.body}</p>
-                    
-                    <div style="background: #fafafa; border: 1px solid #e4e4e7; padding: 16px; border-radius: 12px; margin: 20px 0;">
-                        <div style="font-weight: 800; color: #18181b; font-size: 12px;">🥂 Event Details:</div>
-                        <div style="font-size: 12px; color: #52525b; margin-top: 4px;">Intimate Executive Dinner &bull; Limited to 12 Founders & Executives</div>
+                    <div style="background: #fafafa; border: 1px solid #e4e4e7; padding: 18px; border-radius: 12px; margin: 24px 0;">
+                        <div style="font-weight: 800; color: #18181b; font-size: 13px;">🥂 Event Details:</div>
+                        <div style="font-size: 13px; color: #52525b; margin-top: 4px;">Intimate Executive Dinner &bull; Limited to 12 Founders & Executives</div>
                     </div>
-
-                    <div style="text-align: center; margin-top: 24px;">
-                        <a href="#" onclick="return false;" style="background: #18181B; color: #ffffff !important; font-weight: 800; padding: 12px 30px; border-radius: 12px; text-decoration: none; font-size: 13px; box-shadow: 0 4px 12px rgba(24, 24, 27, 0.3);">RSVP Executive Dinner &rarr;</a>
+                    <div style="text-align: center; margin-top: 28px;">
+                        <a href="#" onclick="return false;" style="background: #18181B; color: #ffffff !important; font-weight: 800; padding: 14px 34px; border-radius: 12px; text-decoration: none; font-size: 14px; box-shadow: 0 4px 12px rgba(24, 24, 27, 0.3);">RSVP Executive Dinner &rarr;</a>
                     </div>
                 </div>
-                <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 12px; text-align: center; font-size: 10px; color: #94a3b8;">LinkPilot Executive Network &bull; Private Access</div>
+                <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 14px; text-align: center; font-size: 11px; color: #94a3b8;">LinkPilot Executive Network &bull; Private Access</div>
             </div>
         </div>
     `;
+}
+
+// Interleave templates round-robin for the "All" tab so every category is mixed nicely
+function getMixedUpTemplates(list) {
+    const cats = ["Sales", "Meetings", "Onboarding", "Follow-ups", "Support", "Invoices", "Feedback", "Networking"];
+    const grouped = {};
+    cats.forEach(c => grouped[c] = []);
+    list.forEach(t => {
+        const cat = t.category || "Sales";
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(t);
+    });
+    
+    const result = [];
+    let maxLen = Math.max(...Object.values(grouped).map(arr => arr.length), 0);
+    for (let i = 0; i < maxLen; i++) {
+        for (const cat of cats) {
+            if (grouped[cat] && grouped[cat][i]) {
+                result.push(grouped[cat][i]);
+            }
+        }
+    }
+    return result;
 }
 
 async function renderEmailTemplates(container) {
     try {
         const categories = ["All", "Sales", "Meetings", "Onboarding", "Follow-ups", "Support", "Invoices", "Feedback", "Networking"];
-        
+        const currentCat = window.emailTemplateFilters.category || "All";
+        const q = (window.emailTemplateFilters.search || "").toLowerCase();
+
         let filteredTemplates = EMAIL_TEMPLATES_DATA.filter(t => {
-            const matchesCat = window.emailTemplateFilters.category === 'All' || t.category === window.emailTemplateFilters.category;
-            const q = window.emailTemplateFilters.search.toLowerCase();
-            const matchesSearch = !q || t.title.toLowerCase().includes(q) || t.subject.toLowerCase().includes(q) || t.tag.toLowerCase().includes(q) || t.body.toLowerCase().includes(q);
+            const cat = (t.category || "").toLowerCase();
+            const selCat = currentCat.toLowerCase();
+            const matchesCat = selCat === 'all' || cat === selCat || cat.includes(selCat.replace('s', ''));
+            const matchesSearch = !q || t.title.toLowerCase().includes(q) || t.subject.toLowerCase().includes(q) || (t.tag && t.tag.toLowerCase().includes(q)) || t.body.toLowerCase().includes(q);
             return matchesCat && matchesSearch;
         });
+
+        // If 'All' is selected, mix up templates across all categories
+        if (currentCat.toLowerCase() === 'all' && !q) {
+            filteredTemplates = getMixedUpTemplates(filteredTemplates);
+        }
 
         container.innerHTML = `
             <div class="flex flex-col w-full h-full bg-[#f8fafc] overflow-hidden animate-fade-in font-sans text-slate-800">
@@ -16736,7 +16754,7 @@ async function renderEmailTemplates(container) {
                                 <h1 class="text-base font-bold text-slate-900 leading-tight">50+ Premium HTML Marketing Templates</h1>
                                 <span class="px-2 py-0.5 bg-indigo-600 text-white rounded-full text-[10px] font-extrabold" style="color: #ffffff !important;">55 ACTIVE</span>
                             </div>
-                            <p class="text-xs text-slate-500 font-medium truncate mt-0.5">Live visual HTML previews with rich images. Hover any template to edit directly.</p>
+                            <p class="text-xs text-slate-500 font-medium truncate mt-0.5">Live visual HTML desktop previews. Hover any template to edit directly.</p>
                         </div>
                     </div>
 
@@ -16748,13 +16766,17 @@ async function renderEmailTemplates(container) {
                 </div>
 
                 <!-- Category Filter Pills Bar -->
-                <div class="bg-white border-b border-slate-200 px-6 py-2 flex items-center space-x-2 overflow-x-auto no-scrollbar shrink-0 text-xs font-bold">
-                    ${categories.map(cat => `
-                        <button onclick="filterTemplatesCategory('${cat}')" class="px-3 py-1.5 rounded-full transition shrink-0 ${window.emailTemplateFilters.category === cat ? 'bg-indigo-600 text-white font-extrabold shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium'}" ${window.emailTemplateFilters.category === cat ? 'style="color: #ffffff !important;"' : ''}>
-                            <span>${cat}</span>
-                            ${cat === 'All' ? `<span class="ml-1 opacity-80 text-[10px]">(${EMAIL_TEMPLATES_DATA.length})</span>` : ''}
-                        </button>
-                    `).join('')}
+                <div class="bg-white border-b border-slate-200 px-6 py-2.5 flex items-center space-x-2 overflow-x-auto no-scrollbar shrink-0 text-xs font-bold">
+                    ${categories.map(cat => {
+                        const isActive = currentCat.toLowerCase() === cat.toLowerCase();
+                        const count = cat === 'All' ? EMAIL_TEMPLATES_DATA.length : EMAIL_TEMPLATES_DATA.filter(t => (t.category || '').toLowerCase() === cat.toLowerCase() || (t.category || '').toLowerCase().includes(cat.toLowerCase().replace('s',''))).length;
+                        return `
+                            <button onclick="filterTemplatesCategory('${cat}')" class="px-3.5 py-1.5 rounded-full transition-all shrink-0 cursor-pointer ${isActive ? 'bg-indigo-600 text-white font-extrabold shadow-xs ring-2 ring-indigo-500/20' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium'}" ${isActive ? 'style="color: #ffffff !important; background-color: #4F46E5 !important;"' : ''}>
+                                <span>${cat}</span>
+                                <span class="ml-1 opacity-80 text-[10px] ${isActive ? 'text-white' : 'text-slate-400'}">(${count})</span>
+                            </button>
+                        `;
+                    }).join('')}
                 </div>
 
                 <!-- Templates Grid Container -->
@@ -16781,9 +16803,9 @@ async function renderEmailTemplates(container) {
                                         
                                         <h3 class="text-xs font-bold text-slate-900 leading-snug line-clamp-1 group-hover:text-indigo-600 transition" title="${t.title}">${t.title}</h3>
                                         
-                                        <!-- VISUAL HTML MINI PREVIEW CONTAINER -->
-                                        <div class="relative w-full h-44 bg-slate-50 rounded-xl border border-slate-200/80 overflow-hidden shadow-inner flex items-start justify-center p-1 pointer-events-none select-none">
-                                            <div class="w-[200%] h-[200%] scale-50 origin-top-left transform pointer-events-none select-none overflow-hidden bg-white">
+                                        <!-- FULL DESKTOP VIEW HTML PREVIEW CONTAINER -->
+                                        <div class="relative w-full h-48 bg-slate-100 rounded-xl border border-slate-200/80 overflow-hidden shadow-xs pointer-events-none select-none flex items-start justify-start">
+                                            <div style="width: 760px; height: 500px; transform: scale(0.46); transform-origin: top left;" class="pointer-events-none select-none overflow-hidden bg-white shrink-0">
                                                 ${getTemplateHtmlPreview(t)}
                                             </div>
                                         </div>
@@ -16819,11 +16841,11 @@ async function renderEmailTemplates(container) {
     }
 }
 
-function filterTemplatesCategory(cat) {
+window.filterTemplatesCategory = function(cat) {
     window.emailTemplateFilters.category = cat;
     const contentArea = document.getElementById('main-content-area');
     if (contentArea) renderEmailTemplates(contentArea);
-}
+};
 
 let templatesSearchTimeout = null;
 function handleTemplatesSearch(val) {

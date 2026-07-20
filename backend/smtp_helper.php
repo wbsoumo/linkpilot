@@ -316,16 +316,32 @@ class SMTPHelper {
                     "message" => "SMTP Connection Test Successful! Host, port, encryption, and login credentials verified."
                 ];
             } else {
+                $err = $mail->ErrorInfo ?: 'Unable to connect to server.';
+                if (stripos($err, 'timed out') !== false || stripos($err, 'code: 110') !== false || stripos($err, 'Could not connect to SMTP host') !== false || stripos($err, 'Failed to connect') !== false) {
+                    $proxyRes = self::callAwsProxyWorker('test_smtp', [
+                        'smtp_host' => $host,
+                        'smtp_port' => (int)$port,
+                        'smtp_username' => $username,
+                        'smtp_password' => $password,
+                        'smtp_encryption' => $encryption,
+                        'sender_name' => $senderName,
+                        'sender_email' => $senderEmail
+                    ]);
+                    if ($proxyRes !== null) {
+                        return $proxyRes;
+                    }
+                }
+
                 return [
                     "status" => false,
-                    "message" => "SMTP Connection Failed. Unable to authenticate with server."
+                    "message" => "SMTP Test Failed: " . $err
                 ];
             }
         } catch (Exception $e) {
             $err = $mail->ErrorInfo ?: $e->getMessage();
             
             // If connection timed out or blocked by host firewall, auto-retry via AWS Proxy Worker (mailbaby.linkpilot.work)
-            if (stripos($err, 'timed out') !== false || stripos($err, 'code: 110') !== false || stripos($err, 'Could not connect to SMTP host') !== false) {
+            if (stripos($err, 'timed out') !== false || stripos($err, 'code: 110') !== false || stripos($err, 'Could not connect to SMTP host') !== false || stripos($err, 'Failed to connect') !== false) {
                 $proxyRes = self::callAwsProxyWorker('test_smtp', [
                     'smtp_host' => $host,
                     'smtp_port' => (int)$port,

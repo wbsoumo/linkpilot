@@ -1,0 +1,9 @@
+# Block direct browser access to JS files (when opened directly in URL bar)
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+# Allow requests originating from linkpilot.work or localhost
+# Block when HTTP_REFERER is empty (user typing URL directly in browser bar)
+RewriteCond %{HTTP_REFERER} ^$
+RewriteRule \.(js)$ /error-403.html [R=302,L]
+</IfModule>

@@ -73,7 +73,25 @@ try {
                 sendJsonResponse('error', 'Campaign not found.', [], 404);
             }
             
-            $stmtLogs = $db->prepare("SELECT * FROM email_campaign_logs WHERE campaign_id = ? ORDER BY id ASC");
+            $stmtLogs = $db->prepare("
+                SELECT 
+                    l.*,
+                    t.first_opened_at,
+                    t.last_opened_at,
+                    t.open_count,
+                    t.ip_address,
+                    t.device,
+                    t.browser,
+                    t.os,
+                    t.country,
+                    t.city,
+                    t.is_google_proxy,
+                    t.is_apple_privacy
+                FROM email_campaign_logs l
+                LEFT JOIN email_tracking t ON l.id = t.campaign_log_id
+                WHERE l.campaign_id = ?
+                ORDER BY l.id ASC
+            ");
             $stmtLogs->execute([$campId]);
             $campaign['logs'] = $stmtLogs->fetchAll();
             
@@ -237,7 +255,7 @@ function processEmailCampaignBatch($db, $userId, $campaignId, $limit = 10) {
         
         // Send email via SMTPHelper
         try {
-            $res = SMTPHelper::sendEmail($userId, $email, $subject, $body);
+            $res = SMTPHelper::sendEmail($userId, $email, $subject, $body, [], null, null, [], $log['id']);
             if ($res && !empty($res['status'])) {
                 $db->prepare("UPDATE email_campaign_logs SET status = 'Sent', sent_at = NOW() WHERE id = ?")->execute([$log['id']]);
                 $sentIncrement++;

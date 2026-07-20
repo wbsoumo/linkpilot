@@ -40,7 +40,8 @@ try {
         'notification_tasks' => "TINYINT(1) DEFAULT 1",
         'notification_digest' => "TINYINT(1) DEFAULT 0",
         'notification_errors' => "TINYINT(1) DEFAULT 1",
-        'two_factor_enabled' => "TINYINT(1) DEFAULT 0"
+        'two_factor_enabled' => "TINYINT(1) DEFAULT 0",
+        'email_open_tracking' => "TINYINT(1) DEFAULT 1"
     ];
 
     foreach ($columns as $col => $def) {

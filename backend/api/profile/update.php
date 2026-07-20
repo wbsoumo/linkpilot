@@ -56,6 +56,7 @@ try {
     $notificationErrors = isset($input['notification_errors']) ? (int)$input['notification_errors'] : (isset($existing['notification_errors']) ? (int)$existing['notification_errors'] : 1);
     
     $twoFactorEnabled = isset($input['two_factor_enabled']) ? (int)$input['two_factor_enabled'] : (isset($existing['two_factor_enabled']) ? (int)$existing['two_factor_enabled'] : 0);
+    $emailOpenTracking = isset($input['email_open_tracking']) ? (int)$input['email_open_tracking'] : (isset($existing['email_open_tracking']) ? (int)$existing['email_open_tracking'] : 1);
 
     // Validation
     if (empty($name) || empty($userType)) {
@@ -74,12 +75,12 @@ try {
         INSERT INTO user_profiles (
             user_id, user_type, job_title, experience_years, skills, company_name, website, portfolio_url, linkedin_url, about_me,
             business_address, tax_id, support_email, currency, timezone, webhook_url,
-            notification_leads, notification_tasks, notification_digest, notification_errors, two_factor_enabled
+            notification_leads, notification_tasks, notification_digest, notification_errors, two_factor_enabled, email_open_tracking
         ) 
         VALUES (
             :user_id, :user_type, :job_title, :experience_years, :skills, :company_name, :website, :portfolio_url, :linkedin_url, :about_me,
             :business_address, :tax_id, :support_email, :currency, :timezone, :webhook_url,
-            :notification_leads, :notification_tasks, :notification_digest, :notification_errors, :two_factor_enabled
+            :notification_leads, :notification_tasks, :notification_digest, :notification_errors, :two_factor_enabled, :email_open_tracking
         )
         ON DUPLICATE KEY UPDATE 
             user_type = VALUES(user_type),
@@ -101,7 +102,8 @@ try {
             notification_tasks = VALUES(notification_tasks),
             notification_digest = VALUES(notification_digest),
             notification_errors = VALUES(notification_errors),
-            two_factor_enabled = VALUES(two_factor_enabled)
+            two_factor_enabled = VALUES(two_factor_enabled),
+            email_open_tracking = VALUES(email_open_tracking)
     ");
     
     $stmtProfile->execute([
@@ -125,7 +127,8 @@ try {
         'notification_tasks' => $notificationTasks,
         'notification_digest' => $notificationDigest,
         'notification_errors' => $notificationErrors,
-        'two_factor_enabled' => $twoFactorEnabled
+        'two_factor_enabled' => $twoFactorEnabled,
+        'email_open_tracking' => $emailOpenTracking
     ]);
     
     // Commit transaction

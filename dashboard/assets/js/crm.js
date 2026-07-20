@@ -21083,6 +21083,7 @@ function renderSettingsTabContent(tab, container) {
         const checkTasks = parseInt(profile.notification_tasks !== null ? profile.notification_tasks : 1) === 1 ? 'checked' : '';
         const checkDigest = parseInt(profile.notification_digest !== null ? profile.notification_digest : 0) === 1 ? 'checked' : '';
         const checkErrors = parseInt(profile.notification_errors !== null ? profile.notification_errors : 1) === 1 ? 'checked' : '';
+        const checkOpenTracking = parseInt(profile.email_open_tracking !== null ? profile.email_open_tracking : 1) === 1 ? 'checked' : '';
         
         container.innerHTML = `
             <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm animate-fade-in">
@@ -21131,6 +21132,20 @@ function renderSettingsTabContent(tab, container) {
                         <span>Save Preferences</span>
                     </button>
                 </form>
+            </div>
+
+            <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm animate-fade-in mt-4">
+                <div class="pb-2 border-b border-slate-100">
+                    <h2 class="text-sm font-extrabold text-slate-800">Email Open Tracking</h2>
+                    <p class="text-slate-400 text-[10px]">Configure open tracking for outbound emails.</p>
+                </div>
+                <div class="flex items-start space-x-3 pt-2">
+                    <input type="checkbox" id="email-open-tracking-toggle" ${checkOpenTracking} onchange="toggleEmailOpenTracking(this)" class="h-4 w-4 mt-0.5 border-slate-350 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
+                    <div>
+                        <label for="email-open-tracking-toggle" class="font-bold text-slate-700 cursor-pointer select-none">Enable Email Open Tracking</label>
+                        <p class="text-slate-455 text-[10px] leading-relaxed">Embed a transparent 1x1 tracking pixel at the bottom of outgoing emails to monitor opens, device info, browser types, and locations.</p>
+                    </div>
+                </div>
             </div>
         `;
     } else if (tab === 'security') {
@@ -21481,6 +21496,30 @@ window.saveNotificationPreferences = async function(e, form) {
         btn.disabled = false;
         btn.innerHTML = orig;
         lucide.createIcons();
+    }
+};
+
+window.toggleEmailOpenTracking = async function(checkbox) {
+    const isEnabled = checkbox.checked ? 1 : 0;
+    try {
+        const res = await fetch('../backend/api/profile/update.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ email_open_tracking: isEnabled })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            showNotification('success', 'Email open tracking preference updated.');
+            if (window.activeUserProfileSettings) {
+                window.activeUserProfileSettings.email_open_tracking = isEnabled;
+            }
+        } else {
+            checkbox.checked = !checkbox.checked;
+            showNotification('error', data.message || 'Failed to update tracking preference.');
+        }
+    } catch (err) {
+        checkbox.checked = !checkbox.checked;
+        showNotification('error', err.message);
     }
 };
 
@@ -25048,21 +25087,24 @@ window.openEmailCampaignReportModal = async function(campId) {
     }
     
     modal.innerHTML = `
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-4xl flex flex-col overflow-hidden animate-scale-up max-h-[92vh]">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-5xl flex flex-col overflow-hidden animate-scale-up max-h-[92vh]">
             <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
                 <div class="flex items-center space-x-2">
                     <div class="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
                         <i data-lucide="bar-chart-2" class="h-4 w-4"></i>
                     </div>
-                    <h3 class="text-sm font-bold text-slate-900">Campaign Outbound Delivery Report</h3>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Email Campaign Open Analytics</h3>
+                        <p class="text-[10px] text-slate-400">Detailed delivery and tracking metrics</p>
+                    </div>
                 </div>
                 <button onclick="document.getElementById('email-campaign-report-modal').remove()" class="text-slate-400 hover:text-slate-600 transition cursor-pointer">
                     <i data-lucide="x" class="h-5 w-5"></i>
                 </button>
             </div>
             
-            <div class="p-6 overflow-y-auto space-y-4">
-                <div id="ec-report-logs-body" class="p-6 text-center text-slate-400">Loading delivery logs...</div>
+            <div class="p-6 overflow-y-auto space-y-5" id="ec-report-logs-body">
+                <div class="p-8 text-center text-slate-400 animate-pulse">Loading email analytics...</div>
             </div>
         </div>
     `;
@@ -25074,42 +25116,145 @@ window.openEmailCampaignReportModal = async function(campId) {
         const logs = c.logs || [];
         
         const bodyElem = document.getElementById('ec-report-logs-body');
-        if (bodyElem) {
-            bodyElem.innerHTML = `
-                <div class="space-y-4 text-left">
-                    <div class="grid grid-cols-3 gap-4 bg-slate-50 p-4 border border-slate-200 rounded-xl text-xs font-bold text-slate-700">
-                        <div>Campaign: <span class="text-indigo-600">${escapeHtml(c.campaign_name)}</span></div>
-                        <div>Sent Progress: <span class="text-emerald-600">${c.sent_count} / ${c.total_recipients}</span></div>
-                        <div>Status: <span class="text-slate-900">${c.status}</span></div>
+        if (!bodyElem) return;
+
+        const totalSent = logs.filter(l => l.status === 'Sent').length;
+        const totalDelivered = totalSent; // Delivered equal to sent unless hard bounced
+        const openedLogs = logs.filter(l => l.first_opened_at || parseInt(l.open_count || 0) > 0);
+        const uniqueOpened = openedLogs.length;
+        const totalOpens = logs.reduce((acc, l) => acc + (parseInt(l.open_count) || 0), 0);
+        const openRate = totalSent > 0 ? ((uniqueOpened / totalSent) * 100).toFixed(1) + '%' : '0%';
+
+        // First & Last Open timestamps across all logs
+        let firstOpen = null;
+        let lastOpen = null;
+        openedLogs.forEach(l => {
+            if (l.first_opened_at && (!firstOpen || l.first_opened_at < firstOpen)) firstOpen = l.first_opened_at;
+            if (l.last_opened_at && (!lastOpen || l.last_opened_at > lastOpen)) lastOpen = l.last_opened_at;
+        });
+
+        // Device & Browser distributions
+        const devices = {};
+        const browsers = {};
+        openedLogs.forEach(l => {
+            const dev = l.device || 'Unknown';
+            const brw = l.browser || 'Unknown';
+            devices[dev] = (devices[dev] || 0) + 1;
+            browsers[brw] = (browsers[brw] || 0) + 1;
+        });
+
+        const topDeviceStr = Object.keys(devices).map(d => `${d} (${devices[d]})`).join(', ') || 'N/A';
+        const topBrowserStr = Object.keys(browsers).map(b => `${b} (${browsers[b]})`).join(', ') || 'N/A';
+
+        bodyElem.innerHTML = `
+            <div class="space-y-5 text-left">
+                <!-- Top Header Bar -->
+                <div class="flex flex-wrap items-center justify-between gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                    <div>
+                        <span class="text-slate-400 font-medium">Campaign:</span>
+                        <span class="font-extrabold text-slate-800 ml-1">${escapeHtml(c.campaign_name || 'N/A')}</span>
                     </div>
-                    
-                    <div class="border border-slate-200 rounded-xl overflow-hidden">
-                        <table class="w-full text-left text-xs font-medium text-slate-700">
-                            <thead class="bg-slate-100 text-[10px] uppercase font-extrabold text-slate-500">
-                                <tr>
-                                    <th class="px-4 py-3">Recipient Email</th>
-                                    <th class="px-4 py-3">Status</th>
-                                    <th class="px-4 py-3">Scheduled At</th>
-                                    <th class="px-4 py-3">Sent At / Error</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100 bg-white">
-                                ${logs.length === 0 ? '<tr><td colspan="4" class="p-4 text-center text-slate-400">No logs found</td></tr>' : logs.map(l => `
-                                    <tr>
-                                        <td class="px-4 py-2.5 font-semibold text-slate-900">${escapeHtml(l.recipient_email)}</td>
-                                        <td class="px-4 py-2.5">
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${l.status === 'Sent' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : (l.status === 'Failed' ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-blue-50 text-blue-700 border border-blue-200')}">${l.status}</span>
-                                        </td>
-                                        <td class="px-4 py-2.5 text-slate-500">${l.scheduled_at || '-'}</td>
-                                        <td class="px-4 py-2.5 text-slate-500">${l.sent_at || l.error_message || '-'}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
+                    <div>
+                        <span class="text-slate-400 font-medium">Status:</span>
+                        <span class="font-bold text-indigo-600 ml-1 capitalize">${c.status || 'Draft'}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 font-medium">Progress:</span>
+                        <span class="font-bold text-slate-800 ml-1">${c.sent_count || 0} / ${c.total_recipients || 0}</span>
                     </div>
                 </div>
-            `;
-        }
+
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-xs">
+                        <div class="text-[10px] uppercase font-extrabold tracking-wider text-slate-400">Sent</div>
+                        <div class="text-xl font-black text-slate-800 mt-1">${totalSent}</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">${c.total_recipients || 0} total queued</div>
+                    </div>
+                    <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-xs">
+                        <div class="text-[10px] uppercase font-extrabold tracking-wider text-slate-400">Delivered</div>
+                        <div class="text-xl font-black text-emerald-600 mt-1">${totalDelivered}</div>
+                        <div class="text-[10px] text-emerald-500 mt-0.5">100% delivery rate</div>
+                    </div>
+                    <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-xs">
+                        <div class="text-[10px] uppercase font-extrabold tracking-wider text-slate-400">Opened (Unique)</div>
+                        <div class="text-xl font-black text-indigo-600 mt-1">${uniqueOpened} <span class="text-xs font-semibold text-indigo-400">(${openRate})</span></div>
+                        <div class="text-[10px] text-indigo-400 mt-0.5">Unique recipients opened</div>
+                    </div>
+                    <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-xs">
+                        <div class="text-[10px] uppercase font-extrabold tracking-wider text-slate-400">Total Opens</div>
+                        <div class="text-xl font-black text-purple-600 mt-1">${totalOpens}</div>
+                        <div class="text-[10px] text-purple-400 mt-0.5">Includes repeat opens</div>
+                    </div>
+                </div>
+
+                <!-- Timing & Breakdowns -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <div class="p-3.5 bg-slate-50/70 border border-slate-200 rounded-xl space-y-1">
+                        <div class="font-extrabold text-slate-700">Open Timestamps</div>
+                        <div class="text-slate-500 flex justify-between"><span>First Open:</span> <span class="font-semibold text-slate-700">${firstOpen || 'Not opened yet'}</span></div>
+                        <div class="text-slate-500 flex justify-between"><span>Last Open:</span> <span class="font-semibold text-slate-700">${lastOpen || 'Not opened yet'}</span></div>
+                    </div>
+                    <div class="p-3.5 bg-slate-50/70 border border-slate-200 rounded-xl space-y-1">
+                        <div class="font-extrabold text-slate-700">Client Breakdowns</div>
+                        <div class="text-slate-500 truncate"><span>Devices:</span> <span class="font-semibold text-slate-700">${topDeviceStr}</span></div>
+                        <div class="text-slate-500 truncate"><span>Browsers:</span> <span class="font-semibold text-slate-700">${topBrowserStr}</span></div>
+                    </div>
+                </div>
+
+                <!-- Detailed Logs Table -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+                    <table class="w-full text-left text-xs font-medium text-slate-700">
+                        <thead class="bg-slate-100 text-[10px] uppercase font-extrabold text-slate-500">
+                            <tr>
+                                <th class="px-4 py-3">Recipient</th>
+                                <th class="px-4 py-3">Delivery</th>
+                                <th class="px-4 py-3">Open Stats</th>
+                                <th class="px-4 py-3">First / Last Open</th>
+                                <th class="px-4 py-3">Device / OS / Browser</th>
+                                <th class="px-4 py-3">Location & IP</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            ${logs.length === 0 ? '<tr><td colspan="6" class="p-6 text-center text-slate-400">No email logs found</td></tr>' : logs.map(l => {
+                                const hasOpened = l.first_opened_at || parseInt(l.open_count || 0) > 0;
+                                const loc = [l.city, l.country].filter(Boolean).join(', ') || l.ip_address || '-';
+                                return `
+                                <tr>
+                                    <td class="px-4 py-3 font-semibold text-slate-900">${escapeHtml(l.recipient_email)}</td>
+                                    <td class="px-4 py-3">
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${l.status === 'Sent' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : (l.status === 'Failed' ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-blue-50 text-blue-700 border border-blue-200')}">${l.status}</span>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        ${hasOpened ? `
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">Opened (${l.open_count || 1}x)</span>
+                                            ${parseInt(l.is_apple_privacy || 0) === 1 ? '<span class="ml-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200" title="Apple Mail Privacy Protection">Apple Proxy</span>' : ''}
+                                            ${parseInt(l.is_google_proxy || 0) === 1 ? '<span class="ml-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200" title="Google Image Proxy">Google Proxy</span>' : ''}
+                                        ` : `
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-50 text-slate-400 border border-slate-200">Unopened</span>
+                                        `}
+                                    </td>
+                                    <td class="px-4 py-3 text-slate-500 text-[11px]">
+                                        ${hasOpened ? `
+                                            <div>1st: ${l.first_opened_at || '-'}</div>
+                                            <div class="text-[10px] text-slate-400">Last: ${l.last_opened_at || '-'}</div>
+                                        ` : '-'}
+                                    </td>
+                                    <td class="px-4 py-3 text-slate-600 text-[11px]">
+                                        ${hasOpened ? `${l.device || '-'} / ${l.os || '-'} / ${l.browser || '-'}` : '-'}
+                                    </td>
+                                    <td class="px-4 py-3 text-slate-600 text-[11px]">
+                                        ${hasOpened ? `<div>${escapeHtml(loc)}</div><div class="text-[10px] text-slate-400">${l.ip_address || ''}</div>` : '-'}
+                                    </td>
+                                </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
     } catch(err) {
         console.error("Report load error:", err);
     }

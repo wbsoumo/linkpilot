@@ -487,8 +487,47 @@ try {
             UNIQUE KEY `idx_user_day_slot` (`user_id`, `day_of_week`, `start_time`, `end_time`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
         $messages[] = "Table 'crm_booking_availability' checked/created.";
+
+        // Email Tracking Table Check/Create
+        $db->exec("
+            CREATE TABLE IF NOT EXISTS `email_tracking` (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `tracking_id` VARCHAR(64) UNIQUE NOT NULL,
+                `user_id` INT NULL,
+                `email_type` VARCHAR(50) NOT NULL,
+                `campaign_log_id` INT NULL,
+                `sent_email_id` INT NULL,
+                `recipient_email` VARCHAR(255) DEFAULT '',
+                `subject` VARCHAR(255) DEFAULT '',
+                `first_opened_at` DATETIME NULL,
+                `last_opened_at` DATETIME NULL,
+                `open_count` INT DEFAULT 0,
+                `ip_address` VARCHAR(45) NULL,
+                `user_agent` TEXT NULL,
+                `device` VARCHAR(100) NULL,
+                `browser` VARCHAR(100) NULL,
+                `os` VARCHAR(100) NULL,
+                `country` VARCHAR(100) DEFAULT 'Unknown',
+                `city` VARCHAR(100) DEFAULT 'Unknown',
+                `is_google_proxy` TINYINT(1) DEFAULT 0,
+                `is_apple_privacy` TINYINT(1) DEFAULT 0,
+                `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX (`user_id`),
+                INDEX (`campaign_log_id`),
+                INDEX (`sent_email_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        ");
+        try { $db->exec("ALTER TABLE `email_tracking` MODIFY COLUMN `user_id` INT NULL"); } catch (Exception $e) {}
+        $messages[] = "Table 'email_tracking' checked/created.";
+
+        // Column check for email_open_tracking
+        $stmtCol = $db->query("SHOW COLUMNS FROM `user_profiles` LIKE 'email_open_tracking'");
+        if (!$stmtCol->fetch()) {
+            $db->exec("ALTER TABLE `user_profiles` ADD COLUMN `email_open_tracking` TINYINT(1) DEFAULT 1");
+            $messages[] = "Added column 'email_open_tracking' to 'user_profiles'.";
+        }
     } catch (Exception $e) {
-        $messages[] = "Booking tables migration error: " . $e->getMessage();
+        $messages[] = "Booking/tracking tables migration error: " . $e->getMessage();
     }
 
     sendJsonResponse('success', 'LinkPilot CRM v2.0 Database Migrations executed successfully.', [

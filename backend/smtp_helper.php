@@ -14,13 +14,48 @@ class SMTPHelper {
     /**
      * Send email using user's custom SMTP configuration
      */
-    public static function sendEmail($userId, $recipientEmail, $subject, $body, $attachments = [], $senderEmail = null, $originalMessageId = null, $ccEmails = []) {
+    public static function sendEmail($userId, $recipientEmail, $subject, $body, $attachments = [], $senderEmail = null, $originalMessageId = null, $ccEmails = [], $campaignLogId = null) {
+        $db = Database::getConnection();
+        
+        $trackingEnabled = false;
+        $trackingId = null;
+        try {
+            $stmtTrack = $db->prepare("SELECT email_open_tracking FROM user_profiles WHERE user_id = ?");
+            $stmtTrack->execute([$userId]);
+            $trackingVal = $stmtTrack->fetchColumn();
+            if ($trackingVal !== false) {
+                $trackingEnabled = (int)$trackingVal === 1;
+            } else {
+                $trackingEnabled = true;
+            }
+        } catch (Exception $e) {
+            $trackingEnabled = true;
+        }
+
+        if ($trackingEnabled) {
+            $trackingId = bin2hex(random_bytes(16));
+            $pixelUrl = "https://linkpilot.work/o/" . $trackingId;
+            $pixelHtml = "\n" . '<img src="' . $pixelUrl . '" width="1" height="1" alt="" style="display:none;width:1px;height:1px;border:none;">';
+            $body .= $pixelHtml;
+            
+            try {
+                $emailType = $campaignLogId ? 'campaign' : 'individual';
+                $stmtInsTrack = $db->prepare("
+                    INSERT INTO email_tracking (tracking_id, user_id, email_type, campaign_log_id, recipient_email, subject, open_count)
+                    VALUES (?, ?, ?, ?, ?, ?, 0)
+                ");
+                $stmtInsTrack->execute([$trackingId, $userId, $emailType, $campaignLogId, $recipientEmail, $subject]);
+            } catch (Exception $e) {
+                error_log("Failed to insert email_tracking record: " . $e->getMessage());
+            }
+        }
+
         // Intercept and route via Gmail API if user connected Google integration
         require_once __DIR__ . '/external_apps_helper.php';
         if (ExternalAppsHelper::isGoogleConnected($userId)) {
             $gmailResult = ExternalAppsHelper::sendGmailEmail($userId, $recipientEmail, $subject, $body, $attachments, $originalMessageId, $ccEmails);
             if ($gmailResult['status']) {
-                self::logSentEmail($userId, $recipientEmail, $subject, $body, 'sent');
+                self::logSentEmail($userId, $recipientEmail, $subject, $body, 'sent', null, $trackingId);
                 updateStatistic($userId, 'emails_sent');
                 logActivity($userId, "Sent outreach email via Gmail API to: " . $recipientEmail);
                 return [
@@ -167,7 +202,7 @@ class SMTPHelper {
             $mail->send();
             
             // Log and update statistics
-            self::logSentEmail($userId, $recipientEmail, $subject, $body, 'sent');
+            self::logSentEmail($userId, $recipientEmail, $subject, $body, 'sent', null, $trackingId);
             updateStatistic($userId, 'emails_sent');
             logActivity($userId, "Sent outreach email to: " . $recipientEmail);
             
@@ -178,7 +213,7 @@ class SMTPHelper {
             
         } catch (Exception $e) {
             $errorMsg = $mail->ErrorInfo ?: $e->getMessage();
-            self::logSentEmail($userId, $recipientEmail, $subject, $body, 'failed', $errorMsg);
+            self::logSentEmail($userId, $recipientEmail, $subject, $body, 'failed', $errorMsg, $trackingId);
             return [
                 "status" => false,
                 "message" => "Mailer Error: " . $errorMsg
@@ -242,11 +277,17 @@ class SMTPHelper {
     /**
      * Log email transmission to DB
      */
-    private static function logSentEmail($userId, $recipientEmail, $subject, $body, $status, $errorMessage = null) {
+    private static function logSentEmail($userId, $recipientEmail, $subject, $body, $status, $errorMessage = null, $trackingId = null) {
         try {
             $db = Database::getConnection();
             $stmt = $db->prepare("INSERT INTO sent_emails (user_id, recipient_email, subject, body, status, error_message) VALUES (?, ?, ?, ?, ?, ?)");
             $stmt->execute([$userId, $recipientEmail, $subject, $body, $status, $errorMessage]);
+            $sentEmailId = $db->lastInsertId();
+            
+            if ($trackingId && $sentEmailId) {
+                $stmtUpdate = $db->prepare("UPDATE email_tracking SET sent_email_id = ? WHERE tracking_id = ?");
+                $stmtUpdate->execute([$sentEmailId, $trackingId]);
+            }
         } catch (Exception $e) {
             // Silence exceptions to prevent breaking execution flows
         }

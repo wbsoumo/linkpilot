@@ -91,6 +91,12 @@ window.completeProgressBar = function() {
     }
 };
 
+window.hideProgressBar = window.completeProgressBar;
+
+function hideProgressBar() {
+    window.completeProgressBar();
+}
+
 function getSkeletonLoader(view) {
     if (view === 'dashboard') {
         return `

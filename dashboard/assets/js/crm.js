@@ -2292,7 +2292,7 @@ function renderEmailSettingsLayout(container) {
                     <div class="px-2 py-1 text-[11px] font-black uppercase tracking-wider text-slate-400">EMAIL SETTINGS</div>
                     <div class="space-y-1">
                         ${tabs.map(tab => `
-                            <button onclick="switchEmailSettingsTab('${tab.id}')" class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition text-left ${activeTab === tab.id ? 'bg-blue-50/80 border border-blue-200/80 text-blue-600 shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}">
+                            <button type="button" data-tab="${tab.id}" onclick="window.switchEmailSettingsTab('${tab.id}')" class="email-settings-tab-btn w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition text-left cursor-pointer ${activeTab === tab.id ? 'bg-blue-50/80 border border-blue-200/80 text-blue-600 shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}">
                                 <div class="flex items-center space-x-3 truncate">
                                     <i data-lucide="${tab.icon}" class="h-4 w-4 shrink-0 ${activeTab === tab.id ? 'text-blue-600' : 'text-slate-400'}"></i>
                                     <span class="truncate">${tab.label}</span>
@@ -2306,7 +2306,9 @@ function renderEmailSettingsLayout(container) {
                 <!-- Main Content Display -->
                 <div class="lg:col-span-8 xl:col-span-9 space-y-6">
                     <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-xs">
-                        ${renderEmailSettingsTabContent(activeTab, showPassword)}
+                        <div id="email-settings-tab-panel">
+                            ${renderEmailSettingsTabContent(activeTab, showPassword)}
+                        </div>
                     </div>
 
                     <!-- Bottom Metrics Cards (Only on SMTP / IMAP tabs) -->
@@ -2778,6 +2780,107 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
             return `<div class="text-slate-400 text-xs">Select a settings tab on the left.</div>`;
     }
 }
+
+window.switchEmailSettingsTab = function(tabId) {
+    if (!window.emailSettingsState) window.emailSettingsState = { activeTab: tabId };
+    window.emailSettingsState.activeTab = tabId;
+
+    const panel = document.getElementById('email-settings-tab-panel');
+    if (panel) {
+        panel.innerHTML = renderEmailSettingsTabContent(tabId, window.emailSettingsState.showPassword);
+        lucide.createIcons();
+    } else {
+        const viewport = document.getElementById('main-content-viewport');
+        if (viewport) renderEmailSettingsLayout(viewport);
+    }
+
+    // Update active tab button classes
+    document.querySelectorAll('.email-settings-tab-btn').forEach(btn => {
+        const bTab = btn.getAttribute('data-tab');
+        if (bTab === tabId) {
+            btn.className = 'email-settings-tab-btn w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition text-left cursor-pointer bg-blue-50/80 border border-blue-200/80 text-blue-600 shadow-2xs';
+        } else {
+            btn.className = 'email-settings-tab-btn w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition text-left cursor-pointer text-slate-600 hover:text-slate-900 hover:bg-slate-50';
+        }
+    });
+};
+
+async function saveSmtpFromSettings(btnOrForm) {
+    const btn = btnOrForm && btnOrForm.tagName === 'FORM' ? btnOrForm.querySelector('button[type="submit"]') : btnOrForm;
+    const origText = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<div class="loader-spinner !w-3 !h-3 mr-1"></div> Saving...`;
+    }
+
+    try {
+        const payload = {
+            email_provider: 'custom',
+            smtp_host: document.getElementById('es_smtp_host')?.value || '',
+            smtp_port: parseInt(document.getElementById('es_smtp_port')?.value || 587),
+            smtp_username: document.getElementById('es_smtp_username')?.value || '',
+            smtp_password: document.getElementById('es_smtp_password')?.value || '',
+            smtp_encryption: document.getElementById('es_smtp_encryption')?.value || 'tls'
+        };
+
+        const res = await apiCall('crm/email_intelligence/settings.php', 'POST', payload);
+        if (res.status === 'success') {
+            showNotification('success', 'SMTP Configuration saved successfully!');
+            if (window.emailSettingsState) {
+                window.emailSettingsState.credentials = { ...window.emailSettingsState.credentials, ...payload };
+            }
+        } else {
+            showNotification('error', res.message || 'Failed to save SMTP settings');
+        }
+    } catch (err) {
+        showNotification('error', err.message);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = origText;
+        }
+    }
+}
+
+async function saveImapFromSettings(btnOrForm) {
+    const btn = btnOrForm && btnOrForm.tagName === 'FORM' ? btnOrForm.querySelector('button[type="submit"]') : btnOrForm;
+    const origText = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<div class="loader-spinner !w-3 !h-3 mr-1"></div> Saving...`;
+    }
+
+    try {
+        const payload = {
+            email_provider: 'custom',
+            imap_host: document.getElementById('es_imap_host')?.value || '',
+            imap_port: parseInt(document.getElementById('es_imap_port')?.value || 993),
+            imap_username: document.getElementById('es_imap_username')?.value || '',
+            imap_password: document.getElementById('es_imap_password')?.value || '',
+            imap_encryption: document.getElementById('es_imap_encryption')?.value || 'ssl'
+        };
+
+        const res = await apiCall('crm/email_intelligence/settings.php', 'POST', payload);
+        if (res.status === 'success') {
+            showNotification('success', 'IMAP Configuration saved successfully!');
+            if (window.emailSettingsState) {
+                window.emailSettingsState.credentials = { ...window.emailSettingsState.credentials, ...payload };
+            }
+        } else {
+            showNotification('error', res.message || 'Failed to save IMAP settings');
+        }
+    } catch (err) {
+        showNotification('error', err.message);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = origText;
+        }
+    }
+}
+
+window.saveSmtpFromSettings = saveSmtpFromSettings;
+window.saveImapFromSettings = saveImapFromSettings;
 
 async function testSmtpFromSettings(btn) {
     const origText = btn.innerHTML;

@@ -2233,6 +2233,7 @@ async function renderEmailSettings(container) {
             domains: data.domains || [],
             signatures: data.signatures || [],
             advanced: data.advanced || {},
+            google_oauth: data.google_oauth || { connected: false },
             showPassword: false
         };
 
@@ -2249,11 +2250,11 @@ async function renderEmailSettings(container) {
 }
 
 function renderEmailSettingsLayout(container) {
-    const { activeTab, credentials, domains, signatures, advanced, showPassword } = window.emailSettingsState;
+    const { activeTab, credentials, domains, signatures, advanced, google_oauth, showPassword } = window.emailSettingsState;
 
     const tabs = [
-        { id: 'smtp', label: 'SMTP Servers', icon: 'server', badge: credentials.smtp_host ? 'Active' : 'Unset', badgeColor: credentials.smtp_host ? 'emerald' : 'slate' },
-        { id: 'imap', label: 'IMAP Accounts', icon: 'mail', badge: credentials.imap_host ? 'Active' : 'Unset', badgeColor: credentials.imap_host ? 'emerald' : 'slate' },
+        { id: 'smtp', label: 'SMTP Servers', icon: 'server', badge: (google_oauth && google_oauth.connected) ? 'Gmail OAuth' : (credentials.smtp_host ? 'Active' : 'Unset'), badgeColor: (google_oauth && google_oauth.connected) ? 'blue' : (credentials.smtp_host ? 'emerald' : 'slate') },
+        { id: 'imap', label: 'IMAP Accounts', icon: 'mail', badge: (google_oauth && google_oauth.connected) ? 'Gmail OAuth' : (credentials.imap_host ? 'Active' : 'Unset'), badgeColor: (google_oauth && google_oauth.connected) ? 'blue' : (credentials.imap_host ? 'emerald' : 'slate') },
         { id: 'replyto', label: 'Default Reply-To', icon: 'corner-up-left', badge: 'Configured', badgeColor: 'purple' },
         { id: 'opentracking', label: 'Open Tracking', icon: 'eye', badge: advanced.open_tracking_enabled ? 'Active' : 'Off', badgeColor: advanced.open_tracking_enabled ? 'emerald' : 'slate' },
         { id: 'clicktracking', label: 'Click Tracking', icon: 'mouse-pointer', badge: advanced.click_tracking_enabled ? 'Active' : 'Off', badgeColor: advanced.click_tracking_enabled ? 'emerald' : 'slate' },
@@ -2379,7 +2380,55 @@ function toggleSmtpPasswordVisibility() {
 }
 
 function renderEmailSettingsTabContent(tabId, showPassword) {
-    const { credentials, domains, signatures, advanced } = window.emailSettingsState;
+    const { credentials, domains, signatures, advanced, google_oauth } = window.emailSettingsState;
+
+    const oauthCardHtml = `
+        <div class="p-4 bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-slate-50 border border-blue-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
+            <div class="flex items-center space-x-3.5">
+                <div class="w-10 h-10 rounded-xl bg-white p-2 border border-blue-100 shadow-2xs flex items-center justify-center shrink-0">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-extrabold text-slate-900">Google OAuth 2.0 Integration</span>
+                        ${(google_oauth && google_oauth.connected) ? `
+                            <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold border border-emerald-200 flex items-center space-x-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span>Active Connected</span>
+                            </span>
+                        ` : `
+                            <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold border border-slate-200">Not Connected</span>
+                        `}
+                    </div>
+                    <div class="text-xs font-semibold text-slate-600 mt-0.5">
+                        ${(google_oauth && google_oauth.connected) ? `${google_oauth.email} ${google_oauth.name ? `(${google_oauth.name})` : ''}` : 'Connect your Gmail account via direct OAuth 2.0 authorization.'}
+                    </div>
+                </div>
+            </div>
+
+            ${(google_oauth && google_oauth.connected) ? `
+                <button type="button" onclick="disconnectGmailOauth(this)" class="px-3.5 py-2 bg-white hover:bg-red-50 text-red-600 border border-red-200 text-xs font-bold rounded-xl transition flex items-center space-x-1.5 shrink-0 shadow-2xs cursor-pointer">
+                    <i data-lucide="power" class="h-3.5 w-3.5 text-red-500"></i>
+                    <span>Disconnect OAuth</span>
+                </button>
+            ` : `
+                <a href="../backend/api/external_apps/auth.php?type=gmail&from=email-settings" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-bold rounded-xl transition flex items-center space-x-2 shrink-0 shadow-2xs cursor-pointer">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                    </svg>
+                    <span>Connect Gmail OAuth</span>
+                </a>
+            `}
+        </div>
+    `;
 
     switch (tabId) {
         case 'smtp':
@@ -2391,6 +2440,8 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                             <p class="text-xs text-slate-500 font-medium">Configure your SMTP server to send emails through your own infrastructure.</p>
                         </div>
                     </div>
+
+                    ${oauthCardHtml}
 
                     <form id="smtp-settings-form" onsubmit="event.preventDefault(); saveSmtpFromSettings(this);" class="space-y-5">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -2483,6 +2534,8 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                             <p class="text-xs text-slate-500 font-medium">Receive and synchronize customer replies, thread histories, and automated inbox responses.</p>
                         </div>
                     </div>
+
+                    ${oauthCardHtml}
 
                     <form id="imap-settings-form" onsubmit="event.preventDefault(); saveImapFromSettings(this);" class="space-y-5">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -2887,8 +2940,37 @@ async function saveAllEmailSettings(btn) {
     }
 }
 
+async function disconnectGmailOauth(btn) {
+    if (!confirm('Are you sure you want to disconnect Google OAuth? Your email sending and inbox sync for this account will stop until reconnected.')) {
+        return;
+    }
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<div class="loader-spinner !w-3 !h-3 mr-1"></div> Disconnecting...`;
+
+    try {
+        const res = await apiCall('external_apps/disconnect.php?provider=google', 'GET');
+        if (res.status === 'success') {
+            showNotification('success', 'Google OAuth disconnected successfully!');
+            if (window.emailSettingsState) {
+                window.emailSettingsState.google_oauth = { connected: false };
+            }
+            const viewport = document.getElementById('main-content-viewport');
+            if (viewport) renderEmailSettings(viewport);
+        } else {
+            showNotification('error', res.message || 'Failed to disconnect Google OAuth');
+        }
+    } catch (err) {
+        showNotification('error', err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+    }
+}
+
 window.saveAllEmailSettings = saveAllEmailSettings;
 window.toggleSmtpPasswordVisibility = toggleSmtpPasswordVisibility;
+window.disconnectGmailOauth = disconnectGmailOauth;
 
 // ---------------------------------------------
 // 3. INBOX VIEW (AI SUGGESTED REPLY / FILTERS)

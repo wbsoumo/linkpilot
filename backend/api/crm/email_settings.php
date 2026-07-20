@@ -120,11 +120,35 @@ try {
             $signatures = $stmtSigs->fetchAll(PDO::FETCH_ASSOC);
         }
 
+        // Fetch Google OAuth connection status
+        $googleOauth = [
+            'connected' => false,
+            'email' => null,
+            'name' => null,
+            'avatar' => null
+        ];
+        try {
+            $stmtGoogle = $db->prepare("SELECT email, connected_email, connected_name, avatar, status FROM external_app_connections WHERE user_id = ? AND provider = 'google' LIMIT 1");
+            $stmtGoogle->execute([$userId]);
+            $gConn = $stmtGoogle->fetch(PDO::FETCH_ASSOC);
+            if ($gConn && $gConn['status'] === 'connected') {
+                $googleOauth = [
+                    'connected' => true,
+                    'email' => !empty($gConn['connected_email']) ? $gConn['connected_email'] : $gConn['email'],
+                    'name' => $gConn['connected_name'] ?? '',
+                    'avatar' => $gConn['avatar'] ?? ''
+                ];
+            }
+        } catch (Throwable $t) {
+            // Ignore table missing errors
+        }
+
         sendJsonResponse('success', 'Email settings retrieved', [
             'credentials' => $credentials,
             'domains' => $domains,
             'signatures' => $signatures,
-            'advanced' => $advanced
+            'advanced' => $advanced,
+            'google_oauth' => $googleOauth
         ]);
     }
 

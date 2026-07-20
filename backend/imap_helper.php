@@ -25,9 +25,9 @@ class IMAPHelper {
      * Test IMAP connection configurations
      */
     public static function testConnection($host, $port, $username, $password, $encryption) {
-        // Fast 2-second socket pre-check to prevent C-client imap_open hanging on firewalled ports
-        $prefix = (strtolower((string)$encryption) === 'ssl' || (int)$port === 993) ? 'ssl://' : '';
-        $fp = @fsockopen($prefix . $host, (int)$port, $errno, $errstr, 2);
+        // Fast 1.5-second raw TCP socket pre-check (without SSL handshake overhead)
+        $t0 = microtime(true);
+        $fp = @fsockopen($host, (int)$port, $errno, $errstr, 1.5);
 
         if (!$fp) {
             // Direct socket to host blocked by firewall -> call AWS Proxy Worker immediately

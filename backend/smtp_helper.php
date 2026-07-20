@@ -278,6 +278,25 @@ class SMTPHelper {
      * Test SMTP configuration settings
      */
     public static function testConnection($host, $port, $username, $password, $senderName, $senderEmail, $encryption = null) {
+        // Fast 1.5-second raw TCP pre-check before PHPMailer to prevent SSL handshake stalls on firewalled ports
+        $fp = @fsockopen($host, (int)$port, $errno, $errstr, 1.5);
+        if (!$fp) {
+            $proxyRes = self::callAwsProxyWorker('test_smtp', [
+                'smtp_host' => $host,
+                'smtp_port' => (int)$port,
+                'smtp_username' => $username,
+                'smtp_password' => $password,
+                'smtp_encryption' => $encryption,
+                'sender_name' => $senderName,
+                'sender_email' => $senderEmail
+            ]);
+            if ($proxyRes !== null) {
+                return $proxyRes;
+            }
+        } else {
+            fclose($fp);
+        }
+
         $mail = new PHPMailer(true);
         try {
             $mail->CharSet    = 'UTF-8';

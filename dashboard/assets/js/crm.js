@@ -15373,132 +15373,132 @@ async function selectFollowupEmail(emailId) {
         
         container.innerHTML = `
             <div class="flex flex-col h-full bg-white overflow-hidden animate-fade-in divide-y divide-slate-100">
-                <!-- Header Info Pane -->
-                <div class="p-6 bg-white shrink-0 space-y-4">
+                <!-- Header Info Pane (Compact) -->
+                <div class="px-5 py-3 bg-white shrink-0 space-y-2.5">
                     <div class="flex justify-between items-start gap-4">
-                        <div class="flex items-start space-x-3 min-w-0">
-                            <button onclick="toggleStarFollowupEmail(${email.id})" class="text-slate-300 hover:text-amber-400 transition mt-1">
-                                <i data-lucide="star" class="h-5 w-5 ${email.is_starred ? 'fill-amber-400 text-amber-400' : ''}"></i>
+                        <div class="flex items-start space-x-2.5 min-w-0">
+                            <button onclick="toggleStarFollowupEmail(${email.id})" class="text-slate-300 hover:text-amber-400 transition mt-0.5">
+                                <i data-lucide="star" class="h-4.5 w-4.5 ${email.is_starred ? 'fill-amber-400 text-amber-400' : ''}"></i>
                             </button>
                             <div class="min-w-0">
-                                <h2 class="text-base font-black text-slate-900 leading-snug">${email.subject}</h2>
-                                <div class="flex items-center space-x-2 mt-1">
-                                    <span class="text-xs font-bold text-slate-800">${email.sender_name || email.sender_email}</span>
-                                    <span class="text-xs text-slate-400 font-medium">&lt;${email.sender_email}&gt;</span>
+                                <h2 class="text-sm font-black text-slate-900 leading-snug">${email.subject}</h2>
+                                <div class="flex items-center space-x-2 mt-0.5">
+                                    <span class="text-[11px] font-bold text-slate-800">${email.sender_name || email.sender_email}</span>
+                                    <span class="text-[11px] text-slate-400 font-medium">&lt;${email.sender_email}&gt;</span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="text-right shrink-0 flex flex-col items-end">
-                            <span class="text-[11px] font-bold text-slate-400 mb-1">${date}</span>
+                            <span class="text-[10px] font-bold text-slate-400 mb-1">${date}</span>
                             <div class="flex items-center space-x-1.5">
-                                <span class="px-2.5 py-0.5 rounded text-[9px] font-black uppercase border border-blue-200 text-blue-600 bg-blue-50/40">${email.priority || 'MEDIUM'}</span>
-                                <span class="px-2.5 py-0.5 rounded text-[9px] font-black uppercase border border-purple-200 text-purple-600 bg-purple-50/40">${email.category || 'MEETING REQUEST'}</span>
+                                <span class="px-2 py-0.5 rounded text-[8px] font-black uppercase border border-blue-200 text-blue-600 bg-blue-50/40">${email.priority || 'MEDIUM'}</span>
+                                <span class="px-2 py-0.5 rounded text-[8px] font-black uppercase border border-purple-200 text-purple-600 bg-purple-50/40">${email.category || 'MEETING REQUEST'}</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Metadata 4 Status Summary Cards -->
-                    <div class="grid grid-cols-4 gap-3 pt-2">
+                    <!-- Compact 4 Status Summary Cards Bar -->
+                    <div class="grid grid-cols-4 gap-2.5 pt-0.5">
                         <!-- Due In Card -->
-                        <div class="bg-white border border-slate-200 rounded-xl p-3.5 flex items-center space-x-3 shadow-2xs">
-                            <div class="h-8 w-8 rounded-full border border-amber-200 bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                                <i data-lucide="clock" class="h-4 w-4"></i>
+                        <div class="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 flex items-center space-x-2">
+                            <div class="h-6 w-6 rounded-full border border-amber-200 bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                                <i data-lucide="clock" class="h-3 w-3"></i>
                             </div>
-                            <div>
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Due in</span>
-                                <span class="text-xs font-black text-amber-600">2h 45m</span>
+                            <div class="min-w-0">
+                                <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider block leading-none">Due in</span>
+                                <span class="text-[11px] font-black text-amber-600 leading-tight">2h 45m</span>
                             </div>
                         </div>
 
                         <!-- Priority Card -->
-                        <div class="bg-white border border-slate-200 rounded-xl p-3.5 flex items-center space-x-3 shadow-2xs">
-                            <div class="h-8 w-8 rounded-full border border-red-200 bg-red-50 text-red-600 flex items-center justify-center shrink-0">
-                                <i data-lucide="alert-triangle" class="h-4 w-4"></i>
+                        <div class="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 flex items-center space-x-2">
+                            <div class="h-6 w-6 rounded-full border border-red-200 bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+                                <i data-lucide="alert-triangle" class="h-3 w-3"></i>
                             </div>
-                            <div>
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Priority</span>
-                                <span class="text-xs font-black text-red-600">${(email.priority || 'High').charAt(0).toUpperCase() + (email.priority || 'High').slice(1).toLowerCase()}</span>
+                            <div class="min-w-0">
+                                <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider block leading-none">Priority</span>
+                                <span class="text-[11px] font-black text-red-600 leading-tight">${(email.priority || 'High').charAt(0).toUpperCase() + (email.priority || 'High').slice(1).toLowerCase()}</span>
                             </div>
                         </div>
 
                         <!-- Status Card -->
-                        <div class="bg-white border border-slate-200 rounded-xl p-3.5 flex items-center space-x-3 shadow-2xs">
-                            <div class="h-8 w-8 rounded-full border border-blue-200 bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                                <i data-lucide="reply" class="h-4 w-4"></i>
+                        <div class="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 flex items-center space-x-2">
+                            <div class="h-6 w-6 rounded-full border border-blue-200 bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                <i data-lucide="reply" class="h-3 w-3"></i>
                             </div>
-                            <div>
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Status</span>
-                                <span class="text-xs font-black text-blue-600">Needs Reply</span>
+                            <div class="min-w-0">
+                                <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider block leading-none">Status</span>
+                                <span class="text-[11px] font-black text-blue-600 leading-tight">Needs Reply</span>
                             </div>
                         </div>
 
                         <!-- Follow-up Card -->
-                        <div class="bg-white border border-slate-200 rounded-xl p-3.5 flex items-center justify-between shadow-2xs">
-                            <div class="flex items-center space-x-3">
-                                <div class="h-8 w-8 rounded-full border border-slate-200 bg-slate-50 text-slate-600 flex items-center justify-center shrink-0">
-                                    <i data-lucide="file-text" class="h-4 w-4"></i>
+                        <div class="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 flex items-center justify-between">
+                            <div class="flex items-center space-x-2 min-w-0">
+                                <div class="h-6 w-6 rounded-full border border-slate-200 bg-slate-50 text-slate-600 flex items-center justify-center shrink-0">
+                                    <i data-lucide="file-text" class="h-3 w-3"></i>
                                 </div>
-                                <div>
-                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Follow-up #</span>
-                                    <span class="text-xs font-black text-slate-800">2 of 3</span>
+                                <div class="min-w-0">
+                                    <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider block leading-none">Follow-up #</span>
+                                    <span class="text-[11px] font-black text-slate-800 leading-tight">2 of 3</span>
                                 </div>
                             </div>
                             <button class="text-slate-400 hover:text-slate-700">
-                                <i data-lucide="more-vertical" class="h-4 w-4"></i>
+                                <i data-lucide="more-vertical" class="h-3.5 w-3.5"></i>
                             </button>
                         </div>
                     </div>
 
                     <!-- Detail Tabs (Email / Activity) -->
-                    <div class="flex items-center space-x-6 border-b border-slate-100 pt-1 text-xs font-extrabold">
-                        <button class="pb-2 text-indigo-600 border-b-2 border-indigo-600">Email</button>
-                        <button class="pb-2 text-slate-400 hover:text-slate-700">Activity</button>
+                    <div class="flex items-center space-x-6 border-b border-slate-100 pt-0.5 text-xs font-extrabold">
+                        <button class="pb-1 text-indigo-600 border-b-2 border-indigo-600">Email</button>
+                        <button class="pb-1 text-slate-400 hover:text-slate-700">Activity</button>
                     </div>
                 </div>
 
-                <!-- Email Message Content Scroll Area -->
-                <div class="flex-grow p-6 overflow-y-auto bg-slate-50/30 space-y-4 relative">
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-2xs space-y-3">
+                <!-- Email Message Content Scroll Area (Prominent Height) -->
+                <div class="flex-grow p-4 overflow-y-auto bg-slate-50/30 space-y-3 relative">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs space-y-3">
                         <div class="text-xs text-slate-800 leading-relaxed whitespace-pre-line font-sans">${email.body_text || email.body_html || 'No body text available.'}</div>
                     </div>
                 </div>
 
-                <!-- Bottom Reply Composer Pane (Matching Screenshot) -->
-                <div class="p-6 bg-white shrink-0 border-t border-slate-200 relative space-y-3">
+                <!-- Bottom Reply Composer Pane (Compact Height) -->
+                <div class="px-5 py-3 bg-white shrink-0 border-t border-slate-200 relative space-y-2">
                     <!-- Floating White AI Sparkle Action Button on top-right of composer -->
-                    <button onclick="toggleFollowupAIStudio()" class="absolute -top-6 right-6 h-12 w-12 rounded-full bg-white border border-slate-200 text-indigo-600 shadow-md flex items-center justify-center hover:scale-105 transition cursor-pointer" title="Toggle AI Reply Studio">
-                        <i data-lucide="sparkles" class="h-6 w-6 text-indigo-600"></i>
+                    <button onclick="toggleFollowupAIStudio()" class="absolute -top-5 right-5 h-10 w-10 rounded-full bg-white border border-slate-200 text-indigo-600 shadow-md flex items-center justify-center hover:scale-105 transition cursor-pointer" title="Toggle AI Reply Studio">
+                        <i data-lucide="sparkles" class="h-5 w-5 text-indigo-600"></i>
                     </button>
 
                     <!-- Collapsible AI Response Generator Studio Popup -->
-                    <div id="followup-ai-studio-drawer" class="hidden mb-3 p-4 bg-gradient-to-r from-blue-50/90 to-indigo-50/80 border border-indigo-200 rounded-2xl space-y-3 shadow-2xs">
+                    <div id="followup-ai-studio-drawer" class="hidden mb-2.5 p-3 bg-gradient-to-r from-blue-50/90 to-indigo-50/80 border border-indigo-200 rounded-2xl space-y-2.5 shadow-2xs">
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-black text-indigo-950 flex items-center space-x-1.5">
-                                <i data-lucide="sparkles" class="h-4 w-4 text-indigo-600"></i>
+                                <i data-lucide="sparkles" class="h-3.5 w-3.5 text-indigo-600"></i>
                                 <span>AI Response Generator Studio</span>
                             </span>
                             <button onclick="toggleFollowupAIStudio()" class="text-slate-400 hover:text-slate-700 text-xs">✕</button>
                         </div>
 
                         <div class="flex flex-wrap gap-1.5">
-                            <button type="button" onclick="setFollowupTone('Professional')" id="tone-btn-Professional" class="tone-preset-btn px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition ${window.selectedFollowupTone==='Professional'?'border-indigo-600 text-indigo-600 bg-indigo-50/40':''}">👔 Professional</button>
-                            <button type="button" onclick="setFollowupTone('Friendly')" id="tone-btn-Friendly" class="tone-preset-btn px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition ${window.selectedFollowupTone==='Friendly'?'border-indigo-600 text-indigo-600 bg-indigo-50/40':''}">😊 Friendly</button>
-                            <button type="button" onclick="setFollowupTone('Persuasive')" id="tone-btn-Persuasive" class="tone-preset-btn px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition ${window.selectedFollowupTone==='Persuasive'?'border-indigo-600 text-indigo-600 bg-indigo-50/40':''}">🎯 Persuasive</button>
-                            <button type="button" onclick="setFollowupTone('Concise')" id="tone-btn-Concise" class="tone-preset-btn px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition ${window.selectedFollowupTone==='Concise'?'border-indigo-600 text-indigo-600 bg-indigo-50/40':''}">⚡ Concise</button>
+                            <button type="button" onclick="setFollowupTone('Professional')" id="tone-btn-Professional" class="tone-preset-btn px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-[11px] font-bold text-slate-700 hover:bg-slate-50 transition ${window.selectedFollowupTone==='Professional'?'border-indigo-600 text-indigo-600 bg-indigo-50/40':''}">👔 Professional</button>
+                            <button type="button" onclick="setFollowupTone('Friendly')" id="tone-btn-Friendly" class="tone-preset-btn px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-[11px] font-bold text-slate-700 hover:bg-slate-50 transition ${window.selectedFollowupTone==='Friendly'?'border-indigo-600 text-indigo-600 bg-indigo-50/40':''}">😊 Friendly</button>
+                            <button type="button" onclick="setFollowupTone('Persuasive')" id="tone-btn-Persuasive" class="tone-preset-btn px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-[11px] font-bold text-slate-700 hover:bg-slate-50 transition ${window.selectedFollowupTone==='Persuasive'?'border-indigo-600 text-indigo-600 bg-indigo-50/40':''}">🎯 Persuasive</button>
+                            <button type="button" onclick="setFollowupTone('Concise')" id="tone-btn-Concise" class="tone-preset-btn px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-[11px] font-bold text-slate-700 hover:bg-slate-50 transition ${window.selectedFollowupTone==='Concise'?'border-indigo-600 text-indigo-600 bg-indigo-50/40':''}">⚡ Concise</button>
                         </div>
 
-                        <div class="flex items-center space-x-2 pt-1">
-                            <input type="text" id="followup-custom-prompt" placeholder="Optional custom instruction..." class="flex-grow px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500">
-                            <button onclick="generateFollowupAIReply(${email.id})" id="followup-ai-gen-btn" class="px-5 py-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white font-extrabold rounded-xl text-xs shadow-2xs transition shrink-0 flex items-center space-x-1.5">
-                                <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
+                        <div class="flex items-center space-x-2 pt-0.5">
+                            <input type="text" id="followup-custom-prompt" placeholder="Optional custom instruction..." class="flex-grow px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500">
+                            <button onclick="generateFollowupAIReply(${email.id})" id="followup-ai-gen-btn" class="px-4 py-1.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white font-extrabold rounded-lg text-xs shadow-2xs transition shrink-0 flex items-center space-x-1">
+                                <i data-lucide="sparkles" class="h-3 w-3"></i>
                                 <span>Generate Draft</span>
                             </button>
                         </div>
                     </div>
 
                     <!-- Composer Actions Row: Reply | ↩ Reply | ↩↩ Reply All | ➜ Forward -->
-                    <div class="flex items-center space-x-4 text-xs font-extrabold text-slate-700 pb-1">
+                    <div class="flex items-center space-x-4 text-xs font-extrabold text-slate-700">
                         <span class="text-slate-900 border-b-2 border-slate-900 pb-0.5">Reply</span>
                         <button class="text-slate-500 hover:text-slate-800 flex items-center space-x-1">
                             <i data-lucide="reply" class="h-3.5 w-3.5"></i>
@@ -15514,27 +15514,27 @@ async function selectFollowupEmail(emailId) {
                         </button>
                     </div>
 
-                    <!-- Main Reply Box & Toolbar (Matching Screenshot Bottom Right) -->
-                    <div class="border border-slate-200 rounded-2xl bg-white shadow-2xs focus-within:border-indigo-500 transition overflow-hidden">
-                        <textarea id="followup-reply-body" rows="3" placeholder="Type your reply..." class="w-full p-3.5 text-xs text-slate-800 placeholder-slate-400 leading-relaxed focus:outline-none resize-none font-sans border-b border-slate-100">${email.ai_suggested_reply || ''}</textarea>
+                    <!-- Main Reply Box & Toolbar (Compact) -->
+                    <div class="border border-slate-200 rounded-xl bg-white shadow-2xs focus-within:border-indigo-500 transition overflow-hidden">
+                        <textarea id="followup-reply-body" rows="2" placeholder="Type your reply..." class="w-full p-3 text-xs text-slate-800 placeholder-slate-400 leading-relaxed focus:outline-none resize-none font-sans border-b border-slate-100">${email.ai_suggested_reply || ''}</textarea>
                         
-                        <div class="p-3 bg-slate-50/40 flex items-center justify-between">
+                        <div class="px-3 py-1.5 bg-slate-50/40 flex items-center justify-between">
                             <div class="flex items-center space-x-3 text-slate-400">
                                 <button class="hover:text-slate-700 font-black text-xs">A</button>
-                                <button class="hover:text-slate-700"><i data-lucide="paperclip" class="h-4 w-4"></i></button>
-                                <button class="hover:text-slate-700"><i data-lucide="link-2" class="h-4 w-4"></i></button>
-                                <button class="hover:text-slate-700"><i data-lucide="smile" class="h-4 w-4"></i></button>
-                                <button class="hover:text-slate-700"><i data-lucide="image" class="h-4 w-4"></i></button>
-                                <button class="hover:text-slate-700"><i data-lucide="calendar" class="h-4 w-4"></i></button>
-                                <button class="hover:text-slate-700"><i data-lucide="file-text" class="h-4 w-4"></i></button>
+                                <button class="hover:text-slate-700"><i data-lucide="paperclip" class="h-3.5 w-3.5"></i></button>
+                                <button class="hover:text-slate-700"><i data-lucide="link-2" class="h-3.5 w-3.5"></i></button>
+                                <button class="hover:text-slate-700"><i data-lucide="smile" class="h-3.5 w-3.5"></i></button>
+                                <button class="hover:text-slate-700"><i data-lucide="image" class="h-3.5 w-3.5"></i></button>
+                                <button class="hover:text-slate-700"><i data-lucide="calendar" class="h-3.5 w-3.5"></i></button>
+                                <button class="hover:text-slate-700"><i data-lucide="file-text" class="h-3.5 w-3.5"></i></button>
                             </div>
 
                             <!-- Send Reply Button with Split Arrow Dropdown -->
-                            <div class="inline-flex rounded-xl overflow-hidden shadow-2xs">
-                                <button onclick="sendFollowupEmailReply(${email.id})" id="followup-send-btn" class="px-5 py-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-black transition flex items-center space-x-1.5">
+                            <div class="inline-flex rounded-lg overflow-hidden shadow-2xs">
+                                <button onclick="sendFollowupEmailReply(${email.id})" id="followup-send-btn" class="px-4 py-1.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-black transition flex items-center space-x-1.5">
                                     <span>Send Reply</span>
                                 </button>
-                                <button class="px-2.5 py-2 bg-[#4338CA] hover:bg-[#3730A3] text-white text-xs font-black border-l border-indigo-400/30 transition">
+                                <button class="px-2 py-1.5 bg-[#4338CA] hover:bg-[#3730A3] text-white text-xs font-black border-l border-indigo-400/30 transition">
                                     <i data-lucide="chevron-down" class="h-3.5 w-3.5"></i>
                                 </button>
                             </div>

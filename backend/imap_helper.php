@@ -107,12 +107,34 @@ class IMAPHelper {
             throw new Exception("Failed to decrypt IMAP credentials. Please update settings.");
         }
 
-        $connectionString = self::getConnectionString($config['imap_host'], $config['imap_port'], $config['imap_encryption']) . "INBOX";
-        @imap_timeout(IMAP_OPENTIMEOUT, 10);
-        $mbox = @imap_open($connectionString, $config['imap_username'], $decryptedPassword);
+        $mbox = null;
+        if (function_exists('imap_open')) {
+            $connectionString = self::getConnectionString($config['imap_host'], $config['imap_port'], $config['imap_encryption']) . "INBOX";
+            @imap_timeout(IMAP_OPENTIMEOUT, 3);
+            $mbox = @imap_open($connectionString, $config['imap_username'], $decryptedPassword, 0, 1, [
+                'DISABLE_AUTHENTICATOR' => 'GSSAPI'
+            ]);
+        }
 
         if (!$mbox) {
-            $errors = imap_errors();
+            // Fallback to AWS Proxy Worker for email fetching
+            $proxyRes = SMTPHelper::callAwsProxyWorker('fetch_emails', [
+                'imap_host' => $config['imap_host'],
+                'imap_port' => (int)$config['imap_port'],
+                'imap_username' => $config['imap_username'],
+                'imap_password' => $decryptedPassword,
+                'imap_encryption' => $config['imap_encryption'],
+                'limit' => $limit
+            ]);
+
+            if ($proxyRes !== null && !empty($proxyRes['message']) && is_array($proxyRes['message'])) {
+                return self::filterUnsyncedEmails($userId, $proxyRes['message']);
+            }
+            if (is_array($proxyRes) && isset($proxyRes['emails']) && is_array($proxyRes['emails'])) {
+                return self::filterUnsyncedEmails($userId, $proxyRes['emails']);
+            }
+
+            $errors = function_exists('imap_errors') ? imap_errors() : null;
             $errorMsg = $errors ? implode(", ", $errors) : "Connection failed.";
             throw new Exception("IMAP Server connection failed: " . $errorMsg);
         }
@@ -184,6 +206,25 @@ class IMAPHelper {
 
         @imap_close($mbox);
         return $emails;
+    }
+
+    /**
+     * Filter out emails that have already been synced into received_emails table
+     */
+    private static function filterUnsyncedEmails($userId, $emailsList) {
+        $db = Database::getConnection();
+        $unsynced = [];
+        foreach ($emailsList as $em) {
+            $messageId = $em['message_id'] ?? '';
+            if (empty($messageId)) continue;
+
+            $stmtCheck = $db->prepare("SELECT id FROM received_emails WHERE user_id = ? AND message_id = ?");
+            $stmtCheck->execute([$userId, $messageId]);
+            if (!$stmtCheck->fetch()) {
+                $unsynced[] = $em;
+            }
+        }
+        return $unsynced;
     }
 
     /**

@@ -1670,7 +1670,7 @@ async function loadWaThreadMessages() {
                             <span class="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded-md font-extrabold uppercase">${crm.lead.stage}</span>
                         </div>
                         <div class="text-[10px] text-slate-500">Company: ${crm.lead.company || 'None'}</div>
-                        <div class="text-[10px] text-slate-500">Budget: ₹${parseFloat(crm.lead.budget).toLocaleString('en-IN')}</div>
+                        <div class="text-[10px] text-slate-500">Budget: ${window.formatCurrency ? window.formatCurrency(crm.lead.budget) : '₹' + parseFloat(crm.lead.budget).toLocaleString('en-IN')}</div>
                         <div class="text-[10px] text-slate-500">Priority: <strong class="text-indigo-600 uppercase font-bold">${crm.lead.priority}</strong></div>
                     </div>
                 `;

@@ -11,12 +11,34 @@ let charts = {};
 let wizardStep = 1;
 let aiChatHistory = [];
 
+window.getCurrencySymbol = function() {
+    const currency = (window.activeUserProfileSettings && window.activeUserProfileSettings.currency) || 'INR';
+    switch (currency) {
+        case 'USD': return '$';
+        case 'EUR': return '€';
+        case 'GBP': return '£';
+        case 'INR': return '₹';
+        default: return '₹';
+    }
+};
+
+window.getCurrencyLocale = function() {
+    const currency = (window.activeUserProfileSettings && window.activeUserProfileSettings.currency) || 'INR';
+    return currency === 'INR' ? 'en-IN' : 'en-US';
+};
+
+window.formatCurrency = function(amount) {
+    const symbol = window.getCurrencySymbol();
+    const locale = window.getCurrencyLocale();
+    return symbol + parseFloat(amount || 0).toLocaleString(locale, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+};
+
 window.animateNumber = function(element, start, end, duration = 800) {
     if (!element) return;
     const startTime = performance.now();
     const formatValue = (val) => {
         if (element.id === 'stat-revenue-val') {
-            return '₹' + Math.round(val).toLocaleString('en-IN');
+            return window.getCurrencySymbol() + Math.round(val).toLocaleString(window.getCurrencyLocale());
         }
         if (element.id === 'stat-conv-rate' || element.id === 'stat-ai-accuracy') {
             return val.toFixed(1) + '%';
@@ -527,7 +549,7 @@ async function renderDashboard(container) {
             }
             
             warningBannerHtml = `
-                <div onclick="window.location.href='setup.html'" class="glass-panel p-4 bg-amber-500/10 border border-amber-500/25 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer hover:bg-amber-500/15 transition-all duration-300">
+                <div onclick="window.location.hash='#/settings'" class="glass-panel p-4 bg-amber-500/10 border border-amber-500/25 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer hover:bg-amber-500/15 transition-all duration-300">
                     <div class="flex items-center space-x-3 text-left">
                         <div class="h-10 w-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
                             <i data-lucide="alert-triangle" class="h-5 w-5 animate-pulse text-amber-450"></i>
@@ -671,7 +693,7 @@ async function renderDashboard(container) {
                             <span class="p-1.5 bg-emerald-500/10 text-emerald-400 rounded-md"><i data-lucide="dollar-sign" class="h-4 w-4"></i></span>
                         </div>
                         <div class="mt-3">
-                            <span class="text-xl font-extrabold text-white" id="stat-revenue-val">₹0</span>
+                            <span class="text-xl font-extrabold text-white" id="stat-revenue-val">${window.getCurrencySymbol()}0</span>
                             <span class="text-[10px] text-slate-500 block mt-0.5">Est. forecast</span>
                         </div>
                     </div>
@@ -742,7 +764,7 @@ async function renderDashboard(container) {
                         </div>
                     </div>
                     <div class="glass-panel p-6 bg-slate-900/40 space-y-4 text-left">
-                        <h4 class="text-sm font-bold text-white text-left">Sales Pipeline Funnel (₹)</h4>
+                        <h4 class="text-sm font-bold text-white text-left">Sales Pipeline Funnel (${window.getCurrencySymbol()})</h4>
                         <div class="relative h-60 flex items-center justify-center">
                             <canvas id="pipelineFunnelChart"></canvas>
                         </div>
@@ -2290,6 +2312,10 @@ async function renderInbox(container, targetEmailId = null) {
                             <i data-lucide="refresh-cw" class="h-4 w-4"></i>
                         </button>
                     </div>
+
+                    <!-- Disconnected / Paused Warning Banner -->
+                    <div id="inbox-status-warning-banner" class="hidden"></div>
+
                     <div class="flex-grow overflow-y-auto divide-y divide-slate-100" id="inbox-emails-list-container">
                         <div class="p-6 text-center text-slate-400 text-xs">Loading inbox...</div>
                     </div>
@@ -2314,6 +2340,7 @@ async function renderInbox(container, targetEmailId = null) {
         activeEmailId = targetEmailId;
         await refreshInboxList(1);
         checkInboxPendingStatus();
+        checkInboxEmailAccountStatus();
     } catch (err) {
         showNotification('error', err.message);
     }
@@ -2818,7 +2845,7 @@ async function renderLeads(container) {
                     <td class="py-3 px-4 font-bold text-white">${l.name}</td>
                     <td class="py-3 px-4 text-slate-300 font-medium">${l.company || '-'}</td>
                     <td class="py-3 px-4 text-slate-400 font-mono text-[11px]">${l.email}</td>
-                    <td class="py-3 px-4 text-indigo-400 font-bold">₹${parseFloat(l.budget).toLocaleString('en-IN')}</td>
+                    <td class="py-3 px-4 text-indigo-400 font-bold">${window.formatCurrency(l.budget)}</td>
                     <td class="py-3 px-4">
                         <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-teal-500/10 text-teal-400 border border-teal-500/20">${l.stage}</span>
                     </td>
@@ -2921,7 +2948,7 @@ function createNewLeadModal(prefills = {}) {
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Estimated Budget (₹)</label>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Estimated Budget (${window.getCurrencySymbol()})</label>
                             <input type="number" id="new-lead-budget" placeholder="0" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
                         </div>
                         <div>
@@ -3176,7 +3203,7 @@ async function editCrmLead(leadId) {
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Lead Budget (₹)</label>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Lead Budget (${window.getCurrencySymbol()})</label>
                                 <input type="number" id="edit-lead-budget" value="${l.budget || 0}" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none">
                             </div>
                             <div>
@@ -3449,7 +3476,7 @@ async function renderDeals(container) {
                         
                         <!-- Value -->
                         <div class="text-xs font-black text-slate-800">
-                            ₹${revenue}
+                            ${window.formatCurrency(revenue)}
                         </div>
                         
                         <!-- Owner & Date Footer -->
@@ -3474,7 +3501,7 @@ async function renderDeals(container) {
                             <span class="text-xs font-extrabold ${theme.text.split(' ')[0]} tracking-wider uppercase">${theme.name}</span>
                             <span class="px-2 py-0.5 rounded-full text-[9px] font-black ${theme.bg} ${theme.text.split(' ')[0]}">${stages[st].length}</span>
                         </div>
-                        <span class="text-[10px] font-black text-slate-800">₹${parseFloat(data.totals[st] || 0).toLocaleString('en-IN')}</span>
+                        <span class="text-[10px] font-black text-slate-800">${window.formatCurrency(data.totals[st] || 0)}</span>
                     </div>
                     
                     <!-- Cards Container -->
@@ -3581,7 +3608,7 @@ async function renderDeals(container) {
                             <div>
                                 <div class="flex justify-between text-[11px] font-bold text-slate-600 mb-1">
                                     <span>Closed Won Revenue Goal</span>
-                                    <span>₹${wonValue.toLocaleString('en-IN')} / ₹${totalValue.toLocaleString('en-IN')}</span>
+                                    <span>${window.formatCurrency(wonValue)} / ${window.formatCurrency(totalValue)}</span>
                                 </div>
                                 <div class="w-full bg-slate-200 rounded-full h-3">
                                     <div class="bg-emerald-500 h-3 rounded-full transition-all duration-500" style="width: ${totalValue > 0 ? Math.round((wonValue / totalValue) * 100) : 0}%"></div>
@@ -3590,11 +3617,11 @@ async function renderDeals(container) {
                             <div class="grid grid-cols-2 gap-3 text-[10px] font-bold">
                                 <div class="p-3 bg-white border border-slate-100 rounded-xl">
                                     <span class="text-slate-400 block uppercase text-[8px]">Weighted Pipeline (50% prob)</span>
-                                    <span class="text-slate-800 text-sm font-extrabold">₹${Math.round(totalValue * 0.5).toLocaleString('en-IN')}</span>
+                                    <span class="text-slate-800 text-sm font-extrabold">${window.formatCurrency(Math.round(totalValue * 0.5))}</span>
                                 </div>
                                 <div class="p-3 bg-white border border-slate-100 rounded-xl">
                                     <span class="text-slate-400 block uppercase text-[8px]">Average Deal Size</span>
-                                    <span class="text-slate-800 text-sm font-extrabold">₹${avgValue.toLocaleString('en-IN')}</span>
+                                    <span class="text-slate-800 text-sm font-extrabold">${window.formatCurrency(avgValue)}</span>
                                 </div>
                             </div>
                         </div>
@@ -3616,7 +3643,7 @@ async function renderDeals(container) {
                                                 </div>
                                                 <span class="w-6 text-right">${pct}%</span>
                                             </div>
-                                            <span class="font-bold text-slate-800">₹${val.toLocaleString('en-IN')}</span>
+                                            <span class="font-bold text-slate-800">${window.formatCurrency(val)}</span>
                                         </div>
                                     `;
                                 }).join('')}
@@ -3642,7 +3669,7 @@ async function renderDeals(container) {
                             <i data-lucide="trending-up" class="h-3.5 w-3.5"></i>
                         </div>
                         <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Total Value</div>
-                        <div class="text-xl font-extrabold text-slate-800">₹${totalValue.toLocaleString('en-IN')}</div>
+                        <div class="text-xl font-extrabold text-slate-800">${window.formatCurrency(totalValue)}</div>
                         <div class="text-[9px] text-slate-400 font-medium">All deals</div>
                     </div>
                     <!-- Open Deals -->
@@ -3678,7 +3705,7 @@ async function renderDeals(container) {
                             <i data-lucide="bar-chart" class="h-3.5 w-3.5"></i>
                         </div>
                         <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Avg. Deal Value</div>
-                        <div class="text-xl font-extrabold text-slate-800">₹${avgValue.toLocaleString('en-IN')}</div>
+                        <div class="text-xl font-extrabold text-slate-800">${window.formatCurrency(avgValue)}</div>
                         <div class="text-[9px] text-slate-400 font-medium">All time</div>
                     </div>
                 </div>
@@ -3852,7 +3879,7 @@ window.openCreateDealModal = async function(prefilledStage) {
                         </select>
                     </div>
                     <div class="space-y-1">
-                        <label class="block font-bold text-slate-600 uppercase tracking-wider text-[9px]">Revenue (₹)</label>
+                        <label class="block font-bold text-slate-600 uppercase tracking-wider text-[9px]">Revenue (${window.getCurrencySymbol()})</label>
                         <input type="number" id="deal-revenue" value="0.00" step="0.01" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 shadow-sm bg-white">
                     </div>
                     <div class="space-y-1">
@@ -4004,7 +4031,7 @@ window.openEditDealModal = async function(dealId) {
                         </select>
                     </div>
                     <div class="space-y-1">
-                        <label class="block font-bold text-slate-600 uppercase tracking-wider text-[9px]">Revenue (₹)</label>
+                        <label class="block font-bold text-slate-600 uppercase tracking-wider text-[9px]">Revenue (${window.getCurrencySymbol()})</label>
                         <input type="number" id="edit-deal-revenue" value="${deal.expected_revenue}" step="0.01" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 shadow-sm bg-white">
                     </div>
                     <div class="space-y-1">
@@ -11968,7 +11995,10 @@ function renderVisualCanvas(container) {
                             <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                             <span>Active</span>
                         </span>
-                        <span class="text-[9px] text-slate-400 ml-2">Last updated 2 hours ago</span>
+                        <span id="wf-autosave-indicator" class="flex items-center space-x-1 text-[9px] text-slate-400 ml-3 font-semibold select-none">
+                            <i data-lucide="cloud" class="h-3.5 w-3.5 text-slate-400 transition-colors duration-300" id="wf-autosave-icon"></i>
+                            <span id="wf-autosave-text" class="transition-colors duration-300">Saved to Cloud</span>
+                        </span>
                     </div>
 
                     <!-- Center: Navigation Tabs -->
@@ -14909,6 +14939,114 @@ window.changeInboxPage = async function(newPage) {
     await refreshInboxList(newPage);
 };
 
+window.handleResumeInboxSync = async function(btn) {
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="refresh-cw" class="h-3 w-3 animate-spin mr-1"></i><span>Resuming...</span>`;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+    try {
+        const res = await apiCall('crm/email_intelligence/sync.php?action=toggle', 'POST', { active: 1 });
+        showNotification('success', res.message || 'Email sync resumed successfully.');
+        await checkInboxEmailAccountStatus();
+        await refreshInboxList(1);
+    } catch(err) {
+        showNotification('error', err.message || 'Failed to resume email sync.');
+        if (btn) btn.disabled = false;
+    }
+};
+
+async function checkInboxEmailAccountStatus() {
+    const banner = document.getElementById('inbox-status-warning-banner');
+    if (!banner) return;
+    
+    try {
+        const [smtpRes, syncRes] = await Promise.all([
+            apiCall('smtp/list.php').catch(() => ({ accounts: [] })),
+            apiCall('crm/email_intelligence/sync.php').catch(() => ({}))
+        ]);
+        
+        const accounts = smtpRes.accounts || [];
+        const syncData = syncRes.data || syncRes || {};
+        const isActive = syncData.is_active !== undefined ? Boolean(syncData.is_active) : true;
+        const lastSyncRaw = syncData.last_sync_at || (accounts.length > 0 ? accounts[0].updated_at : null);
+        
+        let lastStoppedDate = 'Never';
+        if (lastSyncRaw && lastSyncRaw !== 'Never') {
+            const d = new Date(lastSyncRaw);
+            if (!isNaN(d.getTime())) {
+                lastStoppedDate = d.toLocaleString('en-US', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            } else {
+                lastStoppedDate = lastSyncRaw;
+            }
+        }
+        
+        if (accounts.length === 0) {
+            // DISCONNECTED
+            banner.className = "bg-amber-50 border-b border-amber-200 p-3 flex items-center justify-between text-xs text-amber-900 animate-fade-in shrink-0";
+            banner.innerHTML = `
+                <div class="flex items-center space-x-2.5 min-w-0 pr-2">
+                    <div class="h-7 w-7 rounded-lg bg-amber-100 border border-amber-200 text-amber-700 flex items-center justify-center shrink-0">
+                        <i data-lucide="mail-warning" class="h-4 w-4"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="font-extrabold text-amber-950 flex items-center space-x-1.5 text-[11px]">
+                            <span>Email Disconnected</span>
+                            <span class="text-[8px] px-1.5 py-0.2 bg-amber-200/80 text-amber-900 rounded font-bold uppercase">Disconnected</span>
+                        </div>
+                        <div class="text-[10px] text-amber-800 font-medium truncate mt-0.5">
+                            Last active: <span class="font-bold text-amber-950">${lastStoppedDate}</span>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="navigateTo('settings')" class="px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-[10px] shadow-xs transition shrink-0 flex items-center space-x-1">
+                    <i data-lucide="link" class="h-3 w-3"></i>
+                    <span>Connect Email</span>
+                </button>
+            `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        } else if (!isActive) {
+            // PAUSED
+            banner.className = "bg-amber-50 border-b border-amber-200 p-3 flex items-center justify-between text-xs text-amber-900 animate-fade-in shrink-0";
+            banner.innerHTML = `
+                <div class="flex items-center space-x-2.5 min-w-0 pr-2">
+                    <div class="flex items-center space-x-2.5 min-w-0">
+                        <div class="h-7 w-7 rounded-lg bg-amber-100 border border-amber-200 text-amber-700 flex items-center justify-center shrink-0">
+                            <i data-lucide="pause-circle" class="h-4 w-4"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="font-extrabold text-amber-950 flex items-center space-x-1.5 text-[11px]">
+                                <span>Email Sync Paused</span>
+                                <span class="text-[8px] px-1.5 py-0.2 bg-amber-200/80 text-amber-900 rounded font-bold uppercase">Paused</span>
+                            </div>
+                            <div class="text-[10px] text-amber-800 font-medium truncate mt-0.5">
+                                Last active till: <span class="font-bold text-amber-950">${lastStoppedDate}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="handleResumeInboxSync(this)" class="px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-[10px] shadow-xs transition shrink-0 flex items-center space-x-1">
+                    <i data-lucide="refresh-cw" class="h-3 w-3"></i>
+                    <span>Reconnect / Resume</span>
+                </button>
+            `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        } else {
+            banner.className = "hidden";
+            banner.innerHTML = "";
+        }
+    } catch(err) {
+        console.error('Failed to load inbox account status', err);
+    }
+}
+
 let inboxInlineSearchTimeout = null;
 function handleInboxInlineSearch(value) {
     if (inboxInlineSearchTimeout) {
@@ -15041,7 +15179,7 @@ async function searchLeads(val) {
                     <td class="py-3 px-4 font-bold text-white">${l.name}</td>
                     <td class="py-3 px-4 text-slate-300 font-medium">${l.company || '-'}</td>
                     <td class="py-3 px-4 text-slate-400 font-mono text-[11px]">${l.email}</td>
-                    <td class="py-3 px-4 text-indigo-400 font-bold">₹${parseFloat(l.budget).toLocaleString('en-IN')}</td>
+                    <td class="py-3 px-4 text-indigo-400 font-bold">${window.formatCurrency(l.budget)}</td>
                     <td class="py-3 px-4">
                         <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-teal-500/10 text-teal-400 border border-teal-500/20">${l.stage}</span>
                     </td>
@@ -16939,9 +17077,39 @@ async function runWorkflowSimulation(btn) {
 // ----------------------------------------------------
 // SAVE AND UPDATE STATE API HANDLERS
 // ----------------------------------------------------
-async function saveActiveWorkflow() {
+window.triggerAutoSaveAnimation = function(status) {
+    const icon = document.getElementById('wf-autosave-icon');
+    const text = document.getElementById('wf-autosave-text');
+    if (!icon || !text) return;
+    
+    if (status === 'saving') {
+        icon.className = 'h-3.5 w-3.5 text-blue-500 animate-spin';
+        text.textContent = 'Saving changes...';
+        text.className = 'text-blue-500 font-bold transition-colors duration-300';
+    } else if (status === 'success') {
+        icon.className = 'h-3.5 w-3.5 text-emerald-500 scale-110 transition-all duration-300';
+        text.textContent = 'Synced';
+        text.className = 'text-emerald-500 font-bold transition-colors duration-300';
+        
+        setTimeout(() => {
+            icon.className = 'h-3.5 w-3.5 text-slate-400 transition-all duration-300';
+            text.textContent = 'Saved to Cloud';
+            text.className = 'text-slate-400 font-semibold transition-colors duration-300';
+        }, 3000);
+    } else if (status === 'error') {
+        icon.className = 'h-3.5 w-3.5 text-rose-500 transition-all duration-300';
+        text.textContent = 'Save Failed';
+        text.className = 'text-rose-500 font-bold transition-colors duration-300';
+    }
+};
+
+async function saveActiveWorkflow(isAutoSave = false) {
     const wf = window.wfState.activeWorkflow;
     if (!wf) return;
+    
+    if (isAutoSave) {
+        window.triggerAutoSaveAnimation('saving');
+    }
     
     try {
         // Find trigger value inside the nodes config to keep database compatible
@@ -16969,15 +17137,27 @@ async function saveActiveWorkflow() {
         
         const res = await apiCall('crm/automation.php', 'POST', payload);
         if (res.status === 'success') {
-            showNotification('success', 'Workflow saved successfully!');
+            if (!isAutoSave) {
+                showNotification('success', 'Workflow saved successfully!');
+            } else {
+                window.triggerAutoSaveAnimation('success');
+            }
             if (res.workflow_id) {
                 wf.id = res.workflow_id;
             }
         } else {
-            showNotification('error', res.message);
+            if (!isAutoSave) {
+                showNotification('error', res.message);
+            } else {
+                window.triggerAutoSaveAnimation('error');
+            }
         }
     } catch(e) {
-        showNotification('error', e.message);
+        if (!isAutoSave) {
+            showNotification('error', e.message);
+        } else {
+            window.triggerAutoSaveAnimation('error');
+        }
     }
 }
 
@@ -17122,7 +17302,7 @@ function startBuilderAutoSave() {
     window.wfState.autoSaveTimer = setInterval(() => {
         const wf = window.wfState.activeWorkflow;
         if (wf) {
-            saveActiveWorkflow();
+            saveActiveWorkflow(true);
             console.log('Visual builder automated background save triggered.');
         }
     }, 120000); // Save every 2 minutes

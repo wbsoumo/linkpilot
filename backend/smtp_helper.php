@@ -348,35 +348,40 @@ class SMTPHelper {
     }
 
     /**
-     * Call AWS EC2 Mail Worker (mailbaby.linkpilot.work)
+     * Call AWS EC2 Mail Worker (mailbaby.linkpilot.work / 13.201.120.240)
      */
     public static function callAwsProxyWorker($action, $data) {
-        $workerUrl = "https://mailbaby.linkpilot.work/index.php?action=" . urlencode($action);
+        $workerUrls = [
+            "https://mailbaby.linkpilot.work/index.php?action=" . urlencode($action),
+            "http://13.201.120.240/mailbaby/index.php?action=" . urlencode($action)
+        ];
         $secretKey = "LINKPILOT_AWS_SECRET_KEY_2026";
 
-        $ch = curl_init($workerUrl);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            "Content-Type: application/json",
-            "X-LinkPilot-Secret: " . $secretKey
-        ]);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 12);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        foreach ($workerUrls as $workerUrl) {
+            $ch = curl_init($workerUrl);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                "Content-Type: application/json",
+                "X-LinkPilot-Secret: " . $secretKey
+            ]);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 12);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
 
-        if ($httpCode === 200 && !empty($response)) {
-            $res = json_decode($response, true);
-            if (is_array($res) && isset($res['status'])) {
-                return [
-                    "status" => (bool)($res['status'] === 'success' || $res['status'] === true),
-                    "message" => $res['message'] ?? 'Worker processed request'
-                ];
+            if ($httpCode === 200 && !empty($response)) {
+                $res = json_decode($response, true);
+                if (is_array($res) && isset($res['status'])) {
+                    return [
+                        "status" => (bool)($res['status'] === 'success' || $res['status'] === true),
+                        "message" => $res['message'] ?? 'Worker processed request'
+                    ];
+                }
             }
         }
         return null;

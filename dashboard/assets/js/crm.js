@@ -371,7 +371,7 @@ async function navigateTo(view, params = {}) {
             }
         });
 
-        const isEmailView = view === 'inbox' || view === 'email-intelligence';
+        const isEmailView = view === 'inbox' || view === 'email-intelligence' || view === 'followups' || view === 'email-followups';
         const emailSubmenu = document.getElementById('email-submenu');
         const emailChevron = document.getElementById('email-chevron');
         if (isEmailView && emailSubmenu) {
@@ -402,8 +402,8 @@ async function navigateTo(view, params = {}) {
             toggleSidebarCollapsed(false);
         }
         
-        // Dynamically manage full-bleed for inbox and visual builder
-        if (view === 'inbox' || view === 'whatsapp-inbox' || (view === 'automation' && window.wfState.activeWorkflow)) {
+        // Dynamically manage full-bleed for inbox, followups and visual builder
+        if (view === 'inbox' || view === 'whatsapp-inbox' || view === 'followups' || view === 'email-followups' || (view === 'automation' && window.wfState.activeWorkflow)) {
             contentArea.className = "flex-grow overflow-hidden w-full h-[calc(100vh-61px)] flex flex-col";
         } else {
             contentArea.className = "flex-grow p-6 md:p-8 overflow-y-auto max-w-7xl w-full mx-auto";
@@ -423,6 +423,10 @@ async function navigateTo(view, params = {}) {
                 break;
             case 'inbox':
                 await renderInbox(contentArea, params.emailId);
+                break;
+            case 'followups':
+            case 'email-followups':
+                await renderEmailFollowups(contentArea);
                 break;
             case 'leads':
                 await renderLeads(contentArea);
@@ -15052,6 +15056,422 @@ async function checkInboxEmailAccountStatus() {
         }
     } catch(err) {
         console.error('Failed to load inbox account status', err);
+    }
+}
+
+/* --- EMAIL FOLLOWUPS HUB & AI REPLY STUDIO --- */
+window.followupFilters = {
+    priority: '',
+    category: '',
+    status: 'needs_reply',
+    search: '',
+    page: 1
+};
+window.activeFollowupEmailId = null;
+window.selectedFollowupTone = 'Professional';
+
+async function renderEmailFollowups(container) {
+    try {
+        container.innerHTML = `
+            <div class="flex flex-col w-full h-full bg-slate-50 overflow-hidden animate-fade-in">
+                <!-- Top Filter Header Bar -->
+                <div class="bg-white border-b border-slate-200 px-6 py-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 shadow-xs">
+                    <div class="flex items-center space-x-3 min-w-0">
+                        <div class="h-9 w-9 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                            <i data-lucide="clock" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-sm font-extrabold text-slate-900 leading-tight">Email Followups Hub</h1>
+                            <p class="text-[11px] text-slate-500 font-medium truncate">Prioritize emails needing responses, manage overdue threads, and draft AI replies.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Search & Filter Controls -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <!-- Search Input -->
+                        <div class="relative w-44 sm:w-56">
+                            <i data-lucide="search" class="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400"></i>
+                            <input type="text" id="followup-search-input" oninput="handleFollowupSearch(this.value)" value="${window.followupFilters.search}" placeholder="Search followups..." class="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-250 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition">
+                        </div>
+                        
+                        <!-- Priority Filter -->
+                        <select onchange="filterFollowups('priority', this.value)" class="py-1.5 px-2.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-500">
+                            <option value="">All Priorities</option>
+                            <option value="high" ${window.followupFilters.priority==='high'?'selected':''}>High Priority</option>
+                            <option value="medium" ${window.followupFilters.priority==='medium'?'selected':''}>Medium Priority</option>
+                            <option value="low" ${window.followupFilters.priority==='low'?'selected':''}>Low Priority</option>
+                        </select>
+
+                        <!-- Category Filter -->
+                        <select onchange="filterFollowups('category', this.value)" class="py-1.5 px-2.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-500">
+                            <option value="">All Categories</option>
+                            <option value="New Lead" ${window.followupFilters.category==='New Lead'?'selected':''}>New Lead</option>
+                            <option value="Existing Client" ${window.followupFilters.category==='Existing Client'?'selected':''}>Existing Client</option>
+                            <option value="Meeting Request" ${window.followupFilters.category==='Meeting Request'?'selected':''}>Meeting Request</option>
+                            <option value="Support Request" ${window.followupFilters.category==='Support Request'?'selected':''}>Support Request</option>
+                            <option value="Invoice" ${window.followupFilters.category==='Invoice'?'selected':''}>Invoice</option>
+                        </select>
+
+                        <!-- Status Filter -->
+                        <select onchange="filterFollowups('status', this.value)" class="py-1.5 px-2.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-500">
+                            <option value="needs_reply" ${window.followupFilters.status==='needs_reply'?'selected':''}>Needs Reply</option>
+                            <option value="unread" ${window.followupFilters.status==='unread'?'selected':''}>Unread</option>
+                            <option value="" ${window.followupFilters.status===''?'selected':''}>All Emails</option>
+                        </select>
+
+                        <button onclick="refreshFollowupsList()" class="p-2 border border-slate-250 hover:bg-slate-50 rounded-xl text-slate-600 transition" title="Refresh List">
+                            <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Stats Pills Toolbar -->
+                <div class="bg-slate-100/70 border-b border-slate-200 px-6 py-2 flex items-center space-x-5 text-xs font-semibold shrink-0">
+                    <div class="flex items-center space-x-1.5 text-slate-600">
+                        <span>Pending Followups:</span>
+                        <span id="stat-pending-count" class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-extrabold text-[10px]">0</span>
+                    </div>
+                    <div class="flex items-center space-x-1.5 text-slate-600">
+                        <span>High Priority:</span>
+                        <span id="stat-high-priority-count" class="px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-extrabold text-[10px]">0</span>
+                    </div>
+                    <div class="flex items-center space-x-1.5 text-slate-600">
+                        <span>Overdue (>2 days):</span>
+                        <span id="stat-overdue-count" class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full font-extrabold text-[10px]">0</span>
+                    </div>
+                </div>
+
+                <!-- Split View Body -->
+                <div class="flex-grow flex flex-row divide-x divide-slate-200 overflow-hidden">
+                    <!-- Left List Pane -->
+                    <div class="w-[380px] shrink-0 bg-white flex flex-col h-full overflow-hidden">
+                        <div class="flex-grow overflow-y-auto divide-y divide-slate-100" id="followups-list-container">
+                            <div class="p-8 text-center text-slate-400 text-xs">Loading followups...</div>
+                        </div>
+                    </div>
+
+                    <!-- Right Detail & AI Studio Pane -->
+                    <div class="flex-grow bg-white flex flex-col h-full overflow-hidden" id="followup-detail-container">
+                        <div class="flex-grow flex flex-col items-center justify-center p-8 text-center bg-[#f8fafc]/40">
+                            <div class="h-16 w-16 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center text-blue-500 mb-4 shadow-xs">
+                                <i data-lucide="mail-check" class="h-8 w-8"></i>
+                            </div>
+                            <h3 class="text-sm font-extrabold text-slate-800 mb-1">Select an Email to Follow Up</h3>
+                            <p class="text-xs text-slate-400 font-semibold max-w-sm leading-relaxed">Choose an email from the left list to view thread history, select response tone presets, and draft AI-guided replies.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        await refreshFollowupsList();
+    } catch(err) {
+        showNotification('error', 'Failed to render followups page: ' + err.message);
+    }
+}
+
+let followupSearchTimeout = null;
+function handleFollowupSearch(val) {
+    if (followupSearchTimeout) clearTimeout(followupSearchTimeout);
+    followupSearchTimeout = setTimeout(() => {
+        window.followupFilters.search = val.trim();
+        refreshFollowupsList();
+    }, 400);
+}
+
+function filterFollowups(key, val) {
+    window.followupFilters[key] = val;
+    refreshFollowupsList();
+}
+
+async function refreshFollowupsList() {
+    const listContainer = document.getElementById('followups-list-container');
+    if (!listContainer) return;
+    
+    listContainer.innerHTML = `
+        <div class="flex items-center justify-center py-12">
+            <div class="loader-spinner !w-6 !h-6 !border-2"></div>
+        </div>
+    `;
+    
+    try {
+        let url = `crm/email_intelligence/emails.php?is_spam=0&is_archived=0`;
+        if (window.followupFilters.priority) url += `&priority=${encodeURIComponent(window.followupFilters.priority)}`;
+        if (window.followupFilters.category) url += `&category=${encodeURIComponent(window.followupFilters.category)}`;
+        if (window.followupFilters.search) url += `&search=${encodeURIComponent(window.followupFilters.search)}`;
+        if (window.followupFilters.status === 'unread') url += `&is_read=0`;
+        
+        const data = await apiCall(url);
+        let emails = data.emails || [];
+        
+        // Calculate statistics
+        const pendingCount = emails.length;
+        const highPriorityCount = emails.filter(e => e.priority === 'high').length;
+        const now = new Date();
+        const overdueCount = emails.filter(e => {
+            const ageDays = (now - new Date(e.received_date)) / (1000 * 60 * 60 * 24);
+            return ageDays >= 2;
+        }).length;
+        
+        const pElem = document.getElementById('stat-pending-count');
+        const hElem = document.getElementById('stat-high-priority-count');
+        const oElem = document.getElementById('stat-overdue-count');
+        if (pElem) pElem.innerText = pendingCount;
+        if (hElem) hElem.innerText = highPriorityCount;
+        if (oElem) oElem.innerText = overdueCount;
+        
+        if (emails.length === 0) {
+            listContainer.innerHTML = `
+                <div class="p-8 text-center text-slate-400 text-xs">
+                    <i data-lucide="check-circle-2" class="h-8 w-8 mx-auto mb-2 text-emerald-400"></i>
+                    <p class="font-bold text-slate-700">No emails matching criteria.</p>
+                    <p class="text-[11px] text-slate-400 mt-1">All followups are up to date!</p>
+                </div>
+            `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            return;
+        }
+        
+        listContainer.innerHTML = emails.map(m => {
+            const dateStr = formatInboxDate(m.received_date);
+            const ageDays = Math.floor((now - new Date(m.received_date)) / (1000 * 60 * 60 * 24));
+            const isOverdue = ageDays >= 2;
+            const priorityBadge = m.priority === 'high' ? 'bg-red-50 text-red-600 border-red-100' : m.priority === 'medium' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100';
+            const isActive = m.id === window.activeFollowupEmailId;
+            const isUnread = !m.is_read;
+            
+            return `
+                <div onclick="selectFollowupEmail(${m.id})" id="followup-card-${m.id}" class="p-4 border-b border-slate-100 cursor-pointer transition flex flex-col justify-between bg-white relative ${isActive ? 'bg-[#f8fafc] border-l-4 border-l-blue-600' : ''} ${isUnread && !isActive ? 'border-l-4 border-l-indigo-400 bg-blue-50/10' : ''}">
+                    <div class="flex items-start space-x-3">
+                        <img src="https://img.logo.dev/${getEmailDomain(m.sender_email)}?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-9 w-9 object-contain rounded-xl border border-slate-100 bg-white shrink-0 mt-0.5" alt="${m.sender_name}" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(m.sender_name || m.sender_email)}&background=random&color=fff';">
+                        <div class="min-w-0 flex-grow">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-xs truncate text-slate-800 max-w-[130px]">${m.sender_name || m.sender_email}</span>
+                                <span class="text-[10px] text-slate-450 font-semibold shrink-0">${dateStr}</span>
+                            </div>
+                            <div class="text-xs font-bold text-slate-700 truncate mt-1" title="${m.subject}">${m.subject}</div>
+                            <p class="text-[10px] text-slate-450 font-semibold truncate mt-1 leading-normal">${m.ai_summary || m.body_text || 'Click to view email...'}</p>
+                            
+                            <div class="flex items-center space-x-2 mt-2.5">
+                                <span class="px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase border ${priorityBadge}">${m.priority || 'low'}</span>
+                                <span class="px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase bg-purple-50 text-purple-600 border border-purple-100">${m.category || 'Followup'}</span>
+                                ${isOverdue ? `<span class="px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase bg-amber-50 text-amber-700 border border-amber-200 flex items-center"><i data-lucide="alert-circle" class="h-2.5 w-2.5 mr-1 text-amber-600"></i>${ageDays}d Overdue</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    } catch(err) {
+        listContainer.innerHTML = `<div class="p-6 text-center text-rose-500 text-xs">Error loading list: ${err.message}</div>`;
+    }
+}
+
+window.setFollowupTone = function(tone) {
+    window.selectedFollowupTone = tone;
+    document.querySelectorAll('.tone-preset-btn').forEach(btn => {
+        btn.classList.remove('bg-blue-600', 'text-white', 'border-blue-600', 'shadow-xs');
+        btn.classList.add('bg-slate-50', 'text-slate-700', 'border-slate-200');
+    });
+    const activeBtn = document.getElementById(`tone-btn-${tone}`);
+    if (activeBtn) {
+        activeBtn.classList.add('bg-blue-600', 'text-white', 'border-blue-600', 'shadow-xs');
+        activeBtn.classList.remove('bg-slate-50', 'text-slate-700', 'border-slate-200');
+    }
+};
+
+async function selectFollowupEmail(emailId) {
+    window.activeFollowupEmailId = emailId;
+    
+    // Active highlight in left list
+    document.querySelectorAll('[id^="followup-card-"]').forEach(c => {
+        c.classList.remove('bg-[#f8fafc]', 'border-l-4', 'border-l-blue-600');
+        c.classList.add('bg-white');
+    });
+    const card = document.getElementById(`followup-card-${emailId}`);
+    if (card) {
+        card.classList.add('bg-[#f8fafc]', 'border-l-4', 'border-l-blue-600');
+        card.classList.remove('bg-white');
+    }
+    
+    const container = document.getElementById('followup-detail-container');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="flex items-center justify-center h-full py-12">
+            <div class="loader-spinner !w-6 !h-6 !border-2"></div>
+        </div>
+    `;
+    
+    try {
+        const data = await apiCall(`crm/email_intelligence/emails.php?id=${emailId}`);
+        const email = data.email;
+        const date = new Date(email.received_date).toLocaleString('en-US', {
+            day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true
+        });
+        
+        container.innerHTML = `
+            <div class="flex flex-col h-full bg-white overflow-hidden animate-fade-in divide-y divide-slate-150">
+                <!-- Header Info Pane -->
+                <div class="p-5 bg-white shrink-0 space-y-3">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h2 class="text-base font-extrabold text-slate-900 leading-snug">${email.subject}</h2>
+                            <div class="flex items-center space-x-2 mt-1">
+                                <span class="text-xs font-bold text-slate-700">${email.sender_name || email.sender_email}</span>
+                                <span class="text-xs text-slate-400 font-medium">&lt;${email.sender_email}&gt;</span>
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <span class="text-[11px] font-semibold text-slate-500 block">${date}</span>
+                            <div class="flex space-x-1.5 justify-end mt-1">
+                                <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase border ${email.priority==='high'?'bg-red-50 text-red-600 border-red-100':'bg-blue-50 text-blue-600 border-blue-100'}">${email.priority || 'medium'}</span>
+                                <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-purple-50 text-purple-600 border border-purple-100">${email.category || 'General'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Message Content Scroll Area -->
+                <div class="flex-grow p-6 overflow-y-auto bg-slate-50/50 space-y-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
+                        <div class="text-xs text-slate-700 leading-relaxed whitespace-pre-line font-sans">${email.body_text || email.body_html || 'No text content.'}</div>
+                    </div>
+
+                    <!-- AI Reply Studio Widget -->
+                    <div class="bg-gradient-to-br from-blue-50/90 to-indigo-50/70 border border-blue-200/80 rounded-2xl p-5 space-y-3.5 shadow-xs">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <div class="h-7 w-7 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-xs">
+                                    <i data-lucide="sparkles" class="h-4 w-4"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-extrabold text-slate-900">AI Reply Assistant & Tone Generator</h4>
+                                    <p class="text-[10px] text-slate-500 font-semibold">Select a tone and generate a tailored response instantly.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tone Selectors -->
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Select Response Tone:</label>
+                            <div class="flex flex-wrap gap-1.5">
+                                <button type="button" onclick="setFollowupTone('Professional')" id="tone-btn-Professional" class="tone-preset-btn px-3 py-1.5 rounded-xl text-xs font-bold border transition ${window.selectedFollowupTone==='Professional'?'bg-blue-600 text-white border-blue-600 shadow-xs':'bg-slate-50 text-slate-700 border-slate-200'}">👔 Professional</button>
+                                <button type="button" onclick="setFollowupTone('Friendly')" id="tone-btn-Friendly" class="tone-preset-btn px-3 py-1.5 rounded-xl text-xs font-bold border transition ${window.selectedFollowupTone==='Friendly'?'bg-blue-600 text-white border-blue-600 shadow-xs':'bg-slate-50 text-slate-700 border-slate-200'}">😊 Friendly</button>
+                                <button type="button" onclick="setFollowupTone('Persuasive')" id="tone-btn-Persuasive" class="tone-preset-btn px-3 py-1.5 rounded-xl text-xs font-bold border transition ${window.selectedFollowupTone==='Persuasive'?'bg-blue-600 text-white border-blue-600 shadow-xs':'bg-slate-50 text-slate-700 border-slate-200'}">🎯 Persuasive</button>
+                                <button type="button" onclick="setFollowupTone('Concise')" id="tone-btn-Concise" class="tone-preset-btn px-3 py-1.5 rounded-xl text-xs font-bold border transition ${window.selectedFollowupTone==='Concise'?'bg-blue-600 text-white border-blue-600 shadow-xs':'bg-slate-50 text-slate-700 border-slate-200'}">⚡ Concise</button>
+                                <button type="button" onclick="setFollowupTone('Formal')" id="tone-btn-Formal" class="tone-preset-btn px-3 py-1.5 rounded-xl text-xs font-bold border transition ${window.selectedFollowupTone==='Formal'?'bg-blue-600 text-white border-blue-600 shadow-xs':'bg-slate-50 text-slate-700 border-slate-200'}">📜 Formal</button>
+                                <button type="button" onclick="setFollowupTone('Urgent')" id="tone-btn-Urgent" class="tone-preset-btn px-3 py-1.5 rounded-xl text-xs font-bold border transition ${window.selectedFollowupTone==='Urgent'?'bg-blue-600 text-white border-blue-600 shadow-xs':'bg-slate-50 text-slate-700 border-slate-200'}">🔥 Urgent</button>
+                            </div>
+                        </div>
+
+                        <!-- Custom Prompt Instructions -->
+                        <div class="space-y-1">
+                            <input type="text" id="followup-custom-prompt" placeholder="Optional custom instructions (e.g. Schedule call on Friday 3 PM)..." class="w-full px-3.5 py-2 bg-white border border-slate-250 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition">
+                        </div>
+
+                        <!-- Generate Action Button -->
+                        <button onclick="generateFollowupAIReply(${email.id})" id="followup-ai-gen-btn" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold rounded-xl shadow-xs transition flex items-center justify-center space-x-2">
+                            <i data-lucide="sparkles" class="h-4 w-4"></i>
+                            <span>Generate Draft Response</span>
+                        </button>
+                    </div>
+
+                    <!-- Reply Composer Box -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Email Response Composer</h4>
+                            <span class="text-[10px] text-slate-400 font-semibold">Replying to ${email.sender_email}</span>
+                        </div>
+                        <textarea id="followup-reply-body" rows="6" placeholder="Your reply message will appear here..." class="w-full p-3.5 border border-slate-200 rounded-xl text-xs text-slate-800 leading-relaxed focus:outline-none focus:border-blue-500 font-sans">${email.ai_suggested_reply || ''}</textarea>
+                        
+                        <div class="flex items-center justify-between pt-1">
+                            <button onclick="sendFollowupEmailReply(${email.id})" id="followup-send-btn" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl shadow-xs transition flex items-center space-x-2">
+                                <i data-lucide="send" class="h-3.5 w-3.5"></i>
+                                <span>Send Email Reply</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    } catch(err) {
+        container.innerHTML = `<div class="p-6 text-center text-rose-500 text-xs">Failed to load email details: ${err.message}</div>`;
+    }
+}
+
+async function generateFollowupAIReply(emailId) {
+    const btn = document.getElementById('followup-ai-gen-btn');
+    const promptInput = document.getElementById('followup-custom-prompt');
+    const textarea = document.getElementById('followup-reply-body');
+    
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="refresh-cw" class="h-4 w-4 animate-spin mr-1"></i><span>Generating AI Reply...</span>`;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+    
+    try {
+        const tone = window.selectedFollowupTone || 'Professional';
+        const customPrompt = promptInput ? promptInput.value.trim() : '';
+        
+        const res = await apiCall('crm/email_intelligence/emails.php?action=generate_reply', 'POST', {
+            id: emailId,
+            tone: tone,
+            custom_prompt: customPrompt
+        });
+        
+        if (textarea && res.reply) {
+            textarea.value = res.reply;
+        }
+        showNotification('success', `Generated response with ${tone} tone!`);
+    } catch(err) {
+        showNotification('error', err.message || 'Failed to generate AI reply.');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="sparkles" class="h-4 w-4 mr-1"></i><span>Re-Generate Draft</span>`;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    }
+}
+
+async function sendFollowupEmailReply(emailId) {
+    const btn = document.getElementById('followup-send-btn');
+    const textarea = document.getElementById('followup-reply-body');
+    
+    if (!textarea || !textarea.value.trim()) {
+        showNotification('error', 'Please enter a reply message.');
+        return;
+    }
+    
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="refresh-cw" class="h-3.5 w-3.5 animate-spin mr-1"></i><span>Sending Email...</span>`;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+    
+    try {
+        const res = await apiCall('crm/email_intelligence/reply.php', 'POST', {
+            received_email_id: emailId,
+            reply_body: textarea.value.trim()
+        });
+        
+        showNotification('success', res.message || 'Email reply sent successfully!');
+        await refreshFollowupsList();
+        await selectFollowupEmail(emailId);
+    } catch(err) {
+        showNotification('error', err.message || 'Failed to send email reply.');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="send" class="h-3.5 w-3.5 mr-1"></i><span>Send Email Reply</span>`;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
     }
 }
 

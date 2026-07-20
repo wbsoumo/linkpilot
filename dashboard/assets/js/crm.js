@@ -24195,44 +24195,140 @@ function getWizardStepHtml(step) {
 
     if (step === 2) {
         return `
-            <div class="space-y-5 font-sans">
-                <!-- 2 Tabs: Manual Entry vs CSV Import -->
-                <div class="flex border-b border-slate-200 space-x-6">
-                    <button onclick="switchWizardImportTab('manual')" class="pb-2.5 text-xs font-extrabold transition cursor-pointer border-b-2 ${st.import_tab === 'manual' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'}">
-                        📝 1. Manual Entry List
-                    </button>
-                    <button onclick="switchWizardImportTab('csv')" class="pb-2.5 text-xs font-extrabold transition cursor-pointer border-b-2 ${st.import_tab === 'csv' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'}">
-                        📁 2. Import CSV Sheet File
-                    </button>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 font-sans">
+                <!-- Left panel: Tabs + Workspace (col-span-9) -->
+                <div class="lg:col-span-9 space-y-5">
+                    <!-- 2 Tabs: Manual Entry vs CSV Import -->
+                    <div class="flex border-b border-slate-200">
+                        <button type="button" onclick="switchWizardImportTab('manual')" class="pb-3 text-xs font-bold transition flex items-center space-x-2 border-b-2 px-4 cursor-pointer ${st.import_tab === 'manual' ? 'border-indigo-600 text-indigo-600 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">
+                            <i data-lucide="edit-3" class="h-4 w-4"></i>
+                            <span>Manual Entry</span>
+                        </button>
+                        <button type="button" onclick="switchWizardImportTab('csv')" class="pb-3 text-xs font-bold transition flex items-center space-x-2 border-b-2 px-4 cursor-pointer ${st.import_tab === 'csv' ? 'border-indigo-600 text-indigo-600 font-extrabold' : 'border-transparent text-slate-400 hover:text-slate-600'}">
+                            <i data-lucide="file-spreadsheet" class="h-4 w-4"></i>
+                            <span>Import CSV</span>
+                        </button>
+                    </div>
+
+                    ${st.import_tab === 'manual' ? `
+                        <!-- MANUAL WORKSPACE -->
+                        <div class="space-y-4">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div>
+                                    <h4 class="text-sm font-bold text-slate-800">Paste Recipient Emails</h4>
+                                    <p class="text-xs text-slate-400 font-medium">Enter email addresses separated by commas, new line or semicolon.</p>
+                                </div>
+                                <!-- Supported Format card -->
+                                <div class="bg-indigo-50/50 border border-indigo-100 rounded-xl px-4 py-2 flex items-center space-x-2.5 text-xs select-none">
+                                    <div class="text-indigo-600 font-medium leading-tight">
+                                        <div class="text-[10px] text-indigo-400 font-extrabold uppercase tracking-wider">Supported Format</div>
+                                        <div class="font-mono text-[11px] font-bold text-slate-700">email, variable1, variable2...</div>
+                                    </div>
+                                    <i data-lucide="info" class="h-4 w-4 text-indigo-500 shrink-0"></i>
+                                </div>
+                            </div>
+
+                            <div class="relative bg-white border border-slate-300 rounded-2xl shadow-2xs focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition overflow-hidden">
+                                <textarea id="wizard-manual-text" oninput="handleManualTextChange(this.value)" rows="8" placeholder="alex.smith@acme.com, Alex, Acme Corp&#10;sarah.connor@tech.io, Sarah, TechIO&#10;david.miller@co.org, David, CoOrg" class="w-full p-4 bg-transparent border-none text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none resize-none leading-relaxed min-h-[160px]">${escapeHtml(st.manual_text)}</textarea>
+                                <!-- Floating badge bottom right -->
+                                <div class="absolute bottom-3 right-4 select-none pointer-events-none">
+                                    <span id="wizard-manual-entered-badge" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100/50 px-2.5 py-1 rounded-full">
+                                        0 emails entered
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Validation Box Container -->
+                            <div id="wizard-validation-box" class="transition-all duration-300">
+                                <!-- Will be hydrated dynamically by JS -->
+                            </div>
+                        </div>
+                    ` : `
+                        <!-- CSV WORKSPACE -->
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="text-sm font-bold text-slate-800">Upload CSV File</h4>
+                                <p class="text-xs text-slate-400 font-medium">Select a CSV spreadsheet sheet from your device.</p>
+                            </div>
+                            
+                            <div class="border-2 border-dashed border-slate-300 hover:border-indigo-500 hover:bg-slate-50/50 rounded-2xl p-10 text-center bg-slate-50 transition cursor-pointer" onclick="document.getElementById('wizard-csv-file-input').click()">
+                                <input type="file" id="wizard-csv-file-input" accept=".csv" onchange="handleWizardCsvFile(this)" class="hidden">
+                                <div class="h-12 w-12 mx-auto rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center mb-3">
+                                    <i data-lucide="file-spreadsheet" class="h-6 w-6 text-indigo-600"></i>
+                                </div>
+                                <div class="text-sm font-extrabold text-slate-800">Drag & Drop or click to upload CSV spreadsheet</div>
+                                <div class="text-xs text-slate-400 mt-1.5 font-medium">Make sure the file contains an 'Email' or 'Emails' column header.</div>
+                            </div>
+
+                            <div id="wizard-csv-summary" class="${st.csv_filename ? 'flex' : 'hidden'} p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-xs font-bold text-emerald-800 items-center justify-between">
+                                <div class="flex items-center space-x-2.5">
+                                    <div class="h-7 w-7 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                                        <i data-lucide="check" class="h-4 w-4 text-emerald-600"></i>
+                                    </div>
+                                    <div>
+                                        <span id="wizard-csv-summary-text" class="text-emerald-950 font-bold">Parsed ${st.recipients.length} contacts from CSV</span>
+                                        <div class="text-[10px] text-emerald-600 font-medium">${escapeHtml(st.csv_filename)}</div>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="document.getElementById('wizard-csv-file-input').click()" class="px-3 py-1.5 bg-white border border-emerald-200 hover:bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-lg transition cursor-pointer">Change File</button>
+                            </div>
+                        </div>
+                    `}
                 </div>
 
-                ${st.import_tab === 'manual' ? `
+                <!-- Right panel: Sidebar (col-span-3) -->
+                <div class="lg:col-span-3 space-y-5 border-l border-slate-100 lg:pl-6">
+                    <!-- Quick Tips -->
                     <div class="space-y-3">
-                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Paste Recipient Emails (Format: Email, Variable1, Variable2...):</label>
-                        <textarea id="wizard-manual-text" oninput="handleManualTextChange(this.value)" rows="10" placeholder="alex.smith@acme.com, Alex, Acme Corp&#10;sarah.connor@tech.io, Sarah, TechIO&#10;david.miller@co.org, David, CoOrg" class="w-full p-3.5 border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none focus:border-indigo-500">${escapeHtml(st.manual_text)}</textarea>
-                        <div class="flex items-center justify-between text-xs font-bold bg-slate-50 p-3.5 border border-slate-200 rounded-xl">
-                            <span class="text-slate-600">Valid Mail Count Detected:</span>
-                            <span id="wizard-valid-mail-count" class="text-indigo-600 font-extrabold bg-indigo-50 px-3.5 py-1 rounded-lg border border-indigo-100">0 Valid Emails</span>
+                        <div class="flex items-center space-x-2 text-slate-700 select-none">
+                            <i data-lucide="lightbulb" class="h-4 w-4 text-amber-500"></i>
+                            <span class="text-xs font-extrabold uppercase tracking-wider text-slate-800">Quick Tips</span>
                         </div>
+                        <ul class="space-y-2.5 text-xs">
+                            <li class="flex items-start space-x-2 text-slate-600">
+                                <i data-lucide="check-circle" class="h-4 w-4 text-emerald-500 shrink-0 mt-0.5"></i>
+                                <span class="font-semibold leading-relaxed">You can paste emails from Excel, Google Sheets or any source.</span>
+                            </li>
+                            <li class="flex items-start space-x-2 text-slate-600">
+                                <i data-lucide="check-circle" class="h-4 w-4 text-emerald-500 shrink-0 mt-0.5"></i>
+                                <span class="font-semibold leading-relaxed">Include variables like <code class="bg-slate-100 text-indigo-600 px-1.5 py-0.5 rounded font-mono text-[10px] font-bold">first_name</code>, <code class="bg-slate-100 text-indigo-600 px-1.5 py-0.5 rounded font-mono text-[10px] font-bold">company</code> for personalization.</span>
+                            </li>
+                            <li class="flex items-start space-x-2 text-slate-600">
+                                <i data-lucide="check-circle" class="h-4 w-4 text-emerald-500 shrink-0 mt-0.5"></i>
+                                <span class="font-semibold leading-relaxed">Duplicate emails will be automatically removed.</span>
+                            </li>
+                        </ul>
                     </div>
-                ` : `
-                    <div class="space-y-4">
-                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Upload CSV File:</label>
-                        <div class="border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-2xl p-10 text-center bg-slate-50 transition cursor-pointer" onclick="document.getElementById('wizard-csv-file-input').click()">
-                            <input type="file" id="wizard-csv-file-input" accept=".csv" onchange="handleWizardCsvFile(this)" class="hidden">
-                            <i data-lucide="file-spreadsheet" class="h-12 w-12 mx-auto text-indigo-500 mb-2"></i>
-                            <div class="text-sm font-bold text-slate-800">Drag & Drop or click to upload CSV spreadsheet</div>
-                            <div class="text-xs text-slate-400 mt-1">Make sure the file contains an 'Email' or 'Emails' column header.</div>
-                        </div>
 
-                        <div id="wizard-csv-summary" class="${st.csv_filename ? '' : 'hidden'} p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-800 flex items-center justify-between">
-                            <div class="flex items-center space-x-2">
-                                <i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-600"></i>
-                                <span id="wizard-csv-summary-text">Parsed ${st.recipients.length} contacts from CSV</span>
+                    <hr class="border-slate-100">
+
+                    <!-- Variables You Can Use -->
+                    <div class="space-y-3">
+                        <div class="text-xs font-extrabold uppercase tracking-wider text-slate-800 select-none">Variables You Can Use</div>
+                        <div class="space-y-2 select-none">
+                            <!-- Variable first_name -->
+                            <div class="p-2.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-0.5">
+                                <div class="text-xs font-extrabold text-slate-800 font-mono">first_name</div>
+                                <div class="text-[10px] text-slate-400 font-semibold">Recipient's first name</div>
+                            </div>
+                            <!-- Variable last_name -->
+                            <div class="p-2.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-0.5">
+                                <div class="text-xs font-extrabold text-slate-800 font-mono">last_name</div>
+                                <div class="text-[10px] text-slate-400 font-semibold">Recipient's last name</div>
+                            </div>
+                            <!-- Variable company -->
+                            <div class="p-2.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-0.5">
+                                <div class="text-xs font-extrabold text-slate-800 font-mono">company</div>
+                                <div class="text-[10px] text-slate-400 font-semibold">Company name</div>
+                            </div>
+                            <!-- Variable email -->
+                            <div class="p-2.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-0.5">
+                                <div class="text-xs font-extrabold text-slate-800 font-mono">email</div>
+                                <div class="text-[10px] text-slate-400 font-semibold">Recipient's email</div>
                             </div>
                         </div>
                     </div>
-                `}
+                </div>
             </div>
         `;
     }
@@ -24752,8 +24848,54 @@ window.switchWizardImportTab = function(tab) {
 window.handleManualTextChange = function(text) {
     window._ecWizardState.manual_text = text;
     const matches = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g) || [];
-    const cntElem = document.getElementById('wizard-valid-mail-count');
-    if (cntElem) cntElem.textContent = `${matches.length} Valid Emails`;
+    
+    const badge = document.getElementById('wizard-manual-entered-badge');
+    if (badge) {
+        badge.innerText = `${matches.length} email${matches.length === 1 ? '' : 's'} entered`;
+    }
+    window.updateManualValidationUi();
+};
+
+window.updateManualValidationUi = function() {
+    const box = document.getElementById('wizard-validation-box');
+    if (!box) return;
+    
+    const text = window._ecWizardState.manual_text || '';
+    const matches = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g) || [];
+    
+    const badge = document.getElementById('wizard-manual-entered-badge');
+    if (badge) {
+        badge.innerText = `${matches.length} email${matches.length === 1 ? '' : 's'} entered`;
+    }
+    
+    if (text.trim() === '') {
+        box.innerHTML = '';
+        return;
+    }
+    
+    box.innerHTML = `
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-xs font-semibold text-emerald-800">
+            <div class="flex items-center space-x-2.5">
+                <div class="h-8 w-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                    <i data-lucide="check" class="h-4 w-4 text-emerald-600"></i>
+                </div>
+                <div>
+                    <div class="text-emerald-950 font-extrabold text-xs">Valid Emails Detected: ${matches.length}</div>
+                    <div class="text-[10px] text-emerald-500 font-medium">All email addresses look good!</div>
+                </div>
+            </div>
+            <button type="button" onclick="window.triggerManualValidation()" class="mt-2.5 sm:mt-0 px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-lg transition flex items-center justify-center space-x-1 cursor-pointer">
+                <i data-lucide="rotate-cw" class="h-3.5 w-3.5 text-slate-500"></i>
+                <span>Validate Again</span>
+            </button>
+        </div>
+    `;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+};
+
+window.triggerManualValidation = function() {
+    window.updateManualValidationUi();
+    showNotification('success', 'Recipients list validated successfully!');
 };
 
 window.handleWizardCsvFile = function(input) {

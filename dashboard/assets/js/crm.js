@@ -23684,6 +23684,7 @@ window.openEmailCampaignWizardModal = function() {
         interval_minutes: 10,
         start_type: 'now',
         start_at: '',
+        editor_mode: 'visual',
         terms_accepted: false
     };
 
@@ -23706,90 +23707,55 @@ window.renderWizardStepInline = function(container) {
             </div>
 
             <!-- Steps Visual Stepper Grid -->
-            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs">
-                <div class="flex flex-col lg:flex-row items-center justify-between text-xs font-bold text-slate-500 select-none gap-6 max-w-6xl mx-auto py-2">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+                <div class="flex items-center justify-between text-xs font-bold text-slate-500 select-none max-w-4xl mx-auto py-2 w-full gap-2 overflow-x-auto lg:overflow-x-visible">
                     <!-- Step 1 -->
-                    <div class="flex flex-col items-start shrink-0">
-                        <div class="flex items-center space-x-3">
-                            <span class="h-8 w-8 rounded-full ${s === 1 ? 'bg-indigo-600 text-white font-bold ring-4 ring-indigo-100' : (s > 1 ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-100 border border-slate-200 text-slate-400')} flex items-center justify-center text-xs">
-                                ${s > 1 ? '<i data-lucide="check" class="h-4 w-4 text-white"></i>' : '1'}
-                            </span>
-                            <div class="text-left">
-                                <div class="text-[12px] font-extrabold ${s === 1 ? 'text-indigo-600 font-extrabold' : 'text-slate-800'}">Campaign & Content</div>
-                                <div class="text-[10px] text-slate-400 font-semibold mt-0.5">Create your email content</div>
-                            </div>
-                        </div>
-                        <div class="mt-2 flex justify-center w-8 text-center">
-                            <i data-lucide="pencil" class="h-3.5 w-3.5 mx-auto ${s === 1 ? 'text-indigo-600' : (s > 1 ? 'text-emerald-600' : 'text-slate-400')}"></i>
-                        </div>
+                    <div class="flex flex-col items-center text-center flex-1 min-w-[70px]">
+                        <span class="h-8 w-8 rounded-full ${s === 1 ? 'bg-indigo-600 text-white font-bold ring-4 ring-indigo-100' : (s > 1 ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-100 border border-slate-200 text-slate-400')} flex items-center justify-center text-xs transition">
+                            ${s > 1 ? '<i data-lucide="check" class="h-4 w-4 text-white"></i>' : '1'}
+                        </span>
+                        <span class="text-[11px] font-extrabold ${s === 1 ? 'text-indigo-600 font-extrabold' : 'text-slate-800'} mt-2 truncate max-w-full">Campaign</span>
+                        <i data-lucide="pencil" class="h-3.5 w-3.5 mt-1 ${s === 1 ? 'text-indigo-600' : (s > 1 ? 'text-emerald-600' : 'text-slate-400')}"></i>
                     </div>
-                    <div class="hidden lg:block h-px bg-slate-200 flex-grow min-w-[10px] -mt-6"></div>
+                    <div class="h-0.5 bg-slate-200 flex-grow min-w-[10px] -mt-10"></div>
 
                     <!-- Step 2 -->
-                    <div class="flex flex-col items-start shrink-0">
-                        <div class="flex items-center space-x-3">
-                            <span class="h-8 w-8 rounded-full ${s === 2 ? 'bg-indigo-600 text-white font-bold ring-4 ring-indigo-100' : (s > 2 ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-100 border border-slate-200 text-slate-400')} flex items-center justify-center text-xs">
-                                ${s > 2 ? '<i data-lucide="check" class="h-4 w-4 text-white"></i>' : '2'}
-                            </span>
-                            <div class="text-left">
-                                <div class="text-[12px] font-extrabold ${s === 2 ? 'text-indigo-600 font-extrabold' : 'text-slate-800'}">Recipients Import</div>
-                                <div class="text-[10px] text-slate-400 font-semibold mt-0.5">Add & manage recipients</div>
-                            </div>
-                        </div>
-                        <div class="mt-2 flex justify-center w-8 text-center">
-                            <i data-lucide="users" class="h-3.5 w-3.5 mx-auto ${s === 2 ? 'text-indigo-600' : (s > 2 ? 'text-emerald-600' : 'text-slate-400')}"></i>
-                        </div>
+                    <div class="flex flex-col items-center text-center flex-1 min-w-[70px]">
+                        <span class="h-8 w-8 rounded-full ${s === 2 ? 'bg-indigo-600 text-white font-bold ring-4 ring-indigo-100' : (s > 2 ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-100 border border-slate-200 text-slate-400')} flex items-center justify-center text-xs transition">
+                            ${s > 2 ? '<i data-lucide="check" class="h-4 w-4 text-white"></i>' : '2'}
+                        </span>
+                        <span class="text-[11px] font-extrabold ${s === 2 ? 'text-indigo-600 font-extrabold' : 'text-slate-800'} mt-2 truncate max-w-full">Recipients</span>
+                        <i data-lucide="users" class="h-3.5 w-3.5 mt-1 ${s === 2 ? 'text-indigo-600' : (s > 2 ? 'text-emerald-600' : 'text-slate-400')}"></i>
                     </div>
-                    <div class="hidden lg:block h-px bg-slate-200 flex-grow min-w-[10px] -mt-6"></div>
+                    <div class="h-0.5 bg-slate-200 flex-grow min-w-[10px] -mt-10"></div>
 
                     <!-- Step 3 -->
-                    <div class="flex flex-col items-start shrink-0">
-                        <div class="flex items-center space-x-3">
-                            <span class="h-8 w-8 rounded-full ${s === 3 ? 'bg-indigo-600 text-white font-bold ring-4 ring-indigo-100' : (s > 3 ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-100 border border-slate-200 text-slate-400')} flex items-center justify-center text-xs">
-                                ${s > 3 ? '<i data-lucide="check" class="h-4 w-4 text-white"></i>' : '3'}
-                            </span>
-                            <div class="text-left">
-                                <div class="text-[12px] font-extrabold ${s === 3 ? 'text-indigo-600 font-extrabold' : 'text-slate-800'}">Variable Preview</div>
-                                <div class="text-[10px] text-slate-400 font-semibold mt-0.5">Preview dynamic content</div>
-                            </div>
-                        </div>
-                        <div class="mt-2 flex justify-center w-8 text-center">
-                            <i data-lucide="code" class="h-3.5 w-3.5 mx-auto ${s === 3 ? 'text-indigo-600' : (s > 3 ? 'text-emerald-600' : 'text-slate-400')}"></i>
-                        </div>
+                    <div class="flex flex-col items-center text-center flex-1 min-w-[70px]">
+                        <span class="h-8 w-8 rounded-full ${s === 3 ? 'bg-indigo-600 text-white font-bold ring-4 ring-indigo-100' : (s > 3 ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-100 border border-slate-200 text-slate-400')} flex items-center justify-center text-xs transition">
+                            ${s > 3 ? '<i data-lucide="check" class="h-4 w-4 text-white"></i>' : '3'}
+                        </span>
+                        <span class="text-[11px] font-extrabold ${s === 3 ? 'text-indigo-600 font-extrabold' : 'text-slate-800'} mt-2 truncate max-w-full">Preview</span>
+                        <i data-lucide="code" class="h-3.5 w-3.5 mt-1 ${s === 3 ? 'text-indigo-600' : (s > 3 ? 'text-emerald-600' : 'text-slate-400')}"></i>
                     </div>
-                    <div class="hidden lg:block h-px bg-slate-200 flex-grow min-w-[10px] -mt-6"></div>
+                    <div class="h-0.5 bg-slate-200 flex-grow min-w-[10px] -mt-10"></div>
 
                     <!-- Step 4 -->
-                    <div class="flex flex-col items-start shrink-0">
-                        <div class="flex items-center space-x-3">
-                            <span class="h-8 w-8 rounded-full ${s === 4 ? 'bg-indigo-600 text-white font-bold ring-4 ring-indigo-100' : (s > 4 ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-100 border border-slate-200 text-slate-400')} flex items-center justify-center text-xs">
-                                ${s > 4 ? '<i data-lucide="check" class="h-4 w-4 text-white"></i>' : '4'}
-                            </span>
-                            <div class="text-left">
-                                <div class="text-[12px] font-extrabold ${s === 4 ? 'text-indigo-600 font-extrabold' : 'text-slate-800'}">Anti-Spam Throttle</div>
-                                <div class="text-[10px] text-slate-400 font-semibold mt-0.5">Protect deliverability</div>
-                            </div>
-                        </div>
-                        <div class="mt-2 flex justify-center w-8 text-center">
-                            <i data-lucide="shield" class="h-3.5 w-3.5 mx-auto ${s === 4 ? 'text-indigo-600' : (s > 4 ? 'text-emerald-600' : 'text-slate-400')}"></i>
-                        </div>
+                    <div class="flex flex-col items-center text-center flex-1 min-w-[70px]">
+                        <span class="h-8 w-8 rounded-full ${s === 4 ? 'bg-indigo-600 text-white font-bold ring-4 ring-indigo-100' : (s > 4 ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-100 border border-slate-200 text-slate-400')} flex items-center justify-center text-xs transition">
+                            ${s > 4 ? '<i data-lucide="check" class="h-4 w-4 text-white"></i>' : '4'}
+                        </span>
+                        <span class="text-[11px] font-extrabold ${s === 4 ? 'text-indigo-600 font-extrabold' : 'text-slate-800'} mt-2 truncate max-w-full">Throttle</span>
+                        <i data-lucide="shield" class="h-3.5 w-3.5 mt-1 ${s === 4 ? 'text-indigo-600' : (s > 4 ? 'text-emerald-600' : 'text-slate-400')}"></i>
                     </div>
-                    <div class="hidden lg:block h-px bg-slate-200 flex-grow min-w-[10px] -mt-6"></div>
+                    <div class="h-0.5 bg-slate-200 flex-grow min-w-[10px] -mt-10"></div>
 
                     <!-- Step 5 -->
-                    <div class="flex flex-col items-start shrink-0">
-                        <div class="flex items-center space-x-3">
-                            <span class="h-8 w-8 rounded-full ${s === 5 ? 'bg-indigo-600 text-white font-bold ring-4 ring-indigo-100' : 'bg-slate-100 border border-slate-200 text-slate-400'} flex items-center justify-center text-xs">
-                                5
-                            </span>
-                            <div class="text-left">
-                                <div class="text-[12px] font-extrabold ${s === 5 ? 'text-indigo-600 font-extrabold' : 'text-slate-800'}">Review</div>
-                                <div class="text-[10px] text-slate-400 font-semibold mt-0.5">Review & launch</div>
-                            </div>
-                        </div>
-                        <div class="mt-2 flex justify-center w-8 text-center">
-                            <i data-lucide="clipboard-check" class="h-3.5 w-3.5 mx-auto ${s === 5 ? 'text-indigo-600' : 'text-slate-400'}"></i>
-                        </div>
+                    <div class="flex flex-col items-center text-center flex-1 min-w-[70px]">
+                        <span class="h-8 w-8 rounded-full ${s === 5 ? 'bg-indigo-600 text-white font-bold ring-4 ring-indigo-100' : 'bg-slate-100 border border-slate-200 text-slate-400'} flex items-center justify-center text-xs transition">
+                            5
+                        </span>
+                        <span class="text-[11px] font-extrabold ${s === 5 ? 'text-indigo-600 font-extrabold' : 'text-slate-800'} mt-2 truncate max-w-full">Review</span>
+                        <i data-lucide="clipboard-check" class="h-3.5 w-3.5 mt-1 ${s === 5 ? 'text-indigo-600' : 'text-slate-400'}"></i>
                     </div>
                 </div>
             </div>
@@ -23827,9 +23793,6 @@ function getWizardStepHtml(step) {
     const st = window._ecWizardState;
 
     if (step === 1) {
-        if (!st.reply_setting) st.reply_setting = 'default';
-        if (!st.reply_custom_email) st.reply_custom_email = 'wbsoumo@gmail.com';
-        
         return `
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 font-sans">
                 <!-- Left Side: Campaign Details Card (span 5) -->
@@ -23911,7 +23874,7 @@ function getWizardStepHtml(step) {
                     </div>
                 </div>
 
-                <!-- Right Side: Editor & Reply Settings (span 7) -->
+                <!-- Right Side: Editor & Preview (span 7) -->
                 <div class="lg:col-span-7 space-y-6">
                     <!-- Email Editor Card -->
                     <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
@@ -23923,8 +23886,8 @@ function getWizardStepHtml(step) {
                             </div>
                             <!-- Toggle buttons -->
                             <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
-                                <button id="wizard-visual-toggle-tab" onclick="switchWizardEditorMode('visual')" class="px-3 py-1 text-[10px] font-bold rounded-md bg-indigo-600 text-white shadow-2xs cursor-pointer transition">Visual</button>
-                                <button id="wizard-html-toggle-tab" onclick="switchWizardEditorMode('html')" class="px-3 py-1 text-[10px] font-bold rounded-md text-slate-600 hover:text-slate-900 cursor-pointer transition">HTML</button>
+                                <button id="wizard-visual-toggle-tab" onclick="switchWizardEditorMode('visual')" class="px-3 py-1 text-[10px] font-bold rounded-md ${st.editor_mode !== 'html' ? 'bg-indigo-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'} cursor-pointer transition">Visual</button>
+                                <button id="wizard-html-toggle-tab" onclick="switchWizardEditorMode('html')" class="px-3 py-1 text-[10px] font-bold rounded-md ${st.editor_mode === 'html' ? 'bg-indigo-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'} cursor-pointer transition">HTML</button>
                             </div>
                         </div>
 
@@ -24029,64 +23992,11 @@ function getWizardStepHtml(step) {
 
                             <!-- EDITABLE CANVAS & RAW CODE TEXTAREA -->
                             <div class="relative w-full min-h-[300px] bg-slate-50/20">
-                                <div id="wizard-rich-editor" contenteditable="true" class="w-full min-h-[300px] max-h-[450px] p-6 bg-white focus:outline-none overflow-y-auto leading-relaxed text-slate-800 text-sm">
+                                <div id="wizard-rich-editor" contenteditable="true" class="${st.editor_mode === 'html' ? 'hidden' : ''} w-full min-h-[300px] max-h-[450px] p-6 bg-white focus:outline-none overflow-y-auto leading-relaxed text-slate-800 text-sm">
                                     ${st.body_html}
                                 </div>
-                                <textarea id="wizard-raw-editor" class="hidden w-full min-h-[300px] max-h-[450px] p-6 font-mono text-xs text-emerald-400 bg-slate-900 focus:outline-none overflow-y-auto border-none resize-none leading-relaxed">${escapeHtml(st.body_html)}</textarea>
+                                <textarea id="wizard-raw-editor" class="${st.editor_mode !== 'html' ? 'hidden' : ''} w-full min-h-[300px] max-h-[450px] p-6 font-mono text-xs text-emerald-400 bg-slate-900 focus:outline-none overflow-y-auto border-none resize-none leading-relaxed">${escapeHtml(st.body_html)}</textarea>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Reply Settings Card -->
-                    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-                        <div>
-                            <h4 class="text-sm font-bold text-slate-800">Reply Settings</h4>
-                            <p class="text-[11px] text-slate-400 font-semibold">Choose how recipients can reply to this email.</p>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                            <!-- Option 1: Default Reply -->
-                            <div onclick="selectWizardReplySetting('default')" class="border-2 rounded-xl p-3.5 flex items-start space-x-3 cursor-pointer transition ${st.reply_setting === 'default' ? 'border-indigo-600 bg-indigo-50/5' : 'border-slate-200 hover:border-slate-300 bg-white'}">
-                                <div class="h-8 w-8 rounded-lg ${st.reply_setting === 'default' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-50 text-slate-500'} flex items-center justify-center shrink-0 transition">
-                                    <i data-lucide="mail" class="h-4 w-4"></i>
-                                </div>
-                                <div>
-                                    <div class="text-xs font-bold text-slate-800">Reply to</div>
-                                    <div class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">your email</div>
-                                </div>
-                            </div>
-
-                            <!-- Option 2: Custom Reply -->
-                            <div onclick="selectWizardReplySetting('custom')" class="border-2 rounded-xl p-3.5 flex items-start space-x-3 cursor-pointer transition ${st.reply_setting === 'custom' ? 'border-indigo-600 bg-indigo-50/5' : 'border-slate-200 hover:border-slate-300 bg-white'}">
-                                <div class="h-8 w-8 rounded-lg ${st.reply_setting === 'custom' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-50 text-slate-500'} flex items-center justify-center shrink-0 transition font-black text-sm">
-                                    @
-                                </div>
-                                <div>
-                                    <div class="text-xs font-bold text-slate-800">Custom email</div>
-                                    <div class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Set different</div>
-                                </div>
-                            </div>
-
-                            <!-- Option 3: No-reply -->
-                            <div onclick="selectWizardReplySetting('noreply')" class="border-2 rounded-xl p-3.5 flex items-start space-x-3 cursor-pointer transition ${st.reply_setting === 'noreply' ? 'border-indigo-600 bg-indigo-50/5' : 'border-slate-200 hover:border-slate-300 bg-white'}">
-                                <div class="h-8 w-8 rounded-lg ${st.reply_setting === 'noreply' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-50 text-slate-500'} flex items-center justify-center shrink-0 transition">
-                                    <i data-lucide="bell-off" class="h-4 w-4"></i>
-                                </div>
-                                <div>
-                                    <div class="text-xs font-bold text-slate-800">No-reply</div>
-                                    <div class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Disable replies</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-center space-x-2 text-slate-500 text-[11px] pt-1">
-                            <i data-lucide="info" class="h-3.5 w-3.5 text-slate-400"></i>
-                            <span>
-                                ${st.reply_setting === 'default' ? `Replies will be received at <span class="font-bold text-slate-700">wbsoumo@gmail.com</span>.` : ''}
-                                ${st.reply_setting === 'custom' ? `Replies will be received at <span class="font-bold text-slate-700">${st.reply_custom_email}</span>.` : ''}
-                                ${st.reply_setting === 'noreply' ? `Replies will be disabled (no-reply@linkpilot.work).` : ''}
-                            </span>
-                            <button onclick="selectWizardReplySetting('custom')" class="text-indigo-600 hover:underline font-extrabold text-[11px] ml-1 bg-transparent border-none cursor-pointer">Change</button>
                         </div>
                     </div>
                 </div>
@@ -24442,6 +24352,22 @@ window.handleMailBodyInput = function() {
     const vars = detectVariablesInMailBody(fullText);
     window._ecWizardState.variables_detected = vars;
     
+    const nameCount = document.getElementById('wizard-name-char-count');
+    if (nameCount && nameIn) nameCount.textContent = nameIn.value.length;
+    
+    const subjCount = document.getElementById('wizard-subject-char-count');
+    if (subjCount && subjIn) subjCount.textContent = subjIn.value.length;
+    
+    const varsCount = document.getElementById('wizard-vars-count');
+    if (varsCount) varsCount.textContent = vars.length;
+    
+    const pillsContainer = document.getElementById('wizard-vars-pills-container');
+    if (pillsContainer) {
+        pillsContainer.innerHTML = vars.map(v => `
+            <span class="bg-white border border-indigo-200 px-2 py-0.5 rounded text-[10px] font-mono text-indigo-700 font-bold">{${v}}</span>
+        `).join('') + (vars.length === 0 ? '<span class="text-[10px] text-slate-400 italic">No variables detected yet</span>' : '');
+    }
+    
     const txt = document.getElementById('wizard-vars-text');
     if (txt) {
         txt.textContent = `Detected ${vars.length} Dynamic Variables: ${vars.map(v => '{'+v+'}').join(', ')}`;
@@ -24581,6 +24507,7 @@ window.handleWizardPresetSelect = function(templateId) {
 };
 
 window.switchWizardEditorMode = function(mode) {
+    window._ecWizardState.editor_mode = mode;
     const richEd = document.getElementById('wizard-rich-editor');
     const rawEd = document.getElementById('wizard-raw-editor');
     const visualBtn = document.getElementById('wizard-visual-toggle-tab');
@@ -24722,6 +24649,13 @@ function replaceVarsInText(text, varsObj) {
 }
 
 window.nextWizardStep = function() {
+    if (window._ecWizardState.step === 1) {
+        window.syncWizardEditorContent();
+        const nameIn = document.getElementById('ec-wizard-name');
+        const subjIn = document.getElementById('ec-wizard-subject');
+        if (nameIn) window._ecWizardState.campaign_name = nameIn.value;
+        if (subjIn) window._ecWizardState.subject = subjIn.value;
+    }
     if (window._ecWizardState.step < 5) {
         window._ecWizardState.step++;
         renderWizardStepInline(window._ecWizardContainer);
@@ -24729,6 +24663,13 @@ window.nextWizardStep = function() {
 };
 
 window.prevWizardStep = function() {
+    if (window._ecWizardState.step === 1) {
+        window.syncWizardEditorContent();
+        const nameIn = document.getElementById('ec-wizard-name');
+        const subjIn = document.getElementById('ec-wizard-subject');
+        if (nameIn) window._ecWizardState.campaign_name = nameIn.value;
+        if (subjIn) window._ecWizardState.subject = subjIn.value;
+    }
     if (window._ecWizardState.step > 1) {
         window._ecWizardState.step--;
         renderWizardStepInline(window._ecWizardContainer);

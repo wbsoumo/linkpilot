@@ -368,8 +368,8 @@ class SMTPHelper {
      */
     public static function callAwsProxyWorker($action, $data) {
         $workerUrls = [
-            "https://mailbaby.linkpilot.work/index.php?action=" . urlencode($action),
-            "http://13.201.120.240/mailbaby/index.php?action=" . urlencode($action)
+            "http://13.201.120.240/mailbaby/index.php?action=" . urlencode($action),
+            "https://mailbaby.linkpilot.work/index.php?action=" . urlencode($action)
         ];
         $secretKey = "LINKPILOT_AWS_SECRET_KEY_2026";
 
@@ -382,7 +382,8 @@ class SMTPHelper {
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 12);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 6);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 

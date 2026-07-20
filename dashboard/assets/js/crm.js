@@ -23399,6 +23399,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 /* ==========================================================================
    EMAIL CAMPAIGNS SYSTEM (RATE-THROTTLED AUTOMATED OUTBOUND CAMPAIGN ENGINE)
    ========================================================================== */

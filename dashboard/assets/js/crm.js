@@ -16958,9 +16958,136 @@ window.insertImageFromInput = function() {
     }
 };
 
-window.insertImageFromUrl = function(url) {
+window.openComposerImagePickerModal = function(targetImgElement = null) {
+    let modal = document.getElementById('composer-image-picker-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'composer-image-picker-modal';
+        modal.className = 'fixed inset-0 z-[10000] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in';
+        document.body.appendChild(modal);
+    }
+    
+    window._activeTargetImgToReplace = targetImgElement;
+    
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md overflow-hidden animate-scale-up font-sans">
+            <div class="px-5 py-3.5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <i data-lucide="image-plus" class="h-4 w-4"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900">${targetImgElement ? 'Replace Template Image' : 'Import & Upload Image'}</h3>
+                </div>
+                <button onclick="document.getElementById('composer-image-picker-modal').remove()" class="text-slate-400 hover:text-slate-600 transition cursor-pointer">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4">
+                <!-- Option 1: Upload Image from Device (2MB Limit) -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label class="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Option 1: Upload from Device</label>
+                        <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">Max 2 MB</span>
+                    </div>
+                    <div class="border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-xl p-5 text-center bg-slate-50/70 hover:bg-indigo-50/20 transition cursor-pointer group" onclick="document.getElementById('device-image-file-input').click()">
+                        <input type="file" id="device-image-file-input" accept="image/*" onchange="handleDeviceImageSelect(this)" class="hidden">
+                        <div class="h-10 w-10 mx-auto rounded-full bg-indigo-50 group-hover:bg-indigo-100 text-indigo-600 flex items-center justify-center mb-2 transition">
+                            <i data-lucide="upload-cloud" class="h-5 w-5"></i>
+                        </div>
+                        <div class="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition">Click to browse or choose image file</div>
+                        <div class="text-[10px] text-slate-400 mt-1">Supports PNG, JPG, WEBP, GIF &bull; Max 2 MB</div>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2 my-1">
+                    <div class="h-px bg-slate-200 flex-grow"></div>
+                    <span class="text-[10px] font-extrabold text-slate-400 uppercase">OR</span>
+                    <div class="h-px bg-slate-200 flex-grow"></div>
+                </div>
+
+                <!-- Option 2: Image Web URL -->
+                <div class="space-y-2">
+                    <label class="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Option 2: Paste Image Web URL</label>
+                    <div class="flex space-x-2">
+                        <input type="url" id="image-web-url-input" placeholder="https://images.unsplash.com/photo-..." class="flex-grow px-3 py-2 border border-slate-300 rounded-xl text-xs font-medium focus:outline-none focus:border-indigo-500">
+                        <button onclick="handleUrlImageInsert()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-2xs transition cursor-pointer" style="color:#ffffff !important;">Apply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+};
+
+window.handleDeviceImageSelect = async function(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    
+    // 2 MB Size Validation Check
+    const maxBytes = 2 * 1024 * 1024;
+    if (file.size > maxBytes) {
+        showNotification('error', `Image size (${(file.size / (1024*1024)).toFixed(2)} MB) exceeds the 2 MB limit! Please choose a smaller image.`);
+        return;
+    }
+    
+    showNotification('info', 'Uploading image to server...');
+    
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    try {
+        const response = await fetch('api/crm/upload_image.php', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('lp_jwt_token') || ''}`
+            },
+            body: formData
+        });
+        const res = await response.json();
+        
+        let finalUrl = '';
+        if (res.status === 'success' && res.data && res.data.url) {
+            finalUrl = res.data.url;
+        } else {
+            finalUrl = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        applyImageToEditorOrReplace(finalUrl);
+        showNotification('success', 'Image uploaded & inserted successfully!');
+    } catch(err) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            applyImageToEditorOrReplace(e.target.result);
+            showNotification('success', 'Image inserted successfully!');
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+window.handleUrlImageInsert = function() {
+    const input = document.getElementById('image-web-url-input');
+    if (!input || !input.value.trim()) {
+        showNotification('error', 'Please enter a valid Image URL.');
+        return;
+    }
+    applyImageToEditorOrReplace(input.value.trim());
+};
+
+window.applyImageToEditorOrReplace = function(url) {
     const modal = document.getElementById('composer-image-picker-modal');
     if (modal) modal.remove();
+    
+    if (window._activeTargetImgToReplace) {
+        window._activeTargetImgToReplace.src = url;
+        window._activeTargetImgToReplace = null;
+        showNotification('success', 'Template image replaced successfully!');
+        return;
+    }
     
     const editor = document.getElementById('rich-email-editor');
     if (editor) {
@@ -17012,78 +17139,121 @@ window.openEmailComposerModal = function(templateId) {
                     </div>
                 </div>
 
-                <!-- HTML EMAIL CONTENT BODY SECTION (EXACT MATCH TO USER SCREENSHOT) -->
+                <!-- HTML EMAIL CONTENT BODY SECTION -->
                 <div class="space-y-2">
                     <div class="flex items-center justify-between font-bold text-slate-600 text-xs tracking-wider uppercase">
                         <div class="flex items-center space-x-1.5 text-slate-700 font-extrabold text-xs">
                             <span class="text-indigo-600 font-black">&lt;/&gt;</span>
                             <span>HTML EMAIL CONTENT BODY</span>
                         </div>
-                        <span class="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md font-bold">✨ Direct Visual WYSIWYG Mode</span>
+                        <span class="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full font-extrabold flex items-center">
+                            <i data-lucide="sparkles" class="h-3 w-3 mr-1 text-emerald-500"></i>DIRECT VISUAL WYSIWYG MODE
+                        </span>
                     </div>
 
-                    <!-- RICH TEXT EDITOR TOOLBAR & CONTAINER -->
+                    <!-- PREMIUM WYSIWYG TOOLBAR & CONTAINER -->
                     <div class="border border-slate-300 rounded-xl overflow-hidden shadow-2xs bg-white">
-                        <!-- TOOLBAR ROW (EXACT BUTTON MATCH) -->
-                        <div class="bg-[#F8FAFC] border-b border-slate-300 p-2 flex items-center justify-between flex-wrap gap-1.5 text-xs select-none">
+                        <!-- PREMIUM LUCIDE SVG TOOLBAR -->
+                        <div class="bg-[#F8FAFC] border-b border-slate-300 p-2 flex items-center justify-between flex-wrap gap-2 text-xs select-none shadow-2xs">
                             <div class="flex items-center flex-wrap gap-1.5">
-                                <!-- Group 1: AI Wand, Bold, Underline, Eraser -->
-                                <div class="flex items-center space-x-0.5 bg-white border border-slate-300 rounded-lg p-0.5">
-                                    <button type="button" onclick="execAiWandAssist()" title="AI Magic Wand Tone Improver" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold flex items-center space-x-0.5 cursor-pointer">
-                                        <span>🪄</span><span class="text-[9px]">▾</span>
+                                <!-- Group 1: AI Wand, Bold, Underline, Strikethrough, Eraser -->
+                                <div class="flex items-center space-x-0.5 bg-white border border-slate-300/80 rounded-lg p-0.5 shadow-2xs">
+                                    <button type="button" onclick="execAiWandAssist()" title="AI Magic Wand Tone Improver" class="px-2 py-1 hover:bg-indigo-50 rounded text-indigo-600 font-bold flex items-center space-x-1 cursor-pointer transition">
+                                        <i data-lucide="sparkles" class="h-3.5 w-3.5 text-indigo-600"></i>
+                                        <i data-lucide="chevron-down" class="h-2.5 w-2.5 text-indigo-400"></i>
                                     </button>
-                                    <button type="button" onclick="execRichCmd('bold')" title="Bold" class="px-2.5 py-1 hover:bg-slate-100 rounded text-slate-800 font-extrabold text-sm cursor-pointer">B</button>
-                                    <button type="button" onclick="execRichCmd('underline')" title="Underline" class="px-2.5 py-1 hover:bg-slate-100 rounded text-slate-800 underline font-bold text-sm cursor-pointer">U</button>
-                                    <button type="button" onclick="execRichCmd('removeFormat')" title="Clear Formatting" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold text-xs cursor-pointer">🧹</button>
+                                    <button type="button" onclick="execRichCmd('bold')" title="Bold (Ctrl+B)" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 font-bold cursor-pointer transition">
+                                        <i data-lucide="bold" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                    <button type="button" onclick="execRichCmd('underline')" title="Underline (Ctrl+U)" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 underline font-bold cursor-pointer transition">
+                                        <i data-lucide="underline" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                    <button type="button" onclick="execRichCmd('strikethrough')" title="Strikethrough" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                        <i data-lucide="strikethrough" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                    <button type="button" onclick="execRichCmd('removeFormat')" title="Clear Formatting" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                        <i data-lucide="eraser" class="h-3.5 w-3.5 text-amber-600"></i>
+                                    </button>
                                 </div>
 
-                                <!-- Group 2: Font Selector Dropdown -->
-                                <select onchange="execRichCmd('fontName', this.value)" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-700 focus:outline-none hover:bg-slate-50 cursor-pointer">
-                                    <option value="Source Sans Pro" selected>Source Sans Pro ▾</option>
-                                    <option value="Inter">Inter</option>
-                                    <option value="Arial">Arial</option>
-                                    <option value="Roboto">Roboto</option>
-                                    <option value="Georgia">Georgia</option>
-                                    <option value="Monospace">Monospace</option>
-                                </select>
+                                <!-- Group 2: Font Family Dropdown -->
+                                <div class="flex items-center bg-white border border-slate-300/80 rounded-lg px-2.5 py-1 space-x-1 shadow-2xs">
+                                    <i data-lucide="type" class="h-3.5 w-3.5 text-slate-400"></i>
+                                    <select onchange="execRichCmd('fontName', this.value)" class="bg-transparent border-none text-xs font-bold text-slate-800 focus:outline-none cursor-pointer">
+                                        <option value="Source Sans Pro" selected>Source Sans Pro</option>
+                                        <option value="Inter">Inter</option>
+                                        <option value="Arial">Arial</option>
+                                        <option value="Roboto">Roboto</option>
+                                        <option value="Georgia">Georgia</option>
+                                        <option value="Monospace">Monospace</option>
+                                    </select>
+                                </div>
 
                                 <!-- Group 3: Text Color Picker (A with Yellow Background Accent) -->
-                                <div class="flex items-center bg-white border border-slate-300 rounded-lg p-0.5 relative">
-                                    <label title="Text Color & Highlight" class="px-2 py-1 hover:bg-slate-100 rounded cursor-pointer flex items-center space-x-0.5 font-black text-sm text-slate-900">
-                                        <span class="bg-yellow-300 px-1 rounded">A</span><span class="text-[9px] ml-0.5">▾</span>
+                                <div class="flex items-center space-x-0.5 bg-white border border-slate-300/80 rounded-lg p-0.5 shadow-2xs">
+                                    <label title="Text Color" class="p-1.5 hover:bg-slate-100 rounded cursor-pointer relative flex items-center justify-center">
+                                        <i data-lucide="palette" class="h-3.5 w-3.5 text-indigo-600"></i>
                                         <input type="color" onchange="execRichCmd('foreColor', this.value)" class="opacity-0 absolute inset-0 w-full h-full cursor-pointer">
+                                    </label>
+                                    <label title="Background Highlight" class="p-1.5 hover:bg-slate-100 rounded cursor-pointer relative flex items-center justify-center">
+                                        <i data-lucide="highlighter" class="h-3.5 w-3.5 text-amber-500"></i>
+                                        <input type="color" onchange="execRichCmd('hiliteColor', this.value)" class="opacity-0 absolute inset-0 w-full h-full cursor-pointer">
                                     </label>
                                 </div>
 
-                                <!-- Group 4: Unordered List, Ordered List, Alignment Dropdown -->
-                                <div class="flex items-center space-x-0.5 bg-white border border-slate-300 rounded-lg p-0.5">
-                                    <button type="button" onclick="execRichCmd('insertUnorderedList')" title="Bullet List" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold cursor-pointer">•≡</button>
-                                    <button type="button" onclick="execRichCmd('insertOrderedList')" title="Numbered List" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold cursor-pointer">1.≡</button>
-                                    <button type="button" onclick="execRichCmd('justifyLeft')" title="Align Left / Alignment Dropdown" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold flex items-center cursor-pointer">
-                                        <span>≡</span><span class="text-[9px] ml-0.5">▾</span>
+                                <!-- Group 4: Unordered List, Ordered List, Alignment -->
+                                <div class="flex items-center space-x-0.5 bg-white border border-slate-300/80 rounded-lg p-0.5 shadow-2xs">
+                                    <button type="button" onclick="execRichCmd('insertUnorderedList')" title="Bullet List" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                        <i data-lucide="list" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                    <button type="button" onclick="execRichCmd('insertOrderedList')" title="Numbered List" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                        <i data-lucide="list-ordered" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                    <button type="button" onclick="execRichCmd('justifyLeft')" title="Align Left" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                        <i data-lucide="align-left" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                    <button type="button" onclick="execRichCmd('justifyCenter')" title="Align Center" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                        <i data-lucide="align-center" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                    <button type="button" onclick="execRichCmd('justifyRight')" title="Align Right" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                        <i data-lucide="align-right" class="h-3.5 w-3.5"></i>
                                     </button>
                                 </div>
 
-                                <!-- Group 5: Table Dropdown -->
-                                <div class="flex items-center bg-white border border-slate-300 rounded-lg p-0.5">
-                                    <button type="button" onclick="insertTableInEditor()" title="Insert Table" class="px-2.5 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold flex items-center space-x-0.5 cursor-pointer">
-                                        <span>▦</span><span class="text-[9px]">▾</span>
+                                <!-- Group 5: Table -->
+                                <div class="flex items-center bg-white border border-slate-300/80 rounded-lg p-0.5 shadow-2xs">
+                                    <button type="button" onclick="insertTableInEditor()" title="Insert Table" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold flex items-center space-x-1 cursor-pointer transition">
+                                        <i data-lucide="table" class="h-3.5 w-3.5 text-slate-700"></i>
+                                        <i data-lucide="chevron-down" class="h-2.5 w-2.5 text-slate-400"></i>
                                     </button>
                                 </div>
 
-                                <!-- Group 6: Link, Image, Video -->
-                                <div class="flex items-center space-x-0.5 bg-white border border-slate-300 rounded-lg p-0.5">
-                                    <button type="button" onclick="promptInsertLink()" title="Insert Hyperlink" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold cursor-pointer">🔗</button>
-                                    <button type="button" onclick="promptInsertImage()" title="Insert Image" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold cursor-pointer">🖼️</button>
-                                    <button type="button" onclick="promptInsertVideo()" title="Insert Video Link" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold cursor-pointer">📹</button>
+                                <!-- Group 6: Link, Device Image Upload, Video Link -->
+                                <div class="flex items-center space-x-0.5 bg-white border border-slate-300/80 rounded-lg p-0.5 shadow-2xs">
+                                    <button type="button" onclick="promptInsertLink()" title="Insert Hyperlink" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                        <i data-lucide="link" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                    <button type="button" onclick="openComposerImagePickerModal()" title="Upload or Insert Image (Max 2MB)" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md font-bold flex items-center space-x-1 cursor-pointer transition border border-indigo-200">
+                                        <i data-lucide="image-plus" class="h-3.5 w-3.5 text-indigo-600"></i>
+                                        <span class="text-[11px] font-extrabold text-indigo-700">Import Image</span>
+                                    </button>
+                                    <button type="button" onclick="promptInsertVideo()" title="Insert Video Link" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                        <i data-lucide="video" class="h-3.5 w-3.5"></i>
+                                    </button>
                                 </div>
                             </div>
 
-                            <!-- Group 7: Fullscreen, HTML Code Toggle, Help -->
-                            <div class="flex items-center space-x-0.5 bg-white border border-slate-300 rounded-lg p-0.5">
-                                <button type="button" onclick="toggleComposerFullscreen()" title="Fullscreen Editor" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold cursor-pointer">⤢</button>
-                                <button type="button" onclick="toggleHtmlSourceView()" id="html-source-toggle-btn" title="Toggle Raw HTML Code" class="px-2 py-1 hover:bg-slate-100 rounded text-indigo-600 font-extrabold cursor-pointer">&lt;/&gt;</button>
-                                <button type="button" onclick="showEditorHelpModal()" title="Help & Shortcuts" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold cursor-pointer">?</button>
+                            <!-- Group 7: Fullscreen, Code View, Help -->
+                            <div class="flex items-center space-x-0.5 bg-white border border-slate-300/80 rounded-lg p-0.5 shadow-2xs">
+                                <button type="button" onclick="toggleComposerFullscreen()" title="Fullscreen Editor" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                    <i data-lucide="maximize-2" class="h-3.5 w-3.5"></i>
+                                </button>
+                                <button type="button" onclick="toggleHtmlSourceView()" id="html-source-toggle-btn" title="Toggle Raw HTML Code" class="p-1.5 hover:bg-slate-100 rounded text-indigo-600 font-extrabold cursor-pointer transition flex items-center">
+                                    <i data-lucide="code" class="h-3.5 w-3.5 text-indigo-600"></i>
+                                </button>
+                                <button type="button" onclick="showEditorHelpModal()" title="Help & Shortcuts" class="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer transition">
+                                    <i data-lucide="help-circle" class="h-3.5 w-3.5"></i>
+                                </button>
                             </div>
                         </div>
 
@@ -17102,7 +17272,7 @@ window.openEmailComposerModal = function(templateId) {
                     </div>
                 </div>
 
-                <!-- BOTTOM BUTTONS ROW (EXACT MATCH TO USER SCREENSHOT) -->
+                <!-- BOTTOM BUTTONS ROW -->
                 <div class="flex items-center justify-between pt-2">
                     <button type="button" onclick="previewTemplateModal(${t.id})" class="px-5 py-2.5 bg-white border-2 border-cyan-500 hover:bg-cyan-50 text-cyan-700 text-xs font-extrabold rounded-xl transition flex items-center space-x-2 cursor-pointer shadow-2xs">
                         <i data-lucide="eye" class="h-4 w-4 text-cyan-600"></i>
@@ -17118,6 +17288,24 @@ window.openEmailComposerModal = function(templateId) {
         </div>
     `;
     if (typeof lucide !== 'undefined') lucide.createIcons();
+    
+    // Attach click handlers to any template image so user can click to replace easily!
+    setTimeout(() => {
+        const editor = document.getElementById('rich-email-editor');
+        if (editor) {
+            editor.addEventListener('click', function(e) {
+                if (e.target && e.target.tagName === 'IMG') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    editor.querySelectorAll('img').forEach(img => img.classList.remove('ring-4', 'ring-indigo-500', 'shadow-2xl'));
+                    e.target.classList.add('ring-4', 'ring-indigo-500', 'shadow-2xl');
+                    
+                    openComposerImagePickerModal(e.target);
+                }
+            });
+        }
+    }, 200);
 };
 
 window.closeEmailComposerModal = function() {

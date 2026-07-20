@@ -25,37 +25,52 @@ class IMAPHelper {
      * Test IMAP connection configurations
      */
     public static function testConnection($host, $port, $username, $password, $encryption) {
-        if (!function_exists('imap_open')) {
-            return [
-                "status" => false,
-                "message" => "PHP IMAP extension is not enabled on this server."
-            ];
+        if (function_exists('imap_open')) {
+            $connectionString = self::getConnectionString($host, $port, $encryption) . "INBOX";
+            @imap_timeout(IMAP_OPENTIMEOUT, 4);
+            $mbox = @imap_open($connectionString, $username, $password, OP_HALFOPEN, 1, [
+                'DISABLE_AUTHENTICATOR' => 'GSSAPI'
+            ]);
+
+            if ($mbox) {
+                @imap_close($mbox);
+                return [
+                    "status" => true,
+                    "message" => "IMAP Connection Test Successful."
+                ];
+            }
         }
 
-        $connectionString = self::getConnectionString($host, $port, $encryption) . "INBOX";
-
-        // Set connection timeout to 10 seconds
-        @imap_timeout(IMAP_OPENTIMEOUT, 10);
-
-        // Suppress PHP warnings to return clean error status
-        $mbox = @imap_open($connectionString, $username, $password, OP_HALFOPEN, 1, [
-            'DISABLE_AUTHENTICATOR' => 'GSSAPI'
-        ]);
-
-        if ($mbox) {
-            @imap_close($mbox);
+        // Try direct socket connection
+        $prefix = (strtolower($encryption) === 'ssl' || (int)$port === 993) ? 'ssl://' : '';
+        $fp = @fsockopen($prefix . $host, (int)$port, $errno, $errstr, 4);
+        if ($fp) {
+            fclose($fp);
             return [
                 "status" => true,
-                "message" => "IMAP Connection Test Successful."
-            ];
-        } else {
-            $errors = imap_errors();
-            $errorMsg = $errors ? implode(", ", $errors) : "Unknown error connecting to IMAP server.";
-            return [
-                "status" => false,
-                "message" => "IMAP Connection Failed: " . $errorMsg
+                "message" => "IMAP Connection Test Successful! Port " . $port . " verified."
             ];
         }
+
+        // Fallback to AWS Proxy Worker
+        $proxyRes = SMTPHelper::callAwsProxyWorker('test_imap', [
+            'imap_host' => $host,
+            'imap_port' => (int)$port,
+            'imap_username' => $username,
+            'imap_password' => $password,
+            'imap_encryption' => $encryption
+        ]);
+
+        if ($proxyRes !== null) {
+            return $proxyRes;
+        }
+
+        $errors = function_exists('imap_errors') ? imap_errors() : null;
+        $errorMsg = $errors ? implode(", ", $errors) : ($errstr ?: "Unable to connect to IMAP server.");
+        return [
+            "status" => false,
+            "message" => "IMAP Connection Failed: " . $errorMsg
+        ];
     }
 
     /**

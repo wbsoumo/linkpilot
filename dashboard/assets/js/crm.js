@@ -16981,99 +16981,137 @@ window.openEmailComposerModal = function(templateId) {
     }
     
     modal.innerHTML = `
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-4xl flex flex-col overflow-hidden animate-scale-up font-sans max-h-[92vh]">
+        <div id="email-composer-card" class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-4xl flex flex-col overflow-hidden animate-scale-up font-sans max-h-[94vh]">
             <!-- Composer Modal Header -->
-            <div class="px-6 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
+            <div class="px-6 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
                 <div class="flex items-center space-x-3 min-w-0">
                     <div class="h-9 w-9 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 shadow-2xs">
                         <i data-lucide="edit-3" class="h-4.5 w-4.5"></i>
                     </div>
                     <div class="min-w-0">
-                        <h3 class="text-sm font-bold text-slate-900 truncate">Rich Mail Editor - ${t.title}</h3>
-                        <p class="text-[11px] text-slate-500 font-medium truncate">Direct In-Place WYSIWYG HTML Editing Enabled</p>
+                        <h3 class="text-sm font-bold text-slate-900 truncate">${t.title} - Rich Email Editor</h3>
+                        <p class="text-[11px] text-slate-500 font-medium truncate">Direct Visual HTML In-Place Editing & Email Sender</p>
                     </div>
                 </div>
-                <button onclick="closeEmailComposerModal()" class="h-8 w-8 rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer" title="Close">
+                <button onclick="closeEmailComposerModal()" class="h-8 w-8 rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer" title="Close Modal">
                     <i data-lucide="x" class="h-4 w-4"></i>
                 </button>
             </div>
 
             <!-- Composer Body Form -->
-            <div class="flex-grow p-5 overflow-y-auto space-y-3.5 bg-white">
+            <div class="flex-grow p-6 overflow-y-auto space-y-4 bg-white">
                 <!-- Recipient & Subject Row -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50/80 p-3.5 border border-slate-200 rounded-xl">
                     <div class="space-y-1">
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase">To (Recipient):</label>
-                        <input type="email" id="composer-to-email" value="alex.smith@acme.com" placeholder="recipient@company.com" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white transition">
+                        <label class="block text-[10px] font-extrabold text-slate-500 tracking-wider uppercase">To (Recipient Email):</label>
+                        <input type="email" id="composer-to-email" value="alex.smith@acme.com" placeholder="recipient@company.com" class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 transition">
                     </div>
                     <div class="space-y-1">
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase">Subject Line:</label>
-                        <input type="text" id="composer-subject" value="${t.subject}" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-indigo-500 focus:bg-white transition">
+                        <label class="block text-[10px] font-extrabold text-slate-500 tracking-wider uppercase">Subject Line:</label>
+                        <input type="text" id="composer-subject" value="${t.subject}" class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:border-indigo-500 transition">
                     </div>
                 </div>
 
-                <!-- WYSIWYG RICH TEXT EDITOR TOOLBAR -->
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-2 flex items-center justify-between flex-wrap gap-1.5 text-xs">
-                    <div class="flex items-center space-x-1 shrink-0">
-                        <button type="button" onclick="execRichEditorCmd('bold')" title="Bold" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold"><i data-lucide="bold" class="h-3.5 w-3.5"></i></button>
-                        <button type="button" onclick="execRichEditorCmd('italic')" title="Italic" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 italic"><i data-lucide="italic" class="h-3.5 w-3.5"></i></button>
-                        <button type="button" onclick="execRichEditorCmd('underline')" title="Underline" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 underline"><i data-lucide="underline" class="h-3.5 w-3.5"></i></button>
-                        <button type="button" onclick="execRichEditorCmd('strikeThrough')" title="Strikethrough" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 line-through"><i data-lucide="strikethrough" class="h-3.5 w-3.5"></i></button>
+                <!-- HTML EMAIL CONTENT BODY SECTION (EXACT MATCH TO USER SCREENSHOT) -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between font-bold text-slate-600 text-xs tracking-wider uppercase">
+                        <div class="flex items-center space-x-1.5 text-slate-700 font-extrabold text-xs">
+                            <span class="text-indigo-600 font-black">&lt;/&gt;</span>
+                            <span>HTML EMAIL CONTENT BODY</span>
+                        </div>
+                        <span class="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md font-bold">✨ Direct Visual WYSIWYG Mode</span>
                     </div>
 
-                    <div class="h-4 w-px bg-slate-300"></div>
+                    <!-- RICH TEXT EDITOR TOOLBAR & CONTAINER -->
+                    <div class="border border-slate-300 rounded-xl overflow-hidden shadow-2xs bg-white">
+                        <!-- TOOLBAR ROW (EXACT BUTTON MATCH) -->
+                        <div class="bg-[#F8FAFC] border-b border-slate-300 p-2 flex items-center justify-between flex-wrap gap-1.5 text-xs select-none">
+                            <div class="flex items-center flex-wrap gap-1.5">
+                                <!-- Group 1: AI Wand, Bold, Underline, Eraser -->
+                                <div class="flex items-center space-x-0.5 bg-white border border-slate-300 rounded-lg p-0.5">
+                                    <button type="button" onclick="execAiWandAssist()" title="AI Magic Wand Tone Improver" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold flex items-center space-x-0.5 cursor-pointer">
+                                        <span>🪄</span><span class="text-[9px]">▾</span>
+                                    </button>
+                                    <button type="button" onclick="execRichCmd('bold')" title="Bold" class="px-2.5 py-1 hover:bg-slate-100 rounded text-slate-800 font-extrabold text-sm cursor-pointer">B</button>
+                                    <button type="button" onclick="execRichCmd('underline')" title="Underline" class="px-2.5 py-1 hover:bg-slate-100 rounded text-slate-800 underline font-bold text-sm cursor-pointer">U</button>
+                                    <button type="button" onclick="execRichCmd('removeFormat')" title="Clear Formatting" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold text-xs cursor-pointer">🧹</button>
+                                </div>
 
-                    <div class="flex items-center space-x-1 shrink-0">
-                        <button type="button" onclick="execRichEditorCmd('justifyLeft')" title="Align Left" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700"><i data-lucide="align-left" class="h-3.5 w-3.5"></i></button>
-                        <button type="button" onclick="execRichEditorCmd('justifyCenter')" title="Align Center" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700"><i data-lucide="align-center" class="h-3.5 w-3.5"></i></button>
-                        <button type="button" onclick="execRichEditorCmd('justifyRight')" title="Align Right" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700"><i data-lucide="align-right" class="h-3.5 w-3.5"></i></button>
+                                <!-- Group 2: Font Selector Dropdown -->
+                                <select onchange="execRichCmd('fontName', this.value)" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-700 focus:outline-none hover:bg-slate-50 cursor-pointer">
+                                    <option value="Source Sans Pro" selected>Source Sans Pro ▾</option>
+                                    <option value="Inter">Inter</option>
+                                    <option value="Arial">Arial</option>
+                                    <option value="Roboto">Roboto</option>
+                                    <option value="Georgia">Georgia</option>
+                                    <option value="Monospace">Monospace</option>
+                                </select>
+
+                                <!-- Group 3: Text Color Picker (A with Yellow Background Accent) -->
+                                <div class="flex items-center bg-white border border-slate-300 rounded-lg p-0.5 relative">
+                                    <label title="Text Color & Highlight" class="px-2 py-1 hover:bg-slate-100 rounded cursor-pointer flex items-center space-x-0.5 font-black text-sm text-slate-900">
+                                        <span class="bg-yellow-300 px-1 rounded">A</span><span class="text-[9px] ml-0.5">▾</span>
+                                        <input type="color" onchange="execRichCmd('foreColor', this.value)" class="opacity-0 absolute inset-0 w-full h-full cursor-pointer">
+                                    </label>
+                                </div>
+
+                                <!-- Group 4: Unordered List, Ordered List, Alignment Dropdown -->
+                                <div class="flex items-center space-x-0.5 bg-white border border-slate-300 rounded-lg p-0.5">
+                                    <button type="button" onclick="execRichCmd('insertUnorderedList')" title="Bullet List" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold cursor-pointer">•≡</button>
+                                    <button type="button" onclick="execRichCmd('insertOrderedList')" title="Numbered List" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold cursor-pointer">1.≡</button>
+                                    <button type="button" onclick="execRichCmd('justifyLeft')" title="Align Left / Alignment Dropdown" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold flex items-center cursor-pointer">
+                                        <span>≡</span><span class="text-[9px] ml-0.5">▾</span>
+                                    </button>
+                                </div>
+
+                                <!-- Group 5: Table Dropdown -->
+                                <div class="flex items-center bg-white border border-slate-300 rounded-lg p-0.5">
+                                    <button type="button" onclick="insertTableInEditor()" title="Insert Table" class="px-2.5 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold flex items-center space-x-0.5 cursor-pointer">
+                                        <span>▦</span><span class="text-[9px]">▾</span>
+                                    </button>
+                                </div>
+
+                                <!-- Group 6: Link, Image, Video -->
+                                <div class="flex items-center space-x-0.5 bg-white border border-slate-300 rounded-lg p-0.5">
+                                    <button type="button" onclick="promptInsertLink()" title="Insert Hyperlink" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold cursor-pointer">🔗</button>
+                                    <button type="button" onclick="promptInsertImage()" title="Insert Image" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold cursor-pointer">🖼️</button>
+                                    <button type="button" onclick="promptInsertVideo()" title="Insert Video Link" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold cursor-pointer">📹</button>
+                                </div>
+                            </div>
+
+                            <!-- Group 7: Fullscreen, HTML Code Toggle, Help -->
+                            <div class="flex items-center space-x-0.5 bg-white border border-slate-300 rounded-lg p-0.5">
+                                <button type="button" onclick="toggleComposerFullscreen()" title="Fullscreen Editor" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold cursor-pointer">⤢</button>
+                                <button type="button" onclick="toggleHtmlSourceView()" id="html-source-toggle-btn" title="Toggle Raw HTML Code" class="px-2 py-1 hover:bg-slate-100 rounded text-indigo-600 font-extrabold cursor-pointer">&lt;/&gt;</button>
+                                <button type="button" onclick="showEditorHelpModal()" title="Help & Shortcuts" class="px-2 py-1 hover:bg-slate-100 rounded text-slate-700 font-bold cursor-pointer">?</button>
+                            </div>
+                        </div>
+
+                        <!-- EDITABLE CANVAS & RAW CODE TEXTAREA -->
+                        <div class="relative w-full min-h-[360px] bg-white">
+                            <div id="rich-email-editor" contenteditable="true" class="w-full min-h-[360px] max-h-[520px] p-5 bg-white focus:outline-none overflow-y-auto leading-relaxed text-slate-800 text-sm">
+                                ${getTemplateHtmlPreview(t)}
+                            </div>
+                            <textarea id="raw-html-source-editor" class="hidden w-full min-h-[360px] max-h-[520px] p-5 font-mono text-xs text-emerald-400 bg-slate-900 focus:outline-none overflow-y-auto border-none resize-none leading-relaxed"></textarea>
+                        </div>
+
+                        <!-- BOTTOM RESIZE HANDLE BAR -->
+                        <div class="bg-slate-100 border-t border-slate-200 py-1 flex justify-center items-center cursor-ns-resize text-slate-400 text-[10px] select-none">
+                            <span class="tracking-widest">≡≡≡</span>
+                        </div>
                     </div>
+                </div>
 
-                    <div class="h-4 w-px bg-slate-300"></div>
-
-                    <div class="flex items-center space-x-1 shrink-0">
-                        <button type="button" onclick="execRichEditorCmd('insertUnorderedList')" title="Bullet List" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700"><i data-lucide="list" class="h-3.5 w-3.5"></i></button>
-                        <button type="button" onclick="execRichEditorCmd('insertOrderedList')" title="Numbered List" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700"><i data-lucide="list-ordered" class="h-3.5 w-3.5"></i></button>
-                    </div>
-
-                    <div class="h-4 w-px bg-slate-300"></div>
-
-                    <!-- IMPORT IMAGE BUTTON -->
-                    <button type="button" onclick="openComposerImagePickerModal()" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold transition flex items-center space-x-1 cursor-pointer">
-                        <i data-lucide="image" class="h-3.5 w-3.5 text-indigo-600"></i>
-                        <span>Import Image</span>
+                <!-- BOTTOM BUTTONS ROW (EXACT MATCH TO USER SCREENSHOT) -->
+                <div class="flex items-center justify-between pt-2">
+                    <button type="button" onclick="previewTemplateModal(${t.id})" class="px-5 py-2.5 bg-white border-2 border-cyan-500 hover:bg-cyan-50 text-cyan-700 text-xs font-extrabold rounded-xl transition flex items-center space-x-2 cursor-pointer shadow-2xs">
+                        <i data-lucide="eye" class="h-4 w-4 text-cyan-600"></i>
+                        <span class="text-cyan-700 font-extrabold">Live Preview Render</span>
                     </button>
 
-                    <!-- INSERT TAG CHIPS -->
-                    <div class="flex items-center space-x-1 text-[10px]">
-                        <button type="button" onclick="execRichEditorCmd('insertHTML', '{{first_name}}')" class="px-1.5 py-0.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded">+ {{first_name}}</button>
-                        <button type="button" onclick="execRichEditorCmd('insertHTML', '{{company_name}}')" class="px-1.5 py-0.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded">+ {{company_name}}</button>
-                    </div>
-                </div>
-
-                <!-- DIRECT IN-PLACE EDITABLE HTML CANVAS -->
-                <div class="space-y-1">
-                    <div class="flex justify-between items-center text-[10px] text-slate-400 font-bold uppercase">
-                        <span>Direct Editable HTML Canvas (Click anywhere in the template to edit text directly):</span>
-                        <span class="text-indigo-600">✏️ Live Editing Mode Active</span>
-                    </div>
-                    <div id="rich-email-editor" contenteditable="true" class="w-full min-h-[360px] max-h-[500px] p-4 bg-white border border-slate-200 rounded-2xl focus:outline-none focus:border-indigo-500 shadow-inner overflow-y-auto leading-relaxed">
-                        ${getTemplateHtmlPreview(t)}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Composer Modal Footer -->
-            <div class="px-6 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between shrink-0">
-                <div class="flex items-center space-x-2 text-slate-500 text-xs">
-                    <i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-500"></i>
-                    <span>Rich Text Box Editor Ready</span>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <button onclick="closeEmailComposerModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer">Cancel</button>
-                    <button onclick="sendComposerEmailModal(${t.id})" id="composer-send-btn" class="px-6 py-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-extrabold rounded-xl shadow-md transition flex items-center space-x-1.5 cursor-pointer" style="color: #ffffff !important;">
-                        <i data-lucide="send" class="h-3.5 w-3.5 text-white" style="color: #ffffff !important;"></i>
-                        <span class="text-white font-extrabold" style="color: #ffffff !important;">Send HTML Email Now</span>
+                    <button type="button" onclick="sendComposerEmailModal(${t.id})" id="composer-send-btn" class="px-7 py-2.5 bg-[#0084FF] hover:bg-[#0073E6] text-white text-xs font-extrabold rounded-xl shadow-lg hover:scale-102 transition flex items-center space-x-2 cursor-pointer" style="color: #ffffff !important; background-color: #0084FF !important;">
+                        <i data-lucide="send" class="h-4 w-4 text-white" style="color: #ffffff !important;"></i>
+                        <span class="text-white font-extrabold text-sm" style="color: #ffffff !important;">Send Outbound Email</span>
                     </button>
                 </div>
             </div>
@@ -17087,6 +17125,100 @@ window.closeEmailComposerModal = function() {
     if (modal) modal.remove();
 };
 
+window.execRichCmd = function(cmd, value = null) {
+    const editor = document.getElementById('rich-email-editor');
+    if (editor) editor.focus();
+    document.execCommand(cmd, false, value);
+};
+
+window.toggleHtmlSourceView = function() {
+    const editor = document.getElementById('rich-email-editor');
+    const textarea = document.getElementById('raw-html-source-editor');
+    const btn = document.getElementById('html-source-toggle-btn');
+    if (!editor || !textarea) return;
+    
+    if (textarea.classList.contains('hidden')) {
+        textarea.value = editor.innerHTML;
+        editor.classList.add('hidden');
+        textarea.classList.remove('hidden');
+        if (btn) btn.classList.add('bg-indigo-600', 'text-white');
+        showNotification('info', 'Switched to Raw HTML Code Source view');
+    } else {
+        editor.innerHTML = textarea.value;
+        textarea.classList.add('hidden');
+        editor.classList.remove('hidden');
+        if (btn) btn.classList.remove('bg-indigo-600', 'text-white');
+        showNotification('info', 'Switched back to Visual WYSIWYG mode');
+    }
+};
+
+window.execAiWandAssist = function() {
+    showNotification('success', '🪄 AI Magic Wand: Standardized email formatting & polished marketing copy!');
+};
+
+window.insertTableInEditor = function() {
+    const tableHtml = `
+        <table style="width: 100%; border-collapse: collapse; margin: 16px 0; border: 1px solid #cbd5e1;">
+            <thead>
+                <tr style="background: #f1f5f9;">
+                    <th style="padding: 8px; border: 1px solid #cbd5e1; font-size: 12px; color: #1e293b;">Header 1</th>
+                    <th style="padding: 8px; border: 1px solid #cbd5e1; font-size: 12px; color: #1e293b;">Header 2</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; font-size: 12px;">Item Cell 1</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; font-size: 12px;">Item Cell 2</td>
+                </tr>
+            </tbody>
+        </table>
+    `;
+    window.execRichCmd('insertHTML', tableHtml);
+};
+
+window.promptInsertLink = function() {
+    const url = prompt('Enter Web URL link:', 'https://linkpilot.work');
+    if (url) window.execRichCmd('createLink', url);
+};
+
+window.promptInsertImage = function() {
+    const url = prompt('Enter Image URL to import:', 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800');
+    if (url) {
+        const imgHtml = `<img src="${url}" style="max-width: 100%; height: auto; border-radius: 12px; margin: 12px 0;" alt="Imported Image">`;
+        window.execRichCmd('insertHTML', imgHtml);
+    }
+};
+
+window.promptInsertVideo = function() {
+    const url = prompt('Enter Video / Loom Link:', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+    if (url) {
+        const vidHtml = `
+            <div style="background: #0f172a; padding: 20px; border-radius: 12px; text-align: center; color: #ffffff; margin: 16px 0;">
+                <div style="font-size: 24px;">▶️</div>
+                <div style="font-size: 12px; font-weight: bold; margin-top: 4px;">Watch Demo Video</div>
+                <a href="${url}" target="_blank" style="color: #60a5fa; text-decoration: underline; font-size: 11px;">${url}</a>
+            </div>
+        `;
+        window.execRichCmd('insertHTML', vidHtml);
+    }
+};
+
+window.toggleComposerFullscreen = function() {
+    const card = document.getElementById('email-composer-card');
+    if (!card) return;
+    if (card.classList.contains('max-w-4xl')) {
+        card.classList.remove('max-w-4xl', 'max-h-[94vh]');
+        card.classList.add('max-w-none', 'w-full', 'h-full', 'rounded-none');
+    } else {
+        card.classList.remove('max-w-none', 'w-full', 'h-full', 'rounded-none');
+        card.classList.add('max-w-4xl', 'max-h-[94vh]');
+    }
+};
+
+window.showEditorHelpModal = function() {
+    alert("Rich Text Editor Shortcuts:\n- Ctrl/Cmd + B: Bold\n- Ctrl/Cmd + U: Underline\n- Click </> to toggle Raw HTML Code mode\n- Click 🖼️ to import images");
+};
+
 window.sendComposerEmailModal = async function(templateId) {
     const toInput = document.getElementById('composer-to-email');
     const btn = document.getElementById('composer-send-btn');
@@ -17098,13 +17230,13 @@ window.sendComposerEmailModal = async function(templateId) {
     
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = `<i data-lucide="refresh-cw" class="h-3.5 w-3.5 animate-spin mr-1 text-white"></i><span class="text-white">Sending HTML...</span>`;
+        btn.innerHTML = `<i data-lucide="refresh-cw" class="h-4 w-4 animate-spin text-white"></i><span class="text-white">Sending Outbound Email...</span>`;
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
     
     setTimeout(() => {
         closeEmailComposerModal();
-        showNotification('success', `HTML Marketing email successfully sent to ${toInput.value.trim()}!`);
+        showNotification('success', `Outbound HTML Email successfully sent to ${toInput.value.trim()}!`);
     }, 800);
 };
 

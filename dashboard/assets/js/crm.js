@@ -16400,8 +16400,6 @@ const EMAIL_TEMPLATES_DATA = [
         body: `Hi {{first_name}},\n\nWe've had several mutual clients request a native integration between {{company_name}} and LinkPilot AI.\n\nWould your dev team be open to a brief technical call to explore integration pathways?\n\nBest,\n{{sender_name}}`
     },
     {
-        id: 55,
-        title: "VIP Industry Executive Networking Lunch",
         category: "Networking",
         tag: "VIP Invite",
         openRate: "87%",
@@ -16409,6 +16407,49 @@ const EMAIL_TEMPLATES_DATA = [
         body: `Dear {{first_name}},\n\nYou're invited to an intimate private dinner with 12 tech founders and executives in {{location}} on {{event_date}}.\n\nRSVP here: {{rsvp_link}}\n\nWe hope to see you there!\n\nBest regards,\n{{sender_name}}`
     }
 ];
+
+function getTemplateHtmlPreview(t) {
+    const bgGradients = [
+        'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+        'linear-gradient(135deg, #2563EB 0%, #06B6D4 100%)',
+        'linear-gradient(135deg, #059669 0%, #10B981 100%)',
+        'linear-gradient(135deg, #D97706 0%, #F59E0B 100%)',
+        'linear-gradient(135deg, #DC2626 0%, #E11D48 100%)',
+        'linear-gradient(135deg, #475569 0%, #1E293B 100%)'
+    ];
+    const grad = bgGradients[t.id % bgGradients.length];
+
+    return `
+        <div style="font-family: Inter, system-ui, sans-serif; background: #f8fafc; padding: 16px; min-height: 100%;">
+            <div style="max-width: 580px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                <!-- Header Banner -->
+                <div style="background: ${grad}; padding: 24px; text-align: center; color: #ffffff;">
+                    <div style="display: inline-block; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; color: #ffffff !important;">LINKPILOT CRM MARKETING</div>
+                    <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff !important; line-height: 1.3;">${t.title}</h2>
+                    <p style="margin: 6px 0 0 0; font-size: 11px; opacity: 0.9; color: #ffffff !important;">${t.subject}</p>
+                </div>
+
+                <!-- Email Body -->
+                <div style="padding: 20px; color: #334155; font-size: 12px; line-height: 1.6;">
+                    <div style="background: #f1f5f9; border-left: 4px solid #4F46E5; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600; color: #1e293b;">
+                        Subject: ${t.subject}
+                    </div>
+                    <p style="white-space: pre-line; margin: 0 0 16px 0; font-size: 12px; color: #475569;">${t.body}</p>
+                    
+                    <!-- Call To Action Button -->
+                    <div style="text-align: center; margin: 20px 0 10px 0;">
+                        <span style="background: #4F46E5; color: #ffffff !important; font-weight: 800; padding: 10px 24px; border-radius: 10px; display: inline-block; font-size: 12px; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);">Take Action &rarr;</span>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div style="background: #f8fafc; border-t: 1px solid #e2e8f0; padding: 12px; text-align: center; font-size: 10px; color: #94a3b8;">
+                    Sent via LinkPilot Marketing Automation &bull; Unsubscribe
+                </div>
+            </div>
+        </div>
+    `;
+}
 
 async function renderEmailTemplates(container) {
     try {
@@ -16431,10 +16472,10 @@ async function renderEmailTemplates(container) {
                         </div>
                         <div class="min-w-0">
                             <div class="flex items-center space-x-2">
-                                <h1 class="text-base font-bold text-slate-900 leading-tight">50+ Premium Email Templates</h1>
+                                <h1 class="text-base font-bold text-slate-900 leading-tight">50+ Premium HTML Marketing Templates</h1>
                                 <span class="px-2 py-0.5 bg-indigo-600 text-white rounded-full text-[10px] font-extrabold" style="color: #ffffff !important;">55 ACTIVE</span>
                             </div>
-                            <p class="text-xs text-slate-500 font-medium truncate mt-0.5">High-converting, professionally crafted templates. Hover any template to use or edit.</p>
+                            <p class="text-xs text-slate-500 font-medium truncate mt-0.5">Live visual HTML previews. Hover any template to send or customize.</p>
                         </div>
                     </div>
 
@@ -16460,16 +16501,16 @@ async function renderEmailTemplates(container) {
                     ${filteredTemplates.length === 0 ? `
                         <div class="p-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200 max-w-md mx-auto my-12">
                             <i data-lucide="file-question" class="h-10 w-10 mx-auto mb-2 text-indigo-400"></i>
-                            <h4 class="text-sm font-bold text-slate-700">No templates found</h4>
+                            <h4 class="text-sm font-bold text-slate-700">No HTML templates found</h4>
                             <p class="text-xs text-slate-400 mt-1">Try adjusting your category filter or search terms.</p>
                         </div>
                     ` : `
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                             ${filteredTemplates.map(t => `
-                                <div class="group relative bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs hover:shadow-md hover:border-indigo-400 transition-all duration-200 flex flex-col justify-between overflow-hidden">
+                                <div class="group relative bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:border-indigo-400 transition-all duration-200 flex flex-col justify-between overflow-hidden">
                                     
                                     <!-- Card Content -->
-                                    <div class="space-y-3 min-w-0">
+                                    <div class="space-y-2.5 min-w-0">
                                         <div class="flex justify-between items-center">
                                             <span class="px-2.5 py-0.5 rounded-md text-[9px] font-extrabold tracking-wider uppercase bg-indigo-50 text-indigo-700 border border-indigo-100">${t.category} • ${t.tag}</span>
                                             <span class="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center">
@@ -16477,29 +16518,30 @@ async function renderEmailTemplates(container) {
                                             </span>
                                         </div>
                                         
-                                        <h3 class="text-sm font-bold text-slate-900 leading-snug line-clamp-1 group-hover:text-indigo-600 transition" title="${t.title}">${t.title}</h3>
+                                        <h3 class="text-xs font-bold text-slate-900 leading-snug line-clamp-1 group-hover:text-indigo-600 transition" title="${t.title}">${t.title}</h3>
                                         
-                                        <div class="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-800 line-clamp-1 truncate" title="${t.subject}">
-                                            <span class="text-slate-400 font-normal">Subject:</span> ${t.subject}
+                                        <!-- VISUAL HTML MINI PREVIEW CONTAINER -->
+                                        <div class="relative w-full h-44 bg-slate-50 rounded-xl border border-slate-200/80 overflow-hidden shadow-inner flex items-start justify-center p-1 pointer-events-none select-none">
+                                            <div class="w-[200%] h-[200%] scale-50 origin-top-left transform pointer-events-none select-none overflow-hidden bg-white">
+                                                ${getTemplateHtmlPreview(t)}
+                                            </div>
                                         </div>
-                                        
-                                        <p class="text-xs text-slate-500 leading-relaxed font-sans line-clamp-3">${t.body}</p>
                                     </div>
 
-                                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between mt-4 text-[11px] text-slate-400 font-medium">
-                                        <span>Template #${t.id}</span>
-                                        <span class="text-indigo-600 font-bold group-hover:underline">Hover to Use →</span>
+                                    <div class="pt-3 border-t border-slate-100 flex items-center justify-between mt-3 text-[11px] text-slate-400 font-medium">
+                                        <span class="truncate max-w-[150px] font-semibold text-slate-700">${t.subject}</span>
+                                        <span class="text-indigo-600 font-bold group-hover:underline shrink-0">Hover to Use →</span>
                                     </div>
 
                                     <!-- MOUSE HOVER OVERLAY WITH "USE TEMPLATE" BUTTON -->
                                     <div class="absolute inset-0 bg-slate-900/85 backdrop-blur-xs rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center p-6 space-y-3 pointer-events-none group-hover:pointer-events-auto">
                                         <h4 class="text-xs font-bold text-white text-center line-clamp-1 px-2">${t.title}</h4>
-                                        <button onclick="openEmailComposerModal(${t.id})" class="w-full max-w-[190px] py-2.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-extrabold rounded-xl shadow-lg hover:scale-105 transition flex items-center justify-center space-x-2 cursor-pointer" style="color: #ffffff !important;">
+                                        <button onclick="openEmailComposerModal(${t.id})" class="w-full max-w-[200px] py-2.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-extrabold rounded-xl shadow-lg hover:scale-105 transition flex items-center justify-center space-x-2 cursor-pointer" style="color: #ffffff !important;">
                                             <i data-lucide="send" class="h-3.5 w-3.5 text-white" style="color: #ffffff !important;"></i>
-                                            <span class="text-white font-extrabold" style="color: #ffffff !important;">Use Template</span>
+                                            <span class="text-white font-extrabold" style="color: #ffffff !important;">Use HTML Template</span>
                                         </button>
-                                        <button onclick="previewTemplateModal(${t.id})" class="w-full max-w-[190px] py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-lg transition cursor-pointer" style="color: #ffffff !important;">
-                                            Preview Full Text
+                                        <button onclick="previewTemplateModal(${t.id})" class="w-full max-w-[200px] py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-lg transition cursor-pointer" style="color: #ffffff !important;">
+                                            Preview HTML Modal
                                         </button>
                                     </div>
 
@@ -16545,7 +16587,7 @@ window.previewTemplateModal = function(templateId) {
     }
     
     modal.innerHTML = `
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-up font-sans">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-3xl overflow-hidden animate-scale-up font-sans">
             <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
                 <div>
                     <h3 class="text-sm font-bold text-slate-900">${t.title}</h3>
@@ -16553,15 +16595,17 @@ window.previewTemplateModal = function(templateId) {
                 </div>
                 <button onclick="document.getElementById('template-preview-modal').remove()" class="h-8 w-8 rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-500 flex items-center justify-center">✕</button>
             </div>
-            <div class="p-6 space-y-3 bg-white max-h-[70vh] overflow-y-auto">
+            <div class="p-6 space-y-3 bg-white max-h-[75vh] overflow-y-auto">
                 <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800">
                     <span class="text-slate-400 font-normal">Subject:</span> ${t.subject}
                 </div>
-                <div class="p-4 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 leading-relaxed whitespace-pre-line font-sans">${t.body}</div>
+                <div class="p-4 bg-white border border-slate-200 rounded-xl">
+                    ${getTemplateHtmlPreview(t)}
+                </div>
             </div>
             <div class="px-6 py-3 border-t border-slate-200 bg-slate-50 flex justify-end space-x-2">
                 <button onclick="document.getElementById('template-preview-modal').remove()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl">Close</button>
-                <button onclick="document.getElementById('template-preview-modal').remove(); openEmailComposerModal(${t.id});" class="px-5 py-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-extrabold rounded-xl shadow-2xs" style="color: #ffffff !important;">Use Template</button>
+                <button onclick="document.getElementById('template-preview-modal').remove(); openEmailComposerModal(${t.id});" class="px-5 py-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-extrabold rounded-xl shadow-2xs" style="color: #ffffff !important;">Use HTML Template</button>
             </div>
         </div>
     `;
@@ -16579,7 +16623,7 @@ window.openEmailComposerModal = function(templateId) {
     }
     
     modal.innerHTML = `
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-3xl flex flex-col overflow-hidden animate-scale-up font-sans max-h-[90vh]">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-4xl flex flex-col overflow-hidden animate-scale-up font-sans max-h-[90vh]">
             <!-- Composer Modal Header -->
             <div class="px-6 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
                 <div class="flex items-center space-x-3 min-w-0">
@@ -16588,7 +16632,7 @@ window.openEmailComposerModal = function(templateId) {
                     </div>
                     <div class="min-w-0">
                         <h3 class="text-sm font-bold text-slate-900 truncate">Mail Sending Page - ${t.title}</h3>
-                        <p class="text-[11px] text-slate-500 font-medium truncate">Pre-filled with template #${t.id} (${t.category})</p>
+                        <p class="text-[11px] text-slate-500 font-medium truncate">HTML Marketing Template #${t.id} (${t.category})</p>
                     </div>
                 </div>
                 <button onclick="closeEmailComposerModal()" class="h-8 w-8 rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer" title="Close">
@@ -16610,19 +16654,26 @@ window.openEmailComposerModal = function(templateId) {
                     <input type="text" id="composer-subject" value="${t.subject}" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-indigo-500 focus:bg-white transition">
                 </div>
 
-                <!-- Quick Merge Tag Chips -->
-                <div class="flex items-center space-x-2 pt-1 overflow-x-auto no-scrollbar text-[11px]">
-                    <span class="text-slate-400 font-bold shrink-0">Insert Tag:</span>
-                    <button type="button" onclick="insertComposerMergeTag('{{first_name}}')" class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md border border-indigo-100 font-semibold hover:bg-indigo-100 transition shrink-0">+ {{first_name}}</button>
-                    <button type="button" onclick="insertComposerMergeTag('{{company_name}}')" class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md border border-indigo-100 font-semibold hover:bg-indigo-100 transition shrink-0">+ {{company_name}}</button>
-                    <button type="button" onclick="insertComposerMergeTag('{{sender_name}}')" class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md border border-indigo-100 font-semibold hover:bg-indigo-100 transition shrink-0">+ {{sender_name}}</button>
-                    <button type="button" onclick="insertComposerMergeTag('{{meeting_date}}')" class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md border border-indigo-100 font-semibold hover:bg-indigo-100 transition shrink-0">+ {{meeting_date}}</button>
+                <!-- View Mode Tabs (Live HTML Design vs Edit Raw Text) -->
+                <div class="flex items-center space-x-4 border-b border-slate-200 pt-2 text-xs font-bold">
+                    <button type="button" onclick="switchComposerTab('preview')" id="composer-tab-preview" class="pb-1.5 text-indigo-600 border-b-2 border-indigo-600 font-bold transition">🎨 Live HTML Design Preview</button>
+                    <button type="button" onclick="switchComposerTab('edit')" id="composer-tab-edit" class="pb-1.5 text-slate-400 hover:text-slate-700 font-medium transition">📝 Edit Raw Text & Code</button>
                 </div>
 
-                <!-- Email Message Content Body -->
-                <div class="space-y-1">
-                    <label class="block text-xs font-bold text-slate-700">Email Content Body:</label>
-                    <textarea id="composer-body" rows="10" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 leading-relaxed focus:outline-none focus:border-indigo-500 focus:bg-white transition resize-y font-sans">${t.body}</textarea>
+                <!-- Live Rendered HTML Design Container -->
+                <div id="composer-view-preview" class="p-4 bg-slate-50 border border-slate-200 rounded-2xl overflow-y-auto max-h-[350px]">
+                    ${getTemplateHtmlPreview(t)}
+                </div>
+
+                <!-- Edit Textarea Container (Hidden by default) -->
+                <div id="composer-view-edit" class="hidden space-y-2">
+                    <div class="flex items-center space-x-2 text-[11px]">
+                        <span class="text-slate-400 font-bold shrink-0">Insert Tag:</span>
+                        <button type="button" onclick="insertComposerMergeTag('{{first_name}}')" class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md border border-indigo-100 font-semibold">+ {{first_name}}</button>
+                        <button type="button" onclick="insertComposerMergeTag('{{company_name}}')" class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md border border-indigo-100 font-semibold">+ {{company_name}}</button>
+                        <button type="button" onclick="insertComposerMergeTag('{{sender_name}}')" class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md border border-indigo-100 font-semibold">+ {{sender_name}}</button>
+                    </div>
+                    <textarea id="composer-body" rows="8" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 leading-relaxed focus:outline-none focus:border-indigo-500 focus:bg-white transition resize-y font-sans">${t.body}</textarea>
                 </div>
             </div>
 
@@ -16630,19 +16681,38 @@ window.openEmailComposerModal = function(templateId) {
             <div class="px-6 py-3.5 border-t border-slate-200 bg-slate-50 flex items-center justify-between shrink-0">
                 <div class="flex items-center space-x-2 text-slate-400 text-xs">
                     <i data-lucide="paperclip" class="h-4 w-4"></i>
-                    <span>Attachments enabled</span>
+                    <span>HTML Marketing Engine Enabled</span>
                 </div>
                 <div class="flex items-center space-x-3">
                     <button onclick="closeEmailComposerModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer">Cancel</button>
                     <button onclick="sendComposerEmailModal(${t.id})" id="composer-send-btn" class="px-6 py-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-extrabold rounded-xl shadow-md transition flex items-center space-x-1.5 cursor-pointer" style="color: #ffffff !important;">
                         <i data-lucide="send" class="h-3.5 w-3.5 text-white" style="color: #ffffff !important;"></i>
-                        <span class="text-white font-extrabold" style="color: #ffffff !important;">Send Email Now</span>
+                        <span class="text-white font-extrabold" style="color: #ffffff !important;">Send HTML Email Now</span>
                     </button>
                 </div>
             </div>
         </div>
     `;
     if (typeof lucide !== 'undefined') lucide.createIcons();
+};
+
+window.switchComposerTab = function(tab) {
+    const previewBtn = document.getElementById('composer-tab-preview');
+    const editBtn = document.getElementById('composer-tab-edit');
+    const previewView = document.getElementById('composer-view-preview');
+    const editView = document.getElementById('composer-view-edit');
+    
+    if (tab === 'edit') {
+        if (previewBtn) previewBtn.className = "pb-1.5 text-slate-400 hover:text-slate-700 font-medium transition cursor-pointer";
+        if (editBtn) editBtn.className = "pb-1.5 text-indigo-600 border-b-2 border-indigo-600 font-bold transition cursor-pointer";
+        if (previewView) previewView.classList.add('hidden');
+        if (editView) editView.classList.remove('hidden');
+    } else {
+        if (previewBtn) previewBtn.className = "pb-1.5 text-indigo-600 border-b-2 border-indigo-600 font-bold transition cursor-pointer";
+        if (editBtn) editBtn.className = "pb-1.5 text-slate-400 hover:text-slate-700 font-medium transition cursor-pointer";
+        if (previewView) previewView.classList.remove('hidden');
+        if (editView) editView.classList.add('hidden');
+    }
 };
 
 window.closeEmailComposerModal = function() {
@@ -16663,8 +16733,6 @@ window.insertComposerMergeTag = function(tag) {
 
 window.sendComposerEmailModal = async function(templateId) {
     const toInput = document.getElementById('composer-to-email');
-    const subjectInput = document.getElementById('composer-subject');
-    const bodyInput = document.getElementById('composer-body');
     const btn = document.getElementById('composer-send-btn');
     
     if (!toInput || !toInput.value.trim()) {
@@ -16674,7 +16742,7 @@ window.sendComposerEmailModal = async function(templateId) {
     
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = `<i data-lucide="refresh-cw" class="h-3.5 w-3.5 animate-spin mr-1 text-white"></i><span class="text-white">Sending...</span>`;
+        btn.innerHTML = `<i data-lucide="refresh-cw" class="h-3.5 w-3.5 animate-spin mr-1 text-white"></i><span class="text-white">Sending HTML...</span>`;
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
     

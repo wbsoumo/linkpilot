@@ -24246,9 +24246,15 @@ function getWizardStepHtml(step) {
                     ` : `
                         <!-- CSV WORKSPACE -->
                         <div class="space-y-4">
-                            <div>
-                                <h4 class="text-sm font-bold text-slate-800">Upload CSV File</h4>
-                                <p class="text-xs text-slate-400 font-medium">Select a CSV spreadsheet sheet from your device.</p>
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div>
+                                    <h4 class="text-sm font-bold text-slate-800">Upload CSV File</h4>
+                                    <p class="text-xs text-slate-400 font-medium">Select a CSV spreadsheet sheet from your device.</p>
+                                </div>
+                                <button type="button" onclick="window.downloadSampleCampaignCsv()" class="bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-xl px-3.5 py-2 flex items-center space-x-2 text-xs font-extrabold text-indigo-700 transition shadow-2xs cursor-pointer">
+                                    <i data-lucide="download" class="h-3.5 w-3.5 text-indigo-600"></i>
+                                    <span>Download Sample CSV</span>
+                                </button>
                             </div>
                             
                             <div class="border-2 border-dashed border-slate-300 hover:border-indigo-500 hover:bg-slate-50/50 rounded-2xl p-10 text-center bg-slate-50 transition cursor-pointer" onclick="document.getElementById('wizard-csv-file-input').click()">
@@ -24896,6 +24902,24 @@ window.updateManualValidationUi = function() {
 window.triggerManualValidation = function() {
     window.updateManualValidationUi();
     showNotification('success', 'Recipients list validated successfully!');
+};
+
+window.downloadSampleCampaignCsv = function() {
+    const csvContent = "email,first_name,last_name,company\n" +
+                       "alex.smith@acme.com,Alex,Smith,Acme Corp\n" +
+                       "sarah.connor@tech.io,Sarah,Connor,TechIO\n" +
+                       "david.miller@co.org,David,Miller,CoOrg\n";
+                       
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "sample_recipients.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showNotification('success', 'Downloaded sample CSV file!');
 };
 
 window.handleWizardCsvFile = function(input) {

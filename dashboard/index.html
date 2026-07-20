@@ -67,14 +67,45 @@
                 </a>
                 <!-- Section: Communication -->
                 <h6 class="px-3 mb-1.5 mt-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Communication</h6>
-                <a href="#/inbox"
-                    class="sidebar-nav-link text-slate-300 transition duration-150 flex justify-between items-center w-full">
-                    <div class="flex items-center">
-                        <i data-lucide="message-square" class="h-4 w-4 mr-2.5"></i><span>Inbox</span>
+
+                <!-- Email Module Collapsible Menu -->
+                <div class="space-y-1 mb-1">
+                    <button onclick="toggleEmailMenu()"
+                        class="w-full flex items-center justify-between sidebar-nav-link text-slate-300 transition duration-150 focus:outline-none bg-slate-900/30">
+                        <div class="flex items-center">
+                            <i data-lucide="mail" class="h-4 w-4 mr-2.5 shrink-0 text-blue-400"></i>
+                            <span class="font-bold text-slate-200">Email</span>
+                        </div>
+                        <i id="email-chevron" data-lucide="chevron-down"
+                            class="h-3.5 w-3.5 transform transition-transform duration-200"></i>
+                    </button>
+                    <div id="email-submenu" class="hidden pl-6 space-y-1 text-[11px]">
+                        <a href="#/inbox"
+                            class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition justify-between">
+                            <div class="flex items-center">
+                                <i data-lucide="inbox" class="h-3 w-3 mr-2 shrink-0"></i>Inbox
+                            </div>
+                            <span id="sidebar-conversations-unread-badge"
+                                class="bg-blue-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full hidden">0</span>
+                        </a>
+                        <a href="#/tasks"
+                            class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
+                            <i data-lucide="clock" class="h-3 w-3 mr-2 shrink-0"></i>Followups
+                        </a>
+                        <a href="#/whatsapp-campaigns"
+                            class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
+                            <i data-lucide="megaphone" class="h-3 w-3 mr-2 shrink-0"></i>Marketing
+                        </a>
+                        <a href="#/automation"
+                            class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
+                            <i data-lucide="workflow" class="h-3 w-3 mr-2 shrink-0"></i>Automation
+                        </a>
+                        <a href="#/email-intelligence"
+                            class="sidebar-submenu-link flex items-center py-1.5 px-3 text-slate-400 hover:text-white rounded-lg transition">
+                            <i data-lucide="settings-2" class="h-3 w-3 mr-2 shrink-0"></i>Settings
+                        </a>
                     </div>
-                    <span id="sidebar-conversations-unread-badge"
-                        class="bg-blue-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full hidden">0</span>
-                </a>
+                </div>
 
                 <!-- WhatsApp Module Collapsible Menu -->
                 <div class="space-y-1">
@@ -132,10 +163,6 @@
                         </a>
                     </div>
                 </div>
-
-                <a href="#/email-intelligence" class="sidebar-nav-link text-slate-300 transition duration-150">
-                    <i data-lucide="mail" class="h-4 w-4 mr-2.5"></i><span>Email Settings</span>
-                </a>
                 <a href="#/calls" class="sidebar-nav-link text-slate-300 transition duration-150">
                     <i data-lucide="phone" class="h-4 w-4 mr-2.5"></i><span>Calls</span>
                 </a>
@@ -545,8 +572,20 @@
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="assets/js/app.js?v=5.35"></script>
     <script src="assets/js/whatsapp.js?v=5.42"></script>
-    <script src="assets/js/crm.js?v=5.58"></script>
+    <script src="assets/js/crm.js?v=5.59"></script>
     <script>
+        function toggleEmailMenu() {
+            const menu = document.getElementById('email-submenu');
+            const chev = document.getElementById('email-chevron');
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                chev.classList.add('rotate-180');
+            } else {
+                menu.classList.add('hidden');
+                chev.classList.remove('rotate-180');
+            }
+        }
+
         function toggleWhatsAppMenu() {
             const menu = document.getElementById('whatsapp-submenu');
             const chev = document.getElementById('wa-chevron');

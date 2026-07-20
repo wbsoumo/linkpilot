@@ -371,6 +371,14 @@ async function navigateTo(view, params = {}) {
             }
         });
 
+        const isEmailView = view === 'inbox' || view === 'email-intelligence';
+        const emailSubmenu = document.getElementById('email-submenu');
+        const emailChevron = document.getElementById('email-chevron');
+        if (isEmailView && emailSubmenu) {
+            emailSubmenu.classList.remove('hidden');
+            if (emailChevron) emailChevron.classList.add('rotate-180');
+        }
+
         const isWhatsAppView = view.startsWith('whatsapp-');
         const waSubmenu = document.getElementById('whatsapp-submenu');
         const waChevron = document.getElementById('wa-chevron');

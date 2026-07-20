@@ -282,7 +282,7 @@ class SMTPHelper {
         try {
             $mail->CharSet    = 'UTF-8';
             $mail->isSMTP();
-            $mail->Timeout    = 10; // Set SMTP connection timeout to 10 seconds
+            $mail->Timeout    = 3; // Fast 3-second timeout before falling back to AWS Proxy Worker
             $mail->Host       = $host;
             $mail->SMTPAuth   = true;
             $mail->Username   = $username;

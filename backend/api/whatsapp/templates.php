@@ -55,35 +55,88 @@ try {
                 } catch (Throwable $e) {
                     $healed = false;
                     
-                    // 1. Try to fetch all WABAs associated with the token to auto-heal mismatched IDs
-                    try {
-                        $wabaRes = WhatsAppMetaService::getWabasDirectly($accessToken);
-                        $wabas = $wabaRes['data'] ?? [];
-                        foreach ($wabas as $w) {
-                            $possibleWabaId = $w['id'] ?? '';
-                            if (!empty($possibleWabaId) && $possibleWabaId !== $wabaId) {
+                    // Fallback 1: If stored WABA ID is actually a Business Manager ID, fetch WABAs owned by/shared with it
+                    if (!empty($wabaId)) {
+                        try {
+                            $wabasList = [];
+                            try {
+                                $ownedRes = WhatsAppMetaService::executeRequest("{$wabaId}/owned_whatsapp_business_accounts?fields=id,name,status", "GET", null, $accessToken);
+                                if (!empty($ownedRes['data'])) $wabasList = array_merge($wabasList, $ownedRes['data']);
+                            } catch (Throwable $ignore) {}
+                            
+                            try {
+                                $clientRes = WhatsAppMetaService::executeRequest("{$wabaId}/client_whatsapp_business_accounts?fields=id,name,status", "GET", null, $accessToken);
+                                if (!empty($clientRes['data'])) $wabasList = array_merge($wabasList, $clientRes['data']);
+                            } catch (Throwable $ignore) {}
+                            
+                            foreach ($wabasList as $w) {
+                                $possibleWabaId = $w['id'] ?? '';
+                                if (!empty($possibleWabaId) && $possibleWabaId !== $wabaId) {
+                                    try {
+                                        $metaTemplates = WhatsAppMetaService::getTemplates($userId, $possibleWabaId, $accessToken);
+                                        $tplData = $metaTemplates['data'] ?? [];
+                                        
+                                        // Auto-correct database
+                                        $stmtUpdate = $db->prepare("UPDATE whatsapp_accounts SET waba_id = ? WHERE user_id = ?");
+                                        $stmtUpdate->execute([$possibleWabaId, $userId]);
+                                        $healed = true;
+                                        break;
+                                    } catch (Throwable $ignore) {}
+                                }
+                            }
+                        } catch (Throwable $ignore) {}
+                    }
+                    
+                    // Fallback 2: Get parent WABA ID from the Phone Number ID directly (whatsapp_business_account field)
+                    if (!$healed && !empty($phoneId)) {
+                        try {
+                            $phoneDetails = WhatsAppMetaService::executeRequest("{$phoneId}?fields=whatsapp_business_account", "GET", null, $accessToken);
+                            $parentWabaId = $phoneDetails['whatsapp_business_account']['id'] ?? '';
+                            if (!empty($parentWabaId) && $parentWabaId !== $wabaId) {
                                 try {
-                                    $metaTemplates = WhatsAppMetaService::getTemplates($userId, $possibleWabaId, $accessToken);
+                                    $metaTemplates = WhatsAppMetaService::getTemplates($userId, $parentWabaId, $accessToken);
                                     $tplData = $metaTemplates['data'] ?? [];
                                     
-                                    // Found a working WABA ID! Update database permanently
+                                    // Auto-correct database
                                     $stmtUpdate = $db->prepare("UPDATE whatsapp_accounts SET waba_id = ? WHERE user_id = ?");
-                                    $stmtUpdate->execute([$possibleWabaId, $userId]);
+                                    $stmtUpdate->execute([$parentWabaId, $userId]);
                                     $healed = true;
-                                    break;
                                 } catch (Throwable $ignore) {}
                             }
-                        }
-                    } catch (Throwable $wabaFetchEx) {}
+                        } catch (Throwable $ignore) {}
+                    }
                     
-                    // 2. If not healed, fallback to swapping WABA ID and Phone ID
+                    // Fallback 3: Query all global WABA accounts associated with token (standard list)
+                    if (!$healed) {
+                        try {
+                            $wabaRes = WhatsAppMetaService::getWabasDirectly($accessToken);
+                            $wabas = $wabaRes['data'] ?? [];
+                            foreach ($wabas as $w) {
+                                $possibleWabaId = $w['id'] ?? '';
+                                if (!empty($possibleWabaId) && $possibleWabaId !== $wabaId) {
+                                    try {
+                                        $metaTemplates = WhatsAppMetaService::getTemplates($userId, $possibleWabaId, $accessToken);
+                                        $tplData = $metaTemplates['data'] ?? [];
+                                        
+                                        // Auto-correct database
+                                        $stmtUpdate = $db->prepare("UPDATE whatsapp_accounts SET waba_id = ? WHERE user_id = ?");
+                                        $stmtUpdate->execute([$possibleWabaId, $userId]);
+                                        $healed = true;
+                                        break;
+                                    } catch (Throwable $ignore) {}
+                                }
+                            }
+                        } catch (Throwable $ignore) {}
+                    }
+                    
+                    // Fallback 4: If still not healed, try swapping WABA ID and Phone ID (swapped fields fallback)
                     if (!$healed) {
                         if (!empty($phoneId) && $phoneId !== $wabaId) {
                             try {
                                 $metaTemplates = WhatsAppMetaService::getTemplates($userId, $phoneId, $accessToken);
                                 $tplData = $metaTemplates['data'] ?? [];
                                 
-                                // Success! Swap them permanently in the database
+                                // Swap WABA and Phone ID in database
                                 $stmtSwap = $db->prepare("UPDATE whatsapp_accounts SET waba_id = ?, phone_number_id = ? WHERE user_id = ?");
                                 $stmtSwap->execute([$phoneId, $wabaId, $userId]);
                                 $healed = true;

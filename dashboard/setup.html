@@ -48,15 +48,15 @@
         <div class="flex items-center space-x-3">
             <img src="assets/img/logo.png" alt="LinkPilot AI" class="h-7 w-7 rounded-lg">
             <span class="text-base font-black text-slate-900 tracking-tight">LinkPilot AI</span>
-            <span class="text-xs px-2.5 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-full font-bold">Workspace Setup</span>
+            <span class="text-xs px-3 py-1 bg-blue-100/90 text-blue-800 border border-blue-200 rounded-full font-black shadow-2xs">Workspace Setup</span>
         </div>
         <div class="flex items-center space-x-4">
-            <a href="https://linkpilot.work/docs.html" target="_blank" class="text-xs font-bold text-slate-500 hover:text-slate-900 transition flex items-center space-x-1">
-                <i data-lucide="help-circle" class="h-4 w-4"></i>
+            <a href="https://linkpilot.work/docs.html" target="_blank" class="text-xs font-extrabold text-slate-700 hover:text-blue-600 transition flex items-center space-x-1.5">
+                <i data-lucide="help-circle" class="h-4 w-4 text-slate-600"></i>
                 <span>Documentation</span>
             </a>
-            <button onclick="localStorage.removeItem('linkpilot_token'); window.location.href='login.html';" class="text-xs font-bold text-slate-500 hover:text-slate-800 transition flex items-center space-x-1 px-3 py-1.5 border border-slate-200 rounded-xl hover:bg-slate-50 cursor-pointer">
-                <i data-lucide="log-out" class="h-3.5 w-3.5"></i>
+            <button onclick="localStorage.removeItem('linkpilot_token'); window.location.href='login.html';" class="text-xs font-extrabold text-slate-700 hover:text-slate-900 transition flex items-center space-x-1.5 px-3.5 py-1.5 border border-slate-300 bg-white rounded-xl hover:bg-slate-100 shadow-2xs cursor-pointer">
+                <i data-lucide="log-out" class="h-3.5 w-3.5 text-slate-600"></i>
                 <span>Sign Out</span>
             </button>
         </div>
@@ -68,7 +68,7 @@
         <!-- Page Header -->
         <div class="text-center max-w-3xl mx-auto space-y-2">
             <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Connect Your Email & Meta Workspace</h1>
-            <p class="text-sm text-slate-500 font-medium leading-relaxed">Connect your email account and Meta WhatsApp Business to unlock AI inbox, campaigns, smart replies, and automations.</p>
+            <p class="text-sm text-slate-600 font-semibold leading-relaxed">Connect your email account and Meta WhatsApp Business to unlock AI inbox, campaigns, smart replies, and automations.</p>
         </div>
 
         <!-- Modern Onboarding Progress Stepper -->
@@ -79,33 +79,33 @@
                     <div class="step-circle w-7 h-7 rounded-full bg-blue-600 text-white font-extrabold text-xs flex items-center justify-center shadow-md shadow-blue-500/20">1</div>
                     <span class="step-label text-xs font-extrabold text-blue-600">Connect</span>
                 </div>
-                <div class="step-line w-6 sm:w-10 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
+                <div class="step-line w-6 sm:w-10 h-[2px] bg-slate-300 shrink-0 mx-1"></div>
 
                 <!-- Step 2: Email Server -->
                 <div class="step-item flex items-center space-x-2 shrink-0 cursor-pointer" onclick="goToStep(2)">
-                    <div class="step-circle w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">2</div>
-                    <span class="step-label text-xs font-semibold text-slate-400">Email Server</span>
+                    <div class="step-circle w-7 h-7 rounded-full bg-slate-100 text-slate-600 font-extrabold text-xs flex items-center justify-center border border-slate-300">2</div>
+                    <span class="step-label text-xs font-bold text-slate-650">Email Server</span>
                 </div>
-                <div class="step-line w-6 sm:w-10 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
+                <div class="step-line w-6 sm:w-10 h-[2px] bg-slate-300 shrink-0 mx-1"></div>
 
                 <!-- Step 3: Meta (WhatsApp) -->
                 <div class="step-item flex items-center space-x-2 shrink-0 cursor-pointer" onclick="goToStep(3)">
-                    <div class="step-circle w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">3</div>
-                    <span class="step-label text-xs font-semibold text-slate-400">Meta (WhatsApp)</span>
+                    <div class="step-circle w-7 h-7 rounded-full bg-slate-100 text-slate-600 font-extrabold text-xs flex items-center justify-center border border-slate-300">3</div>
+                    <span class="step-label text-xs font-bold text-slate-650">Meta (WhatsApp)</span>
                 </div>
-                <div class="step-line w-6 sm:w-10 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
+                <div class="step-line w-6 sm:w-10 h-[2px] bg-slate-300 shrink-0 mx-1"></div>
 
                 <!-- Step 4: Permissions -->
                 <div class="step-item flex items-center space-x-2 shrink-0 cursor-pointer" onclick="goToStep(4)">
-                    <div class="step-circle w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">4</div>
-                    <span class="step-label text-xs font-semibold text-slate-400">Permissions</span>
+                    <div class="step-circle w-7 h-7 rounded-full bg-slate-100 text-slate-600 font-extrabold text-xs flex items-center justify-center border border-slate-300">4</div>
+                    <span class="step-label text-xs font-bold text-slate-650">Permissions</span>
                 </div>
-                <div class="step-line w-6 sm:w-10 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
+                <div class="step-line w-6 sm:w-10 h-[2px] bg-slate-300 shrink-0 mx-1"></div>
 
                 <!-- Step 5: Complete -->
                 <div class="step-item flex items-center space-x-2 shrink-0 cursor-pointer" onclick="goToStep(5)">
-                    <div class="step-circle w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">5</div>
-                    <span class="step-label text-xs font-semibold text-slate-400">Complete</span>
+                    <div class="step-circle w-7 h-7 rounded-full bg-slate-100 text-slate-600 font-extrabold text-xs flex items-center justify-center border border-slate-300">5</div>
+                    <span class="step-label text-xs font-bold text-slate-650">Complete</span>
                 </div>
             </div>
         </div>
@@ -122,23 +122,23 @@
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div>
                                 <h2 class="text-lg font-black text-slate-900 flex items-center space-x-2">
-                                    <span class="p-1.5 bg-blue-50 text-blue-600 rounded-lg shrink-0"><i data-lucide="mail" class="h-5 w-5"></i></span>
+                                    <span class="p-2 bg-blue-100 text-blue-700 rounded-xl shrink-0 border border-blue-200 shadow-2xs"><i data-lucide="mail" class="h-5 w-5"></i></span>
                                     <span>Connect Your Email</span>
                                 </h2>
-                                <p class="text-xs text-slate-500 font-semibold mt-1">You can connect your email later from Settings. All features will remain available.</p>
+                                <p class="text-xs text-slate-600 font-semibold mt-1">You can connect your email later from Settings. All features will remain available.</p>
                             </div>
-                            <button type="button" onclick="skipEmailSetup()" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-700 transition cursor-pointer shrink-0">
+                            <button type="button" onclick="skipEmailSetup()" class="px-4 py-2 border border-slate-300 hover:bg-slate-100 bg-white rounded-xl text-xs font-extrabold text-slate-800 transition shadow-2xs cursor-pointer shrink-0">
                                 Skip Email Setup
                             </button>
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 items-stretch">
                             <!-- Gmail (Recommended) -->
-                            <div class="p-6 border-2 border-blue-500 bg-blue-50/5 rounded-2xl relative space-y-5 flex flex-col justify-between h-full">
-                                <span class="absolute top-0 right-0 px-3 py-1 bg-blue-500 text-white rounded-bl-xl text-[9px] font-black uppercase tracking-wider">Recommended</span>
+                            <div class="p-6 border-2 border-blue-500 bg-blue-50/10 rounded-2xl relative space-y-5 flex flex-col justify-between h-full shadow-2xs">
+                                <span class="absolute top-0 right-0 px-3.5 py-1 bg-blue-600 text-white rounded-bl-xl text-[9px] font-black uppercase tracking-wider shadow-2xs">Recommended</span>
                                 <div class="space-y-4">
                                     <div class="flex items-center space-x-3">
-                                        <div class="p-2.5 bg-white border border-slate-200/60 rounded-xl shadow-2xs">
+                                        <div class="p-2.5 bg-white border border-slate-300 rounded-xl shadow-2xs">
                                             <svg class="h-6 w-6" viewBox="0 0 24 24">
                                                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                                                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -148,25 +148,25 @@
                                         </div>
                                         <div>
                                             <h3 class="font-black text-slate-900 text-sm">Recommended (Gmail)</h3>
-                                            <p class="text-[10px] text-slate-400 font-semibold mt-0.5">Secure Google OAuth signup</p>
+                                            <p class="text-xs text-slate-600 font-semibold mt-0.5">Secure Google OAuth signup</p>
                                         </div>
                                     </div>
-                                    <div class="space-y-2 text-xs font-bold text-slate-650 pl-1">
+                                    <div class="space-y-2 text-xs font-bold text-slate-700 pl-1">
                                         <div class="flex items-center space-x-2">
-                                            <span class="text-emerald-500 font-extrabold">✓</span>
+                                            <span class="text-emerald-600 font-extrabold">✓</span>
                                             <span>Easy & fast connection</span>
                                         </div>
                                         <div class="flex items-center space-x-2">
-                                            <span class="text-emerald-500 font-extrabold">✓</span>
+                                            <span class="text-emerald-600 font-extrabold">✓</span>
                                             <span>Secure OAuth authentication</span>
                                         </div>
                                         <div class="flex items-center space-x-2">
-                                            <span class="text-emerald-500 font-extrabold">✓</span>
+                                            <span class="text-emerald-600 font-extrabold">✓</span>
                                             <span>Access to IMAP, profile & more</span>
                                         </div>
                                     </div>
                                 </div>
-                                <button type="button" onclick="launchGoogleOAuth()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center space-x-2 shadow-sm shadow-blue-500/10 cursor-pointer" style="color: #ffffff !important;">
+                                <button type="button" onclick="launchGoogleOAuth()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer" style="color: #ffffff !important;">
                                     <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#FFFFFF"/>
                                         <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#FFFFFF"/>
@@ -178,26 +178,26 @@
                             </div>
 
                             <!-- Manual configuration -->
-                            <div class="p-6 border border-slate-200/80 bg-white rounded-2xl space-y-5 flex flex-col justify-between h-full">
+                            <div class="p-6 border border-slate-300 bg-white rounded-2xl space-y-5 flex flex-col justify-between h-full shadow-2xs">
                                 <div class="space-y-4">
                                     <div class="flex items-center space-x-3">
-                                        <div class="p-2.5 bg-slate-50 border border-slate-200/60 rounded-xl">
-                                            <i data-lucide="mail-open" class="h-6 w-6 text-slate-500"></i>
+                                        <div class="p-2.5 bg-blue-50 border border-blue-200 rounded-xl shadow-2xs">
+                                            <i data-lucide="mail-open" class="h-6 w-6 text-blue-600"></i>
                                         </div>
                                         <div>
                                             <h3 class="font-black text-slate-900 text-sm">Other Email Providers</h3>
-                                            <p class="text-[10px] text-slate-400 font-semibold mt-0.5">Manual custom SMTP/IMAP</p>
+                                            <p class="text-xs text-slate-600 font-bold mt-0.5">Manual custom SMTP/IMAP</p>
                                         </div>
                                     </div>
-                                    <p class="text-xs text-slate-500 font-semibold leading-relaxed">Connect Outlook, Zoho, or any custom SMTP server.</p>
-                                    <div class="flex items-center space-x-2.5 pt-1.5 opacity-80">
+                                    <p class="text-xs text-slate-700 font-bold leading-relaxed">Connect Outlook, Zoho, or any custom SMTP server.</p>
+                                    <div class="flex items-center space-x-2.5 pt-1.5">
                                         <img src="https://img.logo.dev/outlook.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-5 w-5 object-contain" alt="Outlook" onerror="this.onerror=null; this.src='https://img.icons8.com/color/48/microsoft-outlook-2019.png';">
                                         <img src="https://img.logo.dev/zoho.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-5 w-5 object-contain" alt="Zoho" onerror="this.onerror=null; this.src='https://img.icons8.com/color/48/globe--v1.png';">
-                                        <i data-lucide="server" class="h-5 w-5 text-slate-400"></i>
-                                        <span class="text-[10px] font-extrabold text-slate-400">...</span>
+                                        <i data-lucide="server" class="h-5 w-5 text-slate-600"></i>
+                                        <span class="text-xs font-black text-slate-600">...</span>
                                     </div>
                                 </div>
-                                <button type="button" onclick="goToStep(2)" class="w-full py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl transition flex items-center justify-center space-x-1 cursor-pointer">
+                                <button type="button" onclick="goToStep(2)" class="w-full py-2.5 bg-white border-2 border-slate-300 hover:border-blue-500 hover:bg-blue-50/40 text-slate-900 text-xs font-extrabold rounded-xl transition flex items-center justify-center space-x-1 cursor-pointer shadow-2xs">
                                     <span>Setup Manually</span>
                                 </button>
                             </div>
@@ -205,23 +205,23 @@
 
                         <!-- OR Separator -->
                         <div class="relative flex py-2 items-center">
-                            <div class="flex-grow border-t border-slate-100"></div>
-                            <span class="flex-shrink mx-4 text-[10px] font-extrabold text-slate-300 uppercase tracking-widest">OR</span>
-                            <div class="flex-grow border-t border-slate-100"></div>
+                            <div class="flex-grow border-t border-slate-200"></div>
+                            <span class="flex-shrink mx-4 text-xs font-black text-slate-500 uppercase tracking-widest">OR</span>
+                            <div class="flex-grow border-t border-slate-200"></div>
                         </div>
 
                         <!-- Skip Email for Now Row -->
-                        <div class="p-4 bg-slate-50/50 border border-slate-200/60 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="p-4 bg-slate-100/70 border border-slate-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div class="flex items-center space-x-3.5">
-                                <div class="p-2.5 bg-white border border-slate-200/65 rounded-xl shadow-3xs">
-                                    <i data-lucide="clock" class="h-5 w-5 text-slate-500"></i>
+                                <div class="p-2.5 bg-white border border-slate-300 rounded-xl shadow-2xs">
+                                    <i data-lucide="clock" class="h-5 w-5 text-slate-700"></i>
                                 </div>
                                 <div>
                                     <span class="block text-xs font-black text-slate-900">Skip Email for Now</span>
-                                    <span class="text-[10px] text-slate-400 font-semibold">You can configure email, SMTP, IMAP anytime from Settings.</span>
+                                    <span class="text-xs text-slate-600 font-bold">You can configure email, SMTP, IMAP anytime from Settings.</span>
                                 </div>
                             </div>
-                            <button type="button" onclick="skipEmailSetup()" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-700 transition cursor-pointer shrink-0">
+                            <button type="button" onclick="skipEmailSetup()" class="px-4 py-2 border border-slate-300 hover:bg-slate-200/60 bg-white rounded-xl text-xs font-extrabold text-slate-800 transition cursor-pointer shrink-0 shadow-2xs">
                                 Skip Email Setup
                             </button>
                         </div>
@@ -758,21 +758,21 @@
                 <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 shadow-soft space-y-4 text-left">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-2">
-                            <div class="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                            <div class="p-2 bg-blue-100 text-blue-700 rounded-xl border border-blue-200">
                                 <i data-lucide="sliders" class="h-4 w-4"></i>
                             </div>
-                            <span class="text-xs font-extrabold text-slate-900">Setup Progress</span>
+                            <span class="text-xs font-black text-slate-900">Setup Progress</span>
                         </div>
-                        <span id="setup-progress-text" class="text-xs font-extrabold text-blue-600">25% Completed</span>
+                        <span id="setup-progress-text" class="text-xs font-black text-blue-700">25% Completed</span>
                     </div>
-                    <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                    <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200">
                         <div id="setup-progress-bar" class="bg-blue-600 h-full rounded-full transition-all duration-500" style="width: 25%;"></div>
                     </div>
-                    <div class="pt-2 flex items-center justify-between text-[11px] text-slate-400 font-semibold gap-3">
+                    <div class="pt-2 flex items-center justify-between text-xs text-slate-600 font-bold gap-3">
                         <span>You can skip any step and complete it later.</span>
-                        <button type="button" id="wiz-continue-btn" onclick="goToStep(activeStep + 1)" class="px-3.5 py-1.5 bg-white border border-blue-200 hover:bg-blue-50 text-blue-600 rounded-lg font-bold transition flex items-center space-x-1 cursor-pointer shrink-0">
+                        <button type="button" id="wiz-continue-btn" onclick="goToStep(activeStep + 1)" class="px-3.5 py-1.5 bg-blue-50 border border-blue-300 hover:bg-blue-600 hover:text-white text-blue-700 rounded-lg font-black transition flex items-center space-x-1 cursor-pointer shrink-0 shadow-2xs">
                             <span>Continue Setup</span>
-                            <i data-lucide="arrow-right" class="h-3 w-3"></i>
+                            <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
                         </button>
                     </div>
                 </div>
@@ -780,81 +780,81 @@
                 <!-- 2. Connection Status Card -->
                 <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 shadow-soft space-y-4">
                     <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
-                        <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
+                        <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center space-x-2">
                             <i data-lucide="activity" class="h-4 w-4 text-blue-600"></i>
                             <span>Connection Status</span>
                         </h3>
-                        <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-600 border border-emerald-100 animate-pulse uppercase tracking-wider">Live</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 animate-pulse uppercase tracking-wider">Live</span>
                     </div>
 
                     <div class="space-y-3 text-left">
                         <!-- Email Account -->
-                        <div class="flex items-center justify-between py-2 border-b border-slate-50 text-xs font-bold">
-                            <div class="flex items-center space-x-2 text-slate-700">
-                                <i data-lucide="mail" class="h-4 w-4 text-slate-400"></i>
+                        <div class="flex items-center justify-between py-2 border-b border-slate-100 text-xs font-bold">
+                            <div class="flex items-center space-x-2 text-slate-800">
+                                <i data-lucide="mail" class="h-4 w-4 text-slate-600"></i>
                                 <span>Email Account</span>
                             </div>
                             <div class="flex items-center space-x-3">
-                                <span id="badge-status-email" class="text-rose-500 font-extrabold">Not Connected</span>
-                                <button onclick="skipEmailSetup()" class="text-blue-600 hover:text-blue-700 text-[11px] font-black cursor-pointer hover:underline">Skip</button>
+                                <span id="badge-status-email" class="text-rose-600 font-extrabold">Not Connected</span>
+                                <button onclick="skipEmailSetup()" class="text-blue-600 hover:text-blue-800 text-[11px] font-black cursor-pointer hover:underline">Skip</button>
                             </div>
                         </div>
 
                         <!-- SMTP -->
-                        <div class="flex items-center justify-between py-2 border-b border-slate-50 text-xs font-bold">
-                            <div class="flex items-center space-x-2 text-slate-700">
-                                <i data-lucide="send" class="h-4 w-4 text-slate-400"></i>
+                        <div class="flex items-center justify-between py-2 border-b border-slate-100 text-xs font-bold">
+                            <div class="flex items-center space-x-2 text-slate-800">
+                                <i data-lucide="send" class="h-4 w-4 text-slate-600"></i>
                                 <span>SMTP (Outgoing)</span>
                             </div>
                             <div class="flex items-center space-x-3">
-                                <span id="badge-status-smtp" class="text-amber-500 font-extrabold">Pending</span>
-                                <button onclick="goToStep(3)" class="text-blue-600 hover:text-blue-700 text-[11px] font-black cursor-pointer hover:underline">Skip</button>
+                                <span id="badge-status-smtp" class="text-amber-600 font-extrabold">Pending</span>
+                                <button onclick="goToStep(3)" class="text-blue-600 hover:text-blue-800 text-[11px] font-black cursor-pointer hover:underline">Skip</button>
                             </div>
                         </div>
 
                         <!-- IMAP -->
-                        <div class="flex items-center justify-between py-2 border-b border-slate-50 text-xs font-bold">
-                            <div class="flex items-center space-x-2 text-slate-700">
-                                <i data-lucide="inbox" class="h-4 w-4 text-slate-400"></i>
+                        <div class="flex items-center justify-between py-2 border-b border-slate-100 text-xs font-bold">
+                            <div class="flex items-center space-x-2 text-slate-800">
+                                <i data-lucide="inbox" class="h-4 w-4 text-slate-600"></i>
                                 <span>IMAP (Incoming)</span>
                             </div>
                             <div class="flex items-center space-x-3">
-                                <span id="badge-status-imap" class="text-amber-500 font-extrabold">Pending</span>
-                                <button onclick="goToStep(5)" class="text-blue-600 hover:text-blue-700 text-[11px] font-black cursor-pointer hover:underline">Skip</button>
+                                <span id="badge-status-imap" class="text-amber-600 font-extrabold">Pending</span>
+                                <button onclick="goToStep(5)" class="text-blue-600 hover:text-blue-800 text-[11px] font-black cursor-pointer hover:underline">Skip</button>
                             </div>
                         </div>
 
                         <!-- Meta WhatsApp -->
-                        <div class="flex items-center justify-between py-2 border-b border-slate-50 text-xs font-bold">
-                            <div class="flex items-center space-x-2 text-slate-700">
-                                <i data-lucide="message-square" class="h-4 w-4 text-slate-400"></i>
+                        <div class="flex items-center justify-between py-2 border-b border-slate-100 text-xs font-bold">
+                            <div class="flex items-center space-x-2 text-slate-800">
+                                <i data-lucide="message-square" class="h-4 w-4 text-slate-600"></i>
                                 <span>Meta WhatsApp</span>
                             </div>
                             <div class="flex items-center space-x-3">
-                                <span id="badge-status-wa" class="text-rose-500 font-extrabold">Not Connected</span>
-                                <button onclick="goToStep(5)" class="text-blue-600 hover:text-blue-700 text-[11px] font-black cursor-pointer hover:underline">Skip</button>
+                                <span id="badge-status-wa" class="text-rose-600 font-extrabold">Not Connected</span>
+                                <button onclick="goToStep(5)" class="text-blue-600 hover:text-blue-800 text-[11px] font-black cursor-pointer hover:underline">Skip</button>
                             </div>
                         </div>
 
                         <!-- Permissions -->
-                        <div class="flex items-center justify-between py-2 border-b border-slate-50 text-xs font-bold">
-                            <div class="flex items-center space-x-2 text-slate-700">
-                                <i data-lucide="shield-check" class="h-4 w-4 text-slate-400"></i>
+                        <div class="flex items-center justify-between py-2 border-b border-slate-100 text-xs font-bold">
+                            <div class="flex items-center space-x-2 text-slate-800">
+                                <i data-lucide="shield-check" class="h-4 w-4 text-slate-600"></i>
                                 <span>Permissions</span>
                             </div>
                             <div class="flex items-center space-x-3">
-                                <span id="badge-status-permissions" class="text-amber-500 font-extrabold">Pending</span>
-                                <button onclick="savePermissionsAndFinish()" class="text-blue-600 hover:text-blue-700 text-[11px] font-black cursor-pointer hover:underline">Skip</button>
+                                <span id="badge-status-permissions" class="text-amber-600 font-extrabold">Pending</span>
+                                <button onclick="savePermissionsAndFinish()" class="text-blue-600 hover:text-blue-800 text-[11px] font-black cursor-pointer hover:underline">Skip</button>
                             </div>
                         </div>
 
                         <!-- AI Inbox Engine -->
-                        <div class="flex items-center justify-between py-2 border-b border-slate-50 text-xs font-bold">
-                            <div class="flex items-center space-x-2 text-slate-700">
-                                <i data-lucide="sparkles" class="h-4 w-4 text-slate-400"></i>
+                        <div class="flex items-center justify-between py-2 border-b border-slate-100 text-xs font-bold">
+                            <div class="flex items-center space-x-2 text-slate-800">
+                                <i data-lucide="sparkles" class="h-4 w-4 text-slate-600"></i>
                                 <span>AI Inbox Engine</span>
                             </div>
-                            <div class="flex items-center space-x-1.5 text-slate-400">
+                            <div class="flex items-center space-x-1.5 text-slate-600">
                                 <span class="font-extrabold text-[11px]">Locked</span>
                                 <i data-lucide="lock" class="h-3.5 w-3.5"></i>
                             </div>
@@ -862,11 +862,11 @@
 
                         <!-- Last Sync -->
                         <div class="flex items-center justify-between py-1 text-xs font-bold">
-                            <div class="flex items-center space-x-2 text-slate-700">
-                                <i data-lucide="clock" class="h-4 w-4 text-slate-400"></i>
+                            <div class="flex items-center space-x-2 text-slate-800">
+                                <i data-lucide="clock" class="h-4 w-4 text-slate-600"></i>
                                 <span>Last Sync</span>
                             </div>
-                            <span class="text-slate-500 font-bold">Never</span>
+                            <span class="text-slate-600 font-extrabold">Never</span>
                         </div>
                     </div>
                 </div>
@@ -1036,10 +1036,10 @@
                             circle.innerHTML = `${sNum}`;
                             label.className = "step-label text-xs font-extrabold text-blue-600";
                         } else {
-                            // Future steps: gray
-                            circle.className = "step-circle w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center";
+                            // Future steps: high contrast gray
+                            circle.className = "step-circle w-7 h-7 rounded-full bg-slate-100 text-slate-700 font-extrabold text-xs flex items-center justify-center border border-slate-300";
                             circle.innerHTML = `${sNum}`;
-                            label.className = "step-label text-xs font-semibold text-slate-400";
+                            label.className = "step-label text-xs font-bold text-slate-700";
                         }
                     }
                 });

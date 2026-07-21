@@ -593,31 +593,181 @@ async function renderDashboard(container) {
         const showWarningBanner = !smtpConfigured || !whatsappConfigured;
         
         let warningBannerHtml = '';
+        let progress = 10;
+        if (smtpConfigured) progress += 45;
+        if (whatsappConfigured) progress += 45;
+
         if (showWarningBanner) {
-            let message = '';
-            if (!smtpConfigured && !whatsappConfigured) {
-                message = 'Please configure your SMTP email settings and WhatsApp Meta API credentials to enable automated outreach.';
-            } else if (!smtpConfigured) {
-                message = 'Please configure your SMTP email server to send automated email pitches.';
-            } else {
-                message = 'Please connect your WhatsApp number to automate mobile communications.';
-            }
-            
             warningBannerHtml = `
-                <div onclick="window.location.href='setup.html'" class="glass-panel p-4 bg-amber-500/10 border border-amber-500/25 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer hover:bg-amber-500/15 transition-all duration-300">
-                    <div class="flex items-center space-x-3 text-left">
-                        <div class="h-10 w-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
-                            <i data-lucide="alert-triangle" class="h-5 w-5 animate-pulse text-amber-450"></i>
+                <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 sm:p-8 shadow-soft text-slate-800 space-y-6 max-w-5xl">
+                    <!-- Header -->
+                    <div class="flex items-center space-x-3.5 pb-4 border-b border-slate-100 text-left">
+                        <div class="h-12 w-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shrink-0">
+                            <i data-lucide="rocket" class="h-6 w-6"></i>
                         </div>
                         <div>
-                            <span class="block text-slate-200 font-extrabold text-xs">Workspace Onboarding Setup Incomplete</span>
-                            <span class="text-[11px] text-slate-400 font-semibold leading-relaxed">${message}</span>
+                            <h2 class="text-lg font-black text-slate-900 tracking-tight">🚀 Complete Your Workspace Setup</h2>
+                            <p class="text-xs text-slate-500 font-semibold mt-1">Complete the remaining integrations to unlock AI Email, WhatsApp Automation, Campaigns, CRM Sync, and Intelligent Outreach.</p>
                         </div>
                     </div>
-                    <button onclick="event.stopPropagation(); window.location.href='setup.html';" class="px-4 py-2 bg-amber-500 hover:bg-amber-450 text-slate-950 rounded-xl text-xs font-extrabold flex items-center space-x-1 transition shadow-md shadow-amber-500/10 shrink-0 select-none cursor-pointer">
-                        <span>Complete Setup Now</span>
-                        <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
-                    </button>
+
+                    <!-- Progress Bar -->
+                    <div class="space-y-2 text-left">
+                        <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+                            <span>Overall Setup Progress</span>
+                            <span class="text-blue-600 font-extrabold">${progress}% Complete</span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200/40">
+                            <div class="bg-gradient-to-r from-blue-600 via-purple-600 to-emerald-500 h-full rounded-full transition-all duration-500" style="width: ${progress}%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Integration Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                        <!-- Email Setup Card -->
+                        <div class="p-5 bg-[#f8fafc] border border-slate-200/60 rounded-2xl space-y-4 flex flex-col justify-between text-left">
+                            <div class="space-y-3.5">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs font-extrabold text-slate-950 uppercase tracking-wider flex items-center space-x-1.5">
+                                        <i data-lucide="mail" class="h-4 w-4 text-blue-500"></i>
+                                        <span>Email Workspace</span>
+                                    </span>
+                                    ${smtpConfigured ? 
+                                        `<span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full text-[10px] uppercase font-black tracking-wide">Connected</span>` : 
+                                        `<span class="px-2.5 py-0.5 bg-slate-100 text-slate-400 border border-slate-200 rounded-full text-[10px] uppercase font-black tracking-wide">Not Configured</span>`
+                                    }
+                                </div>
+                                
+                                <div class="space-y-2.5 text-xs font-bold text-slate-600">
+                                    <div class="flex items-center space-x-2">
+                                        ${smtpConfigured ? 
+                                            `<span class="text-emerald-500 font-extrabold">✓</span> <span class="text-slate-800 font-bold">SMTP Connected</span>` : 
+                                            `<span class="text-slate-300">○</span> <span class="text-slate-450 font-semibold">SMTP Connected</span>`
+                                        }
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        ${smtpConfigured ? 
+                                            `<span class="text-emerald-500 font-extrabold">✓</span> <span class="text-slate-800 font-bold">IMAP Connected</span>` : 
+                                            `<span class="text-slate-300">○</span> <span class="text-slate-455 font-semibold">IMAP Connected</span>`
+                                        }
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        ${smtpConfigured ? 
+                                            `<span class="text-emerald-500 font-extrabold">✓</span> <span class="text-slate-800 font-bold">Send Test Email</span>` : 
+                                            `<span class="text-slate-300">○</span> <span class="text-slate-455 font-semibold">Send Test Email</span>`
+                                        }
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        ${smtpConfigured ? 
+                                            `<span class="text-emerald-500 font-extrabold">✓</span> <span class="text-slate-800 font-bold">AI Inbox Activated</span>` : 
+                                            `<span class="text-slate-300">○</span> <span class="text-slate-455 font-semibold">AI Inbox Activated</span>`
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button onclick="window.location.href='setup.html';" class="w-full mt-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 hover:text-blue-600 transition flex items-center justify-center space-x-1 cursor-pointer">
+                                <span>Configure Email</span>
+                                <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+                            </button>
+                        </div>
+
+                        <!-- WhatsApp Setup Card -->
+                        <div class="p-5 bg-[#f8fafc] border border-slate-200/60 rounded-2xl space-y-4 flex flex-col justify-between text-left">
+                            <div class="space-y-3.5">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs font-extrabold text-slate-950 uppercase tracking-wider flex items-center space-x-1.5">
+                                        <i data-lucide="message-square" class="h-4 w-4 text-emerald-500"></i>
+                                        <span>WhatsApp Business</span>
+                                    </span>
+                                    ${whatsappConfigured ? 
+                                        `<span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full text-[10px] uppercase font-black tracking-wide">Connected</span>` : 
+                                        `<span class="px-2.5 py-0.5 bg-slate-100 text-slate-400 border border-slate-200 rounded-full text-[10px] uppercase font-black tracking-wide">Not Configured</span>`
+                                    }
+                                </div>
+
+                                <div class="space-y-2.5 text-xs font-bold text-slate-600">
+                                    <div class="flex items-center space-x-2">
+                                        ${whatsappConfigured ? 
+                                            `<span class="text-emerald-500 font-extrabold">✓</span> <span class="text-slate-800 font-bold">Meta App Created</span>` : 
+                                            `<span class="text-slate-300">○</span> <span class="text-slate-455 font-semibold">Meta App Created</span>`
+                                        }
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        ${whatsappConfigured ? 
+                                            `<span class="text-emerald-500 font-extrabold">✓</span> <span class="text-slate-800 font-bold">Phone Number Connected</span>` : 
+                                            `<span class="text-slate-300">○</span> <span class="text-slate-455 font-semibold">Phone Number Connected</span>`
+                                        }
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        ${whatsappConfigured ? 
+                                            `<span class="text-emerald-500 font-extrabold">✓</span> <span class="text-slate-800 font-bold">Webhook Verified</span>` : 
+                                            `<span class="text-slate-300">○</span> <span class="text-slate-455 font-semibold">Webhook Verified</span>`
+                                        }
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        ${whatsappConfigured ? 
+                                            `<span class="text-emerald-500 font-extrabold">✓</span> <span class="text-slate-800 font-bold">Templates Synced</span>` : 
+                                            `<span class="text-slate-300">○</span> <span class="text-slate-455 font-semibold">Templates Synced</span>`
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button onclick="window.location.href='setup.html';" class="w-full mt-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 hover:text-emerald-600 transition flex items-center justify-center space-x-1 cursor-pointer">
+                                <span>Configure WhatsApp</span>
+                                <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Footer features list -->
+                    <div class="pt-4 border-t border-slate-100 flex flex-wrap items-center gap-x-4 gap-y-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 justify-center">
+                        <span class="text-slate-500">✨ Unlock after setup</span>
+                        <span class="flex items-center"><span class="text-emerald-500 mr-1">✓</span> AI Email Reply</span>
+                        <span class="flex items-center"><span class="text-emerald-500 mr-1">✓</span> Email Campaigns</span>
+                        <span class="flex items-center"><span class="text-emerald-500 mr-1">✓</span> WhatsApp Broadcast</span>
+                        <span class="flex items-center"><span class="text-emerald-500 mr-1">✓</span> AI Follow-ups</span>
+                        <span class="flex items-center"><span class="text-emerald-500 mr-1">✓</span> Smart Contact Sync</span>
+                        <span class="flex items-center"><span class="text-emerald-500 mr-1">✓</span> CRM Automation</span>
+                        <span class="flex items-center"><span class="text-emerald-500 mr-1">✓</span> Analytics & Tracking</span>
+                    </div>
+                </div>
+            `;
+        } else {
+            warningBannerHtml = `
+                <div class="bg-gradient-to-br from-emerald-50/80 to-emerald-100/30 border border-emerald-200/80 rounded-[20px] p-6 sm:p-8 shadow-soft text-slate-800 space-y-5 max-w-5xl">
+                    <div class="flex items-center space-x-3 text-left">
+                        <div class="h-12 w-12 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                            <i data-lucide="party-popper" class="h-6 w-6"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-black text-slate-900 tracking-tight">🎉 Workspace Ready</h2>
+                            <p class="text-xs text-slate-500 font-semibold mt-1">Your workspace is fully configured. All AI communication features are now active.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-4 pt-2">
+                        <div class="flex items-center space-x-2 text-xs font-bold text-slate-700 bg-white/80 border border-emerald-200 px-3.5 py-2 rounded-xl">
+                            <span class="text-emerald-500 font-extrabold">✓</span>
+                            <span>Email Connected</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-xs font-bold text-slate-700 bg-white/80 border border-emerald-200 px-3.5 py-2 rounded-xl">
+                            <span class="text-emerald-500 font-extrabold">✓</span>
+                            <span>WhatsApp Connected</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-xs font-bold text-slate-700 bg-white/80 border border-emerald-200 px-3.5 py-2 rounded-xl">
+                            <span class="text-emerald-500 font-extrabold">✓</span>
+                            <span>AI Activated</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-emerald-200/60 flex justify-end">
+                        <button onclick="window.location.hash = '#/inbox';" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-md shadow-emerald-500/20 cursor-pointer flex items-center space-x-2 animate-bounce" style="color: #ffffff !important;">
+                            <span style="color: #ffffff !important;">Open AI Workspace</span>
+                            <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
+                        </button>
+                    </div>
                 </div>
             `;
         }
@@ -1526,6 +1676,68 @@ function renderSetupWizard(container, data) {
                             </div>
                         </form>
                     </div>
+
+                    <!-- CARD 2: Meta Integration (WhatsApp Business) Card -->
+                    <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 sm:p-8 shadow-sm space-y-6">
+                        
+                        <!-- Header -->
+                        <div class="border-b border-slate-100 pb-4 flex justify-between items-center">
+                            <div>
+                                <h2 class="text-lg font-extrabold text-slate-900 flex items-center space-x-2">
+                                    <span class="p-1 bg-emerald-50 text-emerald-600 rounded-lg shrink-0 flex items-center justify-center">
+                                        <svg class="h-4.5 w-4.5 fill-current text-emerald-600" viewBox="0 0 24 24">
+                                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.1 1.45 4.8 1.45 5.58 0 10.12-4.54 10.12-10.12C21.581 5.33 17.26 1 12.01 1 6.43 1 1.89 5.54 1.89 11.12c0 1.9.5 3.76 1.47 5.36L2.38 21.62l5.21-1.37zM17.43 14.19c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-1.12-.56-1.92-.98-2.68-2.29-.3-.52-.3-.88-.15-1.03.14-.14.3-.35.45-.53.15-.17.2-.3.3-.5.1-.2.05-.38-.02-.53-.07-.15-.67-1.62-.92-2.22-.24-.6-.5-.52-.67-.53l-.58-.01c-.2 0-.53.07-.8.37-.28.3-1.07 1.05-1.07 2.56 0 1.5 1.1 2.97 1.25 3.17.15.2 2.15 3.28 5.2 4.6 1.34.57 2.14.75 2.87.68.73-.07 2.22-.91 2.53-1.79.31-.88.31-1.64.21-1.79-.1-.15-.29-.24-.59-.39z"/>
+                                        </svg>
+                                    </span>
+                                    <span>Meta Integration (WhatsApp Business)</span>
+                                </h2>
+                                <p class="text-xs text-slate-500 font-medium mt-1">Connect your WhatsApp Business account securely via Meta Cloud API.</p>
+                            </div>
+                            <span class="text-[10px] px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-extrabold uppercase tracking-wider">Meta Official</span>
+                        </div>
+
+                        <!-- Embedded Signup Option -->
+                        <div class="p-5 border-2 border-emerald-500/80 bg-emerald-50/10 rounded-2xl text-left relative space-y-4">
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
+                                        <svg class="h-6 w-6 fill-current" viewBox="0 0 24 24">
+                                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.1 1.45 4.8 1.45 5.58 0 10.12-4.54 10.12-10.12C21.581 5.33 17.26 1 12.01 1 6.43 1 1.89 5.54 1.89 11.12c0 1.9.5 3.76 1.47 5.36L2.38 21.62l5.21-1.37zM17.43 14.19c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-1.12-.56-1.92-.98-2.68-2.29-.3-.52-.3-.88-.15-1.03.14-.14.3-.35.45-.53.15-.17.2-.3.3-.5.1-.2.05-.38-.02-.53-.07-.15-.67-1.62-.92-2.22-.24-.6-.5-.52-.67-.53l-.58-.01c-.2 0-.53.07-.8.37-.28.3-1.07 1.05-1.07 2.56 0 1.5 1.1 2.97 1.25 3.17.15.2 2.15 3.28 5.2 4.6 1.34.57 2.14.75 2.87.68.73-.07 2.22-.91 2.53-1.79.31-.88.31-1.64.21-1.79-.1-.15-.29-.24-.59-.39z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-extrabold text-slate-900 text-sm">Official Meta Embedded Signup</h4>
+                                        <p class="text-[11px] text-slate-500 font-semibold">Fastest option. Connect in under 2 minutes.</p>
+                                    </div>
+                                </div>
+                                <span class="px-2.5 py-0.5 bg-emerald-500 text-white rounded-full text-[9px] font-black uppercase tracking-wider">Recommended</span>
+                            </div>
+
+                            <button type="button" id="wiz-wa-embedded-connect-btn" onclick="launchWizMetaEmbeddedSignup()" class="w-full py-3 text-xs font-bold rounded-xl text-white bg-[#1877F2] hover:bg-[#166FE5] transition flex items-center justify-center space-x-2.5 shadow-md shadow-blue-500/10 cursor-pointer select-none border border-transparent" style="color: #ffffff !important;">
+                                <svg class="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24">
+                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                </svg>
+                                <span>Login with Facebook</span>
+                            </button>
+                        </div>
+
+                        <!-- Help Line -->
+                        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+                            <div>
+                                <span class="font-extrabold block text-slate-800">Need help with Meta Setup?</span>
+                                <span class="text-slate-500 text-[11px]">Contact our setup assistance team directly</span>
+                            </div>
+                            <div class="flex items-center space-x-2 shrink-0">
+                                <a href="tel:+918016222991" class="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg font-bold text-slate-700 transition flex items-center space-x-1">
+                                    <i data-lucide="phone" class="h-3.5 w-3.5"></i>
+                                    <span>Call</span>
+                                </a>
+                                <a href="https://wa.me/918016222991" target="_blank" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-bold transition flex items-center space-x-1 shadow-xs" style="color: #ffffff !important;">
+                                    <span>WhatsApp +91 8016222991</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- RIGHT COLUMN: Status, Features & Security Cards -->
@@ -1720,6 +1932,66 @@ window.launchWizGoogleOAuth = async function() {
         }
     } catch (err) {
         showNotification('error', 'OAuth URL creation failed: ' + err.message);
+    }
+};
+
+window.launchWizMetaEmbeddedSignup = async function() {
+    const btn = document.getElementById('wiz-wa-embedded-connect-btn');
+    const origHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div><span>Initializing Meta...</span>`;
+    }
+    
+    try {
+        const config = await apiCall('whatsapp/embedded_signup.php');
+        const appId = config.app_id;
+        const state = config.state;
+        const scopes = config.scopes;
+        
+        if (!appId) {
+            const useDemo = confirm("Demo Mode: No Meta App ID is configured in Admin Settings. Connect sandbox demo account?");
+            if (useDemo) {
+                const res = await apiCall('whatsapp/oauth_callback.php', 'POST', { access_token: "EAAGeminiTest", state });
+                showNotification('success', 'Connected Successfully via Meta Embedded Signup!');
+            } else {
+                showNotification('warning', 'Meta App ID configuration is required in Admin Control Panel.');
+            }
+            return;
+        }
+        
+        if (!window.FB) {
+            await new Promise(resolve => {
+                if (document.getElementById('facebook-jssdk')) return resolve();
+                var js = document.createElement('script');
+                js.id = 'facebook-jssdk';
+                js.src = "https://connect.facebook.net/en_US/sdk.js";
+                js.onload = () => resolve();
+                document.getElementsByTagName('script')[0].parentNode.insertBefore(js, document.getElementsByTagName('script')[0]);
+            });
+        }
+        
+        FB.init({ appId, cookie: true, xfbml: true, version: 'v20.0' });
+        
+        FB.login(function(response) {
+            if (response.authResponse) {
+                apiCall('whatsapp/oauth_callback.php', 'POST', {
+                    access_token: response.authResponse.accessToken,
+                    state: state
+                }).then(() => showNotification('success', 'WhatsApp Connected via Meta Signup!'));
+            } else {
+                showNotification('error', 'Login cancelled.');
+            }
+        }, { scope: scopes, extras: { feature: 'whatsapp_embedded_signup' } });
+        
+    } catch (err) {
+        showNotification('error', err.message || 'Meta OAuth initialization failed.');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = origHtml;
+            if (window.lucide) lucide.createIcons();
+        }
     }
 };
 

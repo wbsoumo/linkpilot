@@ -22,14 +22,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="assets/img/logo.png">
-    <title>Connect Email Workspace - LinkPilot AI</title>
+    <title>Connect Email & Meta Workspace - LinkPilot AI</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="assets/css/style.css?v=4.7">
+    <link rel="stylesheet" href="assets/css/style.css?v=4.8">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -67,59 +67,59 @@
 
         <!-- Page Header -->
         <div class="text-center max-w-3xl mx-auto space-y-2">
-            <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Connect Your Email Workspace</h1>
-            <p class="text-sm text-slate-500 font-medium leading-relaxed">Connect your email account to unlock AI-powered inbox, campaigns, smart replies, tracking, and automations.</p>
+            <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Connect Your Email & Meta Workspace</h1>
+            <p class="text-sm text-slate-500 font-medium leading-relaxed">Connect your email account and Meta WhatsApp Business to unlock AI inbox, campaigns, smart replies, and automations.</p>
         </div>
 
         <!-- Modern Onboarding Progress Stepper -->
-        <div class="bg-white border border-slate-200/80 rounded-[20px] p-4 sm:p-5 shadow-soft max-w-4xl mx-auto">
+        <div class="bg-white border border-slate-200/80 rounded-[20px] p-4 sm:p-5 shadow-soft max-w-5xl mx-auto">
             <div class="flex items-center justify-between overflow-x-auto no-scrollbar py-1">
-                <!-- Step 1: Connect (Completed) -->
+                <!-- Step 1: Connect -->
                 <div class="flex items-center space-x-2 shrink-0">
                     <div class="w-7 h-7 rounded-full bg-emerald-500 text-white font-black text-xs flex items-center justify-center shadow-xs">
                         <i data-lucide="check" class="h-4 w-4"></i>
                     </div>
                     <span class="text-xs font-bold text-slate-900">Connect</span>
                 </div>
-                <div class="w-8 sm:w-12 h-[2px] bg-emerald-400 shrink-0 mx-1"></div>
+                <div class="w-6 sm:w-10 h-[2px] bg-emerald-400 shrink-0 mx-1"></div>
 
-                <!-- Step 2: SMTP (Current Step Highlighted in Blue) -->
+                <!-- Step 2: SMTP -->
+                <div class="flex items-center space-x-2 shrink-0">
+                    <div class="w-7 h-7 rounded-full bg-emerald-500 text-white font-black text-xs flex items-center justify-center shadow-xs">
+                        <i data-lucide="check" class="h-4 w-4"></i>
+                    </div>
+                    <span class="text-xs font-bold text-slate-900">SMTP</span>
+                </div>
+                <div class="w-6 sm:w-10 h-[2px] bg-blue-500 shrink-0 mx-1"></div>
+
+                <!-- Step 3: Meta (WhatsApp) (Current Step Highlighted in Blue) -->
                 <div class="flex items-center space-x-2 shrink-0">
                     <div class="w-7 h-7 rounded-full bg-blue-600 text-white font-extrabold text-xs flex items-center justify-center shadow-md shadow-blue-500/20">
-                        2
-                    </div>
-                    <span class="text-xs font-extrabold text-blue-600">SMTP</span>
-                </div>
-                <div class="w-8 sm:w-12 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
-
-                <!-- Step 3: IMAP (Future Step Gray) -->
-                <div class="flex items-center space-x-2 shrink-0">
-                    <div class="w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">
                         3
                     </div>
-                    <span class="text-xs font-semibold text-slate-400">IMAP</span>
+                    <span class="text-xs font-extrabold text-blue-600">Meta (WhatsApp)</span>
                 </div>
-                <div class="w-8 sm:w-12 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
+                <div class="w-6 sm:w-10 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
 
-                <!-- Step 4: Permissions (Future Step Gray) -->
+                <!-- Step 4: IMAP -->
                 <div class="flex items-center space-x-2 shrink-0">
                     <div class="w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">
                         4
                     </div>
-                    <span class="text-xs font-semibold text-slate-400">Permissions</span>
+                    <span class="text-xs font-semibold text-slate-400">IMAP</span>
                 </div>
-                <div class="w-8 sm:w-12 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
+                <div class="w-6 sm:w-10 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
 
-                <!-- Step 5: Profile (Future Step Gray) -->
+                <!-- Step 5: Permissions -->
                 <div class="flex items-center space-x-2 shrink-0">
                     <div class="w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">
                         5
                     </div>
-                    <span class="text-xs font-semibold text-slate-400">Profile</span>
+                    <span class="text-xs font-semibold text-slate-400">Permissions</span>
                 </div>
-                <div class="w-8 sm:w-12 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
+                <div class="w-6 sm:w-10 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
 
-                <!-- Step 6: Complete (Future Step Gray) -->
+                <!-- Step 6: Complete -->
                 <div class="flex items-center space-x-2 shrink-0">
                     <div class="w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">
                         6
@@ -132,8 +132,10 @@
         <!-- Responsive Two-Column Layout -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-            <!-- LEFT COLUMN: SMTP Configuration Card (col-span-12 lg:col-span-7) -->
+            <!-- LEFT COLUMN: SMTP & Meta Configuration Cards (col-span-12 lg:col-span-7) -->
             <div class="lg:col-span-7 space-y-6">
+
+                <!-- CARD 1: Outbound SMTP Configuration Card -->
                 <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 sm:p-8 shadow-soft space-y-6">
                     
                     <!-- Card Header -->
@@ -141,7 +143,7 @@
                         <div>
                             <h2 class="text-lg font-extrabold text-slate-900 flex items-center space-x-2">
                                 <i data-lucide="mail" class="h-5 w-5 text-blue-600"></i>
-                                <span>SMTP Configuration</span>
+                                <span>SMTP Outbound Configuration</span>
                             </h2>
                             <p class="text-xs text-slate-500 font-medium mt-1">Configure your outbound mail server credentials.</p>
                         </div>
@@ -210,10 +212,9 @@
                         </button>
                     </div>
 
-                    <!-- Input Form Fields -->
+                    <!-- Form Input Fields -->
                     <form id="setup-smtp-form" onsubmit="event.preventDefault(); testAndSaveSMTPConnection();" class="space-y-4">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <!-- Sender Name -->
                             <div class="space-y-1.5">
                                 <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Sender Name *</label>
                                 <div class="relative">
@@ -223,7 +224,6 @@
                                 <p class="text-[10px] text-slate-400 font-medium">Name displayed in recipients' inbox</p>
                             </div>
 
-                            <!-- Sender Email -->
                             <div class="space-y-1.5">
                                 <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Sender Email *</label>
                                 <div class="relative">
@@ -234,53 +234,40 @@
                             </div>
                         </div>
 
-                        <!-- Host & Port Row -->
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <!-- SMTP Host -->
                             <div class="sm:col-span-2 space-y-1.5">
                                 <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">SMTP Host *</label>
                                 <div class="relative">
                                     <i data-lucide="server" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
                                     <input type="text" id="smtp-host" placeholder="smtp.gmail.com" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
                                 </div>
-                                <p class="text-[10px] text-slate-400 font-medium">Mail server address</p>
                             </div>
-
-                            <!-- SMTP Port -->
                             <div class="space-y-1.5">
                                 <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Port *</label>
                                 <div class="relative">
                                     <i data-lucide="hash" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
                                     <input type="number" id="smtp-port" placeholder="587" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
                                 </div>
-                                <p class="text-[10px] text-slate-400 font-medium">Common: 587, 465</p>
                             </div>
                         </div>
 
-                        <!-- Username & Password Row -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <!-- Username -->
                             <div class="space-y-1.5">
                                 <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">SMTP Username *</label>
                                 <div class="relative">
                                     <i data-lucide="at-sign" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
                                     <input type="text" id="smtp-username" placeholder="john@company.com" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
                                 </div>
-                                <p class="text-[10px] text-slate-400 font-medium">Authentication email/username</p>
                             </div>
-
-                            <!-- Password -->
                             <div class="space-y-1.5">
                                 <label id="smtp-pass-label" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Password / App Password *</label>
                                 <div class="relative">
                                     <i data-lucide="lock" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
                                     <input type="password" id="smtp-password" placeholder="••••••••••••" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
                                 </div>
-                                <p class="text-[10px] text-slate-400 font-medium">Use App Passwords for Gmail/Outlook</p>
                             </div>
                         </div>
 
-                        <!-- Encryption Dropdown -->
                         <div class="space-y-1.5">
                             <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Encryption Method</label>
                             <div class="relative">
@@ -306,6 +293,146 @@
                         </div>
                     </form>
                 </div>
+
+                <!-- CARD 2: Meta Integration (WhatsApp Business) Card -->
+                <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 sm:p-8 shadow-soft space-y-6">
+                    
+                    <!-- Card Header -->
+                    <div class="border-b border-slate-100 pb-4 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-lg font-extrabold text-slate-900 flex items-center space-x-2">
+                                <span class="p-1 bg-emerald-50 text-emerald-600 rounded-lg shrink-0 flex items-center justify-center">
+                                    <svg class="h-4.5 w-4.5 fill-current text-emerald-600" viewBox="0 0 24 24">
+                                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.1 1.45 4.8 1.45 5.58 0 10.12-4.54 10.12-10.12C21.581 5.33 17.26 1 12.01 1 6.43 1 1.89 5.54 1.89 11.12c0 1.9.5 3.76 1.47 5.36L2.38 21.62l5.21-1.37zM17.43 14.19c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-1.12-.56-1.92-.98-2.68-2.29-.3-.52-.3-.88-.15-1.03.14-.14.3-.35.45-.53.15-.17.2-.3.3-.5.1-.2.05-.38-.02-.53-.07-.15-.67-1.62-.92-2.22-.24-.6-.5-.52-.67-.53l-.58-.01c-.2 0-.53.07-.8.37-.28.3-1.07 1.05-1.07 2.56 0 1.5 1.1 2.97 1.25 3.17.15.2 2.15 3.28 5.2 4.6 1.34.57 2.14.75 2.87.68.73-.07 2.22-.91 2.53-1.79.31-.88.31-1.64.21-1.79-.1-.15-.29-.24-.59-.39z"/>
+                                    </svg>
+                                </span>
+                                <span>Meta Integration (WhatsApp Business)</span>
+                            </h2>
+                            <p class="text-xs text-slate-500 font-medium mt-1">Connect your WhatsApp Business account securely via Meta Cloud API.</p>
+                        </div>
+                        <span class="text-[10px] px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-extrabold uppercase tracking-wider">Meta Official</span>
+                    </div>
+
+                    <!-- Connected State Alert (Hidden by default, shown if active) -->
+                    <div id="wa-connect-success-state" class="hidden p-5 bg-emerald-50/60 border border-emerald-200/80 rounded-2xl space-y-3">
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center space-x-3">
+                                <div class="p-2 bg-emerald-500 text-white rounded-xl">
+                                    <i data-lucide="check-circle" class="h-5 w-5"></i>
+                                </div>
+                                <div>
+                                    <span class="text-xs font-black text-slate-800 block" id="wa-success-biz-name">Connected Business</span>
+                                    <span class="text-[11px] text-slate-500 font-semibold" id="wa-success-number">+1 000 000 0000</span>
+                                </div>
+                            </div>
+                            <span id="wa-success-quality" class="px-2.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full text-[10px] uppercase font-black">GREEN</span>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-emerald-100">
+                            <span>Display Name: <strong id="wa-success-display-name" class="text-slate-700">--</strong></span>
+                            <span>Type: <strong id="wa-success-conn-type" class="text-slate-700">Embedded Signup</strong></span>
+                        </div>
+                        <div class="flex items-center space-x-2 pt-2">
+                            <button type="button" onclick="reconnectWhatsApp()" class="px-3.5 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-700 transition shadow-2xs cursor-pointer">Reconnect</button>
+                            <button type="button" onclick="disconnectWhatsApp()" class="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl text-xs font-bold text-rose-600 transition shadow-2xs cursor-pointer">Disconnect</button>
+                        </div>
+                    </div>
+
+                    <!-- Connection Selection State -->
+                    <div id="wa-connect-selection-state" class="space-y-5">
+
+                        <!-- Primary Recommended Option: Official Meta Embedded Signup -->
+                        <div class="p-5 border-2 border-emerald-500/80 bg-emerald-50/10 rounded-2xl text-left relative space-y-4">
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
+                                        <svg class="h-6 w-6 fill-current" viewBox="0 0 24 24">
+                                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.1 1.45 4.8 1.45 5.58 0 10.12-4.54 10.12-10.12C21.581 5.33 17.26 1 12.01 1 6.43 1 1.89 5.54 1.89 11.12c0 1.9.5 3.76 1.47 5.36L2.38 21.62l5.21-1.37zM17.43 14.19c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-1.12-.56-1.92-.98-2.68-2.29-.3-.52-.3-.88-.15-1.03.14-.14.3-.35.45-.53.15-.17.2-.3.3-.5.1-.2.05-.38-.02-.53-.07-.15-.67-1.62-.92-2.22-.24-.6-.5-.52-.67-.53l-.58-.01c-.2 0-.53.07-.8.37-.28.3-1.07 1.05-1.07 2.56 0 1.5 1.1 2.97 1.25 3.17.15.2 2.15 3.28 5.2 4.6 1.34.57 2.14.75 2.87.68.73-.07 2.22-.91 2.53-1.79.31-.88.31-1.64.21-1.79-.1-.15-.29-.24-.59-.39z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-extrabold text-slate-900 text-sm">Official Meta Embedded Signup</h4>
+                                        <p class="text-[11px] text-slate-500 font-semibold">Fastest option. Connect in under 2 minutes.</p>
+                                    </div>
+                                </div>
+                                <span class="px-2.5 py-0.5 bg-emerald-500 text-white rounded-full text-[9px] font-black uppercase tracking-wider">Recommended</span>
+                            </div>
+
+                            <button type="button" id="wa-embedded-connect-btn" onclick="launchMetaEmbeddedSignup()" class="w-full py-3 text-xs font-bold rounded-xl text-white bg-[#1877F2] hover:bg-[#166FE5] transition flex items-center justify-center space-x-2.5 shadow-md shadow-blue-500/10 cursor-pointer select-none border border-transparent" style="color: #ffffff !important;">
+                                <svg class="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24">
+                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                </svg>
+                                <span>Login with Facebook</span>
+                            </button>
+                        </div>
+
+                        <!-- Help Support Box -->
+                        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+                            <div>
+                                <span class="font-extrabold block text-slate-800">Need help with Meta Setup?</span>
+                                <span class="text-slate-500 text-[11px]">Contact our setup assistance team directly</span>
+                            </div>
+                            <div class="flex items-center space-x-2 shrink-0">
+                                <a href="tel:+918016222991" class="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg font-bold text-slate-700 transition flex items-center space-x-1">
+                                    <i data-lucide="phone" class="h-3.5 w-3.5"></i>
+                                    <span>Call</span>
+                                </a>
+                                <a href="https://wa.me/918016222991" target="_blank" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-bold transition flex items-center space-x-1 shadow-xs" style="color: #ffffff !important;">
+                                    <span>WhatsApp +91 8016222991</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Collapsible Advanced Manual Setup Option -->
+                        <div class="border border-slate-200 rounded-2xl bg-white overflow-hidden transition-all duration-300">
+                            <button type="button" onclick="toggleAdvancedSetup()" class="w-full px-5 py-3.5 flex justify-between items-center bg-[#f8fafc] hover:bg-slate-100 transition cursor-pointer" id="advanced-toggle-btn">
+                                <div class="flex items-center space-x-2">
+                                    <i data-lucide="settings" class="h-4 w-4 text-slate-500"></i>
+                                    <span class="font-extrabold text-xs text-slate-700">Advanced Setup (Manual Meta Token Config)</span>
+                                </div>
+                                <i data-lucide="chevron-down" class="h-4 w-4 text-slate-400 transform transition-transform duration-300" id="advanced-chevron"></i>
+                            </button>
+
+                            <div id="advanced-setup-body" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
+                                <form id="setup-wa-manual-form" onsubmit="event.preventDefault(); saveManualWhatsAppConnection();" class="p-5 space-y-4 border-t border-slate-100 text-left">
+                                    <div class="space-y-1.5">
+                                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Permanent Access Token *</label>
+                                        <input type="password" id="wa-manual-token" placeholder="EAAGemini... (Paste permanent access token)" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div class="space-y-1.5">
+                                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">WABA Account ID *</label>
+                                            <input type="text" id="wa-manual-waba-id" placeholder="e.g. 1092384729384" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Phone Number ID *</label>
+                                            <input type="text" id="wa-manual-phone-id" placeholder="e.g. 1029384729384" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div class="space-y-1.5">
+                                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Business Display Name *</label>
+                                            <input type="text" id="wa-manual-biz-name" placeholder="e.g. LinkPilot Support" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Display Phone Number *</label>
+                                            <input type="text" id="wa-manual-number" placeholder="e.g. +91 8016222991" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-2">
+                                        <button type="submit" id="wa-manual-submit-btn" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-sm cursor-pointer" style="color: #ffffff !important;">
+                                            <span>Save Meta WhatsApp Credentials</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
             </div>
 
             <!-- RIGHT COLUMN: Status, Features & Security Cards (col-span-12 lg:col-span-5) -->
@@ -345,6 +472,15 @@
                                 <span class="text-xs font-bold text-slate-700">SMTP Outbound</span>
                             </div>
                             <span id="badge-status-smtp" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-600 border border-amber-200/60">Pending</span>
+                        </div>
+
+                        <!-- Meta WhatsApp -->
+                        <div class="flex items-center justify-between p-2.5 bg-[#f8fafc] rounded-xl border border-slate-100">
+                            <div class="flex items-center space-x-2.5">
+                                <i data-lucide="message-square" class="h-4 w-4 text-emerald-600"></i>
+                                <span class="text-xs font-bold text-slate-700">Meta WhatsApp</span>
+                            </div>
+                            <span id="badge-status-wa" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-600 border border-amber-200/60">Pending</span>
                         </div>
 
                         <!-- IMAP -->
@@ -510,7 +646,6 @@
                 }
             }
 
-            // Highlight chosen provider button
             const buttons = ['gmail', 'outlook', 'zoho', 'office365', 'yahoo', 'custom'];
             buttons.forEach(b => {
                 const btn = document.getElementById(`btn-provider-${b}`);
@@ -523,7 +658,6 @@
                 }
             });
 
-            // Toggle OAuth banner visibility for Gmail
             const oauthBanner = document.getElementById('gmail-oauth-banner');
             if (oauthBanner) {
                 if (provider === 'gmail') {
@@ -567,12 +701,8 @@
             try {
                 const res = await apiCall('smtp/test.php', 'POST', {
                     use_saved: false,
-                    host,
-                    port,
-                    username,
-                    password,
-                    sender_name: senderName,
-                    sender_email: senderEmail
+                    host, port, username, password,
+                    sender_name: senderName, sender_email: senderEmail
                 });
                 showNotification('success', 'SMTP Connection Test Successful!');
                 
@@ -621,23 +751,15 @@
             try {
                 const testRes = await apiCall('smtp/test.php', 'POST', {
                     use_saved: false,
-                    host,
-                    port,
-                    username,
-                    password,
-                    sender_name: senderName,
-                    sender_email: senderEmail
+                    host, port, username, password,
+                    sender_name: senderName, sender_email: senderEmail
                 });
                 
                 showNotification('success', 'SMTP Connection Verified!');
                 
                 const saveRes = await apiCall('smtp/save.php', 'POST', {
-                    host,
-                    port,
-                    username,
-                    password,
-                    sender_name: senderName,
-                    sender_email: senderEmail,
+                    host, port, username, password,
+                    sender_name: senderName, sender_email: senderEmail,
                     smtp_type: selectedProvider
                 });
 
@@ -648,15 +770,6 @@
                     badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60";
                     badge.textContent = "Active";
                 }
-                
-                const progressBar = document.getElementById('setup-progress-bar');
-                const progressText = document.getElementById('setup-progress-text');
-                if (progressBar) progressBar.style.width = '100%';
-                if (progressText) progressText.textContent = '100% Completed';
-
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1200);
 
             } catch (err) {
                 showNotification('error', err.message || 'SMTP Handshake Verification Failed.');
@@ -664,6 +777,222 @@
                 btn.disabled = false;
                 btn.innerHTML = originalHtml;
                 if (window.lucide) lucide.createIcons();
+            }
+        };
+
+        // --- META WHATSAPP INTEGRATION HANDLERS ---
+        window.toggleAdvancedSetup = function() {
+            const body = document.getElementById('advanced-setup-body');
+            const chevron = document.getElementById('advanced-chevron');
+            if (!body || !chevron) return;
+
+            if (body.style.maxHeight === '0px' || !body.style.maxHeight) {
+                body.style.maxHeight = '600px';
+                chevron.classList.add('rotate-180');
+            } else {
+                body.style.maxHeight = '0px';
+                chevron.classList.remove('rotate-180');
+            }
+        };
+
+        window.launchMetaEmbeddedSignup = async function() {
+            const btn = document.getElementById('wa-embedded-connect-btn');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `
+                <div class="flex items-center space-x-1.5">
+                    <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Initializing Meta...</span>
+                </div>
+            `;
+            
+            try {
+                const config = await apiCall('whatsapp/embedded_signup.php');
+                const appId = config.app_id;
+                const state = config.state;
+                const scopes = config.scopes;
+                
+                if (!appId) {
+                    const useDemo = confirm("Demo Mode: No Meta App ID is configured in Admin Settings. Would you like to connect with a sandbox demo account?");
+                    if (useDemo) {
+                        await handleOauthCallback("EAAGeminiTest", state);
+                    } else {
+                        showNotification('warning', 'Meta App ID configuration is required in Admin Control Panel.');
+                    }
+                    return;
+                }
+                
+                if (!window.FB) {
+                    await loadFbSdk();
+                }
+                
+                FB.init({
+                    appId: appId,
+                    cookie: true,
+                    xfbml: true,
+                    version: 'v20.0'
+                });
+                
+                FB.login(function(response) {
+                    if (response.authResponse) {
+                        const userToken = response.authResponse.accessToken;
+                        handleOauthCallback(userToken, state);
+                    } else {
+                        showNotification('error', 'Popup closed. Permission denied or login cancelled.');
+                    }
+                }, {
+                    scope: scopes,
+                    extras: { feature: 'whatsapp_embedded_signup' }
+                });
+                
+            } catch (err) {
+                showNotification('error', err.message || 'Meta OAuth initialization failed.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                if (window.lucide) lucide.createIcons();
+            }
+        };
+        
+        function loadFbSdk() {
+            return new Promise((resolve) => {
+                if (document.getElementById('facebook-jssdk')) {
+                    resolve();
+                    return;
+                }
+                var js = document.createElement('script');
+                js.id = 'facebook-jssdk';
+                js.src = "https://connect.facebook.net/en_US/sdk.js";
+                js.onload = () => resolve();
+                document.getElementsByTagName('script')[0].parentNode.insertBefore(js, document.getElementsByTagName('script')[0]);
+            });
+        }
+
+        async function handleOauthCallback(token, state) {
+            try {
+                const res = await apiCall('whatsapp/oauth_callback.php', 'POST', {
+                    access_token: token,
+                    state: state
+                });
+                showNotification('success', 'Connected Successfully via Meta Embedded Signup!');
+                await checkWhatsAppStatus();
+            } catch (err) {
+                showNotification('error', err.message || 'Meta authorization exchange failed.');
+            }
+        }
+
+        window.saveManualWhatsAppConnection = async function() {
+            const accessToken = document.getElementById('wa-manual-token').value.trim();
+            const wabaId = document.getElementById('wa-manual-waba-id').value.trim();
+            const phoneId = document.getElementById('wa-manual-phone-id').value.trim();
+            const bizName = document.getElementById('wa-manual-biz-name').value.trim();
+            const phoneNumber = document.getElementById('wa-manual-number').value.trim();
+            
+            if (!accessToken || !wabaId || !phoneId || !bizName || !phoneNumber) {
+                showNotification('warning', 'Please fill out all required Meta WhatsApp fields.');
+                return;
+            }
+            
+            const btn = document.getElementById('wa-manual-submit-btn');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `
+                <div class="flex items-center space-x-1.5">
+                    <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Saving...</span>
+                </div>
+            `;
+            
+            try {
+                await apiCall('whatsapp/manual_connect.php', 'POST', {
+                    access_token: accessToken,
+                    waba_id: wabaId,
+                    phone_number_id: phoneId,
+                    business_name: bizName,
+                    phone_number: phoneNumber,
+                    display_name: bizName
+                });
+                
+                showNotification('success', 'WhatsApp account configured manually via Meta API!');
+                await checkWhatsAppStatus();
+                
+            } catch (err) {
+                showNotification('error', err.message || 'WhatsApp Meta connection failed.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                if (window.lucide) lucide.createIcons();
+            }
+        };
+
+        window.checkWhatsAppStatus = async function() {
+            try {
+                const res = await apiCall('whatsapp/fetch_business.php');
+                const selectionState = document.getElementById('wa-connect-selection-state');
+                const successState = document.getElementById('wa-connect-success-state');
+                const badgeWa = document.getElementById('badge-status-wa');
+                
+                if (res && res.connected && res.business) {
+                    if (selectionState) selectionState.classList.add('hidden');
+                    if (successState) successState.classList.remove('hidden');
+                    
+                    const bizName = document.getElementById('wa-success-biz-name');
+                    const dispName = document.getElementById('wa-success-display-name');
+                    const num = document.getElementById('wa-success-number');
+                    const type = document.getElementById('wa-success-conn-type');
+                    const qualityEl = document.getElementById('wa-success-quality');
+
+                    if (bizName) bizName.textContent = res.business.business_name || '--';
+                    if (dispName) dispName.textContent = res.business.display_name || '--';
+                    if (num) num.textContent = res.business.display_phone_number || '--';
+                    if (type) type.textContent = res.business.connection_type === 'embedded' ? 'Meta Embedded Signup' : 'Manual API Key';
+                    
+                    if (qualityEl) {
+                        const quality = (res.business.quality_rating || 'unknown').toUpperCase();
+                        qualityEl.textContent = quality;
+                        if (quality === 'GREEN') {
+                            qualityEl.className = "px-2.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full text-[10px] uppercase font-black";
+                        } else if (quality === 'RED') {
+                            qualityEl.className = "px-2.5 py-0.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-full text-[10px] uppercase font-black";
+                        } else {
+                            qualityEl.className = "px-2.5 py-0.5 bg-amber-50 text-amber-600 border border-amber-100 rounded-full text-[10px] uppercase font-black";
+                        }
+                    }
+
+                    if (badgeWa) {
+                        badgeWa.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60";
+                        badgeWa.textContent = "Active";
+                    }
+                } else {
+                    if (selectionState) selectionState.classList.remove('hidden');
+                    if (successState) successState.classList.add('hidden');
+                    if (badgeWa) {
+                        badgeWa.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-600 border border-amber-200/60";
+                        badgeWa.textContent = "Pending";
+                    }
+                }
+            } catch (err) {
+                console.warn('Failed checking WhatsApp status:', err);
+            }
+        };
+
+        window.reconnectWhatsApp = function() {
+            const selectionState = document.getElementById('wa-connect-selection-state');
+            const successState = document.getElementById('wa-connect-success-state');
+            if (selectionState && successState) {
+                selectionState.classList.remove('hidden');
+                successState.classList.add('hidden');
+            }
+        };
+
+        window.disconnectWhatsApp = async function() {
+            if (!confirm("Disconnect WhatsApp Business integration? Automated messaging will pause.")) return;
+            try {
+                await apiCall('whatsapp/disconnect.php', 'POST');
+                showNotification('success', 'WhatsApp account disconnected.');
+                await checkWhatsAppStatus();
+            } catch (err) {
+                showNotification('error', err.message || 'Failed disconnecting account.');
             }
         };
 
@@ -681,10 +1010,6 @@
                         badgeImap.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60";
                         badgeImap.textContent = "Active (OAuth)";
                     }
-                    const progressBar = document.getElementById('setup-progress-bar');
-                    const progressText = document.getElementById('setup-progress-text');
-                    if (progressBar) progressBar.style.width = '100%';
-                    if (progressText) progressText.textContent = '100% Completed';
                 } else {
                     const smtpRes = await apiCall('smtp/list.php');
                     if (smtpRes && smtpRes.accounts && smtpRes.accounts.length > 0) {
@@ -714,6 +1039,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             selectSmtpPreset('gmail');
             checkEmailSetupStatus();
+            checkWhatsAppStatus();
             
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('google_connected') === 'true') {

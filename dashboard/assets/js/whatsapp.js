@@ -75,34 +75,39 @@ function renderWhatsAppSetup(container, settings) {
 
             ${isConnected ? `
             <!-- Connected State Card -->
-            <div class="p-6 bg-emerald-50/60 border border-emerald-200/80 rounded-2xl space-y-4">
-                <div class="flex justify-between items-start">
-                    <div class="flex items-center space-x-3">
-                        <div class="p-2.5 bg-emerald-500 text-white rounded-xl shadow-xs">
-                            <i data-lucide="check-circle" class="h-5 w-5"></i>
+            <div class="p-6 bg-emerald-50/70 border border-emerald-200/90 rounded-2xl space-y-5 shadow-2xs">
+                <div class="flex justify-between items-start gap-4 border-b border-emerald-200/60 pb-4">
+                    <div class="flex items-center space-x-3.5">
+                        <div class="p-3 bg-emerald-500 text-white rounded-2xl shadow-sm">
+                            <i data-lucide="check-circle" class="h-6 w-6"></i>
                         </div>
                         <div>
-                            <span class="text-sm font-black text-slate-900 block">${(settings && (settings.business_name || settings.display_name)) || 'WhatsApp Business'}</span>
-                            <span class="text-xs text-slate-600 font-bold font-mono mt-0.5 block">${(settings && settings.display_phone_number) || '--'}</span>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-base font-black text-slate-900 block">${(settings && (settings.business_name || settings.display_name)) || 'WhatsApp Business'}</span>
+                                <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-md text-[10px] uppercase font-black tracking-wider">Connected</span>
+                            </div>
+                            <span class="text-xs text-slate-700 font-bold font-mono mt-0.5 block">${(settings && settings.display_phone_number) || '--'}</span>
                         </div>
                     </div>
-                    <span class="px-3 py-1 bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-full text-[10px] uppercase font-black tracking-wider">
-                        ${(settings && settings.quality_rating) || 'GREEN'}
+                    <span class="px-3 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-full text-[10px] uppercase font-black tracking-wider shadow-2xs">
+                        Quality: ${(settings && settings.quality_rating) || 'GREEN'}
                     </span>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-600 pt-3 border-t border-emerald-200/60 font-medium">
-                    <div>WABA ID: <strong class="font-mono text-slate-800">${(settings && settings.waba_id) || 'N/A'}</strong></div>
-                    <div>Phone Number ID: <strong class="font-mono text-slate-800">${(settings && settings.phone_number_id) || 'N/A'}</strong></div>
-                    <div>Messaging Tier: <strong class="text-slate-800">${(settings && settings.messaging_limit) || '1000/day'}</strong></div>
-                    <div>Status: <strong class="text-emerald-700 font-bold">Active & Verified</strong></div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs text-slate-700 font-medium">
+                    <div>WABA Account ID: <strong class="font-mono text-slate-900 block mt-0.5">${(settings && settings.waba_id) || 'N/A'}</strong></div>
+                    <div>Phone Number ID: <strong class="font-mono text-slate-900 block mt-0.5">${(settings && settings.phone_number_id) || 'N/A'}</strong></div>
+                    <div>Messaging Limit: <strong class="text-slate-900 block mt-0.5">${(settings && settings.messaging_limit) || '1000/day'}</strong></div>
+                    <div>Webhook Subscription: <strong class="text-emerald-700 font-bold block mt-0.5">✓ Subscribed & Verified</strong></div>
+                    <div>Connection Type: <strong class="text-slate-900 block mt-0.5 uppercase text-[10px] tracking-wider font-black">${(settings && settings.connection_type) || 'Meta Embedded Signup'}</strong></div>
+                    <div>Last Sync Time: <strong class="text-slate-800 font-mono text-[11px] block mt-0.5">${(settings && settings.last_sync) || 'Just now'}</strong></div>
                 </div>
 
-                <div class="pt-2 flex items-center space-x-3">
-                    <button type="button" onclick="disconnectWhatsAppAccount()" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl text-xs font-bold text-rose-600 transition cursor-pointer shadow-2xs">
+                <div class="pt-2 flex items-center space-x-3 border-t border-emerald-200/60">
+                    <button type="button" onclick="disconnectWhatsAppAccount()" class="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl text-xs font-bold text-rose-600 transition cursor-pointer shadow-2xs">
                         Disconnect Account
                     </button>
-                    <button type="button" onclick="window.location.reload()" class="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 transition cursor-pointer shadow-2xs">
+                    <button type="button" onclick="window.location.reload()" class="px-4 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 transition cursor-pointer shadow-2xs">
                         Go to WhatsApp Inbox →
                     </button>
                 </div>
@@ -349,6 +354,27 @@ window.saveMetaManualCredentialsClean = async function(e) {
     }
 };
 
+// Attach postMessage listener for Meta Embedded Signup event
+if (!window._waEmbeddedSignupListenerAttached) {
+    window._waEmbeddedSignupListenerAttached = true;
+    window.addEventListener('message', function(event) {
+        if (event.origin !== 'https://www.facebook.com' && event.origin !== 'https://web.facebook.com') {
+            return;
+        }
+        try {
+            const parsed = (typeof event.data === 'string') ? JSON.parse(event.data) : event.data;
+            if (parsed && parsed.type === 'WA_EMBEDDED_SIGNUP') {
+                if (parsed.event === 'FINISH' || parsed.data) {
+                    window._waEmbeddedSignupData = parsed.data || {};
+                    if (parsed.code) {
+                        window._waEmbeddedSignupCode = parsed.code;
+                    }
+                }
+            }
+        } catch(e) {}
+    });
+}
+
 function loadFbSdk() {
     return new Promise((resolve) => {
         if (document.getElementById('facebook-jssdk')) {
@@ -363,13 +389,15 @@ function loadFbSdk() {
     });
 }
 
-async function handleDashboardOauthCallback(token, state) {
+async function handleDashboardOauthCallback(payload) {
+    let requestPayload = payload;
+    if (typeof payload === 'string') {
+        requestPayload = { access_token: payload };
+    }
+
     try {
-        const res = await apiCall('whatsapp/oauth_callback.php', 'POST', {
-            access_token: token,
-            state: state
-        });
-        showNotification('success', 'Connected Successfully via Meta Embedded Signup!');
+        const res = await apiCall('whatsapp/oauth_callback.php', 'POST', requestPayload);
+        showNotification('success', 'WhatsApp Business connected successfully via Meta Embedded Signup!');
         const mainContainer = document.getElementById('main-content') || document.querySelector('.main-container') || document.getElementById('app-content');
         if (mainContainer) {
             checkWaConnectionAndRender('whatsapp', mainContainer, (cnt, st) => renderWhatsAppSetup(cnt, st.settings));
@@ -377,11 +405,14 @@ async function handleDashboardOauthCallback(token, state) {
             window.location.reload();
         }
     } catch (err) {
-        showNotification('error', err.message || 'Meta authorization exchange failed.');
+        showNotification('error', err.message || 'Meta Embedded Signup exchange failed.');
     }
 }
 
 window.launchDashboardMetaEmbeddedSignup = async function() {
+    window._waEmbeddedSignupData = null;
+    window._waEmbeddedSignupCode = null;
+
     const btn = document.getElementById('wa-embedded-signup-btn');
     const originalHtml = btn ? btn.innerHTML : '';
     if (btn) {
@@ -389,7 +420,7 @@ window.launchDashboardMetaEmbeddedSignup = async function() {
         btn.innerHTML = `
             <div class="flex items-center space-x-1.5">
                 <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span style="color:#ffffff !important;">Initializing Meta...</span>
+                <span style="color:#ffffff !important;">Connecting to Meta...</span>
             </div>
         `;
     }
@@ -403,7 +434,7 @@ window.launchDashboardMetaEmbeddedSignup = async function() {
         if (!appId) {
             const useDemo = confirm("Demo Mode: No Meta App ID is configured in Admin Settings. Would you like to connect with a sandbox demo account?");
             if (useDemo) {
-                await handleDashboardOauthCallback("EAAGeminiTest", state);
+                await handleDashboardOauthCallback({ access_token: "EAAGeminiTest", state: state });
             } else {
                 showNotification('warning', 'Meta App ID configuration is required in Admin Control Panel.');
             }
@@ -423,14 +454,30 @@ window.launchDashboardMetaEmbeddedSignup = async function() {
 
         FB.login(function(response) {
             if (response.authResponse) {
-                const userToken = response.authResponse.accessToken;
-                handleDashboardOauthCallback(userToken, state);
+                const code = response.authResponse.code || window._waEmbeddedSignupCode || '';
+                const userToken = response.authResponse.accessToken || '';
+                const embeddedData = window._waEmbeddedSignupData || {};
+                const wabaId = embeddedData.waba_id || '';
+                const phoneId = embeddedData.phone_number_id || '';
+
+                handleDashboardOauthCallback({
+                    code: code,
+                    access_token: userToken,
+                    waba_id: wabaId,
+                    phone_number_id: phoneId,
+                    state: state
+                });
             } else {
-                showNotification('error', 'Popup closed. Permission denied or login cancelled.');
+                showNotification('error', 'Login cancelled or permissions denied by user.');
             }
         }, {
+            response_type: 'code',
+            override_default_response_type: true,
             scope: scopes,
-            extras: { feature: 'whatsapp_embedded_signup' }
+            extras: {
+                feature: 'whatsapp_embedded_signup',
+                version: 2
+            }
         });
 
     } catch (err) {

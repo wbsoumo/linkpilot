@@ -1791,7 +1791,7 @@
                 msgDiv.className = 'flex items-end justify-end space-x-2.5 animate-fade-in text-right';
                 msgDiv.innerHTML = `
                     <div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-xs space-y-1 max-w-[85%] shadow-xs">
-                        <div class="text-xs font-bold">${text}</div>
+                        <div class="text-xs font-bold text-white" style="color: #ffffff !important;">${text}</div>
                     </div>
                 `;
                 container.appendChild(msgDiv);
@@ -1916,7 +1916,7 @@
                     msgDiv.className = 'flex items-end justify-end space-x-2.5 animate-fade-in text-right';
                     msgDiv.innerHTML = `
                         <div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-xs space-y-1.5 max-w-[85%] shadow-xs text-left">
-                            ${hasText ? `<div class="text-xs font-semibold mb-1.5">${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>` : ''}
+                            ${hasText ? `<div class="text-xs font-semibold mb-1.5 text-white" style="color: #ffffff !important;">${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>` : ''}
                             <img src="${base64Image}" class="max-h-[140px] rounded-lg border border-white/20 object-contain mx-auto" alt="Screenshot Upload">
                         </div>
                     `;
@@ -2033,6 +2033,11 @@
             let formatted = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
             // bold formatting **text**
             formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // markdown links: [label](url)
+            formatted = formatted.replace(/\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g, '<a href="$2" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-bold transition">$1</a>');
+            // headings: ### Heading and ## Heading
+            formatted = formatted.replace(/(?:\r?\n|^)###\s+([^\r\n]+)/g, '<h4 class="text-xs font-bold text-slate-800 mt-2 mb-1">$1</h4>');
+            formatted = formatted.replace(/(?:\r?\n|^)##\s+([^\r\n]+)/g, '<h3 class="text-xs font-black text-slate-900 mt-3 mb-1">$1</h3>');
             // bullet points: \n- item
             formatted = formatted.replace(/(?:\r?\n|^)-\s+([^\r\n]+)/g, '<li class="ml-4 list-disc mt-1">$1</li>');
             // line breaks

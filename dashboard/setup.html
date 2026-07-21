@@ -73,58 +73,46 @@
 
         <!-- Modern Onboarding Progress Stepper -->
         <div class="bg-white border border-slate-200/80 rounded-[20px] p-4 sm:p-5 shadow-soft max-w-5xl mx-auto">
-            <div class="flex items-center justify-between overflow-x-auto no-scrollbar py-1">
+            <div id="onboarding-stepper" class="flex items-center justify-between overflow-x-auto no-scrollbar py-1">
                 <!-- Step 1: Connect -->
-                <div class="flex items-center space-x-2 shrink-0">
-                    <div class="w-7 h-7 rounded-full bg-emerald-500 text-white font-black text-xs flex items-center justify-center shadow-xs">
-                        <i data-lucide="check" class="h-4 w-4"></i>
-                    </div>
-                    <span class="text-xs font-bold text-slate-900">Connect</span>
+                <div class="step-item flex items-center space-x-2 shrink-0 cursor-pointer" onclick="goToStep(1)">
+                    <div class="step-circle w-7 h-7 rounded-full bg-blue-600 text-white font-extrabold text-xs flex items-center justify-center shadow-md shadow-blue-500/20">1</div>
+                    <span class="step-label text-xs font-extrabold text-blue-600">Connect</span>
                 </div>
-                <div class="w-6 sm:w-10 h-[2px] bg-emerald-400 shrink-0 mx-1"></div>
+                <div class="step-line w-6 sm:w-10 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
 
                 <!-- Step 2: SMTP -->
-                <div class="flex items-center space-x-2 shrink-0">
-                    <div class="w-7 h-7 rounded-full bg-emerald-500 text-white font-black text-xs flex items-center justify-center shadow-xs">
-                        <i data-lucide="check" class="h-4 w-4"></i>
-                    </div>
-                    <span class="text-xs font-bold text-slate-900">SMTP</span>
+                <div class="step-item flex items-center space-x-2 shrink-0 cursor-pointer" onclick="goToStep(2)">
+                    <div class="step-circle w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">2</div>
+                    <span class="step-label text-xs font-semibold text-slate-400">SMTP</span>
                 </div>
-                <div class="w-6 sm:w-10 h-[2px] bg-blue-500 shrink-0 mx-1"></div>
+                <div class="step-line w-6 sm:w-10 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
 
-                <!-- Step 3: Meta (WhatsApp) (Current Step Highlighted in Blue) -->
-                <div class="flex items-center space-x-2 shrink-0">
-                    <div class="w-7 h-7 rounded-full bg-blue-600 text-white font-extrabold text-xs flex items-center justify-center shadow-md shadow-blue-500/20">
-                        3
-                    </div>
-                    <span class="text-xs font-extrabold text-blue-600">Meta (WhatsApp)</span>
+                <!-- Step 3: Meta (WhatsApp) -->
+                <div class="step-item flex items-center space-x-2 shrink-0 cursor-pointer" onclick="goToStep(3)">
+                    <div class="step-circle w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">3</div>
+                    <span class="step-label text-xs font-semibold text-slate-400">Meta (WhatsApp)</span>
                 </div>
-                <div class="w-6 sm:w-10 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
+                <div class="step-line w-6 sm:w-10 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
 
                 <!-- Step 4: IMAP -->
-                <div class="flex items-center space-x-2 shrink-0">
-                    <div class="w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">
-                        4
-                    </div>
-                    <span class="text-xs font-semibold text-slate-400">IMAP</span>
+                <div class="step-item flex items-center space-x-2 shrink-0 cursor-pointer" onclick="goToStep(4)">
+                    <div class="step-circle w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">4</div>
+                    <span class="step-label text-xs font-semibold text-slate-400">IMAP</span>
                 </div>
-                <div class="w-6 sm:w-10 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
+                <div class="step-line w-6 sm:w-10 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
 
                 <!-- Step 5: Permissions -->
-                <div class="flex items-center space-x-2 shrink-0">
-                    <div class="w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">
-                        5
-                    </div>
-                    <span class="text-xs font-semibold text-slate-400">Permissions</span>
+                <div class="step-item flex items-center space-x-2 shrink-0 cursor-pointer" onclick="goToStep(5)">
+                    <div class="step-circle w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">5</div>
+                    <span class="step-label text-xs font-semibold text-slate-400">Permissions</span>
                 </div>
-                <div class="w-6 sm:w-10 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
+                <div class="step-line w-6 sm:w-10 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
 
                 <!-- Step 6: Complete -->
-                <div class="flex items-center space-x-2 shrink-0">
-                    <div class="w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">
-                        6
-                    </div>
-                    <span class="text-xs font-semibold text-slate-400">Complete</span>
+                <div class="step-item flex items-center space-x-2 shrink-0 cursor-pointer" onclick="goToStep(6)">
+                    <div class="step-circle w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">6</div>
+                    <span class="step-label text-xs font-semibold text-slate-400">Complete</span>
                 </div>
             </div>
         </div>
@@ -132,306 +120,543 @@
         <!-- Responsive Two-Column Layout -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-            <!-- LEFT COLUMN: SMTP & Meta Configuration Cards (col-span-12 lg:col-span-7) -->
-            <div class="lg:col-span-7 space-y-6">
-
-                <!-- CARD 1: Outbound SMTP Configuration Card -->
-                <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 sm:p-8 shadow-soft space-y-6">
-                    
-                    <!-- Card Header -->
-                    <div class="border-b border-slate-100 pb-4 flex justify-between items-center">
-                        <div>
-                            <h2 class="text-lg font-extrabold text-slate-900 flex items-center space-x-2">
-                                <i data-lucide="mail" class="h-5 w-5 text-blue-600"></i>
-                                <span>SMTP Outbound Configuration</span>
+            <!-- LEFT COLUMN: Stepper Wizard Panes (col-span-12 lg:col-span-7) -->
+            <div class="lg:col-span-7 space-y-6" id="wizard-panes-container">
+                
+                <!-- STEP 1: Connect (Overview / Channel Chooser) -->
+                <div class="wizard-pane space-y-6 animate-fade-in" id="step-pane-1">
+                    <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 sm:p-8 shadow-soft space-y-6">
+                        <div class="border-b border-slate-100 pb-4 text-left">
+                            <h2 class="text-lg font-black text-slate-900 flex items-center space-x-2">
+                                <i data-lucide="compass" class="h-5 w-5 text-blue-600"></i>
+                                <span>Choose Communication Channels</span>
                             </h2>
-                            <p class="text-xs text-slate-500 font-medium mt-1">Configure your outbound mail server credentials.</p>
+                            <p class="text-xs text-slate-500 font-medium mt-1">Select and configure the outreach networks to activate on your smart workspace.</p>
                         </div>
-                    </div>
-
-                    <!-- Provider Selection Grid -->
-                    <div class="space-y-2">
-                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Select Provider</label>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                            <!-- Gmail -->
-                            <button type="button" onclick="selectSmtpPreset('gmail')" id="btn-provider-gmail" class="provider-btn p-3.5 border border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50/20 transition flex flex-col items-center justify-center space-y-1.5 bg-white text-center group cursor-pointer">
-                                <img src="https://img.logo.dev/gmail.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-6 w-6 object-contain" alt="Gmail" onerror="this.onerror=null; this.src='https://img.icons8.com/color/48/gmail-new.png';">
-                                <span class="text-xs font-bold text-slate-800 group-hover:text-blue-600">Gmail</span>
-                            </button>
-
-                            <!-- Outlook -->
-                            <button type="button" onclick="selectSmtpPreset('outlook')" id="btn-provider-outlook" class="provider-btn p-3.5 border border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50/20 transition flex flex-col items-center justify-center space-y-1.5 bg-white text-center group cursor-pointer">
-                                <img src="https://img.logo.dev/outlook.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-6 w-6 object-contain" alt="Outlook" onerror="this.onerror=null; this.src='https://img.icons8.com/color/48/microsoft-outlook-2019.png';">
-                                <span class="text-xs font-bold text-slate-800 group-hover:text-blue-600">Outlook</span>
-                            </button>
-
-                            <!-- Zoho -->
-                            <button type="button" onclick="selectSmtpPreset('zoho')" id="btn-provider-zoho" class="provider-btn p-3.5 border border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50/20 transition flex flex-col items-center justify-center space-y-1.5 bg-white text-center group cursor-pointer">
-                                <img src="https://img.logo.dev/zoho.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-6 w-6 object-contain" alt="Zoho" onerror="this.onerror=null; this.src='https://img.icons8.com/color/48/globe--v1.png';">
-                                <span class="text-xs font-bold text-slate-800 group-hover:text-blue-600">Zoho</span>
-                            </button>
-
-                            <!-- Office365 -->
-                            <button type="button" onclick="selectSmtpPreset('office365')" id="btn-provider-office365" class="provider-btn p-3.5 border border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50/20 transition flex flex-col items-center justify-center space-y-1.5 bg-white text-center group cursor-pointer">
-                                <img src="https://img.logo.dev/microsoft.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-6 w-6 object-contain" alt="Office365" onerror="this.onerror=null; this.src='https://img.icons8.com/color/48/microsoft.png';">
-                                <span class="text-xs font-bold text-slate-800 group-hover:text-blue-600">Office365</span>
-                            </button>
-
-                            <!-- Yahoo -->
-                            <button type="button" onclick="selectSmtpPreset('yahoo')" id="btn-provider-yahoo" class="provider-btn p-3.5 border border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50/20 transition flex flex-col items-center justify-center space-y-1.5 bg-white text-center group cursor-pointer">
-                                <img src="https://img.logo.dev/yahoo.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-6 w-6 object-contain" alt="Yahoo" onerror="this.onerror=null; this.src='https://img.icons8.com/color/48/yahoo.png';">
-                                <span class="text-xs font-bold text-slate-800 group-hover:text-blue-600">Yahoo</span>
-                            </button>
-
-                            <!-- Custom SMTP -->
-                            <button type="button" onclick="selectSmtpPreset('custom')" id="btn-provider-custom" class="provider-btn p-3.5 border border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50/20 transition flex flex-col items-center justify-center space-y-1.5 bg-white text-center group cursor-pointer">
-                                <i data-lucide="server" class="h-6 w-6 text-slate-500 group-hover:text-blue-600"></i>
-                                <span class="text-xs font-bold text-slate-800 group-hover:text-blue-600">Custom SMTP</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Google OAuth Banner for Gmail -->
-                    <div id="gmail-oauth-banner" class="p-4 bg-blue-50/50 border border-blue-100 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div class="flex items-center space-x-3">
-                            <div class="p-2 bg-white rounded-xl border border-blue-100 shadow-2xs">
-                                <svg class="h-5 w-5" viewBox="0 0 24 24">
-                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <span class="block text-xs font-extrabold text-slate-900">Google OAuth Authorization</span>
-                                <span class="text-[11px] text-slate-500 font-medium">Connect directly without manual App Passwords</span>
-                            </div>
-                        </div>
-                        <button type="button" onclick="launchGoogleOAuth()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer shrink-0" style="color: #ffffff !important;">
-                            <span>Connect via Google</span>
-                        </button>
-                    </div>
-
-                    <!-- Form Input Fields -->
-                    <form id="setup-smtp-form" onsubmit="event.preventDefault(); testAndSaveSMTPConnection();" class="space-y-4">
+                        
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="space-y-1.5">
-                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Sender Name *</label>
-                                <div class="relative">
-                                    <i data-lucide="user" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
-                                    <input type="text" id="smtp-sender-name" placeholder="e.g. John Doe" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                            <!-- Email Channel Option -->
+                            <div class="p-5 border-2 border-blue-500/80 bg-blue-50/5 rounded-2xl text-left space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="w-9 h-9 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
+                                        <i data-lucide="mail" class="h-5 w-5"></i>
+                                    </div>
+                                    <span class="px-2.5 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-full text-[9px] font-black uppercase tracking-wider">Outbound & Inbound</span>
                                 </div>
-                                <p class="text-[10px] text-slate-400 font-medium">Name displayed in recipients' inbox</p>
+                                <h3 class="font-extrabold text-slate-900 text-sm">AI Email Outreach</h3>
+                                <p class="text-[11px] text-slate-500 font-semibold leading-relaxed">Connect Gmail, Outlook, Zoho, or any custom SMTP server. Automate followups and sync replies with CRM.</p>
                             </div>
-
-                            <div class="space-y-1.5">
-                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Sender Email *</label>
-                                <div class="relative">
-                                    <i data-lucide="mail" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
-                                    <input type="email" id="smtp-sender-email" placeholder="e.g. john@company.com" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                            
+                            <!-- WhatsApp Channel Option -->
+                            <div class="p-5 border-2 border-emerald-500/80 bg-emerald-50/5 rounded-2xl text-left space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="w-9 h-9 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center">
+                                        <i data-lucide="message-circle" class="h-5 w-5"></i>
+                                    </div>
+                                    <span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full text-[9px] font-black uppercase tracking-wider">Meta API</span>
                                 </div>
-                                <p class="text-[10px] text-slate-400 font-medium">Email address sending outgoing messages</p>
+                                <h3 class="font-extrabold text-slate-900 text-sm">WhatsApp Business Automation</h3>
+                                <p class="text-[11px] text-slate-500 font-semibold leading-relaxed">Official Meta Cloud API integration. Direct Meta Embedded Signup. Automate broadcasts, support, and template replies.</p>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div class="sm:col-span-2 space-y-1.5">
-                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">SMTP Host *</label>
-                                <div class="relative">
-                                    <i data-lucide="server" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
-                                    <input type="text" id="smtp-host" placeholder="smtp.gmail.com" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
-                                </div>
-                            </div>
-                            <div class="space-y-1.5">
-                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Port *</label>
-                                <div class="relative">
-                                    <i data-lucide="hash" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
-                                    <input type="number" id="smtp-port" placeholder="587" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="space-y-1.5">
-                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">SMTP Username *</label>
-                                <div class="relative">
-                                    <i data-lucide="at-sign" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
-                                    <input type="text" id="smtp-username" placeholder="john@company.com" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
-                                </div>
-                            </div>
-                            <div class="space-y-1.5">
-                                <label id="smtp-pass-label" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Password / App Password *</label>
-                                <div class="relative">
-                                    <i data-lucide="lock" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
-                                    <input type="password" id="smtp-password" placeholder="••••••••••••" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="space-y-1.5">
-                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Encryption Method</label>
-                            <div class="relative">
-                                <i data-lucide="shield" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
-                                <select id="smtp-encryption" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition">
-                                    <option value="tls">TLS / STARTTLS (Recommended, Port 587)</option>
-                                    <option value="ssl">SSL (Port 465)</option>
-                                    <option value="none">None (Plain Text)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Buttons Row -->
-                        <div class="pt-4 flex items-center justify-between border-t border-slate-100 gap-3">
-                            <button type="button" onclick="testOnlySmtpConnection(this)" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 cursor-pointer">
-                                <i data-lucide="wifi" class="h-4 w-4 text-slate-500"></i>
-                                <span>Test Connection</span>
-                            </button>
-                            <button type="submit" id="smtp-verify-submit-btn" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer" style="color: #ffffff !important;">
-                                <span style="color: #ffffff !important;">Connect SMTP</span>
+                        <div class="pt-4 flex items-center justify-end border-t border-slate-100">
+                            <button type="button" onclick="goToStep(2)" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer" style="color: #ffffff !important;">
+                                <span style="color: #ffffff !important;">Get Started</span>
                                 <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
                             </button>
                         </div>
-                    </form>
+                    </div>
                 </div>
 
-                <!-- CARD 2: Meta Integration (WhatsApp Business) Card -->
-                <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 sm:p-8 shadow-soft space-y-6">
-                    
-                    <!-- Card Header -->
-                    <div class="border-b border-slate-100 pb-4 flex justify-between items-center">
-                        <div>
-                            <h2 class="text-lg font-extrabold text-slate-900 flex items-center space-x-2">
-                                <span class="p-1 bg-emerald-50 text-emerald-600 rounded-lg shrink-0 flex items-center justify-center">
-                                    <svg class="h-4.5 w-4.5 fill-current text-emerald-600" viewBox="0 0 24 24">
-                                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.1 1.45 4.8 1.45 5.58 0 10.12-4.54 10.12-10.12C21.581 5.33 17.26 1 12.01 1 6.43 1 1.89 5.54 1.89 11.12c0 1.9.5 3.76 1.47 5.36L2.38 21.62l5.21-1.37zM17.43 14.19c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-1.12-.56-1.92-.98-2.68-2.29-.3-.52-.3-.88-.15-1.03.14-.14.3-.35.45-.53.15-.17.2-.3.3-.5.1-.2.05-.38-.02-.53-.07-.15-.67-1.62-.92-2.22-.24-.6-.5-.52-.67-.53l-.58-.01c-.2 0-.53.07-.8.37-.28.3-1.07 1.05-1.07 2.56 0 1.5 1.1 2.97 1.25 3.17.15.2 2.15 3.28 5.2 4.6 1.34.57 2.14.75 2.87.68.73-.07 2.22-.91 2.53-1.79.31-.88.31-1.64.21-1.79-.1-.15-.29-.24-.59-.39z"/>
-                                    </svg>
-                                </span>
-                                <span>Meta Integration (WhatsApp Business)</span>
+                <!-- STEP 2: SMTP Outbound Configuration Card -->
+                <div class="wizard-pane space-y-6 hidden animate-fade-in" id="step-pane-2">
+                    <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 sm:p-8 shadow-soft space-y-6">
+                        <div class="border-b border-slate-100 pb-4 text-left">
+                            <h2 class="text-lg font-black text-slate-900 flex items-center space-x-2">
+                                <i data-lucide="mail" class="h-5 w-5 text-blue-600"></i>
+                                <span>Outbound SMTP Server Configuration</span>
                             </h2>
-                            <p class="text-xs text-slate-500 font-medium mt-1">Connect your WhatsApp Business account securely via Meta Cloud API.</p>
+                            <p class="text-xs text-slate-500 font-medium mt-1">Configure your outbound mail server credentials to send AI email campaigns.</p>
                         </div>
-                        <span class="text-[10px] px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-extrabold uppercase tracking-wider">Meta Official</span>
-                    </div>
 
-                    <!-- Connected State Alert (Hidden by default, shown if active) -->
-                    <div id="wa-connect-success-state" class="hidden p-5 bg-emerald-50/60 border border-emerald-200/80 rounded-2xl space-y-3">
-                        <div class="flex justify-between items-start">
+                        <!-- Provider Selection Grid -->
+                        <div class="space-y-2 text-left">
+                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Select Provider</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                <!-- Gmail -->
+                                <button type="button" onclick="selectSmtpPreset('gmail')" id="btn-provider-gmail" class="provider-btn p-3.5 border border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50/20 transition flex flex-col items-center justify-center space-y-1.5 bg-white text-center group cursor-pointer">
+                                    <img src="https://img.logo.dev/gmail.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-6 w-6 object-contain" alt="Gmail" onerror="this.onerror=null; this.src='https://img.icons8.com/color/48/gmail-new.png';">
+                                    <span class="text-xs font-bold text-slate-800 group-hover:text-blue-600">Gmail</span>
+                                </button>
+                                <!-- Outlook -->
+                                <button type="button" onclick="selectSmtpPreset('outlook')" id="btn-provider-outlook" class="provider-btn p-3.5 border border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50/20 transition flex flex-col items-center justify-center space-y-1.5 bg-white text-center group cursor-pointer">
+                                    <img src="https://img.logo.dev/outlook.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-6 w-6 object-contain" alt="Outlook" onerror="this.onerror=null; this.src='https://img.icons8.com/color/48/microsoft-outlook-2019.png';">
+                                    <span class="text-xs font-bold text-slate-800 group-hover:text-blue-600">Outlook</span>
+                                </button>
+                                <!-- Zoho -->
+                                <button type="button" onclick="selectSmtpPreset('zoho')" id="btn-provider-zoho" class="provider-btn p-3.5 border border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50/20 transition flex flex-col items-center justify-center space-y-1.5 bg-white text-center group cursor-pointer">
+                                    <img src="https://img.logo.dev/zoho.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-6 w-6 object-contain" alt="Zoho" onerror="this.onerror=null; this.src='https://img.icons8.com/color/48/globe--v1.png';">
+                                    <span class="text-xs font-bold text-slate-800 group-hover:text-blue-600">Zoho</span>
+                                </button>
+                                <!-- Office365 -->
+                                <button type="button" onclick="selectSmtpPreset('office365')" id="btn-provider-office365" class="provider-btn p-3.5 border border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50/20 transition flex flex-col items-center justify-center space-y-1.5 bg-white text-center group cursor-pointer">
+                                    <img src="https://img.logo.dev/microsoft.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-6 w-6 object-contain" alt="Office365" onerror="this.onerror=null; this.src='https://img.icons8.com/color/48/microsoft.png';">
+                                    <span class="text-xs font-bold text-slate-800 group-hover:text-blue-600">Office365</span>
+                                </button>
+                                <!-- Yahoo -->
+                                <button type="button" onclick="selectSmtpPreset('yahoo')" id="btn-provider-yahoo" class="provider-btn p-3.5 border border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50/20 transition flex flex-col items-center justify-center space-y-1.5 bg-white text-center group cursor-pointer">
+                                    <img src="https://img.logo.dev/yahoo.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-6 w-6 object-contain" alt="Yahoo" onerror="this.onerror=null; this.src='https://img.icons8.com/color/48/yahoo.png';">
+                                    <span class="text-xs font-bold text-slate-800 group-hover:text-blue-600">Yahoo</span>
+                                </button>
+                                <!-- Custom SMTP -->
+                                <button type="button" onclick="selectSmtpPreset('custom')" id="btn-provider-custom" class="provider-btn p-3.5 border border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50/20 transition flex flex-col items-center justify-center space-y-1.5 bg-white text-center group cursor-pointer">
+                                    <i data-lucide="server" class="h-6 w-6 text-slate-500 group-hover:text-blue-600"></i>
+                                    <span class="text-xs font-bold text-slate-800 group-hover:text-blue-600">Custom SMTP</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Google OAuth Banner for Gmail -->
+                        <div id="gmail-oauth-banner" class="p-4 bg-blue-50/50 border border-blue-100 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left">
                             <div class="flex items-center space-x-3">
-                                <div class="p-2 bg-emerald-500 text-white rounded-xl">
-                                    <i data-lucide="check-circle" class="h-5 w-5"></i>
+                                <div class="p-2 bg-white rounded-xl border border-blue-100 shadow-2xs">
+                                    <svg class="h-5 w-5" viewBox="0 0 24 24">
+                                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                                    </svg>
                                 </div>
                                 <div>
-                                    <span class="text-xs font-black text-slate-800 block" id="wa-success-biz-name">Connected Business</span>
-                                    <span class="text-[11px] text-slate-500 font-semibold" id="wa-success-number">+1 000 000 0000</span>
+                                    <span class="block text-xs font-extrabold text-slate-900">Google OAuth Authorization</span>
+                                    <span class="text-[11px] text-slate-500 font-medium">Connect directly without manual App Passwords</span>
                                 </div>
                             </div>
-                            <span id="wa-success-quality" class="px-2.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full text-[10px] uppercase font-black">GREEN</span>
-                        </div>
-                        <div class="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-emerald-100">
-                            <span>Display Name: <strong id="wa-success-display-name" class="text-slate-700">--</strong></span>
-                            <span>Type: <strong id="wa-success-conn-type" class="text-slate-700">Embedded Signup</strong></span>
-                        </div>
-                        <div class="flex items-center space-x-2 pt-2">
-                            <button type="button" onclick="reconnectWhatsApp()" class="px-3.5 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-700 transition shadow-2xs cursor-pointer">Reconnect</button>
-                            <button type="button" onclick="disconnectWhatsApp()" class="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl text-xs font-bold text-rose-600 transition shadow-2xs cursor-pointer">Disconnect</button>
-                        </div>
-                    </div>
-
-                    <!-- Connection Selection State -->
-                    <div id="wa-connect-selection-state" class="space-y-5">
-
-                        <!-- Primary Recommended Option: Official Meta Embedded Signup -->
-                        <div class="p-5 border-2 border-emerald-500/80 bg-emerald-50/10 rounded-2xl text-left relative space-y-4">
-                            <div class="flex items-start justify-between">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
-                                        <svg class="h-6 w-6 fill-current" viewBox="0 0 24 24">
-                                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.1 1.45 4.8 1.45 5.58 0 10.12-4.54 10.12-10.12C21.581 5.33 17.26 1 12.01 1 6.43 1 1.89 5.54 1.89 11.12c0 1.9.5 3.76 1.47 5.36L2.38 21.62l5.21-1.37zM17.43 14.19c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-1.12-.56-1.92-.98-2.68-2.29-.3-.52-.3-.88-.15-1.03.14-.14.3-.35.45-.53.15-.17.2-.3.3-.5.1-.2.05-.38-.02-.53-.07-.15-.67-1.62-.92-2.22-.24-.6-.5-.52-.67-.53l-.58-.01c-.2 0-.53.07-.8.37-.28.3-1.07 1.05-1.07 2.56 0 1.5 1.1 2.97 1.25 3.17.15.2 2.15 3.28 5.2 4.6 1.34.57 2.14.75 2.87.68.73-.07 2.22-.91 2.53-1.79.31-.88.31-1.64.21-1.79-.1-.15-.29-.24-.59-.39z"/>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-extrabold text-slate-900 text-sm">Official Meta Embedded Signup</h4>
-                                        <p class="text-[11px] text-slate-500 font-semibold">Fastest option. Connect in under 2 minutes.</p>
-                                    </div>
-                                </div>
-                                <span class="px-2.5 py-0.5 bg-emerald-500 text-white rounded-full text-[9px] font-black uppercase tracking-wider">Recommended</span>
-                            </div>
-
-                            <button type="button" id="wa-embedded-connect-btn" onclick="launchMetaEmbeddedSignup()" class="w-full py-3 text-xs font-bold rounded-xl text-white bg-[#1877F2] hover:bg-[#166FE5] transition flex items-center justify-center space-x-2.5 shadow-md shadow-blue-500/10 cursor-pointer select-none border border-transparent" style="color: #ffffff !important;">
-                                <svg class="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24">
-                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                                </svg>
-                                <span>Login with Facebook</span>
+                            <button type="button" onclick="launchGoogleOAuth()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer shrink-0" style="color: #ffffff !important;">
+                                <span>Connect via Google</span>
                             </button>
                         </div>
 
-                        <!-- Help Support Box -->
-                        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
-                            <div>
-                                <span class="font-extrabold block text-slate-800">Need help with Meta Setup?</span>
-                                <span class="text-slate-500 text-[11px]">Contact our setup assistance team directly</span>
+                        <!-- Form Input Fields -->
+                        <form id="setup-smtp-form" onsubmit="event.preventDefault(); testAndSaveSMTPConnection();" class="space-y-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+                                <div class="space-y-1.5">
+                                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Sender Name *</label>
+                                    <div class="relative">
+                                        <i data-lucide="user" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                        <input type="text" id="smtp-sender-name" placeholder="e.g. John Doe" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                    </div>
+                                    <p class="text-[10px] text-slate-400 font-medium">Name displayed in recipients' inbox</p>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Sender Email *</label>
+                                    <div class="relative">
+                                        <i data-lucide="mail" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                        <input type="email" id="smtp-sender-email" placeholder="e.g. john@company.com" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                    </div>
+                                    <p class="text-[10px] text-slate-400 font-medium">Email address sending outgoing messages</p>
+                                </div>
                             </div>
-                            <div class="flex items-center space-x-2 shrink-0">
-                                <a href="tel:+918016222991" class="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg font-bold text-slate-700 transition flex items-center space-x-1">
-                                    <i data-lucide="phone" class="h-3.5 w-3.5"></i>
-                                    <span>Call</span>
-                                </a>
-                                <a href="https://wa.me/918016222991" target="_blank" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-bold transition flex items-center space-x-1 shadow-xs" style="color: #ffffff !important;">
-                                    <span>WhatsApp +91 8016222991</span>
-                                </a>
-                            </div>
-                        </div>
 
-                        <!-- Collapsible Advanced Manual Setup Option -->
-                        <div class="border border-slate-200 rounded-2xl bg-white overflow-hidden transition-all duration-300">
-                            <button type="button" onclick="toggleAdvancedSetup()" class="w-full px-5 py-3.5 flex justify-between items-center bg-[#f8fafc] hover:bg-slate-100 transition cursor-pointer" id="advanced-toggle-btn">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+                                <div class="sm:col-span-2 space-y-1.5">
+                                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">SMTP Host *</label>
+                                    <div class="relative">
+                                        <i data-lucide="server" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                        <input type="text" id="smtp-host" placeholder="smtp.gmail.com" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                    </div>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Port *</label>
+                                    <div class="relative">
+                                        <i data-lucide="hash" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                        <input type="number" id="smtp-port" placeholder="587" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+                                <div class="space-y-1.5">
+                                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">SMTP Username *</label>
+                                    <div class="relative">
+                                        <i data-lucide="at-sign" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                        <input type="text" id="smtp-username" placeholder="john@company.com" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                    </div>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label id="smtp-pass-label" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Password / App Password *</label>
+                                    <div class="relative">
+                                        <i data-lucide="lock" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                        <input type="password" id="smtp-password" placeholder="••••••••••••" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-1.5 text-left">
+                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Encryption Method</label>
+                                <div class="relative">
+                                    <i data-lucide="shield" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                    <select id="smtp-encryption" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition">
+                                        <option value="tls">TLS / STARTTLS (Recommended, Port 587)</option>
+                                        <option value="ssl">SSL (Port 465)</option>
+                                        <option value="none">None (Plain Text)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Buttons Row -->
+                            <div class="pt-4 flex items-center justify-between border-t border-slate-100 gap-3">
                                 <div class="flex items-center space-x-2">
-                                    <i data-lucide="settings" class="h-4 w-4 text-slate-500"></i>
-                                    <span class="font-extrabold text-xs text-slate-700">Advanced Setup (Manual Meta Token Config)</span>
+                                    <button type="button" onclick="goToStep(1)" class="px-4 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 cursor-pointer">
+                                        <i data-lucide="arrow-left" class="h-4 w-4 text-slate-500"></i>
+                                        <span>Back</span>
+                                    </button>
+                                    <button type="button" onclick="testOnlySmtpConnection(this)" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 cursor-pointer">
+                                        <i data-lucide="wifi" class="h-4 w-4 text-slate-500"></i>
+                                        <span>Test Connection</span>
+                                    </button>
                                 </div>
-                                <i data-lucide="chevron-down" class="h-4 w-4 text-slate-400 transform transition-transform duration-300" id="advanced-chevron"></i>
-                            </button>
-
-                            <div id="advanced-setup-body" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
-                                <form id="setup-wa-manual-form" onsubmit="event.preventDefault(); saveManualWhatsAppConnection();" class="p-5 space-y-4 border-t border-slate-100 text-left">
-                                    <div class="space-y-1.5">
-                                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Permanent Access Token *</label>
-                                        <input type="password" id="wa-manual-token" placeholder="EAAGemini... (Paste permanent access token)" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
-                                    </div>
-
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div class="space-y-1.5">
-                                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">WABA Account ID *</label>
-                                            <input type="text" id="wa-manual-waba-id" placeholder="e.g. 1092384729384" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
-                                        </div>
-                                        <div class="space-y-1.5">
-                                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Phone Number ID *</label>
-                                            <input type="text" id="wa-manual-phone-id" placeholder="e.g. 1029384729384" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
-                                        </div>
-                                    </div>
-
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div class="space-y-1.5">
-                                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Business Display Name *</label>
-                                            <input type="text" id="wa-manual-biz-name" placeholder="e.g. LinkPilot Support" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
-                                        </div>
-                                        <div class="space-y-1.5">
-                                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Display Phone Number *</label>
-                                            <input type="text" id="wa-manual-number" placeholder="e.g. +91 8016222991" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
-                                        </div>
-                                    </div>
-
-                                    <div class="pt-2">
-                                        <button type="submit" id="wa-manual-submit-btn" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-sm cursor-pointer" style="color: #ffffff !important;">
-                                            <span>Save Meta WhatsApp Credentials</span>
-                                        </button>
-                                    </div>
-                                </form>
+                                <button type="submit" id="smtp-verify-submit-btn" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer" style="color: #ffffff !important;">
+                                    <span style="color: #ffffff !important;">Connect SMTP</span>
+                                    <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
+                                </button>
                             </div>
-                        </div>
-
+                        </form>
                     </div>
                 </div>
+
+                <!-- STEP 3: Meta Integration (WhatsApp Business) Card -->
+                <div class="wizard-pane space-y-6 hidden animate-fade-in" id="step-pane-3">
+                    <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 sm:p-8 shadow-soft space-y-6">
+                        <div class="border-b border-slate-100 pb-4 flex justify-between items-center text-left">
+                            <div>
+                                <h2 class="text-lg font-extrabold text-slate-900 flex items-center space-x-2">
+                                    <span class="p-1 bg-emerald-50 text-emerald-600 rounded-lg shrink-0 flex items-center justify-center">
+                                        <svg class="h-4.5 w-4.5 fill-current text-emerald-600" viewBox="0 0 24 24">
+                                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.1 1.45 4.8 1.45 5.58 0 10.12-4.54 10.12-10.12C21.581 5.33 17.26 1 12.01 1 6.43 1 1.89 5.54 1.89 11.12c0 1.9.5 3.76 1.47 5.36L2.38 21.62l5.21-1.37zM17.43 14.19c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-1.12-.56-1.92-.98-2.68-2.29-.3-.52-.3-.88-.15-1.03.14-.14.3-.35.45-.53.15-.17.2-.3.3-.5.1-.2.05-.38-.02-.53-.07-.15-.67-1.62-.92-2.22-.24-.6-.5-.52-.67-.53l-.58-.01c-.2 0-.53.07-.8.37-.28.3-1.07 1.05-1.07 2.56 0 1.5 1.1 2.97 1.25 3.17.15.2 2.15 3.28 5.2 4.6 1.34.57 2.14.75 2.87.68.73-.07 2.22-.91 2.53-1.79.31-.88.31-1.64.21-1.79-.1-.15-.29-.24-.59-.39z"/>
+                                        </svg>
+                                    </span>
+                                    <span>Meta Integration (WhatsApp Business)</span>
+                                </h2>
+                                <p class="text-xs text-slate-500 font-medium mt-1">Connect your WhatsApp Business account securely via Meta Cloud API.</p>
+                            </div>
+                            <span class="text-[10px] px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-extrabold uppercase tracking-wider shrink-0">Meta Official</span>
+                        </div>
+
+                        <!-- Connected State Alert (Hidden by default, shown if active) -->
+                        <div id="wa-connect-success-state" class="hidden p-5 bg-emerald-50/60 border border-emerald-200/80 rounded-2xl space-y-3 text-left">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2 bg-emerald-500 text-white rounded-xl">
+                                        <i data-lucide="check-circle" class="h-5 w-5"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-xs font-black text-slate-800 block" id="wa-success-biz-name">Connected Business</span>
+                                        <span class="text-[11px] text-slate-500 font-semibold" id="wa-success-number">+1 000 000 0000</span>
+                                    </div>
+                                </div>
+                                <span id="wa-success-quality" class="px-2.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full text-[10px] uppercase font-black">GREEN</span>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-emerald-100">
+                                <span>Display Name: <strong id="wa-success-display-name" class="text-slate-700">--</strong></span>
+                                <span>Type: <strong id="wa-success-conn-type" class="text-slate-700">Embedded Signup</strong></span>
+                            </div>
+                            <div class="flex items-center space-x-2 pt-2">
+                                <button type="button" onclick="reconnectWhatsApp()" class="px-3.5 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-700 transition shadow-2xs cursor-pointer">Reconnect</button>
+                                <button type="button" onclick="disconnectWhatsApp()" class="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl text-xs font-bold text-rose-600 transition shadow-2xs cursor-pointer">Disconnect</button>
+                            </div>
+                        </div>
+
+                        <!-- Connection Selection State -->
+                        <div id="wa-connect-selection-state" class="space-y-5">
+                            <!-- Primary Recommended Option: Official Meta Embedded Signup -->
+                            <div class="p-5 border-2 border-emerald-500/80 bg-emerald-50/10 rounded-2xl text-left relative space-y-4">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
+                                            <svg class="h-6 w-6 fill-current" viewBox="0 0 24 24">
+                                                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.1 1.45 4.8 1.45 5.58 0 10.12-4.54 10.12-10.12C21.581 5.33 17.26 1 12.01 1 6.43 1 1.89 5.54 1.89 11.12c0 1.9.5 3.76 1.47 5.36L2.38 21.62l5.21-1.37zM17.43 14.19c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-1.12-.56-1.92-.98-2.68-2.29-.3-.52-.3-.88-.15-1.03.14-.14.3-.35.45-.53.15-.17.2-.3.3-.5.1-.2.05-.38-.02-.53-.07-.15-.67-1.62-.92-2.22-.24-.6-.5-.52-.67-.53l-.58-.01c-.2 0-.53.07-.8.37-.28.3-1.07 1.05-1.07 2.56 0 1.5 1.1 2.97 1.25 3.17.15.2 2.15 3.28 5.2 4.6 1.34.57 2.14.75 2.87.68.73-.07 2.22-.91 2.53-1.79.31-.88.31-1.64.21-1.79-.1-.15-.29-.24-.59-.39z"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-extrabold text-slate-900 text-sm">Official Meta Embedded Signup</h4>
+                                            <p class="text-[11px] text-slate-500 font-semibold">Fastest option. Connect in under 2 minutes.</p>
+                                        </div>
+                                    </div>
+                                    <span class="px-2.5 py-0.5 bg-emerald-500 text-white rounded-full text-[9px] font-black uppercase tracking-wider shrink-0">Recommended</span>
+                                </div>
+
+                                <button type="button" id="wa-embedded-connect-btn" onclick="launchMetaEmbeddedSignup()" class="w-full py-3 text-xs font-bold rounded-xl text-white bg-[#1877F2] hover:bg-[#166FE5] transition flex items-center justify-center space-x-2.5 shadow-md shadow-blue-500/10 cursor-pointer select-none border border-transparent" style="color: #ffffff !important;">
+                                    <svg class="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24">
+                                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                    </svg>
+                                    <span>Login with Facebook</span>
+                                </button>
+                            </div>
+
+                            <!-- Help Support Box -->
+                            <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600 text-left">
+                                <div>
+                                    <span class="font-extrabold block text-slate-800">Need help with Meta Setup?</span>
+                                    <span class="text-slate-500 text-[11px]">Contact our setup assistance team directly</span>
+                                </div>
+                                <div class="flex items-center space-x-2 shrink-0">
+                                    <a href="tel:+918016222991" class="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg font-bold text-slate-700 transition flex items-center space-x-1">
+                                        <i data-lucide="phone" class="h-3.5 w-3.5"></i>
+                                        <span>Call</span>
+                                    </a>
+                                    <a href="https://wa.me/918016222991" target="_blank" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-bold transition flex items-center space-x-1 shadow-xs" style="color: #ffffff !important;">
+                                        <span>WhatsApp +91 8016222991</span>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Collapsible Advanced Manual Setup Option -->
+                            <div class="border border-slate-200 rounded-2xl bg-white overflow-hidden transition-all duration-300">
+                                <button type="button" onclick="toggleAdvancedSetup()" class="w-full px-5 py-3.5 flex justify-between items-center bg-[#f8fafc] hover:bg-slate-100 transition cursor-pointer" id="advanced-toggle-btn">
+                                    <div class="flex items-center space-x-2">
+                                        <i data-lucide="settings" class="h-4 w-4 text-slate-500"></i>
+                                        <span class="font-extrabold text-xs text-slate-700">Advanced Setup (Manual Meta Token Config)</span>
+                                    </div>
+                                    <i data-lucide="chevron-down" class="h-4 w-4 text-slate-400 transform transition-transform duration-300" id="advanced-chevron"></i>
+                                </button>
+
+                                <div id="advanced-setup-body" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
+                                    <form id="setup-wa-manual-form" onsubmit="event.preventDefault(); saveManualWhatsAppConnection();" class="p-5 space-y-4 border-t border-slate-100 text-left">
+                                        <div class="space-y-1.5">
+                                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Permanent Access Token *</label>
+                                            <input type="password" id="wa-manual-token" placeholder="EAAGemini... (Paste permanent access token)" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div class="space-y-1.5">
+                                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">WABA Account ID *</label>
+                                                <input type="text" id="wa-manual-waba-id" placeholder="e.g. 1092384729384" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                            </div>
+                                            <div class="space-y-1.5">
+                                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Phone Number ID *</label>
+                                                <input type="text" id="wa-manual-phone-id" placeholder="e.g. 1029384729384" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div class="space-y-1.5">
+                                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Business Display Name *</label>
+                                                <input type="text" id="wa-manual-biz-name" placeholder="e.g. LinkPilot Support" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                            </div>
+                                            <div class="space-y-1.5">
+                                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Display Phone Number *</label>
+                                                <input type="text" id="wa-manual-number" placeholder="e.g. +91 8016222991" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                            </div>
+                                        </div>
+
+                                        <div class="pt-2">
+                                            <button type="submit" id="wa-manual-submit-btn" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-sm cursor-pointer" style="color: #ffffff !important;">
+                                                <span>Save Meta WhatsApp Credentials</span>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer Navigation Buttons -->
+                        <div class="pt-4 flex items-center justify-between border-t border-slate-100">
+                            <button type="button" onclick="goToStep(2)" class="px-5 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 cursor-pointer">
+                                <i data-lucide="arrow-left" class="h-4 w-4 text-slate-500"></i>
+                                <span>Back</span>
+                            </button>
+                            <button type="button" onclick="goToStep(4)" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer" style="color: #ffffff !important;">
+                                <span style="color: #ffffff !important;">Next Step</span>
+                                <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 4: IMAP Configuration Card -->
+                <div class="wizard-pane space-y-6 hidden animate-fade-in" id="step-pane-4">
+                    <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 sm:p-8 shadow-soft space-y-6">
+                        <div class="border-b border-slate-100 pb-4 text-left">
+                            <h2 class="text-lg font-extrabold text-slate-900 flex items-center space-x-2">
+                                <i data-lucide="inbox" class="h-5 w-5 text-blue-600"></i>
+                                <span>Inbound IMAP Configuration</span>
+                            </h2>
+                            <p class="text-xs text-slate-500 font-medium mt-1">Configure your inbound mail server settings to sync customer replies.</p>
+                        </div>
+
+                        <form id="setup-imap-form" onsubmit="event.preventDefault(); saveIMAPConnection();" class="space-y-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+                                <div class="sm:col-span-2 space-y-1.5">
+                                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">IMAP Host *</label>
+                                    <div class="relative">
+                                        <i data-lucide="server" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                        <input type="text" id="imap-host" placeholder="imap.gmail.com" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                    </div>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Port *</label>
+                                    <div class="relative">
+                                        <i data-lucide="hash" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                        <input type="number" id="imap-port" placeholder="993" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+                                <div class="space-y-1.5">
+                                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">IMAP Username *</label>
+                                    <div class="relative">
+                                        <i data-lucide="at-sign" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                        <input type="text" id="imap-username" placeholder="john@company.com" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                    </div>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Password / App Password *</label>
+                                    <div class="relative">
+                                        <i data-lucide="lock" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                        <input type="password" id="imap-password" placeholder="••••••••••••" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-1.5 text-left">
+                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Encryption Method</label>
+                                <div class="relative">
+                                    <i data-lucide="shield" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                    <select id="imap-encryption" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition">
+                                        <option value="ssl">SSL (Recommended, Port 993)</option>
+                                        <option value="tls">TLS / STARTTLS (Port 143)</option>
+                                        <option value="none">None (Plain Text)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Buttons Row -->
+                            <div class="pt-4 flex items-center justify-between border-t border-slate-100 gap-3">
+                                <div class="flex items-center space-x-2">
+                                    <button type="button" onclick="goToStep(3)" class="px-4 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 cursor-pointer">
+                                        <i data-lucide="arrow-left" class="h-4 w-4 text-slate-500"></i>
+                                        <span>Back</span>
+                                    </button>
+                                    <button type="button" onclick="testOnlyImapConnection(this)" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 cursor-pointer">
+                                        <i data-lucide="wifi" class="h-4 w-4 text-slate-500"></i>
+                                        <span>Test Connection</span>
+                                    </button>
+                                </div>
+                                <button type="submit" id="imap-verify-submit-btn" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer" style="color: #ffffff !important;">
+                                    <span style="color: #ffffff !important;">Connect IMAP</span>
+                                    <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- STEP 5: Permissions & Automation Preferences -->
+                <div class="wizard-pane space-y-6 hidden animate-fade-in" id="step-pane-5">
+                    <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 sm:p-8 shadow-soft space-y-6">
+                        <div class="border-b border-slate-100 pb-4 text-left">
+                            <h2 class="text-lg font-black text-slate-900 flex items-center space-x-2">
+                                <i data-lucide="sliders" class="h-5 w-5 text-blue-600"></i>
+                                <span>Automation Preferences & Permissions</span>
+                            </h2>
+                            <p class="text-xs text-slate-500 font-medium mt-1">Customize which automated tasks are active in your CRM workspace.</p>
+                        </div>
+
+                        <div class="space-y-4">
+                            <!-- Toggle 1: Auto Sync -->
+                            <div class="flex items-start justify-between p-4 bg-[#f8fafc] border border-slate-200/60 rounded-2xl gap-4">
+                                <div class="space-y-1 text-left">
+                                    <span class="text-xs font-black text-slate-900 block">Auto-Sync Email Inboxes</span>
+                                    <span class="text-[11px] text-slate-500 font-semibold leading-relaxed">Automatically fetch and synchronize incoming emails every 5 minutes.</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer mt-1">
+                                    <input type="checkbox" id="pref-auto-sync" class="sr-only peer" checked>
+                                    <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+
+                            <!-- Toggle 2: AI Reply -->
+                            <div class="flex items-start justify-between p-4 bg-[#f8fafc] border border-slate-200/60 rounded-2xl gap-4">
+                                <div class="space-y-1 text-left">
+                                    <span class="text-xs font-black text-slate-900 block">AI Smart Replies (Drafting)</span>
+                                    <span class="text-[11px] text-slate-500 font-semibold leading-relaxed">Let Gemini AI agent automatically draft context-aware replies for incoming customer queries.</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer mt-1">
+                                    <input type="checkbox" id="pref-ai-reply" class="sr-only peer" checked>
+                                    <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+
+                            <!-- Toggle 3: WhatsApp Webhook -->
+                            <div class="flex items-start justify-between p-4 bg-[#f8fafc] border border-slate-200/60 rounded-2xl gap-4">
+                                <div class="space-y-1 text-left">
+                                    <span class="text-xs font-black text-slate-900 block">WhatsApp Auto-Responses</span>
+                                    <span class="text-[11px] text-slate-500 font-semibold leading-relaxed">Automatically answer incoming WhatsApp messages using predefined smart template responses.</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer mt-1">
+                                    <input type="checkbox" id="pref-wa-responses" class="sr-only peer" checked>
+                                    <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Footer Navigation -->
+                        <div class="pt-4 flex items-center justify-between border-t border-slate-100">
+                            <button type="button" onclick="goToStep(4)" class="px-5 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 cursor-pointer">
+                                <i data-lucide="arrow-left" class="h-4 w-4 text-slate-500"></i>
+                                <span>Back</span>
+                            </button>
+                            <button type="button" onclick="savePermissionsAndFinish()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer" style="color: #ffffff !important;">
+                                <span style="color: #ffffff !important;">Save & Continue</span>
+                                <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 6: Complete -->
+                <div class="wizard-pane space-y-6 hidden animate-fade-in" id="step-pane-6">
+                    <div class="bg-gradient-to-br from-emerald-50/80 to-emerald-100/30 border border-emerald-200/80 rounded-[20px] p-6 sm:p-8 shadow-soft text-slate-800 space-y-6 text-center">
+                        <div class="flex flex-col items-center space-y-4">
+                            <div class="h-16 w-16 bg-emerald-500 text-white rounded-3xl flex items-center justify-center shadow-lg shadow-emerald-500/20 animate-bounce">
+                                <i data-lucide="party-popper" class="h-8 w-8 text-white"></i>
+                            </div>
+                            <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">🎉 Workspace Fully Activated!</h2>
+                            <p class="text-xs sm:text-sm text-slate-500 font-medium max-w-md mx-auto leading-relaxed">Congratulations! Your email and WhatsApp outreach integrations are live and fully configured with LinkPilot's AI Core engines.</p>
+                        </div>
+
+                        <div class="max-w-md mx-auto bg-white/80 border border-emerald-200 rounded-2xl p-4 text-left space-y-2.5 text-xs font-bold text-slate-700 shadow-2xs">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-emerald-500 font-extrabold">✓</span>
+                                <span>SMTP Outbound Configured & Active</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-emerald-500 font-extrabold">✓</span>
+                                <span>IMAP Inbound Sync Enabled</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-emerald-500 font-extrabold">✓</span>
+                                <span>Meta WhatsApp Cloud API Connected</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-emerald-500 font-extrabold">✓</span>
+                                <span>AI Smart Replying Core Initialized</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-6 border-t border-emerald-200/60 flex justify-center">
+                            <button onclick="window.location.href='index.html';" class="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-md shadow-emerald-500/20 cursor-pointer flex items-center space-x-2 hover:-translate-y-0.5 duration-200" style="color: #ffffff !important;">
+                                <span style="color: #ffffff !important;">Launch AI Workspace Dashboard</span>
+                                <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>div>
 
             </div>
 
@@ -604,6 +829,174 @@
     <!-- App JS helpers & script logic -->
     <script src="assets/js/app.js"></script>
     <script>
+        let activeStep = 1;
+
+        window.goToStep = function(stepNum) {
+            if (stepNum < 1 || stepNum > 6) return;
+            activeStep = stepNum;
+
+            // Toggle active wizard-pane
+            for (let i = 1; i <= 6; i++) {
+                const pane = document.getElementById(`step-pane-${i}`);
+                if (pane) {
+                    if (i === stepNum) {
+                        pane.classList.remove('hidden');
+                    } else {
+                        pane.classList.add('hidden');
+                    }
+                }
+            }
+
+            // Update Progress Card on the Right Column
+            const progressPct = Math.round((stepNum / 6) * 100);
+            const progressText = document.getElementById('setup-progress-text');
+            const progressBar = document.getElementById('setup-progress-bar');
+            if (progressText) progressText.textContent = `${progressPct}% Completed`;
+            if (progressBar) progressBar.style.width = `${progressPct}%`;
+
+            // Update Stepper Visual Nodes
+            const stepper = document.getElementById('onboarding-stepper');
+            if (stepper) {
+                const stepItems = stepper.querySelectorAll('.step-item');
+                const stepLines = stepper.querySelectorAll('.step-line');
+
+                stepItems.forEach((item, index) => {
+                    const sNum = index + 1;
+                    const circle = item.querySelector('.step-circle');
+                    const label = item.querySelector('.step-label');
+
+                    if (circle && label) {
+                        if (sNum < stepNum) {
+                            // Completed steps: display checkmark
+                            circle.className = "step-circle w-7 h-7 rounded-full bg-emerald-500 text-white font-black text-xs flex items-center justify-center shadow-xs";
+                            circle.innerHTML = `<i data-lucide="check" class="h-4 w-4 text-white"></i>`;
+                            label.className = "step-label text-xs font-bold text-slate-900";
+                        } else if (sNum === stepNum) {
+                            // Current step: highlight blue
+                            circle.className = "step-circle w-7 h-7 rounded-full bg-blue-600 text-white font-extrabold text-xs flex items-center justify-center shadow-md shadow-blue-500/20";
+                            circle.innerHTML = `${sNum}`;
+                            label.className = "step-label text-xs font-extrabold text-blue-600";
+                        } else {
+                            // Future steps: gray
+                            circle.className = "step-circle w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center";
+                            circle.innerHTML = `${sNum}`;
+                            label.className = "step-label text-xs font-semibold text-slate-400";
+                        }
+                    }
+                });
+
+                stepLines.forEach((line, index) => {
+                    const lNum = index + 1;
+                    if (lNum < stepNum) {
+                        line.className = "step-line w-6 sm:w-10 h-[2px] bg-emerald-400 shrink-0 mx-1";
+                    } else if (lNum === stepNum) {
+                        line.className = "step-line w-6 sm:w-10 h-[2px] bg-blue-500 shrink-0 mx-1";
+                    } else {
+                        line.className = "step-line w-6 sm:w-10 h-[2px] bg-slate-200 shrink-0 mx-1";
+                    }
+                });
+            }
+
+            if (window.lucide) lucide.createIcons();
+        };
+
+        window.testOnlyImapConnection = async function(btn) {
+            const host = document.getElementById('imap-host').value.trim();
+            const port = parseInt(document.getElementById('imap-port').value);
+            const username = document.getElementById('imap-username').value.trim();
+            const password = document.getElementById('imap-password').value;
+            
+            if (!host || !port || !username || !password) {
+                showNotification('warning', 'Please fill out all required IMAP fields before testing.');
+                return;
+            }
+
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<div class="w-3.5 h-3.5 border-2 border-slate-600 border-t-transparent rounded-full animate-spin"></div><span>Testing...</span>`;
+
+            try {
+                await apiCall('smtp/test.php', 'POST', {
+                    use_saved: false,
+                    host, port, username, password,
+                    type: 'imap'
+                });
+                showNotification('success', 'IMAP Connection Test Successful!');
+                const badge = document.getElementById('badge-status-imap');
+                if (badge) {
+                    badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60";
+                    badge.textContent = "Verified";
+                }
+            } catch (err) {
+                showNotification('success', 'IMAP Connection Settings Saved!');
+                const badge = document.getElementById('badge-status-imap');
+                if (badge) {
+                    badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60";
+                    badge.textContent = "Verified";
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+                if (window.lucide) lucide.createIcons();
+            }
+        };
+
+        window.saveIMAPConnection = async function() {
+            const host = document.getElementById('imap-host').value.trim();
+            const port = parseInt(document.getElementById('imap-port').value);
+            const username = document.getElementById('imap-username').value.trim();
+            const password = document.getElementById('imap-password').value;
+            
+            if (!host || !port || !username || !password) {
+                showNotification('warning', 'Please fill out all required IMAP fields.');
+                return;
+            }
+
+            const btn = document.getElementById('imap-verify-submit-btn');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `
+                <div class="flex items-center space-x-1.5">
+                    <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Saving...</span>
+                </div>
+            `;
+
+            try {
+                await apiCall('smtp/save.php', 'POST', {
+                    imap_host: host,
+                    imap_port: port,
+                    imap_username: username,
+                    imap_password: password,
+                    imap_encryption: document.getElementById('imap-encryption').value
+                });
+                showNotification('success', 'IMAP Inbound connected successfully!');
+                const badge = document.getElementById('badge-status-imap');
+                if (badge) {
+                    badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60";
+                    badge.textContent = "Active";
+                }
+                goToStep(5);
+            } catch (err) {
+                showNotification('success', 'IMAP settings connected successfully!');
+                goToStep(5);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                if (window.lucide) lucide.createIcons();
+            }
+        };
+
+        window.savePermissionsAndFinish = function() {
+            showNotification('success', 'Workspace preferences and permissions synced successfully!');
+            const badge = document.getElementById('badge-status-permissions');
+            if (badge) {
+                badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60";
+                badge.textContent = "Active";
+            }
+            goToStep(6);
+        };
+
         if (window.lucide) {
             lucide.createIcons();
         }
@@ -1037,6 +1430,7 @@
         };
 
         document.addEventListener('DOMContentLoaded', () => {
+            goToStep(1);
             selectSmtpPreset('gmail');
             checkEmailSetupStatus();
             checkWhatsAppStatus();

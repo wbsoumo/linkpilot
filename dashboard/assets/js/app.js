@@ -101,6 +101,9 @@ async function apiCall(endpoint, method = 'GET', body = null, isUrlEncoded = fal
             data = JSON.parse(cleanText);
         } catch (e) {
             console.error("Non-JSON output from backend:", text);
+            if (response.status === 403) {
+                throw new Error('Access forbidden (HTTP 403). Server security filter blocked request.');
+            }
             const shortText = text ? text.trim().substring(0, 80) : '';
             throw new Error(shortText && !shortText.startsWith('<') ? shortText : `Invalid backend server response (HTTP ${response.status}).`);
         }
@@ -112,6 +115,8 @@ async function apiCall(endpoint, method = 'GET', body = null, isUrlEncoded = fal
                 if (!isAuthPage) {
                     window.location.href = 'login.html';
                 }
+            } else if (response.status === 403) {
+                throw new Error((data && data.message) || 'Access forbidden (HTTP 403). Admin permissions required.');
             }
             throw new Error(data.message || 'API request failed.');
         }

@@ -21,19 +21,32 @@ try {
         if (isset($_GET['id'])) {
             // Get single email details
             $emailId = (int)$_GET['id'];
+            $folder = strtolower(trim($_GET['folder'] ?? ''));
             
-            $stmt = $db->prepare("SELECT * FROM received_emails WHERE id = ? AND user_id = ?");
-            $stmt->execute([$emailId, $userId]);
-            $email = $stmt->fetch();
-            
-            if (!$email) {
-                // Fallback to sent_emails
-                $stmtSent = $db->prepare("SELECT id, 'You' AS sender_name, recipient_email AS sender_email, recipient_email, subject, body AS body_html, body AS body_text, created_at AS received_date, 1 AS is_read, 0 AS is_starred, 0 AS is_archived, 'Sent' AS category, '' AS ai_summary, '' AS ai_suggested_reply, 0 AS ai_confidence_score, 'neutral' AS sentiment, 'medium' AS priority, 0 AS is_spam, 'completed' AS ai_status, 0 AS spam_probability, created_at FROM sent_emails WHERE id = ? AND user_id = ?");
+            if ($folder === 'sent') {
+                $stmtSent = $db->prepare("SELECT id, CONCAT('To: ', recipient_email) AS sender_name, recipient_email AS sender_email, recipient_email, subject, body AS body_html, body AS body_text, created_at AS received_date, 1 AS is_read, 0 AS is_starred, 0 AS is_archived, 'Sent' AS category, '' AS ai_summary, '' AS ai_suggested_reply, 0 AS ai_confidence_score, 'neutral' AS sentiment, 'medium' AS priority, 0 AS is_spam, 'completed' AS ai_status, 0 AS spam_probability, created_at FROM sent_emails WHERE id = ? AND user_id = ?");
                 $stmtSent->execute([$emailId, $userId]);
                 $email = $stmtSent->fetch();
                 if ($email) {
                     $email['attachments'] = [];
                     $email['replies'] = [];
+                    $email['is_sent_email'] = true;
+                }
+            } else {
+                $stmt = $db->prepare("SELECT * FROM received_emails WHERE id = ? AND user_id = ?");
+                $stmt->execute([$emailId, $userId]);
+                $email = $stmt->fetch();
+                
+                if (!$email) {
+                    // Fallback to sent_emails
+                    $stmtSent = $db->prepare("SELECT id, CONCAT('To: ', recipient_email) AS sender_name, recipient_email AS sender_email, recipient_email, subject, body AS body_html, body AS body_text, created_at AS received_date, 1 AS is_read, 0 AS is_starred, 0 AS is_archived, 'Sent' AS category, '' AS ai_summary, '' AS ai_suggested_reply, 0 AS ai_confidence_score, 'neutral' AS sentiment, 'medium' AS priority, 0 AS is_spam, 'completed' AS ai_status, 0 AS spam_probability, created_at FROM sent_emails WHERE id = ? AND user_id = ?");
+                    $stmtSent->execute([$emailId, $userId]);
+                    $email = $stmtSent->fetch();
+                    if ($email) {
+                        $email['attachments'] = [];
+                        $email['replies'] = [];
+                        $email['is_sent_email'] = true;
+                    }
                 }
             }
             
@@ -94,7 +107,7 @@ try {
                 $countStmt->execute($paramsSent);
                 $totalCount = (int)$countStmt->fetchColumn();
                 
-                $dataStmt = $db->prepare("SELECT id, 'You' AS sender_name, recipient_email AS sender_email, subject, 'Sent' AS category, created_at AS received_date, 1 AS is_read, 0 AS is_starred, 0 AS is_archived, 'medium' AS priority, 'neutral' AS sentiment, 0 AS spam_probability, body AS ai_summary " . $querySent . " ORDER BY created_at DESC LIMIT :limit OFFSET :offset");
+                $dataStmt = $db->prepare("SELECT id, CONCAT('To: ', recipient_email) AS sender_name, recipient_email AS sender_email, subject, 'Sent' AS category, created_at AS received_date, 1 AS is_read, 0 AS is_starred, 0 AS is_archived, 'medium' AS priority, 'neutral' AS sentiment, 0 AS spam_probability, body AS ai_summary " . $querySent . " ORDER BY created_at DESC LIMIT :limit OFFSET :offset");
                 $dataStmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
                 if ($search !== '') {
                     $dataStmt->bindValue(':search1', '%' . $search . '%', PDO::PARAM_STR);

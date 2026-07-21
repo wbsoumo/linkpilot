@@ -3154,12 +3154,9 @@ async function renderInbox(container, targetEmailId = null, initialFolder = 'inb
         
         lucide.createIcons();
         activeEmailId = targetEmailId;
-        if (initialFolder && initialFolder !== 'inbox') {
-            const folderBtn = document.querySelector(`#inbox-folder-menu button[onclick*="'${initialFolder}'"]`);
-            await filterInbox(initialFolder, folderBtn);
-        } else {
-            await refreshInboxList(1);
-        }
+        const targetFolder = initialFolder || 'inbox';
+        const initialBtn = document.querySelector(`#inbox-folder-menu button[onclick*="'${targetFolder}'"]`);
+        await filterInbox(targetFolder, initialBtn);
         checkInboxPendingStatus();
         checkInboxEmailAccountStatus();
     } catch (err) {
@@ -3190,7 +3187,8 @@ async function selectInboxEmail(emailId) {
     `;
 
     try {
-        const data = await apiCall(`crm/email_intelligence/emails.php?id=${emailId}`);
+        const folderParam = (window.inboxFilters && window.inboxFilters.folder) ? encodeURIComponent(window.inboxFilters.folder) : 'inbox';
+        const data = await apiCall(`crm/email_intelligence/emails.php?id=${emailId}&folder=${folderParam}`);
         const smtpData = await apiCall('smtp/list.php');
         const email = data.email;
         const accounts = smtpData.accounts || [];
@@ -15579,6 +15577,9 @@ window.inboxFilters = {
 };
 
 async function filterInbox(type, btn) {
+    if (!window.inboxFilters) {
+        window.inboxFilters = {};
+    }
     window.inboxFilters.category = '';
     window.inboxFilters.folder = type;
     window.inboxFilters.is_starred = null;
@@ -15604,6 +15605,10 @@ async function filterInbox(type, btn) {
     document.querySelectorAll('#inbox-folder-menu button, #inbox-category-filters button').forEach(el => {
         el.className = "w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left";
     });
+    
+    if (!btn && type) {
+        btn = document.querySelector(`#inbox-folder-menu button[onclick*="'${type}'"]`);
+    }
     
     if (btn) {
         btn.className = "w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold text-blue-600 bg-blue-50/70 transition text-left shadow-2xs";

@@ -599,138 +599,34 @@ async function renderDashboard(container) {
 
         if (showWarningBanner) {
             warningBannerHtml = `
-                <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 sm:p-8 shadow-soft text-slate-800 space-y-6 max-w-5xl">
-                    <!-- Header -->
-                    <div class="flex items-center space-x-3.5 pb-4 border-b border-slate-100 text-left">
-                        <div class="h-12 w-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shrink-0">
-                            <i data-lucide="rocket" class="h-6 w-6"></i>
+                <div onclick="window.location.href='setup.html';" class="group cursor-pointer bg-white border border-slate-200/80 rounded-[20px] p-4 sm:p-5 shadow-soft text-slate-800 hover:border-indigo-500/50 hover:shadow-md transition-all duration-300 max-w-5xl text-left relative overflow-hidden flex flex-col justify-between" style="height: 120px;">
+                    <!-- Title & Percentage Row -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
+                                <span>🚀</span>
+                                <span>Workspace Setup</span>
+                            </span>
                         </div>
-                        <div>
-                            <h2 class="text-lg font-black text-slate-900 tracking-tight">🚀 Complete Your Workspace Setup</h2>
-                            <p class="text-xs text-slate-500 font-semibold mt-1">Complete the remaining integrations to unlock AI Email, WhatsApp Automation, Campaigns, CRM Sync, and Intelligent Outreach.</p>
-                        </div>
-                    </div>
-
-                    <!-- Progress Bar -->
-                    <div class="space-y-2 text-left">
-                        <div class="flex items-center justify-between text-xs font-bold text-slate-700">
-                            <span>Overall Setup Progress</span>
-                            <span class="text-blue-600 font-extrabold">${progress}% Complete</span>
-                        </div>
-                        <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200/40">
-                            <div class="bg-gradient-to-r from-blue-600 via-purple-600 to-emerald-500 h-full rounded-full transition-all duration-500" style="width: ${progress}%;"></div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-[10px] font-extrabold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">${progress}% Complete</span>
                         </div>
                     </div>
 
-                    <!-- Integration Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                        <!-- Email Setup Card -->
-                        <div class="p-5 bg-[#f8fafc] border border-slate-200/60 rounded-2xl space-y-4 flex flex-col justify-between text-left">
-                            <div class="space-y-3.5">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-xs font-extrabold text-slate-950 uppercase tracking-wider flex items-center space-x-1.5">
-                                        <i data-lucide="mail" class="h-4 w-4 text-blue-500"></i>
-                                        <span>Email Workspace</span>
-                                    </span>
-                                    ${smtpConfigured ? 
-                                        `<span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full text-[10px] uppercase font-black tracking-wide">Connected</span>` : 
-                                        `<span class="px-2.5 py-0.5 bg-slate-100 text-slate-400 border border-slate-200 rounded-full text-[10px] uppercase font-black tracking-wide">Not Configured</span>`
-                                    }
-                                </div>
-                                
-                                <div class="space-y-2.5 text-xs font-bold text-slate-600">
-                                    <div class="flex items-center space-x-2">
-                                        ${smtpConfigured ? 
-                                            `<span class="text-emerald-500 font-extrabold">✓</span> <span class="text-slate-800 font-bold">SMTP Connected</span>` : 
-                                            `<span class="text-slate-300">○</span> <span class="text-slate-450 font-semibold">SMTP Connected</span>`
-                                        }
-                                    </div>
-                                    <div class="flex items-center space-x-2">
-                                        ${smtpConfigured ? 
-                                            `<span class="text-emerald-500 font-extrabold">✓</span> <span class="text-slate-800 font-bold">IMAP Connected</span>` : 
-                                            `<span class="text-slate-300">○</span> <span class="text-slate-455 font-semibold">IMAP Connected</span>`
-                                        }
-                                    </div>
-                                    <div class="flex items-center space-x-2">
-                                        ${smtpConfigured ? 
-                                            `<span class="text-emerald-500 font-extrabold">✓</span> <span class="text-slate-800 font-bold">Send Test Email</span>` : 
-                                            `<span class="text-slate-300">○</span> <span class="text-slate-455 font-semibold">Send Test Email</span>`
-                                        }
-                                    </div>
-                                    <div class="flex items-center space-x-2">
-                                        ${smtpConfigured ? 
-                                            `<span class="text-emerald-500 font-extrabold">✓</span> <span class="text-slate-800 font-bold">AI Inbox Activated</span>` : 
-                                            `<span class="text-slate-300">○</span> <span class="text-slate-455 font-semibold">AI Inbox Activated</span>`
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button onclick="window.location.href='setup.html';" class="w-full mt-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 hover:text-blue-600 transition flex items-center justify-center space-x-1 cursor-pointer">
-                                <span>Configure Email</span>
-                                <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
-                            </button>
-                        </div>
-
-                        <!-- WhatsApp Setup Card -->
-                        <div class="p-5 bg-[#f8fafc] border border-slate-200/60 rounded-2xl space-y-4 flex flex-col justify-between text-left">
-                            <div class="space-y-3.5">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-xs font-extrabold text-slate-950 uppercase tracking-wider flex items-center space-x-1.5">
-                                        <i data-lucide="message-square" class="h-4 w-4 text-emerald-500"></i>
-                                        <span>WhatsApp Business</span>
-                                    </span>
-                                    ${whatsappConfigured ? 
-                                        `<span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full text-[10px] uppercase font-black tracking-wide">Connected</span>` : 
-                                        `<span class="px-2.5 py-0.5 bg-slate-100 text-slate-400 border border-slate-200 rounded-full text-[10px] uppercase font-black tracking-wide">Not Configured</span>`
-                                    }
-                                </div>
-
-                                <div class="space-y-2.5 text-xs font-bold text-slate-600">
-                                    <div class="flex items-center space-x-2">
-                                        ${whatsappConfigured ? 
-                                            `<span class="text-emerald-500 font-extrabold">✓</span> <span class="text-slate-800 font-bold">Meta App Created</span>` : 
-                                            `<span class="text-slate-300">○</span> <span class="text-slate-455 font-semibold">Meta App Created</span>`
-                                        }
-                                    </div>
-                                    <div class="flex items-center space-x-2">
-                                        ${whatsappConfigured ? 
-                                            `<span class="text-emerald-500 font-extrabold">✓</span> <span class="text-slate-800 font-bold">Phone Number Connected</span>` : 
-                                            `<span class="text-slate-300">○</span> <span class="text-slate-455 font-semibold">Phone Number Connected</span>`
-                                        }
-                                    </div>
-                                    <div class="flex items-center space-x-2">
-                                        ${whatsappConfigured ? 
-                                            `<span class="text-emerald-500 font-extrabold">✓</span> <span class="text-slate-800 font-bold">Webhook Verified</span>` : 
-                                            `<span class="text-slate-300">○</span> <span class="text-slate-455 font-semibold">Webhook Verified</span>`
-                                        }
-                                    </div>
-                                    <div class="flex items-center space-x-2">
-                                        ${whatsappConfigured ? 
-                                            `<span class="text-emerald-500 font-extrabold">✓</span> <span class="text-slate-800 font-bold">Templates Synced</span>` : 
-                                            `<span class="text-slate-300">○</span> <span class="text-slate-455 font-semibold">Templates Synced</span>`
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button onclick="window.location.href='setup.html';" class="w-full mt-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 hover:text-emerald-600 transition flex items-center justify-center space-x-1 cursor-pointer">
-                                <span>Configure WhatsApp</span>
-                                <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
-                            </button>
-                        </div>
+                    <!-- Short Description -->
+                    <div class="flex items-center justify-between">
+                        <p class="text-xs text-slate-500 font-medium leading-relaxed">
+                            Complete Email & WhatsApp integrations to unlock AI features.
+                        </p>
+                        <span class="text-[10px] font-bold text-indigo-500 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+                            <span>Configure</span>
+                            <i data-lucide="arrow-right" class="h-3 w-3"></i>
+                        </span>
                     </div>
 
-                    <!-- Footer features list -->
-                    <div class="pt-4 border-t border-slate-100 flex flex-wrap items-center gap-x-4 gap-y-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 justify-center">
-                        <span class="text-slate-500">✨ Unlock after setup</span>
-                        <span class="flex items-center"><span class="text-emerald-500 mr-1">✓</span> AI Email Reply</span>
-                        <span class="flex items-center"><span class="text-emerald-500 mr-1">✓</span> Email Campaigns</span>
-                        <span class="flex items-center"><span class="text-emerald-500 mr-1">✓</span> WhatsApp Broadcast</span>
-                        <span class="flex items-center"><span class="text-emerald-500 mr-1">✓</span> AI Follow-ups</span>
-                        <span class="flex items-center"><span class="text-emerald-500 mr-1">✓</span> Smart Contact Sync</span>
-                        <span class="flex items-center"><span class="text-emerald-500 mr-1">✓</span> CRM Automation</span>
-                        <span class="flex items-center"><span class="text-emerald-500 mr-1">✓</span> Analytics & Tracking</span>
+                    <!-- Progress Bar (8px height) -->
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/40">
+                        <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-500 h-full rounded-full transition-all duration-500" style="width: ${progress}%;"></div>
                     </div>
                 </div>
             `;

@@ -30,7 +30,7 @@ try {
     
     elseif ($method === 'SYNC') {
         // Trigger sync with Meta Business Cloud API
-        $stmtAcc = $db->prepare("SELECT waba_id, access_token FROM whatsapp_accounts WHERE user_id = ? AND status = 'connected' LIMIT 1");
+        $stmtAcc = $db->prepare("SELECT waba_id, phone_number_id, access_token FROM whatsapp_accounts WHERE user_id = ? AND status = 'connected' LIMIT 1");
         $stmtAcc->execute([$userId]);
         $acc = $stmtAcc->fetch();
         
@@ -39,6 +39,7 @@ try {
         }
         
         $wabaId = $acc['waba_id'];
+        $phoneId = $acc['phone_number_id'] ?? '';
         $encryptedToken = $acc['access_token'];
         $decrypted = decryptData($encryptedToken);
         $accessToken = ($decrypted !== false) ? $decrypted : $encryptedToken;
@@ -48,8 +49,26 @@ try {
         try {
             $tplData = [];
             if (!$isMock) {
-                $metaTemplates = WhatsAppMetaService::getTemplates($userId, $wabaId, $accessToken);
-                $tplData = $metaTemplates['data'] ?? [];
+                try {
+                    $metaTemplates = WhatsAppMetaService::getTemplates($userId, $wabaId, $accessToken);
+                    $tplData = $metaTemplates['data'] ?? [];
+                } catch (Throwable $e) {
+                    // Self-healing fallback: If WABA ID and Phone ID were swapped, try the phoneId as WABA ID
+                    if (!empty($phoneId) && $phoneId !== $wabaId) {
+                        try {
+                            $metaTemplates = WhatsAppMetaService::getTemplates($userId, $phoneId, $accessToken);
+                            $tplData = $metaTemplates['data'] ?? [];
+                            
+                            // Success! Update & swap them in the database permanently
+                            $stmtSwap = $db->prepare("UPDATE whatsapp_accounts SET waba_id = ?, phone_number_id = ? WHERE user_id = ?");
+                            $stmtSwap->execute([$phoneId, $wabaId, $userId]);
+                        } catch (Throwable $fallbackEx) {
+                            throw $e; // Throw the original exception if fallback also fails
+                        }
+                    } else {
+                        throw $e;
+                    }
+                }
             } else {
                 $tplData = [
                     [

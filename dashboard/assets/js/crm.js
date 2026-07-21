@@ -3065,25 +3065,25 @@ async function renderInbox(container, targetEmailId = null, initialFolder = 'inb
                             <div class="space-y-1 text-xs" id="inbox-folder-menu">
                                 <button onclick="filterInbox('inbox', this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold text-blue-600 bg-blue-50/70 transition text-left">
                                     <span class="flex items-center"><i data-lucide="inbox" class="h-4 w-4 mr-2.5"></i>Inbox</span>
-                                    <span id="inbox-unread-count" class="px-2 py-0.5 bg-blue-600 text-white rounded-full text-[9px] font-extrabold">${listData.unread_count || 0}</span>
+                                    <span id="inbox-unread-count" class="px-2.5 py-0.5 bg-blue-600 !text-white text-white rounded-full text-[10px] font-extrabold shadow-2xs">${listData.unread_count || 0}</span>
                                 </button>
-                                <button onclick="filterInbox('starred', this)" class="w-full flex items-center px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left">
-                                    <i data-lucide="star" class="h-4 w-4 mr-2.5"></i>Starred
+                                <button onclick="filterInbox('starred', this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left">
+                                    <span class="flex items-center"><i data-lucide="star" class="h-4 w-4 mr-2.5"></i>Starred</span>
                                 </button>
-                                <button onclick="filterInbox('snoozed', this)" class="w-full flex items-center px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left">
-                                    <i data-lucide="clock" class="h-4 w-4 mr-2.5"></i>Snoozed
+                                <button onclick="filterInbox('snoozed', this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left">
+                                    <span class="flex items-center"><i data-lucide="clock" class="h-4 w-4 mr-2.5"></i>Snoozed</span>
                                 </button>
-                                <button onclick="filterInbox('sent', this)" class="w-full flex items-center px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left">
-                                    <i data-lucide="send" class="h-4 w-4 mr-2.5"></i>Sent
+                                <button onclick="filterInbox('sent', this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left">
+                                    <span class="flex items-center"><i data-lucide="send" class="h-4 w-4 mr-2.5"></i>Sent</span>
                                 </button>
-                                <button onclick="filterInbox('drafts', this)" class="w-full flex items-center px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left">
-                                    <i data-lucide="file-text" class="h-4 w-4 mr-2.5"></i>Drafts
+                                <button onclick="filterInbox('drafts', this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left">
+                                    <span class="flex items-center"><i data-lucide="file-text" class="h-4 w-4 mr-2.5"></i>Drafts</span>
                                 </button>
-                                <button onclick="filterInbox('archived', this)" class="w-full flex items-center px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left">
-                                    <i data-lucide="archive" class="h-4 w-4 mr-2.5"></i>Archived
+                                <button onclick="filterInbox('archived', this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left">
+                                    <span class="flex items-center"><i data-lucide="archive" class="h-4 w-4 mr-2.5"></i>Archived</span>
                                 </button>
-                                <button onclick="filterInbox('spam', this)" class="w-full flex items-center px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left">
-                                    <i data-lucide="trash-2" class="h-4 w-4 mr-2.5"></i>Trash
+                                <button onclick="filterInbox('spam', this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left">
+                                    <span class="flex items-center"><i data-lucide="trash-2" class="h-4 w-4 mr-2.5"></i>Trash</span>
                                 </button>
                             </div>
                         </div>

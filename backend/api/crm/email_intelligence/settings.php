@@ -140,8 +140,13 @@ try {
             $stmtOldCreds->execute([$userId]);
             $oldCreds = $stmtOldCreds->fetch();
 
+            $imapUseSmtpDetails = !empty($input['imap_use_smtp_details']) ? 1 : 0;
             $encryptedSmtpPass = !empty($smtpPassword) ? encryptData($smtpPassword) : ($oldCreds['smtp_password'] ?? '');
-            $encryptedImapPass = !empty($imapPassword) ? encryptData($imapPassword) : ($oldCreds['imap_password'] ?? '');
+            if ($imapUseSmtpDetails) {
+                $encryptedImapPass = $encryptedSmtpPass;
+            } else {
+                $encryptedImapPass = !empty($imapPassword) ? encryptData($imapPassword) : ($oldCreds['imap_password'] ?? '');
+            }
 
             // 3. Save or update credentials
             $stmtCred = $db->prepare("INSERT INTO imap_smtp_configurations (user_id, email_provider, smtp_host, smtp_port, smtp_username, smtp_password, smtp_encryption, imap_host, imap_port, imap_username, imap_password, imap_encryption) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE email_provider = VALUES(email_provider), smtp_host = VALUES(smtp_host), smtp_port = VALUES(smtp_port), smtp_username = VALUES(smtp_username), smtp_password = VALUES(smtp_password), smtp_encryption = VALUES(smtp_encryption), imap_host = VALUES(imap_host), imap_port = VALUES(imap_port), imap_username = VALUES(imap_username), imap_password = VALUES(imap_password), imap_encryption = VALUES(imap_encryption)");

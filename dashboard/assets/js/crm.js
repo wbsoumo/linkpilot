@@ -3135,7 +3135,40 @@ window.switchEmailSettingsTab = function(tabId) {
     });
 };
 
-async function saveSmtpFromSettings(btnOrForm) {
+function toggleEsImapDetailsInherit(isChecked) {
+    const customFields = document.getElementById('es-imap-custom-fields');
+    if (customFields) {
+        if (isChecked) {
+            customFields.classList.add('hidden');
+        } else {
+            customFields.classList.remove('hidden');
+            // If fields are empty, pre-fill them with defaults based on SMTP to make it easy for the user
+            const smtpHost = document.getElementById('es_smtp_host')?.value || '';
+            const smtpUser = document.getElementById('es_smtp_username')?.value || '';
+            const smtpPass = document.getElementById('es_smtp_password')?.value || '';
+            
+            const imapHostInput = document.getElementById('es_imap_host');
+            const imapPortInput = document.getElementById('es_imap_port');
+            const imapUserInput = document.getElementById('es_imap_username');
+            const imapPassInput = document.getElementById('es_imap_password');
+            
+            if (imapHostInput && !imapHostInput.value) {
+                imapHostInput.value = smtpHost.replace('smtp.', 'imap.');
+            }
+            if (imapPortInput && !imapPortInput.value) {
+                imapPortInput.value = '993';
+            }
+            if (imapUserInput && !imapUserInput.value) {
+                imapUserInput.value = smtpUser;
+            }
+            if (imapPassInput && !imapPassInput.value) {
+                imapPassInput.value = smtpPass;
+            }
+        }
+    }
+}
+
+async function saveSmtpImapFromSettings(btnOrForm) {
     const btn = btnOrForm && btnOrForm.tagName === 'FORM' ? btnOrForm.querySelector('button[type="submit"]') : btnOrForm;
     const origText = btn ? btn.innerHTML : '';
     if (btn) {
@@ -3144,23 +3177,55 @@ async function saveSmtpFromSettings(btnOrForm) {
     }
 
     try {
+        const smtp_host = document.getElementById('es_smtp_host')?.value || '';
+        const smtp_port = parseInt(document.getElementById('es_smtp_port')?.value || 587);
+        const smtp_username = document.getElementById('es_smtp_username')?.value || '';
+        const smtp_password = document.getElementById('es_smtp_password')?.value || '';
+        const smtp_encryption = document.getElementById('es_smtp_encryption')?.value || 'tls';
+
+        const use_smtp_for_imap = document.getElementById('es_imap_use_smtp_details')?.checked;
+        let imap_host, imap_port, imap_username, imap_password, imap_encryption;
+
+        if (use_smtp_for_imap) {
+            imap_host = smtp_host.replace('smtp.', 'imap.');
+            imap_port = 993;
+            imap_username = smtp_username;
+            imap_password = smtp_password;
+            imap_encryption = 'ssl';
+        } else {
+            imap_host = document.getElementById('es_imap_host')?.value || '';
+            imap_port = parseInt(document.getElementById('es_imap_port')?.value || 993);
+            imap_username = document.getElementById('es_imap_username')?.value || '';
+            imap_password = document.getElementById('es_imap_password')?.value || '';
+            imap_encryption = document.getElementById('es_imap_encryption')?.value || 'ssl';
+        }
+
         const payload = {
             email_provider: 'custom',
-            smtp_host: document.getElementById('es_smtp_host')?.value || '',
-            smtp_port: parseInt(document.getElementById('es_smtp_port')?.value || 587),
-            smtp_username: document.getElementById('es_smtp_username')?.value || '',
-            smtp_password: document.getElementById('es_smtp_password')?.value || '',
-            smtp_encryption: document.getElementById('es_smtp_encryption')?.value || 'tls'
+            smtp_host,
+            smtp_port,
+            smtp_username,
+            smtp_password,
+            smtp_encryption,
+            imap_host,
+            imap_port,
+            imap_username,
+            imap_password,
+            imap_encryption,
+            imap_use_smtp_details: use_smtp_for_imap ? 1 : 0
         };
 
         const res = await apiCall('crm/email_intelligence/settings.php', 'POST', payload);
         if (res.status === 'success') {
-            showNotification('success', 'SMTP Configuration saved successfully!');
+            showNotification('success', 'SMTP & IMAP Configuration saved successfully!');
             if (window.emailSettingsState) {
                 window.emailSettingsState.credentials = { ...window.emailSettingsState.credentials, ...payload };
             }
+            // Re-render layout to update connection states
+            const viewport = document.getElementById('main-content-viewport');
+            if (viewport) renderEmailSettings(viewport);
         } else {
-            showNotification('error', res.message || 'Failed to save SMTP settings');
+            showNotification('error', res.message || 'Failed to save settings');
         }
     } catch (err) {
         showNotification('error', err.message);
@@ -3172,45 +3237,8 @@ async function saveSmtpFromSettings(btnOrForm) {
     }
 }
 
-async function saveImapFromSettings(btnOrForm) {
-    const btn = btnOrForm && btnOrForm.tagName === 'FORM' ? btnOrForm.querySelector('button[type="submit"]') : btnOrForm;
-    const origText = btn ? btn.innerHTML : '';
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = `<div class="loader-spinner !w-3 !h-3 mr-1"></div> Saving...`;
-    }
-
-    try {
-        const payload = {
-            email_provider: 'custom',
-            imap_host: document.getElementById('es_imap_host')?.value || '',
-            imap_port: parseInt(document.getElementById('es_imap_port')?.value || 993),
-            imap_username: document.getElementById('es_imap_username')?.value || '',
-            imap_password: document.getElementById('es_imap_password')?.value || '',
-            imap_encryption: document.getElementById('es_imap_encryption')?.value || 'ssl'
-        };
-
-        const res = await apiCall('crm/email_intelligence/settings.php', 'POST', payload);
-        if (res.status === 'success') {
-            showNotification('success', 'IMAP Configuration saved successfully!');
-            if (window.emailSettingsState) {
-                window.emailSettingsState.credentials = { ...window.emailSettingsState.credentials, ...payload };
-            }
-        } else {
-            showNotification('error', res.message || 'Failed to save IMAP settings');
-        }
-    } catch (err) {
-        showNotification('error', err.message);
-    } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = origText;
-        }
-    }
-}
-
-window.saveSmtpFromSettings = saveSmtpFromSettings;
-window.saveImapFromSettings = saveImapFromSettings;
+window.toggleEsImapDetailsInherit = toggleEsImapDetailsInherit;
+window.saveSmtpImapFromSettings = saveSmtpImapFromSettings;
 
 async function testSmtpFromSettings(btn) {
     const origText = btn.innerHTML;
@@ -3268,12 +3296,30 @@ async function testImapFromSettings(btn) {
     }
 
     try {
+        const use_smtp_for_imap = document.getElementById('es_imap_use_smtp_details')?.checked;
+        let imap_host, imap_port, imap_username, imap_password, imap_encryption;
+
+        if (use_smtp_for_imap) {
+            const smtp_host = document.getElementById('es_smtp_host')?.value || '';
+            imap_host = smtp_host.replace('smtp.', 'imap.');
+            imap_port = 993;
+            imap_username = document.getElementById('es_smtp_username')?.value || '';
+            imap_password = document.getElementById('es_smtp_password')?.value || '';
+            imap_encryption = 'ssl';
+        } else {
+            imap_host = document.getElementById('es_imap_host')?.value || '';
+            imap_port = parseInt(document.getElementById('es_imap_port')?.value || 993);
+            imap_username = document.getElementById('es_imap_username')?.value || '';
+            imap_password = document.getElementById('es_imap_password')?.value || '';
+            imap_encryption = document.getElementById('es_imap_encryption')?.value || 'ssl';
+        }
+
         const payload = {
-            imap_host: document.getElementById('es_imap_host').value,
-            imap_port: parseInt(document.getElementById('es_imap_port').value),
-            imap_username: document.getElementById('es_imap_username').value,
-            imap_password: document.getElementById('es_imap_password').value,
-            imap_encryption: document.getElementById('es_imap_encryption').value
+            imap_host,
+            imap_port,
+            imap_username,
+            imap_password,
+            imap_encryption
         };
 
         const res = await apiCall('crm/email_intelligence/settings.php?action=test_imap', 'POST', payload);
@@ -3299,6 +3345,9 @@ async function testImapFromSettings(btn) {
         btn.innerHTML = origText;
     }
 }
+
+window.testSmtpFromSettings = testSmtpFromSettings;
+window.testImapFromSettings = testImapFromSettings;
 
 async function promptAddSendingDomain() {
     const domain = prompt("Enter your new sending domain (e.g. outreach.company.com):");

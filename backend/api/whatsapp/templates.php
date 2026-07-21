@@ -166,10 +166,22 @@ try {
                                 $stmtSwap->execute([$phoneId, $wabaId, $userId]);
                                 $healed = true;
                             } catch (Throwable $fallbackEx) {
-                                throw new Exception($e->getMessage() . " (Tried WABA ID: {$wabaId}, Phone ID: {$phoneId})");
+                                $errMsg = $e->getMessage();
+                                if (strpos($errMsg, 'message_templates') !== false) {
+                                    $errMsg .= " (Note: This error typically occurs when the Business Portfolio ID or Phone ID was entered in place of the WABA ID. Please verify your WhatsApp settings and ensure the correct WABA ID is configured. Tried WABA ID: {$wabaId}, Phone ID: {$phoneId})";
+                                } else {
+                                    $errMsg .= " (Tried WABA ID: {$wabaId}, Phone ID: {$phoneId})";
+                                }
+                                throw new Exception($errMsg);
                             }
                         } else {
-                            throw new Exception($e->getMessage() . " (Tried WABA ID: {$wabaId})");
+                            $errMsg = $e->getMessage();
+                            if (strpos($errMsg, 'message_templates') !== false) {
+                                $errMsg .= " (Note: This error typically occurs when the Business Portfolio ID or Phone ID was entered in place of the WABA ID. Please verify your WhatsApp settings and ensure the correct WABA ID is configured. Tried WABA ID: {$wabaId})";
+                            } else {
+                                $errMsg .= " (Tried WABA ID: {$wabaId})";
+                            }
+                            throw new Exception($errMsg);
                         }
                     }
                 }

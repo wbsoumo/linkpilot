@@ -232,14 +232,17 @@ try {
         }
         
         try {
-            $w = WhatsAppMetaService::executeRequest("{$wabaId}?fields=id,name,status", "GET", null, $accessToken);
+            $w = WhatsAppMetaService::executeRequest("{$wabaId}?fields=id,name,status,timezone_id", "GET", null, $accessToken);
+            if (!isset($w['timezone_id'])) {
+                sendJsonResponse('error', 'WABA verification failed: The ID provided is a Business Manager/Portfolio ID, not a WhatsApp Business Account (WABA) ID. Please check and enter the correct WABA ID.', [], 400);
+            }
             sendJsonResponse('success', 'WABA verified successfully.', [
                 'waba_id' => $w['id'] ?? $wabaId,
                 'waba_name' => $w['name'] ?? 'WhatsApp Business Account',
                 'waba_status' => $w['status'] ?? 'unknown'
             ]);
         } catch (Throwable $e) {
-            sendJsonResponse('error', 'WABA verification failed: WABA ID not found or permission denied.', [], 400);
+            sendJsonResponse('error', 'WABA verification failed: WABA ID not found or permission denied. Please verify that the WABA ID is correct.', [], 400);
         }
     }
     

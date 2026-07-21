@@ -377,7 +377,7 @@ async function navigateTo(view, params = {}) {
             }
         });
 
-        const isEmailView = view === 'inbox' || view === 'email-intelligence' || view === 'followups' || view === 'email-followups' || view === 'email-settings';
+        const isEmailView = view === 'inbox' || view === 'email' || view === 'sent' || view === 'starred' || view === 'drafts' || view === 'archived' || view === 'snoozed' || view === 'trash' || view === 'spam' || view === 'email-intelligence' || view === 'followups' || view === 'email-followups' || view === 'email-settings';
         const emailSubmenu = document.getElementById('email-submenu');
         const emailChevron = document.getElementById('email-chevron');
         if (isEmailView && emailSubmenu) {
@@ -409,7 +409,7 @@ async function navigateTo(view, params = {}) {
         }
         
         // Dynamically manage full-bleed for inbox, followups and visual builder
-        if (view === 'inbox' || view === 'whatsapp-inbox' || view === 'followups' || view === 'email-followups' || (view === 'automation' && window.wfState.activeWorkflow)) {
+        if (view === 'inbox' || view === 'email' || view === 'sent' || view === 'starred' || view === 'drafts' || view === 'archived' || view === 'snoozed' || view === 'trash' || view === 'spam' || view === 'whatsapp-inbox' || view === 'followups' || view === 'email-followups' || (view === 'automation' && window.wfState.activeWorkflow)) {
             contentArea.className = "flex-grow overflow-hidden w-full h-[calc(100vh-61px)] flex flex-col";
         } else {
             contentArea.className = "flex-grow p-6 md:p-8 overflow-y-auto max-w-7xl w-full mx-auto";
@@ -431,7 +431,33 @@ async function navigateTo(view, params = {}) {
                 await renderEmailSettings(contentArea);
                 break;
             case 'inbox':
-                await renderInbox(contentArea, params.emailId);
+            case 'email':
+                await renderInbox(contentArea, params.emailId, 'inbox');
+                break;
+            case 'sent':
+            case 'email-sent':
+                await renderInbox(contentArea, params.emailId, 'sent');
+                break;
+            case 'starred':
+            case 'email-starred':
+                await renderInbox(contentArea, params.emailId, 'starred');
+                break;
+            case 'drafts':
+            case 'email-drafts':
+                await renderInbox(contentArea, params.emailId, 'drafts');
+                break;
+            case 'archived':
+            case 'email-archived':
+                await renderInbox(contentArea, params.emailId, 'archived');
+                break;
+            case 'snoozed':
+            case 'email-snoozed':
+                await renderInbox(contentArea, params.emailId, 'snoozed');
+                break;
+            case 'trash':
+            case 'spam':
+            case 'email-trash':
+                await renderInbox(contentArea, params.emailId, 'spam');
                 break;
             case 'followups':
             case 'email-followups':
@@ -3011,12 +3037,13 @@ window.switchInboxDetailTab = function(tabName) {
     }
 };
 
-async function renderInbox(container, targetEmailId = null) {
+async function renderInbox(container, targetEmailId = null, initialFolder = 'inbox') {
     try {
         window.inboxFilters = {
-            is_spam: 0,
-            is_archived: 0,
-            is_starred: null,
+            folder: initialFolder,
+            is_spam: initialFolder === 'spam' || initialFolder === 'trash' ? 1 : 0,
+            is_archived: initialFolder === 'archived' ? 1 : 0,
+            is_starred: initialFolder === 'starred' ? 1 : null,
             category: ''
         };
         window.inboxPage = 1;
@@ -3127,7 +3154,12 @@ async function renderInbox(container, targetEmailId = null) {
         
         lucide.createIcons();
         activeEmailId = targetEmailId;
-        await refreshInboxList(1);
+        if (initialFolder && initialFolder !== 'inbox') {
+            const folderBtn = document.querySelector(`#inbox-folder-menu button[onclick*="'${initialFolder}'"]`);
+            await filterInbox(initialFolder, folderBtn);
+        } else {
+            await refreshInboxList(1);
+        }
         checkInboxPendingStatus();
         checkInboxEmailAccountStatus();
     } catch (err) {
@@ -15539,6 +15571,7 @@ async function syncInboxFromInboxView(btn) {
 }
 
 window.inboxFilters = {
+    folder: 'inbox',
     is_spam: 0,
     is_archived: 0,
     is_starred: null,
@@ -15547,6 +15580,7 @@ window.inboxFilters = {
 
 async function filterInbox(type, btn) {
     window.inboxFilters.category = '';
+    window.inboxFilters.folder = type;
     window.inboxFilters.is_starred = null;
     
     if (type === 'inbox') {
@@ -15559,39 +15593,41 @@ async function filterInbox(type, btn) {
     } else if (type === 'archived') {
         window.inboxFilters.is_spam = 0;
         window.inboxFilters.is_archived = 1;
-    } else if (type === 'spam') {
+    } else if (type === 'spam' || type === 'trash') {
         window.inboxFilters.is_spam = 1;
+        window.inboxFilters.is_archived = 0;
+    } else {
+        window.inboxFilters.is_spam = 0;
         window.inboxFilters.is_archived = 0;
     }
     
-    document.querySelectorAll('#inbox-folder-menu button').forEach(el => {
+    document.querySelectorAll('#inbox-folder-menu button, #inbox-category-filters button').forEach(el => {
         el.className = "w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left";
     });
     
     if (btn) {
-        btn.className = "w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold text-blue-600 bg-blue-50/70 transition text-left";
+        btn.className = "w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold text-blue-600 bg-blue-50/70 transition text-left shadow-2xs";
     }
     
-    await refreshInboxList();
+    await refreshInboxList(1);
 }
 
 async function filterInboxByCat(catName, btn) {
+    window.inboxFilters.folder = 'inbox';
     window.inboxFilters.is_spam = 0;
     window.inboxFilters.is_archived = 0;
     window.inboxFilters.is_starred = null;
     window.inboxFilters.category = catName;
     
     document.querySelectorAll('#inbox-folder-menu button, #inbox-category-filters button').forEach(el => {
-        el.classList.remove('text-blue-600', 'bg-blue-50/70', 'font-bold');
-        el.classList.add('text-slate-500');
+        el.className = "w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left";
     });
     
     if (btn) {
-        btn.classList.add('text-blue-600', 'bg-blue-50/70', 'font-bold');
-        btn.classList.remove('text-slate-500');
+        btn.className = "w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold text-blue-600 bg-blue-50/70 transition text-left shadow-2xs";
     }
     
-    await refreshInboxList();
+    await refreshInboxList(1);
 }
 
 async function refreshInboxList(page = 1) {
@@ -15606,7 +15642,7 @@ async function refreshInboxList(page = 1) {
     `;
     
     try {
-        let url = `crm/email_intelligence/emails.php?is_spam=${window.inboxFilters.is_spam}&is_archived=${window.inboxFilters.is_archived}&page=${page}`;
+        let url = `crm/email_intelligence/emails.php?folder=${encodeURIComponent(window.inboxFilters.folder || 'inbox')}&is_spam=${window.inboxFilters.is_spam}&is_archived=${window.inboxFilters.is_archived}&page=${page}`;
         if (window.inboxFilters.is_starred !== null) {
             url += `&is_starred=${window.inboxFilters.is_starred}`;
         }

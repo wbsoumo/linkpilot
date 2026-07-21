@@ -27,24 +27,39 @@ try {
             $email = $stmt->fetch();
             
             if (!$email) {
+                // Fallback to sent_emails
+                $stmtSent = $db->prepare("SELECT id, 'You' AS sender_name, recipient_email AS sender_email, recipient_email, subject, body AS body_html, body AS body_text, created_at AS received_date, 1 AS is_read, 0 AS is_starred, 0 AS is_archived, 'Sent' AS category, '' AS ai_summary, '' AS ai_suggested_reply, 0 AS ai_confidence_score, 'neutral' AS sentiment, 'medium' AS priority, 0 AS is_spam, 'completed' AS ai_status, 0 AS spam_probability, created_at FROM sent_emails WHERE id = ? AND user_id = ?");
+                $stmtSent->execute([$emailId, $userId]);
+                $email = $stmtSent->fetch();
+                if ($email) {
+                    $email['attachments'] = [];
+                    $email['replies'] = [];
+                }
+            }
+            
+            if (!$email) {
                 sendJsonResponse('error', 'Email not found', [], 404);
             }
             
             // Mark as read automatically when opened
-            if (!$email['is_read']) {
+            if (isset($email['is_read']) && !$email['is_read']) {
                 $db->prepare("UPDATE received_emails SET is_read = 1 WHERE id = ?")->execute([$emailId]);
                 $email['is_read'] = 1;
             }
             
             // Fetch attachments
-            $stmtAtt = $db->prepare("SELECT id, filename, file_path, file_size, file_type FROM email_attachments WHERE received_email_id = ?");
-            $stmtAtt->execute([$emailId]);
-            $email['attachments'] = $stmtAtt->fetchAll();
+            if (!isset($email['attachments'])) {
+                $stmtAtt = $db->prepare("SELECT id, filename, file_path, file_size, file_type FROM email_attachments WHERE received_email_id = ?");
+                $stmtAtt->execute([$emailId]);
+                $email['attachments'] = $stmtAtt->fetchAll();
+            }
             
             // Fetch replies thread
-            $stmtReplies = $db->prepare("SELECT * FROM received_emails WHERE parent_id = ? AND user_id = ? ORDER BY received_date ASC");
-            $stmtReplies->execute([$emailId, $userId]);
-            $email['replies'] = $stmtReplies->fetchAll();
+            if (!isset($email['replies'])) {
+                $stmtReplies = $db->prepare("SELECT * FROM received_emails WHERE parent_id = ? AND user_id = ? ORDER BY received_date ASC");
+                $stmtReplies->execute([$emailId, $userId]);
+                $email['replies'] = $stmtReplies->fetchAll();
+            }
             
             sendJsonResponse('success', 'Email retrieved successfully', ['email' => $email]);
             
@@ -54,78 +69,112 @@ try {
             $category = trim($_GET['category'] ?? '');
             $priority = trim($_GET['priority'] ?? '');
             $sentiment = trim($_GET['sentiment'] ?? '');
+            $folder = strtolower(trim($_GET['folder'] ?? 'inbox'));
             
-            $isSpam = isset($_GET['is_spam']) ? (int)$_GET['is_spam'] : 0;
+            $isSpam = isset($_GET['is_spam']) ? (int)$_GET['is_spam'] : ($folder === 'spam' || $folder === 'trash' ? 1 : 0);
             $isRead = isset($_GET['is_read']) ? (int)$_GET['is_read'] : null;
-            $isStarred = isset($_GET['is_starred']) ? (int)$_GET['is_starred'] : null;
-            $isArchived = isset($_GET['is_archived']) ? (int)$_GET['is_archived'] : 0; // hide archived by default
+            $isStarred = isset($_GET['is_starred']) ? (int)$_GET['is_starred'] : ($folder === 'starred' ? 1 : null);
+            $isArchived = isset($_GET['is_archived']) ? (int)$_GET['is_archived'] : ($folder === 'archived' ? 1 : 0);
             
             $page = max(1, (int)($_GET['page'] ?? 1));
             $limit = max(1, (int)($_GET['limit'] ?? 20));
             $offset = ($page - 1) * $limit;
             
-            $query = "FROM received_emails WHERE user_id = :user_id AND is_spam = :is_spam AND is_archived = :is_archived AND parent_id IS NULL";
-            $params = [
-                'user_id' => $userId,
-                'is_spam' => $isSpam,
-                'is_archived' => $isArchived
-            ];
-            
-            if ($search !== '') {
-                $query .= " AND (sender_name LIKE :search1 OR sender_email LIKE :search2 OR subject LIKE :search3 OR body_text LIKE :search4)";
-                $params['search1'] = '%' . $search . '%';
-                $params['search2'] = '%' . $search . '%';
-                $params['search3'] = '%' . $search . '%';
-                $params['search4'] = '%' . $search . '%';
+            if ($folder === 'sent') {
+                $querySent = "FROM sent_emails WHERE user_id = :user_id";
+                $paramsSent = ['user_id' => $userId];
+                if ($search !== '') {
+                    $querySent .= " AND (recipient_email LIKE :search1 OR subject LIKE :search2 OR body LIKE :search3)";
+                    $paramsSent['search1'] = '%' . $search . '%';
+                    $paramsSent['search2'] = '%' . $search . '%';
+                    $paramsSent['search3'] = '%' . $search . '%';
+                }
+                
+                $countStmt = $db->prepare("SELECT COUNT(*) " . $querySent);
+                $countStmt->execute($paramsSent);
+                $totalCount = (int)$countStmt->fetchColumn();
+                
+                $dataStmt = $db->prepare("SELECT id, 'You' AS sender_name, recipient_email AS sender_email, subject, 'Sent' AS category, created_at AS received_date, 1 AS is_read, 0 AS is_starred, 0 AS is_archived, 'medium' AS priority, 'neutral' AS sentiment, 0 AS spam_probability, body AS ai_summary " . $querySent . " ORDER BY created_at DESC LIMIT :limit OFFSET :offset");
+                $dataStmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+                if ($search !== '') {
+                    $dataStmt->bindValue(':search1', '%' . $search . '%', PDO::PARAM_STR);
+                    $dataStmt->bindValue(':search2', '%' . $search . '%', PDO::PARAM_STR);
+                    $dataStmt->bindValue(':search3', '%' . $search . '%', PDO::PARAM_STR);
+                }
+                $dataStmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+                $dataStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+                $dataStmt->execute();
+                $emails = $dataStmt->fetchAll();
+            } else {
+                $query = "FROM received_emails WHERE user_id = :user_id AND is_spam = :is_spam AND is_archived = :is_archived AND parent_id IS NULL";
+                $params = [
+                    'user_id' => $userId,
+                    'is_spam' => $isSpam,
+                    'is_archived' => $isArchived
+                ];
+                
+                if ($folder === 'drafts') {
+                    $query .= " AND category = 'Draft'";
+                } elseif ($folder === 'snoozed') {
+                    $query .= " AND (is_archived = 2 OR category = 'Snoozed')";
+                }
+                
+                if ($search !== '') {
+                    $query .= " AND (sender_name LIKE :search1 OR sender_email LIKE :search2 OR subject LIKE :search3 OR body_text LIKE :search4)";
+                    $params['search1'] = '%' . $search . '%';
+                    $params['search2'] = '%' . $search . '%';
+                    $params['search3'] = '%' . $search . '%';
+                    $params['search4'] = '%' . $search . '%';
+                }
+                if ($category !== '') {
+                    $query .= " AND category = :category";
+                    $params['category'] = $category;
+                }
+                if ($priority !== '') {
+                    $query .= " AND priority = :priority";
+                    $params['priority'] = $priority;
+                }
+                if ($sentiment !== '') {
+                    $query .= " AND sentiment = :sentiment";
+                    $params['sentiment'] = $sentiment;
+                }
+                if ($isRead !== null) {
+                    $query .= " AND is_read = :is_read";
+                    $params['is_read'] = $isRead;
+                }
+                if ($isStarred !== null) {
+                    $query .= " AND is_starred = :is_starred";
+                    $params['is_starred'] = $isStarred;
+                }
+                
+                // Get Total Count
+                $countStmt = $db->prepare("SELECT COUNT(*) " . $query);
+                $countStmt->execute($params);
+                $totalCount = (int)$countStmt->fetchColumn();
+                
+                // Fetch records
+                $dataStmt = $db->prepare("SELECT id, sender_name, sender_email, subject, category, received_date, is_read, is_starred, is_archived, priority, sentiment, spam_probability, ai_summary " . $query . " ORDER BY received_date DESC LIMIT :limit OFFSET :offset");
+                
+                $dataStmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+                $dataStmt->bindValue(':is_spam', $isSpam, PDO::PARAM_INT);
+                $dataStmt->bindValue(':is_archived', $isArchived, PDO::PARAM_INT);
+                if ($search !== '') {
+                    $dataStmt->bindValue(':search1', '%' . $search . '%', PDO::PARAM_STR);
+                    $dataStmt->bindValue(':search2', '%' . $search . '%', PDO::PARAM_STR);
+                    $dataStmt->bindValue(':search3', '%' . $search . '%', PDO::PARAM_STR);
+                    $dataStmt->bindValue(':search4', '%' . $search . '%', PDO::PARAM_STR);
+                }
+                if ($category !== '') $dataStmt->bindValue(':category', $category, PDO::PARAM_STR);
+                if ($priority !== '') $dataStmt->bindValue(':priority', $priority, PDO::PARAM_STR);
+                if ($sentiment !== '') $dataStmt->bindValue(':sentiment', $sentiment, PDO::PARAM_STR);
+                if ($isRead !== null) $dataStmt->bindValue(':is_read', $isRead, PDO::PARAM_INT);
+                if ($isStarred !== null) $dataStmt->bindValue(':is_starred', $isStarred, PDO::PARAM_INT);
+                $dataStmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+                $dataStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+                $dataStmt->execute();
+                
+                $emails = $dataStmt->fetchAll();
             }
-            if ($category !== '') {
-                $query .= " AND category = :category";
-                $params['category'] = $category;
-            }
-            if ($priority !== '') {
-                $query .= " AND priority = :priority";
-                $params['priority'] = $priority;
-            }
-            if ($sentiment !== '') {
-                $query .= " AND sentiment = :sentiment";
-                $params['sentiment'] = $sentiment;
-            }
-            if ($isRead !== null) {
-                $query .= " AND is_read = :is_read";
-                $params['is_read'] = $isRead;
-            }
-            if ($isStarred !== null) {
-                $query .= " AND is_starred = :is_starred";
-                $params['is_starred'] = $isStarred;
-            }
-            
-            // Get Total Count
-            $countStmt = $db->prepare("SELECT COUNT(*) " . $query);
-            $countStmt->execute($params);
-            $totalCount = (int)$countStmt->fetchColumn();
-            
-            // Fetch records
-            $dataStmt = $db->prepare("SELECT id, sender_name, sender_email, subject, category, received_date, is_read, is_starred, is_archived, priority, sentiment, spam_probability, ai_summary " . $query . " ORDER BY received_date DESC LIMIT :limit OFFSET :offset");
-            
-            $dataStmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-            $dataStmt->bindValue(':is_spam', $isSpam, PDO::PARAM_INT);
-            $dataStmt->bindValue(':is_archived', $isArchived, PDO::PARAM_INT);
-            if ($search !== '') {
-                $dataStmt->bindValue(':search1', '%' . $search . '%', PDO::PARAM_STR);
-                $dataStmt->bindValue(':search2', '%' . $search . '%', PDO::PARAM_STR);
-                $dataStmt->bindValue(':search3', '%' . $search . '%', PDO::PARAM_STR);
-                $dataStmt->bindValue(':search4', '%' . $search . '%', PDO::PARAM_STR);
-            }
-            if ($category !== '') $dataStmt->bindValue(':category', $category, PDO::PARAM_STR);
-            if ($priority !== '') $dataStmt->bindValue(':priority', $priority, PDO::PARAM_STR);
-            if ($sentiment !== '') $dataStmt->bindValue(':sentiment', $sentiment, PDO::PARAM_STR);
-            if ($isRead !== null) $dataStmt->bindValue(':is_read', $isRead, PDO::PARAM_INT);
-            if ($isStarred !== null) $dataStmt->bindValue(':is_starred', $isStarred, PDO::PARAM_INT);
-            $dataStmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-            $dataStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-            $dataStmt->execute();
-            
-            $emails = $dataStmt->fetchAll();
             
             // Get unread counts
             $unreadCountStmt = $db->prepare("SELECT COUNT(*) FROM received_emails WHERE user_id = ? AND is_read = 0 AND is_spam = 0 AND is_archived = 0");

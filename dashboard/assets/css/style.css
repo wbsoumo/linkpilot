@@ -842,6 +842,13 @@ body .bg-emerald-500 button, body .bg-emerald-500 button * {
     stroke: #ffffff !important;
 }
 
+/* Force white text on any sidebar count badge with blue or indigo background */
+span.bg-blue-600, span.bg-blue-500, span.bg-blue-700, span.bg-indigo-600, span.bg-indigo-500,
+span[class*="bg-blue-6"], span[class*="bg-blue-5"], span[class*="bg-indigo-6"], span[class*="bg-indigo-5"],
+#inbox-unread-count, #sidebar-conversations-unread-badge, #sidebar-tasks-today-badge {
+    color: #ffffff !important;
+}
+
 /* Custom Popup Modals Dark Blurred Backdrop Rule */
 body :not(aside) .backdrop-blur-sm,
 body :not(aside) .backdrop-blur-md,

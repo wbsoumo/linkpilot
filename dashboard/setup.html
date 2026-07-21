@@ -72,7 +72,7 @@
         </div>
 
         <!-- Modern Onboarding Progress Stepper -->
-        <div class="bg-white border border-slate-200/80 rounded-[20px] p-4 sm:p-5 shadow-soft max-w-5xl mx-auto">
+        <div class="bg-white border border-slate-200/80 rounded-[20px] p-4 sm:p-5 shadow-soft max-w-4xl mx-auto">
             <div id="onboarding-stepper" class="flex items-center justify-between overflow-x-auto no-scrollbar py-1">
                 <!-- Step 1: Connect -->
                 <div class="step-item flex items-center space-x-2 shrink-0 cursor-pointer" onclick="goToStep(1)">
@@ -81,10 +81,10 @@
                 </div>
                 <div class="step-line w-6 sm:w-10 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
 
-                <!-- Step 2: SMTP -->
+                <!-- Step 2: Email Server -->
                 <div class="step-item flex items-center space-x-2 shrink-0 cursor-pointer" onclick="goToStep(2)">
                     <div class="step-circle w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">2</div>
-                    <span class="step-label text-xs font-semibold text-slate-400">SMTP</span>
+                    <span class="step-label text-xs font-semibold text-slate-400">Email Server</span>
                 </div>
                 <div class="step-line w-6 sm:w-10 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
 
@@ -95,23 +95,16 @@
                 </div>
                 <div class="step-line w-6 sm:w-10 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
 
-                <!-- Step 4: IMAP -->
+                <!-- Step 4: Permissions -->
                 <div class="step-item flex items-center space-x-2 shrink-0 cursor-pointer" onclick="goToStep(4)">
                     <div class="step-circle w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">4</div>
-                    <span class="step-label text-xs font-semibold text-slate-400">IMAP</span>
-                </div>
-                <div class="step-line w-6 sm:w-10 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
-
-                <!-- Step 5: Permissions -->
-                <div class="step-item flex items-center space-x-2 shrink-0 cursor-pointer" onclick="goToStep(5)">
-                    <div class="step-circle w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">5</div>
                     <span class="step-label text-xs font-semibold text-slate-400">Permissions</span>
                 </div>
                 <div class="step-line w-6 sm:w-10 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
 
-                <!-- Step 6: Complete -->
-                <div class="step-item flex items-center space-x-2 shrink-0 cursor-pointer" onclick="goToStep(6)">
-                    <div class="step-circle w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">6</div>
+                <!-- Step 5: Complete -->
+                <div class="step-item flex items-center space-x-2 shrink-0 cursor-pointer" onclick="goToStep(5)">
+                    <div class="step-circle w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">5</div>
                     <span class="step-label text-xs font-semibold text-slate-400">Complete</span>
                 </div>
             </div>
@@ -235,15 +228,15 @@
                     </div>
                 </div>
 
-                <!-- STEP 2: SMTP Outbound Configuration Card -->
+                <!-- STEP 2: SMTP Outbound & Inbound IMAP Configuration Card -->
                 <div class="wizard-pane space-y-6 hidden animate-fade-in" id="step-pane-2">
                     <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 sm:p-8 shadow-soft space-y-6">
                         <div class="border-b border-slate-100 pb-4 text-left">
                             <h2 class="text-lg font-black text-slate-900 flex items-center space-x-2">
                                 <i data-lucide="mail" class="h-5 w-5 text-blue-600"></i>
-                                <span>Outbound SMTP Server Configuration</span>
+                                <span>Email Server Configuration (SMTP & IMAP)</span>
                             </h2>
-                            <p class="text-xs text-slate-500 font-medium mt-1">Configure your outbound mail server credentials to send AI email campaigns.</p>
+                            <p class="text-xs text-slate-500 font-medium mt-1">Configure your email server credentials to send campaigns and automatically synchronize incoming customer replies.</p>
                         </div>
 
                         <!-- Provider Selection Grid -->
@@ -278,7 +271,7 @@
                                 <!-- Custom SMTP -->
                                 <button type="button" onclick="selectSmtpPreset('custom')" id="btn-provider-custom" class="provider-btn p-3.5 border border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50/20 transition flex flex-col items-center justify-center space-y-1.5 bg-white text-center group cursor-pointer">
                                     <i data-lucide="server" class="h-6 w-6 text-slate-500 group-hover:text-blue-600"></i>
-                                    <span class="text-xs font-bold text-slate-800 group-hover:text-blue-600">Custom SMTP</span>
+                                    <span class="text-xs font-bold text-slate-800 group-hover:text-blue-600">Custom Server</span>
                                 </button>
                             </div>
                         </div>
@@ -305,7 +298,8 @@
                         </div>
 
                         <!-- Form Input Fields -->
-                        <form id="setup-smtp-form" onsubmit="event.preventDefault(); testAndSaveSMTPConnection();" class="space-y-4">
+                        <form id="setup-smtp-form" onsubmit="event.preventDefault();" class="space-y-4">
+                            <!-- SMTP Configuration Fields -->
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
                                 <div class="space-y-1.5">
                                     <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Sender Name *</label>
@@ -359,7 +353,7 @@
                                 </div>
                             </div>
 
-                            <div class="space-y-1.5 text-left">
+                            <div class="space-y-1.5 text-left pb-2">
                                 <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Encryption Method</label>
                                 <div class="relative">
                                     <i data-lucide="shield" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
@@ -371,6 +365,87 @@
                                 </div>
                             </div>
 
+                            <!-- Inbound IMAP Settings Checkbox & Fields -->
+                            <div class="border border-slate-200/80 rounded-2xl p-4 bg-[#f8fafc] text-left space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="space-y-0.5">
+                                        <span class="text-xs font-black text-slate-900 block">Configure Inbound IMAP Sync</span>
+                                        <span class="text-[10px] text-slate-500 font-semibold leading-relaxed">Required to sync customer replies back to your LinkPilot AI Inbox automatically.</span>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer mt-1">
+                                        <input type="checkbox" id="imap-enabled" class="sr-only peer" checked onchange="toggleImapFields(this.checked)">
+                                        <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                                    </label>
+                                </div>
+
+                                <div id="imap-config-section" class="space-y-4">
+                                    <div id="imap-same-details-row" class="flex items-center space-x-2 pt-2 border-t border-slate-200/60">
+                                        <input type="checkbox" id="imap-use-smtp-details" checked class="h-4 w-4 rounded text-blue-600 border-slate-300 focus:ring-blue-500 cursor-pointer" onchange="toggleImapDetailsInherit(this.checked)">
+                                        <label for="imap-use-smtp-details" class="text-[11px] font-bold text-slate-700 cursor-pointer">Use SMTP credentials & host presets (Recommended)</label>
+                                    </div>
+
+                                    <!-- IMAP Host Settings (Initially hidden since inherit is checked) -->
+                                    <div id="imap-custom-fields" class="hidden space-y-4 pt-3 border-t border-slate-200/60">
+                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                            <div class="sm:col-span-2 space-y-1.5">
+                                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">IMAP Host *</label>
+                                                <div class="relative">
+                                                    <i data-lucide="server" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                                    <input type="text" id="imap-host" placeholder="imap.gmail.com" class="w-full pl-10 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 transition">
+                                                </div>
+                                            </div>
+                                            <div class="space-y-1.5">
+                                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Port *</label>
+                                                <div class="relative">
+                                                    <i data-lucide="hash" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                                    <input type="number" id="imap-port" placeholder="993" class="w-full pl-10 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 transition">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div class="space-y-1.5">
+                                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">IMAP Username *</label>
+                                                <div class="relative">
+                                                    <i data-lucide="user" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                                    <input type="text" id="imap-username" placeholder="john@company.com" class="w-full pl-10 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 transition">
+                                                </div>
+                                            </div>
+                                            <div class="space-y-1.5">
+                                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">IMAP Password *</label>
+                                                <div class="relative">
+                                                    <i data-lucide="lock" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                                    <input type="password" id="imap-password" placeholder="••••••••••••" class="w-full pl-10 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 transition">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="space-y-1.5">
+                                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Encryption</label>
+                                            <div class="relative">
+                                                <i data-lucide="shield" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                                <select id="imap-encryption" class="w-full pl-10 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 transition">
+                                                    <option value="ssl">SSL / TLS (Recommended, Port 993)</option>
+                                                    <option value="tls">STARTTLS (Port 143)</option>
+                                                    <option value="none">None (Plain Text)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Connection Success Banner -->
+                            <div id="email-test-success-banner" class="hidden p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center space-x-3 text-left">
+                                <div class="p-2 bg-emerald-500 text-white rounded-xl shadow-xs shrink-0">
+                                    <i data-lucide="check" class="h-5 w-5 text-white"></i>
+                                </div>
+                                <div class="flex-grow">
+                                    <span class="block text-xs font-black text-slate-900">Verification Successful!</span>
+                                    <span class="text-[10px] text-slate-500 font-semibold">SMTP and IMAP settings verified. Click "Connect & Save" below to proceed.</span>
+                                </div>
+                            </div>
+
                             <!-- Buttons Row -->
                             <div class="pt-4 flex items-center justify-between border-t border-slate-100 gap-3">
                                 <div class="flex items-center space-x-2">
@@ -378,20 +453,22 @@
                                         <i data-lucide="arrow-left" class="h-4 w-4 text-slate-500"></i>
                                         <span>Back</span>
                                     </button>
-                                    <button type="button" onclick="testOnlySmtpConnection(this)" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 cursor-pointer">
-                                        <i data-lucide="wifi" class="h-4 w-4 text-slate-500"></i>
-                                        <span>Test Connection</span>
+                                    <button type="button" id="email-test-btn" onclick="testEmailConnections(this)" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer" style="color: #ffffff !important;">
+                                        <i data-lucide="wifi" class="h-4 w-4 text-white"></i>
+                                        <span style="color: #ffffff !important;">Test Connection</span>
                                     </button>
                                     <button type="button" onclick="goToStep(3)" class="px-4 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer">
-                                        <span>Skip SMTP</span>
+                                        <span>Skip Server Setup</span>
                                     </button>
                                 </div>
-                                <button type="submit" id="smtp-verify-submit-btn" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer" style="color: #ffffff !important;">
-                                    <span style="color: #ffffff !important;">Connect SMTP</span>
+                                <button type="button" id="email-connect-save-btn" onclick="saveEmailConnections(this)" class="hidden px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-emerald-500/20 cursor-pointer" style="color: #ffffff !important;">
+                                    <span style="color: #ffffff !important;">Connect & Continue</span>
                                     <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
                     </div>
                 </div>
 
@@ -572,87 +649,8 @@
                     </div>
                 </div>
 
-                <!-- STEP 4: IMAP Configuration Card -->
+                <!-- STEP 4: Permissions & Automation Preferences -->
                 <div class="wizard-pane space-y-6 hidden animate-fade-in" id="step-pane-4">
-                    <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 sm:p-8 shadow-soft space-y-6">
-                        <div class="border-b border-slate-100 pb-4 text-left">
-                            <h2 class="text-lg font-extrabold text-slate-900 flex items-center space-x-2">
-                                <i data-lucide="inbox" class="h-5 w-5 text-blue-600"></i>
-                                <span>Inbound IMAP Configuration</span>
-                            </h2>
-                            <p class="text-xs text-slate-500 font-medium mt-1">Configure your inbound mail server settings to sync customer replies.</p>
-                        </div>
-
-                        <form id="setup-imap-form" onsubmit="event.preventDefault(); saveIMAPConnection();" class="space-y-4">
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
-                                <div class="sm:col-span-2 space-y-1.5">
-                                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">IMAP Host *</label>
-                                    <div class="relative">
-                                        <i data-lucide="server" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
-                                        <input type="text" id="imap-host" placeholder="imap.gmail.com" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
-                                    </div>
-                                </div>
-                                <div class="space-y-1.5">
-                                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Port *</label>
-                                    <div class="relative">
-                                        <i data-lucide="hash" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
-                                        <input type="number" id="imap-port" placeholder="993" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
-                                <div class="space-y-1.5">
-                                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">IMAP Username *</label>
-                                    <div class="relative">
-                                        <i data-lucide="at-sign" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
-                                        <input type="text" id="imap-username" placeholder="john@company.com" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
-                                    </div>
-                                </div>
-                                <div class="space-y-1.5">
-                                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Password / App Password *</label>
-                                    <div class="relative">
-                                        <i data-lucide="lock" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
-                                        <input type="password" id="imap-password" placeholder="••••••••••••" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="space-y-1.5 text-left">
-                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Encryption Method</label>
-                                <div class="relative">
-                                    <i data-lucide="shield" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
-                                    <select id="imap-encryption" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition">
-                                        <option value="ssl">SSL (Recommended, Port 993)</option>
-                                        <option value="tls">TLS / STARTTLS (Port 143)</option>
-                                        <option value="none">None (Plain Text)</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!-- Buttons Row -->
-                            <div class="pt-4 flex items-center justify-between border-t border-slate-100 gap-3">
-                                <div class="flex items-center space-x-2">
-                                    <button type="button" onclick="goToStep(3)" class="px-4 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 cursor-pointer">
-                                        <i data-lucide="arrow-left" class="h-4 w-4 text-slate-500"></i>
-                                        <span>Back</span>
-                                    </button>
-                                    <button type="button" onclick="testOnlyImapConnection(this)" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 cursor-pointer">
-                                        <i data-lucide="wifi" class="h-4 w-4 text-slate-500"></i>
-                                        <span>Test Connection</span>
-                                    </button>
-                                </div>
-                                <button type="submit" id="imap-verify-submit-btn" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer" style="color: #ffffff !important;">
-                                    <span style="color: #ffffff !important;">Connect IMAP</span>
-                                    <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- STEP 5: Permissions & Automation Preferences -->
-                <div class="wizard-pane space-y-6 hidden animate-fade-in" id="step-pane-5">
                     <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 sm:p-8 shadow-soft space-y-6">
                         <div class="border-b border-slate-100 pb-4 text-left">
                             <h2 class="text-lg font-black text-slate-900 flex items-center space-x-2">
@@ -702,7 +700,7 @@
 
                         <!-- Footer Navigation -->
                         <div class="pt-4 flex items-center justify-between border-t border-slate-100">
-                            <button type="button" onclick="goToStep(4)" class="px-5 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 cursor-pointer">
+                            <button type="button" onclick="goToStep(3)" class="px-5 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 cursor-pointer">
                                 <i data-lucide="arrow-left" class="h-4 w-4 text-slate-500"></i>
                                 <span>Back</span>
                             </button>
@@ -714,8 +712,8 @@
                     </div>
                 </div>
 
-                <!-- STEP 6: Complete -->
-                <div class="wizard-pane space-y-6 hidden animate-fade-in" id="step-pane-6">
+                <!-- STEP 5: Complete -->
+                <div class="wizard-pane space-y-6 hidden animate-fade-in" id="step-pane-5">
                     <div class="bg-gradient-to-br from-emerald-50/80 to-emerald-100/30 border border-emerald-200/80 rounded-[20px] p-6 sm:p-8 shadow-soft text-slate-800 space-y-6 text-center">
                         <div class="flex flex-col items-center space-y-4">
                             <div class="h-16 w-16 bg-emerald-500 text-white rounded-3xl flex items-center justify-center shadow-lg shadow-emerald-500/20 animate-bounce">
@@ -995,11 +993,11 @@
         };
 
         window.goToStep = function(stepNum) {
-            if (stepNum < 1 || stepNum > 6) return;
+            if (stepNum < 1 || stepNum > 5) return;
             activeStep = stepNum;
 
             // Toggle active wizard-pane
-            for (let i = 1; i <= 6; i++) {
+            for (let i = 1; i <= 5; i++) {
                 const pane = document.getElementById(`step-pane-${i}`);
                 if (pane) {
                     if (i === stepNum) {
@@ -1011,7 +1009,7 @@
             }
 
             // Update Progress Card on the Right Column
-            const progressPct = Math.round((stepNum / 6) * 100);
+            const progressPct = Math.round((stepNum / 5) * 100);
             const progressText = document.getElementById('setup-progress-text');
             const progressBar = document.getElementById('setup-progress-bar');
             if (progressText) progressText.textContent = `${progressPct}% Completed`;
@@ -1063,90 +1061,25 @@
             if (window.lucide) lucide.createIcons();
         };
 
-        window.testOnlyImapConnection = async function(btn) {
-            const host = document.getElementById('imap-host').value.trim();
-            const port = parseInt(document.getElementById('imap-port').value);
-            const username = document.getElementById('imap-username').value.trim();
-            const password = document.getElementById('imap-password').value;
-            
-            if (!host || !port || !username || !password) {
-                showNotification('warning', 'Please fill out all required IMAP fields before testing.');
-                return;
-            }
-
-            const origHtml = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = `<div class="w-3.5 h-3.5 border-2 border-slate-600 border-t-transparent rounded-full animate-spin"></div><span>Testing...</span>`;
-
-            try {
-                await apiCall('smtp/test.php', 'POST', {
-                    use_saved: false,
-                    host, port, username, password,
-                    type: 'imap'
-                });
-                showNotification('success', 'IMAP Connection Test Successful!');
-                const badge = document.getElementById('badge-status-imap');
-                if (badge) {
-                    badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60";
-                    badge.textContent = "Verified";
+        window.toggleImapFields = function(enabled) {
+            const section = document.getElementById('imap-config-section');
+            if (section) {
+                if (enabled) {
+                    section.classList.remove('hidden');
+                } else {
+                    section.classList.add('hidden');
                 }
-            } catch (err) {
-                showNotification('success', 'IMAP Connection Settings Saved!');
-                const badge = document.getElementById('badge-status-imap');
-                if (badge) {
-                    badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60";
-                    badge.textContent = "Verified";
-                }
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = origHtml;
-                if (window.lucide) lucide.createIcons();
             }
         };
 
-        window.saveIMAPConnection = async function() {
-            const host = document.getElementById('imap-host').value.trim();
-            const port = parseInt(document.getElementById('imap-port').value);
-            const username = document.getElementById('imap-username').value.trim();
-            const password = document.getElementById('imap-password').value;
-            
-            if (!host || !port || !username || !password) {
-                showNotification('warning', 'Please fill out all required IMAP fields.');
-                return;
-            }
-
-            const btn = document.getElementById('imap-verify-submit-btn');
-            const originalHtml = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = `
-                <div class="flex items-center space-x-1.5">
-                    <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Saving...</span>
-                </div>
-            `;
-
-            try {
-                await apiCall('smtp/save.php', 'POST', {
-                    imap_host: host,
-                    imap_port: port,
-                    imap_username: username,
-                    imap_password: password,
-                    imap_encryption: document.getElementById('imap-encryption').value
-                });
-                showNotification('success', 'IMAP Inbound connected successfully!');
-                const badge = document.getElementById('badge-status-imap');
-                if (badge) {
-                    badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60";
-                    badge.textContent = "Active";
+        window.toggleImapDetailsInherit = function(inherit) {
+            const customFields = document.getElementById('imap-custom-fields');
+            if (customFields) {
+                if (inherit) {
+                    customFields.classList.add('hidden');
+                } else {
+                    customFields.classList.remove('hidden');
                 }
-                goToStep(5);
-            } catch (err) {
-                showNotification('success', 'IMAP settings connected successfully!');
-                goToStep(5);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalHtml;
-                if (window.lucide) lucide.createIcons();
             }
         };
 
@@ -1154,10 +1087,10 @@
             showNotification('success', 'Workspace preferences and permissions synced successfully!');
             const badge = document.getElementById('badge-status-permissions');
             if (badge) {
-                badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60";
+                badge.className = "text-emerald-500 font-extrabold";
                 badge.textContent = "Active";
             }
-            goToStep(6);
+            goToStep(5); // Go to step 5 (Complete)
         };
 
         if (window.lucide) {
@@ -1237,43 +1170,116 @@
             }
         };
 
-        window.testOnlySmtpConnection = async function(btn) {
+        window.testEmailConnections = async function(btn) {
+            // SMTP Inputs validation
             const senderName = document.getElementById('smtp-sender-name').value.trim();
             const senderEmail = document.getElementById('smtp-sender-email').value.trim();
-            const username = document.getElementById('smtp-username').value.trim();
-            const password = document.getElementById('smtp-password').value;
-            const host = document.getElementById('smtp-host').value.trim();
-            const port = parseInt(document.getElementById('smtp-port').value);
-            
-            if (!senderName || !senderEmail || !username || !password || !host || !port) {
-                showNotification('warning', 'Please fill out all required SMTP credentials before testing.');
+            const smtpHost = document.getElementById('smtp-host').value.trim();
+            const smtpPort = parseInt(document.getElementById('smtp-port').value);
+            const smtpUsername = document.getElementById('smtp-username').value.trim();
+            const smtpPassword = document.getElementById('smtp-password').value;
+            const smtpEncryption = document.getElementById('smtp-encryption').value;
+
+            if (!senderName || !senderEmail || !smtpHost || !smtpPort || !smtpUsername || !smtpPassword) {
+                showNotification('warning', 'Please fill out all required SMTP credentials.');
                 return;
+            }
+
+            const imapEnabled = document.getElementById('imap-enabled').checked;
+            const inheritImap = document.getElementById('imap-use-smtp-details').checked;
+
+            let imapHost = '';
+            let imapPort = 993;
+            let imapUsername = '';
+            let imapPassword = '';
+            let imapEncryption = 'ssl';
+
+            if (imapEnabled) {
+                if (inheritImap) {
+                    // Dynamic presets resolution based on selectedProvider or host
+                    if (selectedProvider === 'gmail') {
+                        imapHost = 'imap.gmail.com';
+                    } else if (selectedProvider === 'outlook' || selectedProvider === 'office365') {
+                        imapHost = 'outlook.office365.com';
+                    } else if (selectedProvider === 'zoho') {
+                        imapHost = 'imap.zoho.com';
+                    } else if (selectedProvider === 'yahoo') {
+                        imapHost = 'imap.mail.yahoo.com';
+                    } else {
+                        // Custom logic
+                        imapHost = smtpHost.replace('smtp.', 'imap.').replace('mail.', 'imap.');
+                        if (!imapHost.startsWith('imap.')) {
+                            imapHost = 'imap.' + imapHost;
+                        }
+                    }
+                    imapPort = 993;
+                    imapUsername = smtpUsername;
+                    imapPassword = smtpPassword;
+                    imapEncryption = 'ssl';
+                } else {
+                    imapHost = document.getElementById('imap-host').value.trim();
+                    imapPort = parseInt(document.getElementById('imap-port').value);
+                    imapUsername = document.getElementById('imap-username').value.trim();
+                    imapPassword = document.getElementById('imap-password').value;
+                    imapEncryption = document.getElementById('imap-encryption').value;
+
+                    if (!imapHost || !imapPort || !imapUsername || !imapPassword) {
+                        showNotification('warning', 'Please fill out all required IMAP credentials.');
+                        return;
+                    }
+                }
             }
 
             const origHtml = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = `<div class="w-3.5 h-3.5 border-2 border-slate-600 border-t-transparent rounded-full animate-spin"></div><span>Testing...</span>`;
+            btn.innerHTML = `<div class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin font-bold"></div><span>Testing...</span>`;
 
             try {
-                const res = await apiCall('smtp/test.php', 'POST', {
-                    use_saved: false,
-                    host, port, username, password,
-                    sender_name: senderName, sender_email: senderEmail
+                // Test SMTP first
+                const smtpRes = await apiCall('crm/email_intelligence/settings.php?action=test_smtp', 'POST', {
+                    smtp_host: smtpHost,
+                    smtp_port: smtpPort,
+                    smtp_username: smtpUsername,
+                    smtp_password: smtpPassword,
+                    smtp_encryption: smtpEncryption,
+                    sender_name: senderName,
+                    sender_email: senderEmail
                 });
-                showNotification('success', 'SMTP Connection Test Successful!');
+
+                if (smtpRes.status !== 'success') {
+                    throw new Error('SMTP Verification Failed: ' + (smtpRes.message || 'Unknown error'));
+                }
+
+                // If IMAP is enabled, test IMAP
+                if (imapEnabled) {
+                    const imapRes = await apiCall('crm/email_intelligence/settings.php?action=test_imap', 'POST', {
+                        imap_host: imapHost,
+                        imap_port: imapPort,
+                        imap_username: imapUsername,
+                        imap_password: imapPassword,
+                        imap_encryption: imapEncryption
+                    });
+
+                    if (imapRes.status !== 'success') {
+                        throw new Error('IMAP Verification Failed: ' + (imapRes.message || 'Unknown error'));
+                    }
+                }
+
+                // Both succeeded!
+                showNotification('success', 'Verification Successful! Ready to connect.');
                 
-                const badge = document.getElementById('badge-status-smtp');
-                if (badge) {
-                    badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60";
-                    badge.textContent = "Verified";
-                }
+                const banner = document.getElementById('email-test-success-banner');
+                const saveBtn = document.getElementById('email-connect-save-btn');
+                if (banner) banner.classList.remove('hidden');
+                if (saveBtn) saveBtn.classList.remove('hidden');
+                btn.classList.add('hidden'); // hide test button once verified
+
             } catch (err) {
-                showNotification('error', err.message || 'SMTP Handshake Failed.');
-                const badge = document.getElementById('badge-status-smtp');
-                if (badge) {
-                    badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-50 text-rose-600 border border-rose-200/60";
-                    badge.textContent = "Failed";
-                }
+                showNotification('error', err.message);
+                const banner = document.getElementById('email-test-success-banner');
+                const saveBtn = document.getElementById('email-connect-save-btn');
+                if (banner) banner.classList.add('hidden');
+                if (saveBtn) saveBtn.classList.add('hidden');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = origHtml;
@@ -1281,59 +1287,112 @@
             }
         };
 
-        window.testAndSaveSMTPConnection = async function() {
+        window.saveEmailConnections = async function(btn) {
             const senderName = document.getElementById('smtp-sender-name').value.trim();
             const senderEmail = document.getElementById('smtp-sender-email').value.trim();
-            const username = document.getElementById('smtp-username').value.trim();
-            const password = document.getElementById('smtp-password').value;
-            const host = document.getElementById('smtp-host').value.trim();
-            const port = parseInt(document.getElementById('smtp-port').value);
-            
-            if (!senderName || !senderEmail || !username || !password || !host || !port) {
-                showNotification('warning', 'Please fill out all required SMTP credentials.');
-                return;
+            const smtpHost = document.getElementById('smtp-host').value.trim();
+            const smtpPort = parseInt(document.getElementById('smtp-port').value);
+            const smtpUsername = document.getElementById('smtp-username').value.trim();
+            const smtpPassword = document.getElementById('smtp-password').value;
+            const smtpEncryption = document.getElementById('smtp-encryption').value;
+
+            const imapEnabled = document.getElementById('imap-enabled').checked;
+            const inheritImap = document.getElementById('imap-use-smtp-details').checked;
+
+            let imapHost = '';
+            let imapPort = 993;
+            let imapUsername = '';
+            let imapPassword = '';
+            let imapEncryption = 'ssl';
+
+            if (imapEnabled) {
+                if (inheritImap) {
+                    if (selectedProvider === 'gmail') {
+                        imapHost = 'imap.gmail.com';
+                    } else if (selectedProvider === 'outlook' || selectedProvider === 'office365') {
+                        imapHost = 'outlook.office365.com';
+                    } else if (selectedProvider === 'zoho') {
+                        imapHost = 'imap.zoho.com';
+                    } else if (selectedProvider === 'yahoo') {
+                        imapHost = 'imap.mail.yahoo.com';
+                    } else {
+                        imapHost = smtpHost.replace('smtp.', 'imap.').replace('mail.', 'imap.');
+                        if (!imapHost.startsWith('imap.')) {
+                            imapHost = 'imap.' + imapHost;
+                        }
+                    }
+                    imapPort = 993;
+                    imapUsername = smtpUsername;
+                    imapPassword = smtpPassword;
+                    imapEncryption = 'ssl';
+                } else {
+                    imapHost = document.getElementById('imap-host').value.trim();
+                    imapPort = parseInt(document.getElementById('imap-port').value);
+                    imapUsername = document.getElementById('imap-username').value.trim();
+                    imapPassword = document.getElementById('imap-password').value;
+                    imapEncryption = document.getElementById('imap-encryption').value;
+                }
             }
 
-            const btn = document.getElementById('smtp-verify-submit-btn');
-            const originalHtml = btn.innerHTML;
+            const origHtml = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = `
                 <div class="flex items-center space-x-1.5">
                     <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Connecting...</span>
+                    <span>Saving...</span>
                 </div>
             `;
 
             try {
-                const testRes = await apiCall('smtp/test.php', 'POST', {
-                    use_saved: false,
-                    host, port, username, password,
-                    sender_name: senderName, sender_email: senderEmail
-                });
-                
-                showNotification('success', 'SMTP Connection Verified!');
-                
-                const saveRes = await apiCall('smtp/save.php', 'POST', {
-                    host, port, username, password,
-                    sender_name: senderName, sender_email: senderEmail,
-                    smtp_type: selectedProvider
+                // Save settings via unified endpoint
+                await apiCall('crm/email_intelligence/settings.php', 'POST', {
+                    email_provider: selectedProvider,
+                    smtp_host: smtpHost,
+                    smtp_port: smtpPort,
+                    smtp_username: smtpUsername,
+                    smtp_password: smtpPassword,
+                    smtp_encryption: smtpEncryption,
+                    imap_host: imapEnabled ? imapHost : '',
+                    imap_port: imapEnabled ? imapPort : 0,
+                    imap_username: imapEnabled ? imapUsername : '',
+                    imap_password: imapEnabled ? imapPassword : '',
+                    imap_encryption: imapEnabled ? imapEncryption : 'none',
+                    is_active: 1,
+                    consent_accepted: 1
                 });
 
                 showNotification('success', 'Email Workspace connected successfully!');
-                
-                const badge = document.getElementById('badge-status-smtp');
-                if (badge) {
-                    badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60";
-                    badge.textContent = "Active";
+
+                const badgeSmtp = document.getElementById('badge-status-smtp');
+                if (badgeSmtp) {
+                    badgeSmtp.className = "text-emerald-500 font-extrabold";
+                    badgeSmtp.textContent = "Active";
                 }
-                
-                goToStep(3); // Go to Meta WhatsApp
+
+                const badgeImap = document.getElementById('badge-status-imap');
+                if (badgeImap) {
+                    if (imapEnabled) {
+                        badgeImap.className = "text-emerald-500 font-extrabold";
+                        badgeImap.textContent = "Active";
+                    } else {
+                        badgeImap.className = "text-slate-400 font-extrabold";
+                        badgeImap.textContent = "Skipped";
+                    }
+                }
+
+                const badgeEmail = document.getElementById('badge-status-email');
+                if (badgeEmail) {
+                    badgeEmail.className = "text-emerald-500 font-extrabold";
+                    badgeEmail.textContent = "Connected";
+                }
+
+                goToStep(3); // Go to Step 3 (Meta WhatsApp)
 
             } catch (err) {
-                showNotification('error', err.message || 'SMTP Handshake Verification Failed.');
+                showNotification('error', err.message || 'Failed to save email workspace settings.');
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = originalHtml;
+                btn.innerHTML = origHtml;
                 if (window.lucide) lucide.createIcons();
             }
         };
@@ -1612,11 +1671,24 @@
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('google_connected') === 'true') {
                 showNotification('success', 'Google Workspace Account connected successfully via Secure OAuth!');
-                const badge = document.getElementById('badge-status-smtp');
-                if (badge) {
-                    badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60";
-                    badge.textContent = "Active (OAuth)";
+                
+                const badgeEmail = document.getElementById('badge-status-email');
+                if (badgeEmail) {
+                    badgeEmail.className = "text-emerald-500 font-extrabold";
+                    badgeEmail.textContent = "Connected";
                 }
+                const badgeSmtp = document.getElementById('badge-status-smtp');
+                if (badgeSmtp) {
+                    badgeSmtp.className = "text-emerald-500 font-extrabold";
+                    badgeSmtp.textContent = "Active (OAuth)";
+                }
+                const badgeImap = document.getElementById('badge-status-imap');
+                if (badgeImap) {
+                    badgeImap.className = "text-emerald-500 font-extrabold";
+                    badgeImap.textContent = "Active (OAuth)";
+                }
+                
+                goToStep(3); // Go directly to Meta WhatsApp (Skip Step 2 SMTP/IMAP configuration)
             }
             if (urlParams.get('google_error')) {
                 showNotification('error', decodeURIComponent(urlParams.get('google_error')));

@@ -90,10 +90,19 @@ async function apiCall(endpoint, method = 'GET', body = null, isUrlEncoded = fal
         const text = await response.text();
         let data;
         try {
-            data = JSON.parse(text);
+            const firstBrace = text.indexOf('{');
+            const firstBracket = text.indexOf('[');
+            let jsonStart = -1;
+            if (firstBrace !== -1 && firstBracket !== -1) jsonStart = Math.min(firstBrace, firstBracket);
+            else if (firstBrace !== -1) jsonStart = firstBrace;
+            else if (firstBracket !== -1) jsonStart = firstBracket;
+
+            const cleanText = jsonStart !== -1 ? text.substring(jsonStart) : text;
+            data = JSON.parse(cleanText);
         } catch (e) {
             console.error("Non-JSON output from backend:", text);
-            throw new Error("Invalid backend server response.");
+            const shortText = text ? text.trim().substring(0, 80) : '';
+            throw new Error(shortText && !shortText.startsWith('<') ? shortText : `Invalid backend server response (HTTP ${response.status}).`);
         }
 
         if (!response.ok) {

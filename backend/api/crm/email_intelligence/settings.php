@@ -82,6 +82,15 @@ try {
             }
         } 
         
+        elseif ($action === 'disconnect') {
+            $db->beginTransaction();
+            $db->prepare("DELETE FROM imap_smtp_configurations WHERE user_id = ?")->execute([$userId]);
+            $db->prepare("DELETE FROM smtp_accounts WHERE user_id = ?")->execute([$userId]);
+            $db->prepare("UPDATE email_intelligence_settings SET is_active = 0 WHERE user_id = ?")->execute([$userId]);
+            $db->commit();
+            sendJsonResponse('success', 'Email server disconnected successfully.');
+        }
+
         else {
             // Save settings and configurations
             $emailProvider = trim($input['email_provider'] ?? 'custom');

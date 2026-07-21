@@ -2611,7 +2611,9 @@ function toggleSmtpPasswordVisibility() {
 function renderEmailSettingsTabContent(tabId, showPassword) {
     const { credentials, domains, signatures, advanced, google_oauth } = window.emailSettingsState;
 
-    const oauthCardHtml = `
+    const isCustomMailActive = credentials && credentials.smtp_host && (!google_oauth || !google_oauth.connected);
+
+    const oauthCardHtml = isCustomMailActive ? '' : `
         <div class="p-4 bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-slate-50 border border-blue-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
             <div class="flex items-center space-x-3.5">
                 <div class="w-10 h-10 rounded-xl bg-white p-2 border border-blue-100 shadow-2xs flex items-center justify-center shrink-0">
@@ -2740,6 +2742,12 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                                 </div>
                             </div>
                             <div class="flex items-center space-x-3">
+                                ${isCustomMailActive ? `
+                                    <button type="button" onclick="disconnectEmailServer(this)" class="px-4 py-2.5 bg-white border border-red-200 hover:bg-red-50 text-red-600 text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-xs cursor-pointer">
+                                        <i data-lucide="power" class="h-3.5 w-3.5 text-red-500"></i>
+                                        <span>Disconnect Server</span>
+                                    </button>
+                                ` : ''}
                                 <button type="button" onclick="testSmtpFromSettings(this)" class="px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-xs">
                                     <i data-lucide="wifi" class="h-3.5 w-3.5 text-slate-500"></i>
                                     <span>Test Connection</span>
@@ -3386,9 +3394,38 @@ async function disconnectGmailOauth(btn) {
     }
 }
 
+async function disconnectEmailServer(btn) {
+    if (!confirm('Are you sure you want to disconnect your custom email server? Your email campaigns and sync will stop.')) {
+        return;
+    }
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<div class="loader-spinner !w-3 !h-3 mr-1"></div> Disconnecting...`;
+
+    try {
+        const res = await apiCall('crm/email_intelligence/settings.php?action=disconnect', 'POST');
+        if (res.status === 'success') {
+            showNotification('success', 'Email server disconnected successfully!');
+            if (window.emailSettingsState) {
+                window.emailSettingsState.credentials = {};
+            }
+            const viewport = document.getElementById('main-content-viewport');
+            if (viewport) renderEmailSettings(viewport);
+        } else {
+            showNotification('error', res.message || 'Failed to disconnect email server');
+        }
+    } catch (err) {
+        showNotification('error', err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+    }
+}
+
 window.saveAllEmailSettings = saveAllEmailSettings;
 window.toggleSmtpPasswordVisibility = toggleSmtpPasswordVisibility;
 window.disconnectGmailOauth = disconnectGmailOauth;
+window.disconnectEmailServer = disconnectEmailServer;
 
 // ---------------------------------------------
 // 3. INBOX VIEW (AI SUGGESTED REPLY / FILTERS)

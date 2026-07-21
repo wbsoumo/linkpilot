@@ -43,7 +43,7 @@ try {
         $decrypted = decryptData($encryptedToken);
         $accessToken = ($decrypted !== false) ? $decrypted : $encryptedToken;
         
-        $isMock = (strpos($accessToken, 'MockToken') !== false);
+        $isMock = (strpos($accessToken, 'Mock') !== false || $accessToken === 'EAAGemini' || $accessToken === 'EAAGeminiTest');
         
         try {
             $tplData = [];

@@ -136,6 +136,11 @@ try {
         ];
     }
 
+    $userText = trim($input['message'] ?? '');
+    if (empty($userText)) {
+        $userText = "Identify this Meta console page, diagnose any issues, and give me step-by-step guidance on what to click or do next.";
+    }
+
     $systemPrompt = "You are the LinkPilot Meta Setup Vision Assistant. Analyze the uploaded screenshot of the Meta Developer Console or Facebook Business Settings. Identify what page the user is on, locate the key fields (such as Access Tokens, WABA ID, Phone Number ID, App ID, etc.), diagnose any issues (e.g. invalid permissions, sandbox demo status, or expired tokens), and give precise, bullet-point instructions on what the user should click, edit, or copy to successfully complete their WhatsApp integration.";
 
     $postFields = [
@@ -147,7 +152,7 @@ try {
                 "content" => [
                     [
                         "type" => "text",
-                        "text" => "Identify this Meta console page, diagnose any issues, and give me step-by-step guidance on what to click or do next."
+                        "text" => $userText
                     ],
                     [
                         "type" => "image_url",

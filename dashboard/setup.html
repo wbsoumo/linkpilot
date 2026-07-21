@@ -843,31 +843,20 @@
                                         </div>
                                     </div>
 
-                                    <!-- Phone Number ID -->
-                                    <div class="space-y-1.5">
+                                    <!-- Hidden input to store selected Phone ID and preserve code compatibility -->
+                                    <input type="hidden" id="wa-manual-phone-id" value="">
+
+                                    <!-- Select WhatsApp Number (Dropdown) -->
+                                    <div id="wa-phone-select-container" class="hidden space-y-1.5 col-span-1 sm:col-span-2">
                                         <div class="flex justify-between items-center">
                                             <div class="flex items-center space-x-2">
-                                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Phone Number ID *</label>
-                                                <i data-lucide="info" class="h-3.5 w-3.5 text-slate-400 cursor-help" title="Phone Number ID found in WhatsApp Cloud API setup tab."></i>
-                                                <span id="wa-phone-valid-badge" class="hidden px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-[9px] font-black uppercase tracking-wider">✓ Valid</span>
-                                            </div>
-                                            <div class="flex items-center space-x-1.5">
-                                                <button type="button" onclick="openMetaLink('phone')" class="text-[10px] text-blue-600 font-bold hover:underline bg-transparent border-0 cursor-pointer">Open Meta</button>
-                                                <span class="text-slate-300">|</span>
-                                                <button type="button" onclick="copyMetaGuide('phone')" class="text-[10px] text-blue-600 font-bold hover:underline bg-transparent border-0 cursor-pointer">Copy Guide</button>
+                                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Select WhatsApp Number *</label>
+                                                <span id="wa-phone-valid-badge" class="hidden px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-[9px] font-black uppercase tracking-wider">✓ Selected</span>
                                             </div>
                                         </div>
-                                        <div class="relative flex items-center">
-                                            <input type="password" id="wa-manual-phone-id" placeholder="e.g. 1029384729384" class="w-full pr-20 pl-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-mono font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
-                                            <div class="absolute right-2 flex items-center space-x-1">
-                                                <button type="button" onclick="toggleInputVisibility('wa-manual-phone-id', this)" class="p-1.5 hover:bg-slate-200/60 rounded-lg text-slate-400 hover:text-slate-650 transition cursor-pointer border-0 bg-transparent flex items-center justify-center">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                                                </button>
-                                                <button type="button" onclick="pasteToInput('wa-manual-phone-id')" class="p-1.5 hover:bg-slate-200/60 rounded-lg text-slate-400 hover:text-slate-650 transition cursor-pointer border-0 bg-transparent flex items-center justify-center" title="Paste Phone ID">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
-                                                </button>
-                                            </div>
-                                        </div>
+                                        <select id="wa-phone-dropdown" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                            <option value="">-- Choose a phone number --</option>
+                                        </select>
                                     </div>
                                 </div>
 
@@ -1811,11 +1800,14 @@
         window.validateCredentialsSetup = async function() {
             const token = document.getElementById('wa-manual-token').value.trim();
             const wabaId = document.getElementById('wa-manual-waba-id').value.trim();
-            const phoneId = document.getElementById('wa-manual-phone-id').value.trim();
 
             if (!token) {
                 showNotification('warning', 'Please enter your Permanent Access Token.');
                 if (window.MetaAssistantManager) MetaAssistantManager.handleError('token_missing');
+                return false;
+            }
+            if (!wabaId) {
+                showNotification('warning', 'Please enter your WABA ID.');
                 return false;
             }
 
@@ -1825,37 +1817,53 @@
             btn.innerHTML = `<div class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> <span>Validating...</span>`;
 
             try {
-                const res = await apiCall('whatsapp/setup.php?action=verify_credentials', 'POST', {
+                // 1. Verify WABA ID strictly using timezone check
+                const wabaRes = await apiCall('whatsapp/setup.php?action=verify_waba', 'POST', {
                     access_token: token,
-                    waba_id: wabaId,
-                    phone_number_id: phoneId
+                    waba_id: wabaId
                 });
 
-                if (res && res.status === 'success') {
+                if (!wabaRes || wabaRes.status !== 'success') {
+                    throw new Error(wabaRes.message || 'WABA verification failed.');
+                }
+
+                // 2. Fetch Phone Numbers registered under this WABA ID
+                const res = await apiCall('whatsapp/setup.php?action=get_phone_numbers', 'POST', {
+                    access_token: token,
+                    waba_id: wabaId
+                });
+
+                if (res && res.status === 'success' && res.phones && res.phones.length > 0) {
                     document.getElementById('wa-token-valid-badge').classList.remove('hidden');
-                    if (wabaId) document.getElementById('wa-waba-valid-badge').classList.remove('hidden');
-                    if (phoneId) document.getElementById('wa-phone-valid-badge').classList.remove('hidden');
+                    document.getElementById('wa-waba-valid-badge').classList.remove('hidden');
 
-                    window.metaBizName = res.business_name || 'Verified Account';
-                    window.metaPhoneNumber = res.display_phone_number || '--';
+                    const dropdown = document.getElementById('wa-phone-dropdown');
+                    dropdown.innerHTML = '<option value="">-- Choose a phone number --</option>';
+                    res.phones.forEach(p => {
+                        const opt = document.createElement('option');
+                        opt.value = p.id;
+                        opt.textContent = `${p.display_phone_number} (${p.verified_name || 'Verified Name'})`;
+                        opt.dataset.verifiedName = p.verified_name || '';
+                        opt.dataset.displayPhone = p.display_phone_number || '';
+                        opt.dataset.quality = p.quality_rating || 'GREEN';
+                        opt.dataset.limit = p.messaging_limit || '1,000/day';
+                        dropdown.appendChild(opt);
+                    });
 
-                    const autoCard = document.getElementById('wa-auto-details-card');
-                    autoCard.classList.remove('hidden');
-                    document.getElementById('wa-live-biz-name').textContent = window.metaBizName;
-                    document.getElementById('wa-live-phone').textContent = window.metaPhoneNumber;
-                    document.getElementById('wa-live-waba').textContent = wabaId || res.waba_id || '--';
-                    document.getElementById('wa-live-limit').textContent = res.messaging_limit || '1,000 messages / 24h';
-                    document.getElementById('wa-live-templates').textContent = (res.template_count || 5) + ' Approved Templates';
+                    window.metaBizName = wabaRes.waba_name || 'Verified Account';
 
-                    // Show Establish Connection button, hide Validate Credentials button
-                    document.getElementById('wa-validate-creds-btn').classList.add('hidden');
-                    document.getElementById('wa-manual-submit-btn').classList.remove('hidden');
+                    // Reveal Select Dropdown Container
+                    document.getElementById('wa-phone-select-container').classList.remove('hidden');
                     
-                    showNotification('success', 'Credentials validated successfully!');
-                    if (window.MetaAssistantManager) MetaAssistantManager.advanceStep(8, "Validated credentials successfully!");
+                    showNotification('success', 'WABA verified! Please select a phone number below to proceed.');
+                    
+                    // Hide validation button
+                    btn.classList.add('hidden');
+
+                    if (window.MetaAssistantManager) MetaAssistantManager.advanceStep(8, "Credentials validated. Please select a phone number.");
                     return true;
                 } else {
-                    throw new Error(res.message || 'Meta API validation failed.');
+                    throw new Error('No registered phone numbers found under this WABA ID.');
                 }
             } catch (err) {
                 showNotification('error', err.message || 'Validation failed. Please verify credentials.');
@@ -1866,6 +1874,40 @@
                 btn.innerHTML = origHtml;
             }
         };
+
+        // Attach dropdown change listener to copy ID and show connection submit button
+        document.addEventListener('DOMContentLoaded', () => {
+            const dropdown = document.getElementById('wa-phone-dropdown');
+            if (dropdown) {
+                dropdown.addEventListener('change', function() {
+                    const val = this.value;
+                    const selectedOpt = this.options[this.selectedIndex];
+                    
+                    if (val) {
+                        document.getElementById('wa-manual-phone-id').value = val;
+                        document.getElementById('wa-phone-valid-badge').classList.remove('hidden');
+                        
+                        window.metaPhoneNumber = selectedOpt.dataset.displayPhone || '--';
+                        
+                        const autoCard = document.getElementById('wa-auto-details-card');
+                        autoCard.classList.remove('hidden');
+                        document.getElementById('wa-live-biz-name').textContent = window.metaBizName || selectedOpt.dataset.verifiedName || 'Verified Account';
+                        document.getElementById('wa-live-phone').textContent = window.metaPhoneNumber;
+                        document.getElementById('wa-live-waba').textContent = document.getElementById('wa-manual-waba-id').value.trim();
+                        document.getElementById('wa-live-limit').textContent = selectedOpt.dataset.limit || '1,000 messages / 24h';
+                        document.getElementById('wa-live-templates').textContent = 'Pending sync...';
+                        
+                        // Show Establish Connection button
+                        document.getElementById('wa-manual-submit-btn').classList.remove('hidden');
+                    } else {
+                        document.getElementById('wa-manual-phone-id').value = '';
+                        document.getElementById('wa-phone-valid-badge').classList.add('hidden');
+                        document.getElementById('wa-auto-details-card').classList.add('hidden');
+                        document.getElementById('wa-manual-submit-btn').classList.add('hidden');
+                    }
+                });
+            }
+        });
 
         // META ASSISTANT CHATBOT MANAGER
         window.MetaAssistantManager = {
@@ -1920,25 +1962,25 @@
                     ]
                 },
                 6: {
-                    title: "Copy Phone Number ID",
-                    percentage: 75,
-                    msg: "Great job! Next, copy your **Phone Number ID** (under Step 1 on Meta API Setup) and paste it into the **Phone Number ID** field on the left.",
+                    title: "Copy WhatsApp Business Account ID",
+                    percentage: 70,
+                    msg: "Great job! Next, copy your **WhatsApp Business Account ID** (WABA ID) from Meta and paste it into the **WABA ID** field on the left.",
                     buttons: [
-                        { label: "I've pasted Phone Number ID", action: () => MetaAssistantManager.checkPhoneField() }
+                        { label: "I've pasted WABA ID", action: () => MetaAssistantManager.checkWabaField() }
                     ]
                 },
                 7: {
-                    title: "Copy WhatsApp Business Account ID",
+                    title: "Validate and Select Phone Number",
                     percentage: 85,
-                    msg: "Almost done! Copy your **WhatsApp Business Account ID** (WABA ID) and paste it on the left.",
+                    msg: "Now click **Validate Credentials** on the left to verify your WABA connection and fetch your registered WhatsApp phone numbers.",
                     buttons: [
-                        { label: "I've pasted WABA ID", action: () => MetaAssistantManager.checkWabaField() }
+                        { label: "Validate Credentials", action: () => validateCredentialsSetup() }
                     ]
                 },
                 8: {
                     title: "Generate Permanent Access Token",
                     percentage: 95,
-                    msg: "Now make sure you generated a **Permanent System User Token** so your setup never expires:\n\n1. Meta Business Settings -> System Users\n2. Add System User (Admin)\n3. Assign WABA Assets (Full Control)\n4. Generate Token (scopes: whatsapp_business_messaging, whatsapp_business_management)",
+                    msg: "Please select your phone number from the dropdown list on the left. Then make sure you generated a **Permanent System User Token** so your setup never expires:\n\n1. Meta Business Settings -> System Users\n2. Add System User (Admin)\n3. Assign WABA Assets (Full Control)\n4. Generate Token (scopes: whatsapp_business_messaging, whatsapp_business_management)\n5. Select your number and click **Establish Connection with Meta** to finalize setup.",
                     buttons: [
                         { label: "Connect & Finalize WhatsApp", action: () => saveManualWhatsAppConnection() }
                     ]
@@ -1995,19 +2037,19 @@
                         }
                     });
                 }
-                if (phoneInput) {
-                    phoneInput.addEventListener('input', (e) => {
-                        resetValidationUI();
-                        if (e.target.value.trim().length >= 10) {
-                            if (this.currentStep === 6) this.advanceStep(7, "Phone ID pasted.");
-                        }
-                    });
-                }
                 if (wabaInput) {
                     wabaInput.addEventListener('input', (e) => {
                         resetValidationUI();
                         if (e.target.value.trim().length >= 10) {
-                            if (this.currentStep === 7) this.advanceStep(8, "WABA ID pasted.");
+                            if (this.currentStep === 6) this.advanceStep(7, "WABA ID pasted.");
+                        }
+                    });
+                }
+                const dropdownEl = document.getElementById('wa-phone-dropdown');
+                if (dropdownEl) {
+                    dropdownEl.addEventListener('change', (e) => {
+                        if (e.target.value) {
+                            if (this.currentStep === 7) this.advanceStep(8, "Phone selected.");
                         }
                     });
                 }
@@ -2147,19 +2189,10 @@
                 }
             },
 
-            checkPhoneField: function() {
-                const val = document.getElementById('wa-manual-phone-id').value.trim();
-                if (val.length >= 10) {
-                    this.advanceStep(7, "I pasted the Phone Number ID.");
-                } else {
-                    this.handleError("Please paste a valid Phone Number ID (15+ digits) into the form on the left.");
-                }
-            },
-
             checkWabaField: function() {
                 const val = document.getElementById('wa-manual-waba-id').value.trim();
                 if (val.length >= 10) {
-                    this.advanceStep(8, "I pasted the WABA ID.");
+                    this.advanceStep(7, "I pasted the WABA ID.");
                 } else {
                     this.handleError("Please paste a valid WABA ID into the form on the left.");
                 }

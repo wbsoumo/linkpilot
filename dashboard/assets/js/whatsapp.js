@@ -58,10 +58,10 @@ function renderWhatsAppSetup(container, settings) {
     const phoneVal = (settings && settings.phone_number_id) ? settings.phone_number_id : '';
 
     container.innerHTML = `
-        <div class="max-w-3xl mx-auto my-8 bg-white border border-slate-200/80 rounded-[24px] p-6 sm:p-10 shadow-soft animate-fade-in text-left space-y-6">
+        <div class="w-full max-w-6xl mx-auto my-6 space-y-6 animate-fade-in text-left">
             
             <!-- Top Header -->
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-5">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-slate-200/80 rounded-[24px] p-6 shadow-soft">
                 <div class="flex items-center space-x-3.5">
                     <div class="p-2.5 bg-emerald-50 rounded-2xl border border-emerald-100 shrink-0">
                         <img src="assets/css/WhatsApp_icon.png" class="h-8 w-8 object-contain" alt="WhatsApp">
@@ -113,120 +113,205 @@ function renderWhatsAppSetup(container, settings) {
                 </div>
             </div>
             ` : `
-            <!-- Unconnected Connection State -->
-            <div class="space-y-6">
-                <!-- Option 1: Official Meta Embedded Signup -->
-                <div class="p-6 bg-gradient-to-br from-emerald-50/90 via-teal-50/40 to-white border border-emerald-200/80 rounded-2xl space-y-4">
-                    <div class="flex items-start justify-between gap-4">
-                        <div class="space-y-1">
-                            <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase tracking-wider rounded-md">Official Meta Cloud API</span>
-                            <h3 class="text-base font-black text-slate-900 pt-1">Connect with Meta Embedded Signup</h3>
-                            <p class="text-xs text-slate-600 font-medium leading-relaxed">Log in with your Facebook account, select your WhatsApp Business Account & Phone Number in seconds. No manual token configuration required.</p>
+            <!-- Two Column Setup Layout -->
+            <div id="wa-connect-selection-state" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                <!-- LEFT COLUMN: Setup Form (lg:col-span-7) -->
+                <div class="lg:col-span-7 bg-white border border-slate-200/85 rounded-3xl p-6 sm:p-8 shadow-soft text-left space-y-6">
+                    <div class="flex items-center space-x-3 border-b border-slate-100 pb-4">
+                        <div class="p-2.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-2xl">
+                            <i data-lucide="key-round" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-slate-900">Manual Meta Credentials Form</h3>
+                            <p class="text-xs text-slate-500 font-semibold mt-0.5">Fill in your Meta details below or let our Assistant guide you.</p>
                         </div>
                     </div>
 
-                    <div class="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                        <button type="button" id="wa-embedded-signup-btn" onclick="launchDashboardMetaEmbeddedSignup()" class="px-6 py-3 bg-[#1877F2] hover:bg-[#166fe5] text-white text-xs font-bold rounded-xl transition flex items-center justify-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer border-0" style="color: #ffffff !important;">
-                            <svg class="h-4 w-4 shrink-0 fill-white" viewBox="0 0 24 24" style="fill: #ffffff !important;">
+                    <!-- Embedded Signup Option -->
+                    <div class="p-4 bg-gradient-to-br from-emerald-50/70 via-teal-50/30 to-white border border-emerald-200/50 rounded-2xl space-y-3.5">
+                        <div class="space-y-1">
+                            <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase tracking-wider rounded-md">Option 1: Official Meta Cloud API</span>
+                            <h4 class="text-xs font-black text-slate-900 pt-0.5">Connect with Meta Embedded Signup</h4>
+                            <p class="text-[11px] text-slate-600 font-semibold leading-relaxed">Log in with your Facebook account, select your WhatsApp Business Account & Phone Number in seconds. No manual token configuration required.</p>
+                        </div>
+                        <button type="button" id="wa-embedded-connect-btn" onclick="launchDashboardMetaEmbeddedSignup()" class="py-2.5 px-4 bg-[#1877F2] hover:bg-[#166fe5] text-white text-[11px] font-extrabold rounded-xl transition flex items-center justify-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer border-0" style="color: #ffffff !important;">
+                            <svg class="h-3.5 w-3.5 shrink-0 fill-white" viewBox="0 0 24 24" style="fill: #ffffff !important;">
                                 <path fill="#ffffff" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                             </svg>
                             <span style="color: #ffffff !important;">Log in with Facebook for WhatsApp</span>
                         </button>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 text-[11px] font-bold text-slate-600">
-                        <div class="flex items-center space-x-1.5">
-                            <i data-lucide="check" class="h-3.5 w-3.5 text-emerald-600"></i>
-                            <span>Instant Verification</span>
-                        </div>
-                        <div class="flex items-center space-x-1.5">
-                            <i data-lucide="check" class="h-3.5 w-3.5 text-emerald-600"></i>
-                            <span>Auto Webhook Setup</span>
-                        </div>
-                        <div class="flex items-center space-x-1.5">
-                            <i data-lucide="check" class="h-3.5 w-3.5 text-emerald-600"></i>
-                            <span>Permanent Access Token</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- OR Separator -->
-                <div class="relative flex py-1 items-center">
-                    <div class="flex-grow border-t border-slate-200"></div>
-                    <span class="flex-shrink mx-4 text-xs font-black text-slate-400 uppercase tracking-widest">OR MANUAL SETUP</span>
-                    <div class="flex-grow border-t border-slate-200"></div>
-                </div>
-
-                <!-- Option 2: Clean Manual Meta Credentials Form -->
-                <div class="p-6 border border-slate-200/80 rounded-2xl bg-white space-y-5 shadow-2xs">
-                    <div class="flex items-center space-x-2 border-b border-slate-100 pb-3">
-                        <div class="p-2 bg-blue-50 text-blue-600 rounded-xl border border-blue-100">
-                            <i data-lucide="key" class="h-4.5 w-4.5"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-black text-slate-900">Manual Meta Cloud API Credentials</h3>
-                            <p class="text-xs text-slate-500 font-medium">Enter Meta system user access token and phone number ID.</p>
-                        </div>
+                    <!-- OR Manual Setup Separator -->
+                    <div class="relative flex py-1 items-center">
+                        <div class="flex-grow border-t border-slate-100"></div>
+                        <span class="flex-shrink mx-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">OR MANUAL SETUP</span>
+                        <div class="flex-grow border-t border-slate-100"></div>
                     </div>
 
-                    <form id="setup-wa-manual-clean-form" onsubmit="saveMetaManualCredentialsClean(event)" class="space-y-4">
+                    <form id="setup-wa-manual-form" onsubmit="event.preventDefault(); saveManualWhatsAppConnectionDashboard();" class="space-y-4">
+                        <!-- Permanent Access Token -->
                         <div class="space-y-1.5">
                             <div class="flex justify-between items-center">
                                 <div class="flex items-center space-x-2">
                                     <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Permanent Access Token *</label>
-                                    <span id="wa-clean-verified-badge-token" class="hidden px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-[10px] font-extrabold flex items-center space-x-1">
-                                        <i data-lucide="check-circle" class="h-3 w-3 text-emerald-600"></i>
-                                        <span>Verified</span>
-                                    </span>
+                                    <i data-lucide="info" class="h-3.5 w-3.5 text-slate-400 cursor-help" title="Enter permanent system user token generated in Meta Business Suite."></i>
+                                    <span id="wa-token-valid-badge" class="hidden px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-[9px] font-black uppercase tracking-wider">✓ Valid</span>
                                 </div>
-                                <button type="button" onclick="openMetaTokenHelpDialog()" class="text-[10px] text-blue-600 font-bold hover:underline bg-transparent border-0 cursor-pointer">Where do I get this?</button>
-                            </div>
-                            <div class="relative">
-                                <input type="password" id="wa-clean-token" value="${tokenVal}" placeholder="EAAGemini... (Paste Meta system user token)" class="w-full pl-3.5 pr-36 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-mono font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
-                                <div class="absolute inset-y-0 right-0 pr-2 flex items-center space-x-1">
-                                    <button type="button" onclick="toggleCleanTokenVisibility()" class="p-1 text-slate-500 hover:text-slate-700 text-[10px] font-bold transition bg-transparent border-0 cursor-pointer" id="btn-toggle-clean-token">Show</button>
-                                    <button type="button" onclick="clearCleanTokenInput()" class="p-1 text-slate-450 hover:text-slate-700 text-[10px] font-bold transition bg-transparent border-0 cursor-pointer">Clear</button>
-                                    <button type="button" id="btn-verify-clean-token" onclick="verifyMetaCredentialsClean()" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-black transition cursor-pointer border-0 shadow-2xs" style="color: #ffffff !important;">Verify</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="space-y-1.5">
-                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">WABA Account ID</label>
-                                <input type="text" id="wa-clean-waba-id" value="${wabaVal}" placeholder="e.g. 1092384729384 (Optional)" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-mono font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition">
-                            </div>
-                            <div class="space-y-1.5">
                                 <div class="flex items-center space-x-2">
-                                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Phone Number ID *</label>
-                                    <span id="wa-clean-verified-badge-phone" class="hidden px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-[10px] font-extrabold flex items-center space-x-1">
-                                        <i data-lucide="check-circle" class="h-3 w-3 text-emerald-600"></i>
-                                        <span>Verified</span>
-                                    </span>
+                                    <button type="button" onclick="openMetaLinkDashboard('token')" class="text-[10px] text-blue-600 font-bold hover:underline bg-transparent border-0 cursor-pointer">Open Meta</button>
                                 </div>
-                                <div class="relative">
-                                    <input type="text" id="wa-clean-phone-id" value="${phoneVal}" placeholder="e.g. 1029384729384" class="w-full pl-3.5 pr-20 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-mono font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
-                                    <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
-                                        <button type="button" id="btn-verify-clean-phone" onclick="verifyMetaCredentialsClean()" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-black transition cursor-pointer border-0 shadow-2xs" style="color: #ffffff !important;">Verify</button>
-                                    </div>
+                            </div>
+                            <div class="relative flex items-center">
+                                <input type="password" id="wa-manual-token" placeholder="EAAGemini... (Paste permanent access token)" class="w-full pr-20 pl-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-mono font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                <div class="absolute right-2 flex items-center space-x-1">
+                                    <button type="button" onclick="toggleInputVisibilityDashboard('wa-manual-token', this)" class="p-1.5 hover:bg-slate-200/60 rounded-lg text-slate-400 hover:text-slate-650 transition cursor-pointer border-0 bg-transparent flex items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    </button>
+                                    <button type="button" onclick="pasteToInputDashboard('wa-manual-token')" class="p-1.5 hover:bg-slate-200/60 rounded-lg text-slate-400 hover:text-slate-650 transition cursor-pointer border-0 bg-transparent flex items-center justify-center" title="Paste Token">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Verified Name and Linked Number Container -->
-                        <div id="wa-clean-verified-box-container" class="space-y-2">
-                            <div class="p-3.5 bg-blue-50/60 border border-blue-100 rounded-xl flex items-center space-x-3 text-[11px] text-blue-800 font-semibold leading-relaxed">
-                                <i data-lucide="info" class="h-4 w-4 text-blue-600 shrink-0"></i>
-                                <span>Click <strong>Verify</strong> to fetch your verified Meta Business Name & Linked Phone Number automatically.</span>
+                        <!-- WABA ID -->
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center space-x-2">
+                                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">WABA ID *</label>
+                                    <i data-lucide="info" class="h-3.5 w-3.5 text-slate-400 cursor-help" title="WhatsApp Business Account ID found in Meta API Setup page."></i>
+                                    <span id="wa-waba-valid-badge" class="hidden px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-[9px] font-black uppercase tracking-wider">✓ Valid</span>
+                                </div>
+                                <div class="flex items-center space-x-1.5">
+                                    <button type="button" onclick="openMetaLinkDashboard('waba')" class="text-[10px] text-blue-600 font-bold hover:underline bg-transparent border-0 cursor-pointer">Open Meta</button>
+                                </div>
+                            </div>
+                            <div class="relative flex items-center">
+                                <input type="password" id="wa-manual-waba-id" placeholder="e.g. 1092384729384" class="w-full pr-20 pl-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-mono font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                <div class="absolute right-2 flex items-center space-x-1">
+                                    <button type="button" onclick="toggleInputVisibilityDashboard('wa-manual-waba-id', this)" class="p-1.5 hover:bg-slate-200/60 rounded-lg text-slate-400 hover:text-slate-650 transition cursor-pointer border-0 bg-transparent flex items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    </button>
+                                    <button type="button" onclick="pasteToInputDashboard('wa-manual-waba-id')" class="p-1.5 hover:bg-slate-200/60 rounded-lg text-slate-400 hover:text-slate-650 transition cursor-pointer border-0 bg-transparent flex items-center justify-center" title="Paste WABA ID">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="pt-2">
-                            <button type="submit" id="wa-clean-submit-btn" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-md shadow-emerald-500/20 flex items-center justify-center space-x-2 cursor-pointer" style="color: #ffffff !important;">
-                                <i data-lucide="shield-check" class="h-4.5 w-4.5 text-white"></i>
-                                <span style="color: #ffffff !important;">Connect & Save Meta Credentials</span>
+                        <!-- Hidden Input to store Phone Number ID -->
+                        <input type="hidden" id="wa-manual-phone-id" value="">
+
+                        <!-- Select WhatsApp Number (Dropdown) -->
+                        <div id="wa-phone-select-container" class="hidden space-y-1.5">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center space-x-2">
+                                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Select WhatsApp Number *</label>
+                                    <span id="wa-phone-valid-badge" class="hidden px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-[9px] font-black uppercase tracking-wider">✓ Selected</span>
+                                </div>
+                            </div>
+                            <select id="wa-phone-dropdown" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                <option value="">-- Choose a phone number --</option>
+                            </select>
+                        </div>
+
+                        <!-- Live Auto-Fetched Details Card -->
+                        <div id="wa-auto-details-card" class="hidden p-4 bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-3 shadow-2xs">
+                            <div class="flex items-center justify-between border-b border-emerald-200/80 pb-2">
+                                <div class="flex items-center space-x-2">
+                                    <span class="p-1 bg-emerald-500 text-white rounded-lg"><i data-lucide="shield-check" class="h-3.5 w-3.5 text-white"></i></span>
+                                    <span class="font-extrabold text-emerald-950 text-xs">Live Auto-Fetched Meta Properties</span>
+                                </div>
+                                <span id="wa-live-quality" class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-full text-[9px] font-black uppercase">GREEN</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-700 font-medium">
+                                <div>Business Name: <strong id="wa-live-biz-name" class="text-slate-900 block mt-0.5">--</strong></div>
+                                <div>Display Phone: <strong id="wa-live-phone" class="font-mono text-slate-900 block mt-0.5">--</strong></div>
+                                <div>WABA Details: <strong id="wa-live-waba" class="font-mono text-slate-900 block mt-0.5">--</strong></div>
+                                <div>Messaging Limits: <strong id="wa-live-limit" class="text-slate-900 block mt-0.5">--</strong></div>
+                                <div>Webhook Status: <strong id="wa-live-webhook" class="text-emerald-700 block mt-0.5">✓ Subscribed & Verified</strong></div>
+                                <div>Template Count: <strong id="wa-live-templates" class="text-slate-900 block mt-0.5">--</strong></div>
+                            </div>
+                        </div>
+
+                        <!-- Form Controls -->
+                        <div class="pt-4 flex flex-col sm:flex-row gap-3">
+                            <button type="button" id="wa-validate-creds-btn" onclick="validateCredentialsSetupDashboard()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold transition cursor-pointer flex items-center justify-center space-x-1.5 rounded-xl shadow-md border-0" style="color: #ffffff !important;">
+                                <i data-lucide="shield-alert" class="h-4 w-4 text-white"></i>
+                                <span style="color: #ffffff !important;">Validate Credentials</span>
+                            </button>
+                            <button type="submit" id="wa-manual-submit-btn" class="hidden w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-md shadow-emerald-500/20 flex items-center justify-center space-x-2 cursor-pointer border-0" style="color: #ffffff !important;">
+                                <i data-lucide="save" class="h-4 w-4 text-white"></i>
+                                <span style="color: #ffffff !important;">Establish Connection with Meta</span>
                             </button>
                         </div>
+                    </form>
+                </div>
+
+                <!-- RIGHT COLUMN: AI Setup Assistant Card (lg:col-span-5) -->
+                <div class="lg:col-span-5 bg-white border border-slate-200/85 rounded-3xl p-6 shadow-soft flex flex-col justify-between space-y-4 min-h-[600px]">
+                    <!-- Card Header -->
+                    <div class="space-y-3 text-left">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-sm font-black text-slate-900 flex items-center space-x-1.5">
+                                    <span>🤖</span>
+                                    <span>Meta Setup Assistant</span>
+                                </h3>
+                                <p class="text-[11px] text-slate-500 font-semibold mt-0.5">I'm here to help you connect your WhatsApp Business account.</p>
+                            </div>
+                            <span id="wa-assistant-step-badge" class="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-md text-[9px] font-black uppercase tracking-wider">Step 1 of 9</span>
+                        </div>
+
+                        <!-- Setup Progress Tracker -->
+                        <div class="space-y-1 bg-slate-50 p-3 rounded-2xl border border-slate-100 shadow-2xs">
+                            <div class="flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                <span>Meta Setup Progress</span>
+                                <span id="wa-assistant-percentage" class="text-blue-600 font-extrabold">0%</span>
+                            </div>
+                            <div class="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                <div id="wa-assistant-progress-bar" class="h-full bg-blue-600 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                            <div class="text-[10px] font-black text-slate-650 flex items-center space-x-1 pt-0.5">
+                                <span class="text-slate-400 font-bold">Current Step:</span>
+                                <span id="wa-assistant-step-label">Welcome 👋</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Conversation Chat History Window -->
+                    <div id="ai-chat-messages-container" class="flex-grow overflow-y-auto pr-1 space-y-3 text-xs leading-relaxed max-h-[300px] min-h-[180px]">
+                        <!-- Messages will be dynamically rendered here -->
+                    </div>
+
+                    <!-- Chat input/interaction Area -->
+                    <div id="ai-chat-controls-area" class="border-t border-slate-100 pt-2 flex flex-col space-y-1.5">
+                        <!-- Action / Option buttons rendered dynamically -->
+                    </div>
+
+                    <!-- Attachment Preview Bar -->
+                    <div id="setup-chat-attachment-preview" class="hidden flex items-center space-x-2.5 bg-slate-50 border border-slate-200/80 p-2 rounded-xl text-xs text-slate-700 animate-fade-in mx-1">
+                        <img id="setup-chat-attachment-thumbnail" class="w-8 h-8 rounded-lg object-contain border border-slate-200" src="">
+                        <span class="flex-1 truncate font-semibold text-slate-600">Screenshot attached</span>
+                        <button type="button" onclick="clearSetupChatAttachmentDashboard()" class="p-1 text-slate-400 hover:text-rose-600 rounded-lg transition border-0 bg-transparent cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
+
+                    <!-- Real Chat Input Form -->
+                    <form id="setup-ai-chat-form" onsubmit="event.preventDefault(); handleSetupAiChatSubmitDashboard();" class="flex items-center space-x-2 border-t border-slate-100 pt-2">
+                        <input type="file" id="setup-wa-screenshot-input" accept="image/*" class="hidden" onchange="handleSetupScreenshotUploadDashboard(event)">
+                        <button type="button" onclick="document.getElementById('setup-wa-screenshot-input').click()" class="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-500 rounded-xl transition flex items-center justify-center shrink-0 cursor-pointer border-0" title="Upload Screenshot for Vision AI Help">
+                            <i data-lucide="image" class="h-4 w-4 text-slate-500"></i>
+                        </button>
+                        <input type="text" id="setup-ai-chat-input" placeholder="Ask assistant any question..." class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition">
+                        <button type="submit" class="p-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl transition flex items-center justify-center shrink-0 cursor-pointer border-0" style="color: #ffffff !important;">
+                            <svg class="h-3.5 w-3.5 fill-current text-white" viewBox="0 0 24 24">
+                                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="#ffffff"/>
+                            </svg>
+                        </button>
                     </form>
                 </div>
             </div>
@@ -235,126 +320,731 @@ function renderWhatsAppSetup(container, settings) {
     `;
 
     if (window.lucide) lucide.createIcons();
+
+    // Start setup chatbot assistant if unconnected
+    if (!isConnected) {
+        setTimeout(() => {
+            if (window.MetaAssistantManager) {
+                window.MetaAssistantManager.init();
+            }
+        }, 100);
+    }
 }
 
-// Global action handlers for clean Meta connector
-window.verifyMetaCredentialsClean = async function() {
-    const tokenInput = document.getElementById('wa-clean-token');
-    const phoneInput = document.getElementById('wa-clean-phone-id');
-    const badgeToken = document.getElementById('wa-clean-verified-badge-token');
-    const badgePhone = document.getElementById('wa-clean-verified-badge-phone');
-    const containerBox = document.getElementById('wa-clean-verified-box-container');
-
-    if (!tokenInput || !phoneInput) return;
-    const token = tokenInput.value.trim();
-    const phoneId = phoneInput.value.trim();
-
-    if (!token || !phoneId) {
-        showNotification('error', 'Please enter Permanent Access Token and Phone Number ID to verify.');
-        return;
-    }
-
-    const btnToken = document.getElementById('btn-verify-clean-token');
-    const btnPhone = document.getElementById('btn-verify-clean-phone');
-    if (btnToken) btnToken.innerHTML = `Verifying...`;
-    if (btnPhone) btnPhone.innerHTML = `Verifying...`;
-
-    try {
-        const res = await apiCall('whatsapp/setup.php?action=verify_credentials', 'POST', {
-            access_token: token,
-            phone_number_id: phoneId
-        });
-
-        if (res.status === 'success' && res.data) {
-            const data = res.data;
-            showNotification('success', 'Meta credentials verified successfully!');
-            
-            if (badgeToken) badgeToken.classList.remove('hidden');
-            if (badgePhone) badgePhone.classList.remove('hidden');
-
-            if (containerBox) {
-                containerBox.innerHTML = `
-                    <div class="p-4 bg-emerald-50/90 border border-emerald-200 rounded-2xl space-y-2.5 text-xs text-slate-800 shadow-2xs animate-fade-in">
-                        <div class="flex items-center justify-between border-b border-emerald-200/80 pb-2">
-                            <div class="flex items-center space-x-2">
-                                <span class="p-1 bg-emerald-500 text-white rounded-lg"><i data-lucide="check" class="h-3.5 w-3.5"></i></span>
-                                <span class="font-extrabold text-emerald-950 text-xs">Meta Credentials Verified</span>
-                            </div>
-                            <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-full text-[10px] uppercase font-black tracking-wide">${data.quality_rating || 'GREEN'}</span>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-slate-700 font-medium pt-1">
-                            <div><span class="text-slate-500 font-semibold text-[11px] block">Meta Business Name</span> <strong class="font-extrabold text-slate-900 text-xs block mt-0.5">${data.business_name || 'WhatsApp Business'}</strong></div>
-                            <div><span class="text-slate-500 font-semibold text-[11px] block">Linked Phone Number</span> <strong class="font-mono font-extrabold text-slate-900 text-xs block mt-0.5">${data.display_phone_number || '--'}</strong></div>
-                            <div><span class="text-slate-500 font-semibold text-[11px] block">Messaging Limit</span> <strong class="font-bold text-slate-800 text-xs block mt-0.5">${data.messaging_limit || '1000/day'}</strong></div>
-                            <div><span class="text-slate-500 font-semibold text-[11px] block">Connection Status</span> <strong class="text-emerald-700 font-extrabold text-xs block mt-0.5">Verified & Ready to Connect</strong></div>
-                        </div>
-                    </div>
-                `;
-            }
-        } else {
-            showNotification('error', res.message || 'Meta verification failed.');
-        }
-    } catch (err) {
-        showNotification('error', err.message || 'Verification failed. Please check token and Phone Number ID.');
-    } finally {
-        if (btnToken) btnToken.innerHTML = `Verify`;
-        if (btnPhone) btnPhone.innerHTML = `Verify`;
-        if (window.lucide) lucide.createIcons();
+// Helper utilities for manual setup in dashboard
+window.toggleInputVisibilityDashboard = function(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+    } else {
+        input.type = 'password';
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
     }
 };
-window.saveMetaManualCredentialsClean = async function(e) {
-    if (e) e.preventDefault();
-    const btn = document.getElementById('wa-clean-submit-btn');
-    const tokenInput = document.getElementById('wa-clean-token');
-    const wabaInput = document.getElementById('wa-clean-waba-id');
-    const phoneInput = document.getElementById('wa-clean-phone-id');
 
-    if (!tokenInput || !phoneInput) return;
-    const token = tokenInput.value.trim();
-    const wabaId = wabaInput ? wabaInput.value.trim() : '';
-    const phoneId = phoneInput.value.trim();
-
-    if (!token || !phoneId) {
-        showNotification('error', 'Please enter Permanent Access Token and Phone Number ID.');
-        return;
-    }
-
-    const origHtml = btn ? btn.innerHTML : '';
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = `<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div><span style="color:#ffffff !important;">Verifying & Connecting...</span>`;
-    }
-
+window.pasteToInputDashboard = async function(inputId) {
     try {
-        const res = await apiCall('whatsapp/manual_connect.php', 'POST', {
-            access_token: token,
-            waba_id: wabaId,
-            phone_number_id: phoneId
-        });
-
-        if (res.status === 'success') {
-            showNotification('success', 'Meta WhatsApp Account connected successfully!');
-            const mainContainer = document.getElementById('main-content') || document.querySelector('.main-container') || document.getElementById('app-content');
-            if (mainContainer) {
-                checkWaConnectionAndRender('whatsapp', mainContainer, (cnt, st) => renderWhatsAppSetup(cnt, st.settings));
-            } else {
-                window.location.reload();
-            }
-        } else {
-            showNotification('error', res.message || 'Failed connecting Meta credentials.');
+        const text = await navigator.clipboard.readText();
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.value = text;
+            showNotification('success', 'Pasted successfully!');
+            input.dispatchEvent(new Event('input'));
         }
     } catch (err) {
-        showNotification('error', err.message || 'Failed connecting Meta credentials.');
+        showNotification('info', 'Please use Ctrl+V / Cmd+V to paste into this field.');
+    }
+};
+
+window.openMetaLinkDashboard = function(type) {
+    let url = 'https://developers.facebook.com/apps';
+    if (type === 'token') url = 'https://business.facebook.com/settings/system-users';
+    else if (type === 'waba') url = 'https://business.facebook.com/settings/whatsapp-business-accounts';
+    else if (type === 'phone' || type === 'dev') url = 'https://developers.facebook.com/apps';
+    window.open(url, '_blank');
+};
+
+window.copyMetaGuideDashboard = function(type) {
+    let guideText = '';
+    if (type === 'token') {
+        guideText = "1. Go to Business Settings -> Users -> System Users.\n2. Add system user with 'Admin' role.\n3. Click 'Assign Assets' and select WABA account with Full Control.\n4. Click 'Generate Token', select your App & check 'whatsapp_business_messaging' and 'whatsapp_business_management'.\n5. Copy generated permanent token.";
+    } else if (type === 'waba') {
+        guideText = "1. Go to Meta Developer Portal (developers.facebook.com/apps).\n2. Select your App -> WhatsApp -> API Setup.\n3. Under Step 1, copy your 'WhatsApp Business Account ID'.";
+    }
+    navigator.clipboard.writeText(guideText).then(() => {
+        showNotification('success', 'Step-by-step Meta guide copied to clipboard!');
+    }).catch(() => {
+        showNotification('info', guideText);
+    });
+};
+
+window.metaBizName = '';
+window.metaPhoneNumber = '';
+
+window.validateCredentialsSetupDashboard = async function() {
+    const token = document.getElementById('wa-manual-token').value.trim();
+    const wabaId = document.getElementById('wa-manual-waba-id').value.trim();
+
+    if (!token) {
+        showNotification('warning', 'Please enter your Permanent Access Token.');
+        if (window.MetaAssistantManager) window.MetaAssistantManager.handleError('token_missing');
+        return false;
+    }
+    if (!wabaId) {
+        showNotification('warning', 'Please enter your WABA ID.');
+        return false;
+    }
+
+    const btn = document.getElementById('wa-validate-creds-btn');
+    const origHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<div class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> <span>Validating...</span>`;
+
+    try {
+        // 1. Verify WABA ID strictly using timezone check
+        const wabaRes = await apiCall('whatsapp/setup.php?action=verify_waba', 'POST', {
+            access_token: token,
+            waba_id: wabaId
+        });
+
+        if (!wabaRes || wabaRes.status !== 'success') {
+            throw new Error(wabaRes.message || 'WABA verification failed.');
+        }
+
+        // 2. Fetch Phone Numbers registered under this WABA ID
+        const res = await apiCall('whatsapp/setup.php?action=get_phone_numbers', 'POST', {
+            access_token: token,
+            waba_id: wabaId
+        });
+
+        if (res && res.status === 'success' && res.phones && res.phones.length > 0) {
+            document.getElementById('wa-token-valid-badge').classList.remove('hidden');
+            document.getElementById('wa-waba-valid-badge').classList.remove('hidden');
+
+            const dropdown = document.getElementById('wa-phone-dropdown');
+            dropdown.innerHTML = '<option value="">-- Choose a phone number --</option>';
+            res.phones.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = `${p.display_phone_number} (${p.verified_name || 'Verified Name'})`;
+                opt.dataset.verifiedName = p.verified_name || '';
+                opt.dataset.displayPhone = p.display_phone_number || '';
+                opt.dataset.quality = p.quality_rating || 'GREEN';
+                opt.dataset.limit = p.messaging_limit || '1,000/day';
+                dropdown.appendChild(opt);
+            });
+
+            window.metaBizName = wabaRes.waba_name || 'Verified Account';
+
+            // Reveal Select Dropdown Container
+            document.getElementById('wa-phone-select-container').classList.remove('hidden');
+            
+            showNotification('success', 'WABA verified! Please select a phone number below to proceed.');
+            
+            // Hide validation button
+            btn.classList.add('hidden');
+
+            if (window.MetaAssistantManager) window.MetaAssistantManager.advanceStep(8, "Credentials validated. Please select a phone number.");
+            return true;
+        } else {
+            throw new Error('No registered phone numbers found under this WABA ID.');
+        }
+    } catch (err) {
+        showNotification('error', err.message || 'Validation failed. Please verify credentials.');
+        if (window.MetaAssistantManager) window.MetaAssistantManager.handleError(err.message);
+        return false;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+    }
+};
+
+window.saveManualWhatsAppConnectionDashboard = async function() {
+    const accessToken = document.getElementById('wa-manual-token').value.trim();
+    const wabaId = document.getElementById('wa-manual-waba-id').value.trim();
+    const phoneId = document.getElementById('wa-manual-phone-id').value.trim();
+    const bizName = window.metaBizName || 'Verified Account';
+    const phoneNumber = window.metaPhoneNumber || '--';
+    
+    if (!accessToken || !wabaId || !phoneId) {
+        showNotification('warning', 'Please fill out all required Meta WhatsApp fields.');
+        if (window.MetaAssistantManager) window.MetaAssistantManager.handleError('Missing fields');
+        return;
+    }
+    
+    const btn = document.getElementById('wa-manual-submit-btn');
+    const originalHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `
+            <div class="flex items-center space-x-1.5">
+                <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Connecting...</span>
+            </div>
+        `;
+    }
+    
+    try {
+        await apiCall('whatsapp/manual_connect.php', 'POST', {
+            access_token: accessToken,
+            waba_id: wabaId,
+            phone_number_id: phoneId,
+            business_name: bizName,
+            phone_number: phoneNumber,
+            display_name: bizName
+        });
+        
+        showNotification('success', 'WhatsApp account configured manually via Meta API!');
+        
+        if (window.MetaAssistantManager) window.MetaAssistantManager.renderStep(9);
+        
+        // Re-render view dynamically to show connected state
+        const mainContainer = document.getElementById('main-content') || document.querySelector('.main-container') || document.getElementById('app-content');
+        if (mainContainer) {
+            checkWaConnectionAndRender('whatsapp', mainContainer, (cnt, st) => renderWhatsAppSetup(cnt, st.settings));
+        } else {
+            window.location.reload();
+        }
+    } catch (err) {
+        showNotification('error', err.message || 'WhatsApp Meta connection failed.');
+        if (window.MetaAssistantManager) window.MetaAssistantManager.handleError(err.message || 'Connection error');
     } finally {
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = origHtml;
+            btn.innerHTML = originalHtml;
         }
-        if (window.lucide) lucide.createIcons();
     }
 };
 
-// Attach postMessage listener for Meta Embedded Signup event
+// META ASSISTANT CHATBOT MANAGER FOR DASHBOARD
+window.MetaAssistantManager = {
+    currentStep: 1,
+    retryCount: 0,
+    history: [],
+    pendingAttachment: null,
+
+    stepsConfig: {
+        1: {
+            title: "Welcome 👋",
+            percentage: 10,
+            msg: "Let's connect your WhatsApp Business account. This usually takes around 2–5 minutes. I'll guide you through everything step-by-step.",
+            buttons: [
+                { label: "🚀 Start Setup", action: () => MetaAssistantManager.advanceStep(2, "Let's start!") },
+                { label: "⚡ Fast Embedded Signup", action: () => launchDashboardMetaEmbeddedSignup() }
+            ]
+        },
+        2: {
+            title: "Open Meta Developer Portal",
+            percentage: 20,
+            msg: "Step 1: Open Meta Developer Portal to access your app dashboard.",
+            buttons: [
+                { label: "↗ Open Meta Developer", action: () => openMetaLinkDashboard('dev') },
+                { label: "Continue →", action: () => MetaAssistantManager.advanceStep(3, "I have opened Meta Developer Portal") }
+            ]
+        },
+        3: {
+            title: "Check Meta App Status",
+            percentage: 35,
+            msg: "Have you already created a Meta Developer App for WhatsApp?",
+            buttons: [
+                { label: "Yes, I have an App", action: () => MetaAssistantManager.advanceStep(4, "Yes, I have a Meta App") },
+                { label: "No, guide me to create one", action: () => MetaAssistantManager.explainAppCreation() }
+            ]
+        },
+        4: {
+            title: "Navigate to API Setup",
+            percentage: 50,
+            msg: "Great! Inside your Meta App dashboard, click **WhatsApp** in the left sidebar and select **API Setup**.",
+            buttons: [
+                { label: "I am on API Setup page →", action: () => MetaAssistantManager.advanceStep(5, "I am on API Setup page") }
+            ]
+        },
+        5: {
+            title: "Copy Access Token",
+            percentage: 60,
+            msg: "Awesome! Copy your **Temporary Access Token** or **System User Token** from Meta and paste it into the **Permanent Access Token** field on the left.",
+            buttons: [
+                { label: "I've pasted Access Token", action: () => MetaAssistantManager.checkTokenField() },
+                { label: "Need help finding it?", action: () => copyMetaGuideDashboard('token') }
+            ]
+        },
+        6: {
+            title: "Copy WhatsApp Business Account ID",
+            percentage: 70,
+            msg: "Great job! Next, copy your **WhatsApp Business Account ID** (WABA ID) from Meta and paste it into the **WABA ID** field on the left.",
+            buttons: [
+                { label: "I've pasted WABA ID", action: () => MetaAssistantManager.checkWabaField() }
+            ]
+        },
+        7: {
+            title: "Validate and Select Phone Number",
+            percentage: 85,
+            msg: "Now click **Validate Credentials** on the left to verify your WABA connection and fetch your registered WhatsApp phone numbers.",
+            buttons: [
+                { label: "Validate Credentials", action: () => validateCredentialsSetupDashboard() }
+            ]
+        },
+        8: {
+            title: "Generate Permanent Access Token",
+            percentage: 95,
+            msg: "Please select your phone number from the dropdown list on the left. Then make sure you generated a **Permanent System User Token** so your setup never expires:\n\n1. Meta Business Settings -> System Users\n2. Add System User (Admin)\n3. Assign WABA Assets (Full Control)\n4. Generate Token (scopes: whatsapp_business_messaging, whatsapp_business_management)\n5. Select your number and click **Establish Connection with Meta** to finalize setup.",
+            buttons: [
+                { label: "Connect & Finalize WhatsApp", action: () => saveManualWhatsAppConnectionDashboard() }
+            ]
+        },
+        9: {
+            title: "WhatsApp Connected Successfully! 🎉",
+            percentage: 100,
+            msg: "🎉 **Congratulations! Your WhatsApp Business Account is live & fully connected.**\n\n- Webhook: Verified & Subscribed\n- Templates: Auto-Synchronized\n- AI Auto-Reply: Ready",
+            buttons: [
+                { label: "Go to WhatsApp Dashboard", action: () => window.location.reload() }
+            ]
+        }
+    },
+
+    init: function() {
+        const container = document.getElementById('ai-chat-messages-container');
+        if (container) container.innerHTML = '';
+        this.retryCount = 0;
+        this.history = [];
+        this.pendingAttachment = null;
+        if (window.clearSetupChatAttachmentDashboard) window.clearSetupChatAttachmentDashboard();
+        this.renderStep(1);
+    },
+
+    renderStep: function(stepNum) {
+        this.currentStep = stepNum;
+        const config = this.stepsConfig[stepNum];
+        if (!config) return;
+
+        const pBar = document.getElementById('wa-assistant-progress-bar');
+        const pTxt = document.getElementById('wa-assistant-percentage');
+        const sBadge = document.getElementById('wa-assistant-step-badge');
+        const sLabel = document.getElementById('wa-assistant-step-label');
+
+        if (pBar) pBar.style.width = config.percentage + '%';
+        if (pTxt) pTxt.textContent = config.percentage + '%';
+        if (sBadge) sBadge.textContent = `Step ${stepNum} of 9`;
+        if (sLabel) sLabel.textContent = config.title;
+
+        const formattedMsg = config.msg.replace(/\n/g, '<br>');
+        this.addAiMessage(formattedMsg);
+        this.history.push({ role: 'assistant', content: config.msg });
+        this.renderControls(config.buttons);
+    },
+
+    addAiMessage: function(text, questionText = '') {
+        const container = document.getElementById('ai-chat-messages-container');
+        if (!container) return;
+
+        const escapedQuestion = (questionText || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const escapedAnswer = text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'flex items-start space-x-2.5 animate-fade-in text-left';
+        msgDiv.innerHTML = `
+            <div class="w-7 h-7 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center shrink-0 p-1 shadow-2xs">
+                <img src="https://crystalpng.com/wp-content/uploads/2025/02/meta_logo.png" class="w-5 h-5 object-contain" alt="Meta">
+            </div>
+            <div class="bg-slate-100 border border-slate-200/60 text-slate-800 p-3 rounded-2xl rounded-tl-xs space-y-1 max-w-[88%] shadow-2xs">
+                <span class="text-[10px] font-black text-blue-600 block uppercase tracking-wider">Meta Assistant</span>
+                <div class="text-xs font-semibold text-slate-700 leading-relaxed">${text}</div>
+                ${escapedQuestion ? `
+                <div class="flex items-center space-x-3 pt-1.5 mt-1.5 border-t border-slate-200/40">
+                    <button type="button" onclick="submitAiFeedbackDashboard(this, 'like', '${escapedQuestion}', '${escapedAnswer}')" class="text-slate-400 hover:text-emerald-600 transition bg-transparent border-0 p-0.5 cursor-pointer flex items-center space-x-1" title="Helpful (Train AI)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+                        <span class="text-[10px]">Like</span>
+                    </button>
+                    <button type="button" onclick="submitAiFeedbackDashboard(this, 'dislike', '${escapedQuestion}', '${escapedAnswer}')" class="text-slate-400 hover:text-rose-600 transition bg-transparent border-0 p-0.5 cursor-pointer flex items-center space-x-1" title="Not helpful">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg>
+                        <span class="text-[10px]">Dislike</span>
+                    </button>
+                </div>
+                ` : ''}
+            </div>
+        `;
+        container.appendChild(msgDiv);
+        container.scrollTop = container.scrollHeight;
+    },
+
+    addUserMessage: function(text) {
+        const container = document.getElementById('ai-chat-messages-container');
+        if (!container) return;
+
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'flex items-end justify-end space-x-2.5 animate-fade-in text-right';
+        msgDiv.innerHTML = `
+            <div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-xs space-y-1 max-w-[85%] shadow-xs">
+                <div class="text-xs font-bold text-white" style="color: #ffffff !important;">${text}</div>
+            </div>
+        `;
+        container.appendChild(msgDiv);
+        container.scrollTop = container.scrollHeight;
+    },
+
+    renderControls: function(buttons) {
+        const controlsArea = document.getElementById('ai-chat-controls-area');
+        if (!controlsArea) return;
+        controlsArea.innerHTML = '';
+
+        buttons.forEach(btnConfig => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'w-full py-2.5 px-4 bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 text-slate-800 text-xs font-extrabold rounded-xl transition flex items-center justify-between shadow-2xs cursor-pointer';
+            btn.innerHTML = `<span>${btnConfig.label}</span> <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 text-slate-400"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+            btn.onclick = btnConfig.action;
+            controlsArea.appendChild(btn);
+        });
+    },
+
+    advanceStep: function(nextStepNum, userText) {
+        if (userText) {
+            this.addUserMessage(userText);
+            this.history.push({ role: 'user', content: userText });
+        }
+        setTimeout(() => {
+            this.renderStep(nextStepNum);
+        }, 300);
+    },
+
+    explainAppCreation: function() {
+        this.addUserMessage("I need help creating a Meta App");
+        setTimeout(() => {
+            this.addAiMessage("To create a Meta App:\n1. Click 'Create App' on Meta Developers.\n2. Choose 'Business' app type.\n3. Enter your App Name & Business Email.\n4. Select your Business Manager Account and click 'Create'.");
+            this.renderControls([
+                { label: "App Created → Next Step", action: () => MetaAssistantManager.advanceStep(4, "App Created!") }
+            ]);
+        }, 300);
+    },
+
+    checkTokenField: function() {
+        const val = document.getElementById('wa-manual-token').value.trim();
+        if (val.length > 20) {
+            this.advanceStep(6, "I pasted the Access Token.");
+        } else {
+            this.handleError("Please paste a valid Access Token into the field on the left.");
+        }
+    },
+
+    checkWabaField: function() {
+        const val = document.getElementById('wa-manual-waba-id').value.trim();
+        if (val.length >= 10) {
+            this.advanceStep(7, "I pasted the WABA ID.");
+        } else {
+            this.handleError("Please paste a valid WABA ID into the form on the left.");
+        }
+    },
+
+    handleError: function(errReason) {
+        this.retryCount++;
+        let explainText = "❌ Validation check unsuccessful.";
+
+        if (errReason.includes("token") || errReason.includes("Token")) {
+            explainText = "❌ **Invalid Access Token**\nPlease make sure to copy the full string starting with `EAAG...` from Meta System Users.";
+        } else if (errReason.includes("waba") || errReason.includes("WABA")) {
+            explainText = "❌ **Invalid WABA ID**\nWABA ID is your 15+ digit WhatsApp Business Account ID found in Meta Business Settings.";
+        }
+
+        this.addAiMessage(explainText);
+
+        if (this.retryCount >= 3) {
+            setTimeout(() => {
+                this.addAiMessage("It looks like you're still having trouble.\nWould you like one of our onboarding specialists to help you?");
+                this.renderControls([
+                    { label: "📞 Call Support (+91 8016222991)", action: () => window.open('tel:+918016222991') },
+                    { label: "💬 WhatsApp Live Chat", action: () => window.open('https://wa.me/918016222991', '_blank') },
+                    { label: "📧 Email Support", action: () => window.open('mailto:support@linkpilot.work') },
+                ]);
+            }, 300);
+        }
+    }
+};
+
+window.handleSetupAiChatSubmitDashboard = async function() {
+    const input = document.getElementById('setup-ai-chat-input');
+    if (!input) return;
+    const text = input.value.trim();
+    
+    const assistant = window.MetaAssistantManager;
+    if (!assistant) return;
+
+    const hasAttachment = assistant.pendingAttachment !== null;
+    if (text === '' && !hasAttachment) return;
+    input.value = '';
+
+    const container = document.getElementById('ai-chat-messages-container');
+
+    if (hasAttachment) {
+        const base64Image = assistant.pendingAttachment;
+        const hasText = text !== '';
+        const questionLogText = "[User sent a Meta console screenshot" + (hasText ? " with message: " + text : "") + "]";
+
+        if (container) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'flex items-end justify-end space-x-2.5 animate-fade-in text-right';
+            msgDiv.innerHTML = `
+                <div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-xs space-y-1.5 max-w-[85%] shadow-xs text-left">
+                    ${hasText ? `<div class="text-xs font-semibold mb-1.5 text-white" style="color: #ffffff !important;">${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>` : ''}
+                    <img src="${base64Image}" class="max-h-[140px] rounded-lg border border-white/20 object-contain mx-auto" alt="Screenshot Upload">
+                </div>
+            `;
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        assistant.history.push({ role: 'user', content: questionLogText });
+        window.clearSetupChatAttachmentDashboard();
+
+        const loaderId = 'setup-ai-thinking-' + Date.now();
+        if (container) {
+            container.insertAdjacentHTML('beforeend', `
+                <div class="flex items-start space-x-2.5 animate-pulse text-left" id="${loaderId}">
+                    <div class="w-7 h-7 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center shrink-0 p-1 shadow-2xs">
+                        <img src="https://crystalpng.com/wp-content/uploads/2025/02/meta_logo.png" class="w-5 h-5 object-contain" alt="Meta">
+                    </div>
+                    <div class="bg-slate-100 border border-slate-200/60 text-slate-500 p-3 rounded-2xl rounded-tl-xs italic max-w-[88%] shadow-2xs flex items-center space-x-2">
+                        <div class="w-3.5 h-3.5 border-2 border-slate-500 border-t-transparent rounded-full animate-spin"></div>
+                        <span>Meta Assistant is analyzing your screenshot...</span>
+                    </div>
+                </div>
+            `);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        try {
+            const res = await apiCall('crm/analyze_meta_screenshot.php', 'POST', {
+                image: base64Image,
+                message: text
+            });
+
+            const loader = document.getElementById(loaderId);
+            if (loader) loader.remove();
+
+            if (res && res.status === 'success') {
+                const reply = res.data.reply;
+                assistant.history.push({ role: 'assistant', content: reply });
+
+                const formatted = formatSetupAiChatReplyDashboard(reply);
+                assistant.addAiMessage(formatted, questionLogText);
+            } else {
+                throw new Error(res.message || 'Vision analysis failed.');
+            }
+        } catch (err) {
+            const loader = document.getElementById(loaderId);
+            if (loader) loader.remove();
+            assistant.addAiMessage("⚠️ " + (err.message || "Failed to analyze screenshot. Please verify your AI central key credentials."));
+        }
+
+    } else {
+        assistant.addUserMessage(text);
+        assistant.history.push({ role: 'user', content: text });
+
+        const loaderId = 'setup-ai-thinking-' + Date.now();
+        if (container) {
+            container.insertAdjacentHTML('beforeend', `
+                <div class="flex items-start space-x-2.5 animate-pulse text-left" id="${loaderId}">
+                    <div class="w-7 h-7 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center shrink-0 p-1 shadow-2xs">
+                        <img src="https://crystalpng.com/wp-content/uploads/2025/02/meta_logo.png" class="w-5 h-5 object-contain" alt="Meta">
+                    </div>
+                    <div class="bg-slate-100 border border-slate-200/60 text-slate-500 p-3 rounded-2xl rounded-tl-xs italic max-w-[88%] shadow-2xs">
+                        Searching workspace data...
+                    </div>
+                </div>
+            `);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        try {
+            const data = await apiCall('crm/chat_assistant.php', 'POST', {
+                message: text,
+                history: assistant.history.slice(0, -1)
+            });
+
+            const loader = document.getElementById(loaderId);
+            if (loader) loader.remove();
+
+            if (data && data.status === 'success') {
+                const reply = data.reply;
+                assistant.history.push({ role: 'assistant', content: reply });
+                
+                const formatted = formatSetupAiChatReplyDashboard(reply);
+                assistant.addAiMessage(formatted, text);
+            } else {
+                throw new Error(data.message || 'Error communicating with AI assistant.');
+            }
+        } catch (err) {
+            const loader = document.getElementById(loaderId);
+            if (loader) loader.remove();
+            assistant.addAiMessage("⚠️ " + (err.message || "Failed to contact AI Assistant. Please check connection."));
+        }
+    }
+};
+
+window.formatSetupAiChatReplyDashboard = function(text) {
+    let formatted = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    formatted = formatted.replace(/\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g, '<a href="$2" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-bold transition">$1</a>');
+    formatted = formatted.replace(/(?:\r?\n|^)###\s+([^\r\n]+)/g, '<h4 class="text-xs font-bold text-slate-800 mt-2 mb-1">$1</h4>');
+    formatted = formatted.replace(/(?:\r?\n|^)##\s+([^\r\n]+)/g, '<h3 class="text-xs font-black text-slate-900 mt-3 mb-1">$1</h3>');
+    formatted = formatted.replace(/(?:\r?\n|^)-\s+([^\r\n]+)/g, '<li class="ml-4 list-disc mt-1">$1</li>');
+    formatted = formatted.replace(/\r?\n/g, '<br>');
+    return formatted;
+};
+
+window.attachSetupChatImageDashboard = function(base64Data) {
+    const assistant = window.MetaAssistantManager;
+    if (!assistant) return;
+
+    assistant.pendingAttachment = base64Data;
+    
+    const thumb = document.getElementById('setup-chat-attachment-thumbnail');
+    if (thumb) thumb.src = base64Data;
+
+    const previewBar = document.getElementById('setup-chat-attachment-preview');
+    if (previewBar) previewBar.classList.remove('hidden');
+};
+
+window.clearSetupChatAttachmentDashboard = function() {
+    const assistant = window.MetaAssistantManager;
+    if (assistant) assistant.pendingAttachment = null;
+
+    const previewBar = document.getElementById('setup-chat-attachment-preview');
+    if (previewBar) previewBar.classList.add('hidden');
+
+    const thumb = document.getElementById('setup-chat-attachment-thumbnail');
+    if (thumb) thumb.src = '';
+
+    const fileInput = document.getElementById('setup-wa-screenshot-input');
+    if (fileInput) fileInput.value = '';
+};
+
+window.handleSetupScreenshotUploadDashboard = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        showNotification('error', 'Please select a valid image file.');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        window.attachSetupChatImageDashboard(e.target.result);
+    };
+    reader.readAsDataURL(file);
+};
+
+window.submitAiFeedbackDashboard = async function(btn, type, question, answer) {
+    try {
+        const parent = btn.parentElement;
+        const buttons = parent.querySelectorAll('button');
+        buttons.forEach(b => {
+            b.disabled = true;
+            b.classList.add('opacity-40');
+        });
+
+        if (type === 'like') {
+            btn.classList.remove('opacity-40');
+            btn.classList.add('text-emerald-600', 'font-black');
+        } else {
+            btn.classList.remove('opacity-40');
+            btn.classList.add('text-rose-600', 'font-black');
+        }
+
+        const res = await apiCall('crm/save_chat_feedback.php', 'POST', {
+            question: question,
+            answer: answer,
+            feedback_type: type
+        });
+
+        if (res && res.status === 'success') {
+            showNotification('success', type === 'like' ? 'Response liked! AI has learned this answer.' : 'Response disliked.');
+        } else {
+            throw new Error(res.message || 'Failed to save feedback.');
+        }
+    } catch (err) {
+        showNotification('error', err.message || 'Error saving feedback.');
+    }
+};
+
+// Event delegation for text input fields and dropdown change handler
+document.addEventListener('input', function(e) {
+    if (!window.MetaAssistantManager) return;
+    
+    if (e.target && e.target.id === 'wa-manual-token') {
+        const resetValidationUI = () => {
+            const tokenBadge = document.getElementById('wa-token-valid-badge');
+            const wabaBadge = document.getElementById('wa-waba-valid-badge');
+            const phoneBadge = document.getElementById('wa-phone-valid-badge');
+            if (tokenBadge) tokenBadge.classList.add('hidden');
+            if (wabaBadge) wabaBadge.classList.add('hidden');
+            if (phoneBadge) phoneBadge.classList.add('hidden');
+            
+            const autoCard = document.getElementById('wa-auto-details-card');
+            if (autoCard) autoCard.classList.add('hidden');
+
+            const validateBtn = document.getElementById('wa-validate-creds-btn');
+            const connectBtn = document.getElementById('wa-manual-submit-btn');
+            if (validateBtn) validateBtn.classList.remove('hidden');
+            if (connectBtn) connectBtn.classList.add('hidden');
+        };
+        
+        resetValidationUI();
+        if (e.target.value.trim().length > 20) {
+            if (window.MetaAssistantManager.currentStep === 5) {
+                window.MetaAssistantManager.advanceStep(6, "Token pasted successfully.");
+            }
+        }
+    }
+    
+    if (e.target && e.target.id === 'wa-manual-waba-id') {
+        const resetValidationUI = () => {
+            const tokenBadge = document.getElementById('wa-token-valid-badge');
+            const wabaBadge = document.getElementById('wa-waba-valid-badge');
+            const phoneBadge = document.getElementById('wa-phone-valid-badge');
+            if (tokenBadge) tokenBadge.classList.add('hidden');
+            if (wabaBadge) wabaBadge.classList.add('hidden');
+            if (phoneBadge) phoneBadge.classList.add('hidden');
+            
+            const autoCard = document.getElementById('wa-auto-details-card');
+            if (autoCard) autoCard.classList.add('hidden');
+
+            const validateBtn = document.getElementById('wa-validate-creds-btn');
+            const connectBtn = document.getElementById('wa-manual-submit-btn');
+            if (validateBtn) validateBtn.classList.remove('hidden');
+            if (connectBtn) connectBtn.classList.add('hidden');
+        };
+
+        resetValidationUI();
+        if (e.target.value.trim().length >= 10) {
+            if (window.MetaAssistantManager.currentStep === 6) {
+                window.MetaAssistantManager.advanceStep(7, "WABA ID pasted.");
+            }
+        }
+    }
+});
+
+document.addEventListener('paste', function(e) {
+    if (e.target && e.target.id === 'setup-ai-chat-input') {
+        const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') === 0) {
+                const blob = items[i].getAsFile();
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    window.attachSetupChatImageDashboard(event.target.result);
+                };
+                reader.readAsDataURL(blob);
+                e.preventDefault();
+                break;
+            }
+        }
+    }
+});
+
+// Embedded signup listener setup
 if (!window._waEmbeddedSignupListenerAttached) {
     window._waEmbeddedSignupListenerAttached = true;
     window.addEventListener('message', function(event) {
@@ -413,7 +1103,7 @@ window.launchDashboardMetaEmbeddedSignup = async function() {
     window._waEmbeddedSignupData = null;
     window._waEmbeddedSignupCode = null;
 
-    const btn = document.getElementById('wa-embedded-signup-btn');
+    const btn = document.getElementById('wa-embedded-connect-btn');
     const originalHtml = btn ? btn.innerHTML : '';
     if (btn) {
         btn.disabled = true;

@@ -86,7 +86,10 @@ try {
             $db->beginTransaction();
             $db->prepare("DELETE FROM imap_smtp_configurations WHERE user_id = ?")->execute([$userId]);
             $db->prepare("DELETE FROM smtp_accounts WHERE user_id = ?")->execute([$userId]);
-            $db->prepare("UPDATE email_intelligence_settings SET is_active = 0 WHERE user_id = ?")->execute([$userId]);
+            $db->prepare("DELETE FROM email_intelligence_settings WHERE user_id = ?")->execute([$userId]);
+            $db->prepare("DELETE FROM received_emails WHERE user_id = ?")->execute([$userId]);
+            $db->prepare("DELETE FROM email_processing_logs WHERE user_id = ?")->execute([$userId]);
+            $db->prepare("DELETE FROM external_app_connections WHERE user_id = ? AND provider = 'google'")->execute([$userId]);
             $db->commit();
             sendJsonResponse('success', 'Email server disconnected successfully.');
         }

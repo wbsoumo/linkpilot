@@ -15,8 +15,20 @@ if ($provider !== 'google' && $provider !== 'zoom') {
 
 $db = Database::getConnection();
 
+$db->beginTransaction();
+
 $stmt = $db->prepare("DELETE FROM external_app_connections WHERE user_id = ? AND provider = ?");
 $stmt->execute([$userId, $provider]);
+
+if ($provider === 'google') {
+    $db->prepare("DELETE FROM imap_smtp_configurations WHERE user_id = ?")->execute([$userId]);
+    $db->prepare("DELETE FROM smtp_accounts WHERE user_id = ?")->execute([$userId]);
+    $db->prepare("DELETE FROM email_intelligence_settings WHERE user_id = ?")->execute([$userId]);
+    $db->prepare("DELETE FROM received_emails WHERE user_id = ?")->execute([$userId]);
+    $db->prepare("DELETE FROM email_processing_logs WHERE user_id = ?")->execute([$userId]);
+}
+
+$db->commit();
 
 // Log connection disconnection details
 $timelineStmt = $db->prepare("INSERT INTO crm_timeline (user_id, activity_type, description) VALUES (?, 'Integration Disconnected', ?)");

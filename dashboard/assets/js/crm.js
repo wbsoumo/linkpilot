@@ -582,8 +582,8 @@ async function navigateTo(view, params = {}) {
 async function renderDashboard(container) {
     try {
         const [data, stats, smtpRes, waRes] = await Promise.all([
-            apiCall('crm/reports.php'),
-            apiCall('analytics/dashboard.php'),
+            apiCall('crm/reports.php').catch(() => ({})),
+            apiCall('analytics/dashboard.php').catch(() => ({})),
             apiCall('smtp/list.php').catch(() => ({ accounts: [] })),
             apiCall('whatsapp/setup.php').catch(() => ({ connected: false }))
         ]);

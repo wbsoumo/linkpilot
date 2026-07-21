@@ -680,14 +680,24 @@
                             </div>
 
                             <!-- Conversation Chat History Window -->
-                            <div id="ai-chat-messages-container" class="flex-grow overflow-y-auto pr-1 space-y-3 text-xs leading-relaxed max-h-[350px] min-h-[220px]">
+                            <div id="ai-chat-messages-container" class="flex-grow overflow-y-auto pr-1 space-y-3 text-xs leading-relaxed max-h-[300px] min-h-[180px]">
                                 <!-- Messages will be dynamically rendered here -->
                             </div>
 
                             <!-- Chat input/interaction Area -->
-                            <div id="ai-chat-controls-area" class="border-t border-slate-100 pt-3 flex flex-col space-y-2">
+                            <div id="ai-chat-controls-area" class="border-t border-slate-100 pt-2 flex flex-col space-y-1.5">
                                 <!-- Action / Option buttons rendered dynamically -->
                             </div>
+
+                            <!-- Real Chat Input Form -->
+                            <form id="setup-ai-chat-form" onsubmit="event.preventDefault(); handleSetupAiChatSubmit();" class="flex items-center space-x-2 border-t border-slate-100 pt-2">
+                                <input type="text" id="setup-ai-chat-input" placeholder="Ask assistant any question..." class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition">
+                                <button type="submit" class="p-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl transition flex items-center justify-center shrink-0 cursor-pointer border-0" style="color: #ffffff !important;">
+                                    <svg class="h-3.5 w-3.5 fill-current text-white" viewBox="0 0 24 24">
+                                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="#ffffff"/>
+                                    </svg>
+                                </button>
+                            </form>
                         </div>
 
                     </div>
@@ -808,7 +818,7 @@
             </div>
 
             <!-- RIGHT COLUMN: Status, Features & Security Cards (col-span-12 lg:col-span-5) -->
-            <div class="lg:col-span-5 space-y-6">
+            <div class="lg:col-span-5 space-y-6" id="global-right-sidebar">
 
                 <!-- 1. Setup Progress Card -->
                 <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 shadow-soft space-y-4 text-left">
@@ -1049,6 +1059,26 @@
         window.goToStep = function(stepNum) {
             if (stepNum < 1 || stepNum > 5) return;
             activeStep = stepNum;
+
+            const panesContainer = document.getElementById('wizard-panes-container');
+            const rightSidebar = document.getElementById('global-right-sidebar');
+            if (stepNum === 3) {
+                if (panesContainer) {
+                    panesContainer.classList.remove('lg:col-span-7');
+                    panesContainer.classList.add('lg:col-span-12');
+                }
+                if (rightSidebar) {
+                    rightSidebar.classList.add('hidden');
+                }
+            } else {
+                if (panesContainer) {
+                    panesContainer.classList.remove('lg:col-span-12');
+                    panesContainer.classList.add('lg:col-span-7');
+                }
+                if (rightSidebar) {
+                    rightSidebar.classList.remove('hidden');
+                }
+            }
 
             // Toggle active wizard-pane
             for (let i = 1; i <= 5; i++) {
@@ -1541,6 +1571,7 @@
         window.MetaAssistantManager = {
             currentStep: 1,
             retryCount: 0,
+            history: [],
 
             stepsConfig: {
                 1: {
@@ -1626,6 +1657,7 @@
                 const container = document.getElementById('ai-chat-messages-container');
                 if (container) container.innerHTML = '';
                 this.retryCount = 0;
+                this.history = [];
                 this.renderStep(1);
                 this.listenToInputs();
             },
@@ -1676,7 +1708,9 @@
                 if (sBadge) sBadge.textContent = `Step ${stepNum} of 9`;
                 if (sLabel) sLabel.textContent = config.title;
 
-                this.addAiMessage(config.msg);
+                const formattedMsg = config.msg.replace(/\n/g, '<br>');
+                this.addAiMessage(formattedMsg);
+                this.history.push({ role: 'assistant', content: config.msg });
                 this.renderControls(config.buttons);
             },
 
@@ -1690,7 +1724,7 @@
                     <div class="w-7 h-7 bg-blue-100 text-blue-700 font-extrabold rounded-xl flex items-center justify-center shrink-0 text-xs shadow-2xs">🤖</div>
                     <div class="bg-slate-100 border border-slate-200/60 text-slate-800 p-3 rounded-2xl rounded-tl-xs space-y-1 max-w-[88%] shadow-2xs">
                         <span class="text-[10px] font-black text-blue-600 block uppercase tracking-wider">Meta Assistant</span>
-                        <p class="text-xs font-semibold text-slate-700 whitespace-pre-line leading-relaxed">${text}</p>
+                        <div class="text-xs font-semibold text-slate-700 leading-relaxed">${text}</div>
                     </div>
                 `;
                 container.appendChild(msgDiv);
@@ -1705,7 +1739,7 @@
                 msgDiv.className = 'flex items-end justify-end space-x-2.5 animate-fade-in text-right';
                 msgDiv.innerHTML = `
                     <div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-xs space-y-1 max-w-[85%] shadow-xs">
-                        <p class="text-xs font-bold whitespace-pre-line">${text}</p>
+                        <div class="text-xs font-bold">${text}</div>
                     </div>
                 `;
                 container.appendChild(msgDiv);
@@ -1729,7 +1763,10 @@
             },
 
             advanceStep: function(nextStepNum, userText) {
-                if (userText) this.addUserMessage(userText);
+                if (userText) {
+                    this.addUserMessage(userText);
+                    this.history.push({ role: 'user', content: userText });
+                }
                 setTimeout(() => {
                     this.renderStep(nextStepNum);
                 }, 300);
@@ -1801,6 +1838,78 @@
                 }
             }
         };
+
+        window.handleSetupAiChatSubmit = async function() {
+            const input = document.getElementById('setup-ai-chat-input');
+            if (!input) return;
+            const text = input.value.trim();
+            if (text === '') return;
+            input.value = '';
+
+            const assistant = window.MetaAssistantManager;
+            if (!assistant) return;
+
+            // Display user message in chat UI
+            assistant.addUserMessage(text);
+            
+            // Add user message to history
+            assistant.history.push({ role: 'user', content: text });
+
+            // Generate thinking loader ID
+            const loaderId = 'setup-ai-thinking-' + Date.now();
+            const container = document.getElementById('ai-chat-messages-container');
+            if (container) {
+                container.insertAdjacentHTML('beforeend', `
+                    <div class="flex items-start space-x-2.5 animate-pulse text-left" id="${loaderId}">
+                        <div class="w-7 h-7 bg-blue-100 text-blue-700 font-extrabold rounded-xl flex items-center justify-center shrink-0 text-xs shadow-2xs">🤖</div>
+                        <div class="bg-slate-100 border border-slate-200/60 text-slate-500 p-3 rounded-2xl rounded-tl-xs italic max-w-[88%] shadow-2xs">
+                            Searching workspace data...
+                        </div>
+                    </div>
+                `);
+                container.scrollTop = container.scrollHeight;
+            }
+
+            try {
+                // Call real AI assistant API
+                const data = await apiCall('crm/chat_assistant.php', 'POST', {
+                    message: text,
+                    history: assistant.history.slice(0, -1)
+                });
+
+                // Remove loader
+                const loader = document.getElementById(loaderId);
+                if (loader) loader.remove();
+
+                if (data && data.status === 'success') {
+                    const reply = data.reply;
+                    assistant.history.push({ role: 'assistant', content: reply });
+                    
+                    // Format response for display
+                    const formatted = formatSetupAiChatReply(reply);
+                    assistant.addAiMessage(formatted);
+                } else {
+                    throw new Error(data.message || 'Error communicating with AI assistant.');
+                }
+            } catch (err) {
+                // Remove loader
+                const loader = document.getElementById(loaderId);
+                if (loader) loader.remove();
+
+                assistant.addAiMessage("⚠️ " + (err.message || "Failed to contact AI Assistant. Please check connection."));
+            }
+        };
+
+        function formatSetupAiChatReply(text) {
+            let formatted = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            // bold formatting **text**
+            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // bullet points: \n- item
+            formatted = formatted.replace(/(?:\r?\n|^)-\s+([^\r\n]+)/g, '<li class="ml-4 list-disc mt-1">$1</li>');
+            // line breaks
+            formatted = formatted.replace(/\r?\n/g, '<br>');
+            return formatted;
+        }
 
         window.launchMetaEmbeddedSignup = async function() {
             const btn = document.getElementById('wa-embedded-connect-btn');

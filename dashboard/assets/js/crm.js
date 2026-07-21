@@ -1447,17 +1447,7 @@ async function renderEmailIntelligence(container) {
 
 function renderSetupWizard(container, data) {
     const conn = data.connection || {};
-    if (!conn.email_provider) conn.email_provider = 'gmail';
-
-    if (conn.email_provider === 'gmail') {
-        if (!conn.smtp_host) conn.smtp_host = 'smtp.gmail.com';
-        if (!conn.smtp_port) conn.smtp_port = 587;
-        if (!conn.smtp_encryption) conn.smtp_encryption = 'tls';
-    } else if (conn.email_provider === 'outlook') {
-        if (!conn.smtp_host) conn.smtp_host = 'smtp.office365.com';
-        if (!conn.smtp_port) conn.smtp_port = 587;
-        if (!conn.smtp_encryption) conn.smtp_encryption = 'tls';
-    }
+    const provider = conn.email_provider || 'gmail';
 
     container.innerHTML = `
         <div class="max-w-6xl mx-auto space-y-8 animate-fade-in pt-4 pb-12 text-slate-800">
@@ -1468,80 +1458,20 @@ function renderSetupWizard(container, data) {
                 <p class="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">Connect your email account to unlock AI-powered inbox, campaigns, smart replies, tracking, and automations.</p>
             </div>
 
-            <!-- Modern Stepper Progress -->
-            <div class="bg-white border border-slate-200/80 rounded-[20px] p-4 sm:p-5 shadow-sm max-w-4xl mx-auto">
-                <div class="flex items-center justify-between overflow-x-auto no-scrollbar py-1">
-                    <!-- Step 1: Connect -->
-                    <div class="flex items-center space-x-2 shrink-0">
-                        <div class="w-7 h-7 rounded-full bg-emerald-500 text-white font-black text-xs flex items-center justify-center shadow-xs">
-                            <i data-lucide="check" class="h-4 w-4"></i>
-                        </div>
-                        <span class="text-xs font-bold text-slate-900">Connect</span>
-                    </div>
-                    <div class="w-8 sm:w-12 h-[2px] bg-emerald-400 shrink-0 mx-1"></div>
-
-                    <!-- Step 2: SMTP (Current Step) -->
-                    <div class="flex items-center space-x-2 shrink-0">
-                        <div class="w-7 h-7 rounded-full bg-blue-600 text-white font-extrabold text-xs flex items-center justify-center shadow-md shadow-blue-500/20">
-                            2
-                        </div>
-                        <span class="text-xs font-extrabold text-blue-600">SMTP</span>
-                    </div>
-                    <div class="w-8 sm:w-12 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
-
-                    <!-- Step 3: IMAP -->
-                    <div class="flex items-center space-x-2 shrink-0">
-                        <div class="w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">
-                            3
-                        </div>
-                        <span class="text-xs font-semibold text-slate-400">IMAP</span>
-                    </div>
-                    <div class="w-8 sm:w-12 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
-
-                    <!-- Step 4: Permissions -->
-                    <div class="flex items-center space-x-2 shrink-0">
-                        <div class="w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">
-                            4
-                        </div>
-                        <span class="text-xs font-semibold text-slate-400">Permissions</span>
-                    </div>
-                    <div class="w-8 sm:w-12 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
-
-                    <!-- Step 5: Profile -->
-                    <div class="flex items-center space-x-2 shrink-0">
-                        <div class="w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">
-                            5
-                        </div>
-                        <span class="text-xs font-semibold text-slate-400">Profile</span>
-                    </div>
-                    <div class="w-8 sm:w-12 h-[2px] bg-slate-200 shrink-0 mx-1"></div>
-
-                    <!-- Step 6: Complete -->
-                    <div class="flex items-center space-x-2 shrink-0">
-                        <div class="w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center">
-                            6
-                        </div>
-                        <span class="text-xs font-semibold text-slate-400">Complete</span>
-                    </div>
-                </div>
-            </div>
-
             <!-- Two-Column Responsive Layout -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-                <!-- LEFT COLUMN: SMTP Configuration Card -->
+                <!-- LEFT COLUMN: SMTP & IMAP Configuration Card -->
                 <div class="lg:col-span-7 space-y-6">
                     <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 sm:p-8 shadow-sm space-y-6">
                         
                         <!-- Header -->
-                        <div class="border-b border-slate-100 pb-4 flex justify-between items-center">
-                            <div>
-                                <h2 class="text-lg font-extrabold text-slate-900 flex items-center space-x-2">
-                                    <i data-lucide="mail" class="h-5 w-5 text-blue-600"></i>
-                                    <span>Outbound SMTP Configuration</span>
-                                </h2>
-                                <p class="text-xs text-slate-500 font-medium mt-1">Configure your outbound mail server credentials.</p>
-                            </div>
+                        <div class="border-b border-slate-100 pb-4">
+                            <h2 class="text-lg font-extrabold text-slate-900 flex items-center space-x-2">
+                                <i data-lucide="mail" class="h-5 w-5 text-blue-600"></i>
+                                <span>Email Server Configuration (SMTP & IMAP)</span>
+                            </h2>
+                            <p class="text-xs text-slate-500 font-medium mt-1">Configure your server credentials to send campaigns and synchronize inbound replies.</p>
                         </div>
 
                         <!-- Provider Buttons -->
@@ -1575,6 +1505,16 @@ function renderSetupWizard(container, data) {
                             </div>
                         </div>
 
+                        <!-- Hidden Provider Radio Buttons -->
+                        <div class="hidden">
+                            <input type="radio" name="email_provider" value="gmail" id="provider-radio-gmail" checked>
+                            <input type="radio" name="email_provider" value="outlook" id="provider-radio-outlook">
+                            <input type="radio" name="email_provider" value="zoho" id="provider-radio-zoho">
+                            <input type="radio" name="email_provider" value="office365" id="provider-radio-office365">
+                            <input type="radio" name="email_provider" value="yahoo" id="provider-radio-yahoo">
+                            <input type="radio" name="email_provider" value="custom" id="provider-radio-custom">
+                        </div>
+
                         <!-- Google OAuth Banner for Gmail -->
                         <div id="wiz-gmail-oauth-banner" class="p-4 bg-blue-50/50 border border-blue-100 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center space-x-3">
@@ -1597,7 +1537,8 @@ function renderSetupWizard(container, data) {
                         </div>
 
                         <!-- Form -->
-                        <form id="wiz-smtp-form" onsubmit="event.preventDefault(); saveWizSmtp(this);" class="space-y-4">
+                        <form id="wiz-smtp-form" onsubmit="event.preventDefault();" class="space-y-4">
+                            <!-- SMTP Connection Details -->
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div class="space-y-1.5">
                                     <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Sender Name *</label>
@@ -1605,7 +1546,6 @@ function renderSetupWizard(container, data) {
                                         <i data-lucide="user" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
                                         <input type="text" id="wiz_sender_name" value="${conn.sender_name || ''}" placeholder="e.g. John Doe" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
                                     </div>
-                                    <p class="text-[10px] text-slate-400 font-medium">Name displayed in recipients' inbox</p>
                                 </div>
                                 <div class="space-y-1.5">
                                     <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Sender Email *</label>
@@ -1613,7 +1553,6 @@ function renderSetupWizard(container, data) {
                                         <i data-lucide="mail" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
                                         <input type="email" id="wiz_sender_email" value="${conn.sender_email || ''}" placeholder="e.g. john@company.com" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
                                     </div>
-                                    <p class="text-[10px] text-slate-400 font-medium">Email address sending outgoing messages</p>
                                 </div>
                             </div>
 
@@ -1643,10 +1582,10 @@ function renderSetupWizard(container, data) {
                                     </div>
                                 </div>
                                 <div class="space-y-1.5">
-                                    <label id="wiz-pass-label" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Password / App Password *</label>
+                                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Password / App Password *</label>
                                     <div class="relative">
                                         <i data-lucide="lock" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
-                                        <input type="password" id="wiz_smtp_password" placeholder="••••••••••••" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                        <input type="password" id="wiz_smtp_password" placeholder="••••••••••••" class="w-full pl-10 pr-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" ${conn.smtp_host ? '' : 'required'}>
                                     </div>
                                 </div>
                             </div>
@@ -1663,103 +1602,83 @@ function renderSetupWizard(container, data) {
                                 </div>
                             </div>
 
-                            <!-- Action Buttons -->
-                            <div class="pt-4 flex items-center justify-between border-t border-slate-100 gap-3">
-                                <button type="button" onclick="testSmtpConnection(this)" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 cursor-pointer">
+                            <!-- IMAP Settings Sub-Section -->
+                            <div class="border border-slate-200/80 rounded-2xl p-4 bg-[#f8fafc] space-y-4">
+                                <div id="wiz-imap-same-details-row" class="flex items-center space-x-2">
+                                    <input type="checkbox" id="wiz_imap_use_smtp_details" checked class="h-4 w-4 rounded text-blue-600 border-slate-300 focus:ring-blue-500 cursor-pointer" onchange="toggleWizImapCustomFields(this.checked)">
+                                    <label for="wiz_imap_use_smtp_details" class="text-xs font-bold text-slate-700 cursor-pointer">Use SMTP credentials & host presets (Recommended)</label>
+                                </div>
+
+                                <div id="wiz-imap-custom-fields" class="hidden space-y-4 pt-3 border-t border-slate-200/60">
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <div class="sm:col-span-2 space-y-1.5">
+                                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">IMAP Host *</label>
+                                            <div class="relative">
+                                                <i data-lucide="server" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                                <input type="text" id="wiz_imap_host" value="${conn.imap_host || ''}" placeholder="imap.gmail.com" class="w-full pl-10 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 transition">
+                                            </div>
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Port *</label>
+                                            <div class="relative">
+                                                <i data-lucide="hash" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                                <input type="number" id="wiz_imap_port" value="${conn.imap_port || 993}" placeholder="993" class="w-full pl-10 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 transition">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div class="space-y-1.5">
+                                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">IMAP Username *</label>
+                                            <div class="relative">
+                                                <i data-lucide="at-sign" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                                <input type="text" id="wiz_imap_username" value="${conn.imap_username || ''}" placeholder="john@company.com" class="w-full pl-10 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 transition">
+                                            </div>
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">IMAP Password *</label>
+                                            <div class="relative">
+                                                <i data-lucide="lock" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                                <input type="password" id="wiz_imap_password" placeholder="••••••••••••" class="w-full pl-10 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 transition">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-1.5">
+                                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Encryption</label>
+                                        <div class="relative">
+                                            <i data-lucide="shield" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                            <select id="wiz_imap_encryption" class="w-full pl-10 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 transition">
+                                                <option value="ssl" ${conn.imap_encryption === 'ssl' ? 'selected' : ''}>SSL / TLS (Recommended, Port 993)</option>
+                                                <option value="tls" ${conn.imap_encryption === 'tls' ? 'selected' : ''}>STARTTLS (Port 143)</option>
+                                                <option value="none" ${conn.imap_encryption === 'none' ? 'selected' : ''}>None (Plain Text)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Testing Connection Buttons -->
+                            <div class="pt-4 flex items-center gap-3 border-t border-slate-100">
+                                <button type="button" onclick="testSmtpConnection(this)" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-1.5 cursor-pointer">
                                     <i data-lucide="wifi" class="h-4 w-4 text-slate-500"></i>
-                                    <span>Test Connection</span>
+                                    <span>Test SMTP</span>
                                 </button>
-                                <button type="submit" id="wiz-smtp-submit-btn" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer" style="color: #ffffff !important;">
-                                    <span style="color: #ffffff !important;">Connect SMTP</span>
-                                    <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
+                                <button type="button" onclick="testImapConnection(this)" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-1.5 cursor-pointer">
+                                    <i data-lucide="wifi" class="h-4 w-4 text-slate-500"></i>
+                                    <span>Test IMAP</span>
                                 </button>
+                                <span id="smtp-test-feedback" class="text-xs text-slate-500 font-bold"></span>
+                                <span id="imap-test-feedback" class="text-xs text-slate-500 font-bold ml-2"></span>
                             </div>
                         </form>
                     </div>
-
-                    <!-- CARD 2: Meta Integration (WhatsApp Business) Card -->
-                    <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 sm:p-8 shadow-sm space-y-6">
-                        
-                        <!-- Header -->
-                        <div class="border-b border-slate-100 pb-4 flex justify-between items-center">
-                            <div>
-                                <h2 class="text-lg font-extrabold text-slate-900 flex items-center space-x-2">
-                                    <span class="p-1 bg-emerald-50 text-emerald-600 rounded-lg shrink-0 flex items-center justify-center">
-                                        <svg class="h-4.5 w-4.5 fill-current text-emerald-600" viewBox="0 0 24 24">
-                                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.1 1.45 4.8 1.45 5.58 0 10.12-4.54 10.12-10.12C21.581 5.33 17.26 1 12.01 1 6.43 1 1.89 5.54 1.89 11.12c0 1.9.5 3.76 1.47 5.36L2.38 21.62l5.21-1.37zM17.43 14.19c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-1.12-.56-1.92-.98-2.68-2.29-.3-.52-.3-.88-.15-1.03.14-.14.3-.35.45-.53.15-.17.2-.3.3-.5.1-.2.05-.38-.02-.53-.07-.15-.67-1.62-.92-2.22-.24-.6-.5-.52-.67-.53l-.58-.01c-.2 0-.53.07-.8.37-.28.3-1.07 1.05-1.07 2.56 0 1.5 1.1 2.97 1.25 3.17.15.2 2.15 3.28 5.2 4.6 1.34.57 2.14.75 2.87.68.73-.07 2.22-.91 2.53-1.79.31-.88.31-1.64.21-1.79-.1-.15-.29-.24-.59-.39z"/>
-                                        </svg>
-                                    </span>
-                                    <span>Meta Integration (WhatsApp Business)</span>
-                                </h2>
-                                <p class="text-xs text-slate-500 font-medium mt-1">Connect your WhatsApp Business account securely via Meta Cloud API.</p>
-                            </div>
-                            <span class="text-[10px] px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-extrabold uppercase tracking-wider">Meta Official</span>
-                        </div>
-
-                        <!-- Embedded Signup Option -->
-                        <div class="p-5 border-2 border-emerald-500/80 bg-emerald-50/10 rounded-2xl text-left relative space-y-4">
-                            <div class="flex items-start justify-between">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
-                                        <svg class="h-6 w-6 fill-current" viewBox="0 0 24 24">
-                                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.1 1.45 4.8 1.45 5.58 0 10.12-4.54 10.12-10.12C21.581 5.33 17.26 1 12.01 1 6.43 1 1.89 5.54 1.89 11.12c0 1.9.5 3.76 1.47 5.36L2.38 21.62l5.21-1.37zM17.43 14.19c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-1.12-.56-1.92-.98-2.68-2.29-.3-.52-.3-.88-.15-1.03.14-.14.3-.35.45-.53.15-.17.2-.3.3-.5.1-.2.05-.38-.02-.53-.07-.15-.67-1.62-.92-2.22-.24-.6-.5-.52-.67-.53l-.58-.01c-.2 0-.53.07-.8.37-.28.3-1.07 1.05-1.07 2.56 0 1.5 1.1 2.97 1.25 3.17.15.2 2.15 3.28 5.2 4.6 1.34.57 2.14.75 2.87.68.73-.07 2.22-.91 2.53-1.79.31-.88.31-1.64.21-1.79-.1-.15-.29-.24-.59-.39z"/>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-extrabold text-slate-900 text-sm">Official Meta Embedded Signup</h4>
-                                        <p class="text-[11px] text-slate-500 font-semibold">Fastest option. Connect in under 2 minutes.</p>
-                                    </div>
-                                </div>
-                                <span class="px-2.5 py-0.5 bg-emerald-500 text-white rounded-full text-[9px] font-black uppercase tracking-wider">Recommended</span>
-                            </div>
-
-                            <button type="button" id="wiz-wa-embedded-connect-btn" onclick="launchWizMetaEmbeddedSignup()" class="w-full py-3 text-xs font-bold rounded-xl text-white bg-[#1877F2] hover:bg-[#166FE5] transition flex items-center justify-center space-x-2.5 shadow-md shadow-blue-500/10 cursor-pointer select-none border border-transparent" style="color: #ffffff !important;">
-                                <svg class="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24">
-                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                                </svg>
-                                <span>Login with Facebook</span>
-                            </button>
-                        </div>
-
-                        <!-- Help Line -->
-                        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
-                            <div>
-                                <span class="font-extrabold block text-slate-800">Need help with Meta Setup?</span>
-                                <span class="text-slate-500 text-[11px]">Contact our setup assistance team directly</span>
-                            </div>
-                            <div class="flex items-center space-x-2 shrink-0">
-                                <a href="tel:+918016222991" class="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg font-bold text-slate-700 transition flex items-center space-x-1">
-                                    <i data-lucide="phone" class="h-3.5 w-3.5"></i>
-                                    <span>Call</span>
-                                </a>
-                                <a href="https://wa.me/918016222991" target="_blank" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-bold transition flex items-center space-x-1 shadow-xs" style="color: #ffffff !important;">
-                                    <span>WhatsApp +91 8016222991</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- RIGHT COLUMN: Status, Features & Security Cards -->
+                <!-- RIGHT COLUMN: Sync Preferences & AI Permissions -->
                 <div class="lg:col-span-5 space-y-6">
-
-                    <!-- 1. Setup Progress Card -->
-                    <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 shadow-sm space-y-4">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-2">
-                                <div class="p-2 bg-blue-50 text-blue-600 rounded-xl">
-                                    <i data-lucide="sliders" class="h-4 w-4"></i>
-                                </div>
-                                <span class="text-xs font-extrabold text-slate-900">Setup Progress</span>
-                            </div>
-                            <span id="wiz-progress-text" class="text-xs font-extrabold text-blue-600">50% Completed</span>
-                        </div>
-                        <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                            <div id="wiz-progress-bar-inner" class="bg-blue-600 h-full rounded-full transition-all duration-500" style="width: 50%;"></div>
-                        </div>
-                    </div>
-
-                    <!-- 2. Connection Status Card -->
+                    
+                    <!-- 1. Connection Status Card -->
                     <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 shadow-sm space-y-4">
                         <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
                             <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
@@ -1785,100 +1704,90 @@ function renderSetupWizard(container, data) {
                                 </div>
                                 <span id="wiz-badge-imap" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-600 border border-amber-200/60">Pending</span>
                             </div>
-
-                            <div class="flex items-center justify-between p-2.5 bg-[#f8fafc] rounded-xl border border-slate-100">
-                                <div class="flex items-center space-x-2.5">
-                                    <i data-lucide="shield-check" class="h-4 w-4 text-slate-500"></i>
-                                    <span class="text-xs font-bold text-slate-700">Permissions</span>
-                                </div>
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60">Active</span>
-                            </div>
-
-                            <div class="flex items-center justify-between p-2.5 bg-[#f8fafc] rounded-xl border border-slate-100">
-                                <div class="flex items-center space-x-2.5">
-                                    <i data-lucide="sparkles" class="h-4 w-4 text-slate-500"></i>
-                                    <span class="text-xs font-bold text-slate-700">AI Inbox Engine</span>
-                                </div>
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60">Ready</span>
-                            </div>
-
-                            <div class="flex items-center justify-between p-2.5 bg-[#f8fafc] rounded-xl border border-slate-100">
-                                <div class="flex items-center space-x-2.5">
-                                    <i data-lucide="clock" class="h-4 w-4 text-slate-500"></i>
-                                    <span class="text-xs font-bold text-slate-700">Last Sync</span>
-                                </div>
-                                <span class="text-xs font-bold text-slate-500">Just now</span>
-                            </div>
                         </div>
                     </div>
 
-                    <!-- 3. AI Features Preview Card -->
-                    <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 shadow-sm space-y-4">
+                    <!-- 2. Sync Preferences & AI Permissions Card -->
+                    <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 shadow-sm space-y-5 text-left">
                         <div class="border-b border-slate-100 pb-3">
                             <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
-                                <i data-lucide="zap" class="h-4 w-4 text-blue-600"></i>
-                                <span>Unlocked AI Features</span>
+                                <i data-lucide="sliders" class="h-4 w-4 text-blue-600"></i>
+                                <span>Sync Preferences & AI Permissions</span>
                             </h3>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-2.5 text-xs font-bold text-slate-700">
-                            <div class="flex items-center space-x-2 p-2 bg-[#f8fafc] rounded-xl border border-slate-100">
-                                <span class="text-emerald-500 font-extrabold">✓</span>
-                                <span>AI Reply</span>
+                        <div class="space-y-4">
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Business Type *</label>
+                                <select id="wiz_business_type" onchange="previewDynamicFields(this.value)" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition">
+                                    <option value="Software Company">Software Company / SaaS</option>
+                                    <option value="Marketing Agency">Marketing Agency</option>
+                                    <option value="Freelancer">Freelancer / Consultant</option>
+                                    <option value="Real Estate">Real Estate</option>
+                                    <option value="Hospital">Hospital / Healthcare</option>
+                                    <option value="Other">Other Retail / Services</option>
+                                </select>
+                                <div id="dynamic-fields-preview" class="text-[10px] text-slate-500 font-bold mt-1"></div>
                             </div>
-                            <div class="flex items-center space-x-2 p-2 bg-[#f8fafc] rounded-xl border border-slate-100">
-                                <span class="text-emerald-500 font-extrabold">✓</span>
-                                <span>Smart Inbox</span>
+
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Sync Interval *</label>
+                                <select id="wiz_sync_interval" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition">
+                                    <option value="15">Every 15 Minutes</option>
+                                    <option value="30">Every 30 Minutes</option>
+                                    <option value="60" selected>Every Hour (Recommended)</option>
+                                    <option value="120">Every 2 Hours</option>
+                                </select>
                             </div>
-                            <div class="flex items-center space-x-2 p-2 bg-[#f8fafc] rounded-xl border border-slate-100">
-                                <span class="text-emerald-500 font-extrabold">✓</span>
-                                <span>Email Tracking</span>
+
+                            <div class="border-t border-slate-100 pt-3 space-y-3">
+                                <span class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">AI Access Permissions</span>
+                                
+                                <div class="flex items-start space-x-2.5">
+                                    <input type="checkbox" id="perm_read_emails" checked class="mt-0.5 h-4 w-4 rounded text-blue-600 border-slate-300 focus:ring-blue-500 cursor-pointer">
+                                    <div>
+                                        <label for="perm_read_emails" class="text-xs font-bold text-slate-800 cursor-pointer block">Read Incoming Messages</label>
+                                        <span class="text-[10px] text-slate-400 font-medium">Allows AI to sync replies to your Inbox.</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start space-x-2.5">
+                                    <input type="checkbox" id="perm_read_attachments" checked class="mt-0.5 h-4 w-4 rounded text-blue-600 border-slate-300 focus:ring-blue-500 cursor-pointer">
+                                    <div>
+                                        <label for="perm_read_attachments" class="text-xs font-bold text-slate-800 cursor-pointer block">Read PDF/Word Attachments</label>
+                                        <span class="text-[10px] text-slate-400 font-medium">Allows scanning of invoices, resumes and briefs.</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start space-x-2.5">
+                                    <input type="checkbox" id="perm_ai_processing" checked class="mt-0.5 h-4 w-4 rounded text-blue-600 border-slate-300 focus:ring-blue-500 cursor-pointer">
+                                    <div>
+                                        <label for="perm_ai_processing" class="text-xs font-bold text-slate-800 cursor-pointer block">AI Processing & Sentiment Analysis</label>
+                                        <span class="text-[10px] text-slate-400 font-medium">Extracts topics, leads and suggests replies automatically.</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start space-x-2.5">
+                                    <input type="checkbox" id="perm_auto_sync" checked class="mt-0.5 h-4 w-4 rounded text-blue-600 border-slate-300 focus:ring-blue-500 cursor-pointer">
+                                    <div>
+                                        <label for="perm_auto_sync" class="text-xs font-bold text-slate-800 cursor-pointer block">Background Sync Worker</label>
+                                        <span class="text-[10px] text-slate-400 font-medium">Runs hourly updates even when dashboard is closed.</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="flex items-center space-x-2 p-2 bg-[#f8fafc] rounded-xl border border-slate-100">
-                                <span class="text-emerald-500 font-extrabold">✓</span>
-                                <span>Contact Sync</span>
-                            </div>
-                            <div class="flex items-center space-x-2 p-2 bg-[#f8fafc] rounded-xl border border-slate-100">
-                                <span class="text-emerald-500 font-extrabold">✓</span>
-                                <span>Calendar Detection</span>
-                            </div>
-                            <div class="flex items-center space-x-2 p-2 bg-[#f8fafc] rounded-xl border border-slate-100">
-                                <span class="text-emerald-500 font-extrabold">✓</span>
-                                <span>Automations</span>
-                            </div>
-                            <div class="flex items-center space-x-2 p-2 bg-[#f8fafc] rounded-xl border border-slate-100 col-span-2">
-                                <span class="text-emerald-500 font-extrabold">✓</span>
-                                <span>Campaign Outbound Sending</span>
+
+                            <div class="border-t border-slate-100 pt-3 space-y-2">
+                                <div class="flex items-start space-x-2">
+                                    <input type="checkbox" id="wiz_consent_accepted" class="mt-0.5 h-4 w-4 rounded text-blue-600 border-slate-300 focus:ring-blue-500 cursor-pointer" required>
+                                    <label for="wiz_consent_accepted" class="text-[11px] font-bold text-slate-650 cursor-pointer">I authorize LinkPilot AI to connect to my email server and analyze messages in accordance with the Privacy Agreement.</label>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- 4. Security Card -->
-                    <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 shadow-sm space-y-4">
-                        <div class="border-b border-slate-100 pb-3">
-                            <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
-                                <i data-lucide="lock" class="h-4 w-4 text-blue-600"></i>
-                                <span>Enterprise Security</span>
-                            </h3>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3 text-xs font-bold text-slate-700">
-                            <div class="flex items-center space-x-2">
-                                <i data-lucide="shield-check" class="h-4 w-4 text-emerald-500"></i>
-                                <span>TLS Encrypted</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <i data-lucide="key" class="h-4 w-4 text-emerald-500"></i>
-                                <span>AES-256 Storage</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <i data-lucide="check-circle" class="h-4 w-4 text-emerald-500"></i>
-                                <span>OAuth Supported</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <i data-lucide="check-circle" class="h-4 w-4 text-emerald-500"></i>
-                                <span>GDPR Compliant</span>
-                            </div>
+                        <div class="pt-2">
+                            <button type="button" onclick="activateEmailIntelligenceService(this)" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-md shadow-emerald-500/20 cursor-pointer text-center block" style="color: #ffffff !important;">
+                                <span style="color: #ffffff !important;">Activate Email Intelligence</span>
+                            </button>
                         </div>
                     </div>
 
@@ -1887,213 +1796,95 @@ function renderSetupWizard(container, data) {
         </div>
     `;
     lucide.createIcons();
+    selectWizProviderPreset(provider);
+    previewDynamicFields(document.getElementById('wiz_business_type').value);
 }
 
-window.toggleWizProvider = function(val) {
-    const oauthBlock = document.getElementById('wiz-gmail-oauth-block');
-    const actionBtn = document.getElementById('wiz-action-btn-container');
-    if (!oauthBlock) return;
-    
-    if (val === 'gmail') {
-        oauthBlock.classList.remove('hidden');
-        if (actionBtn) actionBtn.classList.add('hidden');
-    } else {
-        oauthBlock.classList.add('hidden');
-        if (actionBtn) actionBtn.classList.remove('hidden');
-    }
-};
-
-window.selectWizProvider = function(val) {
-    const radio = document.querySelector(`input[name="email_provider"][value="${val}"]`);
-    if (radio) radio.checked = true;
-    
-    ['gmail', 'outlook', 'custom'].forEach(p => {
-        const card = document.getElementById(`provider-card-${p}`);
-        if (card) {
-            if (p === val) {
-                card.className = "p-5 bg-white border rounded-2xl cursor-pointer transition-all duration-300 block relative hover:shadow-md border-blue-600 ring-1 ring-blue-600";
-            } else {
-                card.className = "p-5 bg-white border rounded-2xl cursor-pointer transition-all duration-300 block relative hover:shadow-md border-slate-200";
-            }
-        }
-    });
-
-    toggleWizProvider(val);
-};
-
-window.launchWizGoogleOAuth = async function() {
-    try {
-        showNotification('info', 'Constructing secure Google auth request URL...');
-        const res = await apiCall('external_apps/auth.php?type=gmail&from=email-intelligence');
-        if (res.status === 'success' && res.auth_url) {
-            window.location.href = res.auth_url;
-        } else {
-            showNotification('error', res.message || 'Failed to initialize Google login.');
-        }
-    } catch (err) {
-        showNotification('error', 'OAuth URL creation failed: ' + err.message);
-    }
-};
-
-window.launchWizMetaEmbeddedSignup = async function() {
-    const btn = document.getElementById('wiz-wa-embedded-connect-btn');
-    const origHtml = btn ? btn.innerHTML : '';
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = `<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div><span>Initializing Meta...</span>`;
-    }
-    
-    try {
-        const config = await apiCall('whatsapp/embedded_signup.php');
-        const appId = config.app_id;
-        const state = config.state;
-        const scopes = config.scopes;
-        
-        if (!appId) {
-            const useDemo = confirm("Demo Mode: No Meta App ID is configured in Admin Settings. Connect sandbox demo account?");
-            if (useDemo) {
-                const res = await apiCall('whatsapp/oauth_callback.php', 'POST', { access_token: "EAAGeminiTest", state });
-                showNotification('success', 'Connected Successfully via Meta Embedded Signup!');
-            } else {
-                showNotification('warning', 'Meta App ID configuration is required in Admin Control Panel.');
-            }
-            return;
-        }
-        
-        if (!window.FB) {
-            await new Promise(resolve => {
-                if (document.getElementById('facebook-jssdk')) return resolve();
-                var js = document.createElement('script');
-                js.id = 'facebook-jssdk';
-                js.src = "https://connect.facebook.net/en_US/sdk.js";
-                js.onload = () => resolve();
-                document.getElementsByTagName('script')[0].parentNode.insertBefore(js, document.getElementsByTagName('script')[0]);
-            });
-        }
-        
-        FB.init({ appId, cookie: true, xfbml: true, version: 'v20.0' });
-        
-        FB.login(function(response) {
-            if (response.authResponse) {
-                apiCall('whatsapp/oauth_callback.php', 'POST', {
-                    access_token: response.authResponse.accessToken,
-                    state: state
-                }).then(() => showNotification('success', 'WhatsApp Connected via Meta Signup!'));
-            } else {
-                showNotification('error', 'Login cancelled.');
-            }
-        }, { scope: scopes, extras: { feature: 'whatsapp_embedded_signup' } });
-        
-    } catch (err) {
-        showNotification('error', err.message || 'Meta OAuth initialization failed.');
-    } finally {
+window.selectWizProviderPreset = function(provider) {
+    ['gmail', 'outlook', 'zoho', 'office365', 'yahoo', 'custom'].forEach(p => {
+        const btn = document.getElementById(`wiz-btn-${p}`);
         if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = origHtml;
-            if (window.lucide) lucide.createIcons();
-        }
-    }
-};
-
-function adjustWizardStep(dir) {
-    const nextStep = Math.max(1, Math.min(6, wizardStep + dir));
-    if (nextStep === wizardStep) return;
-    
-    // If moving forward from step 1, pre-fill values based on provider choice
-    if (dir === 1 && wizardStep === 1) {
-        const provider = document.querySelector('input[name="email_provider"]:checked')?.value || 'custom';
-        const smtpHost = document.getElementById('wiz_smtp_host');
-        const smtpPort = document.getElementById('wiz_smtp_port');
-        const smtpEnc = document.getElementById('wiz_smtp_encryption');
-        const imapHost = document.getElementById('wiz_imap_host');
-        const imapPort = document.getElementById('wiz_imap_port');
-        const imapEnc = document.getElementById('wiz_imap_encryption');
-        
-        if (provider === 'gmail') {
-            if (smtpHost) smtpHost.value = 'smtp.gmail.com';
-            if (smtpPort) smtpPort.value = '587';
-            if (smtpEnc) smtpEnc.value = 'tls';
-            if (imapHost) imapHost.value = 'imap.gmail.com';
-            if (imapPort) imapPort.value = '993';
-            if (imapEnc) imapEnc.value = 'ssl';
-        } else if (provider === 'outlook') {
-            if (smtpHost) smtpHost.value = 'smtp.office365.com';
-            if (smtpPort) smtpPort.value = '587';
-            if (smtpEnc) smtpEnc.value = 'tls';
-            if (imapHost) imapHost.value = 'outlook.office365.com';
-            if (imapPort) imapPort.value = '993';
-            if (imapEnc) imapEnc.value = 'ssl';
-        }
-    }
-    
-    wizardStep = nextStep;
-
-    // Toggle panes
-    const panes = document.querySelectorAll('.wizard-pane');
-    panes.forEach((pane, idx) => {
-        if (idx === (wizardStep - 1)) {
-            pane.classList.remove('hidden');
-        } else {
-            pane.classList.add('hidden');
-        }
-    });
-
-    // Update progress bar
-    const progressBar = document.getElementById('wiz-progress-bar');
-    if (progressBar) {
-        progressBar.style.width = `${(wizardStep - 1) * 20}%`;
-    }
-
-    // Update stepper progress nodes
-    const steps = document.querySelectorAll('.wizard-step');
-    steps.forEach((step, idx) => {
-        const stepNum = idx + 1;
-        const circleNode = step.querySelector('.rounded-full');
-        const labelNode = step.querySelector('span');
-        if (circleNode && labelNode) {
-            circleNode.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300";
-            if (stepNum <= wizardStep) {
-                circleNode.classList.add('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-500/20');
-                labelNode.className = "text-[10px] font-extrabold uppercase mt-2 tracking-wider text-blue-600";
+            if (p === provider) {
+                btn.className = "p-3.5 border border-blue-500 bg-blue-50/20 rounded-xl transition flex flex-col items-center justify-center space-y-1.5 text-center group cursor-pointer ring-1 ring-blue-500";
             } else {
-                circleNode.classList.add('bg-white', 'border', 'border-slate-200', 'text-slate-400');
-                labelNode.className = "text-[10px] font-extrabold uppercase mt-2 tracking-wider text-slate-400";
+                btn.className = "p-3.5 border border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50/20 transition flex flex-col items-center justify-center space-y-1.5 bg-white text-center group cursor-pointer";
             }
         }
     });
 
-    // Toggle Back button visibility & styling
-    const backBtn = document.getElementById('wiz-back-btn');
-    if (backBtn) {
-        if (wizardStep === 1) {
-            backBtn.classList.add('invisible');
+    const oauthBanner = document.getElementById('wiz-gmail-oauth-banner');
+    const hostEl = document.getElementById('wiz_smtp_host');
+    const portEl = document.getElementById('wiz_smtp_port');
+    const encEl = document.getElementById('wiz_smtp_encryption');
+
+    const imapHostEl = document.getElementById('wiz_imap_host');
+    const imapPortEl = document.getElementById('wiz_imap_port');
+    const imapEncEl = document.getElementById('wiz_imap_encryption');
+
+    if (provider === 'gmail') {
+        if (oauthBanner) oauthBanner.classList.remove('hidden');
+        if (hostEl) hostEl.value = 'smtp.gmail.com';
+        if (portEl) portEl.value = '587';
+        if (encEl) encEl.value = 'tls';
+        if (imapHostEl) imapHostEl.value = 'imap.gmail.com';
+        if (imapPortEl) imapPortEl.value = '993';
+        if (imapEncEl) imapEncEl.value = 'ssl';
+    } else {
+        if (oauthBanner) oauthBanner.classList.add('hidden');
+        if (provider === 'outlook') {
+            if (hostEl) hostEl.value = 'smtp.office365.com';
+            if (portEl) portEl.value = '587';
+            if (encEl) encEl.value = 'tls';
+            if (imapHostEl) imapHostEl.value = 'outlook.office365.com';
+            if (imapPortEl) imapPortEl.value = '993';
+            if (imapEncEl) imapEncEl.value = 'ssl';
+        } else if (provider === 'zoho') {
+            if (hostEl) hostEl.value = 'smtp.zoho.com';
+            if (portEl) portEl.value = '465';
+            if (encEl) encEl.value = 'ssl';
+            if (imapHostEl) imapHostEl.value = 'imap.zoho.com';
+            if (imapPortEl) imapPortEl.value = '993';
+            if (imapEncEl) imapEncEl.value = 'ssl';
+        } else if (provider === 'office365') {
+            if (hostEl) hostEl.value = 'smtp.office365.com';
+            if (portEl) portEl.value = '587';
+            if (encEl) encEl.value = 'tls';
+            if (imapHostEl) imapHostEl.value = 'outlook.office365.com';
+            if (imapPortEl) imapPortEl.value = '993';
+            if (imapEncEl) imapEncEl.value = 'ssl';
+        } else if (provider === 'yahoo') {
+            if (hostEl) hostEl.value = 'smtp.mail.yahoo.com';
+            if (portEl) portEl.value = '465';
+            if (encEl) encEl.value = 'ssl';
+            if (imapHostEl) imapHostEl.value = 'imap.mail.yahoo.com';
+            if (imapPortEl) imapPortEl.value = '993';
+            if (imapEncEl) imapEncEl.value = 'ssl';
         } else {
-            backBtn.classList.remove('invisible');
+            if (hostEl) hostEl.value = '';
+            if (portEl) portEl.value = '587';
+            if (encEl) encEl.value = 'tls';
+            if (imapHostEl) imapHostEl.value = '';
+            if (imapPortEl) imapPortEl.value = '993';
+            if (imapEncEl) imapEncEl.value = 'ssl';
         }
     }
 
-    // Toggle Next / Activate button at bottom
-    const actionBtnContainer = document.getElementById('wiz-action-btn-container');
-    if (actionBtnContainer) {
-        if (wizardStep === 6) {
-            actionBtnContainer.innerHTML = `
-                <button type="button" onclick="activateEmailIntelligenceService(this)" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold transition shadow-md shadow-emerald-500/10">
-                    Activate Email Intelligence
-                </button>
-            `;
-        } else {
-            actionBtnContainer.innerHTML = `
-                <button type="button" onclick="adjustWizardStep(1)" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-extrabold transition shadow-md shadow-blue-500/10 flex items-center space-x-1.5">
-                    <span>Next Step</span>
-                    <i data-lucide="arrow-right" class="h-4 w-4"></i>
-                </button>
-            `;
-        }
-        lucide.createIcons();
-    }
-}
+    const radio = document.getElementById(`provider-radio-${provider}`);
+    if (radio) radio.checked = true;
+};
 
-function previewDynamicFields(type) {
+window.toggleWizImapCustomFields = function(inherit) {
+    const customFields = document.getElementById('wiz-imap-custom-fields');
+    if (customFields) {
+        if (inherit) {
+            customFields.classList.add('hidden');
+        } else {
+            customFields.classList.remove('hidden');
+        }
+    }
+};
+
+window.previewDynamicFields = function(type) {
     const previewEl = document.getElementById('dynamic-fields-preview');
     if (!previewEl) return;
     
@@ -2112,20 +1903,36 @@ function previewDynamicFields(type) {
         fields = 'Domain requirements, Project retainers, Core service objectives, Custom attributes';
     }
     previewEl.innerHTML = `<strong>Dynamic CRM fields generated:</strong> ${fields}`;
-}
+};
 
-async function testSmtpConnection(btn) {
+window.launchWizGoogleOAuth = async function() {
+    try {
+        showNotification('info', 'Constructing secure Google auth request URL...');
+        const res = await apiCall('external_apps/auth.php?type=gmail&from=email-intelligence');
+        if (res.status === 'success' && res.auth_url) {
+            window.location.href = res.auth_url;
+        } else {
+            showNotification('error', res.message || 'Failed to initialize Google login.');
+        }
+    } catch (err) {
+        showNotification('error', 'OAuth URL creation failed: ' + err.message);
+    }
+};
+
+window.testSmtpConnection = async function(btn) {
     const origText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = `<div class="loader-spinner !w-3.5 !h-3.5 !border-2 mr-1"></div> Testing...`;
+    btn.innerHTML = `<div class="loader-spinner !w-3 !h-3 mr-1"></div> Testing...`;
     
     const feedback = document.getElementById('smtp-test-feedback');
-    feedback.className = 'text-xs text-slate-400';
-    feedback.textContent = 'Contacting server...';
+    if (feedback) {
+        feedback.className = 'text-xs text-slate-400 font-bold';
+        feedback.textContent = 'Contacting server...';
+    }
     
     const payload = {
         smtp_host: document.getElementById('wiz_smtp_host').value,
-        smtp_port: parseInt(document.getElementById('wiz_smtp_port').value),
+        smtp_port: parseInt(document.getElementById('wiz_smtp_port').value || 587),
         smtp_username: document.getElementById('wiz_smtp_username').value,
         smtp_password: document.getElementById('wiz_smtp_password').value,
         smtp_encryption: document.getElementById('wiz_smtp_encryption').value
@@ -2134,82 +1941,143 @@ async function testSmtpConnection(btn) {
     try {
         const data = await apiCall('crm/email_intelligence/settings.php?action=test_smtp', 'POST', payload);
         if (data.status === 'success') {
-            feedback.className = 'text-xs text-emerald-400 font-bold';
-            feedback.textContent = '✓ SMTP Connected successfully!';
+            if (feedback) {
+                feedback.className = 'text-xs text-emerald-500 font-bold';
+                feedback.textContent = '✓ SMTP Connected!';
+            }
+            const badge = document.getElementById('wiz-badge-smtp');
+            if (badge) {
+                badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                badge.textContent = "Verified";
+            }
         } else {
-            feedback.className = 'text-xs text-red-400 font-bold';
-            feedback.textContent = '✗ ' + data.message;
+            if (feedback) {
+                feedback.className = 'text-xs text-red-500 font-bold';
+                feedback.textContent = '✗ ' + data.message;
+            }
         }
     } catch (err) {
-        feedback.className = 'text-xs text-red-400 font-bold';
-        feedback.textContent = '✗ ' + err.message;
+        if (feedback) {
+            feedback.className = 'text-xs text-red-500 font-bold';
+            feedback.textContent = '✗ ' + err.message;
+        }
     } finally {
         btn.disabled = false;
         btn.innerHTML = origText;
     }
-}
+};
 
-async function testImapConnection(btn) {
+window.testImapConnection = async function(btn) {
     const origText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = `<div class="loader-spinner !w-3.5 !h-3.5 !border-2 mr-1"></div> Testing...`;
+    btn.innerHTML = `<div class="loader-spinner !w-3 !h-3 mr-1"></div> Testing...`;
     
     const feedback = document.getElementById('imap-test-feedback');
-    feedback.className = 'text-xs text-slate-400';
-    feedback.textContent = 'Connecting...';
+    if (feedback) {
+        feedback.className = 'text-xs text-slate-400 font-bold';
+        feedback.textContent = 'Connecting...';
+    }
     
-    const payload = {
-        imap_host: document.getElementById('wiz_imap_host').value,
-        imap_port: parseInt(document.getElementById('wiz_imap_port').value),
-        imap_username: document.getElementById('wiz_imap_username').value,
-        imap_password: document.getElementById('wiz_imap_password').value,
-        imap_encryption: document.getElementById('wiz_imap_encryption').value
-    };
+    const use_smtp = document.getElementById('wiz_imap_use_smtp_details')?.checked;
+    let payload = {};
+    if (use_smtp) {
+        payload = {
+            imap_host: document.getElementById('wiz_smtp_host').value.replace('smtp.', 'imap.'),
+            imap_port: 993,
+            imap_username: document.getElementById('wiz_smtp_username').value,
+            imap_password: document.getElementById('wiz_smtp_password').value,
+            imap_encryption: 'ssl'
+        };
+    } else {
+        payload = {
+            imap_host: document.getElementById('wiz_imap_host').value,
+            imap_port: parseInt(document.getElementById('wiz_imap_port').value || 993),
+            imap_username: document.getElementById('wiz_imap_username').value,
+            imap_password: document.getElementById('wiz_imap_password').value,
+            imap_encryption: document.getElementById('wiz_imap_encryption').value
+        };
+    }
     
     try {
         const data = await apiCall('crm/email_intelligence/settings.php?action=test_imap', 'POST', payload);
         if (data.status === 'success') {
-            feedback.className = 'text-xs text-emerald-400 font-bold';
-            feedback.textContent = '✓ IMAP Connection successful!';
+            if (feedback) {
+                feedback.className = 'text-xs text-emerald-500 font-bold';
+                feedback.textContent = '✓ IMAP Connected!';
+            }
+            const badge = document.getElementById('wiz-badge-imap');
+            if (badge) {
+                badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                badge.textContent = "Verified";
+            }
         } else {
-            feedback.className = 'text-xs text-red-400 font-bold';
-            feedback.textContent = '✗ ' + data.message;
+            if (feedback) {
+                feedback.className = 'text-xs text-red-500 font-bold';
+                feedback.textContent = '✗ ' + data.message;
+            }
         }
     } catch (err) {
-        feedback.className = 'text-xs text-red-400 font-bold';
-        feedback.textContent = '✗ ' + err.message;
+        if (feedback) {
+            feedback.className = 'text-xs text-red-500 font-bold';
+            feedback.textContent = '✗ ' + err.message;
+        }
     } finally {
         btn.disabled = false;
         btn.innerHTML = origText;
     }
-}
+};
 
-async function activateEmailIntelligenceService(btn) {
-    const consent = document.getElementById('wiz_consent_accepted').checked;
+window.activateEmailIntelligenceService = async function(btn) {
+    const consent = document.getElementById('wiz_consent_accepted')?.checked;
     if (!consent) {
         showNotification('warning', 'You must accept the Privacy Agreement consent checklist first.');
         return;
     }
     
+    const smtp_host = document.getElementById('wiz_smtp_host').value;
+    const smtp_username = document.getElementById('wiz_smtp_username').value;
+    if (!smtp_host || !smtp_username) {
+        showNotification('warning', 'SMTP Host and Username are required.');
+        return;
+    }
+
     btn.disabled = true;
-    btn.innerHTML = `<div class="loader-spinner !w-3.5 !h-3.5 !border-2"></div> Activating...`;
+    const origText = btn.innerHTML;
+    btn.innerHTML = `<div class="loader-spinner !w-3 !h-3 mr-1"></div> Activating...`;
+    
+    const use_smtp = document.getElementById('wiz_imap_use_smtp_details')?.checked;
+    let imap_host, imap_port, imap_username, imap_password, imap_encryption;
+    if (use_smtp) {
+        imap_host = smtp_host.replace('smtp.', 'imap.');
+        imap_port = 993;
+        imap_username = smtp_username;
+        imap_password = document.getElementById('wiz_smtp_password').value;
+        imap_encryption = 'ssl';
+    } else {
+        imap_host = document.getElementById('wiz_imap_host').value;
+        imap_port = parseInt(document.getElementById('wiz_imap_port').value || 993);
+        imap_username = document.getElementById('wiz_imap_username').value;
+        imap_password = document.getElementById('wiz_imap_password').value;
+        imap_encryption = document.getElementById('wiz_imap_encryption').value;
+    }
     
     const payload = {
         email_provider: document.querySelector('input[name="email_provider"]:checked')?.value || 'custom',
-        smtp_host: document.getElementById('wiz_smtp_host').value,
-        smtp_port: parseInt(document.getElementById('wiz_smtp_port').value),
-        smtp_username: document.getElementById('wiz_smtp_username').value,
+        smtp_host,
+        smtp_port: parseInt(document.getElementById('wiz_smtp_port').value || 587),
+        smtp_username,
         smtp_password: document.getElementById('wiz_smtp_password').value,
         smtp_encryption: document.getElementById('wiz_smtp_encryption').value,
         
-        imap_host: document.getElementById('wiz_imap_host').value,
-        imap_port: parseInt(document.getElementById('wiz_imap_port').value),
-        imap_username: document.getElementById('wiz_imap_username').value,
-        imap_password: document.getElementById('wiz_imap_password').value,
-        imap_encryption: document.getElementById('wiz_imap_encryption').value,
+        imap_host,
+        imap_port,
+        imap_username,
+        imap_password,
+        imap_encryption,
+        imap_use_smtp_details: use_smtp ? 1 : 0,
         
         business_type: document.getElementById('wiz_business_type').value,
-        sync_interval_minutes: parseInt(document.getElementById('wiz_sync_interval').value),
+        sync_interval_minutes: parseInt(document.getElementById('wiz_sync_interval').value || 60),
         
         permissions: {
             read_emails: document.getElementById('perm_read_emails').checked,
@@ -2229,7 +2097,6 @@ async function activateEmailIntelligenceService(btn) {
             showNotification('success', 'Email Intelligence service activated! Initiating sync.');
             isSmtpConfigured = null;
             isEmailSyncConfigured = null;
-            wizardStep = 1;
             navigateTo('email-intelligence');
         } else {
             showNotification('error', data.message);
@@ -2238,7 +2105,7 @@ async function activateEmailIntelligenceService(btn) {
         showNotification('error', 'Activation failed: ' + err.message);
     } finally {
         btn.disabled = false;
-        btn.innerHTML = 'Activate Email Intelligence';
+        btn.innerHTML = origText;
     }
 }
 

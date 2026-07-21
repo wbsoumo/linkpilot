@@ -201,19 +201,9 @@ try {
                 $totalCount = (int)$countStmt->fetchColumn();
                 
                 // Fetch records
-                $dataStmt = $db->prepare("SELECT id, sender_name, sender_email, subject, category, received_date, is_read, is_starred, is_archived, priority, sentiment, spam_probability, ai_summary " . $query . " ORDER BY received_date DESC LIMIT :limit OFFSET :offset");
-                
-                foreach ($params as $pKey => $pVal) {
-                    if (is_int($pVal)) {
-                        $dataStmt->bindValue(':' . $pKey, $pVal, PDO::PARAM_INT);
-                    } else {
-                        $dataStmt->bindValue(':' . $pKey, $pVal, PDO::PARAM_STR);
-                    }
-                }
-                $dataStmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-                $dataStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-                $dataStmt->execute();
-                
+                $sqlData = "SELECT id, sender_name, sender_email, subject, category, received_date, is_read, is_starred, is_archived, priority, sentiment, spam_probability, ai_summary " . $query . " ORDER BY received_date DESC LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
+                $dataStmt = $db->prepare($sqlData);
+                $dataStmt->execute($params);
                 $emails = $dataStmt->fetchAll();
             }
             

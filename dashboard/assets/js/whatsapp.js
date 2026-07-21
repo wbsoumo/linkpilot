@@ -122,8 +122,8 @@ function renderWhatsAppSetup(container, settings) {
 
                     <div class="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                         <button type="button" id="wa-embedded-signup-btn" onclick="launchDashboardMetaEmbeddedSignup()" class="px-6 py-3 bg-[#1877F2] hover:bg-[#166fe5] text-white text-xs font-bold rounded-xl transition flex items-center justify-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer border-0" style="color: #ffffff !important;">
-                            <svg class="h-4 w-4 fill-current text-white" viewBox="0 0 24 24">
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            <svg class="h-4 w-4 shrink-0 fill-white" viewBox="0 0 24 24" style="fill: #ffffff !important;">
+                                <path fill="#ffffff" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                             </svg>
                             <span style="color: #ffffff !important;">Log in with Facebook for WhatsApp</span>
                         </button>
@@ -152,7 +152,7 @@ function renderWhatsAppSetup(container, settings) {
                     <div class="flex-grow border-t border-slate-200"></div>
                 </div>
 
-                <!-- Option 2: Clean Manual Meta Credentials Form (NO Name, NO Mobile number!) -->
+                <!-- Option 2: Clean Manual Meta Credentials Form -->
                 <div class="p-6 border border-slate-200/80 rounded-2xl bg-white space-y-5 shadow-2xs">
                     <div class="flex items-center space-x-2 border-b border-slate-100 pb-3">
                         <div class="p-2 bg-blue-50 text-blue-600 rounded-xl border border-blue-100">
@@ -167,14 +167,21 @@ function renderWhatsAppSetup(container, settings) {
                     <form id="setup-wa-manual-clean-form" onsubmit="saveMetaManualCredentialsClean(event)" class="space-y-4">
                         <div class="space-y-1.5">
                             <div class="flex justify-between items-center">
-                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Permanent Access Token *</label>
+                                <div class="flex items-center space-x-2">
+                                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Permanent Access Token *</label>
+                                    <span id="wa-clean-verified-badge-token" class="hidden px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-[10px] font-extrabold flex items-center space-x-1">
+                                        <i data-lucide="check-circle" class="h-3 w-3 text-emerald-600"></i>
+                                        <span>Verified</span>
+                                    </span>
+                                </div>
                                 <button type="button" onclick="openMetaTokenHelpDialog()" class="text-[10px] text-blue-600 font-bold hover:underline bg-transparent border-0 cursor-pointer">Where do I get this?</button>
                             </div>
                             <div class="relative">
-                                <input type="password" id="wa-clean-token" value="${tokenVal}" placeholder="EAAGemini... (Paste Meta system user token)" class="w-full pl-3.5 pr-24 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-mono font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                <input type="password" id="wa-clean-token" value="${tokenVal}" placeholder="EAAGemini... (Paste Meta system user token)" class="w-full pl-3.5 pr-36 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-mono font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
                                 <div class="absolute inset-y-0 right-0 pr-2 flex items-center space-x-1">
                                     <button type="button" onclick="toggleCleanTokenVisibility()" class="p-1 text-slate-500 hover:text-slate-700 text-[10px] font-bold transition bg-transparent border-0 cursor-pointer" id="btn-toggle-clean-token">Show</button>
                                     <button type="button" onclick="clearCleanTokenInput()" class="p-1 text-slate-450 hover:text-slate-700 text-[10px] font-bold transition bg-transparent border-0 cursor-pointer">Clear</button>
+                                    <button type="button" id="btn-verify-clean-token" onclick="verifyMetaCredentialsClean()" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-black transition cursor-pointer border-0 shadow-2xs" style="color: #ffffff !important;">Verify</button>
                                 </div>
                             </div>
                         </div>
@@ -185,14 +192,28 @@ function renderWhatsAppSetup(container, settings) {
                                 <input type="text" id="wa-clean-waba-id" value="${wabaVal}" placeholder="e.g. 1092384729384 (Optional)" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-mono font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition">
                             </div>
                             <div class="space-y-1.5">
-                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Phone Number ID *</label>
-                                <input type="text" id="wa-clean-phone-id" value="${phoneVal}" placeholder="e.g. 1029384729384" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-mono font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                <div class="flex items-center space-x-2">
+                                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Phone Number ID *</label>
+                                    <span id="wa-clean-verified-badge-phone" class="hidden px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-[10px] font-extrabold flex items-center space-x-1">
+                                        <i data-lucide="check-circle" class="h-3 w-3 text-emerald-600"></i>
+                                        <span>Verified</span>
+                                    </span>
+                                </div>
+                                <div class="relative">
+                                    <input type="text" id="wa-clean-phone-id" value="${phoneVal}" placeholder="e.g. 1029384729384" class="w-full pl-3.5 pr-20 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-mono font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                    <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
+                                        <button type="button" id="btn-verify-clean-phone" onclick="verifyMetaCredentialsClean()" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-black transition cursor-pointer border-0 shadow-2xs" style="color: #ffffff !important;">Verify</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="p-3.5 bg-blue-50/60 border border-blue-100 rounded-xl flex items-center space-x-3 text-[11px] text-blue-800 font-semibold leading-relaxed">
-                            <i data-lucide="info" class="h-4 w-4 text-blue-600 shrink-0"></i>
-                            <span>Business Display Name and Display Phone Number are automatically fetched from Meta Graph API using your token & Phone Number ID.</span>
+                        <!-- Verified Name and Linked Number Container -->
+                        <div id="wa-clean-verified-box-container" class="space-y-2">
+                            <div class="p-3.5 bg-blue-50/60 border border-blue-100 rounded-xl flex items-center space-x-3 text-[11px] text-blue-800 font-semibold leading-relaxed">
+                                <i data-lucide="info" class="h-4 w-4 text-blue-600 shrink-0"></i>
+                                <span>Click <strong>Verify</strong> to fetch your verified Meta Business Name & Linked Phone Number automatically.</span>
+                            </div>
                         </div>
 
                         <div class="pt-2">
@@ -212,6 +233,70 @@ function renderWhatsAppSetup(container, settings) {
 }
 
 // Global action handlers for clean Meta connector
+window.verifyMetaCredentialsClean = async function() {
+    const tokenInput = document.getElementById('wa-clean-token');
+    const phoneInput = document.getElementById('wa-clean-phone-id');
+    const badgeToken = document.getElementById('wa-clean-verified-badge-token');
+    const badgePhone = document.getElementById('wa-clean-verified-badge-phone');
+    const containerBox = document.getElementById('wa-clean-verified-box-container');
+
+    if (!tokenInput || !phoneInput) return;
+    const token = tokenInput.value.trim();
+    const phoneId = phoneInput.value.trim();
+
+    if (!token || !phoneId) {
+        showNotification('error', 'Please enter Permanent Access Token and Phone Number ID to verify.');
+        return;
+    }
+
+    const btnToken = document.getElementById('btn-verify-clean-token');
+    const btnPhone = document.getElementById('btn-verify-clean-phone');
+    if (btnToken) btnToken.innerHTML = `Verifying...`;
+    if (btnPhone) btnPhone.innerHTML = `Verifying...`;
+
+    try {
+        const res = await apiCall('whatsapp/setup.php?action=verify_credentials', 'POST', {
+            access_token: token,
+            phone_number_id: phoneId
+        });
+
+        if (res.status === 'success' && res.data) {
+            const data = res.data;
+            showNotification('success', 'Meta credentials verified successfully!');
+            
+            if (badgeToken) badgeToken.classList.remove('hidden');
+            if (badgePhone) badgePhone.classList.remove('hidden');
+
+            if (containerBox) {
+                containerBox.innerHTML = `
+                    <div class="p-4 bg-emerald-50/90 border border-emerald-200 rounded-2xl space-y-2.5 text-xs text-slate-800 shadow-2xs animate-fade-in">
+                        <div class="flex items-center justify-between border-b border-emerald-200/80 pb-2">
+                            <div class="flex items-center space-x-2">
+                                <span class="p-1 bg-emerald-500 text-white rounded-lg"><i data-lucide="check" class="h-3.5 w-3.5"></i></span>
+                                <span class="font-extrabold text-emerald-950 text-xs">Meta Credentials Verified</span>
+                            </div>
+                            <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-full text-[10px] uppercase font-black tracking-wide">${data.quality_rating || 'GREEN'}</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-slate-700 font-medium pt-1">
+                            <div><span class="text-slate-500 font-semibold text-[11px] block">Meta Business Name</span> <strong class="font-extrabold text-slate-900 text-xs block mt-0.5">${data.business_name || 'WhatsApp Business'}</strong></div>
+                            <div><span class="text-slate-500 font-semibold text-[11px] block">Linked Phone Number</span> <strong class="font-mono font-extrabold text-slate-900 text-xs block mt-0.5">${data.display_phone_number || '--'}</strong></div>
+                            <div><span class="text-slate-500 font-semibold text-[11px] block">Messaging Limit</span> <strong class="font-bold text-slate-800 text-xs block mt-0.5">${data.messaging_limit || '1000/day'}</strong></div>
+                            <div><span class="text-slate-500 font-semibold text-[11px] block">Connection Status</span> <strong class="text-emerald-700 font-extrabold text-xs block mt-0.5">Verified & Ready to Connect</strong></div>
+                        </div>
+                    </div>
+                `;
+            }
+        } else {
+            showNotification('error', res.message || 'Meta verification failed.');
+        }
+    } catch (err) {
+        showNotification('error', err.message || 'Verification failed. Please check token and Phone Number ID.');
+    } finally {
+        if (btnToken) btnToken.innerHTML = `Verify`;
+        if (btnPhone) btnPhone.innerHTML = `Verify`;
+        if (window.lucide) lucide.createIcons();
+    }
+};
 window.saveMetaManualCredentialsClean = async function(e) {
     if (e) e.preventDefault();
     const btn = document.getElementById('wa-clean-submit-btn');

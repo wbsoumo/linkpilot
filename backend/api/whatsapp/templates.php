@@ -55,8 +55,33 @@ try {
                 } catch (Throwable $e) {
                     $healed = false;
                     
-                    // Fallback 1: If stored WABA ID is actually a Business Manager ID, fetch WABAs owned by/shared with it
-                    if (!empty($wabaId)) {
+                    // Fallback 1: Fetch WABAs assigned to the System User (most common for manual tokens)
+                    try {
+                        $me = WhatsAppMetaService::executeRequest("me", "GET", null, $accessToken);
+                        $sysUserId = $me['id'] ?? '';
+                        if (!empty($sysUserId)) {
+                            $assignedRes = WhatsAppMetaService::executeRequest("{$sysUserId}/assigned_whatsapp_business_accounts?fields=id,name,status", "GET", null, $accessToken);
+                            $assignedWabas = $assignedRes['data'] ?? [];
+                            foreach ($assignedWabas as $w) {
+                                $possibleWabaId = $w['id'] ?? '';
+                                if (!empty($possibleWabaId) && $possibleWabaId !== $wabaId) {
+                                    try {
+                                        $metaTemplates = WhatsAppMetaService::getTemplates($userId, $possibleWabaId, $accessToken);
+                                        $tplData = $metaTemplates['data'] ?? [];
+                                        
+                                        // Auto-correct database
+                                        $stmtUpdate = $db->prepare("UPDATE whatsapp_accounts SET waba_id = ? WHERE user_id = ?");
+                                        $stmtUpdate->execute([$possibleWabaId, $userId]);
+                                        $healed = true;
+                                        break;
+                                    } catch (Throwable $ignore) {}
+                                }
+                            }
+                        }
+                    } catch (Throwable $ignore) {}
+                    
+                    // Fallback 2: If stored WABA ID is actually a Business Manager ID, fetch WABAs owned by/shared with it
+                    if (!$healed && !empty($wabaId)) {
                         try {
                             $wabasList = [];
                             try {
@@ -87,7 +112,7 @@ try {
                         } catch (Throwable $ignore) {}
                     }
                     
-                    // Fallback 2: Get parent WABA ID from the Phone Number ID directly (whatsapp_business_account field)
+                    // Fallback 3: Get parent WABA ID from the Phone Number ID directly (whatsapp_business_account field)
                     if (!$healed && !empty($phoneId)) {
                         try {
                             $phoneDetails = WhatsAppMetaService::executeRequest("{$phoneId}?fields=whatsapp_business_account", "GET", null, $accessToken);
@@ -106,7 +131,7 @@ try {
                         } catch (Throwable $ignore) {}
                     }
                     
-                    // Fallback 3: Query all global WABA accounts associated with token (standard list)
+                    // Fallback 4: Query all global WABA accounts associated with token (standard list)
                     if (!$healed) {
                         try {
                             $wabaRes = WhatsAppMetaService::getWabasDirectly($accessToken);

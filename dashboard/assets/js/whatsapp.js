@@ -264,6 +264,38 @@ window.saveMetaManualCredentialsClean = async function(e) {
     }
 };
 
+function loadFbSdk() {
+    return new Promise((resolve) => {
+        if (document.getElementById('facebook-jssdk')) {
+            resolve();
+            return;
+        }
+        const js = document.createElement('script');
+        js.id = 'facebook-jssdk';
+        js.src = "https://connect.facebook.net/en_US/sdk.js";
+        js.onload = () => resolve();
+        document.getElementsByTagName('script')[0].parentNode.insertBefore(js, document.getElementsByTagName('script')[0]);
+    });
+}
+
+async function handleDashboardOauthCallback(token, state) {
+    try {
+        const res = await apiCall('whatsapp/oauth_callback.php', 'POST', {
+            access_token: token,
+            state: state
+        });
+        showNotification('success', 'Connected Successfully via Meta Embedded Signup!');
+        const mainContainer = document.getElementById('main-content') || document.querySelector('.main-container') || document.getElementById('app-content');
+        if (mainContainer) {
+            checkWaConnectionAndRender('whatsapp', mainContainer, (cnt, st) => renderWhatsAppSetup(cnt, st.settings));
+        } else {
+            window.location.reload();
+        }
+    } catch (err) {
+        showNotification('error', err.message || 'Meta authorization exchange failed.');
+    }
+}
+
 window.launchDashboardMetaEmbeddedSignup = async function() {
     const btn = document.getElementById('wa-embedded-signup-btn');
     const originalHtml = btn ? btn.innerHTML : '';

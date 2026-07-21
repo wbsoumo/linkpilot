@@ -234,28 +234,43 @@ try {
             $unsubscribePageMessage = $input['unsubscribe_page_message'] ?? '';
 
             $followupCategoriesMode = trim($input['followup_categories_mode'] ?? 'selected');
-            $followupCategories = trim($input['followup_categories'] ?? 'New Lead,Meeting Request,Support Request,Existing Client,Invoice');
+            $followupCategories = trim($input['followup_categories'] ?? 'New Lead,Meeting Request,Support Request,Existing Client,Invoice,General Query');
 
-            $stmtUpdate = $db->prepare("UPDATE email_advanced_settings SET 
-                default_reply_to = ?, default_sender_name = ?,
-                warmup_enabled = ?, warmup_daily_limit = ?, warmup_increment = ?, warmup_min_delay = ?, warmup_max_delay = ?, warmup_peer_network = ?,
-                open_tracking_enabled = ?, open_tracking_domain = ?, open_tracking_exclude_ips = ?, open_tracking_bot_filter = ?,
-                click_tracking_enabled = ?, click_tracking_domain = ?, click_tracking_preserve_params = ?,
-                bounce_max_hard_bounces = ?, bounce_auto_unsubscribe = ?, bounce_alert_enabled = ?, bounce_alert_threshold = ?,
-                unsubscribe_enabled = ?, unsubscribe_list_header = ?, unsubscribe_footer_html = ?, unsubscribe_page_message = ?,
-                followup_categories_mode = ?, followup_categories = ?
-                WHERE user_id = ?");
+            $stmtCheckAdv = $db->prepare("SELECT id FROM email_advanced_settings WHERE user_id = ?");
+            $stmtCheckAdv->execute([$userId]);
+            if (!$stmtCheckAdv->fetch()) {
+                $stmtInsert = $db->prepare("INSERT INTO email_advanced_settings (user_id, default_reply_to, default_sender_name, warmup_enabled, warmup_daily_limit, warmup_increment, warmup_min_delay, warmup_max_delay, warmup_peer_network, open_tracking_enabled, open_tracking_domain, open_tracking_exclude_ips, open_tracking_bot_filter, click_tracking_enabled, click_tracking_domain, click_tracking_preserve_params, bounce_max_hard_bounces, bounce_auto_unsubscribe, bounce_alert_enabled, bounce_alert_threshold, unsubscribe_enabled, unsubscribe_list_header, unsubscribe_footer_html, unsubscribe_page_message, followup_categories_mode, followup_categories) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmtInsert->execute([
+                    $userId, $defaultReplyTo, $defaultSenderName,
+                    $warmupEnabled, $warmupDailyLimit, $warmupIncrement, $warmupMinDelay, $warmupMaxDelay, $warmupPeerNetwork,
+                    $openTrackingEnabled, $openTrackingDomain, $openTrackingExcludeIps, $openTrackingBotFilter,
+                    $clickTrackingEnabled, $clickTrackingDomain, $clickTrackingPreserveParams,
+                    $bounceMaxHardBounces, $bounceAutoUnsubscribe, $bounceAlertEnabled, $bounceAlertThreshold,
+                    $unsubscribeEnabled, $unsubscribeListHeader, $unsubscribeFooterHtml, $unsubscribePageMessage,
+                    $followupCategoriesMode, $followupCategories
+                ]);
+            } else {
+                $stmtUpdate = $db->prepare("UPDATE email_advanced_settings SET 
+                    default_reply_to = ?, default_sender_name = ?,
+                    warmup_enabled = ?, warmup_daily_limit = ?, warmup_increment = ?, warmup_min_delay = ?, warmup_max_delay = ?, warmup_peer_network = ?,
+                    open_tracking_enabled = ?, open_tracking_domain = ?, open_tracking_exclude_ips = ?, open_tracking_bot_filter = ?,
+                    click_tracking_enabled = ?, click_tracking_domain = ?, click_tracking_preserve_params = ?,
+                    bounce_max_hard_bounces = ?, bounce_auto_unsubscribe = ?, bounce_alert_enabled = ?, bounce_alert_threshold = ?,
+                    unsubscribe_enabled = ?, unsubscribe_list_header = ?, unsubscribe_footer_html = ?, unsubscribe_page_message = ?,
+                    followup_categories_mode = ?, followup_categories = ?
+                    WHERE user_id = ?");
 
-            $stmtUpdate->execute([
-                $defaultReplyTo, $defaultSenderName,
-                $warmupEnabled, $warmupDailyLimit, $warmupIncrement, $warmupMinDelay, $warmupMaxDelay, $warmupPeerNetwork,
-                $openTrackingEnabled, $openTrackingDomain, $openTrackingExcludeIps, $openTrackingBotFilter,
-                $clickTrackingEnabled, $clickTrackingDomain, $clickTrackingPreserveParams,
-                $bounceMaxHardBounces, $bounceAutoUnsubscribe, $bounceAlertEnabled, $bounceAlertThreshold,
-                $unsubscribeEnabled, $unsubscribeListHeader, $unsubscribeFooterHtml, $unsubscribePageMessage,
-                $followupCategoriesMode, $followupCategories,
-                $userId
-            ]);
+                $stmtUpdate->execute([
+                    $defaultReplyTo, $defaultSenderName,
+                    $warmupEnabled, $warmupDailyLimit, $warmupIncrement, $warmupMinDelay, $warmupMaxDelay, $warmupPeerNetwork,
+                    $openTrackingEnabled, $openTrackingDomain, $openTrackingExcludeIps, $openTrackingBotFilter,
+                    $clickTrackingEnabled, $clickTrackingDomain, $clickTrackingPreserveParams,
+                    $bounceMaxHardBounces, $bounceAutoUnsubscribe, $bounceAlertEnabled, $bounceAlertThreshold,
+                    $unsubscribeEnabled, $unsubscribeListHeader, $unsubscribeFooterHtml, $unsubscribePageMessage,
+                    $followupCategoriesMode, $followupCategories,
+                    $userId
+                ]);
+            }
 
             sendJsonResponse('success', 'Email settings updated successfully.');
         }

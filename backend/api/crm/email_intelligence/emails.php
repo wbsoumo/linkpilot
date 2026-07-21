@@ -162,16 +162,24 @@ try {
                         $advSettings = $stmtAdv->fetch(PDO::FETCH_ASSOC);
                         $mode = $advSettings['followup_categories_mode'] ?? 'selected';
                         if ($mode === 'selected') {
-                            $rawCats = $advSettings['followup_categories'] ?? 'New Lead,Meeting Request,Support Request,Existing Client,Invoice';
+                            $rawCats = $advSettings['followup_categories'] ?? 'New Lead,Meeting Request,Support Request,Existing Client,Invoice,General Query';
                             $catArray = array_filter(array_map('trim', explode(',', $rawCats)));
                             if (!empty($catArray)) {
                                 $inClauses = [];
+                                $hasGeneralQuery = false;
                                 foreach ($catArray as $idx => $catVal) {
+                                    if (strtolower($catVal) === 'general query' || strtolower($catVal) === 'general') {
+                                        $hasGeneralQuery = true;
+                                    }
                                     $key = "cat_fhub_" . $idx;
                                     $inClauses[] = ":" . $key;
                                     $params[$key] = $catVal;
                                 }
-                                $query .= " AND category IN (" . implode(', ', $inClauses) . ")";
+                                if ($hasGeneralQuery) {
+                                    $query .= " AND (category IN (" . implode(', ', $inClauses) . ") OR category IS NULL OR category = '' OR category = 'General')";
+                                } else {
+                                    $query .= " AND category IN (" . implode(', ', $inClauses) . ")";
+                                }
                             }
                         }
                     } catch (Throwable $e) {

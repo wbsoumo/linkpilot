@@ -2701,7 +2701,7 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
 
         case 'followup_categories': {
             const mode = advanced.followup_categories_mode || 'selected';
-            const rawCats = advanced.followup_categories || 'New Lead,Meeting Request,Support Request,Existing Client,Invoice';
+            const rawCats = advanced.followup_categories || 'New Lead,Meeting Request,Support Request,Existing Client,Invoice,General Query';
             const selectedCats = rawCats.split(',').map(s => s.trim()).filter(Boolean);
 
             const allCategoriesList = [
@@ -2710,8 +2710,8 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                 { name: 'Support Request', recommended: true },
                 { name: 'Existing Client', recommended: true },
                 { name: 'Invoice', recommended: true },
+                { name: 'General Query', recommended: true },
                 { name: 'Payment', recommended: false },
-                { name: 'General Query', recommended: false },
                 { name: 'Job Opportunity', recommended: false },
                 { name: 'Vendor', recommended: false },
                 { name: 'Partnership', recommended: false },
@@ -3147,7 +3147,9 @@ async function saveAllEmailSettings(btn) {
             unsubscribe_enabled: document.getElementById('es_unsubscribe_enabled') ? (document.getElementById('es_unsubscribe_enabled').checked ? 1 : 0) : (currentAdv.unsubscribe_enabled ? 1 : 0),
             unsubscribe_footer_html: document.getElementById('es_unsubscribe_footer_html')?.value ?? currentAdv.unsubscribe_footer_html ?? '',
             followup_categories_mode: (document.querySelector('input[name="es_followup_mode"]:checked')?.value) ?? currentAdv.followup_categories_mode ?? 'selected',
-            followup_categories: (Array.from(document.querySelectorAll('.followup-cat-checkbox:checked')).map(cb => cb.value).join(',')) || currentAdv.followup_categories || 'New Lead,Meeting Request,Support Request,Existing Client,Invoice'
+            followup_categories: (document.querySelectorAll('.followup-cat-checkbox').length > 0
+                ? Array.from(document.querySelectorAll('.followup-cat-checkbox:checked')).map(cb => cb.value).join(',')
+                : (currentAdv.followup_categories || 'New Lead,Meeting Request,Support Request,Existing Client,Invoice,General Query'))
         };
 
         const res = await apiCall('crm/email_settings.php?action=save_advanced', 'POST', payload);

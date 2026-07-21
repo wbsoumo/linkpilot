@@ -156,22 +156,26 @@ try {
                     $query .= " AND category = :category";
                     $params['category'] = $category;
                 } elseif ($isFollowupHub) {
-                    $stmtAdv = $db->prepare("SELECT followup_categories_mode, followup_categories FROM email_advanced_settings WHERE user_id = ?");
-                    $stmtAdv->execute([$userId]);
-                    $advSettings = $stmtAdv->fetch(PDO::FETCH_ASSOC);
-                    $mode = $advSettings['followup_categories_mode'] ?? 'selected';
-                    if ($mode === 'selected') {
-                        $rawCats = $advSettings['followup_categories'] ?? 'New Lead,Meeting Request,Support Request,Existing Client,Invoice';
-                        $catArray = array_filter(array_map('trim', explode(',', $rawCats)));
-                        if (!empty($catArray)) {
-                            $inClauses = [];
-                            foreach ($catArray as $idx => $catVal) {
-                                $key = "cat_fhub_" . $idx;
-                                $inClauses[] = ":" . $key;
-                                $params[$key] = $catVal;
+                    try {
+                        $stmtAdv = $db->prepare("SELECT followup_categories_mode, followup_categories FROM email_advanced_settings WHERE user_id = ?");
+                        $stmtAdv->execute([$userId]);
+                        $advSettings = $stmtAdv->fetch(PDO::FETCH_ASSOC);
+                        $mode = $advSettings['followup_categories_mode'] ?? 'selected';
+                        if ($mode === 'selected') {
+                            $rawCats = $advSettings['followup_categories'] ?? 'New Lead,Meeting Request,Support Request,Existing Client,Invoice';
+                            $catArray = array_filter(array_map('trim', explode(',', $rawCats)));
+                            if (!empty($catArray)) {
+                                $inClauses = [];
+                                foreach ($catArray as $idx => $catVal) {
+                                    $key = "cat_fhub_" . $idx;
+                                    $inClauses[] = ":" . $key;
+                                    $params[$key] = $catVal;
+                                }
+                                $query .= " AND category IN (" . implode(', ', $inClauses) . ")";
                             }
-                            $query .= " AND category IN (" . implode(', ', $inClauses) . ")";
                         }
+                    } catch (Throwable $e) {
+                        // Fallback safely if email_advanced_settings table/columns are missing
                     }
                 }
                 if ($priority !== '') {
@@ -315,6 +319,6 @@ Do NOT include any greetings like 'Subject:' or subject lines. Just output the b
     } else {
         sendJsonResponse('error', 'Method not allowed', [], 405);
     }
-} catch (Exception $e) {
+} catch (Throwable $e) {
     sendJsonResponse('error', 'Database operation failed: ' . $e->getMessage() . ' | Query: ' . ($query ?? 'none') . ' | Params: ' . json_encode($params ?? []), [], 500);
 }

@@ -60,10 +60,12 @@ try {
         if (empty($host) || empty($port) || empty($username) || empty($password) || empty($senderName) || empty($senderEmail)) {
             sendJsonResponse('error', 'All SMTP parameters are required to test connection.', [], 400);
         }
-        $encryption = trim($input['encryption'] ?? $input['smtp_encryption'] ?? '');
+    }
         
-        // Perform connection test
-        $result = SMTPHelper::testConnection($host, $port, $username, $password, $senderName, $senderEmail, $encryption);
+    $encryption = trim($input['encryption'] ?? $input['smtp_encryption'] ?? '');
+    
+    // Perform connection test
+    $result = SMTPHelper::testConnection($host, $port, $username, $password, $senderName, $senderEmail, $encryption);
     
     logActivity($userId, "Executed SMTP Connection test. Status: " . ($result['status'] ? 'Success' : 'Failed'));
     

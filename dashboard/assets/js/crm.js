@@ -597,9 +597,10 @@ async function renderDashboard(container) {
         if (smtpConfigured) progress += 45;
         if (whatsappConfigured) progress += 45;
 
+        const isBannerHidden = sessionStorage.getItem('linkpilot_hide_setup_banner') === 'true';
         if (showWarningBanner) {
             warningBannerHtml = `
-                <div onclick="window.location.href='setup.html';" class="group cursor-pointer bg-white border border-slate-200/80 rounded-[20px] p-4 sm:p-5 shadow-soft text-slate-800 hover:border-indigo-500/50 hover:shadow-md transition-all duration-300 max-w-5xl text-left relative overflow-hidden flex flex-col justify-between" style="height: 120px;">
+                <div id="workspace-setup-progress-card" onclick="window.location.href='setup.html';" class="${isBannerHidden ? 'hidden ' : ''}group cursor-pointer bg-white border border-slate-200/80 rounded-[20px] p-4 sm:p-5 shadow-soft text-slate-800 hover:border-indigo-500/50 hover:shadow-md transition-all duration-300 max-w-5xl text-left relative overflow-hidden flex flex-col justify-between" style="height: 120px;">
                     <!-- Title & Percentage Row -->
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-2">
@@ -608,8 +609,11 @@ async function renderDashboard(container) {
                                 <span>Workspace Setup</span>
                             </span>
                         </div>
-                        <div class="flex items-center space-x-2">
+                        <div class="flex items-center space-x-2.5">
                             <span class="text-[10px] font-extrabold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">${progress}% Complete</span>
+                            <button type="button" onclick="event.stopPropagation(); window.toggleWorkspaceSetupBanner();" class="text-[11px] font-semibold text-slate-500 hover:text-slate-800 transition flex items-center space-x-1 cursor-pointer py-1 px-2 rounded-lg hover:bg-slate-100">
+                                <span>Hide Setup ▲</span>
+                            </button>
                         </div>
                     </div>
 
@@ -628,6 +632,18 @@ async function renderDashboard(container) {
                     <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/40">
                         <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-500 h-full rounded-full transition-all duration-500" style="width: ${progress}%;"></div>
                     </div>
+                </div>
+
+                <div id="workspace-setup-collapsed-bar" class="${isBannerHidden ? '' : 'hidden '}bg-white border border-slate-200/80 rounded-xl px-4 py-2.5 flex items-center justify-between max-w-5xl shadow-2xs">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                            <span>🚀 Workspace Setup</span>
+                            <span class="text-[10px] text-indigo-600 font-extrabold bg-indigo-50 px-2 py-0.5 rounded-full">${progress}% Complete</span>
+                        </span>
+                    </div>
+                    <button type="button" onclick="window.toggleWorkspaceSetupBanner();" class="text-[11px] font-semibold text-slate-500 hover:text-slate-800 transition flex items-center space-x-1 cursor-pointer py-1 px-2.5 rounded-lg hover:bg-slate-100">
+                        <span>Show Setup ▼</span>
+                    </button>
                 </div>
             `;
         } else {
@@ -1695,6 +1711,22 @@ function renderSetupWizard(container, data) {
     selectWizProviderPreset(provider);
     previewDynamicFields(document.getElementById('wiz_business_type').value);
 }
+
+window.toggleWorkspaceSetupBanner = function() {
+    const card = document.getElementById('workspace-setup-progress-card');
+    const collapsed = document.getElementById('workspace-setup-collapsed-bar');
+    if (!card || !collapsed) return;
+    
+    if (card.classList.contains('hidden')) {
+        card.classList.remove('hidden');
+        collapsed.classList.add('hidden');
+        sessionStorage.removeItem('linkpilot_hide_setup_banner');
+    } else {
+        card.classList.add('hidden');
+        collapsed.classList.remove('hidden');
+        sessionStorage.setItem('linkpilot_hide_setup_banner', 'true');
+    }
+};
 
 window.selectWizProviderPreset = function(provider) {
     ['gmail', 'outlook', 'zoho', 'office365', 'yahoo', 'custom'].forEach(p => {

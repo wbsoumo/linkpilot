@@ -2481,8 +2481,7 @@ function renderEmailSettingsLayout(container) {
     const { activeTab, credentials, domains, signatures, advanced, google_oauth, showPassword } = window.emailSettingsState;
 
     const tabs = [
-        { id: 'smtp', label: 'SMTP Servers', icon: 'server', badge: (google_oauth && google_oauth.connected) ? 'OAuth' : (credentials.smtp_host ? 'Active' : 'Unset'), badgeColor: (google_oauth && google_oauth.connected) ? 'blue' : (credentials.smtp_host ? 'emerald' : 'slate') },
-        { id: 'imap', label: 'IMAP Accounts', icon: 'mail', badge: (google_oauth && google_oauth.connected) ? 'OAuth' : (credentials.imap_host ? 'Active' : 'Unset'), badgeColor: (google_oauth && google_oauth.connected) ? 'blue' : (credentials.imap_host ? 'emerald' : 'slate') },
+        { id: 'smtp', label: 'SMTP & IMAP', icon: 'server', badge: (google_oauth && google_oauth.connected) ? 'OAuth' : (credentials.smtp_host && credentials.imap_host ? 'Active' : (credentials.smtp_host || credentials.imap_host ? 'Partial' : 'Unset')), badgeColor: (google_oauth && google_oauth.connected) ? 'blue' : (credentials.smtp_host && credentials.imap_host ? 'emerald' : (credentials.smtp_host || credentials.imap_host ? 'amber' : 'slate')) },
         { id: 'replyto', label: 'Default Reply-To', icon: 'corner-up-left', badge: 'Configured', badgeColor: 'purple' },
         { id: 'opentracking', label: 'Open Tracking', icon: 'eye', badge: advanced.open_tracking_enabled ? 'Active' : 'Off', badgeColor: advanced.open_tracking_enabled ? 'emerald' : 'slate' },
         { id: 'clicktracking', label: 'Click Tracking', icon: 'mouse-pointer', badge: advanced.click_tracking_enabled ? 'Active' : 'Off', badgeColor: advanced.click_tracking_enabled ? 'emerald' : 'slate' },
@@ -2538,7 +2537,7 @@ function renderEmailSettingsLayout(container) {
                     </div>
 
                     <!-- Bottom Metrics Cards (Only on SMTP / IMAP tabs) -->
-                    ${(activeTab === 'smtp' || activeTab === 'imap') ? `
+                    ${(activeTab === 'smtp') ? `
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                             <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
                                 <div>
@@ -2613,6 +2612,10 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
 
     const isCustomMailActive = credentials && credentials.smtp_host && (!google_oauth || !google_oauth.connected);
 
+    const isImapInherited = !credentials.imap_host || 
+        ((credentials.imap_host === credentials.smtp_host || credentials.imap_host === (credentials.smtp_host || '').replace('smtp.', 'imap.')) && 
+         credentials.imap_username === credentials.smtp_username);
+
     const oauthCardHtml = isCustomMailActive ? '' : `
         <div class="p-4 bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-slate-50 border border-blue-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
             <div class="flex items-center space-x-3.5">
@@ -2667,71 +2670,141 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                 <div class="space-y-6">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
                         <div>
-                            <h2 class="text-lg font-bold text-slate-900">1. Outbound SMTP Server Configuration</h2>
-                            <p class="text-xs text-slate-500 font-medium">Configure your SMTP server to send emails through your own infrastructure.</p>
+                            <h2 class="text-lg font-bold text-slate-900">Custom Mail Server Configuration</h2>
+                            <p class="text-xs text-slate-500 font-medium">Configure SMTP for sending emails and IMAP for receiving replies through your own infrastructure.</p>
                         </div>
                     </div>
 
                     ${oauthCardHtml}
 
-                    <form id="smtp-settings-form" onsubmit="event.preventDefault(); saveSmtpFromSettings(this);" class="space-y-5">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">SMTP Host</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                        <i data-lucide="server" class="h-4 w-4"></i>
+                    <form id="smtp-settings-form" onsubmit="event.preventDefault(); saveSmtpImapFromSettings(this);" class="space-y-6">
+                        <!-- Outbound SMTP Section -->
+                        <div class="space-y-4">
+                            <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+                                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                <span>1. Outbound SMTP Server Settings</span>
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">SMTP Host</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                            <i data-lucide="server" class="h-4 w-4"></i>
+                                        </div>
+                                        <input type="text" id="es_smtp_host" value="${credentials.smtp_host || ''}" placeholder="mail.ibiffindia.com" class="w-full pl-10 bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                                     </div>
-                                    <input type="text" id="es_smtp_host" value="${credentials.smtp_host || ''}" placeholder="mail.ibiffindia.com" class="w-full pl-10 bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                                    <p class="text-[10px] text-slate-400 font-medium mt-1">Your SMTP server address</p>
                                 </div>
-                                <p class="text-[10px] text-slate-400 font-medium mt-1">Your SMTP server address</p>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">SMTP Port</label>
+                                    <input type="number" id="es_smtp_port" value="${credentials.smtp_port || ''}" placeholder="587" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                                    <p class="text-[10px] text-slate-400 font-medium mt-1">Common ports: 587, 465, 25</p>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Encryption</label>
+                                    <select id="es_smtp_encryption" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                                        <option value="tls" ${credentials.smtp_encryption === 'tls' || credentials.smtp_port == 587 ? 'selected' : ''}>TLS / STARTTLS (Port 587)</option>
+                                        <option value="ssl" ${credentials.smtp_encryption === 'ssl' || credentials.smtp_port == 465 ? 'selected' : ''}>SSL (Port 465)</option>
+                                        <option value="none" ${credentials.smtp_encryption === 'none' ? 'selected' : ''}>None (Plain Text)</option>
+                                    </select>
+                                    <p class="text-[10px] text-slate-400 font-medium mt-1">Select encryption type</p>
+                                </div>
                             </div>
 
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">SMTP Port</label>
-                                <input type="number" id="es_smtp_port" value="${credentials.smtp_port || ''}" placeholder="587" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
-                                <p class="text-[10px] text-slate-400 font-medium mt-1">Common ports: 587, 465, 25</p>
-                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">SMTP Username (Email)</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                            <i data-lucide="mail" class="h-4 w-4"></i>
+                                        </div>
+                                        <input type="email" id="es_smtp_username" value="${credentials.smtp_username || ''}" placeholder="hello@ibiffindia.com" class="w-full pl-10 bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                                    </div>
+                                    <p class="text-[10px] text-slate-400 font-medium mt-1">Full email address used for authentication</p>
+                                </div>
 
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Encryption</label>
-                                <select id="es_smtp_encryption" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
-                                    <option value="tls" ${credentials.smtp_encryption === 'tls' || credentials.smtp_port == 587 ? 'selected' : ''}>TLS / STARTTLS (Port 587)</option>
-                                    <option value="ssl" ${credentials.smtp_encryption === 'ssl' || credentials.smtp_port == 465 ? 'selected' : ''}>SSL (Port 465)</option>
-                                    <option value="none" ${credentials.smtp_encryption === 'none' ? 'selected' : ''}>None (Plain Text)</option>
-                                </select>
-                                <p class="text-[10px] text-slate-400 font-medium mt-1">Select encryption type</p>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">SMTP Password</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                            <i data-lucide="lock" class="h-4 w-4"></i>
+                                        </div>
+                                        <input type="${showPassword ? 'text' : 'password'}" id="es_smtp_password" value="${credentials.smtp_host ? '••••••••••••' : ''}" placeholder="••••••••••••" class="w-full pl-10 pr-10 bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                                        <button type="button" onclick="toggleSmtpPasswordVisibility()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600">
+                                            <i id="es_smtp_password_icon" data-lucide="${showPassword ? 'eye-off' : 'eye'}" class="h-4 w-4"></i>
+                                        </button>
+                                    </div>
+                                    <p class="text-[10px] text-slate-400 font-medium mt-1">Your SMTP account password</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-3 pt-2">
+                                <button type="button" onclick="testSmtpFromSettings(this)" class="px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-xs cursor-pointer">
+                                    <i data-lucide="wifi" class="h-3.5 w-3.5 text-slate-500"></i>
+                                    <span>Test SMTP Connection</span>
+                                </button>
+                                <span id="smtp-test-result-settings" class="text-xs font-bold text-slate-400"></span>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">SMTP Username (Email)</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                        <i data-lucide="mail" class="h-4 w-4"></i>
-                                    </div>
-                                    <input type="email" id="es_smtp_username" value="${credentials.smtp_username || ''}" placeholder="hello@ibiffindia.com" class="w-full pl-10 bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
-                                </div>
-                                <p class="text-[10px] text-slate-400 font-medium mt-1">Full email address used for authentication</p>
+                        <hr class="border-slate-100 my-6">
+
+                        <!-- Inbound IMAP Section -->
+                        <div class="space-y-4">
+                            <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+                                <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                <span>2. Inbound IMAP Sync Settings</span>
+                            </h3>
+
+                            <div class="flex items-center space-x-2 pb-2">
+                                <input type="checkbox" id="es_imap_use_smtp_details" ${isImapInherited ? 'checked' : ''} class="h-4 w-4 rounded text-blue-600 border-slate-300 focus:ring-blue-500 cursor-pointer" onchange="toggleEsImapDetailsInherit(this.checked)">
+                                <label for="es_imap_use_smtp_details" class="text-xs font-bold text-slate-700 cursor-pointer">Use SMTP credentials & host presets (Recommended)</label>
                             </div>
 
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">SMTP Password</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                        <i data-lucide="lock" class="h-4 w-4"></i>
+                            <div id="es-imap-custom-fields" class="${isImapInherited ? 'hidden' : ''} space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1.5">IMAP Host</label>
+                                        <input type="text" id="es_imap_host" value="${credentials.imap_host || ''}" placeholder="mail.ibiffindia.com" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                                     </div>
-                                    <input type="${showPassword ? 'text' : 'password'}" id="es_smtp_password" value="${credentials.smtp_host ? '••••••••••••' : ''}" placeholder="••••••••••••" class="w-full pl-10 pr-10 bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
-                                    <button type="button" onclick="toggleSmtpPasswordVisibility()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600">
-                                        <i id="es_smtp_password_icon" data-lucide="${showPassword ? 'eye-off' : 'eye'}" class="h-4 w-4"></i>
-                                    </button>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1.5">IMAP Port</label>
+                                        <input type="number" id="es_imap_port" value="${credentials.imap_port || ''}" placeholder="993" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Encryption</label>
+                                        <select id="es_imap_encryption" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                                            <option value="ssl" ${credentials.imap_encryption === 'ssl' || credentials.imap_port == 993 ? 'selected' : ''}>SSL (Port 993)</option>
+                                            <option value="tls" ${credentials.imap_encryption === 'tls' || credentials.imap_port == 143 ? 'selected' : ''}>TLS (Port 143)</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <p class="text-[10px] text-slate-400 font-medium mt-1">Your SMTP account password</p>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1.5">IMAP Username (Email)</label>
+                                        <input type="email" id="es_imap_username" value="${credentials.imap_username || ''}" placeholder="hello@ibiffindia.com" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1.5">IMAP Password</label>
+                                        <input type="password" id="es_imap_password" value="${credentials.imap_host ? '••••••••••••' : ''}" placeholder="••••••••••••" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center space-x-3 pt-2">
+                                <button type="button" onclick="testImapFromSettings(this)" class="px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-xs cursor-pointer">
+                                    <i data-lucide="wifi" class="h-3.5 w-3.5 text-slate-500"></i>
+                                    <span>Test IMAP Connection</span>
+                                </button>
+                                <span id="imap-test-result-settings" class="text-xs font-bold text-slate-400"></span>
                             </div>
                         </div>
 
-                        <div class="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-slate-100">
+                        <!-- Footer Actions Row -->
+                        <div class="pt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-slate-100">
                             ${isCustomMailActive ? `
                                 <div class="flex items-center space-x-2.5">
                                     <div class="p-1 bg-emerald-100 text-emerald-600 rounded-full">
@@ -2760,71 +2833,11 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                                         <span>Disconnect Server</span>
                                     </button>
                                 ` : ''}
-                                <button type="button" onclick="testSmtpFromSettings(this)" class="px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-xs">
-                                    <i data-lucide="wifi" class="h-3.5 w-3.5 text-slate-500"></i>
-                                    <span>Test Connection</span>
-                                </button>
-                                <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20">
+                                <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer">
                                     <i data-lucide="save" class="h-3.5 w-3.5"></i>
-                                    <span>Update SMTP Settings</span>
+                                    <span>Save & Connect Server</span>
                                 </button>
                             </div>
-                        </div>
-                    </form>
-                </div>
-            `;
-
-        case 'imap':
-            return `
-                <div class="space-y-6">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-900">2. Inbound IMAP Account Configuration</h2>
-                            <p class="text-xs text-slate-500 font-medium">Receive and synchronize customer replies, thread histories, and automated inbox responses.</p>
-                        </div>
-                    </div>
-
-                    ${oauthCardHtml}
-
-                    <form id="imap-settings-form" onsubmit="event.preventDefault(); saveImapFromSettings(this);" class="space-y-5">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">IMAP Host</label>
-                                <input type="text" id="es_imap_host" value="${credentials.imap_host || ''}" placeholder="mail.ibiffindia.com" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">IMAP Port</label>
-                                <input type="number" id="es_imap_port" value="${credentials.imap_port || ''}" placeholder="993" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Encryption</label>
-                                <select id="es_imap_encryption" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
-                                    <option value="ssl" ${credentials.imap_encryption === 'ssl' || credentials.imap_port == 993 ? 'selected' : ''}>SSL (Port 993)</option>
-                                    <option value="tls" ${credentials.imap_encryption === 'tls' || credentials.imap_port == 143 ? 'selected' : ''}>TLS (Port 143)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">IMAP Username (Email)</label>
-                                <input type="email" id="es_imap_username" value="${credentials.imap_username || ''}" placeholder="hello@ibiffindia.com" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">IMAP Password</label>
-                                <input type="password" id="es_imap_password" value="${credentials.imap_host ? '••••••••••••' : ''}" placeholder="••••••••••••" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
-                            </div>
-                        </div>
-
-                        <div class="pt-4 flex items-center justify-between border-t border-slate-100">
-                            <button type="button" onclick="testImapFromSettings(this)" class="px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-xs">
-                                <i data-lucide="wifi" class="h-3.5 w-3.5 text-slate-500"></i>
-                                <span>Test IMAP Connection</span>
-                            </button>
-                            <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20">
-                                <i data-lucide="save" class="h-3.5 w-3.5"></i>
-                                <span>Save IMAP Settings</span>
-                            </button>
                         </div>
                     </form>
                 </div>

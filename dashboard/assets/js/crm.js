@@ -2745,7 +2745,7 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                         </div>
                     </div>
 
-                    <div id="followup-categories-picker-wrapper" class="space-y-3 ${mode === 'all' ? 'opacity-50 pointer-events-none' : ''}">
+                    <div id="followup-categories-picker-wrapper" class="space-y-4 ${mode === 'all' ? 'opacity-50 pointer-events-none' : ''}">
                         <div class="flex items-center justify-between">
                             <label class="block text-xs font-bold text-slate-700">Choose Categories (Dropdown & Checkbox Selection)</label>
                             <div class="flex items-center space-x-2">
@@ -2761,11 +2761,12 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                             </div>
                         </div>
 
+                        <!-- Dropdown Trigger & Checkbox Menu -->
                         <div class="relative">
                             <button type="button" id="followup-cats-dropdown-btn" onclick="toggleFollowupCatsDropdown()" class="w-full flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 hover:bg-white focus:outline-none focus:border-blue-500 transition shadow-2xs">
                                 <div class="flex items-center space-x-2">
                                     <i data-lucide="filter" class="h-4 w-4 text-blue-600"></i>
-                                    <span id="followup-cats-summary-text">${selectedCats.length} Categories Selected (${selectedCats.slice(0, 3).join(', ')}${selectedCats.length > 3 ? '...' : ''})</span>
+                                    <span id="followup-cats-summary-text">${selectedCats.length} Categories Selected</span>
                                 </div>
                                 <i data-lucide="chevron-down" id="followup-cats-chevron" class="h-4 w-4 text-slate-400 transition-transform"></i>
                             </button>
@@ -2779,6 +2780,19 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                                         </div>
                                         ${cat.recommended ? `<span class="bg-amber-50 text-amber-600 text-[9px] font-extrabold px-2 py-0.5 rounded-full border border-amber-200/60 ml-2">Recommended</span>` : ''}
                                     </label>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Selected Categories Displayed Below Dropdown -->
+                        <div class="pt-2 space-y-2">
+                            <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider">Chosen Categories Below:</label>
+                            <div id="followup-selected-tags-container" class="flex flex-wrap gap-2 min-h-[36px] p-3 bg-slate-50/70 border border-slate-200 rounded-xl">
+                                ${selectedCats.length === 0 ? '<span class="text-xs text-slate-400 italic font-medium">No categories selected yet. Click dropdown above to choose.</span>' : selectedCats.map(cat => `
+                                    <span class="inline-flex items-center space-x-1.5 bg-blue-50 border border-blue-200/80 text-blue-700 text-xs font-bold px-3 py-1 rounded-full shadow-2xs transition hover:bg-blue-100">
+                                        <span>${cat}</span>
+                                        <button type="button" onclick="removeFollowupCategory('${cat}')" class="text-blue-400 hover:text-blue-700 focus:outline-none ml-1 text-sm font-bold">&times;</button>
+                                    </span>
                                 `).join('')}
                             </div>
                         </div>
@@ -2803,12 +2817,12 @@ window.selectFollowupCategoriesMode = function(mode) {
         if (radioAll) radioAll.checked = true;
         if (cardAll) cardAll.className = 'p-4 rounded-2xl border cursor-pointer transition flex items-start space-x-3 bg-blue-50/80 border-blue-500 shadow-2xs';
         if (cardSelected) cardSelected.className = 'p-4 rounded-2xl border cursor-pointer transition flex items-start space-x-3 bg-white border-slate-200 hover:border-slate-300';
-        if (picker) picker.className = 'space-y-3 opacity-50 pointer-events-none';
+        if (picker) picker.className = 'space-y-4 opacity-50 pointer-events-none';
     } else {
         if (radioSelected) radioSelected.checked = true;
         if (cardSelected) cardSelected.className = 'p-4 rounded-2xl border cursor-pointer transition flex items-start space-x-3 bg-blue-50/80 border-blue-500 shadow-2xs';
         if (cardAll) cardAll.className = 'p-4 rounded-2xl border cursor-pointer transition flex items-start space-x-3 bg-white border-slate-200 hover:border-slate-300';
-        if (picker) picker.className = 'space-y-3 opacity-100 pointer-events-auto';
+        if (picker) picker.className = 'space-y-4 opacity-100 pointer-events-auto';
     }
 };
 
@@ -2827,7 +2841,29 @@ window.updateFollowupCatsSummary = function() {
     const checked = Array.from(document.querySelectorAll('.followup-cat-checkbox:checked')).map(cb => cb.value);
     const summarySpan = document.getElementById('followup-cats-summary-text');
     if (summarySpan) {
-        summarySpan.innerText = checked.length === 0 ? 'No Categories Selected' : `${checked.length} Categories Selected (${checked.slice(0, 3).join(', ')}${checked.length > 3 ? '...' : ''})`;
+        summarySpan.innerText = checked.length === 0 ? 'No Categories Selected' : `${checked.length} Categories Selected`;
+    }
+
+    const tagsContainer = document.getElementById('followup-selected-tags-container');
+    if (tagsContainer) {
+        if (checked.length === 0) {
+            tagsContainer.innerHTML = `<span class="text-xs text-slate-400 italic font-medium">No categories selected yet. Click dropdown above to choose.</span>`;
+        } else {
+            tagsContainer.innerHTML = checked.map(cat => `
+                <span class="inline-flex items-center space-x-1.5 bg-blue-50 border border-blue-200/80 text-blue-700 text-xs font-bold px-3 py-1 rounded-full shadow-2xs transition hover:bg-blue-100">
+                    <span>${cat}</span>
+                    <button type="button" onclick="removeFollowupCategory('${cat}')" class="text-blue-400 hover:text-blue-700 focus:outline-none ml-1 text-sm font-bold">&times;</button>
+                </span>
+            `).join('');
+        }
+    }
+};
+
+window.removeFollowupCategory = function(catName) {
+    const cb = Array.from(document.querySelectorAll('.followup-cat-checkbox')).find(c => c.value === catName);
+    if (cb) {
+        cb.checked = false;
+        window.updateFollowupCatsSummary();
     }
 };
 

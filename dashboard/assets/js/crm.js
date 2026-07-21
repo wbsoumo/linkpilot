@@ -16233,7 +16233,7 @@ async function refreshFollowupsList() {
     `;
     
     try {
-        let url = `crm/email_intelligence/emails.php?is_spam=0&is_archived=0`;
+        let url = `crm/email_intelligence/emails.php?is_spam=0&is_archived=0&is_followup_hub=1`;
         if (window.followupFilters.priority) url += `&priority=${encodeURIComponent(window.followupFilters.priority)}`;
         if (window.followupFilters.category) url += `&category=${encodeURIComponent(window.followupFilters.category)}`;
         if (window.followupFilters.search) url += `&search=${encodeURIComponent(window.followupFilters.search)}`;

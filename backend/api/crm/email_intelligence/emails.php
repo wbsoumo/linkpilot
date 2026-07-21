@@ -139,6 +139,7 @@ try {
                     $params['search3'] = '%' . $search . '%';
                     $params['search4'] = '%' . $search . '%';
                 }
+                $isFollowupHub = isset($_GET['is_followup_hub']) ? (int)$_GET['is_followup_hub'] : 0;
                 $categoriesParam = trim($_GET['categories'] ?? '');
                 if ($categoriesParam !== '') {
                     $catArray = array_filter(array_map('trim', explode(',', $categoriesParam)));
@@ -154,6 +155,24 @@ try {
                 } elseif ($category !== '') {
                     $query .= " AND category = :category";
                     $params['category'] = $category;
+                } elseif ($isFollowupHub) {
+                    $stmtAdv = $db->prepare("SELECT followup_categories_mode, followup_categories FROM email_advanced_settings WHERE user_id = ?");
+                    $stmtAdv->execute([$userId]);
+                    $advSettings = $stmtAdv->fetch(PDO::FETCH_ASSOC);
+                    $mode = $advSettings['followup_categories_mode'] ?? 'selected';
+                    if ($mode === 'selected') {
+                        $rawCats = $advSettings['followup_categories'] ?? 'New Lead,Meeting Request,Support Request,Existing Client,Invoice';
+                        $catArray = array_filter(array_map('trim', explode(',', $rawCats)));
+                        if (!empty($catArray)) {
+                            $inClauses = [];
+                            foreach ($catArray as $idx => $catVal) {
+                                $key = "cat_fhub_" . $idx;
+                                $inClauses[] = ":" . $key;
+                                $params[$key] = $catVal;
+                            }
+                            $query .= " AND category IN (" . implode(', ', $inClauses) . ")";
+                        }
+                    }
                 }
                 if ($priority !== '') {
                     $query .= " AND priority = :priority";

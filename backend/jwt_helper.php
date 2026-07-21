@@ -136,6 +136,16 @@ class JWTHelper {
     public static function requireAdmin() {
         $user = self::requireAuth();
         if (($user['role'] ?? 'user') !== 'admin') {
+            try {
+                $db = Database::getConnection();
+                $stmt = $db->prepare("SELECT role FROM users WHERE id = ?");
+                $stmt->execute([$user['id']]);
+                $liveRole = $stmt->fetchColumn();
+                if ($liveRole === 'admin') {
+                    $user['role'] = 'admin';
+                    return $user;
+                }
+            } catch (Throwable $e) {}
             sendJsonResponse('error', 'Forbidden. Admin privileges required.', [], 403);
         }
         return $user;

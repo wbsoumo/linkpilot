@@ -4,10 +4,7 @@
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../jwt_helper.php';
 
-$user = JWTHelper::requireAuth();
-if ($user['role'] !== 'admin') {
-    sendJsonResponse('error', 'Unauthorized. Admin access required.', [], 403);
-}
+$user = JWTHelper::requireAdmin();
 
 $userId = $user['id'];
 $db = Database::getConnection();

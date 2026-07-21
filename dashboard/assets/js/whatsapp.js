@@ -52,705 +52,362 @@ async function checkWaConnectionAndRender(viewName, container, renderFn) {
 // 1. WHATSAPP CONNECTION WIZARD (SETUP)
 // ----------------------------------------------------
 function renderWhatsAppSetup(container, settings) {
-    let currentStep = 1;
-    let accessToken = '';
-    let wabaId = '';
+    const isConnected = settings && (settings.status === 'connected' || settings.token_status === 'valid');
+    const tokenVal = (settings && settings.access_token) ? settings.access_token : '';
+    const wabaVal = (settings && settings.waba_id) ? settings.waba_id : '';
+    const phoneVal = (settings && settings.phone_number_id) ? settings.phone_number_id : '';
 
-    // Discovered Assets
-    let phones = [];
-
-    // Selections
-    let selectedWaba = null;
-    let selectedPhone = null;
-
-    // Status metrics
-    let tokenVerifiedInfo = null;
-    let verifyError = '';
-    let wabaVerifiedInfo = null;
-    let wabaError = '';
-    let healthChecklist = null;
-    let healthDetails = null;
-    let healthError = '';
-    let connectedDetails = {};
-
-    function drawWizard() {
-        let stepperHtml = `
-            <div class="flex items-center justify-between w-full max-w-2xl mx-auto mb-8 border-b border-slate-100 pb-6 relative z-10">
-                <!-- Step 1 -->
-                <div class="flex flex-col items-center flex-1 relative">
-                    <div class="h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs transition duration-200 ${currentStep === 1 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : (currentStep > 1 ? 'bg-emerald-500 text-white' : 'bg-white border border-slate-200 text-slate-400')}">
-                        ${currentStep > 1 ? '✓' : '1'}
+    container.innerHTML = `
+        <div class="max-w-3xl mx-auto my-8 bg-white border border-slate-200/80 rounded-[24px] p-6 sm:p-10 shadow-soft animate-fade-in text-left space-y-6">
+            
+            <!-- Top Header -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-5">
+                <div class="flex items-center space-x-3.5">
+                    <div class="p-2.5 bg-emerald-50 rounded-2xl border border-emerald-100 shrink-0">
+                        <img src="assets/css/WhatsApp_icon.png" class="h-8 w-8 object-contain" alt="WhatsApp">
                     </div>
-                    <span class="text-[10px] font-bold mt-2 ${currentStep === 1 ? 'text-blue-600' : (currentStep > 1 ? 'text-slate-700' : 'text-slate-400')}">Token</span>
-                    <div class="absolute top-4 left-[calc(50%+16px)] right-[calc(-50%+16px)] h-[2px] bg-slate-100 z-0">
-                        <div class="h-full bg-blue-600 transition-all duration-300" style="width: ${currentStep > 1 ? '100%' : '0%'}"></div>
+                    <div>
+                        <h2 class="text-xl font-black text-slate-900 tracking-tight">Connect WhatsApp Business (Meta)</h2>
+                        <p class="text-xs text-slate-500 font-semibold mt-0.5">Connect your Meta WhatsApp Cloud API credentials to link your business inbox.</p>
                     </div>
-                </div>
-                <!-- Step 2 -->
-                <div class="flex flex-col items-center flex-1 relative">
-                    <div class="h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs transition duration-200 ${currentStep === 2 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : (currentStep > 2 ? 'bg-emerald-500 text-white' : 'bg-white border border-slate-200 text-slate-400')}">
-                        ${currentStep > 2 ? '✓' : '2'}
-                    </div>
-                    <span class="text-[10px] font-bold mt-2 ${currentStep === 2 ? 'text-blue-600' : (currentStep > 2 ? 'text-slate-700' : 'text-slate-400')}">WABA</span>
-                    <div class="absolute top-4 left-[calc(50%+16px)] right-[calc(-50%+16px)] h-[2px] bg-slate-100 z-0">
-                        <div class="h-full bg-blue-600 transition-all duration-300" style="width: ${currentStep > 2 ? '100%' : '0%'}"></div>
-                    </div>
-                </div>
-                <!-- Step 3 -->
-                <div class="flex flex-col items-center flex-1 relative">
-                    <div class="h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs transition duration-200 ${currentStep === 3 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : (currentStep > 3 ? 'bg-emerald-500 text-white' : 'bg-white border border-slate-200 text-slate-400')}">
-                        ${currentStep > 3 ? '✓' : '3'}
-                    </div>
-                    <span class="text-[10px] font-bold mt-2 ${currentStep === 3 ? 'text-blue-600' : (currentStep > 3 ? 'text-slate-700' : 'text-slate-400')}">Phone</span>
-                    <div class="absolute top-4 left-[calc(50%+16px)] right-[calc(-50%+16px)] h-[2px] bg-slate-100 z-0">
-                        <div class="h-full bg-blue-600 transition-all duration-300" style="width: ${currentStep > 3 ? '100%' : '0%'}"></div>
-                    </div>
-                </div>
-                <!-- Step 4 -->
-                <div class="flex flex-col items-center flex-1 relative">
-                    <div class="h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs transition duration-200 ${currentStep === 4 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : (currentStep > 4 ? 'bg-emerald-500 text-white' : 'bg-white border border-slate-200 text-slate-400')}">
-                        ${currentStep > 4 ? '✓' : '4'}
-                    </div>
-                    <span class="text-[10px] font-bold mt-2 ${currentStep === 4 ? 'text-blue-600' : (currentStep > 4 ? 'text-slate-700' : 'text-slate-400')}">Health</span>
-                    <div class="absolute top-4 left-[calc(50%+16px)] right-[calc(-50%+16px)] h-[2px] bg-slate-100 z-0">
-                        <div class="h-full bg-blue-600 transition-all duration-300" style="width: ${currentStep > 4 ? '100%' : '0%'}"></div>
-                    </div>
-                </div>
-                <!-- Step 5 -->
-                <div class="flex flex-col items-center flex-1 relative">
-                    <div class="h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs transition duration-200 ${currentStep >= 5 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white border border-slate-200 text-slate-400'}">
-                        5
-                    </div>
-                    <span class="text-[10px] font-bold mt-2 ${currentStep >= 5 ? 'text-blue-600 font-extrabold' : 'text-slate-400'}">Success</span>
                 </div>
             </div>
-        `;
 
-        let stepHtml = '';
-
-        if (currentStep === 1) {
-            if (verifyError) {
-                stepHtml = `
-                    <div class="space-y-4 py-2 text-center">
-                        <div class="h-10 w-10 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mx-auto text-base font-bold">✕</div>
+            ${isConnected ? `
+            <!-- Connected State Card -->
+            <div class="p-6 bg-emerald-50/60 border border-emerald-200/80 rounded-2xl space-y-4">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2.5 bg-emerald-500 text-white rounded-xl shadow-xs">
+                            <i data-lucide="check-circle" class="h-5 w-5"></i>
+                        </div>
                         <div>
-                            <h3 class="text-xs font-bold text-slate-800">Token Verification Failed</h3>
-                            <p class="text-xs text-rose-500 mt-2 bg-rose-50 border border-rose-100 rounded-lg p-3 text-left font-semibold">${verifyError}</p>
-                        </div>
-                        <div class="pt-4 flex justify-between">
-                            <button onclick="clearTokenError()" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
-                            <button onclick="verifyMetaToken()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md" style="color: #ffffff !important;">Retry Verification</button>
+                            <span class="text-sm font-black text-slate-900 block">${(settings && (settings.business_name || settings.display_name)) || 'WhatsApp Business'}</span>
+                            <span class="text-xs text-slate-600 font-bold font-mono mt-0.5 block">${(settings && settings.display_phone_number) || '--'}</span>
                         </div>
                     </div>
-                `;
-            } else if (tokenVerifiedInfo) {
-                stepHtml = `
-                    <div class="space-y-4 py-2 text-left">
-                        <div class="text-center">
-                            <div class="h-10 w-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto text-base font-bold">✓</div>
-                            <h3 class="text-xs font-bold text-emerald-600 mt-2">✓ Access Token Verified</h3>
-                        </div>
-                        
-                        <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs space-y-2.5 max-w-xs mx-auto shadow-sm">
-                            <div class="flex justify-between border-b border-slate-200/50 pb-1.5">
-                                <span class="text-slate-500 font-semibold">Meta User Name</span>
-                                <span class="text-slate-800 font-bold">${tokenVerifiedInfo.user_name}</span>
-                            </div>
-                            <div class="flex justify-between border-b border-slate-200/50 pb-1.5">
-                                <span class="text-slate-500 font-semibold">Meta App Name</span>
-                                <span class="text-slate-800 font-bold">${tokenVerifiedInfo.app_name}</span>
-                            </div>
-                            <div class="flex justify-between border-b border-slate-200/50 pb-1.5">
-                                <span class="text-slate-500 font-semibold">Expiry</span>
-                                <span class="text-slate-800 font-bold font-mono text-[10px]">${tokenVerifiedInfo.expiry}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-500 font-semibold">Token Status</span>
-                                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[9px] uppercase">Active</span>
-                            </div>
-                        </div>
-                        
-                        <div class="pt-4 flex justify-between space-x-3">
-                            <button onclick="goWizardStep(1); tokenVerifiedInfo = null;" class="px-5 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl transition hover:bg-slate-50">Change Token</button>
-                            <button onclick="goWizardStep(2)" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition shadow-md">Next: WABA ID →</button>
-                        </div>
-                    </div>
-                `;
-            } else {
-                stepHtml = `
-                    <div class="space-y-5 text-left">
-                        <div>
-                            <h3 class="text-base font-extrabold text-slate-900">Connect WhatsApp Business</h3>
-                            <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">Connect your Meta WhatsApp Cloud API in a few simple steps to start sending messages and engaging with your audience.</p>
-                        </div>
-                        
-                        <div class="space-y-4">
-                            <div>
-                                <div class="flex justify-between items-center mb-1.5">
-                                    <label class="block text-slate-700 font-bold text-[10px] uppercase tracking-wider flex items-center space-x-1">
-                                        <span>Permanent Meta System User Access Token</span>
-                                        <i data-lucide="info" class="h-3.5 w-3.5 text-slate-400 cursor-pointer" onclick="openMetaTokenHelpDialog()"></i>
-                                    </label>
-                                    <button onclick="openMetaTokenHelpDialog()" class="text-[10px] text-blue-600 hover:text-blue-750 hover:underline font-bold transition">Where do I get this?</button>
-                                </div>
-                                <div class="relative rounded-xl shadow-sm">
-                                    <input type="password" id="wa-access-token" value="${accessToken}" placeholder="EAA..." class="w-full pl-3.5 pr-28 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 font-mono shadow-sm transition">
-                                    <div class="absolute inset-y-0 right-0 pr-2 flex items-center space-x-1">
-                                        <button onclick="toggleTokenVisibility()" class="p-1 text-slate-450 hover:text-slate-750 text-[10px] font-bold transition" id="btn-toggle-visibility">Show</button>
-                                        <button onclick="pasteToken()" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[9px] font-bold transition">Paste</button>
-                                        <button onclick="clearTokenInput()" class="p-1 text-slate-450 hover:text-slate-750 text-[10px] font-bold transition">Clear</button>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="bg-blue-50/60 border border-blue-100 rounded-2xl p-4 flex items-start space-x-3 text-[10px] text-blue-800 leading-relaxed shadow-sm">
-                                <i data-lucide="info" class="h-4.5 w-4.5 text-blue-600 shrink-0 mt-0.5"></i>
-                                <div>
-                                    <strong class="font-bold">Your token is securely stored and encrypted.</strong> We never share your credentials with anyone.
-                                </div>
-                            </div>
-                            
-                            <div class="pt-2">
-                                <button id="btn-verify-token" onclick="verifyMetaToken()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition shadow-md flex items-center justify-center space-x-1.5" style="color: #ffffff !important;">
-                                    <i data-lucide="shield-check" class="h-4.5 w-4.5" style="color: #ffffff !important;"></i>
-                                    <span style="color: #ffffff !important;">Verify Token</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        else if (currentStep === 2) {
-            if (wabaError) {
-                stepHtml = `
-                    <div class="space-y-4 py-2 text-center">
-                        <div class="h-10 w-10 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mx-auto text-base font-bold">✕</div>
-                        <div>
-                            <h3 class="text-xs font-bold text-slate-800">WABA Verification Failed</h3>
-                            <p class="text-xs text-rose-500 mt-2 bg-rose-50 border border-rose-100 rounded-lg p-3 text-left font-semibold">${wabaError}</p>
-                        </div>
-                        <div class="pt-4 flex justify-between">
-                            <button onclick="clearWabaError()" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg transition hover:bg-slate-50">Back</button>
-                            <button onclick="verifyWabaId()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md" style="color: #ffffff !important;">Retry Verification</button>
-                        </div>
-                    </div>
-                `;
-            } else if (wabaVerifiedInfo) {
-                stepHtml = `
-                    <div class="space-y-4 py-2 text-left">
-                        <div class="text-center">
-                            <div class="h-10 w-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto text-base font-bold">✓</div>
-                            <h3 class="text-xs font-bold text-emerald-600 mt-2">✓ WABA Verified Successfully</h3>
-                        </div>
-                        
-                        <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs space-y-2.5 max-w-xs mx-auto shadow-sm">
-                            <div class="flex justify-between border-b border-slate-200/50 pb-1.5">
-                                <span class="text-slate-500 font-semibold">WABA Name</span>
-                                <span class="text-slate-800 font-bold">${wabaVerifiedInfo.waba_name}</span>
-                            </div>
-                            <div class="flex justify-between border-b border-slate-200/50 pb-1.5">
-                                <span class="text-slate-500 font-semibold">WABA ID</span>
-                                <span class="text-slate-800 font-bold font-mono text-[10px]">${wabaVerifiedInfo.waba_id}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-500 font-semibold">Status</span>
-                                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[9px] uppercase">${wabaVerifiedInfo.waba_status}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="pt-4 flex justify-between space-x-3">
-                            <button onclick="goWizardStep(2); wabaVerifiedInfo = null;" class="px-5 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl transition hover:bg-slate-50">Change ID</button>
-                            <button onclick="fetchPhones()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition shadow-md">Next: Select Phone →</button>
-                        </div>
-                    </div>
-                `;
-            } else {
-                stepHtml = `
-                    <div class="space-y-5 text-left">
-                        <div>
-                            <h3 class="text-base font-extrabold text-slate-900">WhatsApp Business Account ID</h3>
-                            <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">Specify your WhatsApp Business Account (WABA) ID to discover registered phone numbers and settings.</p>
-                        </div>
-                        
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-slate-700 font-bold text-[10px] uppercase tracking-wider mb-1.5">WABA ID</label>
-                                <input type="text" id="wa-waba-id" value="${wabaId}" placeholder="e.g. 718557" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 font-mono shadow-sm transition">
-                            </div>
-                            
-                            <div class="pt-2 flex justify-between space-x-3">
-                                <button onclick="goWizardStep(1)" class="px-5 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl transition hover:bg-slate-50">Back</button>
-                                <button id="btn-verify-waba" onclick="verifyWabaId()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition shadow-md flex items-center justify-center space-x-1.5" style="color: #ffffff !important;">
-                                    <i data-lucide="check" class="h-4.5 w-4.5" style="color: #ffffff !important;"></i>
-                                    <span style="color: #ffffff !important;">Verify WABA Account</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        else if (currentStep === 3) {
-            // Select Phone Number
-            stepHtml = `
-                <div class="space-y-5 text-left">
-                    <div>
-                        <h3 class="text-base font-extrabold text-slate-900">Select Phone Number</h3>
-                        <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">Select the registered and approved phone number you want to link with LinkPilot.</p>
-                    </div>
-                    
-                    <div class="space-y-2.5 max-h-56 overflow-y-auto pr-1">
-                        ${phones.map(p => `
-                            <div onclick="selectPhone('${p.id}')" class="p-3.5 border rounded-2xl cursor-pointer transition text-left space-y-2.5 ${selectedPhone && selectedPhone.id === p.id ? 'border-blue-500 bg-blue-50/20' : 'border-slate-200 hover:bg-slate-50/60'}">
-                                <div class="flex justify-between items-center">
-                                    <div class="text-xs text-slate-850 font-bold">${p.display_phone_number}</div>
-                                    <span class="px-2 py-0.5 text-[9px] font-bold rounded ${p.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${p.status}</span>
-                                </div>
-                                <div class="grid grid-cols-2 gap-1 text-[10px] text-slate-500 font-semibold">
-                                    <div>
-                                        <div class="text-slate-400 uppercase text-[8px] font-bold">Display Name</div>
-                                        <div class="truncate text-slate-700">${p.verified_name || 'N/A'}</div>
-                                    </div>
-                                    <div>
-                                        <div class="text-slate-400 uppercase text-[8px] font-bold">Quality</div>
-                                        <span class="font-extrabold ${p.quality_rating === 'GREEN' ? 'text-emerald-500' : p.quality_rating === 'YELLOW' ? 'text-amber-500' : 'text-red-500'}">${p.quality_rating}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('')}
-                        ${phones.length === 0 ? '<p class="text-xs text-slate-400 text-center py-4">No registered phone numbers found in this WABA account.</p>' : ''}
-                    </div>
-                    
-                    <div class="pt-2 flex justify-between space-x-3">
-                        <button onclick="goWizardStep(2)" class="px-5 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl transition hover:bg-slate-50">Back</button>
-                        <button onclick="triggerHealthCheck()" ${!selectedPhone ? 'disabled' : ''} class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition shadow-md" style="color: #ffffff !important;">Next: Health Check →</button>
-                    </div>
+                    <span class="px-3 py-1 bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-full text-[10px] uppercase font-black tracking-wider">
+                        ${(settings && settings.quality_rating) || 'GREEN'}
+                    </span>
                 </div>
-            `;
-        }
 
-        else if (currentStep === 4) {
-            // Connection Health Check
-            if (healthError) {
-                stepHtml = `
-                    <div class="space-y-4 py-2 text-center">
-                        <div class="h-10 w-10 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mx-auto text-base font-bold">✕</div>
-                        <div>
-                            <h3 class="text-xs font-bold text-slate-800">Health Check Failed</h3>
-                            <p class="text-xs text-rose-500 mt-2 bg-rose-50 border border-rose-100 rounded-lg p-3 text-left font-semibold">${healthError}</p>
-                        </div>
-                        <div class="pt-4 flex justify-between space-x-3">
-                            <button onclick="goWizardStep(3)" class="px-5 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl transition hover:bg-slate-50">Back</button>
-                            <button onclick="triggerHealthCheck()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition shadow-md" style="color: #ffffff !important;">Retry Diagnostics</button>
-                        </div>
-                    </div>
-                `;
-            } else if (!healthChecklist) {
-                stepHtml = `
-                    <div class="space-y-4 py-6 text-center">
-                        <div class="loader-spinner mx-auto"></div>
-                        <p class="text-xs font-bold text-slate-600">Running diagnostic health checklist...</p>
-                    </div>
-                `;
-            } else {
-                const renderCheck = (val, label) => `
-                    <div class="flex items-center space-x-2.5 text-xs text-left">
-                        <span class="h-4.5 w-4.5 rounded-full flex items-center justify-center font-bold text-[10px] ${val ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}">
-                            ${val ? '✓' : '✕'}
-                        </span>
-                        <span class="${val ? 'text-slate-700' : 'text-rose-500 font-bold'}">${label}</span>
-                    </div>
-                `;
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-600 pt-3 border-t border-emerald-200/60 font-medium">
+                    <div>WABA ID: <strong class="font-mono text-slate-800">${(settings && settings.waba_id) || 'N/A'}</strong></div>
+                    <div>Phone Number ID: <strong class="font-mono text-slate-800">${(settings && settings.phone_number_id) || 'N/A'}</strong></div>
+                    <div>Messaging Tier: <strong class="text-slate-800">${(settings && settings.messaging_limit) || '1000/day'}</strong></div>
+                    <div>Status: <strong class="text-emerald-700 font-bold">Active & Verified</strong></div>
+                </div>
 
-                const passes = Object.values(healthChecklist).every(v => v === true);
-
-                stepHtml = `
-                    <div class="space-y-4 text-left">
-                        <div>
-                            <h3 class="text-xs font-bold text-slate-800">Connection Health Diagnostics</h3>
-                            <p class="text-[10px] text-slate-450 uppercase tracking-wider font-bold">Health Checklist</p>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 bg-slate-50/50 border border-slate-100 p-4 rounded-2xl max-w-sm mx-auto shadow-sm">
-                            ${renderCheck(healthChecklist.token_valid, 'Access Token Valid')}
-                            ${renderCheck(healthChecklist.waba_found, 'WABA Found')}
-                            ${renderCheck(healthChecklist.phone_found, 'Phone Number Found')}
-                            ${renderCheck(healthChecklist.cloud_api_enabled, 'Cloud API Enabled')}
-                            ${renderCheck(healthChecklist.ready_to_send, 'Ready to Send')}
-                        </div>
-
-                        ${healthDetails ? `
-                        <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3.5 text-xs space-y-1.5 max-w-sm mx-auto mt-2 shadow-sm">
-                            <div class="flex justify-between">
-                                <span class="text-slate-450">WABA Name</span>
-                                <span class="text-slate-800 font-bold text-right">${healthDetails.waba_name}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-450">Phone Number</span>
-                                <span class="text-slate-800 font-bold text-right">${healthDetails.phone_number}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-450">Messaging Limit</span>
-                                <span class="text-slate-800 font-bold text-right">${healthDetails.messaging_limit}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-450">Quality Rating</span>
-                                <span class="text-emerald-600 font-extrabold text-right">${healthDetails.quality_rating}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-450">Verified Name</span>
-                                <span class="text-slate-800 font-bold text-right">${healthDetails.verified_name}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-450">Status</span>
-                                <span class="text-slate-800 font-bold text-right">${healthDetails.status}</span>
-                            </div>
-                        </div>
-                        ` : ''}
-                        
-                        <div class="pt-4 flex justify-between space-x-3">
-                            <button onclick="goWizardStep(3)" class="px-5 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl transition hover:bg-slate-50">Back</button>
-                            <button onclick="saveConnection()" ${!passes ? 'disabled' : ''} class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition shadow-md" style="color: #ffffff !important;">Next: Save & Connect →</button>
+                <div class="pt-2 flex items-center space-x-3">
+                    <button type="button" onclick="disconnectWhatsAppAccount()" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl text-xs font-bold text-rose-600 transition cursor-pointer shadow-2xs">
+                        Disconnect Account
+                    </button>
+                    <button type="button" onclick="window.location.reload()" class="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 transition cursor-pointer shadow-2xs">
+                        Go to WhatsApp Inbox →
+                    </button>
+                </div>
+            </div>
+            ` : `
+            <!-- Unconnected Connection State -->
+            <div class="space-y-6">
+                <!-- Option 1: Official Meta Embedded Signup -->
+                <div class="p-6 bg-gradient-to-br from-emerald-50/90 via-teal-50/40 to-white border border-emerald-200/80 rounded-2xl space-y-4">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="space-y-1">
+                            <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase tracking-wider rounded-md">Official Meta Cloud API</span>
+                            <h3 class="text-base font-black text-slate-900 pt-1">Connect with Meta Embedded Signup</h3>
+                            <p class="text-xs text-slate-600 font-medium leading-relaxed">Log in with your Facebook account, select your WhatsApp Business Account & Phone Number in seconds. No manual token configuration required.</p>
                         </div>
                     </div>
-                `;
-            }
-        }
 
-        else if (currentStep === 5 || currentStep === 6) {
-            // Success & Test Connection Dashboard Overview
-            stepHtml = `
-                <div class="space-y-5 text-center py-4">
-                    <div class="h-12 w-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto text-xl font-bold">🎉</div>
-                    <div>
-                        <h3 class="text-base font-extrabold text-slate-800">WhatsApp Connected Successfully</h3>
-                        <p class="text-xs text-slate-500 mt-1">Your manual credential config is verified and live.</p>
-                    </div>
-                    
-                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-left text-xs max-w-sm mx-auto space-y-2.5 shadow-sm">
-                        <div class="flex justify-between border-b border-slate-200/50 pb-1.5">
-                            <span class="text-slate-500 font-medium">Business</span>
-                            <span class="text-slate-800 font-bold">${connectedDetails.business_name || 'Taskbazi'}</span>
-                        </div>
-                        <div class="flex justify-between border-b border-slate-200/50 pb-1.5">
-                            <span class="text-slate-500 font-medium">Phone</span>
-                            <span class="text-slate-800 font-bold font-mono">${connectedDetails.phone_number || '+91 80162 22991'}</span>
-                        </div>
-                        <div class="flex justify-between border-b border-slate-200/50 pb-1.5">
-                            <span class="text-slate-500 font-medium">Messaging Tier</span>
-                            <span class="text-slate-800 font-bold">${connectedDetails.messaging_limit || '1000/day'}</span>
-                        </div>
-                        <div class="flex justify-between border-b border-slate-200/50 pb-1.5">
-                            <span class="text-slate-500 font-medium">Quality Rating</span>
-                            <span class="text-emerald-600 font-extrabold">${connectedDetails.quality_rating || 'Green'}</span>
-                        </div>
-                        <div class="flex justify-between border-b border-slate-200/50 pb-1.5">
-                            <span class="text-slate-500 font-medium">Webhook Status</span>
-                            <span class="text-emerald-600 font-bold">${connectedDetails.webhook_status || 'Verified'}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-slate-500 font-medium">Connection Status</span>
-                            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md font-extrabold text-[9px] uppercase tracking-wide">${connectedDetails.status || 'Connected'}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="pt-4">
-                        <button onclick="window.location.reload()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition shadow-md" style="color: #ffffff !important;">
-                            Go to WhatsApp Inbox
+                    <div class="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                        <button type="button" id="wa-embedded-signup-btn" onclick="launchDashboardMetaEmbeddedSignup()" class="px-6 py-3 bg-[#1877F2] hover:bg-[#166fe5] text-white text-xs font-bold rounded-xl transition flex items-center justify-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer border-0" style="color: #ffffff !important;">
+                            <svg class="h-4 w-4 fill-current text-white" viewBox="0 0 24 24">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            </svg>
+                            <span style="color: #ffffff !important;">Log in with Facebook for WhatsApp</span>
                         </button>
                     </div>
-                </div>
-            `;
-        }
 
-        container.innerHTML = `
-            <div class="max-w-4xl mx-auto my-12 bg-white border border-slate-200/80 rounded-3xl p-8 shadow-xl animate-fade-in flex flex-col">
-                <!-- Header -->
-                <div class="flex items-center space-x-3.5 mb-8 border-b border-slate-100 pb-5">
-                    <div class="h-11 w-11 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 shadow-sm">
-                        <i data-lucide="message-circle" class="h-6 w-6"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-lg font-black text-slate-800 tracking-tight">Connect WhatsApp Business</h2>
-                        <p class="text-[10px] text-slate-450 font-bold uppercase tracking-wider mt-0.5">Guided Manual Cloud API Wizard</p>
-                    </div>
-                </div>
-
-                <!-- Stepper Progress Tracker -->
-                ${stepperHtml}
-
-                <!-- Content Split Row -->
-                <div class="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
-                    <!-- Left Column: Visual Illustration -->
-                    <div class="lg:col-span-2 hidden lg:flex flex-col items-center justify-center p-6 bg-gradient-to-tr from-emerald-50/80 via-white to-blue-50/80 rounded-3xl border border-slate-200/60 shadow-sm relative overflow-hidden">
-                        <div class="relative w-48 h-48 flex items-center justify-center">
-                            <!-- Outer glow circles -->
-                            <div class="absolute inset-0 rounded-full border border-emerald-500/10 bg-emerald-500/[0.02] animate-pulse"></div>
-                            <div class="absolute inset-6 rounded-full border border-emerald-500/20 bg-emerald-500/[0.04]"></div>
-                            <!-- Main WhatsApp platform 3D pedestal -->
-                            <div class="absolute bottom-6 w-32 h-8 rounded-full bg-slate-200 border border-slate-350 shadow-[0_10px_20px_rgba(0,0,0,0.06)] flex items-center justify-center"></div>
-                            <!-- WhatsApp floating logo -->
-                            <div class="absolute bottom-10 h-20 w-20 bg-transparent flex items-center justify-center shadow-lg shadow-emerald-500/10 transform hover:-translate-y-2 transition-transform duration-300">
-                                <img src="assets/css/WhatsApp_icon.png" class="h-20 w-20 object-contain" alt="WhatsApp">
-                            </div>
-                            <!-- Floating badges -->
-                            <div class="absolute top-10 left-6 bg-blue-500/10 border border-blue-500/20 text-blue-500 px-2 py-1 rounded-xl text-[9px] font-bold flex items-center space-x-1 shadow-sm">
-                                <i data-lucide="shield" class="h-3 w-3"></i>
-                                <span>Secure Encryption</span>
-                            </div>
-                            <div class="absolute bottom-16 right-6 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 px-2 py-1 rounded-xl text-[9px] font-bold flex items-center space-x-1 shadow-sm">
-                                <i data-lucide="zap" class="h-3 w-3"></i>
-                                <span>Real-time Sync</span>
-                            </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 text-[11px] font-bold text-slate-600">
+                        <div class="flex items-center space-x-1.5">
+                            <i data-lucide="check" class="h-3.5 w-3.5 text-emerald-600"></i>
+                            <span>Instant Verification</span>
                         </div>
-                        <div class="text-center mt-4">
-                            <h4 class="text-xs font-bold text-slate-800">Secure Meta Gateway</h4>
-                            <p class="text-[10px] text-slate-500 mt-1 max-w-[200px] leading-relaxed mx-auto">Connect your Meta Developer app credentials to link your business inbox.</p>
+                        <div class="flex items-center space-x-1.5">
+                            <i data-lucide="check" class="h-3.5 w-3.5 text-emerald-600"></i>
+                            <span>Auto Webhook Setup</span>
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            <i data-lucide="check" class="h-3.5 w-3.5 text-emerald-600"></i>
+                            <span>Permanent Access Token</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OR Separator -->
+                <div class="relative flex py-1 items-center">
+                    <div class="flex-grow border-t border-slate-200"></div>
+                    <span class="flex-shrink mx-4 text-xs font-black text-slate-400 uppercase tracking-widest">OR MANUAL SETUP</span>
+                    <div class="flex-grow border-t border-slate-200"></div>
+                </div>
+
+                <!-- Option 2: Clean Manual Meta Credentials Form (NO Name, NO Mobile number!) -->
+                <div class="p-6 border border-slate-200/80 rounded-2xl bg-white space-y-5 shadow-2xs">
+                    <div class="flex items-center space-x-2 border-b border-slate-100 pb-3">
+                        <div class="p-2 bg-blue-50 text-blue-600 rounded-xl border border-blue-100">
+                            <i data-lucide="key" class="h-4.5 w-4.5"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-slate-900">Manual Meta Cloud API Credentials</h3>
+                            <p class="text-xs text-slate-500 font-medium">Enter Meta system user access token and phone number ID.</p>
                         </div>
                     </div>
 
-                    <!-- Right Column: Step Form Content -->
-                    <div class="lg:col-span-3 w-full animate-fade-in animate-duration-200">
-                        ${stepHtml}
-                    </div>
+                    <form id="setup-wa-manual-clean-form" onsubmit="saveMetaManualCredentialsClean(event)" class="space-y-4">
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between items-center">
+                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Permanent Access Token *</label>
+                                <button type="button" onclick="openMetaTokenHelpDialog()" class="text-[10px] text-blue-600 font-bold hover:underline bg-transparent border-0 cursor-pointer">Where do I get this?</button>
+                            </div>
+                            <div class="relative">
+                                <input type="password" id="wa-clean-token" value="${tokenVal}" placeholder="EAAGemini... (Paste Meta system user token)" class="w-full pl-3.5 pr-24 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-mono font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                                <div class="absolute inset-y-0 right-0 pr-2 flex items-center space-x-1">
+                                    <button type="button" onclick="toggleCleanTokenVisibility()" class="p-1 text-slate-500 hover:text-slate-700 text-[10px] font-bold transition bg-transparent border-0 cursor-pointer" id="btn-toggle-clean-token">Show</button>
+                                    <button type="button" onclick="clearCleanTokenInput()" class="p-1 text-slate-450 hover:text-slate-700 text-[10px] font-bold transition bg-transparent border-0 cursor-pointer">Clear</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">WABA Account ID</label>
+                                <input type="text" id="wa-clean-waba-id" value="${wabaVal}" placeholder="e.g. 1092384729384 (Optional)" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-mono font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition">
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Phone Number ID *</label>
+                                <input type="text" id="wa-clean-phone-id" value="${phoneVal}" placeholder="e.g. 1029384729384" class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-mono font-medium text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition" required>
+                            </div>
+                        </div>
+
+                        <div class="p-3.5 bg-blue-50/60 border border-blue-100 rounded-xl flex items-center space-x-3 text-[11px] text-blue-800 font-semibold leading-relaxed">
+                            <i data-lucide="info" class="h-4 w-4 text-blue-600 shrink-0"></i>
+                            <span>Business Display Name and Display Phone Number are automatically fetched from Meta Graph API using your token & Phone Number ID.</span>
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="submit" id="wa-clean-submit-btn" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-md shadow-emerald-500/20 flex items-center justify-center space-x-2 cursor-pointer" style="color: #ffffff !important;">
+                                <i data-lucide="shield-check" class="h-4.5 w-4.5 text-white"></i>
+                                <span style="color: #ffffff !important;">Connect & Save Meta Credentials</span>
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
-        `;
-        lucide.createIcons();
+            `}
+        </div>
+    `;
+
+    if (window.lucide) lucide.createIcons();
+}
+
+// Global action handlers for clean Meta connector
+window.saveMetaManualCredentialsClean = async function(e) {
+    if (e) e.preventDefault();
+    const btn = document.getElementById('wa-clean-submit-btn');
+    const tokenInput = document.getElementById('wa-clean-token');
+    const wabaInput = document.getElementById('wa-clean-waba-id');
+    const phoneInput = document.getElementById('wa-clean-phone-id');
+
+    if (!tokenInput || !phoneInput) return;
+    const token = tokenInput.value.trim();
+    const wabaId = wabaInput ? wabaInput.value.trim() : '';
+    const phoneId = phoneInput.value.trim();
+
+    if (!token || !phoneId) {
+        showNotification('error', 'Please enter Permanent Access Token and Phone Number ID.');
+        return;
     }
 
-    // Step-by-Step Help Dialog Trigger
-    window.openMetaTokenHelpDialog = function () {
-        const existing = document.getElementById('token-help-modal');
-        if (existing) existing.remove();
+    const origHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div><span style="color:#ffffff !important;">Verifying & Connecting...</span>`;
+    }
 
-        const modal = document.createElement('div');
-        modal.id = 'token-help-modal';
-        modal.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4';
+    try {
+        const res = await apiCall('whatsapp/manual_connect.php', 'POST', {
+            access_token: token,
+            waba_id: wabaId,
+            phone_number_id: phoneId
+        });
 
-        modal.innerHTML = `
-            <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 relative space-y-4 text-xs text-slate-300 shadow-2xl animate-fade-in animate-duration-200">
-                <button onclick="document.getElementById('token-help-modal').remove()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold">&times;</button>
-                
-                <div class="border-b border-slate-800 pb-2 flex items-center space-x-2">
-                    <span class="text-emerald-500 font-extrabold text-base">🔑</span>
-                    <h3 class="text-sm font-bold text-white">How to Generate Permanent Meta Access Token</h3>
-                </div>
-                
-                <div class="space-y-3 max-h-[350px] overflow-y-auto pr-1 text-[11px] leading-relaxed">
-                    <div class="space-y-1">
-                        <div class="font-bold text-white">Step 1: Set up a Meta System User</div>
-                        <p class="text-slate-400">Log into your <a href="https://business.facebook.com/" target="_blank" class="text-blue-500 underline">Meta Business Suite</a>, open Settings -> Business Settings -> Users -> System Users.</p>
-                    </div>
-                    <div class="space-y-1">
-                        <div class="font-bold text-white">Step 2: Add a System User</div>
-                        <p class="text-slate-400">Click <strong>Add</strong>, set a user role (choose <em>Admin System User</em>), and save.</p>
-                    </div>
-                    <div class="space-y-1">
-                        <div class="font-bold text-white">Step 3: Assign Assets to User</div>
-                        <p class="text-slate-400">Select the newly created System User, click <strong>Assign Assets</strong>. Link your WhatsApp Business account and Business Manager, granting full access.</p>
-                    </div>
-                    <div class="space-y-1">
-                        <div class="font-bold text-white">Step 4: Generate Access Token</div>
-                        <p class="text-slate-400">Click <strong>Generate New Token</strong>. Select your developer application from the dropdown.</p>
-                    </div>
-                    <div class="space-y-1">
-                        <div class="font-bold text-white">Step 5: Select Required Scopes</div>
-                        <p class="text-slate-400">Ensure the following scopes are checkmarked:</p>
-                        <ul class="list-disc pl-4 space-y-0.5 font-mono text-[10px] text-slate-400">
-                            <li>whatsapp_business_management</li>
-                            <li>whatsapp_business_messaging</li>
-                        </ul>
-                    </div>
-                    <div class="space-y-1">
-                        <div class="font-bold text-white">Step 6: Generate and Copy Token</div>
-                        <p class="text-slate-400">Click <strong>Generate Token</strong>. Copy the token. Since it is permanent, Meta will never display it again. Save it securely.</p>
-                    </div>
-                </div>
+        if (res.status === 'success') {
+            showNotification('success', 'Meta WhatsApp Account connected successfully!');
+            const mainContainer = document.getElementById('main-content') || document.querySelector('.main-container') || document.getElementById('app-content');
+            if (mainContainer) {
+                checkWaConnectionAndRender('whatsapp', mainContainer, (cnt, st) => renderWhatsAppSetup(cnt, st.settings));
+            } else {
+                window.location.reload();
+            }
+        } else {
+            showNotification('error', res.message || 'Failed connecting Meta credentials.');
+        }
+    } catch (err) {
+        showNotification('error', err.message || 'Failed connecting Meta credentials.');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = origHtml;
+        }
+        if (window.lucide) lucide.createIcons();
+    }
+};
+
+window.launchDashboardMetaEmbeddedSignup = async function() {
+    const btn = document.getElementById('wa-embedded-signup-btn');
+    const originalHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `
+            <div class="flex items-center space-x-1.5">
+                <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span style="color:#ffffff !important;">Initializing Meta...</span>
             </div>
         `;
-        document.body.appendChild(modal);
-    };
+    }
 
-    // UI actions helper
-    window.toggleTokenVisibility = function () {
-        const input = document.getElementById('wa-access-token');
-        const btn = document.getElementById('btn-toggle-visibility');
-        if (input && btn) {
-            if (input.type === 'password') {
-                input.type = 'text';
-                btn.textContent = 'Hide';
+    try {
+        const config = await apiCall('whatsapp/embedded_signup.php');
+        const appId = config.app_id;
+        const state = config.state;
+        const scopes = config.scopes;
+
+        if (!appId) {
+            const useDemo = confirm("Demo Mode: No Meta App ID is configured in Admin Settings. Would you like to connect with a sandbox demo account?");
+            if (useDemo) {
+                await handleDashboardOauthCallback("EAAGeminiTest", state);
             } else {
-                input.type = 'password';
-                btn.textContent = 'Show';
+                showNotification('warning', 'Meta App ID configuration is required in Admin Control Panel.');
             }
-        }
-    };
-
-    window.clearTokenInput = function () {
-        const input = document.getElementById('wa-access-token');
-        if (input) input.value = '';
-        accessToken = '';
-    };
-
-    window.pasteToken = async function () {
-        try {
-            const text = await navigator.clipboard.readText();
-            const input = document.getElementById('wa-access-token');
-            if (input) input.value = text;
-            accessToken = text;
-        } catch (err) {
-            showNotification('error', 'Clipboard access denied. Please paste manually.');
-        }
-    };
-
-    // Verify Access Token action
-    window.verifyMetaToken = function () {
-        const input = document.getElementById('wa-access-token');
-        const tokenVal = input ? input.value.trim() : accessToken;
-
-        if (!tokenVal) {
-            showNotification('error', 'Please enter a Meta System User Access Token.');
             return;
         }
 
-        accessToken = tokenVal;
-        verifyError = '';
-        tokenVerifiedInfo = null;
-        drawWizard();
-
-        apiCall('whatsapp/setup.php?action=verify_token', 'POST', {
-            access_token: accessToken
-        }).then(res => {
-            tokenVerifiedInfo = res.data || res;
-            drawWizard();
-        }).catch(err => {
-            verifyError = err.message || 'Token verification failed.';
-            drawWizard();
-        });
-    };
-
-    window.clearTokenError = function () {
-        verifyError = '';
-        tokenVerifiedInfo = null;
-        drawWizard();
-    };
-
-    window.verifyWabaId = function () {
-        const input = document.getElementById('wa-waba-id');
-        const wabaVal = input ? input.value.trim() : wabaId;
-
-        if (!wabaVal) {
-            showNotification('error', 'Please enter your WABA Account ID.');
-            return;
+        if (!window.FB) {
+            await loadFbSdk();
         }
 
-        wabaId = wabaVal;
-        wabaError = '';
-        wabaVerifiedInfo = null;
-        drawWizard();
-
-        apiCall('whatsapp/setup.php?action=verify_waba', 'POST', {
-            access_token: accessToken,
-            waba_id: wabaId
-        }).then(res => {
-            wabaVerifiedInfo = res.data || res;
-            selectedWaba = { id: wabaVerifiedInfo.waba_id, name: wabaVerifiedInfo.waba_name, status: wabaVerifiedInfo.waba_status };
-            drawWizard();
-        }).catch(err => {
-            wabaError = err.message || 'WABA verification failed.';
-            drawWizard();
+        FB.init({
+            appId: appId,
+            cookie: true,
+            xfbml: true,
+            version: 'v20.0'
         });
-    };
 
-    window.clearWabaError = function () {
-        wabaError = '';
-        wabaVerifiedInfo = null;
-        drawWizard();
-    };
-
-    window.selectPhone = function (id) {
-        selectedPhone = phones.find(p => p.id === id);
-        drawWizard();
-    };
-
-    window.goWizardStep = function (step) {
-        currentStep = step;
-        drawWizard();
-    };
-
-    // 3. Fetch Phone Numbers
-    window.fetchPhones = function () {
-        if (!selectedWaba) return;
-        currentStep = 3;
-        phones = [];
-        selectedPhone = null;
-        drawWizard();
-
-        apiCall('whatsapp/setup.php?action=get_phone_numbers', 'POST', {
-            access_token: accessToken,
-            waba_id: selectedWaba.id
-        }).then(res => {
-            phones = res.phones || [];
-            if (phones.length === 1) {
-                selectedPhone = phones[0];
+        FB.login(function(response) {
+            if (response.authResponse) {
+                const userToken = response.authResponse.accessToken;
+                handleDashboardOauthCallback(userToken, state);
+            } else {
+                showNotification('error', 'Popup closed. Permission denied or login cancelled.');
             }
-            drawWizard();
-        }).catch(err => {
-            showNotification('error', 'Failed retrieving phone numbers: ' + err.message);
-            goWizardStep(2);
+        }, {
+            scope: scopes,
+            extras: { feature: 'whatsapp_embedded_signup' }
         });
-    };
 
-    // 4. Diagnostics Checklist health check
-    window.triggerHealthCheck = function () {
-        currentStep = 4;
-        healthChecklist = null;
-        healthDetails = null;
-        healthError = '';
-        drawWizard();
+    } catch (err) {
+        showNotification('error', err.message || 'Meta OAuth initialization failed.');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+        if (window.lucide) lucide.createIcons();
+    }
+};
 
-        apiCall('whatsapp/setup.php?action=health_check', 'POST', {
-            access_token: accessToken,
-            waba_id: selectedWaba.id,
-            phone_number_id: selectedPhone.id
-        }).then(res => {
-            healthChecklist = res.checklist || null;
-            healthDetails = res.details || null;
-            drawWizard();
-        }).catch(err => {
-            healthError = err.message || 'Diagnostic checklist failed.';
-            drawWizard();
-        });
-    };
+window.disconnectWhatsAppAccount = async function() {
+    if (!confirm('Are you sure you want to disconnect your Meta WhatsApp Business Account?')) return;
+    try {
+        const res = await apiCall('whatsapp/disconnect.php', 'POST');
+        showNotification('success', 'WhatsApp account disconnected.');
+        window.location.reload();
+    } catch (err) {
+        showNotification('error', err.message || 'Failed to disconnect.');
+    }
+};
 
-    // 5. Save connection details
-    window.saveConnection = function () {
-        apiCall('whatsapp/setup.php?action=save_connection', 'POST', {
-            access_token: accessToken,
-            business_id: 'WABA_' + selectedWaba.id,
-            business_name: selectedWaba.name,
-            waba_id: selectedWaba.id,
-            waba_name: selectedWaba.name,
-            phone_number_id: selectedPhone.id,
-            phone_number: selectedPhone.display_phone_number,
-            display_name: selectedPhone.verified_name || selectedWaba.name
-        }).then(res => {
-            connectedDetails = res.data || res;
-            currentStep = 5;
-            drawWizard();
-        }).catch(err => {
-            showNotification('error', 'Failed saving connection: ' + err.message);
-            currentStep = 4;
-            drawWizard();
-        });
-    };
+window.toggleCleanTokenVisibility = function() {
+    const input = document.getElementById('wa-clean-token');
+    const btn = document.getElementById('btn-toggle-clean-token');
+    if (!input || !btn) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = 'Hide';
+    } else {
+        input.type = 'password';
+        btn.textContent = 'Show';
+    }
+};
 
-    drawWizard();
-}
+window.clearCleanTokenInput = function() {
+    const input = document.getElementById('wa-clean-token');
+    if (input) input.value = '';
+};
+
+// Step-by-Step Help Dialog Trigger
+window.openMetaTokenHelpDialog = function () {
+    const existing = document.getElementById('token-help-modal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'token-help-modal';
+    modal.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4';
+
+    modal.innerHTML = `
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 relative space-y-4 text-xs text-slate-300 shadow-2xl animate-fade-in animate-duration-200">
+            <button onclick="document.getElementById('token-help-modal').remove()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+            
+            <div class="border-b border-slate-800 pb-2 flex items-center space-x-2">
+                <span class="text-emerald-500 font-extrabold text-base">🔑</span>
+                <h3 class="text-sm font-bold text-white">How to Generate Permanent Meta Access Token</h3>
+            </div>
+            
+            <div class="space-y-3 max-h-[350px] overflow-y-auto pr-1 text-[11px] leading-relaxed">
+                <div class="space-y-1">
+                    <div class="font-bold text-white">Step 1: Set up a Meta System User</div>
+                    <p class="text-slate-400">Log into your <a href="https://business.facebook.com/" target="_blank" class="text-blue-500 underline">Meta Business Suite</a>, open Settings -> Business Settings -> Users -> System Users.</p>
+                </div>
+                <div class="space-y-1">
+                    <div class="font-bold text-white">Step 2: Add a System User</div>
+                    <p class="text-slate-400">Click <strong>Add</strong>, set a user role (choose <em>Admin System User</em>), and save.</p>
+                </div>
+                <div class="space-y-1">
+                    <div class="font-bold text-white">Step 3: Assign Assets to User</div>
+                    <p class="text-slate-400">Select the newly created System User, click <strong>Assign Assets</strong>. Link your WhatsApp Business account and Business Manager, granting full access.</p>
+                </div>
+                <div class="space-y-1">
+                    <div class="font-bold text-white">Step 4: Generate Access Token</div>
+                    <p class="text-slate-400">Click <strong>Generate New Token</strong>. Select your developer application from the dropdown.</p>
+                </div>
+                <div class="space-y-1">
+                    <div class="font-bold text-white">Step 5: Select Required Scopes</div>
+                    <p class="text-slate-400">Ensure the following scopes are checkmarked:</p>
+                    <ul class="list-disc pl-4 space-y-0.5 font-mono text-[10px] text-slate-400">
+                        <li>whatsapp_business_management</li>
+                        <li>whatsapp_business_messaging</li>
+                    </ul>
+                </div>
+                <div class="space-y-1">
+                    <div class="font-bold text-white">Step 6: Generate and Copy Token</div>
+                    <p class="text-slate-400">Click <strong>Generate Token</strong>. Copy the token. Since it is permanent, Meta will never display it again. Save it securely.</p>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+};
 
 // ----------------------------------------------------
 // 2. WHATSAPP DASHBOARD VIEW

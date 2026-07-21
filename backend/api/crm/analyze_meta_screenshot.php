@@ -143,6 +143,21 @@ try {
 
     $systemPrompt = "You are the LinkPilot Meta Setup Vision Assistant. Analyze the uploaded screenshot of the Meta Developer Console or Facebook Business Settings. Identify what page the user is on, locate the key fields (such as Access Tokens, WABA ID, Phone Number ID, App ID, etc.), diagnose any issues (e.g. invalid permissions, sandbox demo status, or expired tokens), and give precise, bullet-point instructions on what the user should click, edit, or copy to successfully complete their WhatsApp integration.";
 
+    // Fetch liked responses for vision reinforcement training
+    try {
+        $stmtLearned = $db->prepare("SELECT question, answer FROM ai_chat_feedback WHERE user_id = ? AND feedback_type = 'like' AND (question LIKE '%screenshot%' OR question LIKE '%[User sent a Meta console screenshot%') ORDER BY id DESC LIMIT 5");
+        $stmtLearned->execute([$userId]);
+        $learnedPairs = $stmtLearned->fetchAll(PDO::FETCH_ASSOC);
+        if (!empty($learnedPairs)) {
+            $systemPrompt .= "\n\n=== AI SCREENSHOT RESPONSE TRAINING (FOLLOW THESE PAST LIKED VISION ANSWERS FOR SIMILAR IMAGES/QUERIES) ===\n";
+            foreach ($learnedPairs as $pair) {
+                $systemPrompt .= "User Context/Query: " . $pair['question'] . "\n";
+                $systemPrompt .= "Learned AI Analysis: " . $pair['answer'] . "\n\n";
+            }
+            $systemPrompt .= "=========================================================================================================\n";
+        }
+    } catch (Exception $e) {}
+
     $postFields = [
         "model" => $model,
         "messages" => [

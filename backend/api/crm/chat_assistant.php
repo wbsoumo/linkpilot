@@ -261,6 +261,21 @@ Formatting instructions:
 3. Always present currency values using Rupee sign (₹) or the currency of the invoice.
 4. If the user asks something outside this data (e.g. general knowledge or personal info not in CRM), answer politely that you only have access to their CRM workspace context.";
 
+    // Fetch liked responses for reinforcement training
+    try {
+        $stmtLearned = $db->prepare("SELECT question, answer FROM ai_chat_feedback WHERE user_id = ? AND feedback_type = 'like' ORDER BY id DESC LIMIT 5");
+        $stmtLearned->execute([$userId]);
+        $learnedPairs = $stmtLearned->fetchAll(PDO::FETCH_ASSOC);
+        if (!empty($learnedPairs)) {
+            $systemPrompt .= "\n\n=== AI RESPONSE TRAINING (FOLLOW THESE PAST LIKED ANSWERS FOR SIMILAR USER QUESTIONS) ===\n";
+            foreach ($learnedPairs as $pair) {
+                $systemPrompt .= "User Query: " . $pair['question'] . "\n";
+                $systemPrompt .= "Learned AI Response: " . $pair['answer'] . "\n\n";
+            }
+            $systemPrompt .= "========================================================================================\n";
+        }
+    } catch (Exception $e) {}
+
     // Compile Conversation History into the Prompt
     $promptBody = "";
     if (count($history) > 0) {

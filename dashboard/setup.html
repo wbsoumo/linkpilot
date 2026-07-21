@@ -1749,9 +1749,12 @@
                 this.renderControls(config.buttons);
             },
 
-            addAiMessage: function(text) {
+            addAiMessage: function(text, questionText = '') {
                 const container = document.getElementById('ai-chat-messages-container');
                 if (!container) return;
+
+                const escapedQuestion = (questionText || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const escapedAnswer = text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
                 const msgDiv = document.createElement('div');
                 msgDiv.className = 'flex items-start space-x-2.5 animate-fade-in text-left';
@@ -1762,6 +1765,18 @@
                     <div class="bg-slate-100 border border-slate-200/60 text-slate-800 p-3 rounded-2xl rounded-tl-xs space-y-1 max-w-[88%] shadow-2xs">
                         <span class="text-[10px] font-black text-blue-600 block uppercase tracking-wider">Meta Assistant</span>
                         <div class="text-xs font-semibold text-slate-700 leading-relaxed">${text}</div>
+                        ${escapedQuestion ? `
+                        <div class="flex items-center space-x-3 pt-1.5 mt-1.5 border-t border-slate-200/40">
+                            <button type="button" onclick="submitAiFeedback(this, 'like', '${escapedQuestion}', '${escapedAnswer}')" class="text-slate-400 hover:text-emerald-600 transition bg-transparent border-0 p-0.5 cursor-pointer flex items-center space-x-1" title="Helpful (Train AI)">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+                                <span class="text-[10px]">Like</span>
+                            </button>
+                            <button type="button" onclick="submitAiFeedback(this, 'dislike', '${escapedQuestion}', '${escapedAnswer}')" class="text-slate-400 hover:text-rose-600 transition bg-transparent border-0 p-0.5 cursor-pointer flex items-center space-x-1" title="Not helpful">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg>
+                                <span class="text-[10px]">Dislike</span>
+                            </button>
+                        </div>
+                        ` : ''}
                     </div>
                 `;
                 container.appendChild(msgDiv);
@@ -1893,6 +1908,7 @@
             if (hasAttachment) {
                 const base64Image = assistant.pendingAttachment;
                 const hasText = text !== '';
+                const questionLogText = "[User sent a Meta console screenshot" + (hasText ? " with message: " + text : "") + "]";
 
                 // Render user message with both text (if any) and thumbnail preview
                 if (container) {
@@ -1909,7 +1925,7 @@
                 }
 
                 // Add to history
-                assistant.history.push({ role: 'user', content: "[User sent a Meta console screenshot" + (hasText ? " with message: " + text : "") + "]" });
+                assistant.history.push({ role: 'user', content: questionLogText });
 
                 // Clear attachment preview
                 window.clearSetupChatAttachment();
@@ -1948,7 +1964,7 @@
 
                         // Format & display the vision AI's guidance
                         const formatted = formatSetupAiChatReply(reply);
-                        assistant.addAiMessage(formatted);
+                        assistant.addAiMessage(formatted, questionLogText);
                     } else {
                         throw new Error(res.message || 'Vision analysis failed.');
                     }
@@ -1999,7 +2015,7 @@
                         
                         // Format response for display
                         const formatted = formatSetupAiChatReply(reply);
-                        assistant.addAiMessage(formatted);
+                        assistant.addAiMessage(formatted, text);
                     } else {
                         throw new Error(data.message || 'Error communicating with AI assistant.');
                     }
@@ -2065,6 +2081,39 @@
                 window.attachSetupChatImage(e.target.result);
             };
             reader.readAsDataURL(file);
+        };
+
+        window.submitAiFeedback = async function(btn, type, question, answer) {
+            try {
+                const parent = btn.parentElement;
+                const buttons = parent.querySelectorAll('button');
+                buttons.forEach(b => {
+                    b.disabled = true;
+                    b.classList.add('opacity-40');
+                });
+
+                if (type === 'like') {
+                    btn.classList.remove('opacity-40');
+                    btn.classList.add('text-emerald-600', 'font-black');
+                } else {
+                    btn.classList.remove('opacity-40');
+                    btn.classList.add('text-rose-600', 'font-black');
+                }
+
+                const res = await apiCall('crm/save_chat_feedback.php', 'POST', {
+                    question: question,
+                    answer: answer,
+                    feedback_type: type
+                });
+
+                if (res && res.status === 'success') {
+                    showNotification('success', type === 'like' ? 'Response liked! AI has learned this answer.' : 'Response disliked.');
+                } else {
+                    throw new Error(res.message || 'Failed to save feedback.');
+                }
+            } catch (err) {
+                showNotification('error', err.message || 'Error saving feedback.');
+            }
         };
 
         window.launchMetaEmbeddedSignup = async function() {

@@ -30,32 +30,13 @@ try {
 
     echo "--- Meta API Debug Requests ---\n";
 
-    // 1. GET /1336994508576785/owned_whatsapp_business_accounts
+    // 1. GET /4532079027068465/assigned_whatsapp_business_accounts
     try {
-        $owned = WhatsAppMetaService::executeRequest($acc['waba_id'] . "/owned_whatsapp_business_accounts", "GET", null, $token);
-        echo "1. GET /" . $acc['waba_id'] . "/owned_whatsapp_business_accounts: SUCCESS\n" . json_encode($owned, JSON_PRETTY_PRINT) . "\n\n";
+        $assigned = WhatsAppMetaService::executeRequest("4532079027068465/assigned_whatsapp_business_accounts", "GET", null, $token);
+        echo "1. GET /4532079027068465/assigned_whatsapp_business_accounts: SUCCESS\n" . json_encode($assigned, JSON_PRETTY_PRINT) . "\n\n";
     } catch (Throwable $e) {
-        echo "1. GET /" . $acc['waba_id'] . "/owned_whatsapp_business_accounts: FAILED - " . $e->getMessage() . "\n\n";
+        echo "1. GET /4532079027068465/assigned_whatsapp_business_accounts: FAILED - " . $e->getMessage() . "\n\n";
     }
-
-    // 2. GET /1336994508576785/client_whatsapp_business_accounts
-    try {
-        $client = WhatsAppMetaService::executeRequest($acc['waba_id'] . "/client_whatsapp_business_accounts", "GET", null, $token);
-        echo "2. GET /" . $acc['waba_id'] . "/client_whatsapp_business_accounts: SUCCESS\n" . json_encode($client, JSON_PRETTY_PRINT) . "\n\n";
-    } catch (Throwable $e) {
-        echo "2. GET /" . $acc['waba_id'] . "/client_whatsapp_business_accounts: FAILED - " . $e->getMessage() . "\n\n";
-    }
-
-    // 3. GET /1207566022437332?fields=whatsapp_business_account
-    try {
-        $parentWaba = WhatsAppMetaService::executeRequest($acc['phone_number_id'] . "?fields=id,whatsapp_business_account", "GET", null, $token);
-        echo "3. GET /" . $acc['phone_number_id'] . "?fields=id,whatsapp_business_account: SUCCESS\n" . json_encode($parentWaba, JSON_PRETTY_PRINT) . "\n\n";
-    } catch (Throwable $e) {
-        echo "3. GET /" . $acc['phone_number_id'] . "?fields=id,whatsapp_business_account: FAILED - " . $e->getMessage() . "\n\n";
-    }
-
-    // 4. GET /WABA_ID/message_templates (with dynamic fallback if we find a WABA ID)
-    echo "4. Attempting to list message_templates using WABA account dynamically if resolved...\n";
 
 } catch (Throwable $e) {
     echo "Global Error: " . $e->getMessage() . "\n";

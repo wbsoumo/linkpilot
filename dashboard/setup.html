@@ -476,8 +476,8 @@
                     <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 shadow-soft text-left">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div class="flex items-center space-x-3.5">
-                                <div class="p-2.5 bg-emerald-50 rounded-2xl border border-emerald-100 shrink-0">
-                                    <img src="assets/css/WhatsApp_icon.png" class="h-8 w-8 object-contain" alt="WhatsApp">
+                                <div class="p-2.5 bg-blue-50 rounded-2xl border border-blue-100 shrink-0">
+                                    <img src="https://crystalpng.com/wp-content/uploads/2025/02/meta_logo.png" class="h-8 w-8 object-contain" alt="Meta">
                                 </div>
                                 <div>
                                     <h2 class="text-xl font-black text-slate-900 tracking-tight">Connect WhatsApp Business</h2>
@@ -691,6 +691,10 @@
 
                             <!-- Real Chat Input Form -->
                             <form id="setup-ai-chat-form" onsubmit="event.preventDefault(); handleSetupAiChatSubmit();" class="flex items-center space-x-2 border-t border-slate-100 pt-2">
+                                <input type="file" id="setup-wa-screenshot-input" accept="image/*" class="hidden" onchange="handleSetupScreenshotUpload(event)">
+                                <button type="button" onclick="document.getElementById('setup-wa-screenshot-input').click()" class="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-500 rounded-xl transition flex items-center justify-center shrink-0 cursor-pointer" title="Upload Screenshot for Vision AI Help">
+                                    <i data-lucide="image" class="h-4 w-4 text-slate-500"></i>
+                                </button>
                                 <input type="text" id="setup-ai-chat-input" placeholder="Ask assistant any question..." class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition">
                                 <button type="submit" class="p-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl transition flex items-center justify-center shrink-0 cursor-pointer border-0" style="color: #ffffff !important;">
                                     <svg class="h-3.5 w-3.5 fill-current text-white" viewBox="0 0 24 24">
@@ -1910,6 +1914,86 @@
             formatted = formatted.replace(/\r?\n/g, '<br>');
             return formatted;
         }
+
+        window.handleSetupScreenshotUpload = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                showNotification('error', 'Please select a valid image file.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const base64Image = e.target.result;
+                
+                const assistant = window.MetaAssistantManager;
+                if (!assistant) return;
+
+                // 1. Display user message with thumbnail preview
+                const container = document.getElementById('ai-chat-messages-container');
+                if (container) {
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = 'flex items-end justify-end space-x-2.5 animate-fade-in text-right';
+                    msgDiv.innerHTML = `
+                        <div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-xs space-y-1.5 max-w-[85%] shadow-xs">
+                            <div class="text-xs font-bold mb-1">Uploaded Screenshot for Analysis:</div>
+                            <img src="${base64Image}" class="max-h-[140px] rounded-lg border border-white/20 object-contain mx-auto" alt="Screenshot Upload">
+                        </div>
+                    `;
+                    container.appendChild(msgDiv);
+                    container.scrollTop = container.scrollHeight;
+                }
+
+                // 2. Generate thinking loader ID
+                const loaderId = 'setup-ai-thinking-' + Date.now();
+                if (container) {
+                    container.insertAdjacentHTML('beforeend', `
+                        <div class="flex items-start space-x-2.5 animate-pulse text-left" id="${loaderId}">
+                            <div class="w-7 h-7 bg-blue-100 text-blue-700 font-extrabold rounded-xl flex items-center justify-center shrink-0 text-xs shadow-2xs">🤖</div>
+                            <div class="bg-slate-100 border border-slate-200/60 text-slate-500 p-3 rounded-2xl rounded-tl-xs italic max-w-[88%] shadow-2xs flex items-center space-x-2">
+                                <div class="w-3.5 h-3.5 border-2 border-slate-500 border-t-transparent rounded-full animate-spin"></div>
+                                <span>AI is analyzing your screenshot...</span>
+                            </div>
+                        </div>
+                    `);
+                    container.scrollTop = container.scrollHeight;
+                }
+
+                try {
+                    // Call backend vision analysis endpoint
+                    const res = await apiCall('crm/analyze_meta_screenshot.php', 'POST', {
+                        image: base64Image
+                    });
+
+                    // Remove loader
+                    const loader = document.getElementById(loaderId);
+                    if (loader) loader.remove();
+
+                    if (res && res.status === 'success') {
+                        const reply = res.data.reply;
+                        
+                        // Append to history
+                        assistant.history.push({ role: 'user', content: "[User sent a Meta console screenshot for analysis]" });
+                        assistant.history.push({ role: 'assistant', content: reply });
+
+                        // Format & display the vision AI's guidance
+                        const formatted = formatSetupAiChatReply(reply);
+                        assistant.addAiMessage(formatted);
+                    } else {
+                        throw new Error(res.message || 'Vision analysis failed.');
+                    }
+                } catch (err) {
+                    const loader = document.getElementById(loaderId);
+                    if (loader) loader.remove();
+
+                    assistant.addAiMessage("⚠️ " + (err.message || "Failed to analyze screenshot. Please verify your AI central key credentials."));
+                }
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        };
 
         window.launchMetaEmbeddedSignup = async function() {
             const btn = document.getElementById('wa-embedded-connect-btn');

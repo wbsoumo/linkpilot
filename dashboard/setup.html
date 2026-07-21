@@ -1196,7 +1196,6 @@
 
             if (imapEnabled) {
                 if (inheritImap) {
-                    // Dynamic presets resolution based on selectedProvider or host
                     if (selectedProvider === 'gmail') {
                         imapHost = 'imap.gmail.com';
                     } else if (selectedProvider === 'outlook' || selectedProvider === 'office365') {
@@ -1206,10 +1205,11 @@
                     } else if (selectedProvider === 'yahoo') {
                         imapHost = 'imap.mail.yahoo.com';
                     } else {
-                        // Custom logic
-                        imapHost = smtpHost.replace('smtp.', 'imap.').replace('mail.', 'imap.');
-                        if (!imapHost.startsWith('imap.')) {
-                            imapHost = 'imap.' + imapHost;
+                        // Custom logic: Only replace smtp. with imap., keep other custom hostnames unchanged (e.g. mail.domain.com)
+                        if (smtpHost.startsWith('smtp.')) {
+                            imapHost = smtpHost.replace('smtp.', 'imap.');
+                        } else {
+                            imapHost = smtpHost;
                         }
                     }
                     imapPort = 993;
@@ -1261,7 +1261,7 @@
                     });
 
                     if (imapRes.status !== 'success') {
-                        throw new Error('IMAP Verification Failed: ' + (imapRes.message || 'Unknown error'));
+                        throw new Error('IMAP Verification Failed: ' + (imapRes.message || 'Connection failed') + '\n\nTip: If your IMAP settings or host differ from SMTP, please uncheck "Use SMTP credentials & host presets" to adjust them manually.');
                     }
                 }
 
@@ -1316,9 +1316,10 @@
                     } else if (selectedProvider === 'yahoo') {
                         imapHost = 'imap.mail.yahoo.com';
                     } else {
-                        imapHost = smtpHost.replace('smtp.', 'imap.').replace('mail.', 'imap.');
-                        if (!imapHost.startsWith('imap.')) {
-                            imapHost = 'imap.' + imapHost;
+                        if (smtpHost.startsWith('smtp.')) {
+                            imapHost = smtpHost.replace('smtp.', 'imap.');
+                        } else {
+                            imapHost = smtpHost;
                         }
                     }
                     imapPort = 993;

@@ -2682,14 +2682,14 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                         <i data-lucide="server" class="h-4 w-4"></i>
                                     </div>
-                                    <input type="text" id="es_smtp_host" value="${credentials.smtp_host || 'mail.ibiffindia.com'}" placeholder="mail.ibiffindia.com" class="w-full pl-10 bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                                    <input type="text" id="es_smtp_host" value="${credentials.smtp_host || ''}" placeholder="mail.ibiffindia.com" class="w-full pl-10 bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                                 </div>
                                 <p class="text-[10px] text-slate-400 font-medium mt-1">Your SMTP server address</p>
                             </div>
 
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1.5">SMTP Port</label>
-                                <input type="number" id="es_smtp_port" value="${credentials.smtp_port || 587}" placeholder="587" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                                <input type="number" id="es_smtp_port" value="${credentials.smtp_port || ''}" placeholder="587" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                                 <p class="text-[10px] text-slate-400 font-medium mt-1">Common ports: 587, 465, 25</p>
                             </div>
 
@@ -2711,7 +2711,7 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                         <i data-lucide="mail" class="h-4 w-4"></i>
                                     </div>
-                                    <input type="email" id="es_smtp_username" value="${credentials.smtp_username || 'hello@ibiffindia.com'}" placeholder="hello@ibiffindia.com" class="w-full pl-10 bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                                    <input type="email" id="es_smtp_username" value="${credentials.smtp_username || ''}" placeholder="hello@ibiffindia.com" class="w-full pl-10 bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                                 </div>
                                 <p class="text-[10px] text-slate-400 font-medium mt-1">Full email address used for authentication</p>
                             </div>
@@ -2722,7 +2722,7 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                         <i data-lucide="lock" class="h-4 w-4"></i>
                                     </div>
-                                    <input type="${showPassword ? 'text' : 'password'}" id="es_smtp_password" value="••••••••••••" placeholder="••••••••••••" class="w-full pl-10 pr-10 bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                                    <input type="${showPassword ? 'text' : 'password'}" id="es_smtp_password" value="${credentials.smtp_host ? '••••••••••••' : ''}" placeholder="••••••••••••" class="w-full pl-10 pr-10 bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                                     <button type="button" onclick="toggleSmtpPasswordVisibility()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600">
                                         <i id="es_smtp_password_icon" data-lucide="${showPassword ? 'eye-off' : 'eye'}" class="h-4 w-4"></i>
                                     </button>
@@ -2732,15 +2732,27 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                         </div>
 
                         <div class="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-slate-100">
-                            <div class="flex items-center space-x-2.5">
-                                <div class="p-1 bg-emerald-100 text-emerald-600 rounded-full">
-                                    <i data-lucide="check-circle-2" class="h-4 w-4"></i>
+                            ${isCustomMailActive ? `
+                                <div class="flex items-center space-x-2.5">
+                                    <div class="p-1 bg-emerald-100 text-emerald-600 rounded-full">
+                                        <i data-lucide="check-circle-2" class="h-4 w-4"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-bold text-emerald-700">Connected Successfully</div>
+                                        <div class="text-[10px] font-medium text-slate-400">Custom mail server active</div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div class="text-xs font-bold text-emerald-700">Connected Successfully</div>
-                                    <div class="text-[10px] font-medium text-slate-400">Last tested: 20 Jul 2026, 6:18 PM</div>
+                            ` : `
+                                <div class="flex items-center space-x-2.5">
+                                    <div class="p-1 bg-slate-100 text-slate-400 rounded-full">
+                                        <i data-lucide="info" class="h-4 w-4"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-bold text-slate-500">Not Connected</div>
+                                        <div class="text-[10px] font-medium text-slate-400">Configure settings and test connection</div>
+                                    </div>
                                 </div>
-                            </div>
+                            `}
                             <div class="flex items-center space-x-3">
                                 ${isCustomMailActive ? `
                                     <button type="button" onclick="disconnectEmailServer(this)" class="px-4 py-2.5 bg-white border border-red-200 hover:bg-red-50 text-red-600 text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-xs cursor-pointer">
@@ -2778,11 +2790,11 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1.5">IMAP Host</label>
-                                <input type="text" id="es_imap_host" value="${credentials.imap_host || 'mail.ibiffindia.com'}" placeholder="mail.ibiffindia.com" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                                <input type="text" id="es_imap_host" value="${credentials.imap_host || ''}" placeholder="mail.ibiffindia.com" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1.5">IMAP Port</label>
-                                <input type="number" id="es_imap_port" value="${credentials.imap_port || 993}" placeholder="993" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                                <input type="number" id="es_imap_port" value="${credentials.imap_port || ''}" placeholder="993" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1.5">Encryption</label>
@@ -2796,11 +2808,11 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1.5">IMAP Username (Email)</label>
-                                <input type="email" id="es_imap_username" value="${credentials.imap_username || 'hello@ibiffindia.com'}" placeholder="hello@ibiffindia.com" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                                <input type="email" id="es_imap_username" value="${credentials.imap_username || ''}" placeholder="hello@ibiffindia.com" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1.5">IMAP Password</label>
-                                <input type="password" id="es_imap_password" value="••••••••••••" placeholder="••••••••••••" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                                <input type="password" id="es_imap_password" value="${credentials.imap_host ? '••••••••••••' : ''}" placeholder="••••••••••••" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
                             </div>
                         </div>
 

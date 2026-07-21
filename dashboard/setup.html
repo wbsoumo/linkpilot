@@ -123,47 +123,110 @@
             <!-- LEFT COLUMN: Stepper Wizard Panes (col-span-12 lg:col-span-7) -->
             <div class="lg:col-span-7 space-y-6" id="wizard-panes-container">
                 
-                <!-- STEP 1: Connect (Overview / Channel Chooser) -->
+                <!-- STEP 1: Connect Email Provider (Gmail OAuth / Manual / Skip) -->
                 <div class="wizard-pane space-y-6 animate-fade-in" id="step-pane-1">
-                    <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 sm:p-8 shadow-soft space-y-6">
-                        <div class="border-b border-slate-100 pb-4 text-left">
-                            <h2 class="text-lg font-black text-slate-900 flex items-center space-x-2">
-                                <i data-lucide="compass" class="h-5 w-5 text-blue-600"></i>
-                                <span>Choose Communication Channels</span>
-                            </h2>
-                            <p class="text-xs text-slate-500 font-medium mt-1">Select and configure the outreach networks to activate on your smart workspace.</p>
+                    <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 sm:p-8 shadow-soft space-y-6 text-left">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div>
+                                <h2 class="text-lg font-black text-slate-900 flex items-center space-x-2">
+                                    <span class="p-1.5 bg-blue-50 text-blue-600 rounded-lg shrink-0"><i data-lucide="mail" class="h-5 w-5"></i></span>
+                                    <span>Connect Your Email</span>
+                                </h2>
+                                <p class="text-xs text-slate-500 font-semibold mt-1">You can connect your email later from Settings. All features will remain available.</p>
+                            </div>
+                            <button type="button" onclick="skipEmailSetup()" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-700 transition cursor-pointer shrink-0">
+                                Skip Email Setup
+                            </button>
                         </div>
                         
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <!-- Email Channel Option -->
-                            <div class="p-5 border-2 border-blue-500/80 bg-blue-50/5 rounded-2xl text-left space-y-3">
-                                <div class="flex items-center justify-between">
-                                    <div class="w-9 h-9 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
-                                        <i data-lucide="mail" class="h-5 w-5"></i>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                            <!-- Gmail (Recommended) -->
+                            <div class="p-6 border-2 border-blue-500 bg-blue-50/5 rounded-2xl relative space-y-5 flex flex-col justify-between">
+                                <span class="absolute top-0 right-0 px-3 py-1 bg-blue-500 text-white rounded-bl-xl text-[9px] font-black uppercase tracking-wider">Recommended</span>
+                                <div class="space-y-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="p-2.5 bg-white border border-slate-200/60 rounded-xl shadow-2xs">
+                                            <svg class="h-6 w-6" viewBox="0 0 24 24">
+                                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 class="font-black text-slate-900 text-sm">Recommended (Gmail)</h3>
+                                            <p class="text-[10px] text-slate-400 font-semibold mt-0.5">Secure Google OAuth signup</p>
+                                        </div>
                                     </div>
-                                    <span class="px-2.5 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-full text-[9px] font-black uppercase tracking-wider">Outbound & Inbound</span>
+                                    <div class="space-y-2 text-xs font-bold text-slate-650 pl-1">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-emerald-500 font-extrabold">✓</span>
+                                            <span>Easy & fast connection</span>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-emerald-500 font-extrabold">✓</span>
+                                            <span>Secure OAuth authentication</span>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-emerald-500 font-extrabold">✓</span>
+                                            <span>Access to IMAP, profile & more</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <h3 class="font-extrabold text-slate-900 text-sm">AI Email Outreach</h3>
-                                <p class="text-[11px] text-slate-500 font-semibold leading-relaxed">Connect Gmail, Outlook, Zoho, or any custom SMTP server. Automate followups and sync replies with CRM.</p>
+                                <button type="button" onclick="launchGoogleOAuth()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center space-x-2 shadow-sm shadow-blue-500/10 cursor-pointer" style="color: #ffffff !important;">
+                                    <svg class="h-4.5 w-4.5 fill-current text-white" viewBox="0 0 24 24">
+                                        <path fill="#ffffff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                    </svg>
+                                    <span style="color: #ffffff !important;">Connect with Gmail</span>
+                                </button>
                             </div>
-                            
-                            <!-- WhatsApp Channel Option -->
-                            <div class="p-5 border-2 border-emerald-500/80 bg-emerald-50/5 rounded-2xl text-left space-y-3">
-                                <div class="flex items-center justify-between">
-                                    <div class="w-9 h-9 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center">
-                                        <i data-lucide="message-circle" class="h-5 w-5"></i>
+
+                            <!-- Manual configuration -->
+                            <div class="p-6 border border-slate-200/80 bg-white rounded-2xl space-y-5 flex flex-col justify-between">
+                                <div class="space-y-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="p-2.5 bg-slate-50 border border-slate-200/60 rounded-xl">
+                                            <i data-lucide="mail-open" class="h-6 w-6 text-slate-500"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="font-black text-slate-900 text-sm">Other Email Providers</h3>
+                                            <p class="text-[10px] text-slate-400 font-semibold mt-0.5">Manual custom SMTP/IMAP</p>
+                                        </div>
                                     </div>
-                                    <span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full text-[9px] font-black uppercase tracking-wider">Meta API</span>
+                                    <p class="text-xs text-slate-500 font-semibold leading-relaxed">Connect Outlook, Zoho, or any custom SMTP server.</p>
+                                    <div class="flex items-center space-x-2.5 pt-1.5 opacity-80">
+                                        <img src="https://img.logo.dev/outlook.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-5 w-5 object-contain" alt="Outlook" onerror="this.onerror=null; this.src='https://img.icons8.com/color/48/microsoft-outlook-2019.png';">
+                                        <img src="https://img.logo.dev/zoho.com?token=pk_N-oU80_cR4CQ8ojWxHTECA" class="h-5 w-5 object-contain" alt="Zoho" onerror="this.onerror=null; this.src='https://img.icons8.com/color/48/globe--v1.png';">
+                                        <i data-lucide="server" class="h-5 w-5 text-slate-400"></i>
+                                        <span class="text-[10px] font-extrabold text-slate-400">...</span>
+                                    </div>
                                 </div>
-                                <h3 class="font-extrabold text-slate-900 text-sm">WhatsApp Business Automation</h3>
-                                <p class="text-[11px] text-slate-500 font-semibold leading-relaxed">Official Meta Cloud API integration. Direct Meta Embedded Signup. Automate broadcasts, support, and template replies.</p>
+                                <button type="button" onclick="goToStep(2)" class="w-full py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl transition flex items-center justify-center space-x-1 cursor-pointer">
+                                    <span>Setup Manually</span>
+                                </button>
                             </div>
                         </div>
 
-                        <div class="pt-4 flex items-center justify-end border-t border-slate-100">
-                            <button type="button" onclick="goToStep(2)" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer" style="color: #ffffff !important;">
-                                <span style="color: #ffffff !important;">Get Started</span>
-                                <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
+                        <!-- OR Separator -->
+                        <div class="relative flex py-2 items-center">
+                            <div class="flex-grow border-t border-slate-100"></div>
+                            <span class="flex-shrink mx-4 text-[10px] font-extrabold text-slate-300 uppercase tracking-widest">OR</span>
+                            <div class="flex-grow border-t border-slate-100"></div>
+                        </div>
+
+                        <!-- Skip Email for Now Row -->
+                        <div class="p-4 bg-slate-50/50 border border-slate-200/60 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div class="flex items-center space-x-3.5">
+                                <div class="p-2.5 bg-white border border-slate-200/65 rounded-xl shadow-3xs">
+                                    <i data-lucide="clock" class="h-5 w-5 text-slate-500"></i>
+                                </div>
+                                <div>
+                                    <span class="block text-xs font-black text-slate-900">Skip Email for Now</span>
+                                    <span class="text-[10px] text-slate-400 font-semibold">You can configure email, SMTP, IMAP anytime from Settings.</span>
+                                </div>
+                            </div>
+                            <button type="button" onclick="skipEmailSetup()" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-700 transition cursor-pointer shrink-0">
+                                Skip Email Setup
                             </button>
                         </div>
                     </div>
@@ -316,6 +379,9 @@
                                         <i data-lucide="wifi" class="h-4 w-4 text-slate-500"></i>
                                         <span>Test Connection</span>
                                     </button>
+                                    <button type="button" onclick="goToStep(3)" class="px-4 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer">
+                                        <span>Skip SMTP</span>
+                                    </button>
                                 </div>
                                 <button type="submit" id="smtp-verify-submit-btn" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer" style="color: #ffffff !important;">
                                     <span style="color: #ffffff !important;">Connect SMTP</span>
@@ -328,24 +394,28 @@
 
                 <!-- STEP 3: Meta Integration (WhatsApp Business) Card -->
                 <div class="wizard-pane space-y-6 hidden animate-fade-in" id="step-pane-3">
-                    <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 sm:p-8 shadow-soft space-y-6">
-                        <div class="border-b border-slate-100 pb-4 flex justify-between items-center text-left">
+                    <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 sm:p-8 shadow-soft space-y-6 text-left">
+                        
+                        <!-- Top Header -->
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
                             <div>
-                                <h2 class="text-lg font-extrabold text-slate-900 flex items-center space-x-2">
-                                    <span class="p-1 bg-emerald-50 text-emerald-600 rounded-lg shrink-0 flex items-center justify-center">
-                                        <svg class="h-4.5 w-4.5 fill-current text-emerald-600" viewBox="0 0 24 24">
+                                <h2 class="text-xl font-black text-slate-900 tracking-tight flex items-center space-x-2.5">
+                                    <span class="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg shrink-0 flex items-center justify-center">
+                                        <svg class="h-5 w-5 fill-current text-emerald-600" viewBox="0 0 24 24">
                                             <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.1 1.45 4.8 1.45 5.58 0 10.12-4.54 10.12-10.12C21.581 5.33 17.26 1 12.01 1 6.43 1 1.89 5.54 1.89 11.12c0 1.9.5 3.76 1.47 5.36L2.38 21.62l5.21-1.37zM17.43 14.19c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-1.12-.56-1.92-.98-2.68-2.29-.3-.52-.3-.88-.15-1.03.14-.14.3-.35.45-.53.15-.17.2-.3.3-.5.1-.2.05-.38-.02-.53-.07-.15-.67-1.62-.92-2.22-.24-.6-.5-.52-.67-.53l-.58-.01c-.2 0-.53.07-.8.37-.28.3-1.07 1.05-1.07 2.56 0 1.5 1.1 2.97 1.25 3.17.15.2 2.15 3.28 5.2 4.6 1.34.57 2.14.75 2.87.68.73-.07 2.22-.91 2.53-1.79.31-.88.31-1.64.21-1.79-.1-.15-.29-.24-.59-.39z"/>
                                         </svg>
                                     </span>
-                                    <span>Meta Integration (WhatsApp Business)</span>
+                                    <span>Connect WhatsApp Business (Meta)</span>
                                 </h2>
-                                <p class="text-xs text-slate-500 font-medium mt-1">Connect your WhatsApp Business account securely via Meta Cloud API.</p>
+                                <p class="text-xs text-slate-500 font-semibold mt-1">You can connect WhatsApp later. All CRM features will remain available.</p>
                             </div>
-                            <span class="text-[10px] px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-extrabold uppercase tracking-wider shrink-0">Meta Official</span>
+                            <button type="button" onclick="goToStep(4)" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-700 transition cursor-pointer shrink-0">
+                                Skip WhatsApp Setup
+                            </button>
                         </div>
 
                         <!-- Connected State Alert (Hidden by default, shown if active) -->
-                        <div id="wa-connect-success-state" class="hidden p-5 bg-emerald-50/60 border border-emerald-200/80 rounded-2xl space-y-3 text-left">
+                        <div id="wa-connect-success-state" class="hidden p-5 bg-emerald-50/60 border border-emerald-200/80 rounded-2xl space-y-3">
                             <div class="flex justify-between items-start">
                                 <div class="flex items-center space-x-3">
                                     <div class="p-2 bg-emerald-500 text-white rounded-xl">
@@ -369,13 +439,41 @@
                         </div>
 
                         <!-- Connection Selection State -->
-                        <div id="wa-connect-selection-state" class="space-y-5">
+                        <div id="wa-connect-selection-state" class="space-y-6">
+                            
+                            <!-- WhatsApp Features Checklist Banner -->
+                            <div class="p-5 bg-slate-50/60 border border-slate-200/60 rounded-2xl space-y-3.5">
+                                <span class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Connect your WhatsApp Business to enable</span>
+                                <div class="flex flex-wrap gap-2.5">
+                                    <span class="flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-100/60 rounded-xl text-xs font-bold">
+                                        <span class="text-emerald-500 font-extrabold">✓</span>
+                                        <span>WhatsApp Campaigns</span>
+                                    </span>
+                                    <span class="flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-100/60 rounded-xl text-xs font-bold">
+                                        <span class="text-emerald-500 font-extrabold">✓</span>
+                                        <span>Automated Replies</span>
+                                    </span>
+                                    <span class="flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-100/60 rounded-xl text-xs font-bold">
+                                        <span class="text-emerald-500 font-extrabold">✓</span>
+                                        <span>Template Messages</span>
+                                    </span>
+                                    <span class="flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-100/60 rounded-xl text-xs font-bold">
+                                        <span class="text-emerald-500 font-extrabold">✓</span>
+                                        <span>Contact Sync</span>
+                                    </span>
+                                    <span class="flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-100/60 rounded-xl text-xs font-bold">
+                                        <span class="text-emerald-500 font-extrabold">✓</span>
+                                        <span>Team Inbox</span>
+                                    </span>
+                                </div>
+                            </div>
+
                             <!-- Primary Recommended Option: Official Meta Embedded Signup -->
-                            <div class="p-5 border-2 border-emerald-500/80 bg-emerald-50/10 rounded-2xl text-left relative space-y-4">
+                            <div class="p-6 border border-slate-200/80 bg-white rounded-2xl relative space-y-4">
                                 <div class="flex items-start justify-between">
-                                    <div class="flex items-center space-x-3">
+                                    <div class="flex items-center space-x-3.5">
                                         <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
-                                            <svg class="h-6 w-6 fill-current" viewBox="0 0 24 24">
+                                            <svg class="h-6 w-6 fill-current text-emerald-600" viewBox="0 0 24 24">
                                                 <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.1 1.45 4.8 1.45 5.58 0 10.12-4.54 10.12-10.12C21.581 5.33 17.26 1 12.01 1 6.43 1 1.89 5.54 1.89 11.12c0 1.9.5 3.76 1.47 5.36L2.38 21.62l5.21-1.37zM17.43 14.19c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-1.12-.56-1.92-.98-2.68-2.29-.3-.52-.3-.88-.15-1.03.14-.14.3-.35.45-.53.15-.17.2-.3.3-.5.1-.2.05-.38-.02-.53-.07-.15-.67-1.62-.92-2.22-.24-.6-.5-.52-.67-.53l-.58-.01c-.2 0-.53.07-.8.37-.28.3-1.07 1.05-1.07 2.56 0 1.5 1.1 2.97 1.25 3.17.15.2 2.15 3.28 5.2 4.6 1.34.57 2.14.75 2.87.68.73-.07 2.22-.91 2.53-1.79.31-.88.31-1.64.21-1.79-.1-.15-.29-.24-.59-.39z"/>
                                             </svg>
                                         </div>
@@ -387,16 +485,16 @@
                                     <span class="px-2.5 py-0.5 bg-emerald-500 text-white rounded-full text-[9px] font-black uppercase tracking-wider shrink-0">Recommended</span>
                                 </div>
 
-                                <button type="button" id="wa-embedded-connect-btn" onclick="launchMetaEmbeddedSignup()" class="w-full py-3 text-xs font-bold rounded-xl text-white bg-[#1877F2] hover:bg-[#166FE5] transition flex items-center justify-center space-x-2.5 shadow-md shadow-blue-500/10 cursor-pointer select-none border border-transparent" style="color: #ffffff !important;">
-                                    <svg class="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24">
-                                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                <button type="button" id="wa-embedded-connect-btn" onclick="launchMetaEmbeddedSignup()" class="w-full py-3 text-xs font-bold rounded-xl text-white bg-emerald-600 hover:bg-emerald-700 transition flex items-center justify-center space-x-2.5 shadow-md shadow-emerald-500/10 cursor-pointer select-none border border-transparent" style="color: #ffffff !important;">
+                                    <svg class="h-4.5 w-4.5 fill-current text-white" viewBox="0 0 24 24">
+                                        <path fill="#ffffff" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                                     </svg>
-                                    <span>Login with Facebook</span>
+                                    <span style="color: #ffffff !important;">Connect WhatsApp Now</span>
                                 </button>
                             </div>
 
                             <!-- Help Support Box -->
-                            <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600 text-left">
+                            <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
                                 <div>
                                     <span class="font-extrabold block text-slate-800">Need help with Meta Setup?</span>
                                     <span class="text-slate-500 text-[11px]">Contact our setup assistance team directly</span>
@@ -463,7 +561,7 @@
 
                         <!-- Footer Navigation Buttons -->
                         <div class="pt-4 flex items-center justify-between border-t border-slate-100">
-                            <button type="button" onclick="goToStep(2)" class="px-5 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 cursor-pointer">
+                            <button type="button" onclick="goBackFromWhatsApp()" class="px-5 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 cursor-pointer">
                                 <i data-lucide="arrow-left" class="h-4 w-4 text-slate-500"></i>
                                 <span>Back</span>
                             </button>
@@ -662,7 +760,7 @@
             <div class="lg:col-span-5 space-y-6">
 
                 <!-- 1. Setup Progress Card -->
-                <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 shadow-soft space-y-4">
+                <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 shadow-soft space-y-4 text-left">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-2">
                             <div class="p-2 bg-blue-50 text-blue-600 rounded-xl">
@@ -670,10 +768,17 @@
                             </div>
                             <span class="text-xs font-extrabold text-slate-900">Setup Progress</span>
                         </div>
-                        <span id="setup-progress-text" class="text-xs font-extrabold text-blue-600">50% Completed</span>
+                        <span id="setup-progress-text" class="text-xs font-extrabold text-blue-600">25% Completed</span>
                     </div>
                     <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                        <div id="setup-progress-bar" class="bg-blue-600 h-full rounded-full transition-all duration-500" style="width: 50%;"></div>
+                        <div id="setup-progress-bar" class="bg-blue-600 h-full rounded-full transition-all duration-500" style="width: 25%;"></div>
+                    </div>
+                    <div class="pt-2 flex items-center justify-between text-[11px] text-slate-400 font-semibold gap-3">
+                        <span>You can skip any step and complete it later.</span>
+                        <button type="button" id="wiz-continue-btn" onclick="goToStep(activeStep + 1)" class="px-3.5 py-1.5 bg-white border border-blue-200 hover:bg-blue-50 text-blue-600 rounded-lg font-bold transition flex items-center space-x-1 cursor-pointer shrink-0">
+                            <span>Continue Setup</span>
+                            <i data-lucide="arrow-right" class="h-3 w-3"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -684,117 +789,148 @@
                             <i data-lucide="activity" class="h-4 w-4 text-blue-600"></i>
                             <span>Connection Status</span>
                         </h3>
-                        <span class="text-[10px] font-bold text-slate-400">Live Diagnostics</span>
+                        <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-600 border border-emerald-100 animate-pulse uppercase tracking-wider">Live</span>
                     </div>
 
-                    <div class="space-y-3">
-                        <!-- SMTP -->
-                        <div class="flex items-center justify-between p-2.5 bg-[#f8fafc] rounded-xl border border-slate-100">
-                            <div class="flex items-center space-x-2.5">
-                                <i data-lucide="send" class="h-4 w-4 text-slate-500"></i>
-                                <span class="text-xs font-bold text-slate-700">SMTP Outbound</span>
+                    <div class="space-y-3 text-left">
+                        <!-- Email Account -->
+                        <div class="flex items-center justify-between py-2 border-b border-slate-50 text-xs font-bold">
+                            <div class="flex items-center space-x-2 text-slate-700">
+                                <i data-lucide="mail" class="h-4 w-4 text-slate-400"></i>
+                                <span>Email Account</span>
                             </div>
-                            <span id="badge-status-smtp" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-600 border border-amber-200/60">Pending</span>
+                            <div class="flex items-center space-x-3">
+                                <span id="badge-status-email" class="text-rose-500 font-extrabold">Not Connected</span>
+                                <button onclick="skipEmailSetup()" class="text-blue-600 hover:text-blue-700 text-[11px] font-black cursor-pointer hover:underline">Skip</button>
+                            </div>
                         </div>
 
-                        <!-- Meta WhatsApp -->
-                        <div class="flex items-center justify-between p-2.5 bg-[#f8fafc] rounded-xl border border-slate-100">
-                            <div class="flex items-center space-x-2.5">
-                                <i data-lucide="message-square" class="h-4 w-4 text-emerald-600"></i>
-                                <span class="text-xs font-bold text-slate-700">Meta WhatsApp</span>
+                        <!-- SMTP -->
+                        <div class="flex items-center justify-between py-2 border-b border-slate-50 text-xs font-bold">
+                            <div class="flex items-center space-x-2 text-slate-700">
+                                <i data-lucide="send" class="h-4 w-4 text-slate-400"></i>
+                                <span>SMTP (Outgoing)</span>
                             </div>
-                            <span id="badge-status-wa" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-600 border border-amber-200/60">Pending</span>
+                            <div class="flex items-center space-x-3">
+                                <span id="badge-status-smtp" class="text-amber-500 font-extrabold">Pending</span>
+                                <button onclick="goToStep(3)" class="text-blue-600 hover:text-blue-700 text-[11px] font-black cursor-pointer hover:underline">Skip</button>
+                            </div>
                         </div>
 
                         <!-- IMAP -->
-                        <div class="flex items-center justify-between p-2.5 bg-[#f8fafc] rounded-xl border border-slate-100">
-                            <div class="flex items-center space-x-2.5">
-                                <i data-lucide="inbox" class="h-4 w-4 text-slate-500"></i>
-                                <span class="text-xs font-bold text-slate-700">IMAP Inbound</span>
+                        <div class="flex items-center justify-between py-2 border-b border-slate-50 text-xs font-bold">
+                            <div class="flex items-center space-x-2 text-slate-700">
+                                <i data-lucide="inbox" class="h-4 w-4 text-slate-400"></i>
+                                <span>IMAP (Incoming)</span>
                             </div>
-                            <span id="badge-status-imap" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-600 border border-amber-200/60">Pending</span>
+                            <div class="flex items-center space-x-3">
+                                <span id="badge-status-imap" class="text-amber-500 font-extrabold">Pending</span>
+                                <button onclick="goToStep(5)" class="text-blue-600 hover:text-blue-700 text-[11px] font-black cursor-pointer hover:underline">Skip</button>
+                            </div>
+                        </div>
+
+                        <!-- Meta WhatsApp -->
+                        <div class="flex items-center justify-between py-2 border-b border-slate-50 text-xs font-bold">
+                            <div class="flex items-center space-x-2 text-slate-700">
+                                <i data-lucide="message-square" class="h-4 w-4 text-slate-400"></i>
+                                <span>Meta WhatsApp</span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span id="badge-status-wa" class="text-rose-500 font-extrabold">Not Connected</span>
+                                <button onclick="goToStep(5)" class="text-blue-600 hover:text-blue-700 text-[11px] font-black cursor-pointer hover:underline">Skip</button>
+                            </div>
                         </div>
 
                         <!-- Permissions -->
-                        <div class="flex items-center justify-between p-2.5 bg-[#f8fafc] rounded-xl border border-slate-100">
-                            <div class="flex items-center space-x-2.5">
-                                <i data-lucide="shield-check" class="h-4 w-4 text-slate-500"></i>
-                                <span class="text-xs font-bold text-slate-700">Permissions</span>
+                        <div class="flex items-center justify-between py-2 border-b border-slate-50 text-xs font-bold">
+                            <div class="flex items-center space-x-2 text-slate-700">
+                                <i data-lucide="shield-check" class="h-4 w-4 text-slate-400"></i>
+                                <span>Permissions</span>
                             </div>
-                            <span id="badge-status-permissions" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60">Active</span>
+                            <div class="flex items-center space-x-3">
+                                <span id="badge-status-permissions" class="text-amber-500 font-extrabold">Pending</span>
+                                <button onclick="savePermissionsAndFinish()" class="text-blue-600 hover:text-blue-700 text-[11px] font-black cursor-pointer hover:underline">Skip</button>
+                            </div>
                         </div>
 
-                        <!-- AI Inbox -->
-                        <div class="flex items-center justify-between p-2.5 bg-[#f8fafc] rounded-xl border border-slate-100">
-                            <div class="flex items-center space-x-2.5">
-                                <i data-lucide="sparkles" class="h-4 w-4 text-slate-500"></i>
-                                <span class="text-xs font-bold text-slate-700">AI Inbox Engine</span>
+                        <!-- AI Inbox Engine -->
+                        <div class="flex items-center justify-between py-2 border-b border-slate-50 text-xs font-bold">
+                            <div class="flex items-center space-x-2 text-slate-700">
+                                <i data-lucide="sparkles" class="h-4 w-4 text-slate-400"></i>
+                                <span>AI Inbox Engine</span>
                             </div>
-                            <span id="badge-status-ai" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60">Ready</span>
+                            <div class="flex items-center space-x-1.5 text-slate-400">
+                                <span class="font-extrabold text-[11px]">Locked</span>
+                                <i data-lucide="lock" class="h-3.5 w-3.5"></i>
+                            </div>
                         </div>
 
                         <!-- Last Sync -->
-                        <div class="flex items-center justify-between p-2.5 bg-[#f8fafc] rounded-xl border border-slate-100">
-                            <div class="flex items-center space-x-2.5">
-                                <i data-lucide="clock" class="h-4 w-4 text-slate-500"></i>
-                                <span class="text-xs font-bold text-slate-700">Last Sync</span>
+                        <div class="flex items-center justify-between py-1 text-xs font-bold">
+                            <div class="flex items-center space-x-2 text-slate-700">
+                                <i data-lucide="clock" class="h-4 w-4 text-slate-400"></i>
+                                <span>Last Sync</span>
                             </div>
-                            <span id="badge-status-sync" class="text-xs font-bold text-slate-500">Just now</span>
+                            <span class="text-slate-500 font-bold">Never</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- 3. AI Features Preview Card -->
                 <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 shadow-soft space-y-4">
-                    <div class="border-b border-slate-100 pb-3">
+                    <div class="border-b border-slate-100 pb-3 text-left">
                         <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
-                            <i data-lucide="zap" class="h-4 w-4 text-blue-600"></i>
-                            <span>Unlocked AI Features</span>
+                            <i data-lucide="zap" class="h-4 w-4 text-violet-600"></i>
+                            <span>Unlock Powerful AI Features</span>
                         </h3>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2.5 text-xs font-bold text-slate-700">
-                        <div class="flex items-center space-x-2 p-2 bg-[#f8fafc] rounded-xl border border-slate-100">
-                            <span class="text-emerald-500 font-extrabold">✓</span>
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-xs font-bold text-slate-750 text-left">
+                        <div class="flex items-center space-x-2.5">
+                            <span class="text-violet-500 text-sm">✓</span>
                             <span>AI Reply</span>
                         </div>
-                        <div class="flex items-center space-x-2 p-2 bg-[#f8fafc] rounded-xl border border-slate-100">
-                            <span class="text-emerald-500 font-extrabold">✓</span>
-                            <span>Smart Inbox</span>
-                        </div>
-                        <div class="flex items-center space-x-2 p-2 bg-[#f8fafc] rounded-xl border border-slate-100">
-                            <span class="text-emerald-500 font-extrabold">✓</span>
-                            <span>Email Tracking</span>
-                        </div>
-                        <div class="flex items-center space-x-2 p-2 bg-[#f8fafc] rounded-xl border border-slate-100">
-                            <span class="text-emerald-500 font-extrabold">✓</span>
+                        <div class="flex items-center space-x-2.5">
+                            <span class="text-violet-500 text-sm">✓</span>
                             <span>Contact Sync</span>
                         </div>
-                        <div class="flex items-center space-x-2 p-2 bg-[#f8fafc] rounded-xl border border-slate-100">
-                            <span class="text-emerald-500 font-extrabold">✓</span>
-                            <span>Calendar Detection</span>
+                        <div class="flex items-center space-x-2.5">
+                            <span class="text-violet-500 text-sm">✓</span>
+                            <span>Smart Inbox</span>
                         </div>
-                        <div class="flex items-center space-x-2 p-2 bg-[#f8fafc] rounded-xl border border-slate-100">
-                            <span class="text-emerald-500 font-extrabold">✓</span>
+                        <div class="flex items-center space-x-2.5">
+                            <span class="text-violet-500 text-sm">✓</span>
                             <span>Automations</span>
                         </div>
-                        <div class="flex items-center space-x-2 p-2 bg-[#f8fafc] rounded-xl border border-slate-100 col-span-2">
-                            <span class="text-emerald-500 font-extrabold">✓</span>
-                            <span>Campaign Outbound Sending</span>
+                        <div class="flex items-center space-x-2.5">
+                            <span class="text-violet-500 text-sm">✓</span>
+                            <span>Email Tracking</span>
+                        </div>
+                        <div class="flex items-center space-x-2.5">
+                            <span class="text-violet-500 text-sm">✓</span>
+                            <span>Campaign Sending</span>
+                        </div>
+                        <div class="flex items-center space-x-2.5">
+                            <span class="text-violet-500 text-sm">✓</span>
+                            <span>Calendar Detection</span>
+                        </div>
+                        <div class="flex items-center space-x-2.5">
+                            <span class="text-violet-500 text-sm">✓</span>
+                            <span>Team Collaboration</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- 4. Security Card -->
                 <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 shadow-soft space-y-4">
-                    <div class="border-b border-slate-100 pb-3">
+                    <div class="border-b border-slate-100 pb-3 text-left">
                         <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
-                            <i data-lucide="lock" class="h-4 w-4 text-blue-600"></i>
+                            <i data-lucide="lock" class="h-4 w-4 text-emerald-600"></i>
                             <span>Enterprise Security</span>
                         </h3>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3 text-xs font-bold text-slate-700">
+                    <div class="grid grid-cols-2 gap-3 text-xs font-bold text-slate-700 text-left">
                         <div class="flex items-center space-x-2">
                             <i data-lucide="shield-check" class="h-4 w-4 text-emerald-500"></i>
                             <span>TLS Encrypted</span>
@@ -828,6 +964,36 @@
     <script src="assets/js/app.js"></script>
     <script>
         let activeStep = 1;
+        let emailSetupSkipped = false;
+
+        window.skipEmailSetup = function() {
+            emailSetupSkipped = true;
+            // Update Connection Status badges to "Skipped"
+            const badgeEmail = document.getElementById('badge-status-email');
+            const badgeSmtp = document.getElementById('badge-status-smtp');
+            const badgeImap = document.getElementById('badge-status-imap');
+            if (badgeEmail) {
+                badgeEmail.className = "text-slate-400 font-extrabold";
+                badgeEmail.textContent = "Skipped";
+            }
+            if (badgeSmtp) {
+                badgeSmtp.className = "text-slate-400 font-extrabold";
+                badgeSmtp.textContent = "Skipped";
+            }
+            if (badgeImap) {
+                badgeImap.className = "text-slate-400 font-extrabold";
+                badgeImap.textContent = "Skipped";
+            }
+            goToStep(3); // Go to Meta WhatsApp
+        };
+
+        window.goBackFromWhatsApp = function() {
+            if (emailSetupSkipped) {
+                goToStep(1);
+            } else {
+                goToStep(2); // Back to SMTP Outbound
+            }
+        };
 
         window.goToStep = function(stepNum) {
             if (stepNum < 1 || stepNum > 6) return;
@@ -1161,6 +1327,8 @@
                     badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60";
                     badge.textContent = "Active";
                 }
+                
+                goToStep(3); // Go to Meta WhatsApp
 
             } catch (err) {
                 showNotification('error', err.message || 'SMTP Handshake Verification Failed.');
@@ -1351,15 +1519,15 @@
                     }
 
                     if (badgeWa) {
-                        badgeWa.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60";
-                        badgeWa.textContent = "Active";
+                        badgeWa.className = "text-emerald-500 font-extrabold";
+                        badgeWa.textContent = "Connected";
                     }
                 } else {
                     if (selectionState) selectionState.classList.remove('hidden');
                     if (successState) successState.classList.add('hidden');
                     if (badgeWa) {
-                        badgeWa.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-600 border border-amber-200/60";
-                        badgeWa.textContent = "Pending";
+                        badgeWa.className = "text-rose-500 font-extrabold";
+                        badgeWa.textContent = "Not Connected";
                     }
                 }
             } catch (err) {
@@ -1389,25 +1557,34 @@
 
         window.checkEmailSetupStatus = async function() {
             try {
+                const badgeEmail = document.getElementById('badge-status-email');
                 const gRes = await apiCall('external_apps/status.php');
                 if (gRes && gRes.status === 'success' && gRes.data && gRes.data.connected && gRes.data.gmail_connected) {
+                    if (badgeEmail) {
+                        badgeEmail.className = "text-emerald-500 font-extrabold";
+                        badgeEmail.textContent = "Connected";
+                    }
                     const badgeSmtp = document.getElementById('badge-status-smtp');
                     const badgeImap = document.getElementById('badge-status-imap');
                     if (badgeSmtp) {
-                        badgeSmtp.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60";
+                        badgeSmtp.className = "text-emerald-500 font-extrabold";
                         badgeSmtp.textContent = "Active (OAuth)";
                     }
                     if (badgeImap) {
-                        badgeImap.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60";
+                        badgeImap.className = "text-emerald-500 font-extrabold";
                         badgeImap.textContent = "Active (OAuth)";
                     }
                 } else {
                     const smtpRes = await apiCall('smtp/list.php');
                     if (smtpRes && smtpRes.accounts && smtpRes.accounts.length > 0) {
+                        if (badgeEmail) {
+                            badgeEmail.className = "text-emerald-500 font-extrabold";
+                            badgeEmail.textContent = "Connected";
+                        }
                         const defaultAcc = smtpRes.accounts.find(a => a.is_default) || smtpRes.accounts[0];
                         const badgeSmtp = document.getElementById('badge-status-smtp');
                         if (badgeSmtp) {
-                            badgeSmtp.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60";
+                            badgeSmtp.className = "text-emerald-500 font-extrabold";
                             badgeSmtp.textContent = "Active";
                         }
                         const hostInput = document.getElementById('smtp-host');

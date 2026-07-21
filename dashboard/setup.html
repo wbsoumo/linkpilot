@@ -1729,26 +1729,43 @@
                 const phoneInput = document.getElementById('wa-manual-phone-id');
                 const wabaInput = document.getElementById('wa-manual-waba-id');
 
+                const resetValidationUI = () => {
+                    const tokenBadge = document.getElementById('wa-token-valid-badge');
+                    const wabaBadge = document.getElementById('wa-waba-valid-badge');
+                    const phoneBadge = document.getElementById('wa-phone-valid-badge');
+                    if (tokenBadge) tokenBadge.classList.add('hidden');
+                    if (wabaBadge) wabaBadge.classList.add('hidden');
+                    if (phoneBadge) phoneBadge.classList.add('hidden');
+                    
+                    const autoCard = document.getElementById('wa-auto-details-card');
+                    if (autoCard) autoCard.classList.add('hidden');
+
+                    const validateBtn = document.getElementById('wa-validate-creds-btn');
+                    const connectBtn = document.getElementById('wa-manual-submit-btn');
+                    if (validateBtn) validateBtn.classList.remove('hidden');
+                    if (connectBtn) connectBtn.classList.add('hidden');
+                };
+
                 if (tokenInput) {
                     tokenInput.addEventListener('input', (e) => {
+                        resetValidationUI();
                         if (e.target.value.trim().length > 20) {
-                            document.getElementById('wa-token-valid-badge').classList.remove('hidden');
                             if (this.currentStep === 5) this.advanceStep(6, "Token pasted successfully.");
                         }
                     });
                 }
                 if (phoneInput) {
                     phoneInput.addEventListener('input', (e) => {
+                        resetValidationUI();
                         if (e.target.value.trim().length >= 10) {
-                            document.getElementById('wa-phone-valid-badge').classList.remove('hidden');
                             if (this.currentStep === 6) this.advanceStep(7, "Phone ID pasted.");
                         }
                     });
                 }
                 if (wabaInput) {
                     wabaInput.addEventListener('input', (e) => {
+                        resetValidationUI();
                         if (e.target.value.trim().length >= 10) {
-                            document.getElementById('wa-waba-valid-badge').classList.remove('hidden');
                             if (this.currentStep === 7) this.advanceStep(8, "WABA ID pasted.");
                         }
                     });

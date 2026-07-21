@@ -992,18 +992,25 @@ async function renderDashboard(container) {
         }
         
         // Update global task badges
-        updateGlobalTaskBadges();
+        try { updateGlobalTaskBadges(); } catch (e) { console.warn(e); }
 
         // Initialize Charts
-        renderDashboardCharts(data);
+        try { renderDashboardCharts(data); } catch (e) { console.warn(e); }
         
-        lucide.createIcons();
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+        }
     } catch (err) {
         showNotification('error', 'Error rendering dashboard: ' + err.message);
     }
 }
 
 function renderDashboardCharts(data) {
+    data = data || {};
+    const emailsTrend = data.emails_received_trend || [];
+    const leadsTrend = data.leads_generated_trend || [];
+    const leadSources = data.lead_sources || [];
+
     // 1. Line Trend Chart
     const trendEl = document.getElementById('dashboardTrendChart');
     if (trendEl) {
@@ -1011,9 +1018,9 @@ function renderDashboardCharts(data) {
             charts.trend.destroy();
         }
         const trendCtx = trendEl.getContext('2d');
-        const emailLabels = data.emails_received_trend.length > 0 ? data.emails_received_trend.map(e => e.date) : ['Jul 01', 'Jul 02', 'Jul 03', 'Jul 04', 'Jul 05'];
-        const emailCounts = data.emails_received_trend.length > 0 ? data.emails_received_trend.map(e => e.count) : [5, 8, 12, 6, 9];
-        const leadCounts = data.leads_generated_trend.length > 0 ? data.leads_generated_trend.map(l => l.count) : [2, 4, 3, 5, 4];
+        const emailLabels = emailsTrend.length > 0 ? emailsTrend.map(e => e.date) : ['Jul 01', 'Jul 02', 'Jul 03', 'Jul 04', 'Jul 05'];
+        const emailCounts = emailsTrend.length > 0 ? emailsTrend.map(e => e.count) : [5, 8, 12, 6, 9];
+        const leadCounts = leadsTrend.length > 0 ? leadsTrend.map(l => l.count) : [2, 4, 3, 5, 4];
         
         charts.trend = new Chart(trendCtx, {
             type: 'line',
@@ -1058,8 +1065,8 @@ function renderDashboardCharts(data) {
             charts.sources.destroy();
         }
         const sourcesCtx = sourcesEl.getContext('2d');
-        const sourceLabels = data.lead_sources.length > 0 ? data.lead_sources.map(s => s.source) : ['Email', 'LinkedIn', 'Website', 'WhatsApp'];
-        const sourceValues = data.lead_sources.length > 0 ? data.lead_sources.map(s => s.count) : [12, 18, 9, 5];
+        const sourceLabels = leadSources.length > 0 ? leadSources.map(s => s.source) : ['Email', 'LinkedIn', 'Website', 'WhatsApp'];
+        const sourceValues = leadSources.length > 0 ? leadSources.map(s => s.count) : [12, 18, 9, 5];
         
         charts.sources = new Chart(sourcesCtx, {
             type: 'doughnut',

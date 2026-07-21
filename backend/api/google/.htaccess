@@ -1,3 +1,4 @@
-<IfModule mod_security.c>
-    SecRuleEngine Off
+# backend/api/google/.htaccess
+<IfModule mod_authz_core.c>
+    Require all granted
 </IfModule>

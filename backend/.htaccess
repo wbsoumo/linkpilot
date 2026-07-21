@@ -1,10 +1,4 @@
 # backend/.htaccess
-<IfModule mod_security.c>
-    SecRuleEngine Off
-    SecFilterEngine Off
-    SecFilterScanPOST Off
-</IfModule>
-
 <IfModule mod_authz_core.c>
     Require all granted
 </IfModule>

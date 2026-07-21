@@ -139,7 +139,19 @@ try {
                     $params['search3'] = '%' . $search . '%';
                     $params['search4'] = '%' . $search . '%';
                 }
-                if ($category !== '') {
+                $categoriesParam = trim($_GET['categories'] ?? '');
+                if ($categoriesParam !== '') {
+                    $catArray = array_filter(array_map('trim', explode(',', $categoriesParam)));
+                    if (!empty($catArray)) {
+                        $inClauses = [];
+                        foreach ($catArray as $idx => $catVal) {
+                            $key = "cat_arr_" . $idx;
+                            $inClauses[] = ":" . $key;
+                            $params[$key] = $catVal;
+                        }
+                        $query .= " AND category IN (" . implode(', ', $inClauses) . ")";
+                    }
+                } elseif ($category !== '') {
                     $query .= " AND category = :category";
                     $params['category'] = $category;
                 }
@@ -168,20 +180,13 @@ try {
                 // Fetch records
                 $dataStmt = $db->prepare("SELECT id, sender_name, sender_email, subject, category, received_date, is_read, is_starred, is_archived, priority, sentiment, spam_probability, ai_summary " . $query . " ORDER BY received_date DESC LIMIT :limit OFFSET :offset");
                 
-                $dataStmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-                $dataStmt->bindValue(':is_spam', $isSpam, PDO::PARAM_INT);
-                $dataStmt->bindValue(':is_archived', $isArchived, PDO::PARAM_INT);
-                if ($search !== '') {
-                    $dataStmt->bindValue(':search1', '%' . $search . '%', PDO::PARAM_STR);
-                    $dataStmt->bindValue(':search2', '%' . $search . '%', PDO::PARAM_STR);
-                    $dataStmt->bindValue(':search3', '%' . $search . '%', PDO::PARAM_STR);
-                    $dataStmt->bindValue(':search4', '%' . $search . '%', PDO::PARAM_STR);
+                foreach ($params as $pKey => $pVal) {
+                    if (is_int($pVal)) {
+                        $dataStmt->bindValue(':' . $pKey, $pVal, PDO::PARAM_INT);
+                    } else {
+                        $dataStmt->bindValue(':' . $pKey, $pVal, PDO::PARAM_STR);
+                    }
                 }
-                if ($category !== '') $dataStmt->bindValue(':category', $category, PDO::PARAM_STR);
-                if ($priority !== '') $dataStmt->bindValue(':priority', $priority, PDO::PARAM_STR);
-                if ($sentiment !== '') $dataStmt->bindValue(':sentiment', $sentiment, PDO::PARAM_STR);
-                if ($isRead !== null) $dataStmt->bindValue(':is_read', $isRead, PDO::PARAM_INT);
-                if ($isStarred !== null) $dataStmt->bindValue(':is_starred', $isStarred, PDO::PARAM_INT);
                 $dataStmt->bindValue(':limit', $limit, PDO::PARAM_INT);
                 $dataStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
                 $dataStmt->execute();

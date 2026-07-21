@@ -2290,7 +2290,8 @@ function renderEmailSettingsLayout(container) {
         { id: 'replyto', label: 'Default Reply-To', icon: 'corner-up-left', badge: 'Configured', badgeColor: 'purple' },
         { id: 'opentracking', label: 'Open Tracking', icon: 'eye', badge: advanced.open_tracking_enabled ? 'Active' : 'Off', badgeColor: advanced.open_tracking_enabled ? 'emerald' : 'slate' },
         { id: 'clicktracking', label: 'Click Tracking', icon: 'mouse-pointer', badge: advanced.click_tracking_enabled ? 'Active' : 'Off', badgeColor: advanced.click_tracking_enabled ? 'emerald' : 'slate' },
-        { id: 'unsubscribe', label: 'Unsubscribe Settings', icon: 'user-minus', badge: 'Configured', badgeColor: 'indigo' }
+        { id: 'unsubscribe', label: 'Unsubscribe Settings', icon: 'user-minus', badge: 'Configured', badgeColor: 'indigo' },
+        { id: 'followup_categories', label: 'Followup Categories', icon: 'filter', badge: (advanced.followup_categories_mode === 'all' ? 'All Categories' : 'Custom Categories'), badgeColor: 'blue' }
     ];
 
     container.innerHTML = `
@@ -2691,10 +2692,159 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                 </div>
             `;
 
+        case 'followup_categories': {
+            const mode = advanced.followup_categories_mode || 'selected';
+            const rawCats = advanced.followup_categories || 'New Lead,Meeting Request,Support Request,Existing Client,Invoice';
+            const selectedCats = rawCats.split(',').map(s => s.trim()).filter(Boolean);
+
+            const allCategoriesList = [
+                { name: 'New Lead', recommended: true },
+                { name: 'Meeting Request', recommended: true },
+                { name: 'Support Request', recommended: true },
+                { name: 'Existing Client', recommended: true },
+                { name: 'Invoice', recommended: true },
+                { name: 'Payment', recommended: false },
+                { name: 'General Query', recommended: false },
+                { name: 'Job Opportunity', recommended: false },
+                { name: 'Vendor', recommended: false },
+                { name: 'Partnership', recommended: false },
+                { name: 'Complaint', recommended: false },
+                { name: 'Updates', recommended: false },
+                { name: 'Newsletter', recommended: false },
+                { name: 'Promotion', recommended: false },
+                { name: 'Other', recommended: false }
+            ];
+
+            return `
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-900">Followup Email Categories Configuration</h2>
+                            <p class="text-xs text-slate-500 font-medium">Select which email categories should be displayed inside the Email Followups Hub.</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <label class="block text-xs font-bold text-slate-700">Followup Category Filter Mode</label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div onclick="selectFollowupCategoriesMode('all')" id="followup-mode-card-all" class="p-4 rounded-2xl border cursor-pointer transition flex items-start space-x-3 ${mode === 'all' ? 'bg-blue-50/80 border-blue-500 shadow-2xs' : 'bg-white border-slate-200 hover:border-slate-300'}">
+                                <input type="radio" name="es_followup_mode" value="all" id="es_followup_mode_all" ${mode === 'all' ? 'checked' : ''} class="mt-0.5 text-blue-600 focus:ring-blue-500">
+                                <div>
+                                    <div class="text-xs font-extrabold text-slate-900">All Categories</div>
+                                    <div class="text-[11px] text-slate-500 mt-0.5 font-medium">Show emails from all categories in the Followups page without filtering.</div>
+                                </div>
+                            </div>
+
+                            <div onclick="selectFollowupCategoriesMode('selected')" id="followup-mode-card-selected" class="p-4 rounded-2xl border cursor-pointer transition flex items-start space-x-3 ${mode === 'selected' ? 'bg-blue-50/80 border-blue-500 shadow-2xs' : 'bg-white border-slate-200 hover:border-slate-300'}">
+                                <input type="radio" name="es_followup_mode" value="selected" id="es_followup_mode_selected" ${mode === 'selected' ? 'checked' : ''} class="mt-0.5 text-blue-600 focus:ring-blue-500">
+                                <div>
+                                    <div class="text-xs font-extrabold text-slate-900">Particular Categories Only (Recommended)</div>
+                                    <div class="text-[11px] text-slate-500 mt-0.5 font-medium">Only show emails from your chosen categories in the Followups page.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="followup-categories-picker-wrapper" class="space-y-3 ${mode === 'all' ? 'opacity-50 pointer-events-none' : ''}">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-xs font-bold text-slate-700">Choose Categories (Dropdown & Checkbox Selection)</label>
+                            <div class="flex items-center space-x-2">
+                                <button type="button" onclick="selectRecommendedFollowupCategories()" class="text-[11px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100 transition">
+                                    ⭐ Select Recommended
+                                </button>
+                                <button type="button" onclick="toggleAllFollowupCategories(true)" class="text-[11px] font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 px-2.5 py-1 rounded-lg transition">
+                                    Select All
+                                </button>
+                                <button type="button" onclick="toggleAllFollowupCategories(false)" class="text-[11px] font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 px-2.5 py-1 rounded-lg transition">
+                                    Clear All
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="relative">
+                            <button type="button" id="followup-cats-dropdown-btn" onclick="toggleFollowupCatsDropdown()" class="w-full flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 hover:bg-white focus:outline-none focus:border-blue-500 transition shadow-2xs">
+                                <div class="flex items-center space-x-2">
+                                    <i data-lucide="filter" class="h-4 w-4 text-blue-600"></i>
+                                    <span id="followup-cats-summary-text">${selectedCats.length} Categories Selected (${selectedCats.slice(0, 3).join(', ')}${selectedCats.length > 3 ? '...' : ''})</span>
+                                </div>
+                                <i data-lucide="chevron-down" id="followup-cats-chevron" class="h-4 w-4 text-slate-400 transition-transform"></i>
+                            </button>
+
+                            <div id="followup-cats-dropdown-menu" class="hidden absolute z-30 left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl p-3 max-h-72 overflow-y-auto space-y-1">
+                                ${allCategoriesList.map(cat => `
+                                    <label class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 cursor-pointer text-xs font-medium text-slate-700">
+                                        <div class="flex items-center space-x-2.5">
+                                            <input type="checkbox" value="${cat.name}" ${selectedCats.includes(cat.name) ? 'checked' : ''} onchange="updateFollowupCatsSummary()" class="followup-cat-checkbox h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                                            <span class="font-bold text-slate-800">${cat.name}</span>
+                                        </div>
+                                        ${cat.recommended ? `<span class="bg-amber-50 text-amber-600 text-[9px] font-extrabold px-2 py-0.5 rounded-full border border-amber-200/60 ml-2">Recommended</span>` : ''}
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         default:
             return `<div class="text-slate-400 text-xs">Select a settings tab on the left.</div>`;
     }
 }
+
+window.selectFollowupCategoriesMode = function(mode) {
+    const radioAll = document.getElementById('es_followup_mode_all');
+    const radioSelected = document.getElementById('es_followup_mode_selected');
+    const cardAll = document.getElementById('followup-mode-card-all');
+    const cardSelected = document.getElementById('followup-mode-card-selected');
+    const picker = document.getElementById('followup-categories-picker-wrapper');
+
+    if (mode === 'all') {
+        if (radioAll) radioAll.checked = true;
+        if (cardAll) cardAll.className = 'p-4 rounded-2xl border cursor-pointer transition flex items-start space-x-3 bg-blue-50/80 border-blue-500 shadow-2xs';
+        if (cardSelected) cardSelected.className = 'p-4 rounded-2xl border cursor-pointer transition flex items-start space-x-3 bg-white border-slate-200 hover:border-slate-300';
+        if (picker) picker.className = 'space-y-3 opacity-50 pointer-events-none';
+    } else {
+        if (radioSelected) radioSelected.checked = true;
+        if (cardSelected) cardSelected.className = 'p-4 rounded-2xl border cursor-pointer transition flex items-start space-x-3 bg-blue-50/80 border-blue-500 shadow-2xs';
+        if (cardAll) cardAll.className = 'p-4 rounded-2xl border cursor-pointer transition flex items-start space-x-3 bg-white border-slate-200 hover:border-slate-300';
+        if (picker) picker.className = 'space-y-3 opacity-100 pointer-events-auto';
+    }
+};
+
+window.toggleFollowupCatsDropdown = function() {
+    const menu = document.getElementById('followup-cats-dropdown-menu');
+    const chevron = document.getElementById('followup-cats-chevron');
+    if (menu) {
+        menu.classList.toggle('hidden');
+        if (chevron) {
+            chevron.classList.toggle('rotate-180');
+        }
+    }
+};
+
+window.updateFollowupCatsSummary = function() {
+    const checked = Array.from(document.querySelectorAll('.followup-cat-checkbox:checked')).map(cb => cb.value);
+    const summarySpan = document.getElementById('followup-cats-summary-text');
+    if (summarySpan) {
+        summarySpan.innerText = checked.length === 0 ? 'No Categories Selected' : `${checked.length} Categories Selected (${checked.slice(0, 3).join(', ')}${checked.length > 3 ? '...' : ''})`;
+    }
+};
+
+window.selectRecommendedFollowupCategories = function() {
+    const rec = ['New Lead', 'Meeting Request', 'Support Request', 'Existing Client', 'Invoice'];
+    document.querySelectorAll('.followup-cat-checkbox').forEach(cb => {
+        cb.checked = rec.includes(cb.value);
+    });
+    window.updateFollowupCatsSummary();
+};
+
+window.toggleAllFollowupCategories = function(status) {
+    document.querySelectorAll('.followup-cat-checkbox').forEach(cb => {
+        cb.checked = !!status;
+    });
+    window.updateFollowupCatsSummary();
+};
 
 window.switchEmailSettingsTab = function(tabId) {
     if (!window.emailSettingsState) window.emailSettingsState = { activeTab: tabId };
@@ -2952,7 +3102,9 @@ async function saveAllEmailSettings(btn) {
             bounce_max_hard_bounces: parseInt(document.getElementById('es_bounce_max_hard_bounces')?.value ?? currentAdv.bounce_max_hard_bounces ?? 1),
             bounce_alert_threshold: parseFloat(document.getElementById('es_bounce_alert_threshold')?.value ?? currentAdv.bounce_alert_threshold ?? 3.0),
             unsubscribe_enabled: document.getElementById('es_unsubscribe_enabled') ? (document.getElementById('es_unsubscribe_enabled').checked ? 1 : 0) : (currentAdv.unsubscribe_enabled ? 1 : 0),
-            unsubscribe_footer_html: document.getElementById('es_unsubscribe_footer_html')?.value ?? currentAdv.unsubscribe_footer_html ?? ''
+            unsubscribe_footer_html: document.getElementById('es_unsubscribe_footer_html')?.value ?? currentAdv.unsubscribe_footer_html ?? '',
+            followup_categories_mode: (document.querySelector('input[name="es_followup_mode"]:checked')?.value) ?? currentAdv.followup_categories_mode ?? 'selected',
+            followup_categories: (Array.from(document.querySelectorAll('.followup-cat-checkbox:checked')).map(cb => cb.value).join(',')) || currentAdv.followup_categories || 'New Lead,Meeting Request,Support Request,Existing Client,Invoice'
         };
 
         const res = await apiCall('crm/email_settings.php?action=save_advanced', 'POST', payload);

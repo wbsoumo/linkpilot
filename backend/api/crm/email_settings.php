@@ -41,9 +41,14 @@ try {
         unsubscribe_list_header TINYINT(1) DEFAULT 1,
         unsubscribe_footer_html TEXT DEFAULT NULL,
         unsubscribe_page_message TEXT DEFAULT NULL,
+        followup_categories_mode VARCHAR(20) DEFAULT 'selected',
+        followup_categories TEXT DEFAULT 'New Lead,Meeting Request,Support Request,Existing Client,Invoice',
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         INDEX idx_user_id (user_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+    try { $db->exec("ALTER TABLE email_advanced_settings ADD COLUMN followup_categories_mode VARCHAR(20) DEFAULT 'selected'"); } catch (Exception $e) {}
+    try { $db->exec("ALTER TABLE email_advanced_settings ADD COLUMN followup_categories TEXT DEFAULT 'New Lead,Meeting Request,Support Request,Existing Client,Invoice'"); } catch (Exception $e) {}
 
     $db->exec("CREATE TABLE IF NOT EXISTS sending_domains (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -228,13 +233,17 @@ try {
             $unsubscribeFooterHtml = $input['unsubscribe_footer_html'] ?? '';
             $unsubscribePageMessage = $input['unsubscribe_page_message'] ?? '';
 
+            $followupCategoriesMode = trim($input['followup_categories_mode'] ?? 'selected');
+            $followupCategories = trim($input['followup_categories'] ?? 'New Lead,Meeting Request,Support Request,Existing Client,Invoice');
+
             $stmtUpdate = $db->prepare("UPDATE email_advanced_settings SET 
                 default_reply_to = ?, default_sender_name = ?,
                 warmup_enabled = ?, warmup_daily_limit = ?, warmup_increment = ?, warmup_min_delay = ?, warmup_max_delay = ?, warmup_peer_network = ?,
                 open_tracking_enabled = ?, open_tracking_domain = ?, open_tracking_exclude_ips = ?, open_tracking_bot_filter = ?,
                 click_tracking_enabled = ?, click_tracking_domain = ?, click_tracking_preserve_params = ?,
                 bounce_max_hard_bounces = ?, bounce_auto_unsubscribe = ?, bounce_alert_enabled = ?, bounce_alert_threshold = ?,
-                unsubscribe_enabled = ?, unsubscribe_list_header = ?, unsubscribe_footer_html = ?, unsubscribe_page_message = ?
+                unsubscribe_enabled = ?, unsubscribe_list_header = ?, unsubscribe_footer_html = ?, unsubscribe_page_message = ?,
+                followup_categories_mode = ?, followup_categories = ?
                 WHERE user_id = ?");
 
             $stmtUpdate->execute([
@@ -244,6 +253,7 @@ try {
                 $clickTrackingEnabled, $clickTrackingDomain, $clickTrackingPreserveParams,
                 $bounceMaxHardBounces, $bounceAutoUnsubscribe, $bounceAlertEnabled, $bounceAlertThreshold,
                 $unsubscribeEnabled, $unsubscribeListHeader, $unsubscribeFooterHtml, $unsubscribePageMessage,
+                $followupCategoriesMode, $followupCategories,
                 $userId
             ]);
 

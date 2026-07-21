@@ -60,6 +60,9 @@ try {
         INDEX idx_user_sig (user_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
 
+    try { $db->exec("ALTER TABLE email_advanced_settings ADD COLUMN followup_categories_mode VARCHAR(20) DEFAULT 'selected'"); } catch (Throwable $e) {}
+    try { $db->exec("ALTER TABLE email_advanced_settings ADD COLUMN followup_categories TEXT DEFAULT 'New Lead,Meeting Request,Support Request,Existing Client,Invoice'"); } catch (Throwable $e) {}
+
     echo "Migration email_settings_v2 executed successfully.\n";
 } catch (Throwable $e) {
     echo "Migration failed: " . $e->getMessage() . "\n";

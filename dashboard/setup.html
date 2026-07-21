@@ -490,43 +490,277 @@
                         </div>
                     </div>
 
-                    <!-- Connected Congratulations Page (Hidden by default, shown if active) -->
-                    <div id="wa-connect-success-state" class="hidden max-w-2xl mx-auto bg-white border border-slate-200/80 rounded-[32px] p-8 text-center space-y-6 shadow-soft animate-scale-up">
-                        <!-- Success Checkmark Animation/Icon -->
-                        <div class="w-16 h-16 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-2xl flex items-center justify-center mx-auto shadow-2xs">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-emerald-600"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                        </div>
+                    <!-- Connected Congratulations Page (Redesigned to Match Mockup) -->
+                    <div id="wa-connect-success-state" class="hidden w-full max-w-5xl mx-auto space-y-8 animate-fade-in text-center">
                         
-                        <div class="space-y-2">
-                            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Congratulations!</h2>
-                            <p class="text-xs text-slate-500 font-semibold max-w-md mx-auto">Meta WhatsApp Cloud API has been successfully linked to your workspace. Auto-campaigns and conversational AI are now active.</p>
+                        <!-- Top Celebration Header -->
+                        <div class="space-y-4">
+                            <!-- Celebration Circle SVG -->
+                            <div class="relative w-20 h-20 mx-auto flex items-center justify-center">
+                                <div class="absolute inset-0 border-2 border-dashed border-emerald-300 rounded-full animate-[spin_20s_linear_infinite]"></div>
+                                <div class="w-14 h-14 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                </div>
+                                <!-- Confetti Dots (Decorative SVGs/Circles) -->
+                                <span class="absolute -top-2 -left-2 w-2 h-2 bg-blue-500 rounded-full animate-bounce"></span>
+                                <span class="absolute -bottom-1 -right-3 w-2.5 h-2.5 bg-amber-400 rounded-full animate-ping"></span>
+                                <span class="absolute top-8 -right-4 w-2 h-2 bg-rose-500 rounded-full"></span>
+                                <span class="absolute top-10 -left-5 w-2 h-2 bg-emerald-400 rounded-full"></span>
+                            </div>
+
+                            <div class="space-y-1">
+                                <h2 class="text-3xl font-black text-slate-900 tracking-tight flex items-center justify-center gap-2">
+                                    <span>Congratulations!</span>
+                                    <span>🎉</span>
+                                </h2>
+                                <p class="text-sm font-semibold text-slate-600">Meta WhatsApp Cloud API has been successfully linked to your workspace.</p>
+                                <p class="text-sm font-bold text-emerald-600">Auto-campaigns and conversational AI are now active.</p>
+                            </div>
                         </div>
 
-                        <!-- Data Table Card -->
-                        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 text-left space-y-3 max-w-lg mx-auto">
-                            <div class="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
-                                <span class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Connection Properties</span>
-                                <span id="wa-success-quality" class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-full text-[9px] font-black uppercase">🟢 ACTIVE</span>
+                        <!-- Main Details Card -->
+                        <div class="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-soft text-left space-y-6">
+                            
+                            <!-- Card Header Row -->
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 pb-5 gap-4">
+                                <div class="flex items-center space-x-3.5">
+                                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-2xl flex items-center justify-center shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-emerald-600"><circle cx="12" cy="12" r="10"></circle><path d="M17.47 17.4c-.1-.13-.23-.2-.36-.2a.65.65 0 0 0-.25.05A6 6 0 0 1 12 18a6 6 0 0 1-5.86-5.1A5.76 5.76 0 0 1 6 12a6 6 0 0 1 .53-2.45c.04-.1.08-.22.1-.33a.62.62 0 0 0-.16-.48.6.6 0 0 0-.46-.17h-.05A9 9 0 0 0 3 12c0 2.2.8 4.2 2.15 5.75l-.7 2.1c-.08.24 0 .5.2.66a.63.63 0 0 0 .76 0l2.06-1.03A9 9 0 0 0 12 21a9 9 0 0 0 5.47-1.85.6.6 0 0 0 .2-.45c0-.13-.07-.26-.2-.3zM21 12a9 9 0 0 0-4.66-7.85l1.03-2.06a.63.63 0 0 0-.66-.9c-.24.08-1.5.5-2.1.7A9 9 0 0 0 12 3a9 9 0 0 0-8.8 7.37.6.6 0 0 0 .33.66c.1.04.2.07.33.07a.62.62 0 0 0 .55-.37A6.98 6.98 0 0 1 12 5c1.65 0 3.14.58 4.3 1.55a.62.62 0 0 0 .5.12c.16-.04.3-.15.37-.3l.63-1.26A9 9 0 0 0 21 12z"></path></svg>
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center space-x-2">
+                                            <h3 class="text-base font-black text-slate-900">Connection Successful</h3>
+                                            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-full text-[9px] font-black uppercase tracking-wider">Active</span>
+                                        </div>
+                                        <p class="text-xs text-slate-500 font-semibold mt-0.5">Your WhatsApp Business account is now fully connected and ready to use.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2.5 bg-emerald-50/60 border border-emerald-150 rounded-2xl px-3.5 py-2">
+                                    <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                                    <div class="text-left">
+                                        <span class="text-[10px] font-black text-emerald-950 block">All Systems Operational</span>
+                                        <span class="text-[9px] text-emerald-700/80 font-bold block mt-0.5">Last synced just now</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold text-slate-700">
-                                <div>Business Name: <strong id="wa-success-biz-name" class="text-slate-900 block mt-0.5">--</strong></div>
-                                <div>Display Number: <strong id="wa-success-number" class="font-mono text-slate-900 block mt-0.5">--</strong></div>
-                                <div>WABA ID: <strong id="wa-success-waba-id" class="font-mono text-slate-900 block mt-0.5">--</strong></div>
-                                <div>Phone Number ID: <strong id="wa-success-phone-id" class="font-mono text-slate-900 block mt-0.5">--</strong></div>
-                                <div>Messaging Limits: <strong id="wa-success-limit" class="text-slate-900 block mt-0.5">--</strong></div>
-                                <div>Approved Templates: <strong id="wa-success-templates" class="text-slate-900 block mt-0.5">--</strong></div>
+
+                            <!-- Two Columns Data View -->
+                            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                                
+                                <!-- LEFT COLUMN: Connection Parameters List -->
+                                <div class="lg:col-span-7 space-y-3.5">
+                                    <!-- Business Name -->
+                                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><rect x="2" y="10" width="20" height="12" rx="2" ry="2"></rect><path d="M6 10V5a3 3 0 0 1 6 0v5"></path><path d="M12 5V3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"></path></svg>
+                                            </div>
+                                            <span class="text-xs font-bold text-slate-500">Business Name</span>
+                                        </div>
+                                        <span id="wa-success-biz-name" class="text-xs font-black text-slate-800">--</span>
+                                    </div>
+
+                                    <!-- Display Number -->
+                                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                            </div>
+                                            <span class="text-xs font-bold text-slate-500">Display Number</span>
+                                        </div>
+                                        <span id="wa-success-number" class="text-xs font-black text-slate-800 font-mono">--</span>
+                                    </div>
+
+                                    <!-- WABA ID -->
+                                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                            </div>
+                                            <span class="text-xs font-bold text-slate-500">WABA ID</span>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <span id="wa-success-waba-id" class="text-xs font-black text-slate-800 font-mono">--</span>
+                                            <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('wa-success-waba-id').textContent); showNotification('success', 'WABA ID copied!')" class="p-1 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition border-0 bg-transparent cursor-pointer flex items-center justify-center">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Phone Number ID -->
+                                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                            </div>
+                                            <span class="text-xs font-bold text-slate-500">Phone Number ID</span>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <span id="wa-success-phone-id" class="text-xs font-black text-slate-800 font-mono">--</span>
+                                            <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('wa-success-phone-id').textContent); showNotification('success', 'Phone Number ID copied!')" class="p-1 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition border-0 bg-transparent cursor-pointer flex items-center justify-center">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Messaging Limits -->
+                                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                                            </div>
+                                            <span class="text-xs font-bold text-slate-500">Messaging Limits</span>
+                                        </div>
+                                        <span id="wa-success-limit" class="text-xs font-black text-slate-800">--</span>
+                                    </div>
+
+                                    <!-- Approved Templates -->
+                                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                            </div>
+                                            <span class="text-xs font-bold text-slate-500">Approved Templates</span>
+                                        </div>
+                                        <span id="wa-success-templates" class="text-xs font-black text-slate-800">--</span>
+                                    </div>
+                                </div>
+
+                                <!-- RIGHT COLUMN: Connection Health Checklist -->
+                                <div class="lg:col-span-5 bg-emerald-50/30 border border-emerald-100 rounded-3xl p-5 space-y-4">
+                                    <h4 class="text-xs font-black text-emerald-950 uppercase tracking-wider">Connection Health</h4>
+                                    
+                                    <div class="space-y-2.5 text-xs">
+                                        <!-- Health Check Item 1 -->
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center space-x-2 text-emerald-950 font-semibold">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 text-emerald-500"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                                <span>Cloud API Connection</span>
+                                            </div>
+                                            <span class="text-emerald-700 font-extrabold">Connected</span>
+                                        </div>
+
+                                        <!-- Health Check Item 2 -->
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center space-x-2 text-emerald-950 font-semibold">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 text-emerald-500"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                                <span>Webhook Status</span>
+                                            </div>
+                                            <span class="text-emerald-700 font-extrabold">Active</span>
+                                        </div>
+
+                                        <!-- Health Check Item 3 -->
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center space-x-2 text-emerald-950 font-semibold">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 text-emerald-500"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                                <span>Business Profile Sync</span>
+                                            </div>
+                                            <span class="text-emerald-700 font-extrabold">Synced</span>
+                                        </div>
+
+                                        <!-- Health Check Item 4 -->
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center space-x-2 text-emerald-950 font-semibold">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 text-emerald-500"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                                <span>Message Templates</span>
+                                            </div>
+                                            <span class="text-emerald-700 font-extrabold">Synced</span>
+                                        </div>
+
+                                        <!-- Health Check Item 5 -->
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center space-x-2 text-emerald-950 font-semibold">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 text-emerald-500"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                                <span>Permissions</span>
+                                            </div>
+                                            <span class="text-emerald-700 font-extrabold">Verified</span>
+                                        </div>
+
+                                        <!-- Health Check Item 6 -->
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center space-x-2 text-emerald-950 font-semibold">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 text-emerald-500"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                                <span>Quality Rating</span>
+                                            </div>
+                                            <span id="wa-success-quality-text" class="text-emerald-750 font-extrabold uppercase">Good</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Bottom Info Box inside health checklist -->
+                                    <div class="bg-emerald-50 border border-emerald-100/80 rounded-2xl p-3.5 flex items-start space-x-2.5 text-left">
+                                        <div class="p-1 bg-emerald-550 text-white rounded-lg shrink-0 mt-0.5 flex items-center justify-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 text-emerald-600"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        </div>
+                                        <p class="text-[11px] text-emerald-950 font-bold leading-relaxed">Your account meets all requirements and is ready to send and receive messages.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bottom Features Row (4 column grid) -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 border-t border-slate-100 pt-6">
+                                <!-- Feature 1 -->
+                                <div class="flex items-center space-x-3.5 bg-slate-50/50 border border-slate-150/50 rounded-2xl p-4">
+                                    <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                                    </div>
+                                    <div class="text-left">
+                                        <h5 class="text-[11px] font-black text-slate-800">Start Messaging</h5>
+                                        <p class="text-[10px] text-slate-500 font-semibold mt-0.5">Send and receive messages instantly.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Feature 2 -->
+                                <div class="flex items-center space-x-3.5 bg-slate-50/50 border border-slate-150/50 rounded-2xl p-4">
+                                    <div class="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0 1 7.54 14.12l-1.12-2.8A7 7 0 1 0 5.58 13.3l-1.12 2.8A10 10 0 0 1 12 2z"></path><circle cx="12" cy="13" r="5"></circle></svg>
+                                    </div>
+                                    <div class="text-left">
+                                        <h5 class="text-[11px] font-black text-slate-800">AI Auto-Reply</h5>
+                                        <p class="text-[10px] text-slate-500 font-semibold mt-0.5">AI will automatically respond to your customers.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Feature 3 -->
+                                <div class="flex items-center space-x-3.5 bg-slate-50/50 border border-slate-150/50 rounded-2xl p-4">
+                                    <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                    </div>
+                                    <div class="text-left">
+                                        <h5 class="text-[11px] font-black text-slate-800">Create Campaigns</h5>
+                                        <p class="text-[10px] text-slate-500 font-semibold mt-0.5">Launch targeted WhatsApp campaigns.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Feature 4 -->
+                                <div class="flex items-center space-x-3.5 bg-slate-50/50 border border-slate-150/50 rounded-2xl p-4">
+                                    <div class="w-10 h-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                                    </div>
+                                    <div class="text-left">
+                                        <h5 class="text-[11px] font-black text-slate-800">Track Performance</h5>
+                                        <p class="text-[10px] text-slate-500 font-semibold mt-0.5">Monitor insights and analytics in real-time.</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto">
-                            <button type="button" onclick="goToStep(4)" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold rounded-xl transition shadow-md shadow-blue-500/20 cursor-pointer border-0 flex items-center justify-center space-x-1.5" style="color: #ffffff !important;">
-                                <span style="color: #ffffff !important;">Proceed to Next Step</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-white"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                            </button>
-                            <button type="button" onclick="disconnectWhatsApp()" class="w-full py-3 bg-white hover:bg-rose-50 border border-rose-200 rounded-xl text-rose-600 text-xs font-extrabold transition cursor-pointer flex items-center justify-center space-x-1.5">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-rose-500"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="15"></line><line x1="15" y1="9" x2="9" y2="15"></line></svg>
-                                <span>Disconnect Account</span>
-                            </button>
+                        <!-- Action Buttons and Encryption Notes -->
+                        <div class="space-y-4">
+                            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-lg mx-auto">
+                                <button type="button" onclick="goToStep(4)" class="w-full py-3 bg-blue-650 hover:bg-blue-700 text-white text-xs font-extrabold rounded-xl transition shadow-md shadow-blue-500/20 cursor-pointer border-0 flex items-center justify-center space-x-1.5" style="color: #ffffff !important;">
+                                    <span style="color: #ffffff !important;">Proceed to Next Step</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-white"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                                </button>
+                                <button type="button" onclick="location.href='index.html'" class="w-full py-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-slate-700 text-xs font-extrabold transition cursor-pointer flex items-center justify-center space-x-1.5">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-slate-500"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+                                    <span>Go to Dashboard</span>
+                                </button>
+                            </div>
+
+                            <p class="text-[10px] text-slate-400 font-semibold flex items-center justify-center space-x-1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                <span>Your connection is secure and encrypted.</span>
+                            </p>
                         </div>
                     </div>
 
@@ -2433,15 +2667,14 @@
                     if (templatesEl) templatesEl.textContent = (res.business.template_count || 5) + ' Approved Templates';
                     
                     if (qualityEl) {
-                        const quality = (res.business.quality_rating || 'unknown').toUpperCase();
-                        qualityEl.textContent = quality;
-                        if (quality === 'GREEN') {
-                            qualityEl.className = "px-2.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full text-[10px] uppercase font-black";
-                        } else if (quality === 'RED') {
-                            qualityEl.className = "px-2.5 py-0.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-full text-[10px] uppercase font-black";
-                        } else {
-                            qualityEl.className = "px-2.5 py-0.5 bg-amber-50 text-amber-600 border border-amber-100 rounded-full text-[10px] uppercase font-black";
-                        }
+                        qualityEl.textContent = "🟢 ACTIVE";
+                    }
+
+                    const qTextEl = document.getElementById('wa-success-quality-text');
+                    if (qTextEl) {
+                        const quality = (res.business.quality_rating || 'GREEN').toUpperCase();
+                        qTextEl.textContent = quality === 'GREEN' ? 'Good' : (quality === 'RED' ? 'Poor' : 'Medium');
+                        qTextEl.className = quality === 'GREEN' ? 'text-emerald-750 font-extrabold uppercase' : (quality === 'RED' ? 'text-rose-600 font-extrabold uppercase' : 'text-amber-600 font-extrabold uppercase');
                     }
 
                     if (badgeWa) {

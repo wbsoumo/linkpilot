@@ -248,72 +248,127 @@ function renderWhatsAppSetup(container, settings) {
                             </button>
                         </div>
                     </form>
-                </div>
-
-                <!-- RIGHT COLUMN: AI Setup Assistant Card (lg:col-span-5) -->
-                <div class="lg:col-span-5 bg-white border border-slate-200/85 rounded-3xl p-6 shadow-soft flex flex-col justify-between space-y-4 min-h-[600px]">
+                            <!-- RIGHT COLUMN: AI Setup Assistant Card (lg:col-span-5) -->
+                <div class="lg:col-span-5 bg-white border border-slate-200/80 rounded-3xl p-6 shadow-soft flex flex-col justify-between space-y-5 min-h-[620px] max-h-[720px]">
                     <!-- Card Header -->
-                    <div class="space-y-3 text-left">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="text-sm font-black text-slate-900 flex items-center space-x-1.5">
-                                    <span>🤖</span>
-                                    <span>Meta Setup Assistant</span>
-                                </h3>
-                                <p class="text-[11px] text-slate-500 font-semibold mt-0.5">I'm here to help you connect your WhatsApp Business account.</p>
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center p-2 shrink-0 shadow-sm">
+                                <img src="https://crystalpng.com/wp-content/uploads/2025/02/meta_logo.png" class="w-7 h-7 object-contain" alt="Meta">
                             </div>
-                            <span id="wa-assistant-step-badge" class="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-md text-[9px] font-black uppercase tracking-wider">Step 1 of 9</span>
+                            <div>
+                                <h3 class="text-xs font-black text-slate-900 flex items-center space-x-1">
+                                    <span>Meta Setup Assistant</span>
+                                    <!-- Blue verified badge checkmark icon -->
+                                    <svg class="h-3.5 w-3.5 text-blue-500 fill-current" viewBox="0 0 24 24">
+                                        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                    </svg>
+                                </h3>
+                                <p class="text-[10px] text-slate-500 font-semibold mt-0.5">Powered by <span class="font-extrabold text-blue-600">∞</span> Meta</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button type="button" onclick="window.open('https://developers.facebook.com/docs/whatsapp/cloud-api/get-started', '_blank')" class="px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-350 hover:bg-slate-50 rounded-xl text-[10px] font-extrabold text-slate-700 transition flex items-center space-x-1 shadow-2xs cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                                <span>Guide</span>
+                            </button>
+                            <button type="button" onclick="window.MetaAssistantManager.init()" class="p-1.5 bg-white border border-slate-200 hover:border-rose-200 hover:bg-rose-50 rounded-xl text-slate-400 hover:text-rose-600 transition shadow-2xs cursor-pointer flex items-center justify-center" title="Reset Assistant">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Setup Progress Section -->
+                    <div class="bg-[#f8fafc] border border-slate-200/60 p-4 rounded-2xl shadow-2xs space-y-3.5 text-left">
+                        <div class="flex justify-between items-center text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                            <span>Setup Progress</span>
+                            <span id="wa-assistant-step-badge" class="text-slate-700 font-black">Step 1 of 9</span>
+                        </div>
+                        
+                        <!-- Multi-segmented progress bar -->
+                        <div class="grid grid-cols-9 gap-1 h-2 rounded-full overflow-hidden">
+                            <div class="h-full bg-blue-600 rounded-l-full transition-all duration-300" id="segment-1"></div>
+                            <div class="h-full bg-slate-200 transition-all duration-300" id="segment-2"></div>
+                            <div class="h-full bg-slate-200 transition-all duration-300" id="segment-3"></div>
+                            <div class="h-full bg-slate-200 transition-all duration-300" id="segment-4"></div>
+                            <div class="h-full bg-slate-200 transition-all duration-300" id="segment-5"></div>
+                            <div class="h-full bg-slate-200 transition-all duration-300" id="segment-6"></div>
+                            <div class="h-full bg-slate-200 transition-all duration-300" id="segment-7"></div>
+                            <div class="h-full bg-slate-200 transition-all duration-300" id="segment-8"></div>
+                            <div class="h-full bg-slate-200 rounded-r-full transition-all duration-300" id="segment-9"></div>
                         </div>
 
-                        <!-- Setup Progress Tracker -->
-                        <div class="space-y-1 bg-slate-50 p-3 rounded-2xl border border-slate-100 shadow-2xs">
-                            <div class="flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                                <span>Meta Setup Progress</span>
-                                <span id="wa-assistant-percentage" class="text-blue-600 font-extrabold">0%</span>
+                        <div class="flex items-center justify-between pt-1">
+                            <div class="flex items-center space-x-2">
+                                <div class="p-1.5 bg-blue-50 text-blue-600 rounded-lg border border-blue-100 flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                </div>
+                                <div class="text-[11px] leading-tight">
+                                    <span class="text-slate-450 font-bold block">Current Step</span>
+                                    <span id="wa-assistant-step-label" class="font-extrabold text-slate-800">Welcome 👋</span>
+                                </div>
                             </div>
-                            <div class="h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                                <div id="wa-assistant-progress-bar" class="h-full bg-blue-600 rounded-full transition-all duration-300" style="width: 0%"></div>
-                            </div>
-                            <div class="text-[10px] font-black text-slate-650 flex items-center space-x-1 pt-0.5">
-                                <span class="text-slate-400 font-bold">Current Step:</span>
-                                <span id="wa-assistant-step-label">Welcome 👋</span>
-                            </div>
+                            <span id="wa-assistant-percentage" class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-250 rounded-full text-[10px] font-black tracking-wide uppercase">10% Complete</span>
                         </div>
                     </div>
 
                     <!-- Conversation Chat History Window -->
-                    <div id="ai-chat-messages-container" class="flex-grow overflow-y-auto pr-1 space-y-3 text-xs leading-relaxed max-h-[300px] min-h-[180px]">
+                    <div id="ai-chat-messages-container" class="flex-grow overflow-y-auto pr-1.5 space-y-4 text-xs leading-relaxed max-h-[350px] min-h-[220px]">
                         <!-- Messages will be dynamically rendered here -->
                     </div>
 
                     <!-- Chat input/interaction Area -->
-                    <div id="ai-chat-controls-area" class="border-t border-slate-100 pt-2 flex flex-col space-y-1.5">
-                        <!-- Action / Option buttons rendered dynamically -->
-                    </div>
+                    <div class="space-y-3 border-t border-slate-100 pt-3">
+                        <div id="ai-chat-controls-area" class="flex flex-col space-y-1.5">
+                            <!-- Action / Option buttons rendered dynamically -->
+                        </div>
 
-                    <!-- Attachment Preview Bar -->
-                    <div id="setup-chat-attachment-preview" class="hidden flex items-center space-x-2.5 bg-slate-50 border border-slate-200/80 p-2 rounded-xl text-xs text-slate-700 animate-fade-in mx-1">
-                        <img id="setup-chat-attachment-thumbnail" class="w-8 h-8 rounded-lg object-contain border border-slate-200" src="">
-                        <span class="flex-1 truncate font-semibold text-slate-600">Screenshot attached</span>
-                        <button type="button" onclick="clearSetupChatAttachmentDashboard()" class="p-1 text-slate-400 hover:text-rose-600 rounded-lg transition border-0 bg-transparent cursor-pointer">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                        </button>
-                    </div>
+                        <!-- Attachment Preview Bar -->
+                        <div id="setup-chat-attachment-preview" class="hidden flex items-center space-x-2.5 bg-slate-50 border border-slate-200/80 p-2 rounded-xl text-xs text-slate-700 animate-fade-in mx-1">
+                            <img id="setup-chat-attachment-thumbnail" class="w-8 h-8 rounded-lg object-contain border border-slate-200" src="">
+                            <span class="flex-1 truncate font-semibold text-slate-650">Screenshot attached</span>
+                            <button type="button" onclick="clearSetupChatAttachmentDashboard()" class="p-1 text-slate-400 hover:text-rose-600 rounded-lg transition border-0 bg-transparent cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                        </div>
 
-                    <!-- Real Chat Input Form -->
-                    <form id="setup-ai-chat-form" onsubmit="event.preventDefault(); handleSetupAiChatSubmitDashboard();" class="flex items-center space-x-2 border-t border-slate-100 pt-2">
-                        <input type="file" id="setup-wa-screenshot-input" accept="image/*" class="hidden" onchange="handleSetupScreenshotUploadDashboard(event)">
-                        <button type="button" onclick="document.getElementById('setup-wa-screenshot-input').click()" class="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-500 rounded-xl transition flex items-center justify-center shrink-0 cursor-pointer border-0" title="Upload Screenshot for Vision AI Help">
-                            <i data-lucide="image" class="h-4 w-4 text-slate-500"></i>
-                        </button>
-                        <input type="text" id="setup-ai-chat-input" placeholder="Ask assistant any question..." class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition">
-                        <button type="submit" class="p-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl transition flex items-center justify-center shrink-0 cursor-pointer border-0" style="color: #ffffff !important;">
-                            <svg class="h-3.5 w-3.5 fill-current text-white" viewBox="0 0 24 24">
-                                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="#ffffff"/>
-                            </svg>
-                        </button>
-                    </form>
-                </div>
+                        <!-- Real Chat Input Box -->
+                        <div class="relative bg-white border border-slate-200 hover:border-slate-350 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100/50 rounded-2xl p-2.5 transition shadow-2xs">
+                            <form id="setup-ai-chat-form" onsubmit="event.preventDefault(); handleSetupAiChatSubmitDashboard();" class="flex flex-col space-y-2">
+                                <input type="file" id="setup-wa-screenshot-input" accept="image/*" class="hidden" onchange="handleSetupScreenshotUploadDashboard(event)">
+                                <input type="text" id="setup-ai-chat-input" placeholder="Ask me anything about Meta setup..." class="w-full bg-transparent border-0 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 p-1">
+                                
+                                <div class="flex items-center justify-between pt-1">
+                                    <!-- Toolbars (attachment, settings, link) -->
+                                    <div class="flex items-center space-x-1.5 text-slate-400">
+                                        <button type="button" onclick="document.getElementById('setup-wa-screenshot-input').click()" class="p-1.5 hover:bg-slate-100 hover:text-slate-600 rounded-lg transition cursor-pointer border-0 bg-transparent flex items-center justify-center" title="Upload Attachment">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                                        </button>
+                                        <button type="button" onclick="window.MetaAssistantManager.explainAppCreation()" class="p-1.5 hover:bg-slate-100 hover:text-slate-600 rounded-lg transition cursor-pointer border-0 bg-transparent flex items-center justify-center" title="App Helper">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                        </button>
+                                        <button type="button" onclick="openMetaLinkDashboard('dev')" class="p-1.5 hover:bg-slate-100 hover:text-slate-600 rounded-lg transition cursor-pointer border-0 bg-transparent flex items-center justify-center" title="Developer Link">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                                        </button>
+                                    </div>
+
+                                    <!-- Send Circular Button -->
+                                    <button type="submit" class="p-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl transition flex items-center justify-center shrink-0 cursor-pointer border-0 shadow-sm" style="color: #ffffff !important;">
+                                        <svg class="h-3.5 w-3.5 fill-current text-white" viewBox="0 0 24 24">
+                                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="#ffffff"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Encrypted Lock Note -->
+                        <div class="flex items-center justify-center space-x-1 text-[10px] text-slate-400 font-bold">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                            <span>Messages are secure and end-to-end encrypted.</span>
+                        </div>
+                    </div>
+                </div>            </div>
             </div>
             `}
         </div>
@@ -518,6 +573,39 @@ window.saveManualWhatsAppConnectionDashboard = async function() {
     }
 };
 
+if (!window.renderStyledStepsCard) {
+    window.renderStyledStepsCard = function(msgText) {
+        if (msgText.includes('1. ') && msgText.includes('2. ')) {
+            const parts = msgText.split(/\d+\.\s+/);
+            const intro = parts[0] || '';
+            const listItems = [];
+            const regex = /\d+\.\s+([^\n]+)/g;
+            let match;
+            while ((match = regex.exec(msgText)) !== null) {
+                listItems.push(match[1]);
+            }
+            if (listItems.length > 0) {
+                let listHtml = `<div class="bg-white border border-slate-200/80 rounded-2xl overflow-hidden divide-y divide-slate-100 mt-2.5 font-medium shadow-3xs">`;
+                listItems.forEach((item, idx) => {
+                    listHtml += `
+                        <div class="flex items-center justify-between p-3 hover:bg-slate-50/50 transition">
+                            <div class="flex items-center space-x-2.5">
+                                <span class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 font-extrabold text-[10px] flex items-center justify-center shrink-0">
+                                    ${idx + 1}
+                                </span>
+                                <span class="text-[11px] text-slate-700 font-semibold">${item.replace(/\*\*/g, '')}</span>
+                            </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3 text-slate-400 shrink-0"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2 2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        </div>`;
+                });
+                listHtml += `</div>`;
+                return intro.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>') + listHtml;
+            }
+        }
+        return null;
+    };
+}
+
 // META ASSISTANT CHATBOT MANAGER FOR DASHBOARD
 window.MetaAssistantManager = {
     currentStep: 1,
@@ -619,15 +707,27 @@ window.MetaAssistantManager = {
         const config = this.stepsConfig[stepNum];
         if (!config) return;
 
-        const pBar = document.getElementById('wa-assistant-progress-bar');
         const pTxt = document.getElementById('wa-assistant-percentage');
         const sBadge = document.getElementById('wa-assistant-step-badge');
         const sLabel = document.getElementById('wa-assistant-step-label');
 
-        if (pBar) pBar.style.width = config.percentage + '%';
-        if (pTxt) pTxt.textContent = config.percentage + '%';
+        if (pTxt) pTxt.textContent = config.percentage + '% Complete';
         if (sBadge) sBadge.textContent = `Step ${stepNum} of 9`;
         if (sLabel) sLabel.textContent = config.title;
+
+        // Segmented progress bar fill
+        for (let i = 1; i <= 9; i++) {
+            const seg = document.getElementById(`segment-${i}`);
+            if (seg) {
+                if (i <= stepNum) {
+                    seg.classList.remove('bg-slate-200');
+                    seg.classList.add('bg-blue-600');
+                } else {
+                    seg.classList.remove('bg-blue-600');
+                    seg.classList.add('bg-slate-200');
+                }
+            }
+        }
 
         const formattedMsg = config.msg.replace(/\n/g, '<br>');
         this.addAiMessage(formattedMsg);
@@ -642,27 +742,41 @@ window.MetaAssistantManager = {
         const escapedQuestion = (questionText || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
         const escapedAnswer = text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
+        // Check if numbered list is present to render styled steps card
+        let displayHtml = text;
+        if (window.renderStyledStepsCard) {
+            const styledSteps = window.renderStyledStepsCard(text);
+            if (styledSteps) {
+                displayHtml = styledSteps;
+            }
+        }
+
         const msgDiv = document.createElement('div');
-        msgDiv.className = 'flex items-start space-x-2.5 animate-fade-in text-left';
+        msgDiv.className = 'flex items-start space-x-3.5 animate-fade-in text-left w-full';
         msgDiv.innerHTML = `
-            <div class="w-7 h-7 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center shrink-0 p-1 shadow-2xs">
+            <div class="w-8 h-8 rounded-full border border-blue-100 flex items-center justify-center p-1.5 shrink-0 bg-blue-50/50 shadow-sm">
                 <img src="https://crystalpng.com/wp-content/uploads/2025/02/meta_logo.png" class="w-5 h-5 object-contain" alt="Meta">
             </div>
-            <div class="bg-slate-100 border border-slate-200/60 text-slate-800 p-3 rounded-2xl rounded-tl-xs space-y-1 max-w-[88%] shadow-2xs">
-                <span class="text-[10px] font-black text-blue-600 block uppercase tracking-wider">Meta Assistant</span>
-                <div class="text-xs font-semibold text-slate-700 leading-relaxed">${text}</div>
-                ${escapedQuestion ? `
-                <div class="flex items-center space-x-3 pt-1.5 mt-1.5 border-t border-slate-200/40">
-                    <button type="button" onclick="submitAiFeedbackDashboard(this, 'like', '${escapedQuestion}', '${escapedAnswer}')" class="text-slate-400 hover:text-emerald-600 transition bg-transparent border-0 p-0.5 cursor-pointer flex items-center space-x-1" title="Helpful (Train AI)">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
-                        <span class="text-[10px]">Like</span>
-                    </button>
-                    <button type="button" onclick="submitAiFeedbackDashboard(this, 'dislike', '${escapedQuestion}', '${escapedAnswer}')" class="text-slate-400 hover:text-rose-600 transition bg-transparent border-0 p-0.5 cursor-pointer flex items-center space-x-1" title="Not helpful">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg>
-                        <span class="text-[10px]">Dislike</span>
-                    </button>
+            <div class="flex flex-col space-y-1 w-full max-w-[85%]">
+                <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-bold text-slate-800">Meta Assistant</span>
+                    <span class="text-[10px] text-slate-400 font-medium">Just now</span>
                 </div>
-                ` : ''}
+                <div class="bg-[#f4f6fa] border border-slate-200/50 text-slate-800 p-3.5 rounded-3xl rounded-tl-none space-y-2 text-xs font-semibold leading-relaxed shadow-3xs">
+                    <div>${displayHtml}</div>
+                    ${escapedQuestion ? `
+                    <div class="flex items-center space-x-3 pt-1.5 mt-1.5 border-t border-slate-200/40">
+                        <button type="button" onclick="submitAiFeedbackDashboard(this, 'like', '${escapedQuestion}', '${escapedAnswer}')" class="text-slate-450 hover:text-emerald-600 transition bg-transparent border-0 p-0.5 cursor-pointer flex items-center space-x-1" title="Helpful (Train AI)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+                            <span class="text-[10px]">Like</span>
+                        </button>
+                        <button type="button" onclick="submitAiFeedbackDashboard(this, 'dislike', '${escapedQuestion}', '${escapedAnswer}')" class="text-slate-450 hover:text-rose-600 transition bg-transparent border-0 p-0.5 cursor-pointer flex items-center space-x-1" title="Not helpful">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg>
+                            <span class="text-[10px]">Dislike</span>
+                        </button>
+                    </div>
+                    ` : ''}
+                </div>
             </div>
         `;
         container.appendChild(msgDiv);
@@ -674,10 +788,21 @@ window.MetaAssistantManager = {
         if (!container) return;
 
         const msgDiv = document.createElement('div');
-        msgDiv.className = 'flex items-end justify-end space-x-2.5 animate-fade-in text-right';
+        msgDiv.className = 'flex items-end justify-end space-x-2.5 animate-fade-in text-right w-full';
         msgDiv.innerHTML = `
-            <div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-xs space-y-1 max-w-[85%] shadow-xs">
-                <div class="text-xs font-bold text-white" style="color: #ffffff !important;">${text}</div>
+            <div class="flex flex-col space-y-1 max-w-[85%]">
+                <div class="flex items-center justify-between text-right">
+                    <span class="text-[10px] text-slate-400 font-medium">Just now</span>
+                    <span class="text-xs font-bold text-slate-800 ml-2">You</span>
+                </div>
+                <div class="relative bg-blue-600 text-white p-3.5 rounded-3xl rounded-tr-none text-left space-y-1 shadow-xs text-xs font-semibold leading-relaxed" style="background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;">
+                    <div>${text}</div>
+                    <div class="flex justify-end pt-1 -mb-1">
+                        <svg class="h-3 w-3 text-blue-200 fill-current" viewBox="0 0 24 24">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                        </svg>
+                    </div>
+                </div>
             </div>
         `;
         container.appendChild(msgDiv);
@@ -692,8 +817,17 @@ window.MetaAssistantManager = {
         buttons.forEach(btnConfig => {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'w-full py-2.5 px-4 bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 text-slate-800 text-xs font-extrabold rounded-xl transition flex items-center justify-between shadow-2xs cursor-pointer';
-            btn.innerHTML = `<span>${btnConfig.label}</span> <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 text-slate-400"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+            
+            const isPrimary = btnConfig.label.includes('🚀') || btnConfig.label.includes('Connect') || btnConfig.label.includes('Start') || btnConfig.label.includes('Yes');
+            
+            if (isPrimary) {
+                btn.className = 'w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold rounded-xl transition flex items-center justify-between shadow-xs border-0 cursor-pointer';
+                btn.style.color = '#ffffff';
+                btn.innerHTML = `<span>${btnConfig.label}</span> <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 text-white"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>`;
+            } else {
+                btn.className = 'w-full py-2.5 px-4 bg-white border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-800 text-xs font-extrabold rounded-xl transition flex items-center justify-between shadow-2xs cursor-pointer';
+                btn.innerHTML = `<span>${btnConfig.label}</span> <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 text-slate-400"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+            }
             btn.onclick = btnConfig.action;
             controlsArea.appendChild(btn);
         });

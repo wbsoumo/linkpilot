@@ -1026,6 +1026,61 @@ document.addEventListener('input', function(e) {
     }
 });
 
+document.addEventListener('change', function(e) {
+    if (e.target && e.target.id === 'wa-phone-dropdown') {
+        const dropdown = e.target;
+        const val = dropdown.value;
+        const selectedOpt = dropdown.options[dropdown.selectedIndex];
+        
+        if (val) {
+            document.getElementById('wa-manual-phone-id').value = val;
+            
+            const badge = document.getElementById('wa-phone-valid-badge');
+            if (badge) badge.classList.remove('hidden');
+            
+            window.metaPhoneNumber = selectedOpt.dataset.displayPhone || '--';
+            
+            const autoCard = document.getElementById('wa-auto-details-card');
+            if (autoCard) autoCard.classList.remove('hidden');
+            
+            const liveBiz = document.getElementById('wa-live-biz-name');
+            if (liveBiz) liveBiz.textContent = window.metaBizName || selectedOpt.dataset.verifiedName || 'Verified Account';
+            
+            const livePhone = document.getElementById('wa-live-phone');
+            if (livePhone) livePhone.textContent = window.metaPhoneNumber;
+            
+            const liveWaba = document.getElementById('wa-live-waba');
+            if (liveWaba) liveWaba.textContent = document.getElementById('wa-manual-waba-id').value.trim();
+            
+            const liveLimit = document.getElementById('wa-live-limit');
+            if (liveLimit) liveLimit.textContent = selectedOpt.dataset.limit || '1,000 messages / 24h';
+            
+            const liveTemplates = document.getElementById('wa-live-templates');
+            if (liveTemplates) liveTemplates.textContent = 'Pending sync...';
+            
+            // Show Establish Connection button
+            const submitBtn = document.getElementById('wa-manual-submit-btn');
+            if (submitBtn) submitBtn.classList.remove('hidden');
+
+            // Chatbot progression
+            if (window.MetaAssistantManager && window.MetaAssistantManager.currentStep === 7) {
+                window.MetaAssistantManager.advanceStep(8, "Phone number selected.");
+            }
+        } else {
+            document.getElementById('wa-manual-phone-id').value = '';
+            
+            const badge = document.getElementById('wa-phone-valid-badge');
+            if (badge) badge.classList.add('hidden');
+            
+            const autoCard = document.getElementById('wa-auto-details-card');
+            if (autoCard) autoCard.classList.add('hidden');
+            
+            const submitBtn = document.getElementById('wa-manual-submit-btn');
+            if (submitBtn) submitBtn.classList.add('hidden');
+        }
+    }
+});
+
 document.addEventListener('paste', function(e) {
     if (e.target && e.target.id === 'setup-ai-chat-input') {
         const items = (e.clipboardData || e.originalEvent.clipboardData).items;

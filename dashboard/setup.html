@@ -382,7 +382,7 @@
                             </div>
 
                             <!-- Manual configuration -->
-                            <div
+                            <div id="custom-smtp-card-container"
                                 class="p-6 border border-slate-200 bg-white rounded-2xl space-y-5 flex flex-col justify-between h-full hover:shadow-glow duration-300 transform hover:-translate-y-0.5">
                                 <div class="space-y-4">
                                     <div class="flex items-center space-x-3">
@@ -1746,7 +1746,7 @@
         };
 
         window.goBackFromWhatsApp = function () {
-            if (emailSetupSkipped) {
+            if (emailSetupSkipped || window.isGoogleConnected) {
                 goToStep(1);
             } else {
                 goToStep(2); // Back to SMTP Outbound
@@ -3440,17 +3440,33 @@
 
         window.updateStep1Footer = function (isConnected) {
             const btn = document.getElementById('btn-skip-email-setup');
-            if (!btn) return;
+            const customSmtp = document.getElementById('custom-smtp-card-container');
+            const gmailCard = document.getElementById('gmail-card-container');
+            
             if (isConnected) {
-                btn.className = "flex items-center space-x-1.5 px-6 py-3 rounded-xl text-xs font-black transition cursor-pointer shadow-md shadow-emerald-500/10";
-                btn.style.cssText = "background-color: #059669 !important; border: 1px solid #059669 !important; color: #ffffff !important;";
-                btn.innerHTML = `<span>Continue to WhatsApp Setup</span><i data-lucide="arrow-right" class="h-3.5 w-3.5 text-white"></i>`;
-                btn.setAttribute('onclick', 'goToStep(3)');
+                window.isGoogleConnected = true;
+                if (customSmtp) customSmtp.classList.add('hidden');
+                if (gmailCard) {
+                    gmailCard.className = "p-6 border-2 border-emerald-600 bg-gradient-to-b from-emerald-50/20 to-emerald-50/5 rounded-2xl relative space-y-5 flex flex-col justify-between h-full hover:shadow-glow duration-300 transform hover:-translate-y-0.5 md:col-span-2 max-w-md mx-auto w-full";
+                }
+                if (btn) {
+                    btn.className = "flex items-center space-x-1.5 px-6 py-3 rounded-xl text-xs font-black transition cursor-pointer shadow-md shadow-emerald-500/10";
+                    btn.style.cssText = "background-color: #059669 !important; border: 1px solid #059669 !important; color: #ffffff !important;";
+                    btn.innerHTML = `<span>Continue to WhatsApp Setup</span><i data-lucide="arrow-right" class="h-3.5 w-3.5 text-white"></i>`;
+                    btn.setAttribute('onclick', 'goToStep(3)');
+                }
             } else {
-                btn.className = "flex items-center space-x-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200/60 rounded-xl text-xs font-black text-slate-700 hover:text-slate-900 transition cursor-pointer shadow-3xs";
-                btn.style.cssText = "";
-                btn.innerHTML = `<span>Skip Email Setup</span><i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>`;
-                btn.setAttribute('onclick', 'skipEmailSetup()');
+                window.isGoogleConnected = false;
+                if (customSmtp) customSmtp.classList.remove('hidden');
+                if (gmailCard) {
+                    gmailCard.className = "p-6 border-2 border-blue-600 bg-gradient-to-b from-blue-50/20 to-blue-50/5 rounded-2xl relative space-y-5 flex flex-col justify-between h-full hover:shadow-glow duration-300 transform hover:-translate-y-0.5";
+                }
+                if (btn) {
+                    btn.className = "flex items-center space-x-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200/60 rounded-xl text-xs font-black text-slate-700 hover:text-slate-900 transition cursor-pointer shadow-3xs";
+                    btn.style.cssText = "";
+                    btn.innerHTML = `<span>Skip Email Setup</span><i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>`;
+                    btn.setAttribute('onclick', 'skipEmailSetup()');
+                }
             }
             if (window.lucide) lucide.createIcons();
         };

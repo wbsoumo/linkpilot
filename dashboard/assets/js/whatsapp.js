@@ -576,9 +576,7 @@ window.MetaAssistantManager = {
             title: "Welcome 👋",
             percentage: 10,
             msg: "Let's connect your WhatsApp Business account. This usually takes around 2–5 minutes. I'll guide you through everything step-by-step.",
-            buttons: [
-                { label: "🚀 Start Setup", action: () => MetaAssistantManager.advanceStep(2, "Let's start!") }
-            ]
+            buttons: []
         },
         2: {
             title: "Open Meta Developer Portal",

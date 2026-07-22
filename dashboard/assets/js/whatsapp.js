@@ -246,7 +246,7 @@ function renderWhatsAppSetup(container, settings) {
             </div>
 
                 <!-- RIGHT COLUMN: AI Setup Assistant Card (lg:col-span-5) -->
-                <div class="lg:col-span-5 bg-white border border-slate-200/80 rounded-3xl p-6 shadow-soft flex flex-col h-[650px] space-y-4">
+                <div class="lg:col-span-5 bg-white border border-slate-200/80 rounded-3xl p-6 shadow-soft flex flex-col h-[510px] space-y-4">
                     <!-- Card Header -->
                     <div class="flex items-center justify-between border-b border-slate-100 pb-4 shrink-0">
                         <div class="flex items-center space-x-3">

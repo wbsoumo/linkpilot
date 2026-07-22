@@ -247,7 +247,10 @@ function renderWhatsAppSetup(container, settings) {
                                 <span style="color: #ffffff !important;">Establish Connection with Meta</span>
                             </button>
                         </div>
-                                            <!-- RIGHT COLUMN: AI Setup Assistant Card (lg:col-span-5) -->
+                    </form>
+                </div>
+
+                <!-- RIGHT COLUMN: AI Setup Assistant Card (lg:col-span-5) -->
                 <div class="lg:col-span-5 bg-white border border-slate-200/80 rounded-3xl p-6 shadow-soft flex flex-col h-[650px] space-y-4">
                     <!-- Card Header -->
                     <div class="flex items-center justify-between border-b border-slate-100 pb-4 shrink-0">
@@ -332,10 +335,10 @@ function renderWhatsAppSetup(container, settings) {
                         </div>
 
                         <!-- Real Chat Input Box -->
-                        <div class="relative bg-white border border-slate-200 hover:border-slate-350 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100/50 rounded-2xl p-2.5 transition shadow-2xs">
+                        <div class="relative bg-slate-50 border border-slate-100 rounded-2xl p-2.5 transition shadow-3xs">
                             <form id="setup-ai-chat-form" onsubmit="event.preventDefault(); handleSetupAiChatSubmitDashboard();" class="flex flex-col space-y-2">
                                 <input type="file" id="setup-wa-screenshot-input" accept="image/*" class="hidden" onchange="handleSetupScreenshotUploadDashboard(event)">
-                                <textarea id="setup-ai-chat-input" rows="2" placeholder="Ask me anything about Meta setup..." class="w-full bg-transparent border-0 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 p-1 resize-none"></textarea>
+                                <textarea id="setup-ai-chat-input" rows="2" placeholder="Ask me anything about Meta setup..." class="w-full bg-transparent border-0 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:ring-0 p-1 resize-none focus:outline-none focus:border-0"></textarea>
                                 
                                 <div class="flex items-center justify-between pt-1">
                                     <!-- Toolbars (attachment, settings, link) -->
@@ -365,9 +368,9 @@ function renderWhatsAppSetup(container, settings) {
                         <div class="flex items-center justify-center space-x-1 text-[10px] text-slate-400 font-bold">
                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                             <span>Messages are secure and end-to-end encrypted.</span>
-                        </div>
                     </div>
-                </div>            </div>           </div>
+                </div>
+            </div>
             </div>
             `}
         </div>
@@ -794,13 +797,8 @@ window.MetaAssistantManager = {
                     <span class="text-[10px] text-slate-400 font-medium">Just now</span>
                     <span class="text-xs font-bold text-slate-800 ml-2">You</span>
                 </div>
-                <div class="relative bg-blue-600 text-white p-3.5 rounded-3xl rounded-tr-none text-left space-y-1 shadow-xs text-xs font-semibold leading-relaxed" style="background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;">
+                <div class="relative bg-blue-600 text-white p-3.5 rounded-3xl rounded-tr-none text-left shadow-xs text-xs font-semibold leading-relaxed" style="background: linear-gradient(135deg, #2563eb, #1d4ed8) !important; color: #ffffff !important;">
                     <div>${text}</div>
-                    <div class="flex justify-end pt-1 -mb-1">
-                        <svg class="h-3 w-3 text-blue-200 fill-current" viewBox="0 0 24 24">
-                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                        </svg>
-                    </div>
                 </div>
             </div>
         `;

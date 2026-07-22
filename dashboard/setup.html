@@ -1683,7 +1683,7 @@
             <div id="wiz-sidebar-default-cards" class="space-y-6">
 
             <!-- 1. Setup Progress Card -->
-            <div class="bg-white border border-slate-200/50 rounded-3xl p-6 shadow-premium space-y-4 text-left">
+            <div id="wiz-sidebar-progress-card" class="bg-white border border-slate-200/50 rounded-3xl p-6 shadow-premium space-y-4 text-left">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-2">
                         <div class="p-2 bg-blue-50 text-blue-600 rounded-xl border border-blue-100">
@@ -1695,12 +1695,12 @@
                 </div>
                 <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200/40">
                     <div id="setup-progress-bar" class="bg-blue-600 h-full rounded-full transition-all duration-500"
-                        style="width: 25%;"></div>
+                         style="width: 25%;"></div>
                 </div>
                 <div class="pt-2 flex items-center justify-between text-[11px] text-slate-500 font-bold gap-3">
                     <span>You can skip any step and return to it later.</span>
                     <button type="button" id="wiz-continue-btn" onclick="goToStep(activeStep + 1)"
-                        class="px-3 py-1.5 bg-blue-50 border border-blue-200 hover:bg-blue-600 hover:text-white text-blue-700 rounded-lg font-black transition flex items-center space-x-1 cursor-pointer shrink-0 shadow-3xs">
+                            class="px-3 py-1.5 bg-blue-50 border border-blue-200 hover:bg-blue-600 hover:text-white text-blue-700 rounded-lg font-black transition flex items-center space-x-1.5 cursor-pointer shrink-0 shadow-3xs">
                         <span>Continue</span>
                         <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
                     </button>
@@ -1708,7 +1708,7 @@
             </div>
 
             <!-- 2. Connection Status Card -->
-            <div class="bg-white border border-slate-200/50 rounded-3xl p-6 shadow-premium space-y-4">
+            <div id="wiz-sidebar-status-card" class="bg-white border border-slate-200/50 rounded-3xl p-6 shadow-premium space-y-4">
                 <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
                     <h3
                         class="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center space-x-2">
@@ -1966,11 +1966,17 @@
 
         window.toggleMetaAssistant = function (show) {
             const assistant = document.getElementById('wa-ai-assistant-sidebar');
+            const progressCard = document.getElementById('wiz-sidebar-progress-card');
+            const statusCard = document.getElementById('wiz-sidebar-status-card');
             if (!assistant) return;
             if (show) {
                 assistant.classList.remove('hidden');
+                if (progressCard) progressCard.classList.add('hidden');
+                if (statusCard) statusCard.classList.add('hidden');
             } else {
                 assistant.classList.add('hidden');
+                if (progressCard) progressCard.classList.remove('hidden');
+                if (statusCard) statusCard.classList.remove('hidden');
             }
         };
 

@@ -1801,7 +1801,7 @@
 
                     <!-- Real Chat Input Box -->
                     <div
-                        class="relative bg-white border border-slate-200 hover:border-slate-350 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-150 rounded-2xl p-2.5 transition shadow-2xs">
+                        class="relative bg-slate-50/80 rounded-2xl p-2.5 transition">
                         <form id="setup-ai-chat-form" onsubmit="event.preventDefault(); handleSetupAiChatSubmit();"
                             class="flex flex-col space-y-2">
                             <input type="file" id="setup-wa-screenshot-input" accept="image/*" class="hidden"
@@ -2840,18 +2840,13 @@
                 msgDiv.className = 'flex items-end justify-end space-x-2.5 animate-fade-in text-right w-full';
                 msgDiv.innerHTML = `
                     <div class="flex flex-col space-y-1 max-w-[85%]">
-                        <div class="flex items-center justify-between text-right">
-                            <span class="text-[10px] text-slate-400 font-medium">Just now</span>
-                            <span class="text-xs font-bold text-slate-800 ml-2">You</span>
-                        </div>
-                        <div class="relative bg-blue-600 text-white p-3.5 rounded-3xl rounded-tr-none text-left space-y-1 shadow-xs text-xs font-semibold leading-relaxed" style="background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;">
-                            <div>${text}</div>
-                            <div class="flex justify-end pt-1 -mb-1">
-                                <svg class="h-3 w-3 text-blue-200 fill-current" viewBox="0 0 24 24">
-                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                                </svg>
-                            </div>
-                        </div>
+                         <div class="flex items-center justify-between text-right">
+                             <span class="text-[10px] text-slate-400 font-medium">Just now</span>
+                             <span class="text-xs font-bold text-slate-800 ml-2">You</span>
+                         </div>
+                         <div class="relative bg-blue-600 text-white p-3.5 rounded-3xl rounded-tr-none text-left shadow-xs text-xs font-semibold leading-relaxed" style="background: linear-gradient(135deg, #2563eb, #1d4ed8) !important; color: #ffffff !important;">
+                             <div>${text}</div>
+                         </div>
                     </div>
                 `;
                 container.appendChild(msgDiv);

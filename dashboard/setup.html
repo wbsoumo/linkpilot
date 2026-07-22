@@ -195,6 +195,10 @@
                 </button>
             </div>
         </div>
+        <!-- Sticky Header Progress Line -->
+        <div class="absolute bottom-0 left-0 w-full h-[3px] bg-slate-100/50">
+            <div id="header-progress-line" class="h-full bg-blue-600 transition-all duration-500" style="width: 20%;"></div>
+        </div>
     </header>
 
     <!-- Main Content Container -->
@@ -1473,33 +1477,8 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
-
-        <!-- 5. Floating Glass Progress Tracker -->
-        <div id="floating-setup-tracker" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[99] bg-white/75 backdrop-blur-xl border border-slate-200/55 px-5 py-3 rounded-2xl shadow-premium flex items-center space-x-4 max-w-sm w-[90%] md:max-w-md transition-all duration-300">
-            <div class="flex-grow space-y-1">
-                <div class="flex justify-between items-center text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                    <span>Onboarding Progress</span>
-                    <span id="floating-progress-pct" class="text-blue-600 font-extrabold">20%</span>
-                </div>
-                <div class="w-full bg-slate-200/50 h-1.5 rounded-full overflow-hidden border border-slate-200/20">
-                    <div id="floating-progress-bar" class="bg-blue-600 h-full rounded-full transition-all duration-500" style="width: 20%;"></div>
-                </div>
-            </div>
-            <div class="border-l border-slate-200/55 h-8"></div>
-            <button type="button" id="floating-next-btn" onclick="goToStep(activeStep + 1)" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold rounded-xl transition flex items-center space-x-1.5 cursor-pointer shrink-0 border-0 shadow-sm" style="color: #ffffff !important;">
-                <span style="color: #ffffff !important;">Next</span>
-                <i data-lucide="arrow-right" class="h-3.5 w-3.5 text-white"></i>
-            </button>
-        </div>>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
     </main>
 
     <!-- Footer -->
@@ -1621,27 +1600,10 @@
             if (progressText) progressText.textContent = `${progressPct}% Completed`;
             if (progressBar) progressBar.style.width = `${progressPct}%`;
 
-            // Update Floating Frosted Glass Progress Tracker
-            const floatingTracker = document.getElementById('floating-setup-tracker');
-            const floatingPctText = document.getElementById('floating-progress-pct');
-            const floatingBar = document.getElementById('floating-progress-bar');
-            const floatingNextBtn = document.getElementById('floating-next-btn');
-
-            if (floatingTracker) {
-                if (stepNum === 5) {
-                    floatingTracker.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
-                } else {
-                    floatingTracker.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
-                }
-            }
-            if (floatingPctText) floatingPctText.textContent = `${progressPct}%`;
-            if (floatingBar) floatingBar.style.width = `${progressPct}%`;
-            if (floatingNextBtn) {
-                if (stepNum === 4) {
-                    floatingNextBtn.innerHTML = `<span style="color: #ffffff !important;">Finish</span><i data-lucide="arrow-right" class="h-3.5 w-3.5 text-white"></i>`;
-                } else {
-                    floatingNextBtn.innerHTML = `<span style="color: #ffffff !important;">Next</span><i data-lucide="arrow-right" class="h-3.5 w-3.5 text-white"></i>`;
-                }
+            // Update Sticky Header Progress Line
+            const headerProgressLine = document.getElementById('header-progress-line');
+            if (headerProgressLine) {
+                headerProgressLine.style.width = `${progressPct}%`;
             }
 
             // Update Stepper Visual Nodes

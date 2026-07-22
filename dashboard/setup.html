@@ -150,7 +150,7 @@
 <body class="min-h-screen bg-[#f8fafc] flex flex-col text-slate-800 antialiased font-sans">
 
     <!-- Premium Top Navigation Header -->
-    <header id="wizard-global-header" class="collapsible-section glass-panel sticky top-0 z-50 h-[72px] px-6 flex items-center justify-between border-b border-slate-100/80 shadow-premium">
+    <header id="wizard-global-header" class="glass-panel sticky top-0 z-50 h-[72px] px-6 flex items-center justify-between border-b border-slate-100/80 shadow-premium">
         <!-- Left Brand Area -->
         <div class="flex items-center space-x-4">
             <div class="flex items-center space-x-2.5">
@@ -1662,13 +1662,11 @@
         window.hasWizardHeaderVanished = false;
 
         window.toggleWizardHeader = function(show) {
-            const gHeader = document.getElementById('wizard-global-header');
             const hSec = document.getElementById('wizard-page-header');
             const sSec = document.getElementById('wizard-stepper-section');
             const restoreBtn = document.getElementById('restore-wizard-header-btn');
             
             if (show) {
-                if (gHeader) gHeader.classList.remove('collapsed');
                 if (hSec) hSec.classList.remove('collapsed');
                 if (sSec) sSec.classList.remove('collapsed');
                 if (restoreBtn) {
@@ -1677,7 +1675,6 @@
                 }
                 window.hasWizardHeaderVanished = false;
             } else {
-                if (gHeader) gHeader.classList.add('collapsed');
                 if (hSec) hSec.classList.add('collapsed');
                 if (sSec) sSec.classList.add('collapsed');
                 if (restoreBtn) {

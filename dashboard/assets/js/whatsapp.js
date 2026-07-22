@@ -247,11 +247,10 @@ function renderWhatsAppSetup(container, settings) {
                                 <span style="color: #ffffff !important;">Establish Connection with Meta</span>
                             </button>
                         </div>
-                    </form>
-                            <!-- RIGHT COLUMN: AI Setup Assistant Card (lg:col-span-5) -->
-                <div class="lg:col-span-5 bg-white border border-slate-200/80 rounded-3xl p-6 shadow-soft flex flex-col justify-between space-y-5 min-h-[620px] max-h-[720px]">
+                                            <!-- RIGHT COLUMN: AI Setup Assistant Card (lg:col-span-5) -->
+                <div class="lg:col-span-5 bg-white border border-slate-200/80 rounded-3xl p-6 shadow-soft flex flex-col h-[650px] space-y-4">
                     <!-- Card Header -->
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-4 shrink-0">
                         <div class="flex items-center space-x-3">
                             <div class="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center p-2 shrink-0 shadow-sm">
                                 <img src="https://crystalpng.com/wp-content/uploads/2025/02/meta_logo.png" class="w-7 h-7 object-contain" alt="Meta">
@@ -279,7 +278,7 @@ function renderWhatsAppSetup(container, settings) {
                     </div>
 
                     <!-- Setup Progress Section -->
-                    <div class="bg-[#f8fafc] border border-slate-200/60 p-4 rounded-2xl shadow-2xs space-y-3.5 text-left">
+                    <div class="bg-[#f8fafc] border border-slate-200/60 p-4 rounded-2xl shadow-2xs space-y-3.5 text-left shrink-0">
                         <div class="flex justify-between items-center text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
                             <span>Setup Progress</span>
                             <span id="wa-assistant-step-badge" class="text-slate-700 font-black">Step 1 of 9</span>
@@ -313,12 +312,12 @@ function renderWhatsAppSetup(container, settings) {
                     </div>
 
                     <!-- Conversation Chat History Window -->
-                    <div id="ai-chat-messages-container" class="flex-grow overflow-y-auto pr-1.5 space-y-4 text-xs leading-relaxed max-h-[350px] min-h-[220px]">
+                    <div id="ai-chat-messages-container" class="flex-1 overflow-y-auto pr-1.5 space-y-4 text-xs leading-relaxed">
                         <!-- Messages will be dynamically rendered here -->
                     </div>
 
                     <!-- Chat input/interaction Area -->
-                    <div class="space-y-3 border-t border-slate-100 pt-3">
+                    <div class="space-y-3 border-t border-slate-100 pt-3 shrink-0">
                         <div id="ai-chat-controls-area" class="flex flex-col space-y-1.5">
                             <!-- Action / Option buttons rendered dynamically -->
                         </div>
@@ -336,7 +335,7 @@ function renderWhatsAppSetup(container, settings) {
                         <div class="relative bg-white border border-slate-200 hover:border-slate-350 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100/50 rounded-2xl p-2.5 transition shadow-2xs">
                             <form id="setup-ai-chat-form" onsubmit="event.preventDefault(); handleSetupAiChatSubmitDashboard();" class="flex flex-col space-y-2">
                                 <input type="file" id="setup-wa-screenshot-input" accept="image/*" class="hidden" onchange="handleSetupScreenshotUploadDashboard(event)">
-                                <input type="text" id="setup-ai-chat-input" placeholder="Ask me anything about Meta setup..." class="w-full bg-transparent border-0 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 p-1">
+                                <textarea id="setup-ai-chat-input" rows="2" placeholder="Ask me anything about Meta setup..." class="w-full bg-transparent border-0 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 p-1 resize-none"></textarea>
                                 
                                 <div class="flex items-center justify-between pt-1">
                                     <!-- Toolbars (attachment, settings, link) -->
@@ -368,7 +367,7 @@ function renderWhatsAppSetup(container, settings) {
                             <span>Messages are secure and end-to-end encrypted.</span>
                         </div>
                     </div>
-                </div>            </div>
+                </div>            </div>           </div>
             </div>
             `}
         </div>
@@ -1219,6 +1218,17 @@ document.addEventListener('change', function(e) {
             
             const submitBtn = document.getElementById('wa-manual-submit-btn');
             if (submitBtn) submitBtn.classList.add('hidden');
+        }
+    }
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.target && e.target.id === 'setup-ai-chat-input') {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (window.handleSetupAiChatSubmitDashboard) {
+                window.handleSetupAiChatSubmitDashboard();
+            }
         }
     }
 });

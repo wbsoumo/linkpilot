@@ -39,6 +39,23 @@
         .shadow-soft {
             box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
         }
+        .collapsible-section {
+            transition: all 0.7s cubic-bezier(0.25, 1, 0.5, 1);
+            max-height: 500px;
+            opacity: 1;
+            overflow: hidden;
+        }
+        .collapsible-section.collapsed {
+            max-height: 0 !important;
+            opacity: 0 !important;
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            border-top-width: 0 !important;
+            border-bottom-width: 0 !important;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body class="min-h-screen bg-[#f8fafc] flex flex-col text-slate-800 antialiased font-sans">
@@ -66,13 +83,13 @@
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
         <!-- Page Header -->
-        <div class="text-center max-w-3xl mx-auto space-y-2">
+        <div id="wizard-page-header" class="collapsible-section text-center max-w-3xl mx-auto space-y-2">
             <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Connect Your Email & Meta Workspace</h1>
             <p class="text-sm text-slate-600 font-semibold leading-relaxed">Connect your email account and Meta WhatsApp Business to unlock AI inbox, campaigns, smart replies, and automations.</p>
         </div>
 
         <!-- Modern Onboarding Progress Stepper -->
-        <div class="bg-white border border-slate-200/80 rounded-[20px] p-4 sm:p-5 shadow-soft max-w-4xl mx-auto">
+        <div id="wizard-stepper-section" class="collapsible-section bg-white border border-slate-200/80 rounded-[20px] p-4 sm:p-5 shadow-soft max-w-4xl mx-auto">
             <div id="onboarding-stepper" class="flex items-center justify-between overflow-x-auto no-scrollbar py-1">
                 <!-- Step 1: Connect -->
                 <div class="step-item flex items-center space-x-2 shrink-0 cursor-pointer" onclick="goToStep(1)">
@@ -108,6 +125,14 @@
                     <span class="step-label text-xs font-bold text-slate-650">Complete</span>
                 </div>
             </div>
+        </div>
+
+        <!-- Restore Stepper Floating Toggle -->
+        <div id="restore-wizard-header-btn" class="hidden justify-center items-center my-2 animate-fade-in">
+            <button type="button" onclick="toggleWizardHeader(true)" class="px-5 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 text-[10px] font-black uppercase tracking-wider rounded-full transition flex items-center space-x-1.5 shadow-xs cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                <span>Show Onboarding Progress Tracker</span>
+            </button>
         </div>
 
         <!-- Responsive Two-Column Layout -->
@@ -473,7 +498,7 @@
                 <!-- STEP 3: Meta Integration (WhatsApp Business) Card -->
                 <div class="wizard-pane space-y-6 hidden animate-fade-in" id="step-pane-3">
                     <!-- Top Header -->
-                    <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 shadow-soft text-left">
+                    <div id="wizard-step3-banner" class="collapsible-section bg-white border border-slate-200/80 rounded-[20px] p-6 shadow-soft text-left">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div class="flex items-center space-x-3.5">
                                 <div class="p-2.5 bg-blue-50 rounded-2xl border border-blue-100 shrink-0">
@@ -1489,8 +1514,81 @@
             }
 
             if (window.lucide) lucide.createIcons();
-            if (stepNum === 3 && window.MetaAssistantManager) {
-                setTimeout(() => window.MetaAssistantManager.init(), 50);
+            if (stepNum === 3) {
+                if (window.MetaAssistantManager) {
+                    setTimeout(() => window.MetaAssistantManager.init(), 50);
+                }
+                if (window.handleStep3Transition) {
+                    window.handleStep3Transition();
+                }
+            } else {
+                if (window.toggleWizardHeader) {
+                    window.toggleWizardHeader(true);
+                }
+            }
+        };
+
+        let step3Timeout = null;
+
+        window.toggleWizardHeader = function(show) {
+            const hSec = document.getElementById('wizard-page-header');
+            const sSec = document.getElementById('wizard-stepper-section');
+            const bSec = document.getElementById('wizard-step3-banner');
+            const restoreBtn = document.getElementById('restore-wizard-header-btn');
+            
+            if (show) {
+                if (hSec) hSec.classList.remove('collapsed');
+                if (sSec) sSec.classList.remove('collapsed');
+                if (bSec) bSec.classList.remove('collapsed');
+                if (restoreBtn) {
+                    restoreBtn.classList.remove('flex');
+                    restoreBtn.classList.add('hidden');
+                }
+            } else {
+                if (hSec) hSec.classList.add('collapsed');
+                if (sSec) sSec.classList.add('collapsed');
+                if (bSec) bSec.classList.add('collapsed');
+                if (restoreBtn) {
+                    restoreBtn.classList.remove('hidden');
+                    restoreBtn.classList.add('flex');
+                }
+            }
+        };
+
+        window.handleStep3Transition = function() {
+            if (step3Timeout) {
+                clearTimeout(step3Timeout);
+                step3Timeout = null;
+            }
+            
+            const selectionState = document.getElementById('wa-connect-selection-state');
+            
+            // Only perform auto-vanish if we are on step 3 and not connected yet
+            const isUnconnected = selectionState && !selectionState.classList.contains('hidden');
+            
+            if (activeStep === 3 && isUnconnected) {
+                // Start selectionState as invisible for clean fade-in
+                selectionState.style.opacity = '0';
+                selectionState.style.transition = 'opacity 0.8s ease-in-out';
+                
+                // Show header, stepper, banner card
+                toggleWizardHeader(true);
+                
+                // Wait 2.5s, then collapse and fade in the setup grid
+                step3Timeout = setTimeout(() => {
+                    if (activeStep === 3) {
+                        toggleWizardHeader(false);
+                        setTimeout(() => {
+                            selectionState.style.opacity = '1';
+                        }, 100);
+                    }
+                }, 2500);
+            } else {
+                // If on other steps or connected, restore the headers
+                toggleWizardHeader(true);
+                if (selectionState) {
+                    selectionState.style.opacity = '1';
+                }
             }
         };
 
@@ -2880,6 +2978,9 @@
                         badgeWa.textContent = "Not Connected";
                     }
                 }
+                if (window.handleStep3Transition) {
+                    window.handleStep3Transition();
+                }
             } catch (err) {
                 console.warn('Failed checking WhatsApp status:', err);
             }
@@ -2891,6 +2992,9 @@
             if (selectionState && successState) {
                 selectionState.classList.remove('hidden');
                 successState.classList.add('hidden');
+                if (window.handleStep3Transition) {
+                    window.handleStep3Transition();
+                }
             }
         };
 

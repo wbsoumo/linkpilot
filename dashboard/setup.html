@@ -152,6 +152,21 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+        
+        /* Prevent layout overlap when Setup Assistant is active */
+        body.has-assistant {
+            transition: padding 0.3s ease-in-out;
+        }
+        @media (min-width: 1024px) {
+            body.has-assistant {
+                padding-right: 420px !important;
+            }
+        }
+        @media (max-width: 1023px) {
+            body.has-assistant {
+                padding-bottom: 400px !important;
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen bg-[#f8fafc] flex flex-col text-slate-800 antialiased font-sans">
@@ -956,129 +971,13 @@
                             <!-- Buttons Row (Step 3) -->
                             <div class="pt-5 flex items-center justify-between border-t border-slate-100/80 mt-5">
                                 <button type="button" onclick="goToStep(2)" class="px-4 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 cursor-pointer">
-                                    <i data-lucide="arrow-left" class="h-4 w-4 text-slate-500"></i>
+                                    <i data-lucide="arrow-left" class="h-4 w-4 text-slate-550"></i>
                                     <span>Back</span>
                                 </button>
                                 <button type="button" onclick="goToStep(4)" class="px-4 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-1.5 cursor-pointer">
                                     <span>Skip WhatsApp Setup</span>
-                                    <i data-lucide="arrow-right" class="h-4 w-4 text-slate-500"></i>
+                                    <i data-lucide="arrow-right" class="h-4 w-4 text-slate-550"></i>
                                 </button>
-                            </div>
-                        </div>
-                        
-                        <!-- RIGHT COLUMN: AI Setup Assistant Card (Floating Right Side Panel on Desktop) -->
-                        <div class="relative w-full h-[650px] lg:fixed lg:top-0 lg:right-0 lg:h-screen lg:w-[420px] bg-white border border-slate-200/50 lg:border-y-0 lg:border-r-0 lg:border-l lg:border-slate-200/80 rounded-3xl lg:rounded-r-none lg:rounded-l-[32px] p-6 shadow-premium flex flex-col z-10 lg:z-50 space-y-4">
-                            <!-- Card Header -->
-                            <div class="flex items-center justify-between border-b border-slate-100/80 pb-4 shrink-0">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center p-2 shrink-0 shadow-3xs">
-                                        <img src="https://crystalpng.com/wp-content/uploads/2025/02/meta_logo.png" class="w-7 h-7 object-contain" alt="Meta">
-                                    </div>
-                                    <div class="text-left">
-                                        <h3 class="text-xs font-black text-slate-900 flex items-center space-x-1">
-                                            <span>Meta Setup Assistant</span>
-                                            <svg class="h-3.5 w-3.5 text-blue-500 fill-current" viewBox="0 0 24 24">
-                                                <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                                            </svg>
-                                        </h3>
-                                        <p class="text-[10px] text-slate-500 font-semibold mt-0.5">Powered by <span class="font-extrabold text-blue-600">∞</span> Meta AI</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <button type="button" onclick="window.open('https://developers.facebook.com/docs/whatsapp/cloud-api/get-started', '_blank')" class="px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-350 hover:bg-slate-50 rounded-xl text-[10px] font-extrabold text-slate-700 transition flex items-center space-x-1 shadow-3xs cursor-pointer">
-                                        <i data-lucide="book-open" class="h-3 w-3 text-slate-500"></i>
-                                        <span>Guide</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Setup Progress Section -->
-                            <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl shadow-3xs space-y-3.5 text-left shrink-0">
-                                <div class="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                    <span>Setup Progress</span>
-                                    <span id="wa-assistant-step-badge" class="text-slate-700 font-black">Step 1 of 9</span>
-                                </div>
-                                
-                                <!-- Multi-segmented progress bar -->
-                                <div class="grid grid-cols-9 gap-1 h-2 rounded-full overflow-hidden">
-                                    <div class="h-full bg-blue-600 rounded-l-full transition-all duration-300" id="segment-1"></div>
-                                    <div class="h-full bg-slate-200 transition-all duration-300" id="segment-2"></div>
-                                    <div class="h-full bg-slate-200 transition-all duration-300" id="segment-3"></div>
-                                    <div class="h-full bg-slate-200 transition-all duration-300" id="segment-4"></div>
-                                    <div class="h-full bg-slate-200 transition-all duration-300" id="segment-5"></div>
-                                    <div class="h-full bg-slate-200 transition-all duration-300" id="segment-6"></div>
-                                    <div class="h-full bg-slate-200 transition-all duration-300" id="segment-7"></div>
-                                    <div class="h-full bg-slate-200 transition-all duration-300" id="segment-8"></div>
-                                    <div class="h-full bg-slate-200 rounded-r-full transition-all duration-300" id="segment-9"></div>
-                                </div>
-
-                                <div class="flex items-center justify-between pt-1">
-                                    <div class="flex items-center space-x-2">
-                                        <div class="p-1.5 bg-blue-50 text-blue-600 rounded-lg border border-blue-100 flex items-center justify-center">
-                                            <i data-lucide="compass" class="h-3.5 w-3.5"></i>
-                                        </div>
-                                        <div class="text-[11px] leading-tight text-left">
-                                            <span class="text-slate-450 font-bold block">Current Step</span>
-                                            <span id="wa-assistant-step-label" class="font-extrabold text-slate-800">Welcome 👋</span>
-                                        </div>
-                                    </div>
-                                    <span id="wa-assistant-percentage" class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-250 rounded-full text-[10px] font-black tracking-wide uppercase">10% Complete</span>
-                                </div>
-                            </div>
-
-                            <!-- Conversation Chat History Window -->
-                            <div id="ai-chat-messages-container" class="flex-1 overflow-y-auto pr-1.5 space-y-4 text-xs leading-relaxed no-scrollbar">
-                                <!-- Messages will be dynamically rendered here -->
-                            </div>
-
-                            <!-- Chat input/interaction Area -->
-                            <div class="space-y-3 border-t border-slate-100 pt-3 shrink-0">
-                                <div id="ai-chat-controls-area" class="flex flex-col space-y-1.5">
-                                    <!-- Action / Option buttons rendered dynamically -->
-                                </div>
-
-                                <!-- Attachment Preview Bar -->
-                                <div id="setup-chat-attachment-preview" class="hidden flex items-center space-x-2.5 bg-slate-50 border border-slate-200/80 p-2 rounded-xl text-xs text-slate-700 animate-fade-in mx-1">
-                                    <img id="setup-chat-attachment-thumbnail" class="w-8 h-8 rounded-lg object-contain border border-slate-200" src="">
-                                    <span class="flex-1 truncate font-semibold text-slate-650">Screenshot attached</span>
-                                    <button type="button" onclick="clearSetupChatAttachment()" class="p-1 text-slate-400 hover:text-rose-600 rounded-lg transition border-0 bg-transparent cursor-pointer">
-                                        <i data-lucide="x" class="h-4 w-4"></i>
-                                    </button>
-                                </div>
-
-                                <!-- Real Chat Input Box -->
-                                <div class="relative bg-white border border-slate-200 hover:border-slate-350 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-150 rounded-2xl p-2.5 transition shadow-2xs">
-                                    <form id="setup-ai-chat-form" onsubmit="event.preventDefault(); handleSetupAiChatSubmit();" class="flex flex-col space-y-2">
-                                        <input type="file" id="setup-wa-screenshot-input" accept="image/*" class="hidden" onchange="handleSetupScreenshotUpload(event)">
-                                        <textarea id="setup-ai-chat-input" rows="2" placeholder="Ask me anything about Meta setup..." class="w-full bg-transparent border-0 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 p-1 resize-none"></textarea>
-                                        
-                                        <div class="flex items-center justify-between pt-1">
-                                            <!-- Toolbars -->
-                                            <div class="flex items-center space-x-1.5 text-slate-400">
-                                                <button type="button" onclick="document.getElementById('setup-wa-screenshot-input').click()" class="p-1.5 hover:bg-slate-100 hover:text-slate-650 rounded-lg transition cursor-pointer border-0 bg-transparent flex items-center justify-center">
-                                                    <i data-lucide="paperclip" class="h-4 w-4"></i>
-                                                </button>
-                                                <button type="button" onclick="MetaAssistantManager.explainAppCreation()" class="p-1.5 hover:bg-slate-100 hover:text-slate-650 rounded-lg transition cursor-pointer border-0 bg-transparent flex items-center justify-center">
-                                                    <i data-lucide="help-circle" class="h-4 w-4"></i>
-                                                </button>
-                                                <button type="button" onclick="openMetaLink('dev')" class="p-1.5 hover:bg-slate-100 hover:text-slate-650 rounded-lg transition cursor-pointer border-0 bg-transparent flex items-center justify-center">
-                                                    <i data-lucide="link" class="h-4 w-4"></i>
-                                                </button>
-                                            </div>
-
-                                            <!-- Send Button -->
-                                            <button type="submit" class="p-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl transition flex items-center justify-center shrink-0 cursor-pointer border-0 shadow-sm" style="color: #ffffff !important;">
-                                                <i data-lucide="send" class="h-3.5 w-3.5 text-white"></i>
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                                
-                                <!-- Encrypted Lock Note -->
-                                <div class="flex items-center justify-center space-x-1 text-[10px] text-slate-400 font-bold pt-2">
-                                    <i data-lucide="lock" class="h-3 w-3 text-slate-400"></i>
-                                    <span>End-to-end encrypted connection</span>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -1552,6 +1451,18 @@
             }
         };
 
+        window.toggleMetaAssistant = function(show) {
+            const assistant = document.getElementById('wa-ai-assistant-sidebar');
+            if (!assistant) return;
+            if (show) {
+                assistant.classList.remove('hidden');
+                document.body.classList.add('has-assistant');
+            } else {
+                assistant.classList.add('hidden');
+                document.body.classList.remove('has-assistant');
+            }
+        };
+
         window.goToStep = function(stepNum) {
             if (stepNum < 1 || stepNum > 5) return;
             activeStep = stepNum;
@@ -1566,6 +1477,15 @@
                 if (rightSidebar) {
                     rightSidebar.classList.add('hidden');
                 }
+                
+                // Show assistant if credentials selection state is not hidden
+                const selectionState = document.getElementById('wa-connect-selection-state');
+                const isSuccessHidden = !selectionState || selectionState.classList.contains('hidden');
+                if (isSuccessHidden) {
+                    toggleMetaAssistant(false);
+                } else {
+                    toggleMetaAssistant(true);
+                }
             } else {
                 if (panesContainer) {
                     panesContainer.classList.remove('lg:col-span-12');
@@ -1574,6 +1494,7 @@
                 if (rightSidebar) {
                     rightSidebar.classList.remove('hidden');
                 }
+                toggleMetaAssistant(false);
             }
 
             // Toggle active wizard-pane
@@ -3039,6 +2960,7 @@
                 if (res && res.connected && res.business) {
                     if (selectionState) selectionState.classList.add('hidden');
                     if (successState) successState.classList.remove('hidden');
+                    toggleMetaAssistant(false);
                     
                     const bizName = document.getElementById('wa-success-biz-name');
                     const dispName = document.getElementById('wa-success-display-name');
@@ -3078,6 +3000,7 @@
                 } else {
                     if (selectionState) selectionState.classList.remove('hidden');
                     if (successState) successState.classList.add('hidden');
+                    if (activeStep === 3) toggleMetaAssistant(true);
                     if (badgeWa) {
                         badgeWa.className = "text-rose-500 font-extrabold";
                         badgeWa.textContent = "Not Connected";
@@ -3094,6 +3017,7 @@
             if (selectionState && successState) {
                 selectionState.classList.remove('hidden');
                 successState.classList.add('hidden');
+                toggleMetaAssistant(true);
             }
         };
 
@@ -3223,6 +3147,122 @@
                     <span class="text-slate-500">○</span>
                     <span>Finalizing database credentials connection...</span>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Meta Setup Assistant Card (Outside transformed wrappers) -->
+    <div id="wa-ai-assistant-sidebar" class="fixed bottom-0 right-0 left-0 lg:left-auto lg:top-0 lg:h-screen lg:w-[420px] bg-white border-t lg:border-t-0 lg:border-l border-slate-200/80 shadow-premium flex flex-col z-50 space-y-4 p-6 rounded-t-[24px] lg:rounded-t-none lg:rounded-l-[32px] hidden">
+        <!-- Card Header -->
+        <div class="flex items-center justify-between border-b border-slate-100/80 pb-4 shrink-0">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center p-2 shrink-0 shadow-3xs">
+                    <img src="https://crystalpng.com/wp-content/uploads/2025/02/meta_logo.png" class="w-7 h-7 object-contain" alt="Meta">
+                </div>
+                <div class="text-left">
+                    <h3 class="text-xs font-black text-slate-900 flex items-center space-x-1">
+                        <span>Meta Setup Assistant</span>
+                        <svg class="h-3.5 w-3.5 text-blue-500 fill-current" viewBox="0 0 24 24">
+                            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        </svg>
+                    </h3>
+                    <p class="text-[10px] text-slate-500 font-semibold mt-0.5">Powered by <span class="font-extrabold text-blue-600">∞</span> Meta AI</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button type="button" onclick="window.open('https://developers.facebook.com/docs/whatsapp/cloud-api/get-started', '_blank')" class="px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-350 hover:bg-slate-50 rounded-xl text-[10px] font-extrabold text-slate-700 transition flex items-center space-x-1 shadow-3xs cursor-pointer">
+                    <i data-lucide="book-open" class="h-3 w-3 text-slate-500"></i>
+                    <span>Guide</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Setup Progress Section -->
+        <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl shadow-3xs space-y-3.5 text-left shrink-0">
+            <div class="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <span>Setup Progress</span>
+                <span id="wa-assistant-step-badge" class="text-slate-700 font-black">Step 1 of 9</span>
+            </div>
+            
+            <!-- Multi-segmented progress bar -->
+            <div class="grid grid-cols-9 gap-1 h-2 rounded-full overflow-hidden">
+                <div class="h-full bg-blue-600 rounded-l-full transition-all duration-300" id="segment-1"></div>
+                <div class="h-full bg-slate-200 transition-all duration-300" id="segment-2"></div>
+                <div class="h-full bg-slate-200 transition-all duration-300" id="segment-3"></div>
+                <div class="h-full bg-slate-200 transition-all duration-300" id="segment-4"></div>
+                <div class="h-full bg-slate-200 transition-all duration-300" id="segment-5"></div>
+                <div class="h-full bg-slate-200 transition-all duration-300" id="segment-6"></div>
+                <div class="h-full bg-slate-200 transition-all duration-300" id="segment-7"></div>
+                <div class="h-full bg-slate-200 transition-all duration-300" id="segment-8"></div>
+                <div class="h-full bg-slate-200 rounded-r-full transition-all duration-300" id="segment-9"></div>
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+                <div class="flex items-center space-x-2">
+                    <div class="p-1.5 bg-blue-50 text-blue-600 rounded-lg border border-blue-100 flex items-center justify-center">
+                        <i data-lucide="compass" class="h-3.5 w-3.5"></i>
+                    </div>
+                    <div class="text-[11px] leading-tight text-left">
+                        <span class="text-slate-450 font-bold block">Current Step</span>
+                        <span id="wa-assistant-step-label" class="font-extrabold text-slate-800">Welcome 👋</span>
+                    </div>
+                </div>
+                <span id="wa-assistant-percentage" class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-250 rounded-full text-[10px] font-black tracking-wide uppercase">10% Complete</span>
+            </div>
+        </div>
+
+        <!-- Conversation Chat History Window -->
+        <div id="ai-chat-messages-container" class="flex-1 overflow-y-auto pr-1.5 space-y-4 text-xs leading-relaxed no-scrollbar">
+            <!-- Messages will be dynamically rendered here -->
+        </div>
+
+        <!-- Chat input/interaction Area -->
+        <div class="space-y-3 border-t border-slate-100 pt-3 shrink-0">
+            <div id="ai-chat-controls-area" class="flex flex-col space-y-1.5">
+                <!-- Action / Option buttons rendered dynamically -->
+            </div>
+
+            <!-- Attachment Preview Bar -->
+            <div id="setup-chat-attachment-preview" class="hidden flex items-center space-x-2.5 bg-slate-50 border border-slate-200/80 p-2 rounded-xl text-xs text-slate-700 animate-fade-in mx-1">
+                <img id="setup-chat-attachment-thumbnail" class="w-8 h-8 rounded-lg object-contain border border-slate-200" src="">
+                <span class="flex-1 truncate font-semibold text-slate-650">Screenshot attached</span>
+                <button type="button" onclick="clearSetupChatAttachment()" class="p-1 text-slate-400 hover:text-rose-600 rounded-lg transition border-0 bg-transparent cursor-pointer">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            </div>
+
+            <!-- Real Chat Input Box -->
+            <div class="relative bg-white border border-slate-200 hover:border-slate-350 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-150 rounded-2xl p-2.5 transition shadow-2xs">
+                <form id="setup-ai-chat-form" onsubmit="event.preventDefault(); handleSetupAiChatSubmit();" class="flex flex-col space-y-2">
+                    <input type="file" id="setup-wa-screenshot-input" accept="image/*" class="hidden" onchange="handleSetupScreenshotUpload(event)">
+                    <textarea id="setup-ai-chat-input" rows="2" placeholder="Ask me anything about Meta setup..." class="w-full bg-transparent border-0 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 p-1 resize-none"></textarea>
+                    
+                    <div class="flex items-center justify-between pt-1">
+                        <!-- Toolbars -->
+                        <div class="flex items-center space-x-1.5 text-slate-400">
+                            <button type="button" onclick="document.getElementById('setup-wa-screenshot-input').click()" class="p-1.5 hover:bg-slate-100 hover:text-slate-650 rounded-lg transition cursor-pointer border-0 bg-transparent flex items-center justify-center">
+                                <i data-lucide="paperclip" class="h-4 w-4"></i>
+                            </button>
+                            <button type="button" onclick="MetaAssistantManager.explainAppCreation()" class="p-1.5 hover:bg-slate-100 hover:text-slate-650 rounded-lg transition cursor-pointer border-0 bg-transparent flex items-center justify-center">
+                                <i data-lucide="help-circle" class="h-4 w-4"></i>
+                            </button>
+                            <button type="button" onclick="openMetaLink('dev')" class="p-1.5 hover:bg-slate-100 hover:text-slate-650 rounded-lg transition cursor-pointer border-0 bg-transparent flex items-center justify-center">
+                                <i data-lucide="link" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+
+                        <!-- Send Button -->
+                        <button type="submit" class="p-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl transition flex items-center justify-center shrink-0 cursor-pointer border-0 shadow-sm" style="color: #ffffff !important;">
+                            <i data-lucide="send" class="h-3.5 w-3.5 text-white"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Encrypted Lock Note -->
+            <div class="flex items-center justify-center space-x-1 text-[10px] text-slate-400 font-bold pt-2">
+                <i data-lucide="lock" class="h-3 w-3 text-slate-400"></i>
+                <span>End-to-end encrypted connection</span>
             </div>
         </div>
     </div>

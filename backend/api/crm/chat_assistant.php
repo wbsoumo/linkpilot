@@ -258,8 +258,21 @@ Formatting instructions:
 2. If the user asks about invoices, check the invoices list above and format the details in a markdown table with headers:
    | Sender/Company | Subject | Amount | Due Date | Summary/Details |
    |---|---|---|---|---|
-3. Always present currency values using Rupee sign (₹) or the currency of the invoice.
-4. If the user asks something outside this data (e.g. general knowledge or personal info not in CRM), answer politely that you only have access to their CRM workspace context.";
+3. Always present currency values using Rupee sign (₹) or the currency of the invoice.";
+
+    $setupState = $input['setup_state'] ?? null;
+    if ($setupState && is_array($setupState)) {
+        $systemPrompt .= "\n\n=== WHATSAPP SETUP WIZARD LIVE CONTEXT ===\n";
+        $systemPrompt .= "The user is currently inside the Meta WhatsApp connection wizard.\n";
+        $systemPrompt .= "Current Wizard Step: " . ($setupState['current_step'] ?? 'Unknown') . "\n";
+        $systemPrompt .= "Permanent Access Token in form: " . (!empty($setupState['token']) ? "Pasted (Length: " . strlen($setupState['token']) . ", Starts with: " . substr($setupState['token'], 0, 8) . "...)" : "Not pasted yet") . "\n";
+        $systemPrompt .= "WABA ID in form: " . (!empty($setupState['waba_id']) ? $setupState['waba_id'] : "Not pasted yet") . "\n";
+        $systemPrompt .= "Selected Phone ID: " . (!empty($setupState['phone_id']) ? $setupState['phone_id'] : "Not selected yet") . "\n";
+        if (!empty($setupState['last_error'])) {
+            $systemPrompt .= "Last Validation/Connection Error encountered: " . $setupState['last_error'] . "\n";
+        }
+        $systemPrompt .= "Help the user troubleshoot any errors based on these values. WABA ID should always be a 15+ digit ID (do not mix it up with Phone ID or Business Portfolio ID). Tell the user how to solve the specific error step-by-step.\n";
+    }
 
     // Fetch liked responses for reinforcement training
     try {

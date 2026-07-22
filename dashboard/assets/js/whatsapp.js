@@ -738,6 +738,7 @@ window.MetaAssistantManager = {
     },
 
     handleError: function(errReason) {
+        this.lastError = errReason;
         this.retryCount++;
         let explainText = "❌ Validation check unsuccessful.";
 
@@ -859,7 +860,14 @@ window.handleSetupAiChatSubmitDashboard = async function() {
         try {
             const data = await apiCall('crm/chat_assistant.php', 'POST', {
                 message: text,
-                history: assistant.history.slice(0, -1)
+                history: assistant.history.slice(0, -1),
+                setup_state: {
+                    token: document.getElementById('wa-manual-token').value.trim(),
+                    waba_id: document.getElementById('wa-manual-waba-id').value.trim(),
+                    phone_id: document.getElementById('wa-manual-phone-id').value.trim(),
+                    current_step: assistant.currentStep,
+                    last_error: assistant.lastError || ''
+                }
             });
 
             const loader = document.getElementById(loaderId);

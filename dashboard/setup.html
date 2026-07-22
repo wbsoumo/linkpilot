@@ -284,17 +284,6 @@
             <div class="lg:col-span-7 space-y-6" id="wizard-panes-container">
                 
                 <div class="wizard-pane space-y-6 animate-fade-in" id="step-pane-1">
-                    <!-- Top Navigation Bar -->
-                    <div class="flex items-center justify-between">
-                        <button type="button" onclick="window.location.href='index.html'" class="flex items-center space-x-1.5 px-3 py-1.5 border border-slate-200 hover:bg-slate-50 bg-white rounded-xl text-xs font-bold text-slate-650 hover:text-slate-900 transition cursor-pointer shadow-3xs">
-                            <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
-                            <span>Exit Setup</span>
-                        </button>
-                        <button type="button" onclick="skipEmailSetup()" class="flex items-center space-x-1.5 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200/60 rounded-xl text-xs font-black text-slate-700 hover:text-slate-900 transition cursor-pointer shadow-3xs">
-                            <span>Skip Email Setup</span>
-                            <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
-                        </button>
-                    </div>
 
                     <div class="bg-white border border-slate-200/50 rounded-3xl p-6 sm:p-8 shadow-premium space-y-8 text-left">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -393,44 +382,23 @@
                         </div>
 
                         <!-- OR Separator -->
-                        <div class="relative flex py-2 items-center">
-                            <div class="flex-grow border-t border-slate-200/60"></div>
-                            <span class="flex-shrink mx-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">OR</span>
-                            <div class="flex-grow border-t border-slate-200/60"></div>
-                        </div>
-
-                        <!-- Skip Email for Now Row -->
-                        <div class="p-4 bg-slate-50 border border-slate-200/60 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div class="flex items-center space-x-3.5">
-                                <div class="p-2.5 bg-white border border-slate-200 rounded-xl shadow-3xs">
-                                    <i data-lucide="clock" class="h-5 w-5 text-slate-500"></i>
-                                </div>
-                                <div>
-                                    <span class="block text-xs font-black text-slate-850">Skip Email Setup for Now</span>
-                                    <span class="text-xs text-slate-500 font-semibold mt-0.5 block">You can configure SMTP/IMAP outbound/inbound settings anytime later.</span>
-                                </div>
-                            </div>
-                            <button type="button" onclick="skipEmailSetup()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 bg-white rounded-xl text-xs font-bold text-slate-700 transition cursor-pointer shrink-0">
-                                Skip Email Setup
+                        <!-- Footer Navigation -->
+                        <div class="pt-5 flex items-center justify-between border-t border-slate-100/80 mt-6">
+                            <button type="button" onclick="window.location.href='index.html'" class="flex items-center space-x-1.5 px-4 py-2 border border-slate-200 hover:bg-slate-50 bg-white rounded-xl text-xs font-bold text-slate-650 hover:text-slate-900 transition cursor-pointer shadow-3xs">
+                                <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
+                                <span>Exit Setup</span>
                             </button>
+                            <button type="button" onclick="skipEmailSetup()" class="flex items-center space-x-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200/60 rounded-xl text-xs font-black text-slate-700 hover:text-slate-900 transition cursor-pointer shadow-3xs">
+                                <span>Skip Email Setup</span>
+                                <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- STEP 2: SMTP Outbound & Inbound IMAP Configuration Card -->
             <div class="wizard-pane space-y-6 hidden animate-fade-in" id="step-pane-2">
-                <!-- Top Navigation Bar -->
-                <div class="flex items-center justify-between">
-                    <button type="button" onclick="goToStep(1)" class="flex items-center space-x-1.5 px-3 py-1.5 border border-slate-200 hover:bg-slate-50 bg-white rounded-xl text-xs font-bold text-slate-650 hover:text-slate-900 transition cursor-pointer shadow-3xs">
-                        <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
-                        <span>Back</span>
-                    </button>
-                    <button type="button" onclick="goToStep(3)" class="flex items-center space-x-1.5 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200/60 rounded-xl text-xs font-black text-slate-700 hover:text-slate-900 transition cursor-pointer shadow-3xs">
-                        <span>Skip SMTP Setup</span>
-                        <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
-                    </button>
-                </div>
-
                 <div class="bg-white border border-slate-200/50 rounded-3xl p-6 sm:p-8 shadow-premium space-y-6">
                         <div class="border-b border-slate-100/80 pb-4 text-left">
                             <h2 class="text-xl font-black text-slate-900 flex items-center space-x-2">
@@ -651,15 +619,25 @@
                                 <!-- Buttons Row -->
                                 <div class="pt-5 flex items-center justify-between border-t border-slate-100/80 gap-3">
                                     <div class="flex items-center space-x-2">
+                                        <button type="button" onclick="goToStep(1)" class="px-4 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 cursor-pointer">
+                                            <i data-lucide="arrow-left" class="h-4 w-4 text-slate-550"></i>
+                                            <span>Back</span>
+                                        </button>
                                         <button type="button" id="email-test-btn" onclick="testEmailConnections(this)" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer" style="color: #ffffff !important;">
                                             <i data-lucide="wifi" class="h-4 w-4 text-white"></i>
                                             <span style="color: #ffffff !important;">Test Connection</span>
                                         </button>
                                     </div>
-                                    <button type="button" id="email-connect-save-btn" onclick="saveEmailConnections(this)" class="hidden px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-emerald-500/20 cursor-pointer" style="color: #ffffff !important;">
-                                        <span style="color: #ffffff !important;">Connect & Continue</span>
-                                        <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
-                                    </button>
+                                    <div class="flex items-center space-x-2">
+                                        <button type="button" onclick="goToStep(3)" class="px-4 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-1.5 cursor-pointer">
+                                            <span>Skip SMTP Setup</span>
+                                            <i data-lucide="arrow-right" class="h-4 w-4 text-slate-550"></i>
+                                        </button>
+                                        <button type="button" id="email-connect-save-btn" onclick="saveEmailConnections(this)" class="hidden px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-emerald-500/20 cursor-pointer" style="color: #ffffff !important;">
+                                            <span style="color: #ffffff !important;">Connect & Continue</span>
+                                            <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </form>
 
@@ -670,18 +648,6 @@
 
                 <!-- STEP 3: Meta Integration (WhatsApp Business) Card -->
                 <div class="wizard-pane space-y-6 hidden animate-fade-in" id="step-pane-3">
-                    <!-- Top Navigation Bar -->
-                    <div class="flex items-center justify-between">
-                        <button type="button" onclick="goToStep(2)" class="flex items-center space-x-1.5 px-3 py-1.5 border border-slate-200 hover:bg-slate-50 bg-white rounded-xl text-xs font-bold text-slate-650 hover:text-slate-900 transition cursor-pointer shadow-3xs">
-                            <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
-                            <span>Back</span>
-                        </button>
-                        <button type="button" onclick="goToStep(4)" class="flex items-center space-x-1.5 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200/60 rounded-xl text-xs font-black text-slate-700 hover:text-slate-900 transition cursor-pointer shadow-3xs">
-                            <span>Skip WhatsApp Setup</span>
-                            <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
-                        </button>
-                    </div>
-
                     <!-- Top Header -->
                     <div class="bg-white border border-slate-200/80 rounded-[20px] p-6 shadow-soft text-left">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -986,10 +952,22 @@
                                     </button>
                                 </div>
                             </form>
+
+                            <!-- Buttons Row (Step 3) -->
+                            <div class="pt-5 flex items-center justify-between border-t border-slate-100/80 mt-5">
+                                <button type="button" onclick="goToStep(2)" class="px-4 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 cursor-pointer">
+                                    <i data-lucide="arrow-left" class="h-4 w-4 text-slate-500"></i>
+                                    <span>Back</span>
+                                </button>
+                                <button type="button" onclick="goToStep(4)" class="px-4 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-1.5 cursor-pointer">
+                                    <span>Skip WhatsApp Setup</span>
+                                    <i data-lucide="arrow-right" class="h-4 w-4 text-slate-500"></i>
+                                </button>
+                            </div>
                         </div>
                         
-                        <!-- RIGHT COLUMN: AI Setup Assistant Card (col-span-12 lg:col-span-5) -->
-                        <div class="lg:col-span-5 bg-white border border-slate-200/50 rounded-3xl p-6 shadow-premium flex flex-col h-[650px] space-y-4">
+                        <!-- RIGHT COLUMN: AI Setup Assistant Card (Floating Right Side Panel on Desktop) -->
+                        <div class="relative w-full h-[650px] lg:fixed lg:top-0 lg:right-0 lg:h-screen lg:w-[420px] bg-white border border-slate-200/50 lg:border-y-0 lg:border-r-0 lg:border-l lg:border-slate-200/80 rounded-3xl lg:rounded-r-none lg:rounded-l-[32px] p-6 shadow-premium flex flex-col z-10 lg:z-50 space-y-4">
                             <!-- Card Header -->
                             <div class="flex items-center justify-between border-b border-slate-100/80 pb-4 shrink-0">
                                 <div class="flex items-center space-x-3">
@@ -1097,33 +1075,16 @@
                                 </div>
                                 
                                 <!-- Encrypted Lock Note -->
-                                <div class="flex items-center justify-center space-x-1 text-[10px] text-slate-400 font-bold">
-                        <button type="button" onclick="goToStep(2)" class="px-5 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 cursor-pointer">
-                            <i data-lucide="arrow-left" class="h-4 w-4 text-slate-500"></i>
-                            <span>Back</span>
-                        </button>
-                        <button type="button" onclick="goToStep(4)" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer" style="color: #ffffff !important;">
-                            <span style="color: #ffffff !important;">Next Step</span>
-                            <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
-                        </button>
+                                <div class="flex items-center justify-center space-x-1 text-[10px] text-slate-400 font-bold pt-2">
+                                    <i data-lucide="lock" class="h-3 w-3 text-slate-400"></i>
+                                    <span>End-to-end encrypted connection</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
     </div>
     <div class="wizard-pane space-y-6 hidden animate-fade-in" id="step-pane-4">
-        <!-- Top Navigation Bar -->
-        <div class="flex items-center justify-between">
-            <button type="button" onclick="goToStep(3)" class="flex items-center space-x-1.5 px-3 py-1.5 border border-slate-200 hover:bg-slate-50 bg-white rounded-xl text-xs font-bold text-slate-650 hover:text-slate-900 transition cursor-pointer shadow-3xs">
-                <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
-                <span>Back</span>
-            </button>
-            <button type="button" onclick="goToStep(5)" class="flex items-center space-x-1.5 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200/60 rounded-xl text-xs font-black text-slate-700 hover:text-slate-900 transition cursor-pointer shadow-3xs">
-                <span>Skip Webhook Setup</span>
-                <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
-            </button>
-        </div>
-
         <!-- Webhook Settings Card -->
         <div class="bg-white border border-slate-200/50 rounded-3xl p-6 sm:p-8 shadow-premium space-y-6 text-left">
                         <div class="border-b border-slate-100/80 pb-4">
@@ -1234,29 +1195,27 @@
                         </div>
 
                         <!-- Footer Navigation -->
-                        <div class="pt-5 flex items-center justify-end border-t border-slate-100/80">
-                            <button type="button" onclick="savePermissionsAndFinish()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer" style="color: #ffffff !important;">
-                                <span style="color: #ffffff !important;">Save & Continue</span>
-                                <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
+                        <div class="pt-5 flex items-center justify-between border-t border-slate-100/80">
+                            <button type="button" onclick="goToStep(3)" class="px-4 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-2 cursor-pointer">
+                                <i data-lucide="arrow-left" class="h-4 w-4 text-slate-550"></i>
+                                <span>Back</span>
                             </button>
+                            <div class="flex items-center space-x-2">
+                                <button type="button" onclick="goToStep(5)" class="px-4 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-1.5 cursor-pointer">
+                                    <span>Skip Webhook Setup</span>
+                                    <i data-lucide="arrow-right" class="h-4 w-4 text-slate-550"></i>
+                                </button>
+                                <button type="button" onclick="savePermissionsAndFinish()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer" style="color: #ffffff !important;">
+                                    <span style="color: #ffffff !important;">Save & Continue</span>
+                                    <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- STEP 5: Complete -->
                 <div class="wizard-pane space-y-6 hidden animate-fade-in" id="step-pane-5">
-                    <!-- Top Navigation Bar -->
-                    <div class="flex items-center justify-between">
-                        <button type="button" onclick="goToStep(4)" class="flex items-center space-x-1.5 px-3 py-1.5 border border-slate-200 hover:bg-slate-50 bg-white rounded-xl text-xs font-bold text-slate-650 hover:text-slate-900 transition cursor-pointer shadow-3xs">
-                            <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
-                            <span>Back</span>
-                        </button>
-                        <button type="button" onclick="window.location.href='index.html'" class="flex items-center space-x-1.5 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200/60 rounded-xl text-xs font-black text-slate-700 hover:text-slate-900 transition cursor-pointer shadow-3xs">
-                            <span>Complete Setup</span>
-                            <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
-                        </button>
-                    </div>
-
                     <div class="bg-gradient-to-br from-emerald-50/40 via-white to-emerald-50/10 border border-emerald-200/40 rounded-3xl p-8 sm:p-10 shadow-premium text-slate-800 space-y-8 text-center relative overflow-hidden">
                         
                         <!-- Celebration Top Header -->
@@ -1305,12 +1264,16 @@
                         </div>
 
                         <!-- Launch Button Section -->
-                        <div class="pt-6 border-t border-slate-100/80 flex flex-col items-center space-y-3">
+                        <div class="pt-6 border-t border-slate-100/80 flex flex-col items-center space-y-3.5">
                             <button onclick="window.location.href='index.html';" class="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-glow-success transform hover:-translate-y-0.5 duration-350 cursor-pointer flex items-center space-x-2" style="color: #ffffff !important;">
                                 <span style="color: #ffffff !important;">Launch AI Workspace Dashboard</span>
                                 <i data-lucide="arrow-right" class="h-4.5 w-4.5 text-white"></i>
                             </button>
                             <p class="text-[10px] text-slate-400 font-bold">Redirecting you to campaign setup after launch.</p>
+                            <button type="button" onclick="goToStep(4)" class="text-xs font-semibold text-slate-450 hover:text-slate-650 transition cursor-pointer border-0 bg-transparent flex items-center space-x-1 mt-2">
+                                <i data-lucide="arrow-left" class="h-3 w-3"></i>
+                                <span>Back to Setup Details</span>
+                            </button>
                         </div>
                     </div>
                 </div>

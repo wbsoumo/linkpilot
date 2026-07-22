@@ -154,16 +154,18 @@
         }
         
         /* Prevent layout overlap when Setup Assistant is active */
-        body.has-assistant {
+        body.has-assistant main,
+        body.has-assistant header {
             transition: padding 0.3s ease-in-out;
         }
         @media (min-width: 1024px) {
-            body.has-assistant {
+            body.has-assistant main,
+            body.has-assistant header {
                 padding-right: 420px !important;
             }
         }
         @media (max-width: 1023px) {
-            body.has-assistant {
+            body.has-assistant main {
                 padding-bottom: 400px !important;
             }
         }

@@ -128,28 +128,6 @@ function renderWhatsAppSetup(container, settings) {
                         </div>
                     </div>
 
-                    <!-- Embedded Signup Option -->
-                    <div class="p-4 bg-gradient-to-br from-emerald-50/70 via-teal-50/30 to-white border border-emerald-200/50 rounded-2xl space-y-3.5">
-                        <div class="space-y-1">
-                            <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase tracking-wider rounded-md">Option 1: Official Meta Cloud API</span>
-                            <h4 class="text-xs font-black text-slate-900 pt-0.5">Connect with Meta Embedded Signup</h4>
-                            <p class="text-[11px] text-slate-600 font-semibold leading-relaxed">Log in with your Facebook account, select your WhatsApp Business Account & Phone Number in seconds. No manual token configuration required.</p>
-                        </div>
-                        <button type="button" id="wa-embedded-connect-btn" onclick="launchDashboardMetaEmbeddedSignup()" class="py-2.5 px-4 bg-[#1877F2] hover:bg-[#166fe5] text-white text-[11px] font-extrabold rounded-xl transition flex items-center justify-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer border-0" style="color: #ffffff !important;">
-                            <svg class="h-3.5 w-3.5 shrink-0 fill-white" viewBox="0 0 24 24" style="fill: #ffffff !important;">
-                                <path fill="#ffffff" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                            </svg>
-                            <span style="color: #ffffff !important;">Log in with Facebook for WhatsApp</span>
-                        </button>
-                    </div>
-
-                    <!-- OR Manual Setup Separator -->
-                    <div class="relative flex py-1 items-center">
-                        <div class="flex-grow border-t border-slate-100"></div>
-                        <span class="flex-shrink mx-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">OR MANUAL SETUP</span>
-                        <div class="flex-grow border-t border-slate-100"></div>
-                    </div>
-
                     <form id="setup-wa-manual-form" onsubmit="event.preventDefault(); saveManualWhatsAppConnectionDashboard();" class="space-y-4">
                         <!-- Permanent Access Token -->
                         <div class="space-y-1.5">

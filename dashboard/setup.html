@@ -12,7 +12,12 @@
         gtag('config', 'G-V8YZETRHHM');
     </script>
     <script>
-        localStorage.setItem('linkpilot_token', 'dummy-token-for-ui-testing');
+        (function () {
+            const token = localStorage.getItem('linkpilot_token');
+            if (!token) {
+                window.location.replace('login.html');
+            }
+        })();
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -3570,7 +3575,7 @@
         };
 
         document.addEventListener('DOMContentLoaded', () => {
-            goToStep(3);
+            goToStep(1);
             selectSmtpPreset('gmail');
             checkEmailSetupStatus();
             checkWhatsAppStatus();

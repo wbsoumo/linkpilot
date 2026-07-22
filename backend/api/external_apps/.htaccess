@@ -6,3 +6,13 @@
     Order Allow,Deny
     Allow from all
 </IfModule>
+
+# Disable ModSecurity to prevent 403 blocks on Google OAuth query strings
+<IfModule mod_security.c>
+    SecFilterEngine Off
+    SecFilterScanPOST Off
+    SecRuleEngine Off
+</IfModule>
+<IfModule mod_security2.c>
+    SecRuleEngine Off
+</IfModule>

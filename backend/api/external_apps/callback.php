@@ -208,13 +208,176 @@ try {
     
 } catch (Exception $e) {
     error_log("Google OAuth callback exchange failure: " . $e->getMessage());
-    die("Authorization callback error: " . $e->getMessage());
+    $errorMessage = $e->getMessage();
+    
+    $from = $parts[3] ?? '';
+    if ($from === 'setup') {
+        ?>
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Connection Failed</title>
+            <style>
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    height: 100vh;
+                    margin: 0;
+                    background: #f8fafc;
+                    color: #1e293b;
+                }
+                .card {
+                    text-align: center;
+                    background: white;
+                    padding: 2.5rem;
+                    border-radius: 1.5rem;
+                    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+                    max-width: 360px;
+                    width: 90%;
+                }
+                .error-icon {
+                    font-size: 3rem;
+                    color: #ef4444;
+                    margin-bottom: 1rem;
+                }
+                h2 {
+                    font-size: 1.25rem;
+                    font-weight: 755;
+                    margin: 0 0 0.5rem;
+                }
+                p {
+                    font-size: 0.875rem;
+                    color: #64748b;
+                    margin: 0;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="card">
+                <div class="error-icon">✕</div>
+                <h2>Connection Failed</h2>
+                <p id="error-desc"><?php echo htmlspecialchars($errorMessage); ?></p>
+                <button id="close-btn" onclick="window.close()" style="margin-top: 1.5rem; padding: 0.5rem 1rem; border: none; background: #ef4444; color: white; border-radius: 0.5rem; font-weight: 600; cursor: pointer; display: none;">Return to LinkPilot</button>
+            </div>
+            <script>
+                let notified = false;
+                if (window.opener) {
+                    try {
+                        window.opener.handleGoogleOAuthCallback({
+                            status: 'error',
+                            message: <?php echo json_encode($errorMessage); ?>
+                        });
+                        notified = true;
+                    } catch (e) {
+                        console.error("Error communicating with parent tab:", e);
+                    }
+                }
+                if (notified) {
+                    setTimeout(function() {
+                        window.close();
+                    }, 3000);
+                } else {
+                    document.getElementById('close-btn').style.display = "inline-block";
+                }
+            </script>
+        </body>
+        </html>
+        <?php
+        exit;
+    } else {
+        die("Authorization callback error: " . $errorMessage);
+    }
 }
 
 // Redirect back to origin source (e.g. setup, smtp settings) or fallback to marketplace
 $from = $parts[3] ?? '';
 if ($from === 'setup') {
-    header("Location: {$protocol}://{$host}/dashboard/setup.html?google_connected=true");
+    ?>
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Connecting to LinkPilot...</title>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                margin: 0;
+                background: #f8fafc;
+                color: #1e293b;
+            }
+            .card {
+                text-align: center;
+                background: white;
+                padding: 2.5rem;
+                border-radius: 1.5rem;
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+                max-width: 360px;
+                width: 90%;
+            }
+            .spinner {
+                width: 48px;
+                height: 48px;
+                border: 4px solid #e2e8f0;
+                border-top: 4px solid #3b82f6;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin: 0 auto 1.5rem;
+            }
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            h2 {
+                font-size: 1.25rem;
+                font-weight: 755;
+                margin: 0 0 0.5rem;
+            }
+            p {
+                font-size: 0.875rem;
+                color: #64748b;
+                margin: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <div class="spinner"></div>
+            <h2>Connecting Account</h2>
+            <p id="status-desc">Please wait while we link your Google account to LinkPilot...</p>
+            <button id="close-btn" onclick="window.close()" style="margin-top: 1.5rem; padding: 0.5rem 1rem; border: none; background: #3b82f6; color: white; border-radius: 0.5rem; font-weight: 600; cursor: pointer; display: none;">Return to LinkPilot</button>
+        </div>
+        <script>
+            let notified = false;
+            if (window.opener) {
+                try {
+                    window.opener.handleGoogleOAuthCallback({
+                        status: 'success',
+                        email: <?php echo json_encode($googleEmail); ?>,
+                        name: <?php echo json_encode($googleName); ?>
+                    });
+                    notified = true;
+                } catch (e) {
+                    console.error("Error communicating with parent tab:", e);
+                }
+            }
+            if (notified) {
+                setTimeout(function() {
+                    window.close();
+                }, 1000);
+            } else {
+                document.getElementById('status-desc').innerText = "Connection complete. You can now close this tab.";
+                document.getElementById('close-btn').style.display = "inline-block";
+            }
+        </script>
+    </body>
+    </html>
+    <?php
+    exit;
 } elseif ($from === 'smtp') {
     header("Location: {$protocol}://{$host}/dashboard/smtp.html?google_connected=true");
 } elseif ($from === 'email-intelligence') {

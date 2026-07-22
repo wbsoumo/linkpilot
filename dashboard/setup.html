@@ -390,65 +390,96 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 items-stretch">
                             <!-- Gmail (Recommended) -->
-                            <div
+                            <!-- Gmail (Recommended) -->
+                            <div id="gmail-card-container"
                                 class="p-6 border-2 border-blue-600 bg-gradient-to-b from-blue-50/20 to-blue-50/5 rounded-2xl relative space-y-5 flex flex-col justify-between h-full hover:shadow-glow duration-300 transform hover:-translate-y-0.5">
                                 <span
                                     class="absolute top-0 right-0 px-3.5 py-1.5 bg-blue-600 text-white rounded-bl-xl text-[9px] font-black uppercase tracking-wider shadow-2xs">Recommended</span>
-                                <div class="space-y-4">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="p-2.5 bg-white border border-slate-100 rounded-xl shadow-2xs">
-                                            <svg class="h-6 w-6" viewBox="0 0 24 24">
-                                                <path fill="#4285F4"
-                                                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                                                <path fill="#34A853"
-                                                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                                                <path fill="#FBBC05"
-                                                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                                                <path fill="#EA4335"
-                                                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                                            </svg>
+                                
+                                <div id="gmail-not-connected-state" class="space-y-5 flex flex-col justify-between h-full w-full">
+                                    <div class="space-y-4">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="p-2.5 bg-white border border-slate-100 rounded-xl shadow-2xs">
+                                                <svg class="h-6 w-6" viewBox="0 0 24 24">
+                                                    <path fill="#4285F4"
+                                                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                                    <path fill="#34A853"
+                                                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                                    <path fill="#FBBC05"
+                                                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                                                    <path fill="#EA4335"
+                                                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h3 class="font-black text-slate-900 text-sm">Google Workspace</h3>
+                                                <p class="text-xs text-slate-500 font-semibold mt-0.5">Secure Google OAuth</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 class="font-black text-slate-900 text-sm">Google Workspace</h3>
-                                            <p class="text-xs text-slate-500 font-semibold mt-0.5">Secure Google OAuth
-                                            </p>
+                                        <div class="space-y-2.5 text-xs font-semibold text-slate-650 pl-1 text-left">
+                                            <div class="flex items-center space-x-2.5">
+                                                <span class="text-emerald-500 font-extrabold">✓</span>
+                                                <span>One-click secure OAuth link</span>
+                                            </div>
+                                            <div class="flex items-center space-x-2.5">
+                                                <span class="text-emerald-500 font-extrabold">✓</span>
+                                                <span>Full access to IMAP & SMTP</span>
+                                            </div>
+                                            <div class="flex items-center space-x-2.5">
+                                                <span class="text-emerald-500 font-extrabold">✓</span>
+                                                <span>No application passwords required</span>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="space-y-2.5 text-xs font-semibold text-slate-650 pl-1">
-                                        <div class="flex items-center space-x-2.5">
-                                            <span class="text-emerald-500 font-extrabold">✓</span>
-                                            <span>One-click secure OAuth link</span>
-                                        </div>
-                                        <div class="flex items-center space-x-2.5">
-                                            <span class="text-emerald-500 font-extrabold">✓</span>
-                                            <span>Full access to IMAP & SMTP</span>
-                                        </div>
-                                        <div class="flex items-center space-x-2.5">
-                                            <span class="text-emerald-500 font-extrabold">✓</span>
-                                            <span>No application passwords required</span>
-                                        </div>
-                                    </div>
+                                    <button type="button" onclick="launchGoogleOAuth()"
+                                        class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center space-x-2 shadow-md shadow-blue-500/10 cursor-pointer border-0"
+                                        style="color: #ffffff !important;">
+                                        <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none"
+                                            xmlns="http://www.w3.org/2000/svg">
+                                            <path
+                                                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                                fill="#FFFFFF" />
+                                            <path
+                                                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                                fill="#FFFFFF" />
+                                            <path
+                                                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                                                fill="#FFFFFF" />
+                                            <path
+                                                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                                                fill="#FFFFFF" />
+                                        </svg>
+                                        <span style="color: #ffffff !important;">Continue with Google</span>
+                                    </button>
                                 </div>
-                                <button type="button" onclick="launchGoogleOAuth()"
-                                    class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center space-x-2 shadow-md shadow-blue-500/10 cursor-pointer"
-                                    style="color: #ffffff !important;">
-                                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <path
-                                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                                            fill="#FFFFFF" />
-                                        <path
-                                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                                            fill="#FFFFFF" />
-                                        <path
-                                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                                            fill="#FFFFFF" />
-                                        <path
-                                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                                            fill="#FFFFFF" />
-                                    </svg>
-                                    <span style="color: #ffffff !important;">Continue with Google</span>
-                                </button>
+
+                                <div id="gmail-connected-state" class="hidden space-y-5 flex flex-col justify-between h-full w-full">
+                                    <div class="space-y-4">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="p-2.5 bg-emerald-50 border border-emerald-100 rounded-xl shadow-2xs text-emerald-600 flex items-center justify-center">
+                                                <i data-lucide="shield-check" class="h-6 w-6"></i>
+                                            </div>
+                                            <div>
+                                                <h3 class="font-black text-slate-900 text-sm">Google Connected</h3>
+                                                <p class="text-xs text-emerald-650 font-bold mt-0.5">Securely authorized via OAuth</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Connected User Info Card -->
+                                        <div class="p-4 bg-emerald-50/30 border border-emerald-100 rounded-xl text-xs space-y-1.5 text-left">
+                                            <div class="text-slate-400 font-bold uppercase text-[9px] tracking-wider">Connected Account</div>
+                                            <div class="font-black text-slate-900" id="google-connected-name">--</div>
+                                            <div class="font-mono text-slate-650 text-[11px] truncate" id="google-connected-email">--</div>
+                                        </div>
+                                    </div>
+
+                                    <button type="button" onclick="goToStep(3)"
+                                        class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center space-x-2 shadow-md shadow-emerald-500/10 cursor-pointer border-0"
+                                        style="color: #ffffff !important;">
+                                        <span style="color: #ffffff !important;">Continue to WhatsApp Setup</span>
+                                        <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
+                                    </button>
+                                </div>
                             </div>
 
                             <!-- Manual configuration -->
@@ -3513,6 +3544,22 @@
                         badgeImap.className = "text-emerald-500 font-extrabold";
                         badgeImap.textContent = "Active (OAuth)";
                     }
+
+                    // Update Google Connected UI card
+                    const notConnectedState = document.getElementById('gmail-not-connected-state');
+                    const connectedState = document.getElementById('gmail-connected-state');
+                    const nameEl = document.getElementById('google-connected-name');
+                    const emailEl = document.getElementById('google-connected-email');
+
+                    if (nameEl) nameEl.textContent = gRes.data.name || 'Google Account';
+                    if (emailEl) emailEl.textContent = gRes.data.email || '';
+
+                    if (notConnectedState) notConnectedState.classList.add('hidden');
+                    if (connectedState) {
+                        connectedState.classList.remove('hidden');
+                        connectedState.classList.add('flex');
+                    }
+                    if (window.lucide) lucide.createIcons();
                 } else {
                     const smtpRes = await apiCall('smtp/list.php');
                     if (smtpRes && smtpRes.accounts && smtpRes.accounts.length > 0) {
@@ -3540,6 +3587,48 @@
                 }
             } catch (err) {
                 console.warn('Error checking status:', err);
+            }
+        };
+
+        window.handleGoogleOAuthCallback = function (data) {
+            if (data.status === 'success') {
+                showNotification('success', 'Google Workspace Account connected successfully via Secure OAuth!');
+
+                // Update standard status sidebar badges
+                const badgeEmail = document.getElementById('badge-status-email');
+                if (badgeEmail) {
+                    badgeEmail.className = "text-emerald-500 font-extrabold";
+                    badgeEmail.textContent = "Connected";
+                }
+                const badgeSmtp = document.getElementById('badge-status-smtp');
+                if (badgeSmtp) {
+                    badgeSmtp.className = "text-emerald-500 font-extrabold";
+                    badgeSmtp.textContent = "Active (OAuth)";
+                }
+                const badgeImap = document.getElementById('badge-status-imap');
+                if (badgeImap) {
+                    badgeImap.className = "text-emerald-500 font-extrabold";
+                    badgeImap.textContent = "Active (OAuth)";
+                }
+
+                // Show connected state card
+                const notConnectedState = document.getElementById('gmail-not-connected-state');
+                const connectedState = document.getElementById('gmail-connected-state');
+                const nameEl = document.getElementById('google-connected-name');
+                const emailEl = document.getElementById('google-connected-email');
+
+                if (nameEl) nameEl.textContent = data.name || 'Google User';
+                if (emailEl) emailEl.textContent = data.email || '';
+
+                if (notConnectedState) notConnectedState.classList.add('hidden');
+                if (connectedState) {
+                    connectedState.classList.remove('hidden');
+                    connectedState.classList.add('flex');
+                }
+
+                if (window.lucide) lucide.createIcons();
+            } else {
+                showNotification('error', data.message || 'Failed to connect Google account.');
             }
         };
 

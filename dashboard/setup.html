@@ -244,11 +244,6 @@
 
             <!-- User Avatar & Sign Out -->
             <div class="flex items-center space-x-3">
-                <button type="button" onclick="toggleWizardHeader(!window.hasWizardHeaderVanished)"
-                    class="text-xs font-bold text-slate-600 hover:text-blue-600 transition flex items-center space-x-1.5 px-3 py-1.5 border border-slate-200 bg-white rounded-xl hover:bg-slate-50 shadow-2xs cursor-pointer">
-                    <i data-lucide="sliders" class="h-3.5 w-3.5 text-slate-550 text-slate-500"></i>
-                    <span class="hidden sm:inline">Progress</span>
-                </button>
                 <div
                     class="h-8 w-8 bg-blue-50 text-blue-700 font-black rounded-full flex items-center justify-center text-xs border border-blue-200 shadow-2xs select-none">
                     LP
@@ -260,107 +255,12 @@
                 </button>
             </div>
         </div>
-        <!-- Sticky Header Progress Line -->
-        <div class="absolute bottom-0 left-0 w-full h-[3px] bg-slate-100/50">
-            <div id="header-progress-line" class="h-full bg-blue-600 transition-all duration-500" style="width: 20%;">
-            </div>
-        </div>
     </header>
 
     <!-- Main Content Container -->
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
-        <!-- Page Header -->
-        <div id="wizard-page-header" class="collapsible-section text-center max-w-3xl mx-auto space-y-3 py-4">
-            <h1
-                class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-950">
-                Connect Your Email & Meta Workspace</h1>
-            <p class="text-sm text-slate-500 font-semibold leading-relaxed max-w-2xl mx-auto">Complete the setup once
-                and LinkPilot will automatically synchronize your email, WhatsApp and CRM. Estimated time: <span
-                    class="text-blue-600 font-black">3-5 minutes</span>.</p>
-        </div>
 
-        <!-- Modern Onboarding Progress Stepper -->
-        <div id="wizard-stepper-section"
-            class="collapsible-section glass-panel rounded-3xl p-5 sm:p-6 shadow-premium max-w-4xl mx-auto border border-slate-100/80">
-            <div id="onboarding-stepper" class="flex items-center justify-between overflow-x-auto no-scrollbar py-2">
-                <!-- Step 1: Connect -->
-                <div class="step-item flex items-center space-x-3 shrink-0 cursor-pointer" onclick="goToStep(1)">
-                    <div
-                        class="step-circle w-9 h-9 rounded-full bg-blue-650 text-white font-black text-xs flex items-center justify-center animate-pulse-glow transform hover:scale-105 transition-all duration-350">
-                        1</div>
-                    <div class="flex flex-col text-left">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Step
-                            1</span>
-                        <span class="step-label text-xs font-black text-blue-600 mt-1 tracking-tight">Connect
-                            Email</span>
-                    </div>
-                </div>
-                <div
-                    class="step-line flex-grow h-[3px] bg-slate-100 rounded-full shrink-0 mx-2 transition-all duration-300">
-                </div>
-
-                <!-- Step 2: Email Server -->
-                <div class="step-item flex items-center space-x-3 shrink-0 cursor-pointer" onclick="goToStep(2)">
-                    <div
-                        class="step-circle w-9 h-9 rounded-full bg-slate-100 text-slate-500 border border-slate-200 font-extrabold text-xs flex items-center justify-center transform hover:scale-105 transition-all duration-350">
-                        2</div>
-                    <div class="flex flex-col text-left">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Step
-                            2</span>
-                        <span class="step-label text-xs font-bold text-slate-400 mt-1 tracking-tight">Configure
-                            SMTP</span>
-                    </div>
-                </div>
-                <div
-                    class="step-line flex-grow h-[3px] bg-slate-100 rounded-full shrink-0 mx-2 transition-all duration-300">
-                </div>
-
-                <!-- Step 3: Meta (WhatsApp) -->
-                <div class="step-item flex items-center space-x-3 shrink-0 cursor-pointer" onclick="goToStep(3)">
-                    <div
-                        class="step-circle w-9 h-9 rounded-full bg-slate-100 text-slate-500 border border-slate-200 font-extrabold text-xs flex items-center justify-center transform hover:scale-105 transition-all duration-350">
-                        3</div>
-                    <div class="flex flex-col text-left">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Step
-                            3</span>
-                        <span class="step-label text-xs font-bold text-slate-400 mt-1 tracking-tight">Connect
-                            WhatsApp</span>
-                    </div>
-                </div>
-                <div
-                    class="step-line flex-grow h-[3px] bg-slate-100 rounded-full shrink-0 mx-2 transition-all duration-300">
-                </div>
-
-                <!-- Step 4: Permissions -->
-                <div class="step-item flex items-center space-x-3 shrink-0 cursor-pointer" onclick="goToStep(4)">
-                    <div
-                        class="step-circle w-9 h-9 rounded-full bg-slate-100 text-slate-500 border border-slate-200 font-extrabold text-xs flex items-center justify-center transform hover:scale-105 transition-all duration-350">
-                        4</div>
-                    <div class="flex flex-col text-left">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Step
-                            4</span>
-                        <span class="step-label text-xs font-bold text-slate-400 mt-1 tracking-tight">Setup
-                            Webhooks</span>
-                    </div>
-                </div>
-                <div
-                    class="step-line flex-grow h-[3px] bg-slate-100 rounded-full shrink-0 mx-2 transition-all duration-300">
-                </div>
-
-                <!-- Step 5: Complete -->
-                <div class="step-item flex items-center space-x-3 shrink-0 cursor-pointer" onclick="goToStep(5)">
-                    <div
-                        class="step-circle w-9 h-9 rounded-full bg-slate-100 text-slate-500 border border-slate-200 font-extrabold text-xs flex items-center justify-center transform hover:scale-105 transition-all duration-350">
-                        5</div>
-                    <div class="flex flex-col text-left">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Step
-                            5</span>
-                        <span class="step-label text-xs font-bold text-slate-400 mt-1 tracking-tight">Finish</span>
-                    </div>
-                </div>
-            </div>
-        </div>
 
 
 

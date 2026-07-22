@@ -152,20 +152,7 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
-        
-        /* Prevent layout overlap when Setup Assistant is active */
-        body.has-assistant main,
-        body.has-assistant header {
-            transition: all 0.3s ease-in-out;
-        }
-        @media (min-width: 1024px) {
-            body.has-assistant main,
-            body.has-assistant header {
-                margin-right: 420px !important;
-                margin-left: 0 !important;
-                width: calc(100% - 420px) !important;
-            }
-        }
+        /* Prevent layout overlap when Setup Assistant is active on mobile */
         @media (max-width: 1023px) {
             body.has-assistant main {
                 padding-bottom: 400px !important;
@@ -854,10 +841,10 @@
                     </div>
 
                     <!-- Connection Selection State -->
-                    <div id="wa-connect-selection-state" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    <div id="wa-connect-selection-state" class="space-y-6">
                         
-                        <!-- LEFT COLUMN: Setup Form (col-span-12 lg:col-span-7) -->
-                        <div class="lg:col-span-7 bg-white border border-slate-200/50 rounded-3xl p-6 sm:p-8 shadow-premium text-left space-y-6 animate-fade-in">
+                        <!-- LEFT COLUMN: Setup Form (Full width of Step 3 pane) -->
+                        <div class="bg-white border border-slate-200/50 rounded-3xl p-6 sm:p-8 shadow-premium text-left space-y-6 animate-fade-in">
                             <div class="flex items-center space-x-3 border-b border-slate-100/80 pb-4">
                                 <div class="p-2.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-2xl">
                                     <i data-lucide="key" class="h-5 w-5"></i>
@@ -1184,6 +1171,7 @@
 
             <!-- RIGHT COLUMN: Status, Features & Security Cards (col-span-12 lg:col-span-5) -->
             <div class="lg:col-span-5 space-y-6" id="global-right-sidebar">
+                <div id="wiz-sidebar-default-cards" class="space-y-6">
 
                 <!-- 1. Setup Progress Card -->
                 <div class="bg-white border border-slate-200/50 rounded-3xl p-6 shadow-premium space-y-4 text-left">
@@ -1375,6 +1363,7 @@
                         </div>
                     </div>
                 </div>
+                </div>
             </div>
         </div>
     </main>
@@ -1473,31 +1462,34 @@
 
             const panesContainer = document.getElementById('wizard-panes-container');
             const rightSidebar = document.getElementById('global-right-sidebar');
+            const defaultCards = document.getElementById('wiz-sidebar-default-cards');
+
+            // Reset layout span defaults
+            if (panesContainer) {
+                panesContainer.classList.remove('lg:col-span-12');
+                panesContainer.classList.add('lg:col-span-7');
+            }
+            if (rightSidebar) {
+                rightSidebar.classList.remove('hidden');
+            }
+
             if (stepNum === 3) {
-                if (panesContainer) {
-                    panesContainer.classList.remove('lg:col-span-7');
-                    panesContainer.classList.add('lg:col-span-12');
-                }
-                if (rightSidebar) {
-                    rightSidebar.classList.add('hidden');
-                }
+                // Hide default sidebar cards
+                if (defaultCards) defaultCards.classList.add('hidden');
                 
-                // Show assistant if credentials selection state is not hidden
+                // Show assistant if credentials selection state is active
                 const selectionState = document.getElementById('wa-connect-selection-state');
-                const isSuccessHidden = !selectionState || selectionState.classList.contains('hidden');
-                if (isSuccessHidden) {
-                    toggleMetaAssistant(false);
-                } else {
+                const isSuccessActive = selectionState && !selectionState.classList.contains('hidden');
+                if (isSuccessActive) {
                     toggleMetaAssistant(true);
+                } else {
+                    toggleMetaAssistant(false);
+                    // If credentials selection state is hidden (e.g. success state is visible), we can show the default progress cards!
+                    if (defaultCards) defaultCards.classList.remove('hidden');
                 }
             } else {
-                if (panesContainer) {
-                    panesContainer.classList.remove('lg:col-span-12');
-                    panesContainer.classList.add('lg:col-span-7');
-                }
-                if (rightSidebar) {
-                    rightSidebar.classList.remove('hidden');
-                }
+                // Show default sidebar cards
+                if (defaultCards) defaultCards.classList.remove('hidden');
                 toggleMetaAssistant(false);
             }
 

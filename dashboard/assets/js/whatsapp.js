@@ -60,6 +60,7 @@ function renderWhatsAppSetup(container, settings) {
     container.innerHTML = `
         <div class="w-full max-w-6xl mx-auto my-6 space-y-6 animate-fade-in text-left">
             
+            ${isConnected ? `
             <!-- Top Header -->
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-slate-200/80 rounded-[24px] p-6 shadow-soft">
                 <div class="flex items-center space-x-3.5">
@@ -73,7 +74,6 @@ function renderWhatsAppSetup(container, settings) {
                 </div>
             </div>
 
-            ${isConnected ? `
             <!-- Connected State Card -->
             <div class="p-6 bg-emerald-50/70 border border-emerald-200/90 rounded-2xl space-y-5 shadow-2xs">
                 <div class="flex justify-between items-start gap-4 border-b border-emerald-200/60 pb-4">
@@ -116,17 +116,33 @@ function renderWhatsAppSetup(container, settings) {
             <!-- Two Column Setup Layout -->
             <div id="wa-connect-selection-state" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 
-                <!-- LEFT COLUMN: Setup Form (lg:col-span-7) -->
-                <div class="lg:col-span-7 bg-white border border-slate-200/85 rounded-3xl p-6 sm:p-8 shadow-soft text-left space-y-6">
-                    <div class="flex items-center space-x-3 border-b border-slate-100 pb-4">
-                        <div class="p-2.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-2xl">
-                            <i data-lucide="key-round" class="h-5 w-5"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-black text-slate-900">Manual Meta Credentials Form</h3>
-                            <p class="text-xs text-slate-500 font-semibold mt-0.5">Fill in your Meta details below or let our Assistant guide you.</p>
+                <!-- LEFT COLUMN: Setup Form & Header (lg:col-span-7) -->
+                <div class="lg:col-span-7 space-y-6">
+                    
+                    <!-- Top Header -->
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-slate-200/80 rounded-[24px] p-6 shadow-soft">
+                        <div class="flex items-center space-x-3.5">
+                            <div class="p-2.5 bg-emerald-50 rounded-2xl border border-emerald-100 shrink-0">
+                                <img src="assets/css/WhatsApp_icon.png" class="h-8 w-8 object-contain" alt="WhatsApp">
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-black text-slate-900 tracking-tight">Connect WhatsApp Business (Meta)</h2>
+                                <p class="text-xs text-slate-500 font-semibold mt-0.5">Connect your Meta WhatsApp Cloud API credentials to link your business inbox.</p>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Setup Form Card -->
+                    <div class="bg-white border border-slate-200/85 rounded-3xl p-6 sm:p-8 shadow-soft text-left space-y-6">
+                        <div class="flex items-center space-x-3 border-b border-slate-100 pb-4">
+                            <div class="p-2.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-2xl">
+                                <i data-lucide="key-round" class="h-5 w-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-black text-slate-900">Manual Meta Credentials Form</h3>
+                                <p class="text-xs text-slate-500 font-semibold mt-0.5">Fill in your Meta details below or let our Assistant guide you.</p>
+                            </div>
+                        </div>
 
                     <form id="setup-wa-manual-form" onsubmit="event.preventDefault(); saveManualWhatsAppConnectionDashboard();" class="space-y-4">
                         <!-- Permanent Access Token -->

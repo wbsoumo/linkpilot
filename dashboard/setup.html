@@ -77,6 +77,13 @@
             border-bottom-width: 0 !important;
             overflow: hidden;
         }
+        /* Compact spacing when wizard header is collapsed */
+        main:has(#wizard-page-header.collapsed) {
+            padding-top: 1.25rem !important;
+        }
+        #wizard-page-header.collapsed ~ #wizard-stepper-section.collapsed ~ div.grid {
+            margin-top: 0 !important;
+        }
         /* Custom Animations */
         @keyframes pulseGlow {
             0%, 100% {

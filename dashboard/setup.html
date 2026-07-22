@@ -156,12 +156,14 @@
         /* Prevent layout overlap when Setup Assistant is active */
         body.has-assistant main,
         body.has-assistant header {
-            transition: padding 0.3s ease-in-out;
+            transition: all 0.3s ease-in-out;
         }
         @media (min-width: 1024px) {
             body.has-assistant main,
             body.has-assistant header {
-                padding-right: 420px !important;
+                margin-right: 420px !important;
+                margin-left: auto !important;
+                width: auto !important;
             }
         }
         @media (max-width: 1023px) {

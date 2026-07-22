@@ -1215,86 +1215,6 @@
             </div>
 
         <div class="wizard-pane space-y-6 hidden animate-fade-in" id="step-pane-4">
-            <!-- Webhook Settings Card -->
-            <div class="bg-white border border-slate-200/50 rounded-3xl p-6 sm:p-8 shadow-premium space-y-6 text-left">
-                <div class="border-b border-slate-100/80 pb-4">
-                    <h2 class="text-xl font-black text-slate-900 flex items-center space-x-2">
-                        <i data-lucide="webhook" class="h-5 w-5 text-blue-600"></i>
-                        <span>Configure Webhooks</span>
-                    </h2>
-                    <p class="text-xs text-slate-500 font-semibold mt-1">Configure Meta Cloud API to route incoming
-                        messages directly to LinkPilot AI.</p>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                    <!-- Callback URL -->
-                    <div class="space-y-2">
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Callback
-                            URL</label>
-                        <div
-                            class="relative flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5">
-                            <span id="webhook-url-text"
-                                class="text-xs font-mono font-bold text-slate-800 truncate flex-1 pr-6 select-all">https://api.linkpilot.ai/v1/webhooks/whatsapp</span>
-                            <button type="button"
-                                onclick="navigator.clipboard.writeText('https://api.linkpilot.ai/v1/webhooks/whatsapp'); showNotification('success', 'Callback URL copied!')"
-                                class="absolute right-2 p-1.5 hover:bg-slate-200/60 text-slate-400 hover:text-slate-650 rounded-lg transition border-0 bg-transparent cursor-pointer">
-                                <i data-lucide="copy" class="h-4 w-4"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Verify Token -->
-                    <div class="space-y-2">
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Verify
-                            Token</label>
-                        <div
-                            class="relative flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5">
-                            <span id="webhook-token-text"
-                                class="text-xs font-mono font-bold text-slate-800 truncate flex-1 pr-14 select-all">lp_verify_gemini_2026</span>
-                            <button type="button"
-                                onclick="navigator.clipboard.writeText('lp_verify_gemini_2026'); showNotification('success', 'Verify Token copied!')"
-                                class="absolute right-2 p-1.5 hover:bg-slate-200/60 text-slate-400 hover:text-slate-650 rounded-lg transition border-0 bg-transparent cursor-pointer">
-                                <i data-lucide="copy" class="h-4 w-4"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Mini Checklist Documentation -->
-                <div class="bg-blue-50/40 border border-blue-100 rounded-2xl p-4.5 space-y-3">
-                    <h4 class="text-xs font-black text-blue-900 flex items-center space-x-2">
-                        <i data-lucide="help-circle" class="h-4 w-4 text-blue-600"></i>
-                        <span>Meta App Dashboard Configuration Steps</span>
-                    </h4>
-                    <ul class="space-y-2.5 text-xs text-slate-600 font-semibold pl-1.5 list-none">
-                        <li class="flex items-start space-x-2.5">
-                            <span
-                                class="w-5 h-5 bg-blue-100 text-blue-600 border border-blue-200 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 mt-0.5">1</span>
-                            <span>Open your app inside the <a href="https://developers.facebook.com/" target="_blank"
-                                    class="text-blue-600 hover:underline">Meta Developers Console</a>.</span>
-                        </li>
-                        <li class="flex items-start space-x-2.5">
-                            <span
-                                class="w-5 h-5 bg-blue-100 text-blue-600 border border-blue-200 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 mt-0.5">2</span>
-                            <span>Go to <strong>WhatsApp</strong> > <strong>Configuration</strong> in the left sidebar
-                                menu.</span>
-                        </li>
-                        <li class="flex items-start space-x-2.5">
-                            <span
-                                class="w-5 h-5 bg-blue-100 text-blue-600 border border-blue-200 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 mt-0.5">3</span>
-                            <span>Click <strong>Edit</strong> under Webhooks, paste the Callback URL and Verify Token,
-                                then click <strong>Verify and Save</strong>.</span>
-                        </li>
-                        <li class="flex items-start space-x-2.5">
-                            <span
-                                class="w-5 h-5 bg-blue-100 text-blue-600 border border-blue-200 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 mt-0.5">4</span>
-                            <span>Under <strong>Webhook Fields</strong>, click <strong>Subscribe</strong> next to
-                                <code>messages</code>.</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
             <!-- Preferences Card -->
             <div class="bg-white border border-slate-200/50 rounded-3xl p-6 sm:p-8 shadow-premium space-y-6 text-left">
                 <div class="border-b border-slate-100/80 pb-4">
@@ -1308,50 +1228,59 @@
 
                 <div class="space-y-4">
                     <!-- Toggle 1: Auto Sync -->
-                    <div
-                        class="flex items-start justify-between p-4.5 bg-slate-50/50 border border-slate-200/60 rounded-2xl gap-4">
-                        <div class="space-y-1">
-                            <span class="text-xs font-black text-slate-900 block">Auto-Sync Email Inboxes</span>
-                            <span class="text-[10px] text-slate-500 font-semibold leading-relaxed block">Automatically
-                                retrieve and synchronize incoming customer replies every 5 minutes.</span>
+                    <div class="flex items-start justify-between p-4.5 bg-white border border-slate-100 hover:border-slate-200 rounded-2xl gap-4 transition duration-300 shadow-3xs hover:shadow-2xs">
+                        <div class="flex items-start space-x-4">
+                            <div class="p-2.5 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-xl shrink-0">
+                                <i data-lucide="refresh-cw" class="h-4.5 w-4.5"></i>
+                            </div>
+                            <div class="space-y-1">
+                                <span class="text-xs font-black text-slate-900 block">Auto-Sync Email Inboxes</span>
+                                <span class="text-[10px] text-slate-500 font-semibold leading-relaxed block">Automatically
+                                    retrieve and synchronize incoming customer replies every 5 minutes.</span>
+                            </div>
                         </div>
-                        <label class="relative inline-flex items-center cursor-pointer mt-1 shrink-0">
+                        <label class="relative inline-flex items-center cursor-pointer mt-1.5 shrink-0">
                             <input type="checkbox" id="pref-auto-sync" class="sr-only peer" checked>
-                            <div
-                                class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600">
+                            <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-blue-600 peer-checked:to-indigo-600 peer-checked:ring-4 peer-checked:ring-blue-100/50">
                             </div>
                         </label>
                     </div>
 
                     <!-- Toggle 2: AI Reply -->
-                    <div
-                        class="flex items-start justify-between p-4.5 bg-slate-50/50 border border-slate-200/60 rounded-2xl gap-4">
-                        <div class="space-y-1">
-                            <span class="text-xs font-black text-slate-900 block">AI Smart Replies (Drafting)</span>
-                            <span class="text-[10px] text-slate-500 font-semibold leading-relaxed block">Let Gemini AI
-                                agent draft context-aware replies for incoming customer queries inside your
-                                inbox.</span>
+                    <div class="flex items-start justify-between p-4.5 bg-white border border-slate-100 hover:border-slate-200 rounded-2xl gap-4 transition duration-300 shadow-3xs hover:shadow-2xs">
+                        <div class="flex items-start space-x-4">
+                            <div class="p-2.5 bg-purple-50 text-purple-600 border border-purple-100 rounded-xl shrink-0">
+                                <i data-lucide="sparkles" class="h-4.5 w-4.5"></i>
+                            </div>
+                            <div class="space-y-1">
+                                <span class="text-xs font-black text-slate-900 block">AI Smart Replies (Drafting)</span>
+                                <span class="text-[10px] text-slate-500 font-semibold leading-relaxed block">Let Gemini AI
+                                    agent draft context-aware replies for incoming customer queries inside your
+                                    inbox.</span>
+                            </div>
                         </div>
-                        <label class="relative inline-flex items-center cursor-pointer mt-1 shrink-0">
+                        <label class="relative inline-flex items-center cursor-pointer mt-1.5 shrink-0">
                             <input type="checkbox" id="pref-ai-reply" class="sr-only peer" checked>
-                            <div
-                                class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600">
+                            <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-blue-600 peer-checked:to-indigo-600 peer-checked:ring-4 peer-checked:ring-blue-100/50">
                             </div>
                         </label>
                     </div>
 
                     <!-- Toggle 3: WhatsApp Webhook -->
-                    <div
-                        class="flex items-start justify-between p-4.5 bg-slate-50/50 border border-slate-200/60 rounded-2xl gap-4">
-                        <div class="space-y-1">
-                            <span class="text-xs font-black text-slate-900 block">WhatsApp Auto-Responses</span>
-                            <span class="text-[10px] text-slate-500 font-semibold leading-relaxed block">Automatically
-                                answer incoming WhatsApp messages using predefined smart template responses.</span>
+                    <div class="flex items-start justify-between p-4.5 bg-white border border-slate-100 hover:border-slate-200 rounded-2xl gap-4 transition duration-300 shadow-3xs hover:shadow-2xs">
+                        <div class="flex items-start space-x-4">
+                            <div class="p-2.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl shrink-0">
+                                <i data-lucide="message-square" class="h-4.5 w-4.5"></i>
+                            </div>
+                            <div class="space-y-1">
+                                <span class="text-xs font-black text-slate-900 block">WhatsApp Auto-Responses</span>
+                                <span class="text-[10px] text-slate-500 font-semibold leading-relaxed block">Automatically
+                                    answer incoming WhatsApp messages using predefined smart template responses.</span>
+                            </div>
                         </div>
-                        <label class="relative inline-flex items-center cursor-pointer mt-1 shrink-0">
+                        <label class="relative inline-flex items-center cursor-pointer mt-1.5 shrink-0">
                             <input type="checkbox" id="pref-wa-responses" class="sr-only peer" checked>
-                            <div
-                                class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600">
+                            <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-blue-600 peer-checked:to-indigo-600 peer-checked:ring-4 peer-checked:ring-blue-100/50">
                             </div>
                         </label>
                     </div>
@@ -1364,19 +1293,12 @@
                         <i data-lucide="arrow-left" class="h-4 w-4 text-slate-550"></i>
                         <span>Back</span>
                     </button>
-                    <div class="flex items-center space-x-2">
-                        <button type="button" onclick="goToStep(5)"
-                            class="px-4 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-1.5 cursor-pointer">
-                            <span>Skip Webhook Setup</span>
-                            <i data-lucide="arrow-right" class="h-4 w-4 text-slate-550"></i>
-                        </button>
-                        <button type="button" onclick="savePermissionsAndFinish()"
-                            class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer"
-                            style="color: #ffffff !important;">
-                            <span style="color: #ffffff !important;">Save & Continue</span>
-                            <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
-                        </button>
-                    </div>
+                    <button type="button" onclick="savePermissionsAndFinish()"
+                        class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer"
+                        style="color: #ffffff !important;">
+                        <span style="color: #ffffff !important;">Save & Continue</span>
+                        <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
+                    </button>
                 </div>
             </div>
         </div>

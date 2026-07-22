@@ -473,11 +473,10 @@
                                         </div>
                                     </div>
 
-                                    <button type="button" onclick="goToStep(3)"
-                                        class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center space-x-2 shadow-md shadow-emerald-500/10 cursor-pointer border-0"
-                                        style="color: #ffffff !important;">
-                                        <span style="color: #ffffff !important;">Continue to WhatsApp Setup</span>
-                                        <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
+                                    <button type="button" onclick="disconnectGoogleAccount()"
+                                        class="w-full py-3 bg-white hover:bg-rose-50 border border-rose-200 text-rose-600 text-xs font-bold rounded-xl transition flex items-center justify-center space-x-2 cursor-pointer shadow-3xs">
+                                        <i data-lucide="log-out" class="h-4 w-4 text-rose-600"></i>
+                                        <span>Disconnect Google Account</span>
                                     </button>
                                 </div>
                             </div>
@@ -538,7 +537,7 @@
                                 <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
                                 <span>Exit Setup</span>
                             </button>
-                            <button type="button" onclick="skipEmailSetup()"
+                            <button type="button" onclick="skipEmailSetup()" id="btn-skip-email-setup"
                                 class="flex items-center space-x-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200/60 rounded-xl text-xs font-black text-slate-700 hover:text-slate-900 transition cursor-pointer shadow-3xs">
                                 <span>Skip Email Setup</span>
                                 <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
@@ -3559,8 +3558,12 @@
                         connectedState.classList.remove('hidden');
                         connectedState.classList.add('flex');
                     }
+                    
+                    updateStep1Footer(true);
+                    
                     if (window.lucide) lucide.createIcons();
                 } else {
+                    updateStep1Footer(false);
                     const smtpRes = await apiCall('smtp/list.php');
                     if (smtpRes && smtpRes.accounts && smtpRes.accounts.length > 0) {
                         if (badgeEmail) {
@@ -3587,6 +3590,7 @@
                 }
             } catch (err) {
                 console.warn('Error checking status:', err);
+                updateStep1Footer(false);
             }
         };
 
@@ -3626,9 +3630,75 @@
                     connectedState.classList.add('flex');
                 }
 
+                updateStep1Footer(true);
+
                 if (window.lucide) lucide.createIcons();
             } else {
                 showNotification('error', data.message || 'Failed to connect Google account.');
+                updateStep1Footer(false);
+            }
+        };
+
+        window.updateStep1Footer = function (isConnected) {
+            const btn = document.getElementById('btn-skip-email-setup');
+            if (!btn) return;
+            if (isConnected) {
+                btn.className = "flex items-center space-x-1.5 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 border border-emerald-600 rounded-xl text-xs font-black text-white hover:text-white transition cursor-pointer shadow-md shadow-emerald-500/10";
+                btn.innerHTML = `<span>Continue to WhatsApp Setup</span><i data-lucide="arrow-right" class="h-3.5 w-3.5 text-white"></i>`;
+                btn.setAttribute('onclick', 'goToStep(3)');
+            } else {
+                btn.className = "flex items-center space-x-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200/60 rounded-xl text-xs font-black text-slate-700 hover:text-slate-900 transition cursor-pointer shadow-3xs";
+                btn.innerHTML = `<span>Skip Email Setup</span><i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>`;
+                btn.setAttribute('onclick', 'skipEmailSetup()');
+            }
+            if (window.lucide) lucide.createIcons();
+        };
+
+        window.disconnectGoogleAccount = async function () {
+            if (!confirm("Are you sure you want to disconnect your Google Account? This will remove your email synchronization settings.")) return;
+            try {
+                const res = await apiCall('external_apps/disconnect.php?provider=google', 'POST');
+                if (res && res.status === 'success') {
+                    showNotification('success', 'Google Workspace Account disconnected successfully.');
+                    
+                    // Reset standard status sidebar badges
+                    const badgeEmail = document.getElementById('badge-status-email');
+                    if (badgeEmail) {
+                        badgeEmail.className = "text-rose-500 font-extrabold";
+                        badgeEmail.textContent = "Not Connected";
+                    }
+                    const badgeSmtp = document.getElementById('badge-status-smtp');
+                    if (badgeSmtp) {
+                        badgeSmtp.className = "text-rose-500 font-extrabold";
+                        badgeSmtp.textContent = "Not Connected";
+                    }
+                    const badgeImap = document.getElementById('badge-status-imap');
+                    if (badgeImap) {
+                        badgeImap.className = "text-rose-500 font-extrabold";
+                        badgeImap.textContent = "Not Connected";
+                    }
+
+                    // Reset Gmail Card UI
+                    const notConnectedState = document.getElementById('gmail-not-connected-state');
+                    const connectedState = document.getElementById('gmail-connected-state');
+                    if (notConnectedState) {
+                        notConnectedState.classList.remove('hidden');
+                        notConnectedState.classList.add('flex');
+                    }
+                    if (connectedState) {
+                        connectedState.classList.remove('flex');
+                        connectedState.classList.add('hidden');
+                    }
+                    
+                    // Reset footer button back to Skip
+                    updateStep1Footer(false);
+                    
+                    if (window.lucide) lucide.createIcons();
+                } else {
+                    showNotification('error', res.message || 'Failed to disconnect account.');
+                }
+            } catch (err) {
+                showNotification('error', err.message || 'Error disconnecting Google Account.');
             }
         };
 

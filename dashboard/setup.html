@@ -1746,11 +1746,7 @@
         };
 
         window.goBackFromWhatsApp = function () {
-            if (emailSetupSkipped || window.isGoogleConnected) {
-                goToStep(1);
-            } else {
-                goToStep(2); // Back to SMTP Outbound
-            }
+            goToStep(1);
         };
 
         window.toggleMetaAssistant = function (show) {

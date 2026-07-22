@@ -2172,14 +2172,24 @@
         };
 
         window.launchGoogleOAuth = async function () {
+            const newWindow = window.open('about:blank', '_blank');
+            if (newWindow) {
+                newWindow.document.write('<html><head><title>Connecting to Google...</title></head><body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f8fafc; color: #475569;"><div style="text-align: center;"><div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">Connecting to Google...</div><div style="font-size: 12px; color: #64748b;">Please wait while we redirect you to the secure OAuth consent screen.</div></div></body></html>');
+            }
             try {
                 const res = await apiCall('external_apps/auth.php?type=gmail&from=setup');
                 if (res.status === 'success' && res.data.auth_url) {
-                    window.location.href = res.data.auth_url;
+                    if (newWindow) {
+                        newWindow.location.href = res.data.auth_url;
+                    } else {
+                        window.open(res.data.auth_url, '_blank');
+                    }
                 } else {
+                    if (newWindow) newWindow.close();
                     showNotification('error', res.message || 'Failed to initialize Google login.');
                 }
             } catch (err) {
+                if (newWindow) newWindow.close();
                 showNotification('error', err.message || 'Failed to contact authentication server.');
             }
         };

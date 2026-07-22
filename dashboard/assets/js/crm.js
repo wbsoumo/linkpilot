@@ -581,14 +581,16 @@ async function navigateTo(view, params = {}) {
 // ----------------------------------------------------
 async function renderDashboard(container) {
     try {
-        const [data, stats, smtpRes, waRes] = await Promise.all([
+        const [data, stats, smtpRes, googleRes, waRes] = await Promise.all([
             apiCall('crm/reports.php').catch(() => ({})),
             apiCall('analytics/dashboard.php').catch(() => ({})),
             apiCall('smtp/list.php').catch(() => ({ accounts: [] })),
+            apiCall('external_apps/status.php').catch(() => ({ connected: false })),
             apiCall('whatsapp/setup.php').catch(() => ({ connected: false }))
         ]);
         
-        const smtpConfigured = (smtpRes.accounts && smtpRes.accounts.length > 0);
+        const isGoogleConnected = googleRes && (googleRes.connected || (googleRes.google && googleRes.google.connected));
+        const smtpConfigured = (smtpRes.accounts && smtpRes.accounts.length > 0) || isGoogleConnected;
         const whatsappConfigured = !!waRes.connected;
         const showWarningBanner = !smtpConfigured || !whatsappConfigured;
         
@@ -16098,15 +16100,19 @@ async function checkInboxEmailAccountStatus() {
     if (!banner) return;
     
     try {
-        const [smtpRes, syncRes] = await Promise.all([
+        const [smtpRes, googleRes, syncRes] = await Promise.all([
             apiCall('smtp/list.php').catch(() => ({ accounts: [] })),
+            apiCall('external_apps/status.php').catch(() => ({ connected: false })),
             apiCall('crm/email_intelligence/sync.php').catch(() => ({}))
         ]);
         
         const accounts = smtpRes.accounts || [];
+        const isGoogleConnected = googleRes && (googleRes.connected || (googleRes.google && googleRes.google.connected));
+        const isConnected = (accounts.length > 0) || isGoogleConnected;
+        
         const syncData = syncRes.data || syncRes || {};
         const isActive = syncData.is_active !== undefined ? Boolean(syncData.is_active) : true;
-        const lastSyncRaw = syncData.last_sync_at || (accounts.length > 0 ? accounts[0].updated_at : null);
+        const lastSyncRaw = syncData.last_sync_at || (accounts.length > 0 ? accounts[0].updated_at : (googleRes && googleRes.last_sync ? googleRes.last_sync : null));
         
         let lastStoppedDate = 'Never';
         if (lastSyncRaw && lastSyncRaw !== 'Never') {
@@ -16125,7 +16131,7 @@ async function checkInboxEmailAccountStatus() {
             }
         }
         
-        if (accounts.length === 0) {
+        if (!isConnected) {
             // DISCONNECTED
             banner.className = "bg-amber-50 border-b border-amber-200 p-3 flex items-center justify-between text-xs text-amber-900 animate-fade-in shrink-0";
             banner.innerHTML = `
@@ -16161,7 +16167,7 @@ async function checkInboxEmailAccountStatus() {
                         <div class="min-w-0">
                             <div class="font-extrabold text-amber-950 flex items-center space-x-1.5 text-[11px]">
                                 <span>Email Sync Paused</span>
-                                <span class="text-[8px] px-1.5 py-0.2 bg-amber-200/80 text-amber-900 rounded font-bold uppercase">Paused</span>
+                                <span class="text-[8px] px-1.5 py-0.2 bg-amber-200/80 text-amber-950 rounded font-bold uppercase">Paused</span>
                             </div>
                             <div class="text-[10px] text-amber-800 font-medium truncate mt-0.5">
                                 Last active till: <span class="font-bold text-amber-950">${lastStoppedDate}</span>

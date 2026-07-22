@@ -152,18 +152,12 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
-        /* Prevent layout overlap when Setup Assistant is active on mobile */
-        @media (max-width: 1023px) {
-            body.has-assistant main {
-                padding-bottom: 400px !important;
-            }
-        }
     </style>
 </head>
 <body class="min-h-screen bg-[#f8fafc] flex flex-col text-slate-800 antialiased font-sans">
 
     <!-- Premium Top Navigation Header -->
-    <header id="wizard-global-header" class="glass-panel sticky top-0 z-50 h-[72px] px-6 flex items-center justify-between border-b border-slate-100/80 shadow-premium">
+    <header id="wizard-global-header" class="bg-white/95 backdrop-blur sticky top-0 z-50 h-[72px] px-6 flex items-center justify-between border-b border-slate-200 shadow-sm">
         <!-- Left Brand Area -->
         <div class="flex items-center space-x-4">
             <div class="flex items-center space-x-2.5">
@@ -228,7 +222,7 @@
         </div>
 
         <!-- Modern Onboarding Progress Stepper -->
-        <div id="wizard-stepper-section" class="collapsible-section glass-panel rounded-3xl p-5 sm:p-6 shadow-premium max-w-4xl mx-auto border border-slate-100/80">
+        <div id="wizard-stepper-section" class="collapsible-section bg-white rounded-2xl p-5 sm:p-6 shadow-sm max-w-4xl mx-auto border border-slate-200">
             <div id="onboarding-stepper" class="flex items-center justify-between overflow-x-auto no-scrollbar py-2">
                 <!-- Step 1: Connect -->
                 <div class="step-item flex items-center space-x-3 shrink-0 cursor-pointer" onclick="goToStep(1)">
@@ -284,14 +278,14 @@
 
 
         <!-- Responsive Two-Column Layout -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div class="grid grid-cols-1 md:grid-cols-12 xl:grid-cols-10 gap-6 items-start">
 
-            <!-- LEFT COLUMN: Stepper Wizard Panes (col-span-12 lg:col-span-7) -->
-            <div class="lg:col-span-7 space-y-6" id="wizard-panes-container">
+            <!-- LEFT COLUMN: Stepper Wizard Panes (col-span-12 md:col-span-7 xl:col-span-7) -->
+            <div class="col-span-12 md:col-span-7 xl:col-span-7 space-y-6" id="wizard-panes-container">
                 
                 <div class="wizard-pane space-y-6 animate-fade-in" id="step-pane-1">
 
-                    <div class="bg-white border border-slate-200/50 rounded-3xl p-6 sm:p-8 shadow-premium space-y-8 text-left">
+                    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 text-left">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div>
                                 <h2 class="text-xl font-black text-slate-900 tracking-tight flex items-center space-x-2">
@@ -405,7 +399,7 @@
 
             <!-- STEP 2: SMTP Outbound & Inbound IMAP Configuration Card -->
             <div class="wizard-pane space-y-6 hidden animate-fade-in" id="step-pane-2">
-                <div class="bg-white border border-slate-200/50 rounded-3xl p-6 sm:p-8 shadow-premium space-y-6">
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
                         <div class="border-b border-slate-100/80 pb-4 text-left">
                             <h2 class="text-xl font-black text-slate-900 flex items-center space-x-2">
                                 <i data-lucide="mail" class="h-5 w-5 text-blue-600"></i>
@@ -697,7 +691,7 @@
                         </div>
 
                         <!-- Main Details Card -->
-                        <div class="bg-white border border-slate-200/50 rounded-[28px] p-6 sm:p-8 shadow-premium text-left space-y-6">
+                        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm text-left space-y-6">
                             
                             <!-- Card Header Row -->
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 pb-5 gap-4">
@@ -844,7 +838,7 @@
                     <div id="wa-connect-selection-state" class="space-y-6">
                         
                         <!-- LEFT COLUMN: Setup Form (Full width of Step 3 pane) -->
-                        <div class="bg-white border border-slate-200/50 rounded-3xl p-6 sm:p-8 shadow-premium text-left space-y-6 animate-fade-in">
+                        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm text-left space-y-6 animate-fade-in">
                             <div class="flex items-center space-x-3 border-b border-slate-100/80 pb-4">
                                 <div class="p-2.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-2xl">
                                     <i data-lucide="key" class="h-5 w-5"></i>
@@ -976,7 +970,7 @@
     </div>
     <div class="wizard-pane space-y-6 hidden animate-fade-in" id="step-pane-4">
         <!-- Webhook Settings Card -->
-        <div class="bg-white border border-slate-200/50 rounded-3xl p-6 sm:p-8 shadow-premium space-y-6 text-left">
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 text-left">
                         <div class="border-b border-slate-100/80 pb-4">
                             <h2 class="text-xl font-black text-slate-900 flex items-center space-x-2">
                                 <i data-lucide="webhook" class="h-5 w-5 text-blue-600"></i>
@@ -1037,7 +1031,7 @@
                     </div>
 
                     <!-- Preferences Card -->
-                    <div class="bg-white border border-slate-200/50 rounded-3xl p-6 sm:p-8 shadow-premium space-y-6 text-left">
+                    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 text-left">
                         <div class="border-b border-slate-100/80 pb-4">
                             <h2 class="text-xl font-black text-slate-900 flex items-center space-x-2">
                                 <i data-lucide="sliders" class="h-5 w-5 text-blue-600"></i>
@@ -1106,7 +1100,7 @@
 
                 <!-- STEP 5: Complete -->
                 <div class="wizard-pane space-y-6 hidden animate-fade-in" id="step-pane-5">
-                    <div class="bg-gradient-to-br from-emerald-50/40 via-white to-emerald-50/10 border border-emerald-200/40 rounded-3xl p-8 sm:p-10 shadow-premium text-slate-800 space-y-8 text-center relative overflow-hidden">
+                    <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm text-slate-800 space-y-6 text-center relative overflow-hidden">
                         
                         <!-- Celebration Top Header -->
                         <div class="flex flex-col items-center space-y-4">
@@ -1169,12 +1163,12 @@
                 </div>
             </div>
 
-            <!-- RIGHT COLUMN: Status, Features & Security Cards (col-span-12 lg:col-span-5) -->
-            <div class="lg:col-span-5 space-y-6" id="global-right-sidebar">
+            <!-- RIGHT COLUMN: Status, Features & Security Cards (col-span-12 md:col-span-5 xl:col-span-3) -->
+            <div class="col-span-12 md:col-span-5 xl:col-span-3 space-y-6" id="global-right-sidebar">
                 <div id="wiz-sidebar-default-cards" class="space-y-6">
 
                 <!-- 1. Setup Progress Card -->
-                <div class="bg-white border border-slate-200/50 rounded-3xl p-6 shadow-premium space-y-4 text-left">
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 text-left">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-2">
                             <div class="p-2 bg-blue-50 text-blue-600 rounded-xl border border-blue-100">
@@ -1197,7 +1191,7 @@
                 </div>
 
                 <!-- 2. Connection Status Card -->
-                <div class="bg-white border border-slate-200/50 rounded-3xl p-6 shadow-premium space-y-4">
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
                     <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
                         <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center space-x-2">
                             <i data-lucide="activity" class="h-4 w-4 text-blue-650"></i>
@@ -1291,7 +1285,7 @@
                 </div>
 
                 <!-- 3. AI Features Preview Card -->
-                <div class="bg-white border border-slate-200/50 rounded-3xl p-6 shadow-premium space-y-4">
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
                     <div class="border-b border-slate-100 pb-3 text-left">
                         <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center space-x-2">
                             <i data-lucide="zap" class="h-4 w-4 text-violet-600 animate-pulse"></i>
@@ -1336,7 +1330,7 @@
                 </div>
 
                 <!-- 4. Security Card -->
-                <div class="bg-white border border-slate-200/50 rounded-3xl p-6 shadow-premium space-y-4">
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
                     <div class="border-b border-slate-100 pb-3 text-left">
                         <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center space-x-2">
                             <i data-lucide="shield-check" class="h-4 w-4 text-emerald-650"></i>
@@ -1360,6 +1354,122 @@
                         <div class="flex items-center space-x-2">
                             <i data-lucide="info" class="h-4 w-4 text-emerald-500"></i>
                             <span>GDPR Compliant</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Meta Setup Assistant Card (Sticky on desktop, stacks on mobile) -->
+                <div id="wa-ai-assistant-sidebar" class="w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col space-y-4 lg:sticky lg:top-[92px] hidden">
+                    <!-- Card Header -->
+                    <div class="flex items-center justify-between border-b border-slate-100/80 pb-4 shrink-0">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center p-2 shrink-0 shadow-3xs">
+                                <img src="https://crystalpng.com/wp-content/uploads/2025/02/meta_logo.png" class="w-7 h-7 object-contain" alt="Meta">
+                            </div>
+                            <div class="text-left">
+                                <h3 class="text-xs font-black text-slate-900 flex items-center space-x-1">
+                                    <span>Meta Setup Assistant</span>
+                                    <svg class="h-3.5 w-3.5 text-blue-500 fill-current" viewBox="0 0 24 24">
+                                        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                    </svg>
+                                </h3>
+                                <p class="text-[10px] text-slate-500 font-semibold mt-0.5">Powered by <span class="font-extrabold text-blue-600">∞</span> Meta AI</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button type="button" onclick="window.open('https://developers.facebook.com/docs/whatsapp/cloud-api/get-started', '_blank')" class="px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-350 hover:bg-slate-50 rounded-xl text-[10px] font-extrabold text-slate-700 transition flex items-center space-x-1 shadow-3xs cursor-pointer">
+                                <i data-lucide="book-open" class="h-3 w-3 text-slate-500"></i>
+                                <span>Guide</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Setup Progress Section -->
+                    <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl shadow-3xs space-y-3.5 text-left shrink-0">
+                        <div class="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            <span>Setup Progress</span>
+                            <span id="wa-assistant-step-badge" class="text-slate-700 font-black">Step 1 of 9</span>
+                        </div>
+                        
+                        <!-- Multi-segmented progress bar -->
+                        <div class="grid grid-cols-9 gap-1 h-2 rounded-full overflow-hidden">
+                            <div class="h-full bg-blue-600 rounded-l-full transition-all duration-300" id="segment-1"></div>
+                            <div class="h-full bg-slate-200 transition-all duration-300" id="segment-2"></div>
+                            <div class="h-full bg-slate-200 transition-all duration-300" id="segment-3"></div>
+                            <div class="h-full bg-slate-200 transition-all duration-300" id="segment-4"></div>
+                            <div class="h-full bg-slate-200 transition-all duration-300" id="segment-5"></div>
+                            <div class="h-full bg-slate-200 transition-all duration-300" id="segment-6"></div>
+                            <div class="h-full bg-slate-200 transition-all duration-300" id="segment-7"></div>
+                            <div class="h-full bg-slate-200 transition-all duration-300" id="segment-8"></div>
+                            <div class="h-full bg-slate-200 rounded-r-full transition-all duration-300" id="segment-9"></div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-1">
+                            <div class="flex items-center space-x-2">
+                                <div class="p-1.5 bg-blue-50 text-blue-600 rounded-lg border border-blue-100 flex items-center justify-center">
+                                    <i data-lucide="compass" class="h-3.5 w-3.5"></i>
+                                </div>
+                                <div class="text-[11px] leading-tight text-left">
+                                    <span class="text-slate-450 font-bold block">Current Step</span>
+                                    <span id="wa-assistant-step-label" class="font-extrabold text-slate-800">Welcome 👋</span>
+                                </div>
+                            </div>
+                            <span id="wa-assistant-percentage" class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-250 rounded-full text-[10px] font-black tracking-wide uppercase">10% Complete</span>
+                        </div>
+                    </div>
+
+                    <!-- Conversation Chat History Window -->
+                    <div id="ai-chat-messages-container" class="flex-1 overflow-y-auto pr-1.5 space-y-4 text-xs leading-relaxed no-scrollbar min-h-[220px] max-h-[300px]">
+                        <!-- Messages will be dynamically rendered here -->
+                    </div>
+
+                    <!-- Chat input/interaction Area -->
+                    <div class="space-y-3 border-t border-slate-100 pt-3 shrink-0">
+                        <div id="ai-chat-controls-area" class="flex flex-col space-y-1.5">
+                            <!-- Action / Option buttons rendered dynamically -->
+                        </div>
+
+                        <!-- Attachment Preview Bar -->
+                        <div id="setup-chat-attachment-preview" class="hidden flex items-center space-x-2.5 bg-slate-50 border border-slate-200/80 p-2 rounded-xl text-xs text-slate-700 animate-fade-in mx-1">
+                            <img id="setup-chat-attachment-thumbnail" class="w-8 h-8 rounded-lg object-contain border border-slate-200" src="">
+                            <span class="flex-1 truncate font-semibold text-slate-650">Screenshot attached</span>
+                            <button type="button" onclick="clearSetupChatAttachment()" class="p-1 text-slate-400 hover:text-rose-600 rounded-lg transition border-0 bg-transparent cursor-pointer">
+                                <i data-lucide="x" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+
+                        <!-- Real Chat Input Box -->
+                        <div class="relative bg-white border border-slate-200 hover:border-slate-350 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-150 rounded-2xl p-2.5 transition shadow-2xs">
+                            <form id="setup-ai-chat-form" onsubmit="event.preventDefault(); handleSetupAiChatSubmit();" class="flex flex-col space-y-2">
+                                <input type="file" id="setup-wa-screenshot-input" accept="image/*" class="hidden" onchange="handleSetupScreenshotUpload(event)">
+                                <textarea id="setup-ai-chat-input" rows="2" placeholder="Ask me anything about Meta setup..." class="w-full bg-transparent border-0 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 p-1 resize-none"></textarea>
+                                
+                                <div class="flex items-center justify-between pt-1">
+                                    <!-- Toolbars -->
+                                    <div class="flex items-center space-x-1.5 text-slate-400">
+                                        <button type="button" onclick="document.getElementById('setup-wa-screenshot-input').click()" class="p-1.5 hover:bg-slate-100 hover:text-slate-650 rounded-lg transition cursor-pointer border-0 bg-transparent flex items-center justify-center">
+                                            <i data-lucide="paperclip" class="h-4 w-4"></i>
+                                        </button>
+                                        <button type="button" onclick="MetaAssistantManager.explainAppCreation()" class="p-1.5 hover:bg-slate-100 hover:text-slate-650 rounded-lg transition cursor-pointer border-0 bg-transparent flex items-center justify-center">
+                                            <i data-lucide="help-circle" class="h-4 w-4"></i>
+                                        </button>
+                                        <button type="button" onclick="openMetaLink('dev')" class="p-1.5 hover:bg-slate-100 hover:text-slate-650 rounded-lg transition cursor-pointer border-0 bg-transparent flex items-center justify-center">
+                                            <i data-lucide="link" class="h-4 w-4"></i>
+                                        </button>
+                                    </div>
+
+                                    <!-- Send Button -->
+                                    <button type="submit" class="p-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl transition flex items-center justify-center shrink-0 cursor-pointer border-0 shadow-sm" style="color: #ffffff !important;">
+                                        <i data-lucide="send" class="h-3.5 w-3.5 text-white"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Encrypted Lock Note -->
+                        <div class="flex items-center justify-center space-x-1 text-[10px] text-slate-400 font-bold pt-2">
+                            <i data-lucide="lock" class="h-3 w-3 text-slate-400"></i>
+                            <span>End-to-end encrypted connection</span>
                         </div>
                     </div>
                 </div>
@@ -1464,11 +1574,6 @@
             const rightSidebar = document.getElementById('global-right-sidebar');
             const defaultCards = document.getElementById('wiz-sidebar-default-cards');
 
-            // Reset layout span defaults
-            if (panesContainer) {
-                panesContainer.classList.remove('lg:col-span-12');
-                panesContainer.classList.add('lg:col-span-7');
-            }
             if (rightSidebar) {
                 rightSidebar.classList.remove('hidden');
             }
@@ -3147,120 +3252,6 @@
         </div>
     </div>
 
-    <!-- Floating Meta Setup Assistant Card (Outside transformed wrappers) -->
-    <div id="wa-ai-assistant-sidebar" class="fixed bottom-0 right-0 left-0 lg:left-auto lg:top-0 lg:h-screen lg:w-[420px] bg-white border-t lg:border-t-0 lg:border-l border-slate-200/80 shadow-premium flex flex-col z-50 space-y-4 p-6 rounded-t-[24px] lg:rounded-t-none lg:rounded-l-[32px] hidden">
-        <!-- Card Header -->
-        <div class="flex items-center justify-between border-b border-slate-100/80 pb-4 shrink-0">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center p-2 shrink-0 shadow-3xs">
-                    <img src="https://crystalpng.com/wp-content/uploads/2025/02/meta_logo.png" class="w-7 h-7 object-contain" alt="Meta">
-                </div>
-                <div class="text-left">
-                    <h3 class="text-xs font-black text-slate-900 flex items-center space-x-1">
-                        <span>Meta Setup Assistant</span>
-                        <svg class="h-3.5 w-3.5 text-blue-500 fill-current" viewBox="0 0 24 24">
-                            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                        </svg>
-                    </h3>
-                    <p class="text-[10px] text-slate-500 font-semibold mt-0.5">Powered by <span class="font-extrabold text-blue-600">∞</span> Meta AI</p>
-                </div>
-            </div>
-            <div class="flex items-center space-x-2">
-                <button type="button" onclick="window.open('https://developers.facebook.com/docs/whatsapp/cloud-api/get-started', '_blank')" class="px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-350 hover:bg-slate-50 rounded-xl text-[10px] font-extrabold text-slate-700 transition flex items-center space-x-1 shadow-3xs cursor-pointer">
-                    <i data-lucide="book-open" class="h-3 w-3 text-slate-500"></i>
-                    <span>Guide</span>
-                </button>
-            </div>
-        </div>
 
-        <!-- Setup Progress Section -->
-        <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl shadow-3xs space-y-3.5 text-left shrink-0">
-            <div class="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                <span>Setup Progress</span>
-                <span id="wa-assistant-step-badge" class="text-slate-700 font-black">Step 1 of 9</span>
-            </div>
-            
-            <!-- Multi-segmented progress bar -->
-            <div class="grid grid-cols-9 gap-1 h-2 rounded-full overflow-hidden">
-                <div class="h-full bg-blue-600 rounded-l-full transition-all duration-300" id="segment-1"></div>
-                <div class="h-full bg-slate-200 transition-all duration-300" id="segment-2"></div>
-                <div class="h-full bg-slate-200 transition-all duration-300" id="segment-3"></div>
-                <div class="h-full bg-slate-200 transition-all duration-300" id="segment-4"></div>
-                <div class="h-full bg-slate-200 transition-all duration-300" id="segment-5"></div>
-                <div class="h-full bg-slate-200 transition-all duration-300" id="segment-6"></div>
-                <div class="h-full bg-slate-200 transition-all duration-300" id="segment-7"></div>
-                <div class="h-full bg-slate-200 transition-all duration-300" id="segment-8"></div>
-                <div class="h-full bg-slate-200 rounded-r-full transition-all duration-300" id="segment-9"></div>
-            </div>
-
-            <div class="flex items-center justify-between pt-1">
-                <div class="flex items-center space-x-2">
-                    <div class="p-1.5 bg-blue-50 text-blue-600 rounded-lg border border-blue-100 flex items-center justify-center">
-                        <i data-lucide="compass" class="h-3.5 w-3.5"></i>
-                    </div>
-                    <div class="text-[11px] leading-tight text-left">
-                        <span class="text-slate-450 font-bold block">Current Step</span>
-                        <span id="wa-assistant-step-label" class="font-extrabold text-slate-800">Welcome 👋</span>
-                    </div>
-                </div>
-                <span id="wa-assistant-percentage" class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-250 rounded-full text-[10px] font-black tracking-wide uppercase">10% Complete</span>
-            </div>
-        </div>
-
-        <!-- Conversation Chat History Window -->
-        <div id="ai-chat-messages-container" class="flex-1 overflow-y-auto pr-1.5 space-y-4 text-xs leading-relaxed no-scrollbar">
-            <!-- Messages will be dynamically rendered here -->
-        </div>
-
-        <!-- Chat input/interaction Area -->
-        <div class="space-y-3 border-t border-slate-100 pt-3 shrink-0">
-            <div id="ai-chat-controls-area" class="flex flex-col space-y-1.5">
-                <!-- Action / Option buttons rendered dynamically -->
-            </div>
-
-            <!-- Attachment Preview Bar -->
-            <div id="setup-chat-attachment-preview" class="hidden flex items-center space-x-2.5 bg-slate-50 border border-slate-200/80 p-2 rounded-xl text-xs text-slate-700 animate-fade-in mx-1">
-                <img id="setup-chat-attachment-thumbnail" class="w-8 h-8 rounded-lg object-contain border border-slate-200" src="">
-                <span class="flex-1 truncate font-semibold text-slate-650">Screenshot attached</span>
-                <button type="button" onclick="clearSetupChatAttachment()" class="p-1 text-slate-400 hover:text-rose-600 rounded-lg transition border-0 bg-transparent cursor-pointer">
-                    <i data-lucide="x" class="h-4 w-4"></i>
-                </button>
-            </div>
-
-            <!-- Real Chat Input Box -->
-            <div class="relative bg-white border border-slate-200 hover:border-slate-350 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-150 rounded-2xl p-2.5 transition shadow-2xs">
-                <form id="setup-ai-chat-form" onsubmit="event.preventDefault(); handleSetupAiChatSubmit();" class="flex flex-col space-y-2">
-                    <input type="file" id="setup-wa-screenshot-input" accept="image/*" class="hidden" onchange="handleSetupScreenshotUpload(event)">
-                    <textarea id="setup-ai-chat-input" rows="2" placeholder="Ask me anything about Meta setup..." class="w-full bg-transparent border-0 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 p-1 resize-none"></textarea>
-                    
-                    <div class="flex items-center justify-between pt-1">
-                        <!-- Toolbars -->
-                        <div class="flex items-center space-x-1.5 text-slate-400">
-                            <button type="button" onclick="document.getElementById('setup-wa-screenshot-input').click()" class="p-1.5 hover:bg-slate-100 hover:text-slate-650 rounded-lg transition cursor-pointer border-0 bg-transparent flex items-center justify-center">
-                                <i data-lucide="paperclip" class="h-4 w-4"></i>
-                            </button>
-                            <button type="button" onclick="MetaAssistantManager.explainAppCreation()" class="p-1.5 hover:bg-slate-100 hover:text-slate-650 rounded-lg transition cursor-pointer border-0 bg-transparent flex items-center justify-center">
-                                <i data-lucide="help-circle" class="h-4 w-4"></i>
-                            </button>
-                            <button type="button" onclick="openMetaLink('dev')" class="p-1.5 hover:bg-slate-100 hover:text-slate-650 rounded-lg transition cursor-pointer border-0 bg-transparent flex items-center justify-center">
-                                <i data-lucide="link" class="h-4 w-4"></i>
-                            </button>
-                        </div>
-
-                        <!-- Send Button -->
-                        <button type="submit" class="p-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl transition flex items-center justify-center shrink-0 cursor-pointer border-0 shadow-sm" style="color: #ffffff !important;">
-                            <i data-lucide="send" class="h-3.5 w-3.5 text-white"></i>
-                        </button>
-                    </div>
-                </form>
-            </div>
-            
-            <!-- Encrypted Lock Note -->
-            <div class="flex items-center justify-center space-x-1 text-[10px] text-slate-400 font-bold pt-2">
-                <i data-lucide="lock" class="h-3 w-3 text-slate-400"></i>
-                <span>End-to-end encrypted connection</span>
-            </div>
-        </div>
-    </div>
 </body>
 </html>

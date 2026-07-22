@@ -481,8 +481,8 @@
                         <!-- Form Input Fields & Connection Preview Grid -->
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2 items-start">
                             
-                            <!-- Form Column (lg:col-span-8) -->
-                            <form id="setup-smtp-form" onsubmit="event.preventDefault();" class="lg:col-span-8 space-y-5">
+                            <!-- Form Column (lg:col-span-12) -->
+                            <form id="setup-smtp-form" onsubmit="event.preventDefault();" class="lg:col-span-12 space-y-5">
                                 <!-- SMTP Configuration Fields -->
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
                                     <div class="space-y-1.5">
@@ -649,45 +649,7 @@
                                     </button>
                                 </div>
                             </form>
-                            
-                            <!-- Connection Preview Column (lg:col-span-4) -->
-                            <div class="lg:col-span-4 bg-slate-50/50 border border-slate-200/80 rounded-2xl p-5 space-y-4 text-left">
-                                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Connection Preview</h4>
-                                
-                                <div class="space-y-3.5">
-                                    <!-- Outgoing SMTP status -->
-                                    <div class="flex items-center justify-between text-xs pb-2 border-b border-slate-200/50">
-                                        <span class="font-bold text-slate-600">Outgoing (SMTP)</span>
-                                        <span id="preview-smtp-status" class="px-2 py-0.5 bg-slate-100 border border-slate-200 text-slate-650 rounded-full text-[9px] font-black uppercase tracking-wider">Waiting</span>
-                                    </div>
-                                    <!-- Incoming IMAP status -->
-                                    <div class="flex items-center justify-between text-xs pb-2 border-b border-slate-200/50">
-                                        <span class="font-bold text-slate-600">Incoming (IMAP)</span>
-                                        <span id="preview-imap-status" class="px-2 py-0.5 bg-slate-100 border border-slate-200 text-slate-650 rounded-full text-[9px] font-black uppercase tracking-wider">Waiting</span>
-                                    </div>
-                                    <!-- DNS Configuration -->
-                                    <div class="flex items-center justify-between text-xs pb-2 border-b border-slate-200/50">
-                                        <span class="font-bold text-slate-600">DNS Config</span>
-                                        <span class="text-emerald-500 font-extrabold flex items-center space-x-1">
-                                            <i data-lucide="check-circle-2" class="h-3.5 w-3.5"></i>
-                                            <span>Verified</span>
-                                        </span>
-                                    </div>
-                                    <!-- SSL/TLS Encryption -->
-                                    <div class="flex items-center justify-between text-xs pb-2 border-b border-slate-200/50">
-                                        <span class="font-bold text-slate-600">Encryption</span>
-                                        <span class="text-slate-700 font-extrabold flex items-center space-x-1">
-                                            <i data-lucide="shield-check" class="h-3.5 w-3.5 text-blue-600"></i>
-                                            <span>TLS Active</span>
-                                        </span>
-                                    </div>
-                                </div>
-                                
-                                <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-3 flex items-start space-x-2 text-[10px] text-slate-500 font-semibold leading-relaxed">
-                                    <i data-lucide="info" class="h-4 w-4 text-blue-500 shrink-0 mt-0.5"></i>
-                                    <span>Once you save, LinkPilot syncs outgoing emails through your secure SMTP server.</span>
-                                </div>
-                            </div>
+
 
                         </div>
                     </div>

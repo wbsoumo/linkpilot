@@ -161,29 +161,106 @@
             // Initialize with default standard layout tree
             canvasData = [
                 {
-                    id: "sec_default",
+                    id: "sec_wb_logo",
                     type: "section",
-                    settings: { paddingTop: "20px", paddingBottom: "20px", backgroundColor: "#ffffff" },
+                    settings: { paddingTop: "20px", paddingBottom: "20px", backgroundColor: "#fbf4e8" },
                     elements: [
                         {
-                            id: "el_logo",
+                            id: "el_wb_logo",
                             type: "logo",
-                            settings: { logoUrl: "https://img.icons8.com/color/96/000000/send.png", height: "36px", align: "center" }
-                        },
+                            settings: { logoUrl: "https://link.news.wonderbly.com/custloads/1023096125/md_151890.png", height: "45px", align: "center" }
+                        }
+                    ]
+                },
+                {
+                    id: "sec_wb_nav",
+                    type: "section",
+                    settings: { paddingTop: "10px", paddingBottom: "10px", backgroundColor: "#fbf4e8" },
+                    elements: [
                         {
-                            id: "el_head",
-                            type: "heading",
-                            settings: { content: "Build Emails That Drive Real Results", fontSize: "32px", color: "#0F172A", align: "center" }
-                        },
-                        {
-                            id: "el_txt",
+                            id: "el_wb_nav",
                             type: "text",
-                            settings: { content: "Create stunning, responsive email campaigns in minutes with our powerful drag & drop builder.", fontSize: "16px", color: "#475569", align: "center" }
+                            settings: { 
+                                content: `<div style="text-align: center; font-family: sans-serif; font-size: 16px; font-weight: bold; color: #0049ac;">
+                                    <span style="margin: 0 15px;">Bestsellers</span>
+                                    <span style="margin: 0 15px;">Kids</span>
+                                    <span style="margin: 0 15px;">Newborns</span>
+                                </div>`, 
+                                fontSize: "16px", 
+                                color: "#0049ac", 
+                                align: "center" 
+                            }
+                        }
+                    ]
+                },
+                {
+                    id: "sec_wb_hero",
+                    type: "section",
+                    settings: { paddingTop: "0px", paddingBottom: "15px", backgroundColor: "#0049ac" },
+                    elements: [
+                        {
+                            id: "el_wb_hero_img",
+                            type: "image",
+                            settings: { imageUrl: "https://link.news.wonderbly.com/custloads/1023096125/md_395742.png", borderRadius: "0px", align: "center" }
+                        }
+                    ]
+                },
+                {
+                    id: "sec_wb_promo",
+                    type: "section",
+                    settings: { paddingTop: "15px", paddingBottom: "15px", backgroundColor: "#0049ac" },
+                    elements: [
+                        {
+                            id: "el_wb_promo_img",
+                            type: "image",
+                            settings: { imageUrl: "https://link.news.wonderbly.com/custloads/1023096125/md_517158.jpg", borderRadius: "0px", align: "center" }
                         },
                         {
-                            id: "el_btn",
+                            id: "el_wb_coupon_btn",
                             type: "button",
-                            settings: { text: "Start Building Now →", link: "#", backgroundColor: "#6D5EF5", textColor: "#ffffff", borderRadius: "8px", align: "center", paddingTop: "12px", paddingBottom: "12px", paddingLeft: "24px", paddingRight: "24px" }
+                            settings: { text: "Use code BOOKSGALORE", link: "#", backgroundColor: "#ffffff", textColor: "#000000", borderRadius: "5px", align: "center", paddingTop: "15px", paddingBottom: "15px", paddingLeft: "65px", paddingRight: "65px" }
+                        }
+                    ]
+                },
+                {
+                    id: "sec_wb_books_banner",
+                    type: "section",
+                    settings: { paddingTop: "0px", paddingBottom: "0px", backgroundColor: "#ffffff" },
+                    elements: [
+                        {
+                            id: "el_wb_books_img",
+                            type: "image",
+                            settings: { imageUrl: "https://link.news.wonderbly.com/custloads/1023096125/md_760009.jpg", borderRadius: "0px", align: "center" }
+                        }
+                    ]
+                },
+                {
+                    id: "sec_wb_products",
+                    type: "section",
+                    settings: { paddingTop: "25px", paddingBottom: "25px", backgroundColor: "#ffffff" },
+                    elements: [
+                        {
+                            id: "el_wb_prod_col",
+                            type: "text",
+                            settings: {
+                                content: `
+                                <div style="display: flex; gap: 20px; text-align: center; font-family: sans-serif;">
+                                    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; background-color: #fbf4e8; padding: 15px; border-radius: 6px;">
+                                        <img src="https://link.news.wonderbly.com/custloads/1023096125/md_390278.png" style="width: 100%; border-radius: 4px; margin-bottom: 12px;" alt="Multiverse">
+                                        <span style="font-size: 14px; color: #23231e; margin-bottom: 12px;">A multiverse-hopping search-and-find adventure for up to three kids.</span>
+                                        <a href="#" onclick="event.preventDefault();" style="display: block; width: 100%; padding: 12px 0; background-color: #23231e; color: #ffffff; font-weight: bold; border-radius: 4px; text-decoration: none;">Personalize me</a>
+                                    </div>
+                                    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; background-color: #fbf4e8; padding: 15px; border-radius: 6px;">
+                                        <img src="https://link.news.wonderbly.com/custloads/1023096125/md_169742.png" style="width: 100%; border-radius: 4px; margin-bottom: 12px;" alt="Born">
+                                        <span style="font-size: 14px; color: #23231e; margin-bottom: 12px;">This personalized story is the perfect start to their own bookshelf.</span>
+                                        <a href="#" onclick="event.preventDefault();" style="display: block; width: 100%; padding: 12px 0; background-color: #23231e; color: #ffffff; font-weight: bold; border-radius: 4px; text-decoration: none;">Personalize me</a>
+                                    </div>
+                                </div>
+                                `,
+                                fontSize: "14px",
+                                color: "#23231e",
+                                align: "center"
+                            }
                         }
                     ]
                 }

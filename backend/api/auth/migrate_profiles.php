@@ -15,6 +15,34 @@ if (!$is_cli) {
 
 $db = Database::getConnection();
 
+// Create custom_email_templates table if not exists
+try {
+    $db->exec("CREATE TABLE IF NOT EXISTS `custom_email_templates` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `name` VARCHAR(255) NOT NULL,
+        `subject` VARCHAR(255) DEFAULT NULL,
+        `category` VARCHAR(50) DEFAULT 'Sales',
+        `tag` VARCHAR(50) DEFAULT 'Outreach',
+        `json_data` LONGTEXT DEFAULT NULL,
+        `html_content` LONGTEXT DEFAULT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        CONSTRAINT `fk_custom_email_templates_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+    if ($is_cli) {
+        echo "SUCCESS: Created/verified table custom_email_templates\n";
+    } else {
+        echo "<span class='success'>[SUCCESS]</span> Created/verified table custom_email_templates<br>";
+    }
+} catch (PDOException $e) {
+    if ($is_cli) {
+        echo "ERROR: Failed to create table custom_email_templates: " . $e->getMessage() . "\n";
+    } else {
+        echo "<span class='error'>[ERROR]</span> Failed to create table custom_email_templates: " . $e->getMessage() . "<br>";
+    }
+}
+
 $queries = [
     "ALTER TABLE `user_profiles` ADD COLUMN `company_size` VARCHAR(100) DEFAULT NULL",
     "ALTER TABLE `user_profiles` ADD COLUMN `industry` VARCHAR(100) DEFAULT NULL",

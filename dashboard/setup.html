@@ -196,6 +196,26 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
+        /* Success Celebration Lottie Sizing Rules */
+        .success-lottie-player {
+            display: block !important;
+            width: 300px !important;
+            height: 300px !important;
+            min-width: 300px !important;
+            min-height: 300px !important;
+            aspect-ratio: 1 / 1 !important;
+        }
+        .success-lottie-container {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 300px !important;
+            height: 300px !important;
+            min-width: 300px !important;
+            min-height: 300px !important;
+            aspect-ratio: 1 / 1 !important;
+        }
     </style>
 </head>
 
@@ -1377,12 +1397,11 @@
                         <!-- Celebration Top Header -->
                         <div class="flex flex-col items-center space-y-3.5">
                             <!-- Bouncing checkmark Lottie -->
-                            <div class="h-[300px] w-[300px] flex items-center justify-center relative overflow-visible shrink-0">
-                                <dotlottie-wc class="shrink-0"
+                            <div class="success-lottie-container relative overflow-visible shrink-0">
+                                <dotlottie-wc class="success-lottie-player shrink-0"
                                     src="https://lottie.host/172c6b6a-26ef-498f-923c-ad586cca7a19/g6ksXEEHlz.lottie"
                                     width="300" height="300"
-                                    style="width: 300px; height: 300px; display: block; flex-shrink: 0;" autoplay
-                                    loop></dotlottie-wc>
+                                    autoplay loop></dotlottie-wc>
                             </div>
                             <!-- Success Pill -->
                             <div

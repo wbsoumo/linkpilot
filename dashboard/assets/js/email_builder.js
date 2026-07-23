@@ -368,6 +368,7 @@
                                 </div>
                             </div>
                             <i data-lucide="x" class="h-3 w-3 text-slate-400 cursor-pointer"></i>
+                        </div>
                     </div>
 
                     <!-- 3. CENTER CANVAS - PREVIEW AREA -->

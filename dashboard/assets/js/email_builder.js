@@ -10,6 +10,7 @@
     let activeTemplateId = null;
     let isSaving = false;
     let autoSaveInterval = null;
+    let isCodeViewActive = false;
 
     // Template metadata
     let templateName = "New Campaign Layout";
@@ -375,10 +376,10 @@
                         
                         <!-- Canvas Header Area Controls (matching layout) -->
                         <div class="w-full max-w-[760px] mx-auto mt-4 px-4 flex items-center justify-between shrink-0 text-slate-550 select-none">
-                            <div class="flex items-center space-x-2.5 bg-white border border-slate-200 rounded-lg p-1">
-                                <button class="p-1 hover:bg-slate-100 rounded text-slate-650" title="Portrait View"><i data-lucide="smartphone" class="h-3.5 w-3.5"></i></button>
-                                <button class="p-1 hover:bg-slate-100 rounded text-slate-650" title="Landscape View"><i data-lucide="monitor" class="h-3.5 w-3.5"></i></button>
-                                <button class="p-1 hover:bg-slate-100 rounded text-slate-650" title="Rotate Canvas"><i data-lucide="rotate-cw" class="h-3.5 w-3.5"></i></button>
+                            <div class="flex items-center space-x-2 bg-slate-100 border border-slate-200 p-0.5 rounded-lg">
+                                <button onclick="setDeviceView('mobile')" class="p-1 hover:bg-white text-slate-500 hover:text-slate-800 rounded transition" title="Portrait View"><i data-lucide="smartphone" class="h-3.5 w-3.5"></i></button>
+                                <button onclick="setDeviceView('desktop')" class="p-1 hover:bg-white text-slate-500 hover:text-slate-800 rounded transition" title="Landscape View"><i data-lucide="monitor" class="h-3.5 w-3.5"></i></button>
+                                <button onclick="setDeviceView('tablet')" class="p-1 hover:bg-white text-slate-500 hover:text-slate-800 rounded transition" title="Rotate Canvas"><i data-lucide="rotate-cw" class="h-3.5 w-3.5"></i></button>
                             </div>
                             <div class="flex items-center space-x-4 text-xs font-bold">
                                 <button onclick="builderUndo()" class="text-slate-500 hover:text-slate-800 transition flex items-center"><i data-lucide="undo" class="h-3 w-3 mr-1"></i>Undo</button>
@@ -389,7 +390,7 @@
                                 <button onclick="setLeftSidebarTab('ai')" class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-black text-slate-700 flex items-center transition shadow-2xs">
                                     <i data-lucide="sparkles" class="h-3 w-3 text-purple-500 mr-1"></i> AI Generate
                                 </button>
-                                <button class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-black text-slate-700 flex items-center transition shadow-2xs">
+                                <button onclick="toggleCanvasCodeView()" id="btn-canvas-code-view" class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-black text-slate-700 flex items-center transition shadow-2xs">
                                     <i data-lucide="code" class="h-3 w-3 text-slate-500 mr-1"></i> Code View
                                 </button>
                             </div>
@@ -803,6 +804,34 @@
         if (ev.currentTarget) ev.currentTarget.classList.remove("opacity-50");
     };
 
+    function escapeHtml(text) {
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    window.toggleCanvasCodeView = function() {
+        isCodeViewActive = !isCodeViewActive;
+        const btn = document.getElementById('btn-canvas-code-view');
+        if (btn) {
+            if (isCodeViewActive) {
+                btn.style.cssText = "background-color: #6D5EF5 !important; color: #ffffff !important; font-weight: bold !important;";
+            } else {
+                btn.style.cssText = "background-color: #ffffff !important; color: #475569 !important;";
+            }
+        }
+        renderCanvas();
+    };
+
+    window.copyCanvasCompiledHtml = function() {
+        const compiledHtml = compileResponsiveHtml(canvasData);
+        navigator.clipboard.writeText(compiledHtml);
+        showNotification('success', 'Copied compiled HTML code to clipboard.');
+    };
+
     // Responsive frame width changer
     window.setDeviceView = function(device) {
         activeDevice = device;
@@ -837,6 +866,25 @@
     window.renderCanvas = function() {
         const container = document.getElementById('email-builder-canvas');
         if (!container) return;
+
+        if (isCodeViewActive) {
+            const compiledHtml = compileResponsiveHtml(canvasData);
+            container.innerHTML = `
+                <div class="flex flex-col w-full h-full bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-2xl p-4 min-h-[500px]">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4 select-none">
+                        <span class="text-xs font-bold text-slate-400 flex items-center">
+                            <i data-lucide="code" class="h-4 w-4 mr-1.5 text-indigo-450"></i>Compiled HTML Source (Read-Only)
+                        </span>
+                        <button onclick="copyCanvasCompiledHtml()" class="px-3 py-1 bg-[#6D5EF5] hover:bg-indigo-700 text-white text-[10px] font-bold rounded-lg transition shadow-md flex items-center" style="background-color: #6D5EF5 !important; color: #ffffff !important;">
+                            <i data-lucide="copy" class="h-3.5 w-3.5 mr-1"></i> Copy Code
+                        </button>
+                    </div>
+                    <textarea readonly class="flex-grow w-full bg-slate-950 text-emerald-400 font-mono text-xs p-4 rounded-xl border border-slate-850 outline-none resize-none focus:border-indigo-500" style="min-height: 420px; font-family: monospace; line-height: 1.5; background-color: #020617 !important; color: #34d399 !important; border: 1px solid #1e293b !important;">${escapeHtml(compiledHtml)}</textarea>
+                </div>
+            `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            return;
+        }
 
         if (canvasData.length === 0) {
             container.innerHTML = `

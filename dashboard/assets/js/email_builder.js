@@ -230,11 +230,10 @@
             templateSubject = "Exclusive updates from our team";
             // Initialize with default standard layout tree
         }
-
         // Draw builder interface structure
         container.innerHTML = `
             <style>
-                /* Premium Drag & Drop Builder UI Color Fixes */
+                /* Premium Drag & Drop Builder UI Light Color Overrides */
                 #builder-left-sidebar input,
                 #builder-left-sidebar select,
                 #builder-left-sidebar textarea,
@@ -244,9 +243,9 @@
                 #test-email-modal input,
                 #test-email-modal select,
                 #test-email-modal textarea {
-                    background-color: #1e293b !important;
-                    color: #ffffff !important;
-                    border: 1px solid #334155 !important;
+                    background-color: #ffffff !important;
+                    color: #0f172a !important;
+                    border: 1px solid #cbd5e1 !important;
                     border-radius: 8px !important;
                     outline: none !important;
                 }
@@ -256,14 +255,15 @@
                 #builder-right-sidebar input:focus,
                 #builder-right-sidebar select:focus,
                 #builder-right-sidebar textarea:focus {
-                    border-color: #6366f1 !important;
+                    border-color: #4F46E5 !important;
+                    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1) !important;
                 }
                 #builder-left-sidebar label,
                 #builder-right-sidebar label,
                 #test-email-modal label {
-                    color: #cbd5e1 !important;
+                    color: #475569 !important;
                     font-weight: 700 !important;
-                    font-size: 11px !important;
+                    font-size: 10px !important;
                     text-transform: uppercase !important;
                     letter-spacing: 0.5px !important;
                     display: block !important;
@@ -272,56 +272,67 @@
                 }
                 #builder-left-sidebar span,
                 #builder-right-sidebar span {
-                    color: #e2e8f0 !important;
+                    color: #1e293b !important;
                 }
                 #builder-template-name {
-                    background-color: #1e293b !important;
-                    color: #ffffff !important;
-                    border: 1px solid #334155 !important;
+                    background-color: #ffffff !important;
+                    color: #0f172a !important;
+                    border: 1px solid #cbd5e1 !important;
                     border-radius: 6px !important;
                     padding: 4px 8px !important;
                 }
+                
+                /* Device switcher & undo/redo buttons */
+                .h-14 button:not(#save-template-btn) {
+                    background-color: #ffffff !important;
+                    color: #475569 !important;
+                    border: 1px solid #cbd5e1 !important;
+                }
+                .h-14 button:not(#save-template-btn):hover {
+                    background-color: #f8fafc !important;
+                    color: #0f172a !important;
+                }
             </style>
-            <div class="flex flex-col w-full h-full bg-[#0B132B] font-sans text-slate-200 overflow-hidden select-none">
+            <div class="flex flex-col w-full h-full bg-[#f1f5f9] font-sans text-slate-700 overflow-hidden select-none">
                 
                 <!-- TOP HEADER ACTION BAR -->
-                <div class="h-14 border-b border-slate-800 bg-[#0F172A] px-6 flex items-center justify-between shrink-0 z-45 shadow-lg">
+                <div class="h-14 border-b border-slate-200 bg-white px-6 flex items-center justify-between shrink-0 z-45 shadow-sm">
                     <div class="flex items-center space-x-3">
-                        <button onclick="exitEmailBuilder()" style="background-color: #1e293b !important; color: #cbd5e1 !important; border: 1px solid #334155 !important;" class="p-2 hover:text-white rounded-lg transition" title="Exit Builder">
+                        <button onclick="exitEmailBuilder()" style="background-color: #ffffff !important; color: #475569 !important; border: 1px solid #cbd5e1 !important;" class="p-2 hover:text-slate-900 rounded-lg transition" title="Exit Builder">
                             <i data-lucide="arrow-left" class="h-4 w-4"></i>
                         </button>
-                        <div class="border-l border-slate-800 h-6 mx-1"></div>
+                        <div class="border-l border-slate-200 h-6 mx-1"></div>
                         <div class="flex flex-col">
-                            <input type="text" id="builder-template-name" onchange="updateTemplateDetails()" value="${templateName}" placeholder="Template Name" class="focus:border-indigo-500 focus:outline-none text-xs font-bold text-white py-0.5 max-w-[200px] transition">
-                            <span id="autosave-status" class="text-[9px] text-slate-500 font-medium mt-0.5">Draft saved locally</span>
+                            <input type="text" id="builder-template-name" onchange="updateTemplateDetails()" value="${templateName}" placeholder="Template Name" class="focus:border-indigo-500 focus:outline-none text-xs font-bold text-slate-800 py-0.5 max-w-[200px] transition">
+                            <span id="autosave-status" class="text-[9px] text-slate-400 font-medium mt-0.5">Draft saved locally</span>
                         </div>
                     </div>
 
                     <!-- Responsive Mode Selectors -->
-                    <div class="hidden md:flex items-center bg-slate-900 border border-slate-850 p-1 rounded-xl space-x-0.5 text-xs font-bold">
+                    <div class="hidden md:flex items-center bg-slate-100 border border-slate-200 p-1 rounded-xl space-x-0.5 text-xs font-bold">
                         <button onclick="setDeviceView('desktop')" id="btn-device-desktop" style="background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" class="px-3 py-1.5 rounded-lg transition">
                             <i data-lucide="monitor" class="h-3.5 w-3.5 inline mr-1"></i>Desktop
                         </button>
-                        <button onclick="setDeviceView('tablet')" id="btn-device-tablet" style="background-color: transparent !important; color: #94a3b8 !important;" class="px-3 py-1.5 rounded-lg transition">
+                        <button onclick="setDeviceView('tablet')" id="btn-device-tablet" style="background-color: transparent !important; color: #64748b !important;" class="px-3 py-1.5 rounded-lg transition">
                             <i data-lucide="tablet" class="h-3.5 w-3.5 inline mr-1"></i>Tablet
                         </button>
-                        <button onclick="setDeviceView('mobile')" id="btn-device-mobile" style="background-color: transparent !important; color: #94a3b8 !important;" class="px-3 py-1.5 rounded-lg transition">
+                        <button onclick="setDeviceView('mobile')" id="btn-device-mobile" style="background-color: transparent !important; color: #64748b !important;" class="px-3 py-1.5 rounded-lg transition">
                             <i data-lucide="smartphone" class="h-3.5 w-3.5 inline mr-1"></i>Mobile
                         </button>
                     </div>
 
                     <!-- Action buttons -->
                     <div class="flex items-center space-x-2">
-                        <button onclick="builderUndo()" style="background-color: #1e293b !important; color: #cbd5e1 !important; border: 1px solid #334155 !important;" class="p-2 hover:text-white rounded-lg transition" title="Undo">
+                        <button onclick="builderUndo()" style="background-color: #ffffff !important; color: #475569 !important; border: 1px solid #cbd5e1 !important;" class="p-2 hover:text-slate-900 rounded-lg transition" title="Undo">
                             <i data-lucide="undo-2" class="h-3.5 w-3.5"></i>
                         </button>
-                        <button onclick="builderRedo()" style="background-color: #1e293b !important; color: #cbd5e1 !important; border: 1px solid #334155 !important;" class="p-2 hover:text-white rounded-lg transition" title="Redo">
+                        <button onclick="builderRedo()" style="background-color: #ffffff !important; color: #475569 !important; border: 1px solid #cbd5e1 !important;" class="p-2 hover:text-slate-900 rounded-lg transition" title="Redo">
                             <i data-lucide="redo-2" class="h-3.5 w-3.5"></i>
                         </button>
-                        <div class="border-l border-slate-800 h-6 mx-1"></div>
+                        <div class="border-l border-slate-200 h-6 mx-1"></div>
                         
-                        <button onclick="openTestEmailModal()" style="background-color: #1e293b !important; color: #cbd5e1 !important; border: 1px solid #334155 !important;" class="px-3 py-1.5 text-xs font-bold rounded-lg transition">
-                            <i data-lucide="send" class="h-3.5 w-3.5 inline mr-1.5 text-blue-400"></i>Test Email
+                        <button onclick="openTestEmailModal()" style="background-color: #ffffff !important; color: #475569 !important; border: 1px solid #cbd5e1 !important;" class="px-3 py-1.5 text-xs font-bold rounded-lg transition">
+                            <i data-lucide="send" class="h-3.5 w-3.5 inline mr-1.5 text-blue-500"></i>Test Email
                         </button>
                         <button onclick="saveTemplateDraft()" id="save-template-btn" style="background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" class="px-4 py-1.5 text-white text-xs font-black rounded-lg shadow-md transition">
                             Save Draft
@@ -333,18 +344,18 @@
                 <div class="flex flex-grow w-full overflow-hidden">
                     
                     <!-- LEFT PANEL - DRAGGABLE CONTROLS -->
-                    <div id="builder-left-sidebar" class="w-80 border-r border-slate-800 bg-[#0F172A] flex flex-col shrink-0 overflow-hidden relative z-40 transition-all duration-300">
+                    <div id="builder-left-sidebar" class="w-80 border-r border-slate-200 bg-white flex flex-col shrink-0 overflow-hidden relative z-40 transition-all duration-300">
                         <!-- Search & Tabs Header -->
-                        <div class="p-4 border-b border-slate-800/80 space-y-3">
+                        <div class="p-4 border-b border-slate-200 space-y-3">
                             <div class="relative">
                                 <i data-lucide="search" class="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400"></i>
-                                <input type="text" id="left-sidebar-search" oninput="searchSidebarElements(this.value)" placeholder="Search layout elements..." class="w-full pl-9 pr-4 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs font-medium text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                                <input type="text" id="left-sidebar-search" oninput="searchSidebarElements(this.value)" placeholder="Search layout elements..." class="w-full pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:border-indigo-500">
                             </div>
-                            <div class="flex bg-slate-950 p-0.5 rounded-lg text-[10px] font-bold tracking-wider uppercase text-center border border-slate-900">
-                                <button onclick="setLeftSidebarTab('elements')" id="tab-left-elements" class="flex-grow py-1.5 rounded-md transition ${activeSidebarTab === 'elements' ? 'bg-indigo-600 text-white font-extrabold' : 'text-slate-400 hover:text-white'}">Elements</button>
-                                <button onclick="setLeftSidebarTab('sections')" id="tab-left-sections" class="flex-grow py-1.5 rounded-md transition ${activeSidebarTab === 'sections' ? 'bg-indigo-600 text-white font-extrabold' : 'text-slate-400 hover:text-white'}">Sections</button>
-                                <button onclick="setLeftSidebarTab('ai')" id="tab-left-ai" class="flex-grow py-1.5 rounded-md transition ${activeSidebarTab === 'ai' ? 'bg-indigo-600 text-white font-extrabold' : 'text-slate-400 hover:text-white'}">AI Assistant</button>
-                                <button onclick="setLeftSidebarTab('brand')" id="tab-left-brand" class="flex-grow py-1.5 rounded-md transition ${activeSidebarTab === 'brand' ? 'bg-indigo-600 text-white font-extrabold' : 'text-slate-400 hover:text-white'}">Brand</button>
+                            <div class="flex bg-slate-100 p-0.5 rounded-lg text-[10px] font-bold tracking-wider uppercase text-center border border-slate-200">
+                                <button onclick="setLeftSidebarTab('elements')" id="tab-left-elements" style="background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" class="flex-grow py-1.5 rounded-md transition">Elements</button>
+                                <button onclick="setLeftSidebarTab('sections')" id="tab-left-sections" style="background-color: transparent !important; color: #64748b !important;" class="flex-grow py-1.5 rounded-md transition">Sections</button>
+                                <button onclick="setLeftSidebarTab('ai')" id="tab-left-ai" style="background-color: transparent !important; color: #64748b !important;" class="flex-grow py-1.5 rounded-md transition">AI Assistant</button>
+                                <button onclick="setLeftSidebarTab('brand')" id="tab-left-brand" style="background-color: transparent !important; color: #64748b !important;" class="flex-grow py-1.5 rounded-md transition">Brand</button>
                             </div>
                         </div>
 
@@ -355,11 +366,11 @@
                     </div>
 
                     <!-- CENTER CANVAS - PREVIEW AREA -->
-                    <div class="flex-grow bg-[#0B132B] flex flex-col items-center justify-start p-6 overflow-y-auto relative select-text" id="builder-canvas-viewport">
+                    <div class="flex-grow bg-[#f1f5f9] flex flex-col items-center justify-start p-6 overflow-y-auto relative select-text" id="builder-canvas-viewport">
                         <!-- Canvas Responsive Resizable Frame -->
-                        <div id="canvas-device-frame" class="w-full max-w-[760px] bg-[#f1f5f9] rounded-2xl shadow-2xl border border-slate-800/20 transition-all duration-300 flex flex-col overflow-hidden min-h-[600px] mb-12">
+                        <div id="canvas-device-frame" class="w-full max-w-[760px] bg-[#f1f5f9] rounded-2xl shadow-2xl border border-slate-200 transition-all duration-300 flex flex-col overflow-hidden min-h-[600px] mb-12">
                             <!-- Canvas Frame Topbar -->
-                            <div class="bg-white border-b border-slate-200/60 px-4 py-2 flex items-center justify-between text-xs text-slate-400 shrink-0">
+                            <div class="bg-white border-b border-slate-200 px-4 py-2 flex items-center justify-between text-xs text-slate-400 shrink-0">
                                 <div class="flex items-center space-x-1.5">
                                     <span class="w-2.5 h-2.5 rounded-full bg-slate-200"></span>
                                     <span class="w-2.5 h-2.5 rounded-full bg-slate-200"></span>
@@ -370,27 +381,31 @@
                             </div>
                             
                             <!-- Main canvas dropping container -->
-                            <div id="email-builder-canvas" class="flex-grow p-8 overflow-y-auto select-none bg-[#f1f5f9] min-h-[500px]" style="background-color: ${brandStyles.backgroundColor};">
+                            <div id="email-builder-canvas" 
+                                 ondragover="onCanvasDragOver(event)"
+                                 ondragleave="onCanvasDragLeave(event)"
+                                 ondrop="onCanvasDrop(event)"
+                                 class="flex-grow p-8 overflow-y-auto select-none bg-[#f1f5f9] min-h-[500px]" style="background-color: ${brandStyles.backgroundColor};">
                                 <!-- Injected dynamically by renderCanvas() -->
                             </div>
                         </div>
                     </div>
 
                     <!-- RIGHT PANEL - DYNAMIC PROPERTIES -->
-                    <div id="builder-right-sidebar" class="w-80 border-l border-slate-800 bg-[#0F172A] flex flex-col shrink-0 overflow-hidden z-40">
-                        <div class="p-4 border-b border-slate-800 shrink-0 flex items-center justify-between">
-                            <h3 class="text-xs font-black tracking-wider uppercase text-white flex items-center">
-                                <i data-lucide="settings" class="h-3.5 w-3.5 mr-1.5 text-indigo-400"></i>Properties Panel
+                    <div id="builder-right-sidebar" class="w-80 border-l border-slate-200 bg-white flex flex-col shrink-0 overflow-hidden z-40">
+                        <div class="p-4 border-b border-slate-200 shrink-0 flex items-center justify-between">
+                            <h3 class="text-xs font-black tracking-wider uppercase text-slate-800 flex items-center">
+                                <i data-lucide="settings" class="h-3.5 w-3.5 mr-1.5 text-indigo-500"></i>Properties Panel
                             </h3>
-                            <span class="text-[9.5px] font-bold text-slate-400 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded-md" id="selected-type-badge">NONE</span>
+                            <span class="text-[9.5px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md" id="selected-type-badge">NONE</span>
                         </div>
 
                         <!-- Scrollable Controls Container -->
                         <div id="properties-panel-content" class="flex-grow overflow-y-auto p-4 custom-scrollbar text-xs">
-                            <div class="py-12 text-center text-slate-500">
-                                <i data-lucide="mouse-pointer" class="h-8 w-8 mx-auto mb-2 text-slate-600"></i>
-                                <p class="font-bold">Select any element</p>
-                                <p class="text-[10px] mt-0.5">Click any block inside the canvas to edit its properties, typography, or styling details.</p>
+                            <div class="py-12 text-center text-slate-400">
+                                <i data-lucide="mouse-pointer" class="h-8 w-8 mx-auto mb-2 text-slate-300"></i>
+                                <p class="font-bold text-slate-500">Select any element</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Click any block inside the canvas to edit its properties, typography, or styling details.</p>
                             </div>
                         </div>
                     </div>
@@ -457,9 +472,9 @@
         const mobileBtn = document.getElementById('btn-device-mobile');
 
         if (desktopBtn && tabletBtn && mobileBtn) {
-            desktopBtn.style.cssText = device === 'desktop' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #94a3b8 !important;";
-            tabletBtn.style.cssText = device === 'tablet' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #94a3b8 !important;";
-            mobileBtn.style.cssText = device === 'mobile' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #94a3b8 !important;";
+            desktopBtn.style.cssText = device === 'desktop' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #64748b !important;";
+            tabletBtn.style.cssText = device === 'tablet' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #64748b !important;";
+            mobileBtn.style.cssText = device === 'mobile' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #64748b !important;";
         }
 
         if (device === 'desktop') {
@@ -486,10 +501,10 @@
         const aiTab = document.getElementById('tab-left-ai');
         const brandTab = document.getElementById('tab-left-brand');
 
-        if (elTab) elTab.style.cssText = tab === 'elements' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #94a3b8 !important;";
-        if (secTab) secTab.style.cssText = tab === 'sections' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #94a3b8 !important;";
-        if (aiTab) aiTab.style.cssText = tab === 'ai' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #94a3b8 !important;";
-        if (brandTab) brandTab.style.cssText = tab === 'brand' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #94a3b8 !important;";
+        if (elTab) elTab.style.cssText = tab === 'elements' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #64748b !important;";
+        if (secTab) secTab.style.cssText = tab === 'sections' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #64748b !important;";
+        if (aiTab) aiTab.style.cssText = tab === 'ai' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #64748b !important;";
+        if (brandTab) brandTab.style.cssText = tab === 'brand' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #64748b !important;";
 
         if (tab === 'elements') {
             renderElementsList(container);
@@ -509,14 +524,14 @@
         container.innerHTML = `
             <div class="grid grid-cols-2 gap-3" id="draggable-items-grid">
                 ${filtered.map(el => `
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 flex flex-col items-center justify-center text-center cursor-grab active:cursor-grabbing hover:border-indigo-500 hover:bg-slate-850 transition select-none group"
+                    <div class="bg-white border border-slate-200 rounded-xl p-3.5 flex flex-col items-center justify-center text-center cursor-grab active:cursor-grabbing hover:border-indigo-500 hover:bg-slate-50 transition select-none group"
                          draggable="true" 
                          ondragstart="onBuilderDragStart(event, '${el.type}')">
-                        <div class="h-9 w-9 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-2 group-hover:scale-110 transition duration-200">
+                        <div class="h-9 w-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center mb-2 group-hover:scale-110 transition duration-200">
                             <i data-lucide="${el.icon}" class="h-4.5 w-4.5"></i>
                         </div>
-                        <span class="font-bold text-[11px] text-slate-200">${el.label}</span>
-                        <span class="text-[9px] text-slate-500 mt-1 truncate w-full">${el.desc}</span>
+                        <span class="font-bold text-[11px] text-slate-700">${el.label}</span>
+                        <span class="text-[9px] text-slate-400 mt-1 truncate w-full">${el.desc}</span>
                     </div>
                 `).join('')}
             </div>
@@ -529,13 +544,13 @@
         container.innerHTML = `
             <div class="space-y-4">
                 ${readySections.map((sec, idx) => `
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between hover:border-indigo-500 transition select-none">
+                    <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:border-indigo-500 transition select-none">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="font-bold text-xs text-white">${sec.name}</span>
-                            <span class="text-[9px] text-slate-400 uppercase font-black bg-slate-950 px-2 py-0.5 rounded">PRESET</span>
+                            <span class="font-bold text-xs text-slate-800">${sec.name}</span>
+                            <span class="text-[9px] text-slate-500 uppercase font-black bg-slate-100 px-2 py-0.5 rounded">PRESET</span>
                         </div>
-                        <p class="text-[10px] text-slate-400 leading-relaxed mb-3">Custom draggable elements configured as a template block ready to drag onto canvas.</p>
-                        <button onclick="insertSectionDirectly(${idx})" class="w-full py-2 bg-slate-800 hover:bg-slate-750 text-slate-200 hover:text-white rounded-lg text-[10px] font-black tracking-wide uppercase transition border border-slate-700/40">
+                        <p class="text-[10px] text-slate-450 leading-relaxed mb-3">Custom draggable elements configured as a template block ready to drag onto canvas.</p>
+                        <button onclick="insertSectionDirectly(${idx})" style="background-color: #ffffff !important; color: #475569 !important; border: 1px solid #cbd5e1 !important;" class="w-full py-2 hover:bg-slate-50 hover:text-slate-900 rounded-lg text-[10px] font-black tracking-wide uppercase transition">
                             Insert block into canvas
                         </button>
                     </div>
@@ -567,19 +582,19 @@
     function renderAISidebar(container) {
         container.innerHTML = `
             <div class="space-y-4">
-                <div class="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl space-y-1">
-                    <span class="font-bold text-xs text-indigo-300 flex items-center">
+                <div class="p-3 bg-indigo-50 border border-indigo-100 rounded-xl space-y-1">
+                    <span class="font-bold text-xs text-indigo-600 flex items-center">
                         <i data-lucide="sparkles" class="h-3.5 w-3.5 mr-1.5"></i>LinkPilot Copilot AI
                     </span>
-                    <p class="text-[10px] text-slate-400 leading-relaxed">Let Gemini design compelling copy for your headlines, paragraphs, or call to actions directly inside your templates.</p>
+                    <p class="text-[10px] text-slate-500 leading-relaxed">Let Gemini design compelling copy for your headlines, paragraphs, or call to actions directly inside your templates.</p>
                 </div>
                 <div class="space-y-1">
-                    <label class="font-bold text-slate-300 text-[10px] uppercase">Goal Description</label>
-                    <textarea id="ai-builder-prompt" rows="4" placeholder="e.g. Write a premium newsletter headline for black friday discount offer..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"></textarea>
+                    <label class="font-bold text-slate-600 text-[10px] uppercase">Goal Description</label>
+                    <textarea id="ai-builder-prompt" rows="4" placeholder="e.g. Write a premium newsletter headline for black friday discount offer..." class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500"></textarea>
                 </div>
                 <div class="space-y-1">
-                    <label class="font-bold text-slate-300 text-[10px] uppercase">Action Intent</label>
-                    <select id="ai-builder-action" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                    <label class="font-bold text-slate-600 text-[10px] uppercase">Action Intent</label>
+                    <select id="ai-builder-action" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-850 focus:outline-none focus:border-indigo-500">
                         <option value="subject">Generate Subject lines</option>
                         <option value="rewrite">Rewrite Text Block</option>
                         <option value="hero">Generate Headline & Subtitle</option>
@@ -590,12 +605,12 @@
                     <i data-lucide="sparkles" class="h-4 w-4 text-white" style="color:#ffffff !important;"></i>
                     <span>Generate AI Content</span>
                 </button>
-                <div id="ai-builder-response-box" class="p-3.5 bg-slate-950 border border-slate-850 rounded-xl hidden space-y-2">
-                    <div class="flex items-center justify-between text-[9px] uppercase tracking-wide text-slate-400 font-bold">
+                <div id="ai-builder-response-box" class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl hidden space-y-2">
+                    <div class="flex items-center justify-between text-[9px] uppercase tracking-wide text-slate-555 font-bold">
                         <span>AI Suggestion</span>
-                        <button onclick="copyAICopilotText()" class="hover:text-white transition">Copy text</button>
+                        <button onclick="copyAICopilotText()" class="text-indigo-600 hover:text-indigo-800 transition">Copy text</button>
                     </div>
-                    <div id="ai-builder-response-content" class="text-[11px] text-slate-200 leading-relaxed max-h-48 overflow-y-auto whitespace-pre-line select-text"></div>
+                    <div id="ai-builder-response-content" class="text-[11px] text-slate-800 leading-relaxed max-h-48 overflow-y-auto whitespace-pre-line select-text"></div>
                 </div>
             </div>
         `;
@@ -648,34 +663,34 @@
         container.innerHTML = `
             <div class="space-y-4">
                 <div class="space-y-3">
-                    <span class="font-bold text-[10px] uppercase tracking-wide text-slate-300">Global Design Colors</span>
+                    <span class="font-bold text-[10px] uppercase tracking-wide text-slate-500">Global Design Colors</span>
                     <div class="space-y-2.5">
                         <div class="flex items-center justify-between">
-                            <span class="text-[11px] text-slate-400">Primary Accent</span>
+                            <span class="text-[11px] text-slate-650">Primary Accent</span>
                             <div class="flex items-center space-x-2">
                                 <input type="color" onchange="updateBrandStyle('primaryColor', this.value)" value="${brandStyles.primaryColor}" class="w-6 h-6 border-0 bg-transparent cursor-pointer rounded">
-                                <span class="text-[10px] font-mono text-slate-400 uppercase">${brandStyles.primaryColor}</span>
+                                <span class="text-[10px] font-mono text-slate-500 uppercase">${brandStyles.primaryColor}</span>
                             </div>
                         </div>
                         <div class="flex items-center justify-between">
-                            <span class="text-[11px] text-slate-400">Dark Secondary</span>
+                            <span class="text-[11px] text-slate-650">Dark Secondary</span>
                             <div class="flex items-center space-x-2">
                                 <input type="color" onchange="updateBrandStyle('secondaryColor', this.value)" value="${brandStyles.secondaryColor}" class="w-6 h-6 border-0 bg-transparent cursor-pointer rounded">
-                                <span class="text-[10px] font-mono text-slate-400 uppercase">${brandStyles.secondaryColor}</span>
+                                <span class="text-[10px] font-mono text-slate-500 uppercase">${brandStyles.secondaryColor}</span>
                             </div>
                         </div>
                         <div class="flex items-center justify-between">
-                            <span class="text-[11px] text-slate-400">Email Canvas bg</span>
+                            <span class="text-[11px] text-slate-650">Email Canvas bg</span>
                             <div class="flex items-center space-x-2">
                                 <input type="color" onchange="updateBrandStyle('backgroundColor', this.value)" value="${brandStyles.backgroundColor}" class="w-6 h-6 border-0 bg-transparent cursor-pointer rounded">
-                                <span class="text-[10px] font-mono text-slate-400 uppercase">${brandStyles.backgroundColor}</span>
+                                <span class="text-[10px] font-mono text-slate-500 uppercase">${brandStyles.backgroundColor}</span>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="space-y-2 pt-2 border-t border-slate-800/80">
-                    <span class="font-bold text-[10px] uppercase tracking-wide text-slate-300">Global Fonts</span>
-                    <select onchange="updateBrandStyle('fontFamily', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                <div class="space-y-2 pt-2 border-t border-slate-200">
+                    <span class="font-bold text-[10px] uppercase tracking-wide text-slate-550">Global Fonts</span>
+                    <select onchange="updateBrandStyle('fontFamily', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-indigo-500">
                         <option value="Inter, Arial, sans-serif" ${brandStyles.fontFamily.includes('Inter') ? 'selected':''}>Inter (Modern Sans)</option>
                         <option value="Georgia, serif" ${brandStyles.fontFamily.includes('Georgia') ? 'selected':''}>Georgia (Editorial Serif)</option>
                         <option value="'Helvetica Neue', Arial, sans-serif" ${brandStyles.fontFamily.includes('Helvetica') ? 'selected':''}>Helvetica Neue</option>
@@ -836,8 +851,11 @@
 
                     // Render Element Block Wrapper with controls
                     elementsHtml += `
-                        <div class="group/element relative p-3 border-2 rounded-xl transition duration-150 cursor-pointer ${isSelected ? 'border-indigo-600 bg-indigo-500/5 shadow-md shadow-indigo-600/5' : 'border-transparent hover:border-slate-300 hover:bg-slate-50/50'}"
-                             onclick="selectCanvasElement('${el.id}', event)">
+                        <div class="group/element relative p-3 border-2 rounded-xl transition duration-150 cursor-pointer ${isSelected ? 'border-indigo-600 bg-indigo-500/5 shadow-md shadow-indigo-600/5' : 'border-transparent hover:border-slate-350 hover:bg-slate-100/50'}"
+                             onclick="selectCanvasElement('${el.id}', event)"
+                             ondragover="onCanvasDragOver(event)"
+                             ondragleave="onCanvasDragLeave(event)"
+                             ondrop="onCanvasDrop(event, '${sec.id}', ${eIdx})">
                             ${elementInner}
 
                             <!-- Element hover overlay toolbar -->

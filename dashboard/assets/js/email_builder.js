@@ -743,21 +743,21 @@
                         <div class="flex items-center justify-between">
                             <span class="text-[11px] text-slate-650">Primary Accent</span>
                             <div class="flex items-center space-x-2">
-                                <input type="color" onchange="updateBrandStyle('primaryColor', this.value)" value="${brandStyles.primaryColor}" class="w-6 h-6 border-0 bg-transparent cursor-pointer rounded">
+                                <input type="color" oninput="updateBrandStyle('primaryColor', this.value)" value="${brandStyles.primaryColor}" class="w-6 h-6 border-0 bg-transparent cursor-pointer rounded">
                                 <span class="text-[10px] font-mono text-slate-500 uppercase">${brandStyles.primaryColor}</span>
                             </div>
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-[11px] text-slate-650">Dark Secondary</span>
                             <div class="flex items-center space-x-2">
-                                <input type="color" onchange="updateBrandStyle('secondaryColor', this.value)" value="${brandStyles.secondaryColor}" class="w-6 h-6 border-0 bg-transparent cursor-pointer rounded">
+                                <input type="color" oninput="updateBrandStyle('secondaryColor', this.value)" value="${brandStyles.secondaryColor}" class="w-6 h-6 border-0 bg-transparent cursor-pointer rounded">
                                 <span class="text-[10px] font-mono text-slate-500 uppercase">${brandStyles.secondaryColor}</span>
                             </div>
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-[11px] text-slate-650">Email Canvas bg</span>
                             <div class="flex items-center space-x-2">
-                                <input type="color" onchange="updateBrandStyle('backgroundColor', this.value)" value="${brandStyles.backgroundColor}" class="w-6 h-6 border-0 bg-transparent cursor-pointer rounded">
+                                <input type="color" oninput="updateBrandStyle('backgroundColor', this.value)" value="${brandStyles.backgroundColor}" class="w-6 h-6 border-0 bg-transparent cursor-pointer rounded">
                                 <span class="text-[10px] font-mono text-slate-500 uppercase">${brandStyles.backgroundColor}</span>
                             </div>
                         </div>
@@ -786,6 +786,10 @@
             }
         }
         renderCanvas();
+        const container = document.getElementById('left-sidebar-scroll-area');
+        if (activeSidebarTab === 'brand' && container) {
+            renderBrandSidebar(container);
+        }
     };
 
     // Filter elements in sidebar search box
@@ -1521,6 +1525,36 @@
                 }
             } else if (activePropertiesTab === 'style') {
                 // Typography, Alignment, colors options inside Style Tab
+                let customColorControls = '';
+                if (selectedEl.type === 'button') {
+                    customColorControls = `
+                        <div class="space-y-1">
+                            <label class="font-bold text-slate-350">Button Background Color</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="color" oninput="updateElementSetting('backgroundColor', this.value)" value="${selectedEl.settings.backgroundColor || '#6D5EF5'}" class="w-8 h-8 border border-slate-250 cursor-pointer rounded-lg bg-transparent">
+                                <span class="text-[10px] font-mono uppercase text-slate-500">${selectedEl.settings.backgroundColor || '#6D5EF5'}</span>
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="font-bold text-slate-355">Button Text Color</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="color" oninput="updateElementSetting('textColor', this.value)" value="${selectedEl.settings.textColor || '#ffffff'}" class="w-8 h-8 border border-slate-250 cursor-pointer rounded-lg bg-transparent">
+                                <span class="text-[10px] font-mono uppercase text-slate-500">${selectedEl.settings.textColor || '#ffffff'}</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    customColorControls = `
+                        <div class="space-y-1">
+                            <label class="font-bold text-slate-350">Text Color</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="color" oninput="updateElementSetting('color', this.value)" value="${selectedEl.settings.color || '#000000'}" class="w-8 h-8 border border-slate-250 cursor-pointer rounded-lg bg-transparent">
+                                <span class="text-[10px] font-mono uppercase text-slate-500">${selectedEl.settings.color || '#0F172A'}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
                 controlsHtml = `
                     <div class="space-y-4">
                         <div class="space-y-1">
@@ -1556,13 +1590,7 @@
                                 <button onclick="updateElementSetting('align', 'right')" class="flex-grow py-1 hover:bg-white rounded transition"><i data-lucide="align-right" class="h-3.5 w-3.5 mx-auto"></i></button>
                             </div>
                         </div>
-                        <div class="space-y-1">
-                            <label class="font-bold text-slate-300">Text Color</label>
-                            <div class="flex items-center space-x-2">
-                                <input type="color" onchange="updateElementSetting('color', this.value)" value="${selectedEl.settings.color || '#000000'}" class="w-8 h-8 border border-slate-250 cursor-pointer rounded-lg bg-transparent">
-                                <span class="text-[10px] font-mono uppercase text-slate-500">${selectedEl.settings.color || '#0F172A'}</span>
-                            </div>
-                        </div>
+                        ${customColorControls}
                     </div>
                 `;
             } else if (activePropertiesTab === 'advanced') {
@@ -1603,7 +1631,7 @@
                         <div class="space-y-1">
                             <label class="font-bold text-slate-300">Section Background Color</label>
                             <div class="flex items-center space-x-2">
-                                <input type="color" onchange="updateSectionSetting('backgroundColor', this.value)" value="${selectedSec.settings.backgroundColor || '#ffffff'}" class="w-8 h-8 border border-slate-250 cursor-pointer rounded-lg bg-transparent">
+                                <input type="color" oninput="updateSectionSetting('backgroundColor', this.value)" value="${selectedSec.settings.backgroundColor || '#ffffff'}" class="w-8 h-8 border border-slate-250 cursor-pointer rounded-lg bg-transparent">
                                 <span class="text-[10px] font-mono uppercase text-slate-500">${selectedSec.settings.backgroundColor || '#ffffff'}</span>
                             </div>
                         </div>
@@ -1658,6 +1686,7 @@
             }
         }
         renderCanvas();
+        renderPropertiesPanel();
     };
 
     window.updateSectionSetting = function(prop, val) {
@@ -1667,6 +1696,7 @@
             sec.settings[prop] = val;
         }
         renderCanvas();
+        renderPropertiesPanel();
     };
 
     // Update templates autosave status badge

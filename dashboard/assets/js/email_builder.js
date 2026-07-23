@@ -954,7 +954,7 @@
                         case 'button':
                             elementInner = `
                                 <div style="text-align:${el.settings.align || 'center'};">
-                                    <a href="${el.settings.link || '#'}" style="display:inline-block; font-size:14px; font-weight:bold; color:${el.settings.textColor || '#ffffff'}; background-color:${el.settings.backgroundColor || '#6D5EF5'}; padding:${el.settings.paddingTop || '12px'} ${el.settings.paddingRight || '24px'} ${el.settings.paddingBottom || '12px'} ${el.settings.paddingLeft || '24px'}; border-radius:${el.settings.borderRadius || '8px'}; text-decoration:none; box-shadow:0 2px 4px rgba(0,0,0,0.06);">${el.settings.text || 'Action Button'}</a>
+                                    <a href="${el.settings.link || '#'}" onclick="event.preventDefault();" style="display:inline-block; font-size:14px; font-weight:bold; color:${el.settings.textColor || '#ffffff'}; background-color:${el.settings.backgroundColor || '#6D5EF5'}; padding:${el.settings.paddingTop || '12px'} ${el.settings.paddingRight || '24px'} ${el.settings.paddingBottom || '12px'} ${el.settings.paddingLeft || '24px'}; border-radius:${el.settings.borderRadius || '8px'}; text-decoration:none; box-shadow:0 2px 4px rgba(0,0,0,0.06);">${el.settings.text || 'Action Button'}</a>
                                 </div>
                             `;
                             break;
@@ -974,10 +974,10 @@
                         case 'social':
                             elementInner = `
                                 <div style="text-align:${el.settings.align || 'center'};" class="flex justify-center space-x-4">
-                                    <a href="#" class="inline-block"><img src="https://img.icons8.com/color/48/000000/facebook-new.png" style="width:24px;height:24px;"></a>
-                                    <a href="#" class="inline-block"><img src="https://img.icons8.com/color/48/000000/twitter.png" style="width:24px;height:24px;"></a>
-                                    <a href="#" class="inline-block"><img src="https://img.icons8.com/color/48/000000/linkedin.png" style="width:24px;height:24px;"></a>
-                                    <a href="#" class="inline-block"><img src="https://img.icons8.com/color/48/000000/instagram-new.png" style="width:24px;height:24px;"></a>
+                                    <a href="#" onclick="event.preventDefault();" class="inline-block"><img src="https://img.icons8.com/color/48/000000/facebook-new.png" style="width:24px;height:24px;"></a>
+                                    <a href="#" onclick="event.preventDefault();" class="inline-block"><img src="https://img.icons8.com/color/48/000000/twitter.png" style="width:24px;height:24px;"></a>
+                                    <a href="#" onclick="event.preventDefault();" class="inline-block"><img src="https://img.icons8.com/color/48/000000/linkedin.png" style="width:24px;height:24px;"></a>
+                                    <a href="#" onclick="event.preventDefault();" class="inline-block"><img src="https://img.icons8.com/color/48/000000/instagram-new.png" style="width:24px;height:24px;"></a>
                                 </div>
                             `;
                             break;
@@ -1065,7 +1065,7 @@
         container.innerHTML = `
             <div style="font-family:${brandStyles.fontFamily};" class="w-full">
                 <!-- Text tag mimicking preview email layout header -->
-                <div class="text-center text-[10px] text-slate-400 font-bold mb-4">Can't see this email? <a href="#" class="text-[#6D5EF5] underline">View in browser</a></div>
+                <div class="text-center text-[10px] text-slate-400 font-bold mb-4">Can't see this email? <a href="#" onclick="event.preventDefault();" class="text-[#6D5EF5] underline">View in browser</a></div>
                 ${contentHtml}
             </div>
         `;

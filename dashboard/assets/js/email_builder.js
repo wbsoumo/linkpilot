@@ -11,6 +11,7 @@
     let isSaving = false;
     let autoSaveInterval = null;
     let isCodeViewActive = false;
+    let customHtmlOverride = null;
 
     // Template metadata
     let templateName = "New Campaign Layout";
@@ -149,7 +150,18 @@
                     templateCategory = t.category || "Sales";
                     templateTag = t.tag || "Outreach";
                     if (t.json_data) {
-                        canvasData = JSON.parse(t.json_data);
+                        const parsed = JSON.parse(t.json_data);
+                        if (parsed && parsed.isRawHtml) {
+                            customHtmlOverride = parsed.customHtml;
+                            isCodeViewActive = true;
+                            // Set Code View button styling when editor renders
+                            setTimeout(() => {
+                                const btn = document.getElementById('btn-canvas-code-view');
+                                if (btn) btn.style.cssText = "background-color: #6D5EF5 !important; color: #ffffff !important; font-weight: bold !important;";
+                            }, 100);
+                        } else {
+                            canvasData = parsed;
+                        }
                     }
                 }
             } catch (err) {
@@ -915,7 +927,20 @@
     }
 
     window.toggleCanvasCodeView = function() {
-        isCodeViewActive = !isCodeViewActive;
+        if (isCodeViewActive) {
+            // We are switching from Code View -> Visual View
+            if (customHtmlOverride !== null) {
+                if (!confirm("You have edited the HTML code directly. Switching back to visual editing will discard your HTML edits. Do you want to continue?")) {
+                    return;
+                }
+                customHtmlOverride = null;
+            }
+            isCodeViewActive = false;
+        } else {
+            // We are switching from Visual View -> Code View
+            isCodeViewActive = true;
+        }
+
         const btn = document.getElementById('btn-canvas-code-view');
         if (btn) {
             if (isCodeViewActive) {
@@ -927,8 +952,24 @@
         renderCanvas();
     };
 
+    window.onCustomHtmlEditorInput = function(val) {
+        customHtmlOverride = val;
+    };
+
+    window.resetCustomHtmlOverride = function() {
+        if (confirm("Are you sure you want to reset and discard all raw HTML edits to return to visual block editing?")) {
+            customHtmlOverride = null;
+            isCodeViewActive = false;
+            const btn = document.getElementById('btn-canvas-code-view');
+            if (btn) {
+                btn.style.cssText = "background-color: #ffffff !important; color: #475569 !important;";
+            }
+            renderCanvas();
+        }
+    };
+
     window.copyCanvasCompiledHtml = function() {
-        const compiledHtml = compileResponsiveHtml(canvasData);
+        const compiledHtml = customHtmlOverride !== null ? customHtmlOverride : compileResponsiveHtml(canvasData);
         navigator.clipboard.writeText(compiledHtml);
         showNotification('success', 'Copied compiled HTML code to clipboard.');
     };
@@ -969,18 +1010,23 @@
         if (!container) return;
 
         if (isCodeViewActive) {
-            const compiledHtml = compileResponsiveHtml(canvasData);
+            const compiledHtml = customHtmlOverride !== null ? customHtmlOverride : compileResponsiveHtml(canvasData);
             container.innerHTML = `
                 <div class="flex flex-col w-full h-full bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-2xl p-4 min-h-[500px]">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4 select-none">
                         <span class="text-xs font-bold text-slate-400 flex items-center">
-                            <i data-lucide="code" class="h-4 w-4 mr-1.5 text-indigo-450"></i>Compiled HTML Source (Read-Only)
+                            <i data-lucide="code" class="h-4 w-4 mr-1.5 text-indigo-400"></i>HTML Source Editor (Direct Code Editing Enabled)
                         </span>
-                        <button onclick="copyCanvasCompiledHtml()" class="px-3 py-1 bg-[#6D5EF5] hover:bg-indigo-700 text-white text-[10px] font-bold rounded-lg transition shadow-md flex items-center" style="background-color: #6D5EF5 !important; color: #ffffff !important;">
-                            <i data-lucide="copy" class="h-3.5 w-3.5 mr-1"></i> Copy Code
-                        </button>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="copyCanvasCompiledHtml()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-bold rounded-lg transition shadow-md flex items-center border border-slate-750">
+                                <i data-lucide="copy" class="h-3.5 w-3.5 mr-1 text-blue-400"></i> Copy Code
+                            </button>
+                            <button onclick="resetCustomHtmlOverride()" class="px-3 py-1 bg-rose-950 hover:bg-rose-900 text-rose-300 text-[10px] font-bold rounded-lg transition shadow-md flex items-center border border-rose-900">
+                                <i data-lucide="rotate-ccw" class="h-3.5 w-3.5 mr-1 text-rose-400"></i> Reset to Visual
+                            </button>
+                        </div>
                     </div>
-                    <textarea readonly class="flex-grow w-full bg-slate-950 text-emerald-400 font-mono text-xs p-4 rounded-xl border border-slate-850 outline-none resize-none focus:border-indigo-500" style="min-height: 420px; font-family: monospace; line-height: 1.5; background-color: #020617 !important; color: #34d399 !important; border: 1px solid #1e293b !important;">${escapeHtml(compiledHtml)}</textarea>
+                    <textarea oninput="onCustomHtmlEditorInput(this.value)" class="flex-grow w-full bg-slate-950 text-emerald-400 font-mono text-xs p-4 rounded-xl border border-slate-850 outline-none resize-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" style="min-height: 420px; font-family: monospace; line-height: 1.5; background-color: #020617 !important; color: #34d399 !important; border: 1px solid #1e293b !important;">${escapeHtml(compiledHtml)}</textarea>
                 </div>
             `;
             if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -1799,7 +1845,7 @@
             updateAutoSaveStatus("Saving...");
         }
 
-        const compiledHtml = compileResponsiveHtml(canvasData);
+        const compiledHtml = customHtmlOverride !== null ? customHtmlOverride : compileResponsiveHtml(canvasData);
 
         const payload = {
             id: activeTemplateId,
@@ -1807,7 +1853,7 @@
             subject: templateSubject,
             category: templateCategory,
             tag: templateTag,
-            json_data: JSON.stringify(canvasData),
+            json_data: customHtmlOverride !== null ? JSON.stringify({ isRawHtml: true, customHtml: customHtmlOverride }) : JSON.stringify(canvasData),
             html_content: compiledHtml
         };
 

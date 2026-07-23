@@ -782,8 +782,25 @@
 
     // Drag-and-drop start transfer
     window.onBuilderDragStart = function(ev, type) {
-        ev.dataTransfer.setData("text", type);
+        ev.dataTransfer.setData("text/plain", JSON.stringify({ type: 'new_element', elType: type }));
         ev.dataTransfer.effectAllowed = "move";
+    };
+
+    window.onCanvasElementDragStart = function(ev, secId, elId) {
+        ev.stopPropagation();
+        ev.dataTransfer.setData("text/plain", JSON.stringify({ type: 'move_element', secId: secId, elId: elId }));
+        ev.dataTransfer.effectAllowed = "move";
+        if (ev.currentTarget) ev.currentTarget.classList.add("opacity-50");
+    };
+
+    window.onCanvasSectionDragStart = function(ev, secId) {
+        ev.dataTransfer.setData("text/plain", JSON.stringify({ type: 'move_section', secId: secId }));
+        ev.dataTransfer.effectAllowed = "move";
+        if (ev.currentTarget) ev.currentTarget.classList.add("opacity-50");
+    };
+
+    window.onCanvasDragEnd = function(ev) {
+        if (ev.currentTarget) ev.currentTarget.classList.remove("opacity-50");
     };
 
     // Responsive frame width changer
@@ -853,6 +870,7 @@
                 `;
             } else {
                 sec.elements.forEach((el, eIdx) => {
+                    if (!el.settings) el.settings = {};
                     let isSelected = (selectedElementId === el.id);
                     let elementInner = "";
 
@@ -918,6 +936,9 @@
                     elementsHtml += `
                         <div class="group/element relative p-3 border-2 rounded-xl transition duration-150 cursor-pointer ${isSelected ? 'border-[#6D5EF5] bg-indigo-500/5 shadow-md shadow-indigo-600/5' : 'border-transparent hover:border-slate-350 hover:bg-slate-100/50'}"
                              onclick="selectCanvasElement('${el.id}', event)"
+                             draggable="true"
+                             ondragstart="onCanvasElementDragStart(event, '${sec.id}', '${el.id}')"
+                             ondragend="onCanvasDragEnd(event)"
                              ondragover="onCanvasDragOver(event)"
                              ondragleave="onCanvasDragLeave(event)"
                              ondrop="onCanvasDrop(event, '${sec.id}', ${eIdx})">
@@ -926,7 +947,7 @@
                             <!-- Premium Floating blue toolbar directly above selected element (matching reference layout) -->
                             ${isSelected ? `
                             <div class="absolute -top-10 left-1/2 -translate-x-1/2 flex items-center space-x-1 bg-[#6D5EF5] text-white shadow-xl rounded-lg p-1.5 border border-indigo-400 select-none z-50">
-                                <button class="p-1 hover:bg-indigo-700 rounded" title="Move"><i data-lucide="move" class="h-3.5 w-3.5"></i></button>
+                                <button class="p-1 hover:bg-indigo-700 rounded cursor-grab animate-pulse" title="Move"><i data-lucide="move" class="h-3.5 w-3.5"></i></button>
                                 <button onclick="cloneCanvasElement('${sec.id}', '${el.id}', event)" class="p-1 hover:bg-indigo-700 rounded" title="Duplicate"><i data-lucide="copy" class="h-3.5 w-3.5"></i></button>
                                 <button class="p-1 hover:bg-indigo-700 rounded" title="Lock"><i data-lucide="lock" class="h-3.5 w-3.5"></i></button>
                                 <button onclick="deleteCanvasElement('${sec.id}', '${el.id}', event)" class="p-1 hover:bg-rose-700 rounded" title="Delete"><i data-lucide="trash-2" class="h-3.5 w-3.5"></i></button>
@@ -942,6 +963,9 @@
                 <div class="group/section relative border-2 border-dashed rounded-2xl mb-5 p-4 transition-all duration-200 ${sectionSelected ? 'border-[#6D5EF5] bg-white/70 shadow-lg' : 'border-slate-200 hover:border-slate-350 bg-white shadow-2xs'}"
                      style="padding-top:${sec.settings.paddingTop || '20px'}; padding-bottom:${sec.settings.paddingBottom || '20px'}; background-color:${sec.settings.backgroundColor || '#ffffff'}; border-radius:${sec.settings.borderRadius || '12px'};"
                      onclick="selectCanvasSection('${sec.id}', event)"
+                     draggable="true"
+                     ondragstart="onCanvasSectionDragStart(event, '${sec.id}')"
+                     ondragend="onCanvasDragEnd(event)"
                      ondragover="onCanvasDragOver(event)"
                      ondragleave="onCanvasDragLeave(event)"
                      ondrop="onCanvasDrop(event, '${sec.id}')">
@@ -1003,83 +1027,169 @@
     // Canvas Dropping logic helper
     window.onCanvasDrop = function(ev, targetSectionId = null, insertIndex = null) {
         ev.preventDefault();
+        ev.stopPropagation(); // Prevent drag event from bubbling up to parent drop zones!
+
         const dropZone = ev.currentTarget;
         dropZone.classList.remove("border-[#6D5EF5]", "bg-indigo-50/20");
 
-        const elType = ev.dataTransfer.getData("text");
-        if (!elType) return;
+        let dragData = null;
+        const rawData = ev.dataTransfer.getData("text/plain") || ev.dataTransfer.getData("text");
+        if (!rawData) return;
+
+        try {
+            if (rawData.trim().startsWith('{') || rawData.trim().startsWith('[')) {
+                dragData = JSON.parse(rawData);
+            } else {
+                dragData = { type: 'new_element', elType: rawData };
+            }
+        } catch (err) {
+            dragData = { type: 'new_element', elType: rawData };
+        }
 
         recordState();
 
-        // Create standard element configuration templates
-        const newEl = {
-            id: "el_" + Math.random().toString(36).substr(2, 9),
-            type: elType,
-            settings: {}
-        };
-
-        // Assign default values depending on dropped type
-        switch (elType) {
-            case 'heading':
-                newEl.settings = { content: "Main Headline Offer", fontSize: "22px", color: "#0F172A", align: "left" };
-                break;
-            case 'text':
-                newEl.settings = { content: "This is a new paragraph element. Double click to type or edit text details directly.", fontSize: "15px", color: "#334155", lineHeight: "1.6", align: "left" };
-                break;
-            case 'image':
-                newEl.settings = { imageUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop", borderRadius: "8px", align: "center" };
-                break;
-            case 'button':
-                newEl.settings = { text: "Action Link Button", link: "#", backgroundColor: "#6D5EF5", textColor: "#ffffff", borderRadius: "8px", align: "center", paddingTop: "12px", paddingBottom: "12px", paddingLeft: "24px", paddingRight: "24px" };
-                break;
-            case 'divider':
-                newEl.settings = { color: "#E2E8F0", spacing: "15px" };
-                break;
-            case 'spacer':
-                newEl.settings = { height: "25px" };
-                break;
-            case 'logo':
-                newEl.settings = { logoUrl: "https://img.icons8.com/color/96/000000/send.png", height: "40px", align: "center" };
-                break;
-            case 'social':
-                newEl.settings = { align: "center" };
-                break;
-            case 'coupon':
-                newEl.settings = { code: "LPNEW50", discount: "50% OFF", desc: "Start building and save half off first plan invoice.", backgroundColor: "#FAF9FF", borderColor: "#6D5EF5" };
-                break;
+        // Helper to construct default element settings
+        function createDefaultElement(elType) {
+            const newEl = {
+                id: "el_" + Math.random().toString(36).substr(2, 9),
+                type: elType,
+                settings: {}
+            };
+            switch (elType) {
+                case 'heading':
+                    newEl.settings = { content: "Main Headline Offer", fontSize: "22px", color: "#0F172A", align: "left" };
+                    break;
+                case 'text':
+                    newEl.settings = { content: "This is a new paragraph element. Double click to type or edit text details directly.", fontSize: "15px", color: "#334155", lineHeight: "1.6", align: "left" };
+                    break;
+                case 'image':
+                    newEl.settings = { imageUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop", borderRadius: "8px", align: "center" };
+                    break;
+                case 'button':
+                    newEl.settings = { text: "Action Link Button", link: "#", backgroundColor: "#6D5EF5", textColor: "#ffffff", borderRadius: "8px", align: "center", paddingTop: "12px", paddingBottom: "12px", paddingLeft: "24px", paddingRight: "24px" };
+                    break;
+                case 'divider':
+                    newEl.settings = { color: "#E2E8F0", spacing: "15px" };
+                    break;
+                case 'spacer':
+                    newEl.settings = { height: "25px" };
+                    break;
+                case 'logo':
+                    newEl.settings = { logoUrl: "https://img.icons8.com/color/96/000000/send.png", height: "40px", align: "center" };
+                    break;
+                case 'social':
+                    newEl.settings = { align: "center" };
+                    break;
+                case 'coupon':
+                    newEl.settings = { code: "LPNEW50", discount: "50% OFF", desc: "Start building and save half off first plan invoice.", backgroundColor: "#FAF9FF", borderColor: "#6D5EF5" };
+                    break;
+            }
+            return newEl;
         }
 
-        if (targetSectionId === 'bottom') {
-            const newSec = {
-                id: "sec_" + Date.now(),
-                type: "section",
-                settings: { paddingTop: "20px", paddingBottom: "20px", backgroundColor: "#ffffff" },
-                elements: [newEl]
-            };
-            canvasData.push(newSec);
-            selectedElementId = newEl.id;
-            selectedSectionId = newSec.id;
-        } else if (targetSectionId) {
-            const sec = canvasData.find(s => s.id === targetSectionId);
-            if (sec) {
-                if (insertIndex !== null && insertIndex !== undefined) {
-                    sec.elements.splice(insertIndex, 0, newEl);
-                } else {
-                    sec.elements.push(newEl);
-                }
+        if (dragData.type === 'new_element') {
+            const elType = dragData.elType;
+            const newEl = createDefaultElement(elType);
+
+            if (targetSectionId === 'bottom') {
+                const newSec = {
+                    id: "sec_" + Date.now(),
+                    type: "section",
+                    settings: { paddingTop: "20px", paddingBottom: "20px", backgroundColor: "#ffffff" },
+                    elements: [newEl]
+                };
+                canvasData.push(newSec);
                 selectedElementId = newEl.id;
-                selectedSectionId = sec.id;
+                selectedSectionId = newSec.id;
+            } else if (targetSectionId) {
+                const sec = canvasData.find(s => s.id === targetSectionId);
+                if (sec) {
+                    if (insertIndex !== null && insertIndex !== undefined) {
+                        sec.elements.splice(insertIndex, 0, newEl);
+                    } else {
+                        sec.elements.push(newEl);
+                    }
+                    selectedElementId = newEl.id;
+                    selectedSectionId = sec.id;
+                }
+            } else {
+                // Drop on general canvas wrapper background (append new section)
+                const newSec = {
+                    id: "sec_" + Date.now(),
+                    type: "section",
+                    settings: { paddingTop: "20px", paddingBottom: "20px", backgroundColor: "#ffffff" },
+                    elements: [newEl]
+                };
+                canvasData.push(newSec);
+                selectedElementId = newEl.id;
+                selectedSectionId = newSec.id;
             }
-        } else {
-            const newSec = {
-                id: "sec_" + Date.now(),
-                type: "section",
-                settings: { paddingTop: "20px", paddingBottom: "20px", backgroundColor: "#ffffff" },
-                elements: [newEl]
-            };
-            canvasData.push(newSec);
-            selectedElementId = newEl.id;
-            selectedSectionId = newSec.id;
+        } else if (dragData.type === 'move_element') {
+            // Find element in original section and remove it
+            let foundEl = null;
+            for (const sec of canvasData) {
+                const idx = sec.elements.findIndex(e => e.id === dragData.elId);
+                if (idx !== -1) {
+                    foundEl = sec.elements[idx];
+                    sec.elements.splice(idx, 1);
+                    break;
+                }
+            }
+
+            if (!foundEl) return;
+
+            if (targetSectionId === 'bottom') {
+                const newSec = {
+                    id: "sec_" + Date.now(),
+                    type: "section",
+                    settings: { paddingTop: "20px", paddingBottom: "20px", backgroundColor: "#ffffff" },
+                    elements: [foundEl]
+                };
+                canvasData.push(newSec);
+                selectedElementId = foundEl.id;
+                selectedSectionId = newSec.id;
+            } else if (targetSectionId) {
+                const targetSec = canvasData.find(s => s.id === targetSectionId);
+                if (targetSec) {
+                    if (insertIndex !== null && insertIndex !== undefined) {
+                        targetSec.elements.splice(insertIndex, 0, foundEl);
+                    } else {
+                        targetSec.elements.push(foundEl);
+                    }
+                    selectedElementId = foundEl.id;
+                    selectedSectionId = targetSec.id;
+                }
+            } else {
+                // Drop on general canvas wrapper background
+                const newSec = {
+                    id: "sec_" + Date.now(),
+                    type: "section",
+                    settings: { paddingTop: "20px", paddingBottom: "20px", backgroundColor: "#ffffff" },
+                    elements: [foundEl]
+                };
+                canvasData.push(newSec);
+                selectedElementId = foundEl.id;
+                selectedSectionId = newSec.id;
+            }
+        } else if (dragData.type === 'move_section') {
+            const sourceIdx = canvasData.findIndex(s => s.id === dragData.secId);
+            if (sourceIdx === -1) return;
+            const [movedSec] = canvasData.splice(sourceIdx, 1);
+
+            if (targetSectionId === 'bottom') {
+                canvasData.push(movedSec);
+            } else if (targetSectionId) {
+                const targetIdx = canvasData.findIndex(s => s.id === targetSectionId);
+                if (targetIdx !== -1) {
+                    canvasData.splice(targetIdx, 0, movedSec);
+                } else {
+                    canvasData.push(movedSec);
+                }
+            } else {
+                canvasData.push(movedSec);
+            }
+            selectedSectionId = movedSec.id;
+            selectedElementId = null;
         }
 
         renderCanvas();

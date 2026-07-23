@@ -38,7 +38,7 @@ class JWTHelper {
             'user' => [
                 'id' => $userData['id'],
                 'email' => $userData['email'],
-                'name' => $userData['name'],
+                'name' => $userData['name'] ?? '',
                 'role' => $userData['role'] ?? 'user'
             ]
         ]);

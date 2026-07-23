@@ -99,88 +99,94 @@
                 <span class="text-xl font-extrabold text-slate-900 tracking-tight">linkpilot</span>
             </div>
 
-            <!-- Central Wizard Containers -->
-            <div class="flex-grow flex flex-col justify-center space-y-6">
-                <!-- Step progress wizard indicator -->
-                <div class="flex items-center justify-between max-w-sm mx-auto relative px-4 w-full">
-                    <!-- Progress Line background -->
-                    <div class="absolute top-4 left-10 right-10 h-[2px] bg-slate-100 z-0"></div>
-                    
-                    <div class="step-indicator flex flex-col items-center z-10" id="ind-1">
-                        <span class="w-8 h-8 rounded-full bg-[#005bf7] text-white font-extrabold flex items-center justify-center text-xs shadow-md shadow-blue-500/10 transition-all duration-300" style="color: #ffffff !important;">1</span>
-                        <span class="text-[10px] text-[#005bf7] font-bold mt-1.5">Account</span>
-                    </div>
-                    <div class="flex-grow border-t-2 border-slate-100 mx-2 z-0" id="line-1"></div>
-                    
-                    <div class="step-indicator flex flex-col items-center z-10" id="ind-2">
-                        <span class="w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 font-extrabold flex items-center justify-center text-xs transition-all duration-300" style="color: #94a3b8 !important;">2</span>
-                        <span class="text-[10px] text-slate-400 font-semibold mt-1.5">Profile</span>
-                    </div>
-                    <div class="flex-grow border-t-2 border-slate-100 mx-2 z-0" id="line-2"></div>
-                    
-                    <div class="step-indicator flex flex-col items-center z-10" id="ind-3">
-                        <span class="w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 font-extrabold flex items-center justify-center text-xs transition-all duration-300" style="color: #94a3b8 !important;">3</span>
-                        <span class="text-[10px] text-slate-400 font-semibold mt-1.5">Bio</span>
-                    </div>
-                    <div class="flex-grow border-t-2 border-slate-100 mx-2 z-0" id="line-3"></div>
-                    
-                    <div class="step-indicator flex flex-col items-center z-10" id="ind-4">
-                        <span class="w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 font-extrabold flex items-center justify-center text-xs transition-all duration-300" style="color: #94a3b8 !important;">4</span>
-                        <span class="text-[10px] text-slate-400 font-semibold mt-1.5">Verify</span>
-                    </div>
-                </div>
+            <!-- Dynamic Progress Bar -->
+            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-2">
+                <div id="progress-bar" class="bg-[#005bf7] h-full rounded-full transition-all duration-300" style="width: 20%;"></div>
+            </div>
 
-                <form class="space-y-6" id="register-form" novalidate>
+            <!-- Wizard Containers -->
+            <div class="flex-grow flex flex-col justify-center py-4">
+                <form id="register-form" class="space-y-6" novalidate>
                     
-                    <!-- STEP 1: Account Information -->
-                    <div class="step-container space-y-5" id="step-1">
-                        <div class="border-b border-slate-100 pb-3 text-left">
-                            <h3 class="text-base font-extrabold text-slate-800">Account Details</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Let's start with your account login details.</p>
+                    <!-- STEP 1: Welcome & OAuth / Email Input -->
+                    <div class="step-container auth-view-transition space-y-6" id="step-1">
+                        <div class="text-center space-y-2">
+                            <h3 class="text-2xl font-extrabold text-slate-900 tracking-tight">Create your account</h3>
+                            <p class="text-sm text-slate-500 font-medium">100% free. No credit card needed.</p>
                         </div>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-3.5">
+                            <!-- Google Sign-In Container -->
+                            <div class="w-full flex justify-center items-center py-1">
+                                <div id="google-signin-container" class="w-full min-h-[44px] flex justify-center"></div>
+                            </div>
+                            
+                            <!-- Microsoft Placeholder Button -->
+                            <button type="button" class="w-full border border-slate-200 rounded-xl py-3 px-4 flex items-center justify-center space-x-2 text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all font-bold text-sm bg-white shadow-sm">
+                                <img src="https://img.icons8.com/color/24/000000/microsoft.png" class="w-5 h-5" alt="Microsoft">
+                                <span>Continue with Microsoft</span>
+                            </button>
+                            
+                            <!-- Apple Placeholder Button -->
+                            <button type="button" class="w-full border border-slate-200 rounded-xl py-3 px-4 flex items-center justify-center space-x-2 text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all font-bold text-sm bg-white shadow-sm">
+                                <svg class="w-5 h-5 fill-current text-slate-900" viewBox="0 0 24 24">
+                                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-1 .04-2.21.67-2.93 1.49-.62.69-1.16 1.84-1.01 2.96 1.12.09 2.27-.57 2.95-1.39"/>
+                                </svg>
+                                <span>Continue with Apple</span>
+                            </button>
+                        </div>
+
+                        <div class="flex items-center">
+                            <div class="flex-grow border-t border-slate-100"></div>
+                            <span class="mx-3.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">OR</span>
+                            <div class="flex-grow border-t border-slate-100"></div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="relative rounded-xl shadow-sm">
+                                <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 pointer-events-none">
+                                    <i data-lucide="mail" class="h-5 w-5"></i>
+                                </span>
+                                <input id="email" name="email" type="email" class="block w-full pl-11 pr-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm font-semibold transition-all duration-200" placeholder="name@company.com">
+                            </div>
+                            <button type="button" id="continue-email-btn" onclick="handleEmailContinue()" class="w-full py-3.5 text-xs font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition-all flex items-center justify-center space-x-1.5 shadow-md shadow-blue-500/10" style="color: #ffffff !important;">
+                                <span style="color: #ffffff !important;">Continue with email</span>
+                                <i data-lucide="arrow-right" class="h-4 w-4" style="color: #ffffff !important;"></i>
+                            </button>
+                        </div>
+
+                        <div class="p-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-[10px] text-slate-400 leading-normal text-center font-medium">
+                            By continuing, you acknowledge LinkPilot's <a href="privacy.html" class="underline hover:text-slate-600">Privacy Policy</a> and agree to receive periodic product updates.
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: Name & Password (Email Signup Only) -->
+                    <div class="step-container auth-view-transition space-y-5 hidden" id="step-2">
+                        <div class="text-left space-y-1">
+                            <h3 class="text-xl font-extrabold text-slate-900">Create your password</h3>
+                            <p class="text-xs text-slate-500">Choose a password to secure your account.</p>
+                        </div>
+                        
+                        <div class="space-y-4">
                             <!-- Full Name -->
-                            <div class="space-y-1.5 text-left">
+                            <div class="space-y-1.5">
                                 <label for="name" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Full Name *</label>
                                 <div class="relative rounded-xl shadow-sm">
                                     <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 pointer-events-none">
                                         <i data-lucide="user" class="h-5 w-5"></i>
                                     </span>
-                                    <input id="name" name="name" type="text" class="block w-full pl-11 pr-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200" placeholder="Enter your full name">
-                                </div>
-                            </div>
-                            
-                            <!-- Email -->
-                            <div class="space-y-1.5 text-left">
-                                <label for="email" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Email Address *</label>
-                                <div class="relative rounded-xl shadow-sm">
-                                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 pointer-events-none">
-                                        <i data-lucide="mail" class="h-5 w-5"></i>
-                                    </span>
-                                    <input id="email" name="email" type="text" class="block w-full pl-11 pr-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200" placeholder="Enter your email address">
-                                </div>
-                            </div>
-                            
-                            <!-- WhatsApp Number -->
-                            <div class="md:col-span-2 space-y-1.5 text-left">
-                                <label for="phone_number" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">WhatsApp Number * (10-digit, without country code)</label>
-                                <div class="relative rounded-xl shadow-sm">
-                                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 pointer-events-none">
-                                        <i data-lucide="message-circle" class="h-5 w-5"></i>
-                                    </span>
-                                    <input id="phone_number" name="phone_number" type="text" class="block w-full pl-11 pr-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200" placeholder="Enter your WhatsApp number">
+                                    <input id="name" name="name" type="text" class="block w-full pl-11 pr-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm font-semibold transition-all duration-200" placeholder="John Doe">
                                 </div>
                             </div>
                             
                             <!-- Password -->
-                            <div class="space-y-1.5 text-left">
+                            <div class="space-y-1.5">
                                 <label for="password" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Password * (min 6 characters)</label>
                                 <div class="relative rounded-xl shadow-sm">
                                     <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 pointer-events-none">
                                         <i data-lucide="lock" class="h-5 w-5"></i>
                                     </span>
-                                    <input id="password" name="password" type="password" class="block w-full pl-11 pr-11 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200" placeholder="Enter password">
+                                    <input id="password" name="password" type="password" class="block w-full pl-11 pr-11 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm font-semibold transition-all duration-200" placeholder="Min 6 characters">
                                     <button type="button" onclick="togglePasswordVisibility('password', 'toggle-pass-icon-1')" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition">
                                         <i data-lucide="eye" id="toggle-pass-icon-1" class="h-5 w-5"></i>
                                     </button>
@@ -188,84 +194,17 @@
                             </div>
                             
                             <!-- Confirm Password -->
-                            <div class="space-y-1.5 text-left">
+                            <div class="space-y-1.5">
                                 <label for="confirm_password" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Confirm Password *</label>
                                 <div class="relative rounded-xl shadow-sm">
                                     <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 pointer-events-none">
                                         <i data-lucide="lock" class="h-5 w-5"></i>
                                     </span>
-                                    <input id="confirm_password" name="confirm_password" type="password" class="block w-full pl-11 pr-11 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200" placeholder="Confirm password">
+                                    <input id="confirm_password" name="confirm_password" type="password" class="block w-full pl-11 pr-11 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm font-semibold transition-all duration-200" placeholder="Verify password">
                                     <button type="button" onclick="togglePasswordVisibility('confirm_password', 'toggle-pass-icon-2')" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition">
                                         <i data-lucide="eye" id="toggle-pass-icon-2" class="h-5 w-5"></i>
                                     </button>
                                 </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Safe Note Alert Box -->
-                        <div class="p-4 bg-blue-50/50 border border-blue-100 rounded-2xl flex items-center space-x-3.5 text-left">
-                            <div class="h-9 w-9 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                                <i data-lucide="shield-check" class="h-5 w-5"></i>
-                            </div>
-                            <div>
-                                <span class="block text-slate-800 font-extrabold text-[11px]">Your data is safe with us</span>
-                                <span class="text-[10px] text-slate-500 leading-normal font-semibold">We use industry-standard encryption to protect your information.</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Button footer -->
-                        <div class="pt-4 flex justify-end">
-                            <button type="button" onclick="nextStep(2)" style="color: #ffffff !important;" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10">
-                                <span style="color: #ffffff !important;">Next: Profile</span>
-                                <i data-lucide="arrow-right" class="h-4 w-4" style="color: #ffffff !important;"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- STEP 2: Professional Profile -->
-                    <div class="step-container space-y-5 hidden" id="step-2">
-                        <div class="border-b border-slate-100 pb-3 text-left">
-                            <h3 class="text-base font-extrabold text-slate-800">Professional Profile</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Let's learn about your professional background.</p>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- User Type -->
-                            <div class="space-y-1.5 text-left">
-                                <label for="user_type" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">User Type *</label>
-                                <select id="user_type" name="user_type" class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm font-semibold shadow-sm transition-all duration-200">
-                                    <option value="" class="text-slate-400">Select User Type</option>
-                                    <option value="Job Seeker">Job Seeker</option>
-                                    <option value="Freelancer">Freelancer</option>
-                                    <option value="Agency">Agency</option>
-                                    <option value="Recruiter">Recruiter</option>
-                                    <option value="Business Owner">Business Owner</option>
-                                    <option value="Sales Professional">Sales Professional</option>
-                                </select>
-                            </div>
-                            
-                            <!-- Job Title -->
-                            <div class="space-y-1.5 text-left">
-                                <label for="job_title" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Current Job Title</label>
-                                <input id="job_title" name="job_title" type="text" class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200" placeholder="Software Engineer">
-                            </div>
-                            
-                            <!-- Experience Years -->
-                            <div class="space-y-1.5 text-left">
-                                <label for="experience_years" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Years of Experience</label>
-                                <input id="experience_years" name="experience_years" type="number" min="0" class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200" placeholder="3">
-                            </div>
-                            
-                            <!-- Company Name -->
-                            <div class="space-y-1.5 text-left">
-                                <label for="company_name" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Company Name</label>
-                                <input id="company_name" name="company_name" type="text" class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200" placeholder="Acme Corp">
-                            </div>
-                            
-                            <!-- Skills -->
-                            <div class="md:col-span-2 space-y-1.5 text-left">
-                                <label for="skills" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Skills (Comma Separated)</label>
-                                <input id="skills" name="skills" type="text" class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200" placeholder="PHP, JavaScript, React, System Design">
                             </div>
                         </div>
                         
@@ -274,99 +213,207 @@
                                 <i data-lucide="arrow-left" class="h-4 w-4"></i>
                                 <span>Back</span>
                             </button>
-                            <button type="button" onclick="nextStep(3)" style="color: #ffffff !important;" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10">
-                                <span style="color: #ffffff !important;">Next: Bio & Links</span>
+                            <button type="button" onclick="handlePasswordContinue()" style="color: #ffffff !important;" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10">
+                                <span style="color: #ffffff !important;">Continue</span>
                                 <i data-lucide="arrow-right" class="h-4 w-4" style="color: #ffffff !important;"></i>
                             </button>
                         </div>
                     </div>
 
-                    <!-- STEP 3: Bio & Links -->
-                    <div class="step-container space-y-5 hidden" id="step-3">
-                        <div class="border-b border-slate-100 pb-3 text-left">
-                            <h3 class="text-base font-extrabold text-slate-800">Online Presence & Bio</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Let's connect your profiles to personalize your AI outreach.</p>
+                    <!-- STEP 3: What's your role? -->
+                    <div class="step-container auth-view-transition space-y-5 hidden" id="step-3">
+                        <div class="text-center space-y-1">
+                            <h3 class="text-xl font-extrabold text-slate-900">What's your role?</h3>
+                            <p class="text-xs text-slate-500">This helps set you up to achieve your goals faster.</p>
                         </div>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Website URL -->
-                            <div class="space-y-1.5 text-left">
-                                <label for="website" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Website URL</label>
-                                <input id="website" name="website" type="text" class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200" placeholder="https://example.com">
+                        <div class="space-y-3" id="role-selection-group">
+                            <div onclick="selectRole('Business Owner', this)" class="role-option-card border border-slate-200 rounded-xl p-4 flex items-center justify-between cursor-pointer bg-white hover:border-[#005bf7] hover:bg-blue-50/20 transition-all">
+                                <div class="flex items-center space-x-3.5">
+                                    <div class="w-9 h-9 rounded-lg bg-blue-50 text-[#005bf7] flex items-center justify-center shrink-0">
+                                        <i data-lucide="crown" class="h-5 w-5"></i>
+                                    </div>
+                                    <span class="text-sm font-bold text-slate-800">Owner</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 transition-transform"></i>
                             </div>
-                            
-                            <!-- Portfolio URL -->
-                            <div class="space-y-1.5 text-left">
-                                <label for="portfolio_url" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Portfolio URL</label>
-                                <input id="portfolio_url" name="portfolio_url" type="text" class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200" placeholder="https://portfolio.com">
+
+                            <div onclick="selectRole('Sales Professional', this)" class="role-option-card border border-slate-200 rounded-xl p-4 flex items-center justify-between cursor-pointer bg-white hover:border-[#005bf7] hover:bg-blue-50/20 transition-all">
+                                <div class="flex items-center space-x-3.5">
+                                    <div class="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                        <i data-lucide="briefcase" class="h-5 w-5"></i>
+                                    </div>
+                                    <span class="text-sm font-bold text-slate-800">Manager</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 transition-transform"></i>
                             </div>
-                            
-                            <!-- LinkedIn URL -->
-                            <div class="md:col-span-2 space-y-1.5 text-left">
-                                <label for="linkedin_url" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">LinkedIn Profile URL</label>
-                                <input id="linkedin_url" name="linkedin_url" type="text" class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200" placeholder="https://linkedin.com/in/username">
+
+                            <div onclick="selectRole('Agency', this)" class="role-option-card border border-slate-200 rounded-xl p-4 flex items-center justify-between cursor-pointer bg-white hover:border-[#005bf7] hover:bg-blue-50/20 transition-all">
+                                <div class="flex items-center space-x-3.5">
+                                    <div class="w-9 h-9 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+                                        <i data-lucide="users" class="h-5 w-5"></i>
+                                    </div>
+                                    <span class="text-sm font-bold text-slate-800">Employee</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 transition-transform"></i>
                             </div>
-                            
-                            <!-- About Me -->
-                            <div class="md:col-span-2 space-y-1.5 text-left">
-                                <label for="about_me" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">About Yourself</label>
-                                <textarea id="about_me" name="about_me" rows="3" class="block w-full px-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm transition-all duration-200" placeholder="Tell us about your professional background..."></textarea>
+
+                            <div onclick="selectRole('Freelancer', this)" class="role-option-card border border-slate-200 rounded-xl p-4 flex items-center justify-between cursor-pointer bg-white hover:border-[#005bf7] hover:bg-blue-50/20 transition-all">
+                                <div class="flex items-center space-x-3.5">
+                                    <div class="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                                        <i data-lucide="graduation-cap" class="h-5 w-5"></i>
+                                    </div>
+                                    <span class="text-sm font-bold text-slate-800">Student, Freelancer, or Intern</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 transition-transform"></i>
                             </div>
                         </div>
-                        
+
                         <div class="pt-4 flex justify-between items-center">
-                            <button type="button" onclick="prevStep(2)" class="px-5 py-2.5 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition flex items-center space-x-1.5">
+                            <button type="button" onclick="goBackFromRole()" class="px-5 py-2.5 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition flex items-center space-x-1.5">
                                 <i data-lucide="arrow-left" class="h-4 w-4"></i>
                                 <span>Back</span>
-                            </button>
-                            <button type="button" id="send-otp-trigger-btn" onclick="triggerOtpSend()" style="color: #ffffff !important;" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10">
-                                <span style="color: #ffffff !important;">Send Verification OTP</span>
-                                <i data-lucide="send" class="h-4 w-4" style="color: #ffffff !important;"></i>
                             </button>
                         </div>
                     </div>
 
-                    <!-- STEP 4: OTP Verification -->
-                    <div class="step-container space-y-5 hidden" id="step-4">
-                        <div class="border-b border-slate-100 pb-3 text-center">
-                            <h3 class="text-base font-extrabold text-slate-800">WhatsApp Verification</h3>
-                            <p class="text-xs text-slate-500 mt-1 font-semibold leading-relaxed">We sent a 6-digit verification code to <span id="display-phone" class="text-[#005bf7] font-bold"></span>.</p>
+                    <!-- STEP 4: Company Website -->
+                    <div class="step-container auth-view-transition space-y-5 hidden" id="step-4">
+                        <div class="text-left space-y-1">
+                            <h3 class="text-xl font-extrabold text-slate-900">Company website</h3>
+                            <p class="text-xs text-slate-500">We'll analyze your website to speed up your sign-up.</p>
                         </div>
                         
-                        <!-- 6-digit input boxes -->
-                        <div class="flex justify-between space-x-2.5 my-6" id="otp-inputs-container">
-                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box shadow-sm" />
-                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box shadow-sm" />
-                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box shadow-sm" />
-                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box shadow-sm" />
-                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box shadow-sm" />
-                            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="otp-box shadow-sm" />
+                        <div class="space-y-4">
+                            <div class="relative rounded-xl shadow-sm">
+                                <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 pointer-events-none">
+                                    <i data-lucide="globe" class="h-5 w-5"></i>
+                                </span>
+                                <input id="website" name="website" type="text" class="block w-full pl-11 pr-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm font-semibold transition-all duration-200" placeholder="www.website.com">
+                            </div>
                         </div>
-
-                        <!-- Under whatsapp OTP enter box notice -->
-                        <div class="text-center bg-[#f8fafc] border border-slate-200 rounded-xl py-3 px-4 max-w-sm mx-auto my-4">
-                            <p class="text-[11px] text-slate-500 font-semibold leading-relaxed">
-                                <span class="inline-block text-blue-500 mr-1">💬</span>
-                                OTP will be received from <span class="text-[#005bf7] font-bold">Taskbazi (Partner Brand)</span>
-                            </p>
-                        </div>
-
-                        <div id="otp-error" class="text-xs text-red-500 font-bold text-center mb-4 hidden"></div>
-
-                        <div class="text-xs text-slate-500 text-center my-4 font-semibold">
-                            Didn't receive the code? 
-                            <button type="button" id="resend-otp-btn" disabled class="font-bold text-[#005bf7] hover:underline disabled:text-slate-400 disabled:no-underline ml-1">
-                                Resend in <span id="cooldown-timer">60</span>s
-                            </button>
-                        </div>
-
-                        <div class="pt-4 border-t border-slate-100 flex justify-between items-center">
+                        
+                        <div class="pt-4 flex justify-between items-center">
                             <button type="button" onclick="prevStep(3)" class="px-5 py-2.5 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition flex items-center space-x-1.5">
                                 <i data-lucide="arrow-left" class="h-4 w-4"></i>
                                 <span>Back</span>
                             </button>
-                            <button type="submit" id="verify-otp-submit-btn" style="color: #ffffff !important;" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10">
-                                <span style="color: #ffffff !important;">Verify & Register</span>
+                            <button type="button" id="website-next-btn" onclick="handleWebsiteNext()" style="color: #ffffff !important;" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10">
+                                <span style="color: #ffffff !important;">Next</span>
+                                <i data-lucide="arrow-right" class="h-4 w-4" style="color: #ffffff !important;"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- STEP 5: Loading State -->
+                    <div class="step-container auth-view-transition space-y-6 hidden" id="step-5">
+                        <div class="flex flex-col items-center py-10 space-y-6">
+                            <div class="relative w-20 h-20">
+                                <div class="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
+                                <div class="absolute inset-0 border-4 border-t-[#005bf7] rounded-full animate-spin"></div>
+                                <div class="absolute inset-2 bg-blue-50 rounded-full flex items-center justify-center animate-pulse">
+                                    <i data-lucide="sparkles" class="h-6 w-6 text-[#005bf7]"></i>
+                                </div>
+                            </div>
+                            <div class="text-center space-y-1.5">
+                                <h4 class="text-sm font-bold text-slate-800 animate-pulse">AI is analyzing your website...</h4>
+                                <p class="text-xs text-slate-500">We are gathering company details to build your profile.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 6: Does this look right? (AI Review) -->
+                    <div class="step-container auth-view-transition space-y-6 hidden" id="step-6">
+                        <div class="text-center space-y-1">
+                            <h3 class="text-xl font-extrabold text-slate-900">Does this look right?</h3>
+                            <p class="text-xs text-slate-500">We've pulled in some information about your company to help build your profile.</p>
+                        </div>
+                        
+                        <!-- Premium Preview Card -->
+                        <div class="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm relative transition-all duration-300">
+                            <!-- Banner Graphic -->
+                            <div class="h-16 bg-gradient-to-r from-blue-50 to-indigo-50 relative overflow-hidden flex items-center justify-between px-6 border-b border-slate-100">
+                                <div class="absolute right-0 top-0 opacity-10">
+                                    <svg width="150" height="80" viewBox="0 0 150 80" fill="none"><circle cx="100" cy="20" r="60" fill="#005bf7"/><rect x="10" y="30" width="80" height="80" rx="20" transform="rotate(30 10 30)" fill="#005bf7"/></svg>
+                                </div>
+                            </div>
+                            
+                            <!-- Overlapping Initials Logo -->
+                            <div class="absolute top-8 left-6 w-14 h-14 bg-white border border-slate-200 rounded-xl shadow-sm flex items-center justify-center font-extrabold text-lg text-slate-700 tracking-wide" id="review-avatar">
+                                CO
+                            </div>
+
+                            <div class="pt-10 px-6 pb-6 space-y-5 text-left">
+                                <!-- Card Header details -->
+                                <div class="flex items-start justify-between">
+                                    <div class="space-y-1 w-full pr-8">
+                                        <!-- View Mode Title -->
+                                        <h4 class="text-lg font-bold text-slate-900" id="view-company-name">Company Name</h4>
+                                        <!-- Edit Mode Input -->
+                                        <input type="text" id="edit-company-name" class="hidden w-full px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-[#005bf7] focus:outline-none" placeholder="Company Name">
+                                        
+                                        <div class="text-xs text-slate-500 flex items-center space-x-1.5">
+                                            <span id="view-company-role" class="font-semibold text-[#005bf7]">Role</span>
+                                            <!-- Edit Mode Role -->
+                                            <select id="edit-company-role" class="hidden px-2 py-1 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-[#005bf7] focus:outline-none">
+                                                <option value="Business Owner">Owner</option>
+                                                <option value="Sales Professional">Manager</option>
+                                                <option value="Agency">Employee</option>
+                                                <option value="Freelancer">Student, Freelancer, or Intern</option>
+                                            </select>
+                                            <span>|</span>
+                                            <span id="view-company-website" class="font-medium text-slate-400">website.com</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Edit Button -->
+                                    <button type="button" onclick="toggleReviewEdit()" class="text-xs font-bold text-[#005bf7] hover:text-[#0052cc] transition flex items-center space-x-1 shrink-0 border border-blue-100 hover:border-blue-200 bg-blue-50/30 px-2.5 py-1.5 rounded-lg" id="edit-toggle-btn">
+                                        <i data-lucide="edit-3" class="h-3.5 w-3.5"></i>
+                                        <span id="edit-btn-text">Edit</span>
+                                    </button>
+                                </div>
+
+                                <!-- Card Columns details -->
+                                <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+                                    <div class="space-y-1">
+                                        <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Company Size</span>
+                                        <!-- View Mode -->
+                                        <span class="block text-xs font-bold text-slate-700" id="view-company-size">6 to 10 employees</span>
+                                        <!-- Edit Mode -->
+                                        <select id="edit-company-size" class="hidden w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-[#005bf7] focus:outline-none">
+                                            <option value="1-5 employees">1-5 employees</option>
+                                            <option value="6-10 employees">6-10 employees</option>
+                                            <option value="11-50 employees">11-50 employees</option>
+                                            <option value="51-200 employees">51-200 employees</option>
+                                            <option value="201-500 employees">201-500 employees</option>
+                                            <option value="501-1000 employees">501-1000 employees</option>
+                                            <option value="1000+ employees">1000+ employees</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="space-y-1">
+                                        <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Industry</span>
+                                        <!-- View Mode -->
+                                        <span class="block text-xs font-bold text-slate-700" id="view-company-industry">Marketing & Advertising</span>
+                                        <!-- Edit Mode -->
+                                        <input type="text" id="edit-company-industry" class="hidden w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-[#005bf7] focus:outline-none" placeholder="Industry">
+                                    </div>
+
+                                    <div class="space-y-1 col-span-2">
+                                        <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Based in</span>
+                                        <!-- View Mode -->
+                                        <span class="block text-xs font-bold text-slate-700" id="view-company-location">United States</span>
+                                        <!-- Edit Mode -->
+                                        <input type="text" id="edit-company-location" class="hidden w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-[#005bf7] focus:outline-none" placeholder="Location">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Final Registration Action -->
+                        <div class="pt-2">
+                            <button type="submit" id="submit-account-btn" style="color: #ffffff !important;" class="w-full py-3.5 text-sm font-bold rounded-xl text-white bg-slate-900 hover:bg-slate-800 transition-all flex items-center justify-center space-x-1.5 shadow-md">
+                                <span style="color: #ffffff !important;">Yes, create my account</span>
                                 <i data-lucide="check" class="h-4 w-4" style="color: #ffffff !important;"></i>
                             </button>
                         </div>
@@ -376,9 +423,9 @@
             </div>
 
             <!-- Bottom Create Account footnote -->
-            <div class="text-center mt-8 lg:mt-12" id="signup-prompt">
-                <span class="text-sm text-slate-500 font-medium">Already have an account? </span>
-                <a href="login.html" class="text-sm font-bold text-[#005bf7] hover:text-[#0052cc] transition">Log in here</a>
+            <div class="text-center mt-6" id="signup-prompt">
+                <span class="text-xs text-slate-500 font-medium">Already have an account? </span>
+                <a href="login.html" class="text-xs font-bold text-[#005bf7] hover:text-[#0052cc] transition">Log in here</a>
             </div>
         </div>
     </div>
@@ -591,369 +638,428 @@
             lucide.createIcons();
         }
 
+        // Wizard State variables
         let currentStep = 1;
+        let isGoogleSignup = false;
+        let googleIdToken = "";
+        let signupEmail = "";
+        let signupName = "";
+        let signupPassword = "";
+        let signupRole = "";
+        let isReviewEditMode = false;
         
-        // Show current step with visual indicators
+        let companyProfile = {
+            company_name: "",
+            role: "",
+            website: "",
+            company_size: "",
+            industry: "",
+            location: "",
+            description: ""
+        };
+
+        // Update progress bar width
+        function updateProgressBar() {
+            const progressBar = document.getElementById('progress-bar');
+            if (!progressBar) return;
+            // Map step to progress width percentage
+            let progressPercent = 20;
+            if (isGoogleSignup) {
+                // If Google, steps are: 1 (Welcome), 3 (Role), 4 (Website), 5 (Loading), 6 (Review)
+                if (currentStep === 1) progressPercent = 20;
+                else if (currentStep === 3) progressPercent = 50;
+                else if (currentStep === 4) progressPercent = 70;
+                else if (currentStep === 5) progressPercent = 90;
+                else if (currentStep === 6) progressPercent = 100;
+            } else {
+                if (currentStep === 1) progressPercent = 15;
+                else if (currentStep === 2) progressPercent = 35;
+                else if (currentStep === 3) progressPercent = 55;
+                else if (currentStep === 4) progressPercent = 75;
+                else if (currentStep === 5) progressPercent = 90;
+                else if (currentStep === 6) progressPercent = 100;
+            }
+            progressBar.style.width = `${progressPercent}%`;
+        }
+
+        // Show current step
         function showStep(step) {
             document.querySelectorAll('.step-container').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`step-${step}`).classList.remove('hidden');
+            const container = document.getElementById(`step-${step}`);
+            if (container) {
+                container.classList.remove('hidden');
+            }
+            currentStep = step;
+            updateProgressBar();
             
-            // Update indicator visual classes
-            for (let i = 1; i <= 4; i++) {
-                const indicator = document.getElementById(`ind-${i}`);
-                if (!indicator) continue;
-                
-                const circle = indicator.querySelector('span:first-child');
-                const label = indicator.querySelector('span:last-child');
-                const line = document.getElementById(`line-${i}`);
-                
-                if (i === step) {
-                    circle.className = "w-8 h-8 rounded-full bg-[#005bf7] text-white font-extrabold flex items-center justify-center text-xs shadow-md shadow-blue-500/10 transition-all duration-300";
-                    circle.style.setProperty('color', '#ffffff', 'important');
-                    label.className = "text-[10px] text-[#005bf7] font-bold mt-1.5";
-                } else if (i < step) {
-                    circle.className = "w-8 h-8 rounded-full bg-blue-50 text-[#005bf7] border border-blue-200 font-extrabold flex items-center justify-center text-xs transition-all duration-300";
-                    circle.style.setProperty('color', '#005bf7', 'important');
-                    label.className = "text-[10px] text-[#005bf7]/80 font-bold mt-1.5";
-                } else {
-                    circle.className = "w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 font-extrabold flex items-center justify-center text-xs transition-all duration-300";
-                    circle.style.setProperty('color', '#94a3b8', 'important');
-                    label.className = "text-[10px] text-slate-400 font-semibold mt-1.5";
-                }
-
-                // Color connecting lines
-                if (line) {
-                    if (i < step) {
-                        line.classList.add('border-[#005bf7]');
-                        line.classList.remove('border-slate-100');
-                    } else {
-                        line.classList.remove('border-[#005bf7]');
-                        line.classList.add('border-slate-100');
-                    }
-                }
+            // Hide signup prompt at bottom on latter stages to keep interface focused
+            const prompt = document.getElementById('signup-prompt');
+            if (prompt) {
+                if (step > 1) prompt.classList.add('invisible');
+                else prompt.classList.remove('invisible');
             }
             
-            currentStep = step;
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        let registeredUserId = null;
-
-        // Navigate forward
-        async function nextStep(step) {
-            if (step === 2) {
-                // Validate Step 1 details
-                const name = document.getElementById('name').value.trim();
-                const email = document.getElementById('email').value.trim();
-                const phone = document.getElementById('phone_number').value.trim();
-                const password = document.getElementById('password').value;
-                const confirmPassword = document.getElementById('confirm_password').value;
-
-                if (!name || !email || !phone || !password || !confirmPassword) {
-                    showNotification('error', 'Please fill out all required account details.');
-                    return;
-                }
-
-                if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
-                    showNotification('error', 'Please enter a valid email address.');
-                    return;
-                }
-
-                if (!/^[6-9]\d{9}$/.test(phone)) {
-                    showNotification('error', 'Please enter a valid 10-digit WhatsApp phone number.');
-                    return;
-                }
-
-                if (password.length < 6) {
-                    showNotification('error', 'Password must be at least 6 characters long.');
-                    return;
-                }
-
-                if (password !== confirmPassword) {
-                    showNotification('error', 'Passwords do not match.');
-                    return;
-                }
-
-                // Save Step 1 to Database
-                try {
-                    const data = await apiCall('auth/save_step.php', 'POST', {
-                        step: 1,
-                        name: name,
-                        email: email,
-                        phone_number: phone,
-                        password: password
-                    });
-                    registeredUserId = data.user_id;
-                } catch (err) {
-                    showNotification('error', err.message || 'Failed to save account details.');
-                    return;
-                }
-
-            } else if (step === 3) {
-                // Validate Step 2 details
-                const userType = document.getElementById('user_type').value;
-                const jobTitle = document.getElementById('job_title').value.trim();
-                const experienceYears = document.getElementById('experience_years').value;
-                const skills = document.getElementById('skills').value.trim();
-                const companyName = document.getElementById('company_name').value.trim();
-
-                if (!userType) {
-                    showNotification('error', 'Please select your User Type.');
-                    return;
-                }
-
-                // Save Step 2 to Database
-                if (registeredUserId) {
-                    try {
-                        await apiCall('auth/save_step.php', 'POST', {
-                            step: 2,
-                            user_id: registeredUserId,
-                            user_type: userType,
-                            job_title: jobTitle,
-                            experience_years: experienceYears,
-                            skills: skills,
-                            company_name: companyName
+        // Load google Identity Services dynamically and render button
+        async function loadGoogleOneTap() {
+            try {
+                const config = await apiCall('auth/google_config.php', 'GET');
+                if (config && config.client_id) {
+                    const script = document.createElement('script');
+                    script.src = "https://accounts.google.com/gsi/client";
+                    script.async = true;
+                    script.defer = true;
+                    script.onload = () => {
+                        google.accounts.id.initialize({
+                            client_id: config.client_id,
+                            callback: handleGoogleCredentialResponse,
+                            context: 'signup'
                         });
-                    } catch (err) {
-                        showNotification('error', err.message || 'Failed to save professional profile.');
-                        return;
-                    }
+                        google.accounts.id.renderButton(
+                            document.getElementById("google-signin-container"),
+                            { theme: "outline", size: "large", width: 380, text: "signup_with", shape: "rectangular" }
+                        );
+                    };
+                    document.head.appendChild(script);
                 }
+            } catch (err) {
+                console.error("Google OAuth Init Error:", err);
             }
-            
-            showStep(step);
         }
 
-        // Navigate backward
-        function prevStep(step) {
-            showStep(step);
-        }
+        // Handle Google OAuth Token Response
+        async function handleGoogleCredentialResponse(response) {
+            const credential = response.credential;
+            if (!credential) return;
 
-        // OTP inputs auto-advance logic
-        const boxes = document.querySelectorAll('.otp-box');
-        boxes.forEach((box, index) => {
-            box.addEventListener('input', (e) => {
-                box.value = box.value.replace(/[^0-9]/g, '');
-                if (box.value.length === 1 && index < 5) {
-                    boxes[index + 1].focus();
-                }
-            });
-
-            box.addEventListener('keydown', (e) => {
-                if (e.key === 'Backspace') {
-                    if (box.value === '' && index > 0) {
-                        boxes[index - 1].focus();
-                        boxes[index - 1].value = '';
-                    } else {
-                        box.value = '';
-                    }
-                }
-            });
-
-            box.addEventListener('paste', (e) => {
-                e.preventDefault();
-                const pastedData = (e.clipboardData || window.clipboardData).getData('text').trim();
-                if (/^\d{6}$/.test(pastedData)) {
-                    const digits = pastedData.split('');
-                    boxes.forEach((b, i) => {
-                        b.value = digits[i];
-                    });
-                    boxes[5].focus();
-                }
-            });
-        });
-
-        // OTP Resend Cooldown
-        let cooldown = 60;
-        let cooldownInterval = null;
-        const resendBtn = document.getElementById('resend-otp-btn');
-        const cooldownTimer = document.getElementById('cooldown-timer');
-
-        function startResendTimer() {
-            clearInterval(cooldownInterval);
-            cooldown = 60;
-            resendBtn.disabled = true;
-            resendBtn.innerHTML = 'Resend in <span id="cooldown-timer">60</span>s';
-            const freshSpan = document.getElementById('cooldown-timer');
-            
-            cooldownInterval = setInterval(() => {
-                cooldown--;
-                if (freshSpan) freshSpan.textContent = cooldown;
-                
-                if (cooldown <= 0) {
-                    clearInterval(cooldownInterval);
-                    resendBtn.disabled = false;
-                    resendBtn.innerHTML = 'Resend OTP';
-                }
-            }, 1000);
-        }
-
-        // Trigger OTP Delivery
-        async function triggerOtpSend() {
-            const sendBtn = document.getElementById('send-otp-trigger-btn');
-            const phone = document.getElementById('phone_number').value.trim();
-            const email = document.getElementById('email').value.trim();
-
-            const website = document.getElementById('website').value.trim();
-            const portfolioUrl = document.getElementById('portfolio_url').value.trim();
-            const linkedinUrl = document.getElementById('linkedin_url').value.trim();
-            const aboutMe = document.getElementById('about_me').value.trim();
-
-            sendBtn.disabled = true;
-            sendBtn.innerHTML = `
-                <div class="flex items-center justify-center space-x-1.5">
-                    <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Saving details...</span>
-                </div>
-            `;
-
-            // Save Step 3 details if we have a registered user ID
-            if (registeredUserId) {
-                try {
-                    await apiCall('auth/save_step.php', 'POST', {
-                        step: 3,
-                        user_id: registeredUserId,
-                        website: website,
-                        portfolio_url: portfolioUrl,
-                        linkedin_url: linkedinUrl,
-                        about_me: aboutMe
-                    });
-                } catch (err) {
-                    showNotification('error', err.message || 'Failed to save bio details.');
-                    sendBtn.disabled = false;
-                    sendBtn.innerHTML = `
-                        <span>Send Verification OTP</span>
-                        <i data-lucide="send" class="h-4 w-4"></i>
-                    `;
-                    if (window.lucide) {
-                        lucide.createIcons();
-                    }
-                    return;
-                }
-            }
-
-            sendBtn.innerHTML = `
-                <div class="flex items-center justify-center space-x-1.5">
-                    <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Sending OTP...</span>
-                </div>
-            `;
+            googleIdToken = credential;
 
             try {
-                const otpRes = await apiCall('auth/send_otp.php', 'POST', {
-                    phone_number: phone,
-                    email: email
+                const res = await apiCall('auth/google_auth.php', 'POST', {
+                    action: 'login',
+                    id_token: credential
                 });
 
-                showNotification('success', otpRes.message || 'OTP sent successfully!');
-                
-                if (otpRes.dev_mode && otpRes.mock_otp) {
-                    console.log("Mock OTP for development:", otpRes.mock_otp);
-                    showNotification('warning', `[DEV MODE] Mock OTP: ${otpRes.mock_otp}`);
+                if (res.action === 'login') {
+                    showNotification('success', 'Logged in successfully via Google!');
+                    setAuthToken(res.token);
+                    localStorage.setItem('linkpilot_user', JSON.stringify(res.user));
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1200);
+                } else if (res.action === 'register') {
+                    isGoogleSignup = true;
+                    signupEmail = res.email;
+                    signupName = res.name;
+                    showNotification('success', 'Google authenticated! Complete profile details.');
+                    // Proceed to step 3 (Role) skipping Step 2 (Password)
+                    showStep(3);
                 }
-
-                // Show Phone in Step 4
-                document.getElementById('display-phone').textContent = phone;
-                
-                // Transition to Step 4
-                showStep(4);
-                startResendTimer();
-                setTimeout(() => boxes[0].focus(), 150);
-
             } catch (err) {
-                showNotification('error', err.message || 'Failed to send OTP. Please try again.');
-            } finally {
-                sendBtn.disabled = false;
-                sendBtn.innerHTML = `
-                    <span>Send Verification OTP</span>
-                    <i data-lucide="send" class="h-4 w-4"></i>
-                `;
-                if (window.lucide) {
-                    lucide.createIcons();
-                }
+                showNotification('error', err.message || 'Google Auth verification failed.');
             }
         }
 
-        // Resend OTP Trigger click
-        resendBtn.addEventListener('click', async () => {
-            const phone = document.getElementById('phone_number').value.trim();
-            const email = document.getElementById('email').value.trim();
-            resendBtn.disabled = true;
-            document.getElementById('otp-error').classList.add('hidden');
-
-            try {
-                const otpRes = await apiCall('auth/send_otp.php', 'POST', {
-                    phone_number: phone,
-                    email: email
-                });
-
-                showNotification('success', 'OTP resent successfully!');
-                if (otpRes.dev_mode && otpRes.mock_otp) {
-                    showNotification('warning', `[DEV MODE] Mock OTP: ${otpRes.mock_otp}`);
-                }
-
-                startResendTimer();
-                boxes.forEach(b => b.value = '');
-                boxes[0].focus();
-
-            } catch (err) {
-                resendBtn.disabled = false;
-                document.getElementById('otp-error').textContent = err.message || 'Failed to resend OTP.';
-                document.getElementById('otp-error').classList.remove('hidden');
+        // Step 1: Continue with Email clicked
+        async function handleEmailContinue() {
+            const emailInput = document.getElementById('email').value.trim();
+            if (!emailInput) {
+                showNotification('error', 'Please enter your email address.');
+                return;
             }
-        });
-
-        // Form Submit & OTP Verification
-        document.getElementById('register-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            // Construct 6-digit OTP code
-            let otpCode = '';
-            boxes.forEach(b => otpCode += b.value);
-
-            if (otpCode.length !== 6) {
-                document.getElementById('otp-error').textContent = 'Please enter all 6 digits of the OTP code.';
-                document.getElementById('otp-error').classList.remove('hidden');
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput)) {
+                showNotification('error', 'Please enter a valid email address.');
                 return;
             }
 
-            const submitBtn = document.getElementById('verify-otp-submit-btn');
+            const btn = document.getElementById('continue-email-btn');
+            btn.disabled = true;
+            btn.innerHTML = `<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>`;
+
+            try {
+                const res = await apiCall('auth/check_email.php', 'POST', { email: emailInput });
+                if (res.exists) {
+                    showNotification('warning', 'Email already registered. Please sign in.');
+                    btn.disabled = false;
+                    btn.innerHTML = `<span>Continue with email</span><i data-lucide="arrow-right" class="h-4 w-4"></i>`;
+                    if (window.lucide) lucide.createIcons();
+                } else {
+                    isGoogleSignup = false;
+                    signupEmail = emailInput;
+                    btn.disabled = false;
+                    btn.innerHTML = `<span>Continue with email</span><i data-lucide="arrow-right" class="h-4 w-4"></i>`;
+                    if (window.lucide) lucide.createIcons();
+                    showStep(2);
+                }
+            } catch (err) {
+                btn.disabled = false;
+                btn.innerHTML = `<span>Continue with email</span><i data-lucide="arrow-right" class="h-4 w-4"></i>`;
+                if (window.lucide) lucide.createIcons();
+                showNotification('error', err.message || 'Failed to verify email address.');
+            }
+        }
+
+        // Step 2: Set Password continue
+        window.handlePasswordContinue = function() {
+            const nameInput = document.getElementById('name').value.trim();
+            const passwordInput = document.getElementById('password').value;
+            const confirmInput = document.getElementById('confirm_password').value;
+
+            if (!nameInput) {
+                showNotification('error', 'Please enter your full name.');
+                return;
+            }
+            if (!passwordInput || passwordInput.length < 6) {
+                showNotification('error', 'Password must be at least 6 characters.');
+                return;
+            }
+            if (passwordInput !== confirmInput) {
+                showNotification('error', 'Passwords do not match.');
+                return;
+            }
+
+            signupName = nameInput;
+            signupPassword = passwordInput;
+            showStep(3);
+        };
+
+        // Back from Role
+        window.goBackFromRole = function() {
+            if (isGoogleSignup) {
+                showStep(1);
+            } else {
+                showStep(2);
+            }
+        };
+
+        // Step 3: Select Role option
+        window.selectRole = function(role, cardEl) {
+            signupRole = role;
+            
+            // Visual feedback on selected card
+            document.querySelectorAll('.role-option-card').forEach(el => {
+                el.classList.remove('border-[#005bf7]', 'bg-blue-50/20');
+                const chevron = el.querySelector('i[data-lucide="chevron-right"]');
+                if (chevron) chevron.style.transform = 'translateX(0)';
+            });
+            cardEl.classList.add('border-[#005bf7]', 'bg-blue-50/20');
+            const chevron = cardEl.querySelector('i[data-lucide="chevron-right"]');
+            if (chevron) chevron.style.transform = 'translateX(4px)';
+
+            setTimeout(() => {
+                showStep(4);
+            }, 250);
+        };
+
+        // Step 4: Company Website Next clicked
+        window.handleWebsiteNext = async function() {
+            const websiteInput = document.getElementById('website').value.trim();
+            if (!websiteInput) {
+                showNotification('error', 'Please enter your company website.');
+                return;
+            }
+
+            showStep(5); // Show loading state
+
+            try {
+                const res = await apiCall('auth/analyze_website.php', 'POST', { website: websiteInput });
+                
+                // Save profile details
+                companyProfile = {
+                    company_name: res.company_name,
+                    role: signupRole,
+                    website: res.website || websiteInput,
+                    company_size: res.company_size,
+                    industry: res.industry,
+                    location: res.location,
+                    description: res.description
+                };
+
+                // Populate Step 6 view elements
+                document.getElementById('view-company-name').textContent = companyProfile.company_name;
+                document.getElementById('view-company-role').textContent = signupRole;
+                document.getElementById('view-company-website').textContent = companyProfile.website;
+                document.getElementById('view-company-size').textContent = companyProfile.company_size;
+                document.getElementById('view-company-industry').textContent = companyProfile.industry;
+                document.getElementById('view-company-location').textContent = companyProfile.location;
+
+                // Sync initials to avatar
+                const initials = companyProfile.company_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                document.getElementById('review-avatar').textContent = initials || 'CO';
+
+                // Sync inputs for edit mode
+                document.getElementById('edit-company-name').value = companyProfile.company_name;
+                document.getElementById('edit-company-role').value = signupRole;
+                document.getElementById('edit-company-size').value = companyProfile.company_size;
+                document.getElementById('edit-company-industry').value = companyProfile.industry;
+                document.getElementById('edit-company-location').value = companyProfile.location;
+
+                showStep(6);
+            } catch (err) {
+                showNotification('error', 'AI website profiling failed. Loading manual options.');
+                // Fallback details
+                companyProfile = {
+                    company_name: websiteInput.replace(/^(https?:\/\/)?(www\.)?/, '').split('.')[0].toUpperCase(),
+                    role: signupRole,
+                    website: websiteInput,
+                    company_size: "6 to 10 employees",
+                    industry: "Marketing and Advertising",
+                    location: "United States",
+                    description: ""
+                };
+                
+                document.getElementById('view-company-name').textContent = companyProfile.company_name;
+                document.getElementById('view-company-role').textContent = signupRole;
+                document.getElementById('view-company-website').textContent = companyProfile.website;
+                document.getElementById('view-company-size').textContent = companyProfile.company_size;
+                document.getElementById('view-company-industry').textContent = companyProfile.industry;
+                document.getElementById('view-company-location').textContent = companyProfile.location;
+                
+                document.getElementById('edit-company-name').value = companyProfile.company_name;
+                document.getElementById('edit-company-role').value = signupRole;
+                document.getElementById('edit-company-size').value = companyProfile.company_size;
+                document.getElementById('edit-company-industry').value = companyProfile.industry;
+                document.getElementById('edit-company-location').value = companyProfile.location;
+
+                showStep(6);
+            }
+        };
+
+        // Toggle Edit Mode in Review Card
+        window.toggleReviewEdit = function() {
+            isReviewEditMode = !isReviewEditMode;
+            const viewEls = ['view-company-name', 'view-company-role', 'view-company-website', 'view-company-size', 'view-company-industry', 'view-company-location'];
+            const editEls = ['edit-company-name', 'edit-company-role', 'edit-company-size', 'edit-company-industry', 'edit-company-location'];
+            
+            viewEls.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (isReviewEditMode) {
+                        if (id !== 'view-company-website' && id !== 'view-company-role') {
+                            el.classList.add('hidden');
+                        } else {
+                            el.style.opacity = '0';
+                        }
+                    } else {
+                        el.classList.remove('hidden');
+                        el.style.opacity = '1';
+                    }
+                }
+            });
+            
+            editEls.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (isReviewEditMode) el.classList.remove('hidden');
+                    else el.classList.add('hidden');
+                }
+            });
+
+            const btnText = document.getElementById('edit-btn-text');
+            const btnIcon = document.querySelector('#edit-toggle-btn i');
+            
+            if (isReviewEditMode) {
+                btnText.textContent = "Save";
+                if (btnIcon) btnIcon.setAttribute('data-lucide', 'save');
+            } else {
+                // Save edited values back to profile object
+                companyProfile.company_name = document.getElementById('edit-company-name').value.trim();
+                signupRole = document.getElementById('edit-company-role').value;
+                companyProfile.role = signupRole;
+                companyProfile.company_size = document.getElementById('edit-company-size').value;
+                companyProfile.industry = document.getElementById('edit-company-industry').value.trim();
+                companyProfile.location = document.getElementById('edit-company-location').value.trim();
+
+                // Update view labels
+                document.getElementById('view-company-name').textContent = companyProfile.company_name;
+                document.getElementById('view-company-role').textContent = signupRole;
+                document.getElementById('view-company-size').textContent = companyProfile.company_size;
+                document.getElementById('view-company-industry').textContent = companyProfile.industry;
+                document.getElementById('view-company-location').textContent = companyProfile.location;
+                
+                // Avatar initials update
+                const initials = companyProfile.company_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                document.getElementById('review-avatar').textContent = initials || 'CO';
+
+                btnText.textContent = "Edit";
+                if (btnIcon) btnIcon.setAttribute('data-lucide', 'edit-3');
+            }
+
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        };
+
+        // Navigation back/forward helpers
+        window.prevStep = function(step) {
+            showStep(step);
+        };
+
+        window.nextStep = function(step) {
+            showStep(step);
+        };
+
+        // Initialize Google SDK On Load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadGoogleOneTap();
+        });
+
+        // Submit Final Account Registration form
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Ensure any active changes are saved if edit mode is still open
+            if (isReviewEditMode) {
+                toggleReviewEdit();
+            }
+
+            const submitBtn = document.getElementById('submit-account-btn');
             submitBtn.disabled = true;
             submitBtn.innerHTML = `
                 <div class="flex items-center justify-center space-x-1.5">
                     <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Registering...</span>
+                    <span>Creating account...</span>
                 </div>
             `;
-            document.getElementById('otp-error').classList.add('hidden');
-
-            const payload = {
-                name: document.getElementById('name').value.trim(),
-                email: document.getElementById('email').value.trim(),
-                phone_number: document.getElementById('phone_number').value.trim(),
-                otp: otpCode,
-                password: document.getElementById('password').value,
-                confirm_password: document.getElementById('confirm_password').value,
-                user_type: document.getElementById('user_type').value,
-                job_title: document.getElementById('job_title').value.trim(),
-                experience_years: document.getElementById('experience_years').value,
-                skills: document.getElementById('skills').value.trim(),
-                company_name: document.getElementById('company_name').value.trim(),
-                website: document.getElementById('website').value.trim(),
-                portfolio_url: document.getElementById('portfolio_url').value.trim(),
-                linkedin_url: document.getElementById('linkedin_url').value.trim(),
-                about_me: document.getElementById('about_me').value.trim()
-            };
 
             try {
-                const data = await apiCall('auth/register.php', 'POST', payload);
-                showNotification('success', 'Registration and WhatsApp verification successful!');
-                
-                // Store token & user info
+                let data;
+                if (isGoogleSignup) {
+                    const payload = {
+                        action: 'register',
+                        id_token: googleIdToken,
+                        user_type: companyProfile.role,
+                        company_name: companyProfile.company_name,
+                        website: companyProfile.website,
+                        company_size: companyProfile.company_size,
+                        industry: companyProfile.industry,
+                        location: companyProfile.location,
+                        about_me: companyProfile.description
+                    };
+                    data = await apiCall('auth/google_auth.php', 'POST', payload);
+                } else {
+                    const payload = {
+                        name: signupName,
+                        email: signupEmail,
+                        password: signupPassword,
+                        confirm_password: signupPassword,
+                        user_type: companyProfile.role,
+                        company_name: companyProfile.company_name,
+                        website: companyProfile.website,
+                        company_size: companyProfile.company_size,
+                        industry: companyProfile.industry,
+                        location: companyProfile.location,
+                        about_me: companyProfile.description
+                    };
+                    data = await apiCall('auth/register.php', 'POST', payload);
+                }
+
+                showNotification('success', 'Registration successful!');
                 setAuthToken(data.token);
                 localStorage.setItem('linkpilot_user', JSON.stringify(data.user));
-                
-                // Redirect to SMTP/WhatsApp Configuration Setup onboarding
+
                 setTimeout(() => {
                     window.location.href = 'setup.html';
                 }, 1500);
@@ -961,14 +1067,11 @@
             } catch (err) {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = `
-                    <span>Verify & Register</span>
+                    <span>Yes, create my account</span>
                     <i data-lucide="check" class="h-4 w-4"></i>
                 `;
-                document.getElementById('otp-error').textContent = err.message || 'Verification failed. Please try again.';
-                document.getElementById('otp-error').classList.remove('hidden');
-                if (window.lucide) {
-                    lucide.createIcons();
-                }
+                if (window.lucide) lucide.createIcons();
+                showNotification('error', err.message || 'Registration failed. Please try again.');
             }
         });
     </script>

@@ -233,48 +233,97 @@
 
         // Draw builder interface structure
         container.innerHTML = `
+            <style>
+                /* Premium Drag & Drop Builder UI Color Fixes */
+                #builder-left-sidebar input,
+                #builder-left-sidebar select,
+                #builder-left-sidebar textarea,
+                #builder-right-sidebar input:not([type="color"]),
+                #builder-right-sidebar select,
+                #builder-right-sidebar textarea,
+                #test-email-modal input,
+                #test-email-modal select,
+                #test-email-modal textarea {
+                    background-color: #1e293b !important;
+                    color: #ffffff !important;
+                    border: 1px solid #334155 !important;
+                    border-radius: 8px !important;
+                    outline: none !important;
+                }
+                #builder-left-sidebar input:focus,
+                #builder-left-sidebar select:focus,
+                #builder-left-sidebar textarea:focus,
+                #builder-right-sidebar input:focus,
+                #builder-right-sidebar select:focus,
+                #builder-right-sidebar textarea:focus {
+                    border-color: #6366f1 !important;
+                }
+                #builder-left-sidebar label,
+                #builder-right-sidebar label,
+                #test-email-modal label {
+                    color: #cbd5e1 !important;
+                    font-weight: 700 !important;
+                    font-size: 11px !important;
+                    text-transform: uppercase !important;
+                    letter-spacing: 0.5px !important;
+                    display: block !important;
+                    margin-bottom: 5px !important;
+                    margin-top: 10px !important;
+                }
+                #builder-left-sidebar span,
+                #builder-right-sidebar span {
+                    color: #e2e8f0 !important;
+                }
+                #builder-template-name {
+                    background-color: #1e293b !important;
+                    color: #ffffff !important;
+                    border: 1px solid #334155 !important;
+                    border-radius: 6px !important;
+                    padding: 4px 8px !important;
+                }
+            </style>
             <div class="flex flex-col w-full h-full bg-[#0B132B] font-sans text-slate-200 overflow-hidden select-none">
                 
                 <!-- TOP HEADER ACTION BAR -->
                 <div class="h-14 border-b border-slate-800 bg-[#0F172A] px-6 flex items-center justify-between shrink-0 z-45 shadow-lg">
                     <div class="flex items-center space-x-3">
-                        <button onclick="exitEmailBuilder()" class="p-2 text-slate-400 hover:text-white bg-slate-900/50 hover:bg-slate-800/80 rounded-lg transition" title="Exit Builder">
+                        <button onclick="exitEmailBuilder()" style="background-color: #1e293b !important; color: #cbd5e1 !important; border: 1px solid #334155 !important;" class="p-2 hover:text-white rounded-lg transition" title="Exit Builder">
                             <i data-lucide="arrow-left" class="h-4 w-4"></i>
                         </button>
                         <div class="border-l border-slate-800 h-6 mx-1"></div>
                         <div class="flex flex-col">
-                            <input type="text" id="builder-template-name" onchange="updateTemplateDetails()" value="${templateName}" placeholder="Template Name" class="bg-transparent border-b border-transparent hover:border-slate-700 focus:border-indigo-500 focus:outline-none text-xs font-bold text-white py-0.5 max-w-[200px] transition">
+                            <input type="text" id="builder-template-name" onchange="updateTemplateDetails()" value="${templateName}" placeholder="Template Name" class="focus:border-indigo-500 focus:outline-none text-xs font-bold text-white py-0.5 max-w-[200px] transition">
                             <span id="autosave-status" class="text-[9px] text-slate-500 font-medium mt-0.5">Draft saved locally</span>
                         </div>
                     </div>
 
                     <!-- Responsive Mode Selectors -->
                     <div class="hidden md:flex items-center bg-slate-900 border border-slate-850 p-1 rounded-xl space-x-0.5 text-xs font-bold">
-                        <button onclick="setDeviceView('desktop')" id="btn-device-desktop" class="px-3 py-1.5 rounded-lg transition ${activeDevice === 'desktop' ? 'bg-indigo-600 text-white font-extrabold shadow' : 'text-slate-400 hover:text-slate-200'}">
+                        <button onclick="setDeviceView('desktop')" id="btn-device-desktop" style="background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" class="px-3 py-1.5 rounded-lg transition">
                             <i data-lucide="monitor" class="h-3.5 w-3.5 inline mr-1"></i>Desktop
                         </button>
-                        <button onclick="setDeviceView('tablet')" id="btn-device-tablet" class="px-3 py-1.5 rounded-lg transition ${activeDevice === 'tablet' ? 'bg-indigo-600 text-white font-extrabold shadow' : 'text-slate-400 hover:text-slate-200'}">
+                        <button onclick="setDeviceView('tablet')" id="btn-device-tablet" style="background-color: transparent !important; color: #94a3b8 !important;" class="px-3 py-1.5 rounded-lg transition">
                             <i data-lucide="tablet" class="h-3.5 w-3.5 inline mr-1"></i>Tablet
                         </button>
-                        <button onclick="setDeviceView('mobile')" id="btn-device-mobile" class="px-3 py-1.5 rounded-lg transition ${activeDevice === 'mobile' ? 'bg-indigo-600 text-white font-extrabold shadow' : 'text-slate-400 hover:text-slate-200'}">
+                        <button onclick="setDeviceView('mobile')" id="btn-device-mobile" style="background-color: transparent !important; color: #94a3b8 !important;" class="px-3 py-1.5 rounded-lg transition">
                             <i data-lucide="smartphone" class="h-3.5 w-3.5 inline mr-1"></i>Mobile
                         </button>
                     </div>
 
                     <!-- Action buttons -->
                     <div class="flex items-center space-x-2">
-                        <button onclick="builderUndo()" class="p-2 text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition" title="Undo">
+                        <button onclick="builderUndo()" style="background-color: #1e293b !important; color: #cbd5e1 !important; border: 1px solid #334155 !important;" class="p-2 hover:text-white rounded-lg transition" title="Undo">
                             <i data-lucide="undo-2" class="h-3.5 w-3.5"></i>
                         </button>
-                        <button onclick="builderRedo()" class="p-2 text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition" title="Redo">
+                        <button onclick="builderRedo()" style="background-color: #1e293b !important; color: #cbd5e1 !important; border: 1px solid #334155 !important;" class="p-2 hover:text-white rounded-lg transition" title="Redo">
                             <i data-lucide="redo-2" class="h-3.5 w-3.5"></i>
                         </button>
                         <div class="border-l border-slate-800 h-6 mx-1"></div>
                         
-                        <button onclick="openTestEmailModal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-bold rounded-lg border border-slate-700/50 transition">
+                        <button onclick="openTestEmailModal()" style="background-color: #1e293b !important; color: #cbd5e1 !important; border: 1px solid #334155 !important;" class="px-3 py-1.5 text-xs font-bold rounded-lg transition">
                             <i data-lucide="send" class="h-3.5 w-3.5 inline mr-1.5 text-blue-400"></i>Test Email
                         </button>
-                        <button onclick="saveTemplateDraft()" id="save-template-btn" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-750 text-white text-xs font-black rounded-lg shadow-md transition" style="color: #ffffff !important; background-color: #4F46E5 !important;">
+                        <button onclick="saveTemplateDraft()" id="save-template-btn" style="background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" class="px-4 py-1.5 text-white text-xs font-black rounded-lg shadow-md transition">
                             Save Draft
                         </button>
                     </div>
@@ -402,10 +451,16 @@
         const label = document.getElementById('canvas-device-label');
         if (!frame) return;
 
-        // Reset buttons active class
-        document.getElementById('btn-device-desktop').className = `px-3 py-1.5 rounded-lg transition ${device === 'desktop' ? 'bg-indigo-600 text-white font-extrabold shadow' : 'text-slate-400 hover:text-slate-200'}`;
-        document.getElementById('btn-device-tablet').className = `px-3 py-1.5 rounded-lg transition ${device === 'tablet' ? 'bg-indigo-600 text-white font-extrabold shadow' : 'text-slate-400 hover:text-slate-200'}`;
-        document.getElementById('btn-device-mobile').className = `px-3 py-1.5 rounded-lg transition ${device === 'mobile' ? 'bg-indigo-600 text-white font-extrabold shadow' : 'text-slate-400 hover:text-slate-200'}`;
+        // Reset buttons active style
+        const desktopBtn = document.getElementById('btn-device-desktop');
+        const tabletBtn = document.getElementById('btn-device-tablet');
+        const mobileBtn = document.getElementById('btn-device-mobile');
+
+        if (desktopBtn && tabletBtn && mobileBtn) {
+            desktopBtn.style.cssText = device === 'desktop' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #94a3b8 !important;";
+            tabletBtn.style.cssText = device === 'tablet' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #94a3b8 !important;";
+            mobileBtn.style.cssText = device === 'mobile' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #94a3b8 !important;";
+        }
 
         if (device === 'desktop') {
             frame.style.maxWidth = "760px";
@@ -425,11 +480,16 @@
         const container = document.getElementById('left-sidebar-scroll-area');
         if (!container) return;
 
-        // Reset active tabs highlight
-        document.getElementById('tab-left-elements').className = `flex-grow py-1.5 rounded-md transition ${tab === 'elements' ? 'bg-indigo-600 text-white font-extrabold' : 'text-slate-400 hover:text-white'}`;
-        document.getElementById('tab-left-sections').className = `flex-grow py-1.5 rounded-md transition ${tab === 'sections' ? 'bg-indigo-600 text-white font-extrabold' : 'text-slate-400 hover:text-white'}`;
-        document.getElementById('tab-left-ai').className = `flex-grow py-1.5 rounded-md transition ${tab === 'ai' ? 'bg-indigo-600 text-white font-extrabold' : 'text-slate-400 hover:text-white'}`;
-        document.getElementById('tab-left-brand').className = `flex-grow py-1.5 rounded-md transition ${tab === 'brand' ? 'bg-indigo-600 text-white font-extrabold' : 'text-slate-400 hover:text-white'}`;
+        // Reset active tabs highlight using inline style.cssText
+        const elTab = document.getElementById('tab-left-elements');
+        const secTab = document.getElementById('tab-left-sections');
+        const aiTab = document.getElementById('tab-left-ai');
+        const brandTab = document.getElementById('tab-left-brand');
+
+        if (elTab) elTab.style.cssText = tab === 'elements' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #94a3b8 !important;";
+        if (secTab) secTab.style.cssText = tab === 'sections' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #94a3b8 !important;";
+        if (aiTab) aiTab.style.cssText = tab === 'ai' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #94a3b8 !important;";
+        if (brandTab) brandTab.style.cssText = tab === 'brand' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #94a3b8 !important;";
 
         if (tab === 'elements') {
             renderElementsList(container);
@@ -649,7 +709,7 @@
 
     // Drag start event
     window.onBuilderDragStart = function(ev, type) {
-        ev.dataTransfer.setData("element-type", type);
+        ev.dataTransfer.setData("text", type);
         ev.dataTransfer.effectAllowed = "move";
     };
 
@@ -855,7 +915,7 @@
         const dropZone = ev.currentTarget;
         dropZone.classList.remove("border-indigo-400", "bg-indigo-50/20");
 
-        const elType = ev.dataTransfer.getData("element-type");
+        const elType = ev.dataTransfer.getData("text");
         if (!elType) return;
 
         recordState();
@@ -916,7 +976,7 @@
             // Drop inside existing section
             const sec = canvasData.find(s => s.id === targetSectionId);
             if (sec) {
-                if (insertIndex !== null) {
+                if (insertIndex !== null && insertIndex !== undefined) {
                     sec.elements.splice(insertIndex, 0, newEl);
                 } else {
                     sec.elements.push(newEl);

@@ -389,20 +389,7 @@
                         <!-- Canvas Header Area Controls (matching layout) -->
                         <div class="w-full bg-white border-b border-slate-200/80 py-2.5 px-6 flex items-center justify-between shrink-0 text-slate-550 select-none z-30 shadow-2xs">
                             <div class="w-full max-w-[760px] mx-auto flex items-center justify-between">
-                                <div class="flex items-center space-x-1.5 bg-slate-100 border border-slate-200/50 p-1 rounded-xl">
-                                    <button onclick="setDeviceView('desktop')" class="w-8 h-8 rounded-lg flex items-center justify-center bg-white border border-slate-200/60 shadow-2xs hover:bg-slate-50 transition text-slate-700" title="Desktop View">
-                                        <i data-lucide="layout" class="h-4 w-4"></i>
-                                    </button>
-                                    <button onclick="setDeviceView('mobile')" class="w-8 h-8 flex items-center justify-center hover:bg-white rounded-lg transition text-slate-500 hover:text-slate-800" title="Mobile View">
-                                        <i data-lucide="smartphone" class="h-4 w-4"></i>
-                                    </button>
-                                    <button onclick="setDeviceView('tablet')" class="w-8 h-8 rounded-lg flex items-center justify-center bg-white border border-slate-200/60 shadow-2xs hover:bg-slate-50 transition text-slate-700" title="Tablet View">
-                                        <i data-lucide="rotate-cw" class="h-4 w-4"></i>
-                                    </button>
-                                </div>
-                                
                                 <div class="flex items-center space-x-4 text-xs font-bold">
-                                    <div class="h-4 border-l border-slate-300 mx-1"></div>
                                     <button onclick="builderUndo()" class="text-slate-655 hover:text-slate-900 transition flex items-center space-x-1">
                                         <i data-lucide="undo" class="h-3.5 w-3.5 text-slate-505"></i><span>Undo</span>
                                     </button>

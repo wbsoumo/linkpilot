@@ -90,7 +90,7 @@
 <body class="h-full bg-slate-50 flex items-stretch overflow-x-hidden">
     
     <!-- Left: Form Area (50% on desktop, 100% on mobile) -->
-    <div class="w-full lg:w-1/2 flex lg:items-center items-start justify-center bg-white px-6 sm:px-12 md:px-16 py-12 relative z-10">
+    <div class="w-full lg:w-1/2 flex lg:items-center items-start justify-center bg-white px-6 sm:px-12 md:px-16 py-12 relative z-10 overflow-y-auto h-screen">
         <div class="max-w-[480px] w-full flex flex-col min-h-full justify-between">
             
             <!-- Top brand logo -->
@@ -298,7 +298,40 @@
                                 <i data-lucide="arrow-left" class="h-4 w-4"></i>
                                 <span>Back</span>
                             </button>
-                            <button type="button" id="website-next-btn" onclick="handleWebsiteNext()" style="color: #ffffff !important;" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10">
+                            <div class="flex items-center space-x-2">
+                                <button type="button" onclick="skipWebsite()" class="px-4 py-2.5 text-xs font-bold rounded-xl text-slate-500 hover:text-slate-850 hover:bg-slate-105/50 transition">
+                                    Skip
+                                </button>
+                                <button type="button" id="website-next-btn" onclick="handleWebsiteNext()" style="color: #ffffff !important;" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10">
+                                    <span style="color: #ffffff !important;">Next</span>
+                                    <i data-lucide="arrow-right" class="h-4 w-4" style="color: #ffffff !important;"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 4.5: LinkedIn URL (If website skipped) -->
+                    <div class="step-container auth-view-transition space-y-5 hidden" id="step-4-5">
+                        <div class="text-left space-y-1">
+                            <h3 class="text-xl font-extrabold text-slate-900">LinkedIn profile</h3>
+                            <p class="text-xs text-slate-500">Enter your LinkedIn profile URL to help personalize your account.</p>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="relative rounded-xl shadow-sm">
+                                <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 pointer-events-none">
+                                    <i data-lucide="linkedin" class="h-5 w-5"></i>
+                                </span>
+                                <input id="linkedin_url" name="linkedin_url" type="text" class="block w-full pl-11 pr-4 py-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#005bf7] focus:border-[#005bf7] sm:text-sm font-semibold transition-all duration-200" placeholder="https://linkedin.com/in/username">
+                            </div>
+                        </div>
+                        
+                        <div class="pt-4 flex justify-between items-center">
+                            <button type="button" onclick="prevStep(4)" class="px-5 py-2.5 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition flex items-center space-x-1.5">
+                                <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                                <span>Back</span>
+                            </button>
+                            <button type="button" onclick="handleLinkedinNext()" style="color: #ffffff !important;" class="px-6 py-2.5 text-xs font-bold rounded-xl text-white bg-[#005bf7] hover:bg-[#0052cc] transition flex items-center space-x-1.5 shadow-md shadow-blue-500/10">
                                 <span style="color: #ffffff !important;">Next</span>
                                 <i data-lucide="arrow-right" class="h-4 w-4" style="color: #ffffff !important;"></i>
                             </button>
@@ -658,6 +691,13 @@
             description: ""
         };
 
+        const roleMap = {
+            'Business Owner': 'Owner',
+            'Sales Professional': 'Manager',
+            'Agency': 'Employee',
+            'Freelancer': 'Student, Freelancer, or Intern'
+        };
+
         // Update progress bar width
         function updateProgressBar() {
             const progressBar = document.getElementById('progress-bar');
@@ -665,17 +705,18 @@
             // Map step to progress width percentage
             let progressPercent = 20;
             if (isGoogleSignup) {
-                // If Google, steps are: 1 (Welcome), 3 (Role), 4 (Website), 5 (Loading), 6 (Review)
+                // If Google, steps are: 1 (Welcome), 3 (Role), 4 (Website), 4-5 (LinkedIn), 5 (Loading), 6 (Review)
                 if (currentStep === 1) progressPercent = 20;
-                else if (currentStep === 3) progressPercent = 50;
-                else if (currentStep === 4) progressPercent = 70;
-                else if (currentStep === 5) progressPercent = 90;
+                else if (currentStep === 3) progressPercent = 40;
+                else if (currentStep === 4) progressPercent = 60;
+                else if (currentStep === '4-5') progressPercent = 80;
                 else if (currentStep === 6) progressPercent = 100;
             } else {
                 if (currentStep === 1) progressPercent = 15;
-                else if (currentStep === 2) progressPercent = 35;
-                else if (currentStep === 3) progressPercent = 55;
-                else if (currentStep === 4) progressPercent = 75;
+                else if (currentStep === 2) progressPercent = 30;
+                else if (currentStep === 3) progressPercent = 45;
+                else if (currentStep === 4) progressPercent = 60;
+                else if (currentStep === '4-5') progressPercent = 80;
                 else if (currentStep === 5) progressPercent = 90;
                 else if (currentStep === 6) progressPercent = 100;
             }
@@ -695,8 +736,8 @@
             // Hide signup prompt at bottom on latter stages to keep interface focused
             const prompt = document.getElementById('signup-prompt');
             if (prompt) {
-                if (step > 1) prompt.classList.add('invisible');
-                else prompt.classList.remove('invisible');
+                if (step === 1) prompt.classList.remove('invisible');
+                else prompt.classList.add('invisible');
             }
             
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -883,20 +924,24 @@
                     company_size: res.company_size,
                     industry: res.industry,
                     location: res.location,
-                    description: res.description
+                    description: res.description,
+                    linkedin_url: ""
                 };
 
                 // Populate Step 6 view elements
                 document.getElementById('view-company-name').textContent = companyProfile.company_name;
-                document.getElementById('view-company-role').textContent = signupRole;
+                document.getElementById('view-company-role').textContent = roleMap[signupRole] || signupRole;
                 document.getElementById('view-company-website').textContent = companyProfile.website;
                 document.getElementById('view-company-size').textContent = companyProfile.company_size;
                 document.getElementById('view-company-industry').textContent = companyProfile.industry;
                 document.getElementById('view-company-location').textContent = companyProfile.location;
 
-                // Sync initials to avatar
+                // Sync initials & favicon to avatar
                 const initials = companyProfile.company_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-                document.getElementById('review-avatar').textContent = initials || 'CO';
+                const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(companyProfile.website)}&sz=128`;
+                document.getElementById('review-avatar').innerHTML = `
+                    <img src="${faviconUrl}" class="w-10 h-10 object-contain rounded-lg" onerror="this.outerHTML='<span>${initials}</span>'">
+                `;
 
                 // Sync inputs for edit mode
                 document.getElementById('edit-company-name').value = companyProfile.company_name;
@@ -916,16 +961,24 @@
                     company_size: "6 to 10 employees",
                     industry: "Marketing and Advertising",
                     location: "United States",
-                    description: ""
+                    description: "",
+                    linkedin_url: ""
                 };
                 
                 document.getElementById('view-company-name').textContent = companyProfile.company_name;
-                document.getElementById('view-company-role').textContent = signupRole;
+                document.getElementById('view-company-role').textContent = roleMap[signupRole] || signupRole;
                 document.getElementById('view-company-website').textContent = companyProfile.website;
                 document.getElementById('view-company-size').textContent = companyProfile.company_size;
                 document.getElementById('view-company-industry').textContent = companyProfile.industry;
                 document.getElementById('view-company-location').textContent = companyProfile.location;
                 
+                // Sync initials & favicon to avatar
+                const initials = companyProfile.company_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(companyProfile.website)}&sz=128`;
+                document.getElementById('review-avatar').innerHTML = `
+                    <img src="${faviconUrl}" class="w-10 h-10 object-contain rounded-lg" onerror="this.outerHTML='<span>${initials}</span>'">
+                `;
+
                 document.getElementById('edit-company-name').value = companyProfile.company_name;
                 document.getElementById('edit-company-role').value = signupRole;
                 document.getElementById('edit-company-size').value = companyProfile.company_size;
@@ -934,6 +987,59 @@
 
                 showStep(6);
             }
+        };
+
+        // Skip website screen
+        window.skipWebsite = function() {
+            document.getElementById('website').value = '';
+            showStep('4-5');
+            setTimeout(() => document.getElementById('linkedin_url').focus(), 150);
+        };
+
+        // Handle Linkedin Next clicked
+        window.handleLinkedinNext = function() {
+            const linkedinInput = document.getElementById('linkedin_url').value.trim();
+            if (!linkedinInput) {
+                showNotification('error', 'Please enter your LinkedIn profile URL.');
+                return;
+            }
+            if (!linkedinInput.includes('linkedin.com/')) {
+                showNotification('error', 'Please enter a valid LinkedIn URL.');
+                return;
+            }
+
+            // Sync initials and populate step 6
+            companyProfile = {
+                company_name: signupName ? signupName + "'s Company" : "My Company",
+                role: signupRole,
+                website: "",
+                company_size: "1-5 employees",
+                industry: "Software Development",
+                location: "Based in India",
+                description: "",
+                linkedin_url: linkedinInput
+            };
+
+            // Populate Step 6 view elements
+            document.getElementById('view-company-name').textContent = companyProfile.company_name;
+            document.getElementById('view-company-role').textContent = roleMap[signupRole] || signupRole;
+            document.getElementById('view-company-website').textContent = "LinkedIn Profile";
+            document.getElementById('view-company-size').textContent = companyProfile.company_size;
+            document.getElementById('view-company-industry').textContent = companyProfile.industry;
+            document.getElementById('view-company-location').textContent = companyProfile.location;
+
+            // Avatar fallback (initials since no website favicon)
+            const initials = companyProfile.company_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('review-avatar').innerHTML = `<span>${initials}</span>`;
+
+            // Sync inputs for edit mode
+            document.getElementById('edit-company-name').value = companyProfile.company_name;
+            document.getElementById('edit-company-role').value = signupRole;
+            document.getElementById('edit-company-size').value = companyProfile.company_size;
+            document.getElementById('edit-company-industry').value = companyProfile.industry;
+            document.getElementById('edit-company-location').value = companyProfile.location;
+
+            showStep(6);
         };
 
         // Toggle Edit Mode in Review Card
@@ -983,14 +1089,21 @@
 
                 // Update view labels
                 document.getElementById('view-company-name').textContent = companyProfile.company_name;
-                document.getElementById('view-company-role').textContent = signupRole;
+                document.getElementById('view-company-role').textContent = roleMap[signupRole] || signupRole;
                 document.getElementById('view-company-size').textContent = companyProfile.company_size;
                 document.getElementById('view-company-industry').textContent = companyProfile.industry;
                 document.getElementById('view-company-location').textContent = companyProfile.location;
                 
-                // Avatar initials update
+                // Avatar initials/favicon update
                 const initials = companyProfile.company_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-                document.getElementById('review-avatar').textContent = initials || 'CO';
+                if (companyProfile.website) {
+                    const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(companyProfile.website)}&sz=128`;
+                    document.getElementById('review-avatar').innerHTML = `
+                        <img src="${faviconUrl}" class="w-10 h-10 object-contain rounded-lg" onerror="this.outerHTML='<span>${initials}</span>'">
+                    `;
+                } else {
+                    document.getElementById('review-avatar').innerHTML = `<span>${initials}</span>`;
+                }
 
                 btnText.textContent = "Edit";
                 if (btnIcon) btnIcon.setAttribute('data-lucide', 'edit-3');
@@ -1045,6 +1158,7 @@
                         company_size: companyProfile.company_size,
                         industry: companyProfile.industry,
                         location: companyProfile.location,
+                        linkedin_url: companyProfile.linkedin_url || "",
                         about_me: companyProfile.description
                     };
                     data = await apiCall('auth/google_auth.php', 'POST', payload);
@@ -1060,6 +1174,7 @@
                         company_size: companyProfile.company_size,
                         industry: companyProfile.industry,
                         location: companyProfile.location,
+                        linkedin_url: companyProfile.linkedin_url || "",
                         about_me: companyProfile.description
                     };
                     data = await apiCall('auth/register.php', 'POST', payload);

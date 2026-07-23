@@ -376,22 +376,37 @@
                         
                         <!-- Canvas Header Area Controls (matching layout) -->
                         <div class="w-full max-w-[760px] mx-auto mt-4 px-4 flex items-center justify-between shrink-0 text-slate-550 select-none">
-                            <div class="flex items-center space-x-2 bg-slate-100 border border-slate-200 p-0.5 rounded-lg">
-                                <button onclick="setDeviceView('mobile')" class="p-1 hover:bg-white text-slate-500 hover:text-slate-800 rounded transition" title="Portrait View"><i data-lucide="smartphone" class="h-3.5 w-3.5"></i></button>
-                                <button onclick="setDeviceView('desktop')" class="p-1 hover:bg-white text-slate-500 hover:text-slate-800 rounded transition" title="Landscape View"><i data-lucide="monitor" class="h-3.5 w-3.5"></i></button>
-                                <button onclick="setDeviceView('tablet')" class="p-1 hover:bg-white text-slate-500 hover:text-slate-800 rounded transition" title="Rotate Canvas"><i data-lucide="rotate-cw" class="h-3.5 w-3.5"></i></button>
-                            </div>
-                            <div class="flex items-center space-x-4 text-xs font-bold">
-                                <button onclick="builderUndo()" class="text-slate-500 hover:text-slate-800 transition flex items-center"><i data-lucide="undo" class="h-3 w-3 mr-1"></i>Undo</button>
-                                <button onclick="builderRedo()" class="text-slate-500 hover:text-slate-800 transition flex items-center"><i data-lucide="redo" class="h-3 w-3 mr-1"></i>Redo</button>
-                                <button class="text-slate-500 hover:text-slate-800 transition flex items-center"><i data-lucide="history" class="h-3 w-3 mr-1"></i>Version History</button>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <button onclick="setLeftSidebarTab('ai')" class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-black text-slate-700 flex items-center transition shadow-2xs">
-                                    <i data-lucide="sparkles" class="h-3 w-3 text-purple-500 mr-1"></i> AI Generate
+                            <div class="flex items-center space-x-1.5 bg-slate-100 border border-slate-200/50 p-1 rounded-xl">
+                                <button onclick="setDeviceView('desktop')" class="w-8 h-8 rounded-lg flex items-center justify-center bg-white border border-slate-200/60 shadow-2xs hover:bg-slate-50 transition text-slate-700" title="Desktop View">
+                                    <i data-lucide="layout" class="h-4 w-4"></i>
                                 </button>
-                                <button onclick="toggleCanvasCodeView()" id="btn-canvas-code-view" class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-black text-slate-700 flex items-center transition shadow-2xs">
-                                    <i data-lucide="code" class="h-3 w-3 text-slate-500 mr-1"></i> Code View
+                                <button onclick="setDeviceView('mobile')" class="w-8 h-8 flex items-center justify-center hover:bg-white rounded-lg transition text-slate-500 hover:text-slate-800" title="Mobile View">
+                                    <i data-lucide="smartphone" class="h-4 w-4"></i>
+                                </button>
+                                <button onclick="setDeviceView('tablet')" class="w-8 h-8 rounded-lg flex items-center justify-center bg-white border border-slate-200/60 shadow-2xs hover:bg-slate-50 transition text-slate-700" title="Tablet View">
+                                    <i data-lucide="rotate-cw" class="h-4 w-4"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="flex items-center space-x-4 text-xs font-bold">
+                                <div class="h-4 border-l border-slate-300 mx-1"></div>
+                                <button onclick="builderUndo()" class="text-slate-650 hover:text-slate-900 transition flex items-center space-x-1">
+                                    <i data-lucide="undo" class="h-3.5 w-3.5 text-slate-500"></i><span>Undo</span>
+                                </button>
+                                <button onclick="builderRedo()" class="text-slate-350 hover:text-slate-500 transition flex items-center space-x-1">
+                                    <i data-lucide="redo" class="h-3.5 w-3.5 text-slate-300"></i><span>Redo</span>
+                                </button>
+                                <button class="text-slate-650 hover:text-slate-900 transition flex items-center space-x-1">
+                                    <i data-lucide="history" class="h-3.5 w-3.5 text-slate-500"></i><span>Version History</span>
+                                </button>
+                            </div>
+
+                            <div class="flex items-center space-x-3.5">
+                                <button onclick="setLeftSidebarTab('ai')" class="px-4 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 rounded-xl text-xs font-black text-[#6D5EF5] flex items-center space-x-2 transition shadow-xs">
+                                    <i data-lucide="sparkles" class="h-3.5 w-3.5 text-[#6D5EF5]"></i> <span>AI Generate</span>
+                                </button>
+                                <button onclick="toggleCanvasCodeView()" id="btn-canvas-code-view" class="px-3 py-1.5 hover:bg-slate-100 border border-transparent hover:border-slate-200 text-slate-650 hover:text-slate-900 rounded-xl text-xs font-black flex items-center space-x-1.5 transition">
+                                    <i data-lucide="code-2" class="h-3.5 w-3.5 text-slate-500"></i> <span>Code View</span>
                                 </button>
                             </div>
                         </div>

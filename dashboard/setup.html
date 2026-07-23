@@ -1308,73 +1308,85 @@
         <!-- STEP 5: Complete -->
         <div class="wizard-pane space-y-4 hidden animate-fade-in" id="step-pane-5">
             <div
-                class="bg-gradient-to-br from-emerald-50/40 via-white to-emerald-50/10 border border-emerald-200/40 rounded-3xl p-5 sm:p-6 shadow-premium text-slate-800 space-y-5 text-center relative overflow-hidden">
+                class="bg-white border border-slate-200/60 rounded-3xl p-8 sm:p-10 shadow-xl text-slate-800 space-y-6 text-center relative overflow-hidden">
 
                 <!-- Celebration Top Header -->
-                <div class="flex flex-col items-center space-y-2.5">
+                <div class="flex flex-col items-center space-y-3.5">
                     <!-- Bouncing checkmark Lottie -->
-                    <div class="h-36 w-44 flex items-center justify-center relative overflow-visible">
-                        <dotlottie-wc src="https://lottie.host/cfa352e5-8b68-4f33-a775-fd9b8a4b230d/GQ9iFpaOtg.lottie" width="220" height="197" style="width: 220px; height: 197px; display: block;" autoplay loop></dotlottie-wc>
+                    <div class="h-32 w-32 flex items-center justify-center relative overflow-visible">
+                        <dotlottie-wc src="https://lottie.host/172c6b6a-26ef-498f-923c-ad586cca7a19/g6ksXEEHlz.lottie" width="130" height="130" style="width: 130px; height: 130px; display: block;" autoplay loop></dotlottie-wc>
                     </div>
-                    <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Workspace Fully Activated!</h2>
-                    <p class="text-xs text-slate-500 font-semibold max-w-sm mx-auto leading-relaxed">
+                    <!-- Success Pill -->
+                    <div class="inline-flex items-center space-x-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black tracking-widest uppercase border border-emerald-100/50 shadow-2xs">
+                        <i data-lucide="rocket" class="h-3.5 w-3.5 animate-bounce"></i>
+                        <span>SUCCESS</span>
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Workspace Fully Activated!</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 font-semibold max-w-lg mx-auto leading-relaxed mt-1">
                         Congratulations! Your outbound mail servers, incoming syncer, and Meta Cloud API integrations
                         are operational and linked to the AI Core engines.</p>
                 </div>
 
                 <!-- Configured Checklist -->
                 <div
-                    class="max-w-lg mx-auto bg-white border border-slate-200/80 rounded-2xl p-4 text-left grid grid-cols-1 sm:grid-cols-2 gap-3 shadow-2xs">
-                    <div class="flex items-center space-x-3 text-xs font-semibold text-slate-700">
-                        <div
-                            class="w-6 h-6 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
-                            <i data-lucide="check" class="h-4.5 w-4.5"></i>
+                    class="max-w-2xl mx-auto bg-white border border-slate-100 rounded-2xl p-4 text-left grid grid-cols-1 sm:grid-cols-2 gap-4 shadow-3xs">
+                    <!-- SMTP Outbound Server -->
+                    <div class="flex items-center justify-between p-3 border border-slate-100 rounded-xl hover:bg-slate-50/40 transition">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-9 h-9 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center shrink-0 border border-blue-100/50">
+                                <i data-lucide="mail" class="h-4.5 w-4.5"></i>
+                            </div>
+                            <span class="text-xs font-bold text-slate-700">SMTP Outbound Server</span>
                         </div>
-                        <span class="flex-grow truncate">SMTP Outbound Server</span>
-                        <span
-                            class="text-[9px] font-black text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full uppercase shrink-0">Active</span>
+                        <span class="text-[9px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100/60 px-2 py-0.5 rounded-full uppercase shrink-0">Active</span>
                     </div>
-                    <div class="flex items-center space-x-3 text-xs font-semibold text-slate-700">
-                        <div
-                            class="w-6 h-6 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
-                            <i data-lucide="check" class="h-4.5 w-4.5"></i>
+
+                    <!-- IMAP Incoming Syncer -->
+                    <div class="flex items-center justify-between p-3 border border-slate-100 rounded-xl hover:bg-slate-50/40 transition">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-9 h-9 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center shrink-0 border border-purple-100/50">
+                                <i data-lucide="download" class="h-4.5 w-4.5"></i>
+                            </div>
+                            <span class="text-xs font-bold text-slate-700">IMAP Incoming Syncer</span>
                         </div>
-                        <span class="flex-grow truncate">IMAP Incoming Syncer</span>
-                        <span
-                            class="text-[9px] font-black text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full uppercase shrink-0">Active</span>
+                        <span class="text-[9px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100/60 px-2 py-0.5 rounded-full uppercase shrink-0">Active</span>
                     </div>
-                    <div class="flex items-center space-x-3 text-xs font-semibold text-slate-700">
-                        <div
-                            class="w-6 h-6 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
-                            <i data-lucide="check" class="h-4.5 w-4.5"></i>
+
+                    <!-- WhatsApp Cloud API -->
+                    <div class="flex items-center justify-between p-3 border border-slate-100 rounded-xl hover:bg-slate-50/40 transition">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center shrink-0 border border-emerald-100/50">
+                                <i data-lucide="message-square" class="h-4.5 w-4.5"></i>
+                            </div>
+                            <span class="text-xs font-bold text-slate-700">WhatsApp Cloud API</span>
                         </div>
-                        <span class="flex-grow truncate">WhatsApp Cloud API</span>
-                        <span
-                            class="text-[9px] font-black text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full uppercase shrink-0">Connected</span>
+                        <span class="text-[9px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100/60 px-2 py-0.5 rounded-full uppercase shrink-0">Connected</span>
                     </div>
-                    <div class="flex items-center space-x-3 text-xs font-semibold text-slate-700">
-                        <div
-                            class="w-6 h-6 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
-                            <i data-lucide="check" class="h-4.5 w-4.5"></i>
+
+                    <!-- Gemini AI Reply Agent -->
+                    <div class="flex items-center justify-between p-3 border border-slate-100 rounded-xl hover:bg-slate-50/40 transition">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-9 h-9 bg-cyan-50 text-cyan-600 rounded-full flex items-center justify-center shrink-0 border border-cyan-100/50">
+                                <i data-lucide="sparkles" class="h-4.5 w-4.5"></i>
+                            </div>
+                            <span class="text-xs font-bold text-slate-700">Gemini AI Reply Agent</span>
                         </div>
-                        <span class="flex-grow truncate">Gemini AI Reply Agent</span>
-                        <span
-                            class="text-[9px] font-black text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full uppercase shrink-0">Active</span>
+                        <span class="text-[9px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100/60 px-2 py-0.5 rounded-full uppercase shrink-0">Active</span>
                     </div>
                 </div>
 
                 <!-- Launch Button Section -->
                 <div class="pt-4 border-t border-slate-100/80 flex flex-col items-center space-y-2">
-                    <button onclick="window.location.href='index.html';"
-                        class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-glow-success transform hover:-translate-y-0.5 duration-350 cursor-pointer flex items-center space-x-2"
+                    <button onclick="launchWorkspaceDashboard(this)"
+                        class="px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-650 hover:to-teal-650 hover:shadow-glow-success text-white text-xs font-bold rounded-xl transition transform hover:-translate-y-0.5 duration-350 cursor-pointer flex items-center justify-center space-x-2"
                         style="color: #ffffff !important;">
                         <span style="color: #ffffff !important;">Launch AI Workspace Dashboard</span>
                         <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
                     </button>
                     <p class="text-[9px] text-slate-400 font-bold">Redirecting you to campaign setup after launch.</p>
                     <button type="button" onclick="goToStep(4)"
-                        class="text-xs font-semibold text-slate-450 hover:text-slate-650 transition cursor-pointer border-0 bg-transparent flex items-center space-x-1 mt-1">
-                        <i data-lucide="arrow-left" class="h-3 w-3"></i>
+                        class="text-xs font-semibold text-blue-600 hover:text-blue-700 transition cursor-pointer border-0 bg-transparent flex items-center space-x-1.5 mt-2">
+                        <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
                         <span>Back to Setup Details</span>
                     </button>
                 </div>
@@ -1973,6 +1985,25 @@
                 badge.textContent = "Active";
             }
             goToStep(5); // Go to step 5 (Complete)
+        };
+
+        window.launchWorkspaceDashboard = function (button) {
+            if (button.disabled) return;
+            button.disabled = true;
+            button.style.opacity = '0.85';
+            button.style.cursor = 'not-allowed';
+            
+            button.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span style="color: #ffffff !important;">Launching Dashboard...</span>
+            `;
+
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2000);
         };
 
         if (window.lucide) {

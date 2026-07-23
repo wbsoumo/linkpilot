@@ -3,14 +3,17 @@
 
 require_once __DIR__ . '/../../config.php';
 
-// Only allow execution from CLI
-if (php_sapi_name() !== 'cli') {
-    die("This script can only be run via CLI command line.\n");
+$is_cli = (php_sapi_name() === 'cli');
+
+if (!$is_cli) {
+    header('Content-Type: text/html; charset=utf-8');
+    echo "<!DOCTYPE html><html><head><title>Database Migration</title><style>body{font-family:monospace;background:#f8fafc;color:#1e293b;padding:20px;line-height:1.6;}h2{color:#6D5EF5;}.success{color:#16a34a;}.info{color:#475569;}.error{color:#dc2626;font-weight:bold;}</style></head><body>";
+    echo "<h2>Starting user_profiles table columns migration...</h2><hr><pre>";
+} else {
+    echo "Starting user_profiles table columns migration...\n";
 }
 
 $db = Database::getConnection();
-
-echo "Starting user_profiles table columns migration...\n";
 
 $queries = [
     "ALTER TABLE `user_profiles` ADD COLUMN `company_size` VARCHAR(100) DEFAULT NULL",
@@ -33,15 +36,31 @@ $queries = [
 foreach ($queries as $q) {
     try {
         $db->exec($q);
-        echo "SUCCESS: $q\n";
+        if ($is_cli) {
+            echo "SUCCESS: $q\n";
+        } else {
+            echo "<span class='success'>[SUCCESS]</span> $q<br>";
+        }
     } catch (PDOException $e) {
         // If column already exists (SQLSTATE 42S21 or duplicate column), ignore it
         if ($e->getCode() === '42S21' || strpos($e->getMessage(), 'Duplicate column name') !== false) {
-            echo "INFO: Column already exists.\n";
+            if ($is_cli) {
+                echo "INFO: Column already exists.\n";
+            } else {
+                echo "<span class='info'>[INFO]</span> Column already exists for: $q<br>";
+            }
         } else {
-            echo "ERROR: Failed to run query: $q. Message: " . $e->getMessage() . "\n";
+            if ($is_cli) {
+                echo "ERROR: Failed to run query: $q. Message: " . $e->getMessage() . "\n";
+            } else {
+                echo "<span class='error'>[ERROR]</span> Failed to run query: $q. Message: " . $e->getMessage() . "<br>";
+            }
         }
     }
 }
 
-echo "Migration complete.\n";
+if ($is_cli) {
+    echo "Migration complete.\n";
+} else {
+    echo "</pre><hr><h3>Migration complete.</h3></body></html>";
+}

@@ -1623,14 +1623,14 @@
                                         <button onclick="setLeftSidebarTab('ai')" class="text-[10px] font-bold text-[#6D5EF5] flex items-center hover:underline"><i data-lucide="sparkles" class="h-3 w-3 mr-1"></i> AI Write</button>
                                     </div>
                                     <textarea oninput="updateElementSetting('content', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-indigo-500">${selectedEl.settings.content || ''}</textarea>
-                                    <div class="text-[9px] text-slate-400 text-right mt-0.5">${(selectedEl.settings.content || '').length}/300</div>
                                 </div>
                                 <div class="space-y-1">
                                     <label class="font-bold text-slate-300">HTML Tag</label>
                                     <select onchange="updateElementSetting('htmlTag', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
-                                        <option value="H1">H1</option>
-                                        <option value="H2">H2</option>
-                                        <option value="H3">H3</option>
+                                        <option value="H1" ${selectedEl.settings.htmlTag === 'H1' ? 'selected' : ''}>H1</option>
+                                        <option value="H2" ${selectedEl.settings.htmlTag === 'H2' ? 'selected' : ''}>H2</option>
+                                        <option value="H3" ${selectedEl.settings.htmlTag === 'H3' ? 'selected' : ''}>H3</option>
+                                        <option value="H4" ${selectedEl.settings.htmlTag === 'H4' ? 'selected' : ''}>H4</option>
                                     </select>
                                 </div>
                             </div>
@@ -1664,6 +1664,22 @@
                                     <input type="range" min="10" max="100" step="5" value="${parseInt(selectedEl.settings.width) || 100}" oninput="updateImageWidth(this.value)" class="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#6D5EF5]">
                                 </div>
                                 <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Alignment</label>
+                                    <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 max-w-[160px]">
+                                        <button onclick="updateElementSetting('align', 'left')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'left' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-left" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                        <button onclick="updateElementSetting('align', 'center')" class="flex-grow py-1 hover:bg-white rounded transition ${(!selectedEl.settings.align || selectedEl.settings.align === 'center') ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-center" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                        <button onclick="updateElementSetting('align', 'right')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'right' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-right" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                    </div>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Alt Text</label>
+                                    <input type="text" oninput="updateElementSetting('alt', this.value)" value="${selectedEl.settings.alt || ''}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Link URL</label>
+                                    <input type="text" oninput="updateElementSetting('link', this.value)" value="${selectedEl.settings.link || ''}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
                                     <label class="font-bold text-slate-300">Or Upload Image</label>
                                     <div class="relative border-2 border-dashed border-slate-200 hover:border-[#6D5EF5] transition rounded-xl p-4 flex flex-col items-center justify-center bg-slate-50 cursor-pointer group" onclick="document.getElementById('image-upload-input').click()">
                                         <i data-lucide="upload-cloud" class="h-6 w-6 text-slate-400 group-hover:text-[#6D5EF5] mb-1.5"></i>
@@ -1686,6 +1702,14 @@
                                     <label class="font-bold text-slate-300">Link URL</label>
                                     <input type="text" oninput="updateElementSetting('link', this.value)" value="${selectedEl.settings.link || ''}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
                                 </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Alignment</label>
+                                    <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 max-w-[160px]">
+                                        <button onclick="updateElementSetting('align', 'left')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'left' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-left" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                        <button onclick="updateElementSetting('align', 'center')" class="flex-grow py-1 hover:bg-white rounded transition ${(!selectedEl.settings.align || selectedEl.settings.align === 'center') ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-center" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                        <button onclick="updateElementSetting('align', 'right')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'right' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-right" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                    </div>
+                                </div>
                             </div>
                         `;
                         break;
@@ -1702,6 +1726,14 @@
                                         <span class="text-[10px] text-slate-500 font-bold" id="logo-width-val">${selectedEl.settings.height || '36px'}</span>
                                     </div>
                                     <input type="range" min="15" max="150" step="5" value="${parseInt(selectedEl.settings.height) || 36}" oninput="updateLogoWidth(this.value)" class="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#6D5EF5]">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Alignment</label>
+                                    <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 max-w-[160px]">
+                                        <button onclick="updateElementSetting('align', 'left')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'left' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-left" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                        <button onclick="updateElementSetting('align', 'center')" class="flex-grow py-1 hover:bg-white rounded transition ${(!selectedEl.settings.align || selectedEl.settings.align === 'center') ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-center" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                        <button onclick="updateElementSetting('align', 'right')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'right' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-right" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                    </div>
                                 </div>
                                 <div class="space-y-1">
                                     <label class="font-bold text-slate-300">Or Upload Logo</label>
@@ -1733,79 +1765,397 @@
                             </div>
                         `;
                         break;
+                    case 'columns':
+                        controlsHtml = `
+                            <div class="space-y-4">
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Column 1 Content</label>
+                                    <textarea oninput="updateElementSetting('col1Content', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">${selectedEl.settings.col1Content || ''}</textarea>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Column 2 Content</label>
+                                    <textarea oninput="updateElementSetting('col2Content', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">${selectedEl.settings.col2Content || ''}</textarea>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Column Gap (px)</label>
+                                    <input type="text" oninput="updateElementSetting('gap', this.value)" value="${selectedEl.settings.gap || '20px'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 'html':
+                        controlsHtml = `
+                            <div class="space-y-4">
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Custom HTML Code</label>
+                                    <textarea oninput="updateElementSetting('htmlCode', this.value)" rows="8" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-mono text-xs">${selectedEl.settings.htmlCode || ''}</textarea>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 'menu':
+                        controlsHtml = `
+                            <div class="space-y-4">
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Link 1 (Text & URL)</label>
+                                    <input type="text" placeholder="Text" oninput="updateElementSetting('link1Text', this.value)" value="${selectedEl.settings.link1Text || 'Home'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800 mb-1.5">
+                                    <input type="text" placeholder="URL" oninput="updateElementSetting('link1Url', this.value)" value="${selectedEl.settings.link1Url || '#'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Link 2 (Text & URL)</label>
+                                    <input type="text" placeholder="Text" oninput="updateElementSetting('link2Text', this.value)" value="${selectedEl.settings.link2Text || 'Shop'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800 mb-1.5">
+                                    <input type="text" placeholder="URL" oninput="updateElementSetting('link2Url', this.value)" value="${selectedEl.settings.link2Url || '#'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Link 3 (Text & URL)</label>
+                                    <input type="text" placeholder="Text" oninput="updateElementSetting('link3Text', this.value)" value="${selectedEl.settings.link3Text || 'Contact'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800 mb-1.5">
+                                    <input type="text" placeholder="URL" oninput="updateElementSetting('link3Url', this.value)" value="${selectedEl.settings.link3Url || '#'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Alignment</label>
+                                    <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 max-w-[160px]">
+                                        <button onclick="updateElementSetting('align', 'left')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'left' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-left" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                        <button onclick="updateElementSetting('align', 'center')" class="flex-grow py-1 hover:bg-white rounded transition ${(!selectedEl.settings.align || selectedEl.settings.align === 'center') ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-center" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                        <button onclick="updateElementSetting('align', 'right')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'right' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-right" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 'icon':
+                        controlsHtml = `
+                            <div class="space-y-4">
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Icon Name</label>
+                                    <select onchange="updateElementSetting('iconName', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                                        <option value="star" ${selectedEl.settings.iconName === 'star' ? 'selected' : ''}>Star</option>
+                                        <option value="heart" ${selectedEl.settings.iconName === 'heart' ? 'selected' : ''}>Heart</option>
+                                        <option value="smile" ${selectedEl.settings.iconName === 'smile' ? 'selected' : ''}>Smile</option>
+                                        <option value="award" ${selectedEl.settings.iconName === 'award' ? 'selected' : ''}>Award</option>
+                                        <option value="bell" ${selectedEl.settings.iconName === 'bell' ? 'selected' : ''}>Bell</option>
+                                        <option value="flag" ${selectedEl.settings.iconName === 'flag' ? 'selected' : ''}>Flag</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="flex items-center justify-between">
+                                        <label class="font-bold text-slate-300">Icon Size</label>
+                                        <span class="text-[10px] text-slate-500 font-bold" id="icon-size-val">${selectedEl.settings.size || '42px'}</span>
+                                    </div>
+                                    <input type="range" min="20" max="80" step="2" value="${parseInt(selectedEl.settings.size) || 42}" oninput="document.getElementById('icon-size-val').innerText = this.value + 'px'; updateElementSetting('size', this.value + 'px')" class="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#6D5EF5]">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Icon Color</label>
+                                    <input type="color" oninput="updateElementSetting('color', this.value)" value="${selectedEl.settings.color || '#6D5EF5'}" class="w-8 h-8 border border-slate-200 cursor-pointer rounded-lg bg-transparent">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Alignment</label>
+                                    <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 max-w-[160px]">
+                                        <button onclick="updateElementSetting('align', 'left')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'left' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-left" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                        <button onclick="updateElementSetting('align', 'center')" class="flex-grow py-1 hover:bg-white rounded transition ${(!selectedEl.settings.align || selectedEl.settings.align === 'center') ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-center" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                        <button onclick="updateElementSetting('align', 'right')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'right' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-right" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 'video':
+                        controlsHtml = `
+                            <div class="space-y-4">
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Video Destination URL</label>
+                                    <input type="text" oninput="updateElementSetting('videoUrl', this.value)" value="${selectedEl.settings.videoUrl || ''}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Video Thumbnail URL</label>
+                                    <input type="text" id="prop-image-url" oninput="updateElementSetting('thumbnailUrl', this.value)" value="${selectedEl.settings.thumbnailUrl || ''}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Or Upload Thumbnail</label>
+                                    <div class="relative border-2 border-dashed border-slate-200 hover:border-[#6D5EF5] transition rounded-xl p-4 flex flex-col items-center justify-center bg-slate-50 cursor-pointer group" onclick="document.getElementById('image-upload-input').click()">
+                                        <i data-lucide="upload-cloud" class="h-6 w-6 text-slate-400 group-hover:text-[#6D5EF5] mb-1.5"></i>
+                                        <span class="text-[10px] text-slate-500 font-bold group-hover:text-[#6D5EF5]">Click to upload thumbnail</span>
+                                        <span class="text-[8px] text-slate-400">JPG, PNG up to 2MB</span>
+                                        <input type="file" id="image-upload-input" accept="image/*" class="hidden" onchange="uploadImageElement(this)">
+                                    </div>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Alignment</label>
+                                    <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 max-w-[160px]">
+                                        <button onclick="updateElementSetting('align', 'left')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'left' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-left" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                        <button onclick="updateElementSetting('align', 'center')" class="flex-grow py-1 hover:bg-white rounded transition ${(!selectedEl.settings.align || selectedEl.settings.align === 'center') ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-center" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                        <button onclick="updateElementSetting('align', 'right')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'right' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-right" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 'countdown':
+                        controlsHtml = `
+                            <div class="space-y-4">
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Target Date (YYYY-MM-DD)</label>
+                                    <input type="text" oninput="updateElementSetting('targetDate', this.value)" value="${selectedEl.settings.targetDate || '2026-12-31'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Timer Background Color</label>
+                                    <input type="color" oninput="updateElementSetting('backgroundColor', this.value)" value="${selectedEl.settings.backgroundColor || '#0F172A'}" class="w-8 h-8 border border-slate-200 cursor-pointer rounded-lg bg-transparent">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Timer Text Color</label>
+                                    <input type="color" oninput="updateElementSetting('textColor', this.value)" value="${selectedEl.settings.textColor || '#ffffff'}" class="w-8 h-8 border border-slate-200 cursor-pointer rounded-lg bg-transparent">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Alignment</label>
+                                    <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 max-w-[160px]">
+                                        <button onclick="updateElementSetting('align', 'left')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'left' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-left" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                        <button onclick="updateElementSetting('align', 'center')" class="flex-grow py-1 hover:bg-white rounded transition ${(!selectedEl.settings.align || selectedEl.settings.align === 'center') ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-center" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                        <button onclick="updateElementSetting('align', 'right')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'right' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-right" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 'product':
+                        controlsHtml = `
+                            <div class="space-y-4">
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Product Name</label>
+                                    <input type="text" oninput="updateElementSetting('productName', this.value)" value="${selectedEl.settings.productName || 'Running Sneaker Sport'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Description</label>
+                                    <textarea oninput="updateElementSetting('productDesc', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">${selectedEl.settings.productDesc || 'Ultra comfortable and lightweight athletic wear.'}</textarea>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Price</label>
+                                    <input type="text" oninput="updateElementSetting('productPrice', this.value)" value="${selectedEl.settings.productPrice || '$89.00'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Product Image URL</label>
+                                    <input type="text" id="prop-image-url" oninput="updateElementSetting('productImage', this.value)" value="${selectedEl.settings.productImage || ''}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Or Upload Image</label>
+                                    <div class="relative border-2 border-dashed border-slate-200 hover:border-[#6D5EF5] transition rounded-xl p-4 flex flex-col items-center justify-center bg-slate-50 cursor-pointer group" onclick="document.getElementById('image-upload-input').click()">
+                                        <i data-lucide="upload-cloud" class="h-6 w-6 text-slate-400 group-hover:text-[#6D5EF5] mb-1.5"></i>
+                                        <span class="text-[10px] text-slate-500 font-bold group-hover:text-[#6D5EF5]">Click to upload product image</span>
+                                        <span class="text-[8px] text-slate-400">JPG, PNG up to 2MB</span>
+                                        <input type="file" id="image-upload-input" accept="image/*" class="hidden" onchange="uploadImageElement(this)">
+                                    </div>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Product Link</label>
+                                    <input type="text" oninput="updateElementSetting('productLink', this.value)" value="${selectedEl.settings.productLink || '#'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Alignment</label>
+                                    <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 max-w-[160px]">
+                                        <button onclick="updateElementSetting('align', 'left')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'left' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-left" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                        <button onclick="updateElementSetting('align', 'center')" class="flex-grow py-1 hover:bg-white rounded transition ${(!selectedEl.settings.align || selectedEl.settings.align === 'center') ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-center" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                        <button onclick="updateElementSetting('align', 'right')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'right' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-right" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 'signature':
+                        controlsHtml = `
+                            <div class="space-y-4">
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Signature Name</label>
+                                    <input type="text" oninput="updateElementSetting('signName', this.value)" value="${selectedEl.settings.signName || 'Sincerely, Jane Doe'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Signature Title</label>
+                                    <input type="text" oninput="updateElementSetting('signTitle', this.value)" value="${selectedEl.settings.signTitle || 'Head of Operations, LinkPilot'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Alignment</label>
+                                    <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 max-w-[160px]">
+                                        <button onclick="updateElementSetting('align', 'left')" class="flex-grow py-1 hover:bg-white rounded transition ${(!selectedEl.settings.align || selectedEl.settings.align === 'left') ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-left" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                        <button onclick="updateElementSetting('align', 'center')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'center' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-center" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                        <button onclick="updateElementSetting('align', 'right')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'right' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-right" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 'faq':
+                        controlsHtml = `
+                            <div class="space-y-4">
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Question</label>
+                                    <textarea oninput="updateElementSetting('question', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">${selectedEl.settings.question || 'How long does shipping take?'}</textarea>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Answer</label>
+                                    <textarea oninput="updateElementSetting('answer', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">${selectedEl.settings.answer || 'Standard delivery takes 3 to 5 business days.'}</textarea>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 'testimonial':
+                        controlsHtml = `
+                            <div class="space-y-4">
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Quote Text</label>
+                                    <textarea oninput="updateElementSetting('quote', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">${selectedEl.settings.quote || 'This platform completely transformed our template creation workflow. 10/10!'}</textarea>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Author Name</label>
+                                    <input type="text" oninput="updateElementSetting('author', this.value)" value="${selectedEl.settings.author || 'Sarah Jenkins, CEO of TechCorp'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 'divider':
+                        controlsHtml = `
+                            <div class="space-y-4">
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Divider Color</label>
+                                    <input type="color" oninput="updateElementSetting('color', this.value)" value="${selectedEl.settings.color || '#E2E8F0'}" class="w-8 h-8 border border-slate-200 cursor-pointer rounded-lg bg-transparent">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Spacing Height (px)</label>
+                                    <input type="text" oninput="updateElementSetting('spacing', this.value)" value="${selectedEl.settings.spacing || '15px'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 'spacer':
+                        controlsHtml = `
+                            <div class="space-y-4">
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Height (px)</label>
+                                    <input type="text" oninput="updateElementSetting('height', this.value)" value="${selectedEl.settings.height || '20px'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 'social':
+                        controlsHtml = `
+                            <div class="space-y-4">
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Facebook URL</label>
+                                    <input type="text" oninput="updateElementSetting('facebookLink', this.value)" value="${selectedEl.settings.facebookLink || '#'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Twitter URL</label>
+                                    <input type="text" oninput="updateElementSetting('twitterLink', this.value)" value="${selectedEl.settings.twitterLink || '#'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">LinkedIn URL</label>
+                                    <input type="text" oninput="updateElementSetting('linkedinLink', this.value)" value="${selectedEl.settings.linkedinLink || '#'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Instagram URL</label>
+                                    <input type="text" oninput="updateElementSetting('instagramLink', this.value)" value="${selectedEl.settings.instagramLink || '#'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Alignment</label>
+                                    <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 max-w-[160px]">
+                                        <button onclick="updateElementSetting('align', 'left')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'left' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-left" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                        <button onclick="updateElementSetting('align', 'center')" class="flex-grow py-1 hover:bg-white rounded transition ${(!selectedEl.settings.align || selectedEl.settings.align === 'center') ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-center" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                        <button onclick="updateElementSetting('align', 'right')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'right' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-right" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        break;
                     default:
                         controlsHtml = `<p class="text-slate-400">Content properties are not available for this block.</p>`;
                 }
             } else if (activePropertiesTab === 'style') {
-                // Typography, Alignment, colors options inside Style Tab
-                let customColorControls = '';
-                if (selectedEl.type === 'button') {
-                    customColorControls = `
-                        <div class="space-y-1">
-                            <label class="font-bold text-slate-350">Button Background Color</label>
-                            <div class="flex items-center space-x-2">
-                                <input type="color" oninput="updateElementSetting('backgroundColor', this.value)" value="${selectedEl.settings.backgroundColor || '#6D5EF5'}" class="w-8 h-8 border border-slate-250 cursor-pointer rounded-lg bg-transparent">
-                                <span class="text-[10px] font-mono uppercase text-slate-500">${selectedEl.settings.backgroundColor || '#6D5EF5'}</span>
+                const textCapableTypes = ['heading', 'text', 'button', 'menu', 'coupon', 'faq', 'testimonial', 'signature', 'product'];
+                if (textCapableTypes.includes(selectedEl.type)) {
+                    let customColorControls = '';
+                    if (selectedEl.type === 'button') {
+                        customColorControls = `
+                            <div class="space-y-1">
+                                <label class="font-bold text-slate-350">Button Background Color</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="color" oninput="updateElementSetting('backgroundColor', this.value)" value="${selectedEl.settings.backgroundColor || '#6D5EF5'}" class="w-8 h-8 border border-slate-250 cursor-pointer rounded-lg bg-transparent">
+                                    <span class="text-[10px] font-mono uppercase text-slate-500">${selectedEl.settings.backgroundColor || '#6D5EF5'}</span>
+                                </div>
                             </div>
+                            <div class="space-y-1">
+                                <label class="font-bold text-slate-355">Button Text Color</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="color" oninput="updateElementSetting('textColor', this.value)" value="${selectedEl.settings.textColor || '#ffffff'}" class="w-8 h-8 border border-slate-250 cursor-pointer rounded-lg bg-transparent">
+                                    <span class="text-[10px] font-mono uppercase text-slate-500">${selectedEl.settings.textColor || '#ffffff'}</span>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        customColorControls = `
+                            <div class="space-y-1">
+                                <label class="font-bold text-slate-350">Text Color</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="color" oninput="updateElementSetting('color', this.value)" value="${selectedEl.settings.color || '#000000'}" class="w-8 h-8 border border-slate-250 cursor-pointer rounded-lg bg-transparent">
+                                    <span class="text-[10px] font-mono uppercase text-slate-500">${selectedEl.settings.color || '#0F172A'}</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    controlsHtml = `
+                        <div class="space-y-4">
+                            <div class="space-y-1">
+                                <label class="font-bold text-slate-300">Font Family</label>
+                                <select onchange="updateElementSetting('fontFamily', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                                    <option value="Inter" ${selectedEl.settings.fontFamily === 'Inter' ? 'selected' : ''}>Inter</option>
+                                    <option value="Arial" ${selectedEl.settings.fontFamily === 'Arial' ? 'selected' : ''}>Arial</option>
+                                    <option value="Georgia" ${selectedEl.settings.fontFamily === 'Georgia' ? 'selected' : ''}>Georgia</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="font-bold text-slate-300">Font Weight</label>
+                                <select onchange="updateElementSetting('fontWeight', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                                    <option value="normal" ${selectedEl.settings.fontWeight === 'normal' ? 'selected' : ''}>400 - Normal</option>
+                                    <option value="bold" ${(!selectedEl.settings.fontWeight || selectedEl.settings.fontWeight === 'bold') ? 'selected' : ''}>700 - Bold</option>
+                                    <option value="800" ${selectedEl.settings.fontWeight === '800' ? 'selected' : ''}>800 - Extra Bold</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <div class="flex items-center justify-between">
+                                    <label class="font-bold text-slate-300">Font Size</label>
+                                    <span class="text-[10px] text-slate-500 font-bold" id="lbl-prop-fontsize">${selectedEl.settings.fontSize || '22px'}</span>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <input type="range" min="12" max="72" value="${parseInt(selectedEl.settings.fontSize) || 22}" oninput="document.getElementById('lbl-prop-fontsize').innerText = this.value + 'px'; updateElementSetting('fontSize', this.value + 'px');" class="flex-grow accent-[#6D5EF5]">
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="font-bold text-slate-300">Alignment</label>
+                                <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 max-w-[160px]">
+                                    <button onclick="updateElementSetting('align', 'left')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'left' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-left" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                    <button onclick="updateElementSetting('align', 'center')" class="flex-grow py-1 hover:bg-white rounded transition ${(!selectedEl.settings.align || selectedEl.settings.align === 'center') ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-center" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                    <button onclick="updateElementSetting('align', 'right')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'right' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-right" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                </div>
+                            </div>
+                            ${customColorControls}
                         </div>
-                        <div class="space-y-1">
-                            <label class="font-bold text-slate-355">Button Text Color</label>
-                            <div class="flex items-center space-x-2">
-                                <input type="color" oninput="updateElementSetting('textColor', this.value)" value="${selectedEl.settings.textColor || '#ffffff'}" class="w-8 h-8 border border-slate-250 cursor-pointer rounded-lg bg-transparent">
-                                <span class="text-[10px] font-mono uppercase text-slate-500">${selectedEl.settings.textColor || '#ffffff'}</span>
+                    `;
+                } else if (selectedEl.type === 'coupon') {
+                    controlsHtml = `
+                        <div class="space-y-4">
+                            <div class="space-y-1">
+                                <label class="font-bold text-slate-350">Background Color</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="color" oninput="updateElementSetting('backgroundColor', this.value)" value="${selectedEl.settings.backgroundColor || '#FAF9FF'}" class="w-8 h-8 border border-slate-250 cursor-pointer rounded-lg bg-transparent">
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="font-bold text-slate-350">Border Color</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="color" oninput="updateElementSetting('borderColor', this.value)" value="${selectedEl.settings.borderColor || '#6D5EF5'}" class="w-8 h-8 border border-slate-250 cursor-pointer rounded-lg bg-transparent">
+                                </div>
                             </div>
                         </div>
                     `;
                 } else {
-                    customColorControls = `
-                        <div class="space-y-1">
-                            <label class="font-bold text-slate-350">Text Color</label>
-                            <div class="flex items-center space-x-2">
-                                <input type="color" oninput="updateElementSetting('color', this.value)" value="${selectedEl.settings.color || '#000000'}" class="w-8 h-8 border border-slate-250 cursor-pointer rounded-lg bg-transparent">
-                                <span class="text-[10px] font-mono uppercase text-slate-500">${selectedEl.settings.color || '#0F172A'}</span>
-                            </div>
-                        </div>
-                    `;
+                    controlsHtml = `<p class="text-slate-400">Typography styles are not applicable for this block type.</p>`;
                 }
-
-                controlsHtml = `
-                    <div class="space-y-4">
-                        <div class="space-y-1">
-                            <label class="font-bold text-slate-300">Font Family</label>
-                            <select onchange="updateElementSetting('fontFamily', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
-                                <option value="Inter">Inter</option>
-                                <option value="Arial">Arial</option>
-                                <option value="Georgia">Georgia</option>
-                            </select>
-                        </div>
-                        <div class="space-y-1">
-                            <label class="font-bold text-slate-300">Font Weight</label>
-                            <select onchange="updateElementSetting('fontWeight', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
-                                <option value="normal">400 - Normal</option>
-                                <option value="bold" selected>700 - Bold</option>
-                                <option value="800">800 - Extra Bold</option>
-                            </select>
-                        </div>
-                        <div class="space-y-1">
-                            <div class="flex items-center justify-between">
-                                <label class="font-bold text-slate-300">Font Size</label>
-                                <span class="text-[10px] text-slate-500 font-bold" id="lbl-prop-fontsize">${selectedEl.settings.fontSize || '22px'}</span>
-                            </div>
-                            <div class="flex items-center space-x-3">
-                                <input type="range" min="12" max="72" value="${parseInt(selectedEl.settings.fontSize) || 22}" oninput="document.getElementById('lbl-prop-fontsize').innerText = this.value + 'px'; updateElementSetting('fontSize', this.value + 'px');" class="flex-grow accent-[#6D5EF5]">
-                            </div>
-                        </div>
-                        <div class="space-y-1">
-                            <label class="font-bold text-slate-300">Text Align</label>
-                            <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 max-w-[160px]">
-                                <button onclick="updateElementSetting('align', 'left')" class="flex-grow py-1 hover:bg-white rounded transition"><i data-lucide="align-left" class="h-3.5 w-3.5 mx-auto"></i></button>
-                                <button onclick="updateElementSetting('align', 'center')" class="flex-grow py-1 hover:bg-white rounded transition"><i data-lucide="align-center" class="h-3.5 w-3.5 mx-auto"></i></button>
-                                <button onclick="updateElementSetting('align', 'right')" class="flex-grow py-1 hover:bg-white rounded transition"><i data-lucide="align-right" class="h-3.5 w-3.5 mx-auto"></i></button>
-                            </div>
-                        </div>
-                        ${customColorControls}
-                    </div>
-                `;
             } else if (activePropertiesTab === 'advanced') {
                 controlsHtml = `
                     <div class="space-y-4">
@@ -2060,7 +2410,7 @@
                         inner = `
                             <tr>
                                 <td align="${el.settings.align || 'center'}" style="padding: 10px 0;">
-                                    <img src="${el.settings.imageUrl || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop'}" style="display: block; width: ${el.settings.width || '100%'}; max-width: 100%; height: auto; border-radius: ${el.settings.borderRadius || '6px'};" alt="Email Asset">
+                                    <img src="${el.settings.imageUrl || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop'}" style="display: inline-block; width: ${el.settings.width || '100%'}; max-width: 100%; height: auto; border-radius: ${el.settings.borderRadius || '6px'};" alt="Email Asset">
                                 </td>
                             </tr>
                         `;

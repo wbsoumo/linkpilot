@@ -304,21 +304,21 @@
 
                     <!-- Action buttons -->
                     <div class="flex items-center space-x-2">
-                        <button onclick="builderUndo()" style="background-color: #ffffff !important; color: #475569 !important; border: 1px solid #cbd5e1 !important;" class="p-2 hover:text-slate-900 rounded-lg transition" title="Undo">
+                        <button onclick="builderUndo(); event.stopPropagation();" style="background-color: #ffffff !important; color: #475569 !important; border: 1px solid #cbd5e1 !important;" class="p-2 hover:text-slate-900 rounded-lg transition" title="Undo">
                             <i data-lucide="undo-2" class="h-3.5 w-3.5"></i>
                         </button>
-                        <button onclick="builderRedo()" style="background-color: #ffffff !important; color: #475569 !important; border: 1px solid #cbd5e1 !important;" class="p-2 hover:text-slate-900 rounded-lg transition" title="Redo">
+                        <button onclick="builderRedo(); event.stopPropagation();" style="background-color: #ffffff !important; color: #475569 !important; border: 1px solid #cbd5e1 !important;" class="p-2 hover:text-slate-900 rounded-lg transition" title="Redo">
                             <i data-lucide="redo-2" class="h-3.5 w-3.5"></i>
                         </button>
                         <div class="border-l border-slate-200 h-6 mx-1"></div>
 
-                        <button onclick="openTestEmailModal()" style="background-color: #ffffff !important; color: #475569 !important; border: 1px solid #cbd5e1 !important;" class="px-3 py-1.5 text-xs font-bold rounded-lg transition">
+                        <button onclick="openTestEmailModal(); event.stopPropagation();" style="background-color: #ffffff !important; color: #475569 !important; border: 1px solid #cbd5e1 !important;" class="px-3 py-1.5 text-xs font-bold rounded-lg transition">
                             <i data-lucide="send" class="h-3.5 w-3.5 inline mr-1.5 text-blue-500"></i>Test Email
                         </button>
-                        <button onclick="saveTemplateDraft()" id="save-template-btn" style="background-color: #ffffff !important; color: #475569 !important; border: 1px solid #cbd5e1 !important;" class="px-3 py-1.5 text-xs font-bold rounded-lg transition">
+                        <button onclick="saveTemplateDraft(); event.stopPropagation();" id="save-template-btn" style="background-color: #ffffff !important; color: #475569 !important; border: 1px solid #cbd5e1 !important;" class="px-3 py-1.5 text-xs font-bold rounded-lg transition">
                             <i data-lucide="save" class="h-3.5 w-3.5 inline mr-1.5 text-slate-500"></i>Save
                         </button>
-                        <button onclick="exitEmailBuilder()" id="save-exit-btn" style="background-color: #6D5EF5 !important; color: #ffffff !important; font-weight: bold !important;" class="px-4 py-1.5 text-white text-xs font-black rounded-lg shadow-md transition flex items-center">
+                        <button onclick="exitEmailBuilder(); event.stopPropagation();" id="save-exit-btn" style="background-color: #6D5EF5 !important; color: #ffffff !important; font-weight: bold !important;" class="px-4 py-1.5 text-white text-xs font-black rounded-lg shadow-md transition flex items-center">
                             Save & Exit <i data-lucide="chevron-down" class="h-3 w-3 ml-1.5"></i>
                         </button>
                     </div>
@@ -1184,7 +1184,7 @@
 
                     // Render Element Block Wrapper with controls
                     elementsHtml += `
-                        <div class="group/element relative p-3 border-2 rounded-xl transition duration-150 cursor-pointer ${isSelected ? 'border-[#6D5EF5] bg-indigo-500/5 shadow-md shadow-indigo-600/5' : 'border-transparent hover:border-slate-350 hover:bg-slate-100/50'}"
+                        <div class="canvas-element group/element relative p-3 border-2 rounded-xl transition duration-150 cursor-pointer ${isSelected ? 'border-[#6D5EF5] bg-indigo-500/5 shadow-md shadow-indigo-600/5' : 'border-transparent hover:border-slate-350 hover:bg-slate-100/50'}"
                              onclick="selectCanvasElement('${el.id}', event)"
                              draggable="true"
                              ondragstart="onCanvasElementDragStart(event, '${sec.id}', '${el.id}')"
@@ -1210,7 +1210,7 @@
 
             // Render Section Wrapper with drag drop handles
             contentHtml += `
-                <div class="group/section relative border-2 border-dashed rounded-2xl mb-5 p-4 transition-all duration-200 ${sectionSelected ? 'border-[#6D5EF5] bg-white/70 shadow-lg' : 'border-slate-200 hover:border-slate-350 bg-white shadow-2xs'}"
+                <div class="canvas-section group/section relative border-2 border-dashed rounded-2xl mb-5 p-4 transition-all duration-200 ${sectionSelected ? 'border-[#6D5EF5] bg-white/70 shadow-lg' : 'border-slate-200 hover:border-slate-350 bg-white shadow-2xs'}"
                      style="padding-top:${sec.settings.paddingTop || '20px'}; padding-bottom:${sec.settings.paddingBottom || '20px'}; background-color:${sec.settings.backgroundColor || '#ffffff'}; border-radius:${sec.settings.borderRadius || '12px'};"
                      onclick="selectCanvasSection('${sec.id}', event)"
                      draggable="true"
@@ -1525,7 +1525,7 @@
     // Select Section Element helper
     window.selectCanvasSection = function(id, event) {
         if (event) event.stopPropagation();
-        if (event.target.closest('.group\\/element')) return;
+        if (event.target.closest('.canvas-element')) return;
         
         selectedSectionId = id;
         selectedElementId = null;

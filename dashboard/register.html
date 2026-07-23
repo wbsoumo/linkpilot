@@ -85,6 +85,15 @@
             from { opacity: 0; transform: translateY(4px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        
+        /* Force dark background color on the final submit button to bypass global overrides */
+        #submit-account-btn {
+            background-color: #0f172a !important;
+            color: #ffffff !important;
+        }
+        #submit-account-btn:hover {
+            background-color: #1e293b !important;
+        }
     </style>
 </head>
 <body class="h-full bg-slate-50 flex items-stretch overflow-x-hidden">

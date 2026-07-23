@@ -368,64 +368,68 @@
                                 </div>
                             </div>
                             <i data-lucide="x" class="h-3 w-3 text-slate-400 cursor-pointer"></i>
-                        </div>
                     </div>
 
                     <!-- 3. CENTER CANVAS - PREVIEW AREA -->
-                    <div class="flex-grow bg-[#F1F5F9] flex flex-col overflow-y-auto relative select-text" id="builder-canvas-viewport">
+                    <div class="flex-grow bg-[#F1F5F9] flex flex-col overflow-hidden relative select-text" id="builder-canvas-viewport">
                         
                         <!-- Canvas Header Area Controls (matching layout) -->
-                        <div class="w-full max-w-[760px] mx-auto mt-4 px-4 flex items-center justify-between shrink-0 text-slate-550 select-none">
-                            <div class="flex items-center space-x-1.5 bg-slate-100 border border-slate-200/50 p-1 rounded-xl">
-                                <button onclick="setDeviceView('desktop')" class="w-8 h-8 rounded-lg flex items-center justify-center bg-white border border-slate-200/60 shadow-2xs hover:bg-slate-50 transition text-slate-700" title="Desktop View">
-                                    <i data-lucide="layout" class="h-4 w-4"></i>
-                                </button>
-                                <button onclick="setDeviceView('mobile')" class="w-8 h-8 flex items-center justify-center hover:bg-white rounded-lg transition text-slate-500 hover:text-slate-800" title="Mobile View">
-                                    <i data-lucide="smartphone" class="h-4 w-4"></i>
-                                </button>
-                                <button onclick="setDeviceView('tablet')" class="w-8 h-8 rounded-lg flex items-center justify-center bg-white border border-slate-200/60 shadow-2xs hover:bg-slate-50 transition text-slate-700" title="Tablet View">
-                                    <i data-lucide="rotate-cw" class="h-4 w-4"></i>
-                                </button>
-                            </div>
-                            
-                            <div class="flex items-center space-x-4 text-xs font-bold">
-                                <div class="h-4 border-l border-slate-300 mx-1"></div>
-                                <button onclick="builderUndo()" class="text-slate-650 hover:text-slate-900 transition flex items-center space-x-1">
-                                    <i data-lucide="undo" class="h-3.5 w-3.5 text-slate-500"></i><span>Undo</span>
-                                </button>
-                                <button onclick="builderRedo()" class="text-slate-350 hover:text-slate-500 transition flex items-center space-x-1">
-                                    <i data-lucide="redo" class="h-3.5 w-3.5 text-slate-300"></i><span>Redo</span>
-                                </button>
-                                <button class="text-slate-650 hover:text-slate-900 transition flex items-center space-x-1">
-                                    <i data-lucide="history" class="h-3.5 w-3.5 text-slate-500"></i><span>Version History</span>
-                                </button>
-                            </div>
+                        <div class="w-full bg-white border-b border-slate-200/80 py-2.5 px-6 flex items-center justify-between shrink-0 text-slate-550 select-none z-30 shadow-2xs">
+                            <div class="w-full max-w-[760px] mx-auto flex items-center justify-between">
+                                <div class="flex items-center space-x-1.5 bg-slate-100 border border-slate-200/50 p-1 rounded-xl">
+                                    <button onclick="setDeviceView('desktop')" class="w-8 h-8 rounded-lg flex items-center justify-center bg-white border border-slate-200/60 shadow-2xs hover:bg-slate-50 transition text-slate-700" title="Desktop View">
+                                        <i data-lucide="layout" class="h-4 w-4"></i>
+                                    </button>
+                                    <button onclick="setDeviceView('mobile')" class="w-8 h-8 flex items-center justify-center hover:bg-white rounded-lg transition text-slate-500 hover:text-slate-800" title="Mobile View">
+                                        <i data-lucide="smartphone" class="h-4 w-4"></i>
+                                    </button>
+                                    <button onclick="setDeviceView('tablet')" class="w-8 h-8 rounded-lg flex items-center justify-center bg-white border border-slate-200/60 shadow-2xs hover:bg-slate-50 transition text-slate-700" title="Tablet View">
+                                        <i data-lucide="rotate-cw" class="h-4 w-4"></i>
+                                    </button>
+                                </div>
+                                
+                                <div class="flex items-center space-x-4 text-xs font-bold">
+                                    <div class="h-4 border-l border-slate-300 mx-1"></div>
+                                    <button onclick="builderUndo()" class="text-slate-655 hover:text-slate-900 transition flex items-center space-x-1">
+                                        <i data-lucide="undo" class="h-3.5 w-3.5 text-slate-505"></i><span>Undo</span>
+                                    </button>
+                                    <button onclick="builderRedo()" class="text-slate-350 hover:text-slate-500 transition flex items-center space-x-1">
+                                        <i data-lucide="redo" class="h-3.5 w-3.5 text-slate-300"></i><span>Redo</span>
+                                    </button>
+                                    <button class="text-slate-655 hover:text-slate-900 transition flex items-center space-x-1">
+                                        <i data-lucide="history" class="h-3.5 w-3.5 text-slate-505"></i><span>Version History</span>
+                                    </button>
+                                </div>
 
-                            <div class="flex items-center space-x-3.5">
-                                <button onclick="setLeftSidebarTab('ai')" class="px-4 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 rounded-xl text-xs font-black text-[#6D5EF5] flex items-center space-x-2 transition shadow-xs">
-                                    <i data-lucide="sparkles" class="h-3.5 w-3.5 text-[#6D5EF5]"></i> <span>AI Generate</span>
-                                </button>
-                                <button onclick="toggleCanvasCodeView()" id="btn-canvas-code-view" class="px-3 py-1.5 hover:bg-slate-100 border border-transparent hover:border-slate-200 text-slate-650 hover:text-slate-900 rounded-xl text-xs font-black flex items-center space-x-1.5 transition">
-                                    <i data-lucide="code-2" class="h-3.5 w-3.5 text-slate-500"></i> <span>Code View</span>
-                                </button>
+                                <div class="flex items-center space-x-3.5">
+                                    <button onclick="setLeftSidebarTab('ai')" class="px-4 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 rounded-xl text-xs font-black text-[#6D5EF5] flex items-center space-x-2 transition shadow-xs">
+                                        <i data-lucide="sparkles" class="h-3.5 w-3.5 text-[#6D5EF5]"></i> <span>AI Generate</span>
+                                    </button>
+                                    <button onclick="toggleCanvasCodeView()" id="btn-canvas-code-view" class="px-3 py-1.5 hover:bg-slate-100 border border-transparent hover:border-slate-200 text-slate-655 hover:text-slate-900 rounded-xl text-xs font-black flex items-center space-x-1.5 transition">
+                                        <i data-lucide="code-2" class="h-3.5 w-3.5 text-slate-505"></i> <span>Code View</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Canvas Responsive Resizable Frame -->
-                        <div id="canvas-device-frame" class="w-full max-w-[760px] bg-[#f1f5f9] rounded-2xl transition-all duration-300 flex flex-col min-h-[600px] mt-4 mb-20 mx-auto select-none relative">
-                            
-                            <!-- Main canvas dropping container -->
-                            <div id="email-builder-canvas" 
-                                 ondragover="onCanvasDragOver(event)"
-                                 ondragleave="onCanvasDragLeave(event)"
-                                 ondrop="onCanvasDrop(event)"
-                                 class="flex-grow p-8 overflow-y-auto select-none bg-[#f1f5f9] min-h-[500px]" style="background-color: ${brandStyles.backgroundColor};">
-                                <!-- Injected dynamically by renderCanvas() -->
+                        <!-- Scrollable Center Canvas Body -->
+                        <div class="flex-grow overflow-y-auto p-4 select-text relative flex flex-col bg-[#F1F5F9]">
+                            <!-- Canvas Responsive Resizable Frame -->
+                            <div id="canvas-device-frame" class="w-full max-w-[760px] bg-[#f1f5f9] rounded-2xl transition-all duration-300 flex flex-col min-h-[600px] mt-4 mb-20 mx-auto select-none relative">
+                                
+                                <!-- Main canvas dropping container -->
+                                <div id="email-builder-canvas" 
+                                     ondragover="onCanvasDragOver(event)"
+                                     ondragleave="onCanvasDragLeave(event)"
+                                     ondrop="onCanvasDrop(event)"
+                                     class="flex-grow p-8 overflow-y-auto select-none bg-[#f1f5f9] min-h-[500px]" style="background-color: ${brandStyles.backgroundColor};">
+                                    <!-- Injected dynamically by renderCanvas() -->
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Footer breadcrumbs bar -->
-                        <div class="absolute bottom-0 left-0 right-0 h-10 bg-white border-t border-slate-200 px-6 flex items-center justify-between text-[11px] font-medium text-slate-400 select-none z-30">
+                        <!-- Footer breadcrumbs bar (stay locked at bottom) -->
+                        <div class="w-full h-10 bg-white border-t border-slate-200 px-6 flex items-center justify-between text-[11px] font-medium text-slate-400 select-none z-30 shrink-0">
                             <div class="flex items-center space-x-1.5" id="canvas-breadcrumbs">
                                 <span>Body</span> <i data-lucide="chevron-right" class="h-3 w-3"></i>
                                 <span>Section</span> <i data-lucide="chevron-right" class="h-3 w-3"></i>

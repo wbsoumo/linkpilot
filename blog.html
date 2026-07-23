@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-[#030712]">
+<html lang="en" class="h-full bg-slate-50">
 <head>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-V8YZETRHHM"></script>
@@ -26,49 +26,86 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;850&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="assets/css/marketing.css">
-    
     <style>
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+            background-color: #f8fafc;
         }
         .font-outfit {
             font-family: 'Outfit', sans-serif;
         }
-        /* Custom dynamic background glow blobs */
-        .glow-blob-1 {
-            background: radial-gradient(circle, rgba(20, 184, 166, 0.12) 0%, transparent 65%);
+        /* Glassmorphism Navigation */
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
         }
-        .glow-blob-2 {
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 65%);
+        /* Custom Hover animations */
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            border-color: #005bf7;
+            box-shadow: 0 12px 24px -10px rgba(0, 91, 247, 0.12);
+        }
+        .card-hover-purple {
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .card-hover-purple:hover {
+            transform: translateY(-4px);
+            border-color: #7c3aed;
+            box-shadow: 0 12px 24px -10px rgba(124, 58, 237, 0.12);
+        }
+        /* Nav Links Link animations */
+        .nav-link {
+            position: relative;
+            transition: color 0.2s ease;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #005bf7;
+            transition: width 0.2s ease;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        /* Fade-in animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
     </style>
 </head>
-<body class="h-full bg-[#030712] text-slate-100 flex flex-col antialiased relative overflow-x-hidden">
-    
-    <!-- Background Glow Blobs -->
-    <div class="absolute w-[600px] h-[600px] glow-blob-1 -top-40 -left-40 pointer-events-none z-0"></div>
-    <div class="absolute w-[600px] h-[600px] glow-blob-2 bottom-40 -right-40 pointer-events-none z-0"></div>
+<body class="h-full bg-slate-50 text-slate-700 flex flex-col antialiased relative overflow-x-hidden">
 
     <!-- Navigation -->
     <nav class="glass-nav sticky top-0 z-50 w-full px-6 py-4 flex items-center justify-between">
         <div class="flex items-center space-x-10">
             <a href="index.html" class="flex items-center space-x-2 text-xl font-bold tracking-tight">
-                <span class="text-teal-400 font-outfit">✨ LinkPilot</span>
-                <span class="text-xs px-2 py-0.5 bg-slate-900 text-teal-400 border border-slate-800 rounded-full font-semibold">AI</span>
+                <span class="text-slate-900 font-outfit">✨ LinkPilot</span>
+                <span class="text-xs px-2 py-0.5 bg-blue-50 text-[#005bf7] border border-blue-200 rounded-full font-semibold">AI</span>
             </a>
-            <div class="hidden lg:flex items-center space-x-6 text-sm font-semibold text-slate-350">
-                <a href="index.html#features" class="nav-link hover:text-white transition">Features</a>
-                <a href="index.html#solutions" class="nav-link hover:text-white transition">Solutions</a>
-                <a href="pricing.html" class="nav-link hover:text-white transition">Pricing</a>
-                <a href="docs.html" class="nav-link hover:text-white transition">Docs</a>
-                <a href="about.html" class="nav-link hover:text-white transition">About</a>
+            <div class="hidden lg:flex items-center space-x-6 text-sm font-semibold text-slate-500">
+                <a href="index.html#features" class="nav-link hover:text-[#005bf7] transition">Features</a>
+                <a href="index.html#solutions" class="nav-link hover:text-[#005bf7] transition">Solutions</a>
+                <a href="pricing.html" class="nav-link hover:text-[#005bf7] transition">Pricing</a>
+                <a href="docs.html" class="nav-link hover:text-[#005bf7] transition">Docs</a>
+                <a href="about.html" class="nav-link hover:text-[#005bf7] transition">About</a>
             </div>
         </div>
         <div class="hidden sm:flex items-center space-x-4">
-            <a href="dashboard/login.html" class="text-sm font-bold text-slate-300 hover:text-white transition">Log In</a>
-            <a href="dashboard/register.html" class="px-5 py-2.5 text-xs font-bold text-slate-950 btn-primary rounded-xl shadow-lg transition">Get Started</a>
+            <a href="dashboard/login.html" class="text-sm font-bold text-slate-600 hover:text-slate-900 transition">Log In</a>
+            <a href="dashboard/register.html" style="background-color: #005bf7 !important; color: #ffffff !important;" class="px-5 py-2.5 text-xs font-bold rounded-xl shadow-md hover:bg-blue-600 transition">Get Started</a>
         </div>
     </nav>
 
@@ -78,22 +115,22 @@
             
             <!-- Hero Title -->
             <div class="text-center max-w-2xl mx-auto space-y-4 mb-16 animate-fade-in">
-                <span class="text-[10px] px-3.5 py-1 bg-teal-500/10 text-teal-400 border border-teal-500/20 rounded-full font-extrabold uppercase tracking-widest">Resources & Updates</span>
-                <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-white font-outfit leading-tight">
-                    The <span class="bg-gradient-to-r from-teal-400 via-emerald-400 to-indigo-400 bg-clip-text text-transparent">LinkPilot Hub</span>
+                <span class="text-[10px] px-3.5 py-1 bg-blue-50 text-[#005bf7] border border-blue-100 rounded-full font-extrabold uppercase tracking-widest">Resources & Updates</span>
+                <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 font-outfit leading-tight">
+                    The <span class="bg-gradient-to-r from-[#005bf7] via-blue-600 to-indigo-650 bg-clip-text text-transparent">LinkPilot Hub</span>
                 </h1>
-                <p class="text-sm text-slate-400 max-w-lg mx-auto leading-relaxed">
+                <p class="text-sm text-slate-500 max-w-lg mx-auto leading-relaxed font-medium">
                     Insights, tech guides, and product releases from the LinkPilot AI engineering and growth teams.
                 </p>
             </div>
 
             <!-- Capsule Tabs Switcher -->
             <div class="flex justify-center mb-12">
-                <div class="bg-slate-900/60 p-1.5 rounded-2xl border border-slate-800/80 inline-flex space-x-1.5">
-                    <button onclick="switchBlogTab('blog')" id="tab-btn-blog" class="px-6 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 bg-teal-500 text-slate-950 shadow-md">
+                <div class="bg-slate-200/50 p-1.5 rounded-2xl border border-slate-200 inline-flex space-x-1.5">
+                    <button onclick="switchBlogTab('blog')" id="tab-btn-blog" class="px-6 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 bg-[#005bf7] text-white shadow-sm">
                         Blog & Guides
                     </button>
-                    <button onclick="switchBlogTab('changelog')" id="tab-btn-changelog" class="px-6 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white">
+                    <button onclick="switchBlogTab('changelog')" id="tab-btn-changelog" class="px-6 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-500 hover:text-slate-800">
                         Changelog & Releases
                     </button>
                 </div>
@@ -103,18 +140,18 @@
             <div id="blog-tab-content" class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 
                 <!-- Card 1 -->
-                <div class="glass-panel rounded-2xl overflow-hidden card-hover flex flex-col justify-between group border border-slate-800/80 bg-slate-900/20 shadow-xl">
+                <div class="rounded-2xl overflow-hidden card-hover flex flex-col justify-between group border border-slate-200 bg-white shadow-sm">
                     <div class="p-8 space-y-4">
                         <div class="flex items-center justify-between">
-                            <span class="text-[9px] px-2.5 py-1 bg-teal-500/10 text-teal-400 border border-teal-500/20 rounded-full font-bold uppercase tracking-wider">OUTREACH GUIDE</span>
-                            <span class="text-[10px] text-slate-500 font-medium">5 min read</span>
+                            <span class="text-[9px] px-2.5 py-1 bg-blue-50 text-[#005bf7] border border-blue-100 rounded-full font-bold uppercase tracking-wider">OUTREACH GUIDE</span>
+                            <span class="text-[10px] text-slate-400 font-medium">5 min read</span>
                         </div>
-                        <h3 class="text-lg font-bold text-white leading-snug group-hover:text-teal-400 transition-colors">How to Write Personalized LinkedIn Outreach That Converts</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed font-medium">Master the psychology and mechanics of context-aware social messages. Discover how to leverage target activity feeds, recent milestones, and job descriptions to boost your connect-to-meeting conversion rates by 3.2x.</p>
+                        <h3 class="text-lg font-bold text-slate-900 leading-snug group-hover:text-[#005bf7] transition-colors font-outfit">How to Write Personalized LinkedIn Outreach That Converts</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed font-medium">Master the psychology and mechanics of context-aware social messages. Discover how to leverage target activity feeds, recent milestones, and job descriptions to boost your connect-to-meeting conversion rates by 3.2x.</p>
                     </div>
-                    <div class="px-8 py-5 border-t border-slate-900/80 bg-slate-950/40 text-xs text-slate-500 flex justify-between items-center">
+                    <div class="px-8 py-5 border-t border-slate-100 bg-slate-50/50 text-xs text-slate-500 flex justify-between items-center">
                         <span class="font-medium">June 24, 2026</span>
-                        <div class="flex items-center space-x-1 text-teal-400 font-bold cursor-pointer">
+                        <div class="flex items-center space-x-1 text-[#005bf7] font-bold cursor-pointer">
                             <span>Read article</span>
                             <i data-lucide="arrow-right" class="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform"></i>
                         </div>
@@ -122,18 +159,18 @@
                 </div>
 
                 <!-- Card 2 -->
-                <div class="glass-panel rounded-2xl overflow-hidden card-hover-purple flex flex-col justify-between group border border-slate-800/80 bg-slate-900/20 shadow-xl">
+                <div class="rounded-2xl overflow-hidden card-hover-purple flex flex-col justify-between group border border-slate-200 bg-white shadow-sm">
                     <div class="p-8 space-y-4">
                         <div class="flex items-center justify-between">
-                            <span class="text-[9px] px-2.5 py-1 bg-purple-500/10 text-purple-400 border border-purple-400/20 rounded-full font-bold uppercase tracking-wider">SECURITY</span>
-                            <span class="text-[10px] text-slate-500 font-medium">7 min read</span>
+                            <span class="text-[9px] px-2.5 py-1 bg-purple-50 text-purple-600 border border-purple-100 rounded-full font-bold uppercase tracking-wider">SECURITY</span>
+                            <span class="text-[10px] text-slate-400 font-medium">7 min read</span>
                         </div>
-                        <h3 class="text-lg font-bold text-white leading-snug group-hover:text-purple-400 transition-colors">Protecting Your Outbox: Cryptographic Encryption Practices</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed font-medium">Deep dive into LinkPilot's encryption architecture. Learn how we safeguard SMTP outbox credentials using AES-256-CBC, secure key-rotation schemas, and isolated session contexts to guarantee enterprise-grade security.</p>
+                        <h3 class="text-lg font-bold text-slate-900 leading-snug group-hover:text-purple-600 transition-colors font-outfit">Protecting Your Outbox: Cryptographic Encryption Practices</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed font-medium">Deep dive into LinkPilot's encryption architecture. Learn how we safeguard SMTP outbox credentials using AES-256-CBC, secure key-rotation schemas, and isolated session contexts to guarantee enterprise-grade security.</p>
                     </div>
-                    <div class="px-8 py-5 border-t border-slate-900/80 bg-slate-950/40 text-xs text-slate-500 flex justify-between items-center">
+                    <div class="px-8 py-5 border-t border-slate-100 bg-slate-50/50 text-xs text-slate-500 flex justify-between items-center">
                         <span class="font-medium">June 18, 2026</span>
-                        <div class="flex items-center space-x-1 text-purple-400 font-bold cursor-pointer">
+                        <div class="flex items-center space-x-1 text-purple-600 font-bold cursor-pointer">
                             <span>Read article</span>
                             <i data-lucide="arrow-right" class="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform"></i>
                         </div>
@@ -141,18 +178,18 @@
                 </div>
 
                 <!-- Card 3 -->
-                <div class="glass-panel rounded-2xl overflow-hidden card-hover flex flex-col justify-between group border border-slate-800/80 bg-slate-900/20 shadow-xl">
+                <div class="rounded-2xl overflow-hidden card-hover flex flex-col justify-between group border border-slate-200 bg-white shadow-sm">
                     <div class="p-8 space-y-4">
                         <div class="flex items-center justify-between">
-                            <span class="text-[9px] px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-400/20 rounded-full font-bold uppercase tracking-wider">PRODUCTIVITY</span>
-                            <span class="text-[10px] text-slate-500 font-medium">4 min read</span>
+                            <span class="text-[9px] px-2.5 py-1 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-full font-bold uppercase tracking-wider">PRODUCTIVITY</span>
+                            <span class="text-[10px] text-slate-400 font-medium">4 min read</span>
                         </div>
-                        <h3 class="text-lg font-bold text-white leading-snug group-hover:text-blue-400 transition-colors">Supercharging Lead Gen: The Rise of Autonomous Outreach Agents</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed font-medium">Explore how multi-agent workflows automate prospect profiling, inbox categorization, and context generation. See why context-rich automated drafts beat raw template sequences every time.</p>
+                        <h3 class="text-lg font-bold text-slate-900 leading-snug group-hover:text-indigo-600 transition-colors font-outfit">Supercharging Lead Gen: The Rise of Autonomous Outreach Agents</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed font-medium">Explore how multi-agent workflows automate prospect profiling, inbox categorization, and context generation. See why context-rich automated drafts beat raw template sequences every time.</p>
                     </div>
-                    <div class="px-8 py-5 border-t border-slate-900/80 bg-slate-950/40 text-xs text-slate-500 flex justify-between items-center">
+                    <div class="px-8 py-5 border-t border-slate-100 bg-slate-50/50 text-xs text-slate-500 flex justify-between items-center">
                         <span class="font-medium">June 10, 2026</span>
-                        <div class="flex items-center space-x-1 text-teal-400 font-bold cursor-pointer">
+                        <div class="flex items-center space-x-1 text-[#005bf7] font-bold cursor-pointer">
                             <span>Read article</span>
                             <i data-lucide="arrow-right" class="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform"></i>
                         </div>
@@ -160,18 +197,18 @@
                 </div>
 
                 <!-- Card 4 -->
-                <div class="glass-panel rounded-2xl overflow-hidden card-hover-purple flex flex-col justify-between group border border-slate-800/80 bg-slate-900/20 shadow-xl">
+                <div class="rounded-2xl overflow-hidden card-hover-purple flex flex-col justify-between group border border-slate-200 bg-white shadow-sm">
                     <div class="p-8 space-y-4">
                         <div class="flex items-center justify-between">
-                            <span class="text-[9px] px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-400/20 rounded-full font-bold uppercase tracking-wider">INTEGRATIONS</span>
-                            <span class="text-[10px] text-slate-500 font-medium">6 min read</span>
+                            <span class="text-[9px] px-2.5 py-1 bg-amber-50 text-amber-600 border border-amber-100 rounded-full font-bold uppercase tracking-wider">INTEGRATIONS</span>
+                            <span class="text-[10px] text-slate-400 font-medium">6 min read</span>
                         </div>
-                        <h3 class="text-lg font-bold text-white leading-snug group-hover:text-amber-400 transition-colors">SMTP vs. OAuth: Choosing the Right Email Integration</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed font-medium">A comprehensive comparison for business development representatives. We weigh deliverability, setup friction, message tracking capability, and security constraints to help you choose the best outbox integration.</p>
+                        <h3 class="text-lg font-bold text-slate-900 leading-snug group-hover:text-amber-600 transition-colors font-outfit">SMTP vs. OAuth: Choosing the Right Email Integration</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed font-medium">A comprehensive comparison for business development representatives. We weigh deliverability, setup friction, message tracking capability, and security constraints to help you choose the best outbox integration.</p>
                     </div>
-                    <div class="px-8 py-5 border-t border-slate-900/80 bg-slate-950/40 text-xs text-slate-500 flex justify-between items-center">
+                    <div class="px-8 py-5 border-t border-slate-100 bg-slate-50/50 text-xs text-slate-500 flex justify-between items-center">
                         <span class="font-medium">May 29, 2026</span>
-                        <div class="flex items-center space-x-1 text-purple-400 font-bold cursor-pointer">
+                        <div class="flex items-center space-x-1 text-purple-600 font-bold cursor-pointer">
                             <span>Read article</span>
                             <i data-lucide="arrow-right" class="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform"></i>
                         </div>
@@ -183,27 +220,27 @@
             <div id="changelog-tab-content" class="hidden space-y-12 max-w-3xl mx-auto">
                 
                 <!-- Log 1 -->
-                <div class="relative pl-8 border-l-2 border-teal-500/30 space-y-4 pb-8">
-                    <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-teal-400 border-4 border-[#030712] shadow-md shadow-teal-500/30"></div>
-                    <span class="text-[10px] px-2.5 py-0.5 bg-teal-500/10 text-teal-400 border border-teal-500/20 rounded font-mono uppercase tracking-wider">v1.2.0 - June 2026</span>
-                    <h3 class="text-base font-bold text-white">Gmail SMTP Preferences & Tab Styling Updates</h3>
-                    <p class="text-xs text-slate-455 leading-relaxed font-medium">Added secure Gmail SMTP configurations with App Passwords setups wizard. Integrated Google Gemini and OpenRouter branding cards dynamically inside settings. Solved vertical centering scroll clipping bugs on profile forms.</p>
+                <div class="relative pl-8 border-l-2 border-blue-500/20 space-y-4 pb-8">
+                    <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-[#005bf7] border-4 border-white shadow-md shadow-blue-500/20"></div>
+                    <span class="text-[10px] px-2.5 py-0.5 bg-blue-50 text-[#005bf7] border border-blue-100 rounded font-mono uppercase tracking-wider">v1.2.0 - June 2026</span>
+                    <h3 class="text-base font-bold text-slate-900 font-outfit">Gmail SMTP Preferences & Tab Styling Updates</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed font-medium">Added secure Gmail SMTP configurations with App Passwords setups wizard. Integrated Google Gemini and OpenRouter branding cards dynamically inside settings. Solved vertical centering scroll clipping bugs on profile forms.</p>
                 </div>
                 
                 <!-- Log 2 -->
-                <div class="relative pl-8 border-l-2 border-slate-800 space-y-4 pb-8">
-                    <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-slate-800 border-4 border-[#030712]"></div>
-                    <span class="text-[10px] px-2.5 py-0.5 bg-slate-800 text-slate-500 border border-slate-700/50 rounded font-mono uppercase tracking-wider">v1.1.0 - June 2026</span>
-                    <h3 class="text-base font-bold text-white">Multiple AI Providers Routing</h3>
-                    <p class="text-xs text-slate-455 leading-relaxed font-medium">Support for OpenAI-compatible Google AI Studio and GitHub Models endpoints, allowing power users to configure Gemini 1.5/2.0 Flash or GPT-4o-mini using private tokens.</p>
+                <div class="relative pl-8 border-l-2 border-slate-200 space-y-4 pb-8">
+                    <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-slate-200 border-4 border-white"></div>
+                    <span class="text-[10px] px-2.5 py-0.5 bg-slate-100 text-slate-500 border border-slate-200 rounded font-mono uppercase tracking-wider">v1.1.0 - June 2026</span>
+                    <h3 class="text-base font-bold text-slate-900 font-outfit">Multiple AI Providers Routing</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed font-medium">Support for OpenAI-compatible Google AI Studio and GitHub Models endpoints, allowing power users to configure Gemini 1.5/2.0 Flash or GPT-4o-mini using private tokens.</p>
                 </div>
                 
                 <!-- Log 3 -->
-                <div class="relative pl-8 border-l-2 border-slate-800 space-y-4">
-                    <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-slate-800 border-4 border-[#030712]"></div>
-                    <span class="text-[10px] px-2.5 py-0.5 bg-slate-800 text-slate-500 border border-slate-700/50 rounded font-mono uppercase tracking-wider">v1.0.0 - May 2026</span>
-                    <h3 class="text-base font-bold text-white">Initial Beta Release</h3>
-                    <p class="text-xs text-slate-455 leading-relaxed font-medium">Launched LinkPilot Chrome Extension, supporting context-aware outreach email, comments, and WhatsApp generation from LinkedIn posts.</p>
+                <div class="relative pl-8 border-l-2 border-slate-200 space-y-4">
+                    <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-slate-200 border-4 border-white"></div>
+                    <span class="text-[10px] px-2.5 py-0.5 bg-slate-100 text-slate-500 border border-slate-200 rounded font-mono uppercase tracking-wider">v1.0.0 - May 2026</span>
+                    <h3 class="text-base font-bold text-slate-900 font-outfit">Initial Beta Release</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed font-medium">Launched LinkPilot Chrome Extension, supporting context-aware outreach email, comments, and WhatsApp generation from LinkedIn posts.</p>
                 </div>
             </div>
 
@@ -211,37 +248,37 @@
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-slate-900/60 bg-slate-950/40 backdrop-blur-md py-16 text-slate-500 text-xs relative z-10">
+    <footer class="border-t border-slate-200 bg-slate-100 py-16 text-slate-550 text-xs relative z-10">
         <div class="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-5 gap-10">
             <div class="col-span-2 space-y-4">
-                <div class="text-white font-outfit font-bold tracking-tight text-base">✨ LinkPilot AI</div>
+                <div class="text-slate-900 font-outfit font-bold tracking-tight text-base">✨ LinkPilot AI</div>
                 <p class="max-w-xs text-slate-500 leading-relaxed font-medium">Personalized LinkedIn outreach assistant for high-performing business development workflows.</p>
-                <div class="text-slate-600 font-medium">© 2026 LinkPilot AI. All rights reserved.</div>
+                <div class="text-slate-400 font-medium">© 2026 LinkPilot AI. All rights reserved.</div>
             </div>
             <div class="space-y-4">
-                <h5 class="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Product</h5>
+                <h5 class="text-slate-800 font-bold uppercase tracking-wider text-[10px]">Product</h5>
                 <ul class="space-y-2.5 font-semibold">
-                    <li><a href="index.html#features" class="hover:text-white transition">Features</a></li>
-                    <li><a href="pricing.html" class="hover:text-white transition">Pricing</a></li>
-                    <li><a href="docs.html" class="hover:text-white transition">Documentation</a></li>
+                    <li><a href="index.html#features" class="hover:text-[#005bf7] transition">Features</a></li>
+                    <li><a href="pricing.html" class="hover:text-[#005bf7] transition">Pricing</a></li>
+                    <li><a href="docs.html" class="hover:text-[#005bf7] transition">Documentation</a></li>
                 </ul>
             </div>
             <div class="space-y-4">
-                <h5 class="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Company</h5>
+                <h5 class="text-slate-800 font-bold uppercase tracking-wider text-[10px]">Company</h5>
                 <ul class="space-y-2.5 font-semibold">
-                    <li><a href="about.html" class="hover:text-white transition">About Us</a></li>
-                    <li><a href="blog.html" class="hover:text-white transition">Blog & Updates</a></li>
-                    <li><a href="contact.html" class="hover:text-white transition">Support Contact</a></li>
+                    <li><a href="about.html" class="hover:text-[#005bf7] transition">About Us</a></li>
+                    <li><a href="blog.html" class="hover:text-[#005bf7] transition">Blog & Updates</a></li>
+                    <li><a href="contact.html" class="hover:text-[#005bf7] transition">Support Contact</a></li>
                 </ul>
             </div>
             <div class="space-y-4">
-                <h5 class="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Legal</h5>
+                <h5 class="text-slate-800 font-bold uppercase tracking-wider text-[10px]">Legal</h5>
                 <ul class="space-y-2.5 font-semibold">
-                    <li><a href="privacy.html" class="hover:text-white transition">Privacy Policy</a></li>
-                    <li><a href="terms.html" class="hover:text-white transition">Terms of Service</a></li>
-                    <li><a href="cookies.html" class="hover:text-white transition">Cookie Policy</a></li>
-                    <li><a href="disclaimer.html" class="hover:text-white transition">Disclaimer</a></li>
-                    <li><a href="sitemap.html" class="hover:text-white transition">Sitemap</a></li>
+                    <li><a href="privacy.html" class="hover:text-[#005bf7] transition">Privacy Policy</a></li>
+                    <li><a href="terms.html" class="hover:text-[#005bf7] transition">Terms of Service</a></li>
+                    <li><a href="cookies.html" class="hover:text-[#005bf7] transition">Cookie Policy</a></li>
+                    <li><a href="disclaimer.html" class="hover:text-[#005bf7] transition">Disclaimer</a></li>
+                    <li><a href="sitemap.html" class="hover:text-[#005bf7] transition">Sitemap</a></li>
                 </ul>
             </div>
         </div>
@@ -259,18 +296,18 @@
             
             if (tab === 'blog') {
                 // Style Active Button
-                blogBtn.className = "px-6 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 bg-teal-500 text-slate-950 shadow-md";
+                blogBtn.className = "px-6 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 bg-[#005bf7] text-white shadow-sm";
                 // Style Inactive Button
-                changelogBtn.className = "px-6 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white";
+                changelogBtn.className = "px-6 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-500 hover:text-slate-800";
                 
                 // Show Content
                 document.getElementById('blog-tab-content').classList.remove('hidden');
                 document.getElementById('changelog-tab-content').classList.add('hidden');
             } else {
                 // Style Active Button
-                changelogBtn.className = "px-6 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 bg-teal-500 text-slate-950 shadow-md";
+                changelogBtn.className = "px-6 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 bg-[#005bf7] text-white shadow-sm";
                 // Style Inactive Button
-                blogBtn.className = "px-6 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white";
+                blogBtn.className = "px-6 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-500 hover:text-slate-800";
                 
                 // Show Content
                 document.getElementById('blog-tab-content').classList.add('hidden');

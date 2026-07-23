@@ -416,7 +416,7 @@ async function navigateTo(view, params = {}) {
         }
         
         if (view === 'email-builder') {
-            contentArea.className = "flex-grow overflow-hidden w-full h-screen flex flex-col bg-slate-900";
+            contentArea.className = "flex-grow overflow-hidden w-full h-screen flex flex-col bg-[#f8fafc]";
         } else if (view === 'inbox' || view === 'email' || view === 'sent' || view === 'starred' || view === 'drafts' || view === 'archived' || view === 'snoozed' || view === 'trash' || view === 'spam' || view === 'whatsapp-inbox' || view === 'followups' || view === 'email-followups' || (view === 'automation' && window.wfState.activeWorkflow)) {
             contentArea.className = "flex-grow overflow-hidden w-full h-[calc(100vh-61px)] flex flex-col";
         } else {

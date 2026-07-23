@@ -1,149 +1,77 @@
-// dashboard/assets/js/email_builder.js
-
 (function() {
-    let activeTemplateId = null;
-    let templateName = "Untitled Template";
-    let templateSubject = "";
-    let templateCategory = "Sales";
-    let templateTag = "Outreach";
-    let activeDevice = "desktop"; // desktop, tablet, mobile
-    let activeSidebarTab = "elements"; // elements, sections, ai, brand
-    let selectedElementId = null;
-    let selectedSectionId = null;
+    // Visual Email Builder State Variables
+    let canvasData = [];
     let undoStack = [];
     let redoStack = [];
+    let selectedElementId = null;
+    let selectedSectionId = null;
+    let activeSidebarTab = 'elements'; // elements, sections, templates, blocks, brand, ai
+    let activeDevice = 'desktop'; // desktop, tablet, mobile
+    let activeTemplateId = null;
     let isSaving = false;
     let autoSaveInterval = null;
 
-    // Core Canvas JSON Tree
-    let canvasData = [
-        {
-            id: "sec_1",
-            type: "section",
-            settings: {
-                paddingTop: "30px",
-                paddingBottom: "30px",
-                backgroundColor: "#ffffff",
-                borderRadius: "8px"
-            },
-            elements: [
-                {
-                    id: "el_logo",
-                    type: "logo",
-                    settings: {
-                        logoUrl: "https://img.icons8.com/color/96/000000/send.png",
-                        height: "48px",
-                        align: "center",
-                        paddingBottom: "15px"
-                    }
-                },
-                {
-                    id: "el_hero",
-                    type: "hero",
-                    settings: {
-                        title: "Introducing LinkPilot Email AI",
-                        subtitle: "Generate high-converting personalized email sequences in seconds.",
-                        ctaText: "Start Building Now",
-                        ctaLink: "https://linkpilot.ai",
-                        backgroundColor: "#F8FAFC",
-                        padding: "24px",
-                        titleColor: "#0f172a",
-                        subtitleColor: "#475569"
-                    }
-                },
-                {
-                    id: "el_text_1",
-                    type: "text",
-                    settings: {
-                        content: "Dear {{First Name}},<br><br>We are thrilled to give you early access to our Drag & Drop Email Template Builder. Now you can design premium marketing templates that look perfect on Outlook, Gmail, and mobile screens.",
-                        fontSize: "15px",
-                        color: "#334155",
-                        lineHeight: "1.6",
-                        paddingTop: "20px",
-                        paddingBottom: "10px"
-                    }
-                },
-                {
-                    id: "el_btn_1",
-                    type: "button",
-                    settings: {
-                        text: "Explore Dashboard & Templates",
-                        link: "https://linkpilot.ai/dashboard",
-                        backgroundColor: "#4F46E5",
-                        textColor: "#ffffff",
-                        paddingTop: "12px",
-                        paddingBottom: "12px",
-                        paddingLeft: "24px",
-                        paddingRight: "24px",
-                        borderRadius: "8px",
-                        align: "center"
-                    }
-                },
-                {
-                    id: "el_spacer",
-                    type: "spacer",
-                    settings: {
-                        height: "20px"
-                    }
-                },
-                {
-                    id: "el_footer",
-                    type: "footer",
-                    settings: {
-                        content: "© 2026 LinkPilot AI. All rights reserved.<br>You received this because you are an active LinkPilot subscriber.<br><a href='#' style='color:#4F46E5;text-decoration:none;'>Unsubscribe</a> | <a href='#' style='color:#4F46E5;text-decoration:none;'>Preferences</a>",
-                        fontSize: "11px",
-                        color: "#94a3b8",
-                        align: "center",
-                        paddingTop: "20px"
-                    }
-                }
-            ]
-        }
-    ];
+    // Template metadata
+    let templateName = "New Campaign Layout";
+    let templateSubject = "Exclusive updates from our team";
+    let templateCategory = "Sales";
+    let templateTag = "Outreach";
 
-    // Global Brand Assets
+    // Global Brand Kit Styles
     let brandStyles = {
-        primaryColor: "#4F46E5",
+        primaryColor: "#6D5EF5", // LinkPilot Purple
         secondaryColor: "#0F172A",
         backgroundColor: "#f1f5f9",
-        fontFamily: "Inter, Arial, sans-serif"
+        fontFamily: "Inter, system-ui, -apple-system, sans-serif"
     };
 
-    // Component Definition List
+    // Elements Library definitions
     const draggableElements = [
-        { type: "heading", label: "Heading", icon: "type", desc: "Main title text" },
-        { type: "text", label: "Paragraph", icon: "align-left", desc: "Longform message block" },
-        { type: "image", label: "Image Block", icon: "image", desc: "Custom image upload / URL" },
-        { type: "button", label: "CTA Button", icon: "mouse-pointer", desc: "Action conversion link" },
-        { type: "divider", label: "Divider Line", icon: "minus", desc: "Horizontal section break" },
-        { type: "spacer", label: "Spacer Gap", icon: "move", desc: "Vertical spacing height" },
-        { type: "social", label: "Social Links", icon: "share-2", desc: "Social media sharing handles" },
-        { type: "coupon", label: "Coupon Card", icon: "tag", desc: "Promotional discount block" },
-        { type: "countdown", label: "Countdown Timer", icon: "clock", desc: "Scarcity counter block" }
+        { type: "heading", label: "Heading", icon: "heading", desc: "Main title text" },
+        { type: "text", label: "Text", icon: "align-left", desc: "Longform message block" },
+        { type: "image", label: "Image", icon: "image", desc: "Custom image upload" },
+        { type: "button", label: "Button", icon: "mouse-pointer", desc: "Action conversion link" },
+        { type: "divider", label: "Divider", icon: "minus", desc: "Horizontal separator line" },
+        { type: "spacer", label: "Spacer", icon: "move", desc: "Vertical spacing height" },
+        { type: "columns", label: "Columns", icon: "columns", desc: "Multi-column layout wrapper" },
+        { type: "social", label: "Social", icon: "share-2", desc: "Social media sharing links" },
+        { type: "html", label: "HTML", icon: "code", desc: "Embed custom HTML script" },
+        { type: "menu", label: "Menu", icon: "menu", desc: "Navigation menu header" },
+        { type: "icon", label: "Icon", icon: "star", desc: "Simple icon decorator" },
+        { type: "video", label: "Video", icon: "video", desc: "Embed hosted video link" },
+        { type: "countdown", label: "Countdown", icon: "clock", desc: "Promotional urgency timer" },
+        { type: "product", label: "Product", icon: "shopping-bag", desc: "Feature direct product card" },
+        { type: "coupon", label: "Coupon", icon: "ticket", desc: "Promotional discount card" },
+        { type: "signature", label: "Signature", icon: "pen-tool", desc: "Add personal sender signature" },
+        { type: "faq", label: "FAQ", icon: "help-circle", desc: "Accordion questions and answers" },
+        { type: "testimonial", label: "Testimonial", icon: "message-square", desc: "Add customer review block" }
     ];
 
-    // Draggable Sections Definition List
+    // Pre-built preset sections templates
     const readySections = [
         {
-            name: "Hero Banner",
+            name: "Hero Banner Accent",
             elements: [
                 {
-                    type: "hero",
-                    settings: {
-                        title: "Season Clearance Sale Starts Now",
-                        subtitle: "Get up to 70% off across all summer collection categories.",
-                        ctaText: "Shop the Sale",
-                        ctaLink: "#",
-                        backgroundColor: "#ECFDF5",
-                        padding: "30px",
-                        titleColor: "#065f46",
-                        subtitleColor: "#047857"
-                    }
+                    type: "logo",
+                    settings: { logoUrl: "https://img.icons8.com/color/96/000000/send.png", height: "36px", align: "center" }
+                },
+                {
+                    type: "heading",
+                    settings: { content: "Build Emails That Drive Real Results", fontSize: "32px", color: "#0f172a", align: "center" }
+                },
+                {
+                    type: "text",
+                    settings: { content: "Create stunning, responsive email campaigns in minutes with our powerful drag & drop builder.", fontSize: "16px", color: "#475569", align: "center" }
+                },
+                {
+                    type: "button",
+                    settings: { text: "Start Building Now →", link: "#", backgroundColor: "#6D5EF5", textColor: "#ffffff", borderRadius: "8px", align: "center", paddingTop: "12px", paddingBottom: "12px", paddingLeft: "24px", paddingRight: "24px" }
                 }
             ]
         },
         {
-            name: "Coupon Card",
+            name: "Coupon Promo",
             elements: [
                 {
                     type: "coupon",
@@ -152,34 +80,34 @@
                         discount: "50% OFF",
                         desc: "Apply this coupon code at checkout for your first order.",
                         backgroundColor: "#EEF2F6",
-                        borderColor: "#4F46E5"
+                        borderColor: "#6D5EF5"
                     }
                 }
             ]
         },
         {
-            name: "Call to Action",
+            name: "Call to Action Accent",
             elements: [
                 {
                     type: "heading",
-                    settings: { content: "Ready to accelerate outreach?", fontSize: "20px", color: "#0f172a", align: "center", paddingTop: "15px" }
+                    settings: { content: "Ready to accelerate outreach?", fontSize: "20px", color: "#0f172a", align: "center" }
                 },
                 {
                     type: "button",
-                    settings: { text: "Upgrade Plan Now", link: "#", backgroundColor: "#10B981", textColor: "#ffffff", borderRadius: "6px", align: "center", paddingTop: "10px" }
+                    settings: { text: "Upgrade Plan Now", link: "#", backgroundColor: "#10B981", textColor: "#ffffff", borderRadius: "6px", align: "center" }
                 }
             ]
         }
     ];
 
-    // Push current state to undo history
+    // Record builder state for Undo / Redo mechanics
     function recordState() {
         undoStack.push(JSON.stringify(canvasData));
         redoStack = []; // Clear redo stack on new action
         updateAutoSaveStatus();
     }
 
-    // Undo action
+    // Undo action trigger
     window.builderUndo = function() {
         if (undoStack.length === 0) return;
         redoStack.push(JSON.stringify(canvasData));
@@ -189,7 +117,7 @@
         renderPropertiesPanel();
     };
 
-    // Redo action
+    // Redo action trigger
     window.builderRedo = function() {
         if (redoStack.length === 0) return;
         undoStack.push(JSON.stringify(canvasData));
@@ -199,16 +127,17 @@
         renderPropertiesPanel();
     };
 
-    // Main entry point
+    // Main route visual entry point
     window.renderEmailBuilder = async function(container, templateId = null) {
         activeTemplateId = templateId;
         selectedElementId = null;
+        selectedSectionId = null;
         
-        // Hide global chat assist button to avoid overlapping controls
+        // Hide standard bottom right AI assistant launcher to avoid layout overlay collisions
         const globalChat = document.getElementById('ai-chat-trigger-btn');
         if (globalChat) globalChat.classList.add('hidden');
 
-        // Check if editing existing template
+        // Fetch template details if templateId is specified
         if (templateId) {
             try {
                 const res = await apiCall('crm/get_custom_templates.php?id=' + templateId);
@@ -223,17 +152,47 @@
                     }
                 }
             } catch (err) {
-                console.error("Failed to load existing template, using fallback", err);
+                console.error("Failed to load custom template details", err);
             }
         } else {
             templateName = "New Campaign Layout";
             templateSubject = "Exclusive updates from our team";
             // Initialize with default standard layout tree
+            canvasData = [
+                {
+                    id: "sec_default",
+                    type: "section",
+                    settings: { paddingTop: "20px", paddingBottom: "20px", backgroundColor: "#ffffff" },
+                    elements: [
+                        {
+                            id: "el_logo",
+                            type: "logo",
+                            settings: { logoUrl: "https://img.icons8.com/color/96/000000/send.png", height: "36px", align: "center" }
+                        },
+                        {
+                            id: "el_head",
+                            type: "heading",
+                            settings: { content: "Build Emails That Drive Real Results", fontSize: "32px", color: "#0F172A", align: "center" }
+                        },
+                        {
+                            id: "el_txt",
+                            type: "text",
+                            settings: { content: "Create stunning, responsive email campaigns in minutes with our powerful drag & drop builder.", fontSize: "16px", color: "#475569", align: "center" }
+                        },
+                        {
+                            id: "el_btn",
+                            type: "button",
+                            settings: { text: "Start Building Now →", link: "#", backgroundColor: "#6D5EF5", textColor: "#ffffff", borderRadius: "8px", align: "center", paddingTop: "12px", paddingBottom: "12px", paddingLeft: "24px", paddingRight: "24px" }
+                        }
+                    ]
+                }
+            ];
         }
-        // Draw builder interface structure
+
+        // Draw structural layout HTML
         container.innerHTML = `
             <style>
-                /* Premium Drag & Drop Builder UI Light Color Overrides */
+                /* Enterprise light theme variables and overrides */
                 #builder-left-sidebar input,
                 #builder-left-sidebar select,
                 #builder-left-sidebar textarea,
@@ -255,8 +214,8 @@
                 #builder-right-sidebar input:focus,
                 #builder-right-sidebar select:focus,
                 #builder-right-sidebar textarea:focus {
-                    border-color: #4F46E5 !important;
-                    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1) !important;
+                    border-color: #6D5EF5 !important;
+                    box-shadow: 0 0 0 2px rgba(109, 94, 245, 0.15) !important;
                 }
                 #builder-left-sidebar label,
                 #builder-right-sidebar label,
@@ -283,34 +242,43 @@
                 }
                 
                 /* Device switcher & undo/redo buttons */
-                .h-14 button:not(#save-template-btn) {
+                .h-14 button:not(#save-template-btn):not(#save-exit-btn) {
                     background-color: #ffffff !important;
                     color: #475569 !important;
                     border: 1px solid #cbd5e1 !important;
                 }
-                .h-14 button:not(#save-template-btn):hover {
+                .h-14 button:not(#save-template-btn):not(#save-exit-btn):hover {
                     background-color: #f8fafc !important;
                     color: #0f172a !important;
                 }
             </style>
-            <div class="flex flex-col w-full h-full bg-[#f1f5f9] font-sans text-slate-700 overflow-hidden select-none">
+            <div class="flex flex-col w-full h-full bg-[#f8fafc] font-sans text-slate-700 overflow-hidden select-none">
                 
                 <!-- TOP HEADER ACTION BAR -->
                 <div class="h-14 border-b border-slate-200 bg-white px-6 flex items-center justify-between shrink-0 z-45 shadow-sm">
                     <div class="flex items-center space-x-3">
                         <button onclick="exitEmailBuilder()" style="background-color: #ffffff !important; color: #475569 !important; border: 1px solid #cbd5e1 !important;" class="p-2 hover:text-slate-900 rounded-lg transition" title="Exit Builder">
-                            <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                            <i data-lucide="x" class="h-4 w-4"></i>
                         </button>
                         <div class="border-l border-slate-200 h-6 mx-1"></div>
-                        <div class="flex flex-col">
-                            <input type="text" id="builder-template-name" onchange="updateTemplateDetails()" value="${templateName}" placeholder="Template Name" class="focus:border-indigo-500 focus:outline-none text-xs font-bold text-slate-800 py-0.5 max-w-[200px] transition">
-                            <span id="autosave-status" class="text-[9px] text-slate-400 font-medium mt-0.5">Draft saved locally</span>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-extrabold text-sm text-[#0F172A] flex items-center">
+                                <i data-lucide="send" class="h-4 w-4 mr-1.5 text-[#6D5EF5]"></i>LinkPilot
+                            </span>
+                            <span class="text-xs text-slate-400 font-medium">Email Builder</span>
+                            <i data-lucide="edit-3" class="h-3 w-3 text-slate-400 cursor-pointer ml-1"></i>
+                        </div>
+                        <div class="border-l border-slate-200 h-6 mx-1"></div>
+                        <div class="flex items-center space-x-1.5">
+                            <span id="autosave-status" class="text-[10px] text-slate-500 font-medium flex items-center">
+                                <i data-lucide="check-circle-2" class="h-3.5 w-3.5 mr-1 text-emerald-500"></i>Saved
+                            </span>
                         </div>
                     </div>
 
                     <!-- Responsive Mode Selectors -->
                     <div class="hidden md:flex items-center bg-slate-100 border border-slate-200 p-1 rounded-xl space-x-0.5 text-xs font-bold">
-                        <button onclick="setDeviceView('desktop')" id="btn-device-desktop" style="background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" class="px-3 py-1.5 rounded-lg transition">
+                        <button onclick="setDeviceView('desktop')" id="btn-device-desktop" style="background-color: #6D5EF5 !important; color: #ffffff !important; font-weight: bold !important;" class="px-3 py-1.5 rounded-lg transition">
                             <i data-lucide="monitor" class="h-3.5 w-3.5 inline mr-1"></i>Desktop
                         </button>
                         <button onclick="setDeviceView('tablet')" id="btn-device-tablet" style="background-color: transparent !important; color: #64748b !important;" class="px-3 py-1.5 rounded-lg transition">
@@ -330,12 +298,15 @@
                             <i data-lucide="redo-2" class="h-3.5 w-3.5"></i>
                         </button>
                         <div class="border-l border-slate-200 h-6 mx-1"></div>
-                        
+
                         <button onclick="openTestEmailModal()" style="background-color: #ffffff !important; color: #475569 !important; border: 1px solid #cbd5e1 !important;" class="px-3 py-1.5 text-xs font-bold rounded-lg transition">
                             <i data-lucide="send" class="h-3.5 w-3.5 inline mr-1.5 text-blue-500"></i>Test Email
                         </button>
-                        <button onclick="saveTemplateDraft()" id="save-template-btn" style="background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" class="px-4 py-1.5 text-white text-xs font-black rounded-lg shadow-md transition">
-                            Save Draft
+                        <button onclick="saveTemplateDraft()" id="save-template-btn" style="background-color: #ffffff !important; color: #475569 !important; border: 1px solid #cbd5e1 !important;" class="px-3 py-1.5 text-xs font-bold rounded-lg transition">
+                            <i data-lucide="save" class="h-3.5 w-3.5 inline mr-1.5 text-slate-500"></i>Save
+                        </button>
+                        <button onclick="exitEmailBuilder()" id="save-exit-btn" style="background-color: #6D5EF5 !important; color: #ffffff !important; font-weight: bold !important;" class="px-4 py-1.5 text-white text-xs font-black rounded-lg shadow-md transition flex items-center">
+                            Save & Exit <i data-lucide="chevron-down" class="h-3 w-3 ml-1.5"></i>
                         </button>
                     </div>
                 </div>
@@ -343,42 +314,89 @@
                 <!-- MAIN WORKSPACE LAYOUT -->
                 <div class="flex flex-grow w-full overflow-hidden">
                     
-                    <!-- LEFT PANEL - DRAGGABLE CONTROLS -->
-                    <div id="builder-left-sidebar" class="w-80 border-r border-slate-200 bg-white flex flex-col shrink-0 overflow-hidden relative z-40 transition-all duration-300">
-                        <!-- Search & Tabs Header -->
-                        <div class="p-4 border-b border-slate-200 space-y-3">
+                    <!-- 1. LEFT NAVIGATION RAIL -->
+                    <div class="w-16 border-r border-slate-200 bg-white flex flex-col items-center py-4 space-y-4 shrink-0">
+                        <button onclick="setLeftSidebarTab('elements')" id="rail-tab-elements" style="background-color: #indigo-50;" class="p-3.5 rounded-xl text-[#6D5EF5] transition-all relative group" title="Elements">
+                            <i data-lucide="layout-grid" class="h-5 w-5"></i>
+                            <span class="absolute left-16 bg-slate-900 text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap z-50">Elements</span>
+                        </button>
+                        <button onclick="setLeftSidebarTab('sections')" id="rail-tab-sections" class="p-3.5 rounded-xl text-slate-400 hover:text-slate-800 transition-all relative group" title="Sections">
+                            <i data-lucide="layout-template" class="h-5 w-5"></i>
+                            <span class="absolute left-16 bg-slate-900 text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap z-50">Sections</span>
+                        </button>
+                        <button onclick="setLeftSidebarTab('templates')" id="rail-tab-templates" class="p-3.5 rounded-xl text-slate-400 hover:text-slate-800 transition-all relative group" title="Templates">
+                            <i data-lucide="folder-open" class="h-5 w-5"></i>
+                            <span class="absolute left-16 bg-slate-900 text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap z-50">Templates</span>
+                        </button>
+                        <button onclick="setLeftSidebarTab('blocks')" id="rail-tab-blocks" class="p-3.5 rounded-xl text-slate-400 hover:text-slate-800 transition-all relative group" title="Saved Blocks">
+                            <i data-lucide="database" class="h-5 w-5"></i>
+                            <span class="absolute left-16 bg-slate-900 text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap z-50">Saved Blocks</span>
+                        </button>
+                        <button onclick="setLeftSidebarTab('brand')" id="rail-tab-brand" class="p-3.5 rounded-xl text-slate-400 hover:text-slate-800 transition-all relative group" title="Brand Kit">
+                            <i data-lucide="palette" class="h-5 w-5"></i>
+                            <span class="absolute left-16 bg-slate-900 text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap z-50">Brand Kit</span>
+                        </button>
+                        <button onclick="setLeftSidebarTab('ai')" id="rail-tab-ai" class="p-3.5 rounded-xl text-slate-400 hover:text-slate-800 relative group transition-all" title="AI Assistant">
+                            <i data-lucide="sparkles" class="h-5 w-5"></i>
+                            <span class="absolute left-16 bg-slate-900 text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap z-50">AI Assistant</span>
+                        </button>
+                    </div>
+
+                    <!-- 2. LEFT ELEMENTS PANEL -->
+                    <div id="builder-left-sidebar" class="w-72 border-r border-slate-200 bg-white flex flex-col shrink-0 overflow-hidden relative z-40 transition-all duration-300">
+                        <div class="p-4 border-b border-slate-100 space-y-3">
+                            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider" id="left-sidebar-title">Elements</h3>
                             <div class="relative">
                                 <i data-lucide="search" class="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400"></i>
-                                <input type="text" id="left-sidebar-search" oninput="searchSidebarElements(this.value)" placeholder="Search layout elements..." class="w-full pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:border-indigo-500">
-                            </div>
-                            <div class="flex bg-slate-100 p-0.5 rounded-lg text-[10px] font-bold tracking-wider uppercase text-center border border-slate-200">
-                                <button onclick="setLeftSidebarTab('elements')" id="tab-left-elements" style="background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" class="flex-grow py-1.5 rounded-md transition">Elements</button>
-                                <button onclick="setLeftSidebarTab('sections')" id="tab-left-sections" style="background-color: transparent !important; color: #64748b !important;" class="flex-grow py-1.5 rounded-md transition">Sections</button>
-                                <button onclick="setLeftSidebarTab('ai')" id="tab-left-ai" style="background-color: transparent !important; color: #64748b !important;" class="flex-grow py-1.5 rounded-md transition">AI Assistant</button>
-                                <button onclick="setLeftSidebarTab('brand')" id="tab-left-brand" style="background-color: transparent !important; color: #64748b !important;" class="flex-grow py-1.5 rounded-md transition">Brand</button>
+                                <input type="text" id="left-sidebar-search" oninput="searchSidebarElements(this.value)" placeholder="Search elements...          ⌘ K" class="w-full pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 placeholder-slate-450 focus:outline-none focus:border-[#6D5EF5]">
                             </div>
                         </div>
 
-                        <!-- Sidebar tab contents -->
+                        <!-- Scroll tab content container -->
                         <div id="left-sidebar-scroll-area" class="flex-grow overflow-y-auto p-4 custom-scrollbar">
                             <!-- Injected dynamically based on selected tab -->
                         </div>
+
+                        <!-- Drag and Drop footer badge -->
+                        <div class="p-4 border-t border-slate-100 bg-[#FAF9FF] flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <i data-lucide="sparkles" class="h-4 w-4 text-[#6D5EF5]"></i>
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] font-bold text-slate-700">Drag & Drop</span>
+                                    <span class="text-[8px] text-slate-400">Add elements to build your email</span>
+                                </div>
+                            </div>
+                            <i data-lucide="x" class="h-3 w-3 text-slate-400 cursor-pointer"></i>
+                        </div>
                     </div>
 
-                    <!-- CENTER CANVAS - PREVIEW AREA -->
-                    <div class="flex-grow bg-[#f1f5f9] flex flex-col items-center justify-start p-6 overflow-y-auto relative select-text" id="builder-canvas-viewport">
-                        <!-- Canvas Responsive Resizable Frame -->
-                        <div id="canvas-device-frame" class="w-full max-w-[760px] bg-[#f1f5f9] rounded-2xl shadow-2xl border border-slate-200 transition-all duration-300 flex flex-col overflow-hidden min-h-[600px] mb-12">
-                            <!-- Canvas Frame Topbar -->
-                            <div class="bg-white border-b border-slate-200 px-4 py-2 flex items-center justify-between text-xs text-slate-400 shrink-0">
-                                <div class="flex items-center space-x-1.5">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-slate-200"></span>
-                                    <span class="w-2.5 h-2.5 rounded-full bg-slate-200"></span>
-                                    <span class="w-2.5 h-2.5 rounded-full bg-slate-200"></span>
-                                </div>
-                                <span class="font-bold text-[10px] text-slate-500 uppercase tracking-widest" id="canvas-device-label">Desktop Preview</span>
-                                <div class="w-10"></div>
+                    <!-- 3. CENTER CANVAS - PREVIEW AREA -->
+                    <div class="flex-grow bg-[#F1F5F9] flex flex-col overflow-y-auto relative select-text" id="builder-canvas-viewport">
+                        
+                        <!-- Canvas Header Area Controls (matching layout) -->
+                        <div class="w-full max-w-[760px] mx-auto mt-4 px-4 flex items-center justify-between shrink-0 text-slate-550 select-none">
+                            <div class="flex items-center space-x-2.5 bg-white border border-slate-200 rounded-lg p-1">
+                                <button class="p-1 hover:bg-slate-100 rounded text-slate-650" title="Portrait View"><i data-lucide="smartphone" class="h-3.5 w-3.5"></i></button>
+                                <button class="p-1 hover:bg-slate-100 rounded text-slate-650" title="Landscape View"><i data-lucide="monitor" class="h-3.5 w-3.5"></i></button>
+                                <button class="p-1 hover:bg-slate-100 rounded text-slate-650" title="Rotate Canvas"><i data-lucide="rotate-cw" class="h-3.5 w-3.5"></i></button>
                             </div>
+                            <div class="flex items-center space-x-4 text-xs font-bold">
+                                <button onclick="builderUndo()" class="text-slate-500 hover:text-slate-800 transition flex items-center"><i data-lucide="undo" class="h-3 w-3 mr-1"></i>Undo</button>
+                                <button onclick="builderRedo()" class="text-slate-500 hover:text-slate-800 transition flex items-center"><i data-lucide="redo" class="h-3 w-3 mr-1"></i>Redo</button>
+                                <button class="text-slate-500 hover:text-slate-800 transition flex items-center"><i data-lucide="history" class="h-3 w-3 mr-1"></i>Version History</button>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="setLeftSidebarTab('ai')" class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-black text-slate-700 flex items-center transition shadow-2xs">
+                                    <i data-lucide="sparkles" class="h-3 w-3 text-purple-500 mr-1"></i> AI Generate
+                                </button>
+                                <button class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-black text-slate-700 flex items-center transition shadow-2xs">
+                                    <i data-lucide="code" class="h-3 w-3 text-slate-500 mr-1"></i> Code View
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Canvas Responsive Resizable Frame -->
+                        <div id="canvas-device-frame" class="w-full max-w-[760px] bg-[#f1f5f9] rounded-2xl transition-all duration-300 flex flex-col min-h-[600px] mt-4 mb-20 mx-auto select-none relative">
                             
                             <!-- Main canvas dropping container -->
                             <div id="email-builder-canvas" 
@@ -389,15 +407,38 @@
                                 <!-- Injected dynamically by renderCanvas() -->
                             </div>
                         </div>
+
+                        <!-- Footer breadcrumbs bar -->
+                        <div class="absolute bottom-0 left-0 right-0 h-10 bg-white border-t border-slate-200 px-6 flex items-center justify-between text-[11px] font-medium text-slate-400 select-none z-30">
+                            <div class="flex items-center space-x-1.5" id="canvas-breadcrumbs">
+                                <span>Body</span> <i data-lucide="chevron-right" class="h-3 w-3"></i>
+                                <span>Section</span> <i data-lucide="chevron-right" class="h-3 w-3"></i>
+                                <span>Row</span> <i data-lucide="chevron-right" class="h-3 w-3"></i>
+                                <span>Column</span> <i data-lucide="chevron-right" class="h-3 w-3"></i>
+                                <span class="text-[#6D5EF5] font-bold">Heading</span>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <span class="flex items-center"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5"></span>Autosaved just now</span>
+                                <button class="hover:text-slate-800 transition">Feedback</button>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- RIGHT PANEL - DYNAMIC PROPERTIES -->
+                    <!-- 4. RIGHT PANEL - DYNAMIC PROPERTIES -->
                     <div id="builder-right-sidebar" class="w-80 border-l border-slate-200 bg-white flex flex-col shrink-0 overflow-hidden z-40">
-                        <div class="p-4 border-b border-slate-200 shrink-0 flex items-center justify-between">
-                            <h3 class="text-xs font-black tracking-wider uppercase text-slate-800 flex items-center">
-                                <i data-lucide="settings" class="h-3.5 w-3.5 mr-1.5 text-indigo-500"></i>Properties Panel
-                            </h3>
-                            <span class="text-[9.5px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md" id="selected-type-badge">NONE</span>
+                        <div class="p-4 border-b border-slate-200 shrink-0 flex flex-col">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-xs font-black tracking-wider uppercase text-slate-850 flex items-center" id="properties-panel-title">
+                                    <i data-lucide="settings" class="h-3.5 w-3.5 mr-1.5 text-indigo-500"></i>Heading
+                                </h3>
+                                <span class="text-[9.5px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md" id="selected-type-badge">NONE</span>
+                            </div>
+                            <!-- Panel Tabs -->
+                            <div class="flex bg-slate-100 p-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wide text-center border border-slate-200">
+                                <button onclick="setPropertiesTab('content')" id="tab-prop-content" style="background-color:#ffffff; color:#0f172a; font-weight:bold;" class="flex-grow py-1 rounded-md transition shadow-2xs">Content</button>
+                                <button onclick="setPropertiesTab('style')" id="tab-prop-style" style="background-color:transparent; color:#64748b;" class="flex-grow py-1 rounded-md transition">Style</button>
+                                <button onclick="setPropertiesTab('advanced')" id="tab-prop-advanced" style="background-color:transparent; color:#64748b;" class="flex-grow py-1 rounded-md transition">Advanced</button>
+                            </div>
                         </div>
 
                         <!-- Scrollable Controls Container -->
@@ -412,122 +453,99 @@
 
                 </div>
             </div>
-            
-            <!-- TEST EMAIL POPUP COMPONENT -->
-            <div id="test-email-modal" class="fixed inset-0 z-100 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs hidden">
-                <div class="bg-[#0F172A] border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl animate-fade-in text-xs font-sans text-slate-200">
-                    <div class="flex justify-between items-center mb-4">
-                        <h4 class="text-sm font-black text-white">Send Test Outbound</h4>
-                        <button onclick="closeTestEmailModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="h-4 w-4"></i></button>
+
+            <!-- SMTP Test delivery modal -->
+            <div id="test-email-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center hidden z-100">
+                <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+                    <button onclick="closeTestEmailModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-800 transition">
+                        <i data-lucide="x" class="h-4.5 w-4.5"></i>
+                    </button>
+                    <div class="flex items-center space-x-2.5 mb-4">
+                        <div class="h-8 w-8 rounded-lg bg-indigo-50 text-[#6D5EF5] flex items-center justify-center">
+                            <i data-lucide="send" class="h-4.5 w-4.5"></i>
+                        </div>
+                        <h3 class="text-sm font-black text-slate-900 uppercase tracking-wide">Send Test Email</h3>
                     </div>
                     <div class="space-y-4">
                         <div class="space-y-1">
-                            <label class="font-bold text-slate-300">Recipient Email</label>
-                            <input type="email" id="test-recipient-email" placeholder="e.g. you@company.com" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                            <label class="font-bold text-slate-600 text-[10px] uppercase">Recipient Email</label>
+                            <input type="email" id="test-recipient-email" placeholder="e.g. wbsoumo@gmail.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800">
                         </div>
                         <div class="space-y-1">
-                            <label class="font-bold text-slate-300">Subject Line</label>
-                            <input type="text" id="test-subject" value="${templateSubject}" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+                            <label class="font-bold text-slate-600 text-[10px] uppercase">Subject Line Override</label>
+                            <input type="text" id="test-subject" placeholder="e.g. LinkPilot Visual Builder Delivery Test" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800">
                         </div>
-                        <div class="pt-2 flex justify-end space-x-2">
-                            <button onclick="closeTestEmailModal()" class="px-4 py-2 bg-slate-850 hover:bg-slate-800 rounded-xl font-bold">Cancel</button>
-                            <button onclick="submitSendTestEmail()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-750 text-white rounded-xl font-black shadow-lg" style="color:#ffffff !important;background-color:#4F46E5 !important;">Send Test</button>
-                        </div>
+                    </div>
+                    <div class="flex items-center justify-end space-x-3 mt-6">
+                        <button onclick="closeTestEmailModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg transition">Cancel</button>
+                        <button onclick="submitSendTestEmail()" class="px-4 py-2 bg-[#6D5EF5] hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition shadow-md">Send Test Outbound</button>
                     </div>
                 </div>
             </div>
         `;
 
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-
-        // Load content tabs & setup drag listeners
-        setLeftSidebarTab(activeSidebarTab);
+        // Initialize left Elements tab default content
+        setLeftSidebarTab('elements');
         renderCanvas();
 
-        // Start Auto Saving sequence
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        // Auto Save Interval setup (every 30 seconds)
         if (autoSaveInterval) clearInterval(autoSaveInterval);
         autoSaveInterval = setInterval(() => {
-            saveTemplateDraft(true); // silent auto save
+            saveTemplateDraft(true);
         }, 30000);
     };
 
-    // Update state settings from name inputs
-    window.updateTemplateDetails = function() {
-        const inputVal = document.getElementById('builder-template-name').value.trim();
-        if (inputVal) {
-            templateName = inputVal;
-        }
-    };
-
-    // Responsive Switcher Layout Modifier
-    window.setDeviceView = function(device) {
-        activeDevice = device;
-        const frame = document.getElementById('canvas-device-frame');
-        const label = document.getElementById('canvas-device-label');
-        if (!frame) return;
-
-        // Reset buttons active style
-        const desktopBtn = document.getElementById('btn-device-desktop');
-        const tabletBtn = document.getElementById('btn-device-tablet');
-        const mobileBtn = document.getElementById('btn-device-mobile');
-
-        if (desktopBtn && tabletBtn && mobileBtn) {
-            desktopBtn.style.cssText = device === 'desktop' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #64748b !important;";
-            tabletBtn.style.cssText = device === 'tablet' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #64748b !important;";
-            mobileBtn.style.cssText = device === 'mobile' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #64748b !important;";
-        }
-
-        if (device === 'desktop') {
-            frame.style.maxWidth = "760px";
-            label.innerText = "Desktop Preview (760px)";
-        } else if (device === 'tablet') {
-            frame.style.maxWidth = "580px";
-            label.innerText = "Tablet View (580px)";
-        } else if (device === 'mobile') {
-            frame.style.maxWidth = "380px";
-            label.innerText = "Mobile View (380px)";
-        }
-    };
-
-    // Left Tab Controller
+    // Toggle Left sidebar active Tab selection
     window.setLeftSidebarTab = function(tab) {
         activeSidebarTab = tab;
         const container = document.getElementById('left-sidebar-scroll-area');
-        if (!container) return;
+        const titleEl = document.getElementById('left-sidebar-title');
+        if (!container || !titleEl) return;
 
-        // Reset active tabs highlight using inline style.cssText
-        const elTab = document.getElementById('tab-left-elements');
-        const secTab = document.getElementById('tab-left-sections');
-        const aiTab = document.getElementById('tab-left-ai');
-        const brandTab = document.getElementById('tab-left-brand');
+        // Toggle title header text
+        titleEl.innerText = tab.toUpperCase();
 
-        if (elTab) elTab.style.cssText = tab === 'elements' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #64748b !important;";
-        if (secTab) secTab.style.cssText = tab === 'sections' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #64748b !important;";
-        if (aiTab) aiTab.style.cssText = tab === 'ai' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #64748b !important;";
-        if (brandTab) brandTab.style.cssText = tab === 'brand' ? "background-color: #4F46E5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #64748b !important;";
+        // Toggle vertical rail highlighted active styling
+        const tabs = ['elements', 'sections', 'templates', 'blocks', 'brand', 'ai'];
+        tabs.forEach(t => {
+            const btn = document.getElementById('rail-tab-' + t);
+            if (btn) {
+                if (t === tab) {
+                    btn.style.cssText = "background-color: #FAF9FF !important; color: #6D5EF5 !important; border-left: 3px solid #6D5EF5; border-radius: 0 12px 12px 0;";
+                } else {
+                    btn.style.cssText = "background-color: transparent !important; color: #94a3b8 !important; border-left: 3px solid transparent;";
+                }
+            }
+        });
 
+        // Load specific tab renderer
         if (tab === 'elements') {
             renderElementsList(container);
         } else if (tab === 'sections') {
             renderSectionsList(container);
-        } else if (tab === 'ai') {
-            renderAISidebar(container);
+        } else if (tab === 'templates') {
+            renderTemplatesTab(container);
+        } else if (tab === 'blocks') {
+            renderBlocksTab(container);
         } else if (tab === 'brand') {
             renderBrandSidebar(container);
+        } else if (tab === 'ai') {
+            renderAISidebar(container);
         }
     };
 
-    // Render Draggable elements inside tab
+    // Element rendering list logic
     function renderElementsList(container, filterQuery = "") {
         const filtered = draggableElements.filter(el => el.label.toLowerCase().includes(filterQuery.toLowerCase()));
-        
         container.innerHTML = `
             <div class="grid grid-cols-2 gap-3" id="draggable-items-grid">
                 ${filtered.map(el => `
-                    <div class="bg-white border border-slate-200 rounded-xl p-3.5 flex flex-col items-center justify-center text-center cursor-grab active:cursor-grabbing hover:border-indigo-500 hover:bg-slate-50 transition select-none group"
+                    <div class="bg-white border border-slate-200 rounded-xl p-3.5 flex flex-col items-center justify-center text-center cursor-grab active:cursor-grabbing hover:border-[#6D5EF5] hover:bg-slate-50 transition select-none group"
                          draggable="true" 
                          ondragstart="onBuilderDragStart(event, '${el.type}')">
-                        <div class="h-9 w-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center mb-2 group-hover:scale-110 transition duration-200">
+                        <div class="h-9 w-9 rounded-lg bg-indigo-50 text-[#6D5EF5] flex items-center justify-center mb-2 group-hover:scale-115 transition duration-200">
                             <i data-lucide="${el.icon}" class="h-4.5 w-4.5"></i>
                         </div>
                         <span class="font-bold text-[11px] text-slate-700">${el.label}</span>
@@ -539,15 +557,15 @@
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
-    // Render Draggable pre-built sections
+    // Draggable preset sections renderer
     function renderSectionsList(container) {
         container.innerHTML = `
             <div class="space-y-4">
                 ${readySections.map((sec, idx) => `
-                    <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:border-indigo-500 transition select-none">
+                    <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:border-[#6D5EF5] transition select-none">
                         <div class="flex items-center justify-between mb-2">
                             <span class="font-bold text-xs text-slate-800">${sec.name}</span>
-                            <span class="text-[9px] text-slate-500 uppercase font-black bg-slate-100 px-2 py-0.5 rounded">PRESET</span>
+                            <span class="text-[9px] text-[#6D5EF5] uppercase font-black bg-indigo-50 px-2 py-0.5 rounded">PRESET</span>
                         </div>
                         <p class="text-[10px] text-slate-450 leading-relaxed mb-3">Custom draggable elements configured as a template block ready to drag onto canvas.</p>
                         <button onclick="insertSectionDirectly(${idx})" style="background-color: #ffffff !important; color: #475569 !important; border: 1px solid #cbd5e1 !important;" class="w-full py-2 hover:bg-slate-50 hover:text-slate-900 rounded-lg text-[10px] font-black tracking-wide uppercase transition">
@@ -575,15 +593,56 @@
         };
         canvasData.push(newSec);
         renderCanvas();
-        showNotification('success', 'Inserted ready block.');
+        showNotification('success', 'Inserted preset section.');
     };
 
-    // Render AI Panel tab
+    // Sidebar templates view list
+    function renderTemplatesTab(container) {
+        container.innerHTML = `
+            <div class="space-y-3.5">
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-center text-slate-500">
+                    <p class="font-bold text-xs">Templates Library</p>
+                    <p class="text-[9.5px] text-slate-450 mt-1">Select and load preset layout blueprints directly into your current campaign draft.</p>
+                </div>
+                <div class="space-y-2">
+                    <div class="p-3 bg-white border border-slate-200 rounded-xl hover:border-[#6D5EF5] cursor-pointer transition flex items-center justify-between">
+                        <div>
+                            <p class="font-bold text-xs text-slate-800">Black Friday Outreach</p>
+                            <span class="text-[9px] text-[#6D5EF5] font-bold">Marketing</span>
+                        </div>
+                        <i data-lucide="arrow-right" class="h-4 w-4 text-slate-400"></i>
+                    </div>
+                    <div class="p-3 bg-white border border-slate-200 rounded-xl hover:border-[#6D5EF5] cursor-pointer transition flex items-center justify-between">
+                        <div>
+                            <p class="font-bold text-xs text-slate-800">Monthly Product Launch</p>
+                            <span class="text-[9px] text-[#6D5EF5] font-bold">Newsletters</span>
+                        </div>
+                        <i data-lucide="arrow-right" class="h-4 w-4 text-slate-400"></i>
+                    </div>
+                </div>
+            </div>
+        `;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    // Sidebar saved blocks view list
+    function renderBlocksTab(container) {
+        container.innerHTML = `
+            <div class="space-y-3.5 text-center text-slate-500 py-6">
+                <i data-lucide="database" class="h-8 w-8 mx-auto text-[#6D5EF5] mb-2"></i>
+                <p class="font-bold text-xs">No Saved Blocks Yet</p>
+                <p class="text-[9.5px] text-slate-400 max-w-[200px] mx-auto mt-1">Right-click or click Save as Block on any layout element inside the canvas to store it for reuse here.</p>
+            </div>
+        `;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    // Sidebar AI Copy Assistant Tab
     function renderAISidebar(container) {
         container.innerHTML = `
             <div class="space-y-4">
                 <div class="p-3 bg-indigo-50 border border-indigo-100 rounded-xl space-y-1">
-                    <span class="font-bold text-xs text-indigo-600 flex items-center">
+                    <span class="font-bold text-xs text-[#6D5EF5] flex items-center">
                         <i data-lucide="sparkles" class="h-3.5 w-3.5 mr-1.5"></i>LinkPilot Copilot AI
                     </span>
                     <p class="text-[10px] text-slate-500 leading-relaxed">Let Gemini design compelling copy for your headlines, paragraphs, or call to actions directly inside your templates.</p>
@@ -601,14 +660,14 @@
                         <option value="cta">Persuasive CTA suggestions</option>
                     </select>
                 </div>
-                <button onclick="triggerAIBuilderGenerate()" id="btn-ai-generate" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-750 text-white rounded-xl font-black text-xs shadow-lg transition flex items-center justify-center space-x-1.5" style="color:#ffffff !important;background-color:#4F46E5 !important;">
+                <button onclick="triggerAIBuilderGenerate()" id="btn-ai-generate" class="w-full py-2.5 bg-[#6D5EF5] hover:bg-indigo-750 text-white rounded-xl font-black text-xs shadow-lg transition flex items-center justify-center space-x-1.5" style="color:#ffffff !important;background-color:#6D5EF5 !important;">
                     <i data-lucide="sparkles" class="h-4 w-4 text-white" style="color:#ffffff !important;"></i>
                     <span>Generate AI Content</span>
                 </button>
                 <div id="ai-builder-response-box" class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl hidden space-y-2">
                     <div class="flex items-center justify-between text-[9px] uppercase tracking-wide text-slate-555 font-bold">
                         <span>AI Suggestion</span>
-                        <button onclick="copyAICopilotText()" class="text-indigo-600 hover:text-indigo-800 transition">Copy text</button>
+                        <button onclick="copyAICopilotText()" class="text-[#6D5EF5] hover:text-indigo-800 transition">Copy text</button>
                     </div>
                     <div id="ai-builder-response-content" class="text-[11px] text-slate-800 leading-relaxed max-h-48 overflow-y-auto whitespace-pre-line select-text"></div>
                 </div>
@@ -617,7 +676,7 @@
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
-    // Trigger AI Generation
+    // Trigger AI Generation Action
     window.triggerAIBuilderGenerate = async function() {
         const prompt = document.getElementById('ai-builder-prompt').value.trim();
         const action = document.getElementById('ai-builder-action').value;
@@ -651,14 +710,14 @@
         }
     };
 
-    // Copy Copilot suggestions helper
+    // Copy Copilot text output helper
     window.copyAICopilotText = function() {
         const text = document.getElementById('ai-builder-response-content').innerText;
         navigator.clipboard.writeText(text);
-        showNotification('success', 'Copied suggest to clipboard.');
+        showNotification('success', 'Copied suggestion to clipboard.');
     };
 
-    // Render Brand Assets Tab
+    // Brand Kit Editor Tab
     function renderBrandSidebar(container) {
         container.innerHTML = `
             <div class="space-y-4">
@@ -689,7 +748,7 @@
                     </div>
                 </div>
                 <div class="space-y-2 pt-2 border-t border-slate-200">
-                    <span class="font-bold text-[10px] uppercase tracking-wide text-slate-550">Global Fonts</span>
+                    <span class="font-bold text-[10px] uppercase tracking-wide text-slate-555">Global Fonts</span>
                     <select onchange="updateBrandStyle('fontFamily', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-indigo-500">
                         <option value="Inter, Arial, sans-serif" ${brandStyles.fontFamily.includes('Inter') ? 'selected':''}>Inter (Modern Sans)</option>
                         <option value="Georgia, serif" ${brandStyles.fontFamily.includes('Georgia') ? 'selected':''}>Georgia (Editorial Serif)</option>
@@ -700,10 +759,9 @@
         `;
     }
 
-    // Update brand style helper
+    // Update global styles in Brand Kit
     window.updateBrandStyle = function(prop, val) {
         brandStyles[prop] = val;
-        // Update canvas instantly
         const canvas = document.getElementById('email-builder-canvas');
         if (canvas) {
             canvas.style.fontFamily = brandStyles.fontFamily;
@@ -714,7 +772,7 @@
         renderCanvas();
     };
 
-    // Left elements search bar helper
+    // Filter elements in sidebar search box
     window.searchSidebarElements = function(val) {
         const container = document.getElementById('left-sidebar-scroll-area');
         if (activeSidebarTab === 'elements' && container) {
@@ -722,13 +780,43 @@
         }
     };
 
-    // Drag start event
+    // Drag-and-drop start transfer
     window.onBuilderDragStart = function(ev, type) {
         ev.dataTransfer.setData("text", type);
         ev.dataTransfer.effectAllowed = "move";
     };
 
-    // HTML Rendering function for Canvas
+    // Responsive frame width changer
+    window.setDeviceView = function(device) {
+        activeDevice = device;
+        const frame = document.getElementById('canvas-device-frame');
+        const label = document.getElementById('canvas-device-label');
+        if (!frame) return;
+
+        // Reset buttons active styles
+        const desktopBtn = document.getElementById('btn-device-desktop');
+        const tabletBtn = document.getElementById('btn-device-tablet');
+        const mobileBtn = document.getElementById('btn-device-mobile');
+
+        if (desktopBtn && tabletBtn && mobileBtn) {
+            desktopBtn.style.cssText = device === 'desktop' ? "background-color: #6D5EF5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #64748b !important;";
+            tabletBtn.style.cssText = device === 'tablet' ? "background-color: #6D5EF5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #64748b !important;";
+            mobileBtn.style.cssText = device === 'mobile' ? "background-color: #6D5EF5 !important; color: #ffffff !important; font-weight: bold !important;" : "background-color: transparent !important; color: #64748b !important;";
+        }
+
+        if (device === 'desktop') {
+            frame.style.maxWidth = "760px";
+            label.innerText = "Desktop Preview (760px)";
+        } else if (device === 'tablet') {
+            frame.style.maxWidth = "580px";
+            label.innerText = "Tablet View (580px)";
+        } else if (device === 'mobile') {
+            frame.style.maxWidth = "380px";
+            label.innerText = "Mobile View (380px)";
+        }
+    };
+
+    // HTML Output render onto Center Canvas
     window.renderCanvas = function() {
         const container = document.getElementById('email-builder-canvas');
         if (!container) return;
@@ -748,7 +836,7 @@
             return;
         }
 
-        // Generate HTML nodes from JSON data
+        // Loop over data blocks and generate HTML previews
         let contentHtml = "";
         canvasData.forEach((sec, sIdx) => {
             let sectionSelected = (selectedSectionId === sec.id);
@@ -756,7 +844,7 @@
 
             if (sec.elements.length === 0) {
                 elementsHtml = `
-                    <div class="py-6 border border-dashed border-slate-300 rounded-lg text-center text-slate-400 text-xs bg-slate-50 flex items-center justify-center"
+                    <div class="py-6 border border-dashed border-slate-355 rounded-lg text-center text-slate-400 text-xs bg-slate-50 flex items-center justify-center"
                          ondragover="onCanvasDragOver(event)"
                          ondragleave="onCanvasDragLeave(event)"
                          ondrop="onCanvasDrop(event, '${sec.id}', 0)">
@@ -770,7 +858,7 @@
 
                     switch (el.type) {
                         case 'heading':
-                            elementInner = `<h2 style="margin:0; font-size:${el.settings.fontSize || '22px'}; color:${el.settings.color || '#0F172A'}; font-weight:bold; text-align:${el.settings.align || 'left'};">${el.settings.content || 'Heading Text'}</h2>`;
+                            elementInner = `<h2 style="margin:0; font-size:${el.settings.fontSize || '22px'}; color:${el.settings.color || '#0F172A'}; font-weight:${el.settings.fontWeight || 'bold'}; text-align:${el.settings.align || 'left'};">${el.settings.content || 'Heading Text'}</h2>`;
                             break;
                         case 'text':
                             elementInner = `<div style="font-size:${el.settings.fontSize || '15px'}; color:${el.settings.color || '#334155'}; line-height:${el.settings.lineHeight || '1.6'}; text-align:${el.settings.align || 'left'};">${el.settings.content || 'Paragraph text content details...'}</div>`;
@@ -778,14 +866,14 @@
                         case 'image':
                             elementInner = `
                                 <div style="text-align:${el.settings.align || 'center'};">
-                                    <img src="${el.settings.imageUrl || 'https://placehold.co/600x300/e2e8f0/64748b?text=Image+Placeholder'}" style="max-width:100%; height:auto; border-radius:${el.settings.borderRadius || '6px'};" alt="Email Asset">
+                                    <img src="${el.settings.imageUrl || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop'}" style="max-width:100%; height:auto; border-radius:${el.settings.borderRadius || '6px'};" alt="Email Asset">
                                 </div>
                             `;
                             break;
                         case 'button':
                             elementInner = `
                                 <div style="text-align:${el.settings.align || 'center'};">
-                                    <a href="${el.settings.link || '#'}" style="display:inline-block; font-size:14px; font-weight:bold; color:${el.settings.textColor || '#ffffff'}; background-color:${el.settings.backgroundColor || '#4F46E5'}; padding:${el.settings.paddingTop || '12px'} ${el.settings.paddingRight || '24px'} ${el.settings.paddingBottom || '12px'} ${el.settings.paddingLeft || '24px'}; border-radius:${el.settings.borderRadius || '8px'}; text-decoration:none; box-shadow:0 2px 4px rgba(0,0,0,0.06);">${el.settings.text || 'Action Button'}</a>
+                                    <a href="${el.settings.link || '#'}" style="display:inline-block; font-size:14px; font-weight:bold; color:${el.settings.textColor || '#ffffff'}; background-color:${el.settings.backgroundColor || '#6D5EF5'}; padding:${el.settings.paddingTop || '12px'} ${el.settings.paddingRight || '24px'} ${el.settings.paddingBottom || '12px'} ${el.settings.paddingLeft || '24px'}; border-radius:${el.settings.borderRadius || '8px'}; text-decoration:none; box-shadow:0 2px 4px rgba(0,0,0,0.06);">${el.settings.text || 'Action Button'}</a>
                                 </div>
                             `;
                             break;
@@ -798,7 +886,7 @@
                         case 'logo':
                             elementInner = `
                                 <div style="text-align:${el.settings.align || 'center'};">
-                                    <img src="${el.settings.logoUrl || 'https://img.icons8.com/color/96/000000/send.png'}" style="height:${el.settings.height || '40px'}; width:auto;" alt="Company Logo">
+                                    <img src="${el.settings.logoUrl || 'https://img.icons8.com/color/96/000000/send.png'}" style="height:${el.settings.height || '40px'}; width:auto;" alt="Logo">
                                 </div>
                             `;
                             break;
@@ -814,7 +902,7 @@
                             break;
                         case 'coupon':
                             elementInner = `
-                                <div style="background-color:${el.settings.backgroundColor || '#F1F5F9'}; border:2px dashed ${el.settings.borderColor || '#4F46E5'}; border-radius:10px; padding:20px; text-align:center;">
+                                <div style="background-color:${el.settings.backgroundColor || '#FAF9FF'}; border:2px dashed ${el.settings.borderColor || '#6D5EF5'}; border-radius:10px; padding:20px; text-align:center;">
                                     <span style="font-size:10px; font-weight:black; text-transform:uppercase; color:#64748B; letter-spacing:1px;">Discount Coupon</span>
                                     <h3 style="font-size:24px; margin:8px 0; color:#0F172A; font-weight:extrabold;">${el.settings.discount || '50% OFF'}</h3>
                                     <p style="font-size:12px; margin:0 0 12px 0; color:#475569;">${el.settings.desc || 'Code valid on your entire inventory order.'}</p>
@@ -822,47 +910,28 @@
                                 </div>
                             `;
                             break;
-                        case 'countdown':
-                            elementInner = `
-                                <div style="text-align:center; padding:15px 0;">
-                                    <div class="flex justify-center space-x-3 text-slate-800">
-                                        <div class="bg-white border border-slate-200 rounded-lg p-2 min-w-[50px] shadow-sm"><span class="text-lg font-black block">02</span><span class="text-[9px] uppercase font-bold text-slate-400">Days</span></div>
-                                        <div class="bg-white border border-slate-200 rounded-lg p-2 min-w-[50px] shadow-sm"><span class="text-lg font-black block">14</span><span class="text-[9px] uppercase font-bold text-slate-400">Hours</span></div>
-                                        <div class="bg-white border border-slate-200 rounded-lg p-2 min-w-[50px] shadow-sm"><span class="text-lg font-black block">48</span><span class="text-[9px] uppercase font-bold text-slate-400">Mins</span></div>
-                                        <div class="bg-white border border-slate-200 rounded-lg p-2 min-w-[50px] shadow-sm"><span class="text-lg font-black block">30</span><span class="text-[9px] uppercase font-bold text-slate-400">Secs</span></div>
-                                    </div>
-                                    <p style="font-size:11px; color:#4F46E5; font-weight:bold; margin-top:8px;">Hurry! Offer ends soon.</p>
-                                </div>
-                            `;
-                            break;
-                        case 'hero':
-                            elementInner = `
-                                <div style="background-color:${el.settings.backgroundColor || '#F8FAFC'}; padding:${el.settings.padding || '24px'}; border-radius:12px; text-align:center;">
-                                    <h2 style="font-size:24px; margin:0 0 10px 0; color:${el.settings.titleColor || '#0F172A'}; font-weight:bold;">${el.settings.title || 'Headline'}</h2>
-                                    <p style="font-size:14px; margin:0 0 16px 0; color:${el.settings.subtitleColor || '#475569'}; line-height:1.5;">${el.settings.subtitle || 'Sub-headline details...'}</p>
-                                    <a href="${el.settings.ctaLink || '#'}" style="display:inline-block; font-size:13px; font-weight:bold; color:#ffffff; background-color:#4F46E5; padding:10px 22px; border-radius:6px; text-decoration:none;">${el.settings.ctaText || 'Action'}</a>
-                                </div>
-                            `;
-                            break;
-                        case 'footer':
-                            elementInner = `<p style="font-size:${el.settings.fontSize || '11px'}; color:${el.settings.color || '#94a3b8'}; line-height:1.6; text-align:${el.settings.align || 'center'}; margin:0;">${el.settings.content || 'Footer details'}</p>`;
-                            break;
+                        default:
+                            elementInner = `<div class="p-4 bg-slate-50 border border-slate-200 rounded-lg text-slate-500 font-bold">${el.type.toUpperCase()} block preview</div>`;
                     }
 
                     // Render Element Block Wrapper with controls
                     elementsHtml += `
-                        <div class="group/element relative p-3 border-2 rounded-xl transition duration-150 cursor-pointer ${isSelected ? 'border-indigo-600 bg-indigo-500/5 shadow-md shadow-indigo-600/5' : 'border-transparent hover:border-slate-350 hover:bg-slate-100/50'}"
+                        <div class="group/element relative p-3 border-2 rounded-xl transition duration-150 cursor-pointer ${isSelected ? 'border-[#6D5EF5] bg-indigo-500/5 shadow-md shadow-indigo-600/5' : 'border-transparent hover:border-slate-350 hover:bg-slate-100/50'}"
                              onclick="selectCanvasElement('${el.id}', event)"
                              ondragover="onCanvasDragOver(event)"
                              ondragleave="onCanvasDragLeave(event)"
                              ondrop="onCanvasDrop(event, '${sec.id}', ${eIdx})">
                             ${elementInner}
 
-                            <!-- Element hover overlay toolbar -->
-                            <div class="absolute right-2.5 top-2.5 hidden group-hover/element:flex items-center space-x-1 bg-white/95 backdrop-blur shadow-md rounded-lg p-1 border border-slate-200 select-none z-10">
-                                <button onclick="cloneCanvasElement('${sec.id}', '${el.id}', event)" class="p-1 text-slate-500 hover:text-slate-900 rounded hover:bg-slate-100" title="Duplicate"><i data-lucide="copy" class="h-3.5 w-3.5"></i></button>
-                                <button onclick="deleteCanvasElement('${sec.id}', '${el.id}', event)" class="p-1 text-rose-500 hover:text-rose-700 rounded hover:bg-rose-50" title="Delete"><i data-lucide="trash-2" class="h-3.5 w-3.5"></i></button>
+                            <!-- Premium Floating blue toolbar directly above selected element (matching reference layout) -->
+                            ${isSelected ? `
+                            <div class="absolute -top-10 left-1/2 -translate-x-1/2 flex items-center space-x-1 bg-[#6D5EF5] text-white shadow-xl rounded-lg p-1.5 border border-indigo-400 select-none z-50">
+                                <button class="p-1 hover:bg-indigo-700 rounded" title="Move"><i data-lucide="move" class="h-3.5 w-3.5"></i></button>
+                                <button onclick="cloneCanvasElement('${sec.id}', '${el.id}', event)" class="p-1 hover:bg-indigo-700 rounded" title="Duplicate"><i data-lucide="copy" class="h-3.5 w-3.5"></i></button>
+                                <button class="p-1 hover:bg-indigo-700 rounded" title="Lock"><i data-lucide="lock" class="h-3.5 w-3.5"></i></button>
+                                <button onclick="deleteCanvasElement('${sec.id}', '${el.id}', event)" class="p-1 hover:bg-rose-700 rounded" title="Delete"><i data-lucide="trash-2" class="h-3.5 w-3.5"></i></button>
                             </div>
+                            ` : ''}
                         </div>
                     `;
                 });
@@ -870,7 +939,7 @@
 
             // Render Section Wrapper with drag drop handles
             contentHtml += `
-                <div class="group/section relative border-2 border-dashed rounded-2xl mb-5 p-4 transition-all duration-200 ${sectionSelected ? 'border-indigo-500 bg-white/70 shadow-lg' : 'border-slate-200 hover:border-slate-350 bg-white shadow-2xs'}"
+                <div class="group/section relative border-2 border-dashed rounded-2xl mb-5 p-4 transition-all duration-200 ${sectionSelected ? 'border-[#6D5EF5] bg-white/70 shadow-lg' : 'border-slate-200 hover:border-slate-350 bg-white shadow-2xs'}"
                      style="padding-top:${sec.settings.paddingTop || '20px'}; padding-bottom:${sec.settings.paddingBottom || '20px'}; background-color:${sec.settings.backgroundColor || '#ffffff'}; border-radius:${sec.settings.borderRadius || '12px'};"
                      onclick="selectCanvasSection('${sec.id}', event)"
                      ondragover="onCanvasDragOver(event)"
@@ -883,7 +952,7 @@
                     </div>
 
                     <!-- Drop Indicators -->
-                    <div class="blue-drop-guide pointer-events-none absolute left-0 right-0 h-1 bg-indigo-500 rounded hidden" id="drop-indicator-${sec.id}"></div>
+                    <div class="blue-drop-guide pointer-events-none absolute left-0 right-0 h-1 bg-[#6D5EF5] rounded hidden" id="drop-indicator-${sec.id}"></div>
 
                     <!-- Section Actions Overlays -->
                     <div class="absolute -right-3 top-1/2 -translate-y-1/2 hidden group-hover/section:flex flex-col items-center space-y-1 bg-white border border-slate-200 rounded-lg p-1 shadow-md select-none z-20">
@@ -894,18 +963,22 @@
             `;
         });
 
-        // Add final dropping zone at bottom
+        // Add final drop target at the bottom of the sections
         contentHtml += `
-            <div class="py-8 border-2 border-dashed border-slate-300 rounded-2xl text-center text-slate-400 text-xs font-bold bg-white/40 hover:bg-white/80 hover:border-indigo-500 transition flex items-center justify-center cursor-pointer"
+            <div class="py-8 border-2 border-dashed border-slate-300 rounded-2xl text-center text-slate-400 text-xs font-bold bg-white/40 hover:bg-white/80 hover:border-[#6D5EF5] transition flex items-center justify-center cursor-pointer"
                  ondragover="onCanvasDragOver(event)"
                  ondragleave="onCanvasDragLeave(event)"
                  ondrop="onCanvasDrop(event, 'bottom')">
-                 <i data-lucide="plus-circle" class="h-4 w-4 mr-1.5 text-slate-500"></i>Drag new elements here
+                 <button class="px-4 py-2 bg-[#6D5EF5] hover:bg-indigo-750 text-white rounded-lg text-[10px] font-black flex items-center shadow-xs transition" style="background-color: #6D5EF5 !important; color: #ffffff !important;">
+                     <i data-lucide="plus" class="h-3.5 w-3.5 mr-1 text-white"></i> Add New Section
+                 </button>
             </div>
         `;
 
         container.innerHTML = `
             <div style="font-family:${brandStyles.fontFamily};" class="w-full">
+                <!-- Text tag mimicking preview email layout header -->
+                <div class="text-center text-[10px] text-slate-400 font-bold mb-4">Can't see this email? <a href="#" class="text-[#6D5EF5] underline">View in browser</a></div>
                 ${contentHtml}
             </div>
         `;
@@ -913,39 +986,39 @@
         if (typeof lucide !== 'undefined') lucide.createIcons();
     };
 
-    // Drop over canvas handler
+    // Drag-over canvas drop zone helper
     window.onCanvasDragOver = function(ev) {
         ev.preventDefault();
         ev.dataTransfer.dropEffect = "move";
         const dropZone = ev.currentTarget;
-        dropZone.classList.add("border-indigo-400", "bg-indigo-50/20");
+        dropZone.classList.add("border-[#6D5EF5]", "bg-indigo-50/20");
     };
 
-    // Leave canvas area handler
+    // Drag-leave canvas helper
     window.onCanvasDragLeave = function(ev) {
         const dropZone = ev.currentTarget;
-        dropZone.classList.remove("border-indigo-400", "bg-indigo-50/20");
+        dropZone.classList.remove("border-[#6D5EF5]", "bg-indigo-50/20");
     };
 
-    // Drop item onto canvas
+    // Canvas Dropping logic helper
     window.onCanvasDrop = function(ev, targetSectionId = null, insertIndex = null) {
         ev.preventDefault();
         const dropZone = ev.currentTarget;
-        dropZone.classList.remove("border-indigo-400", "bg-indigo-50/20");
+        dropZone.classList.remove("border-[#6D5EF5]", "bg-indigo-50/20");
 
         const elType = ev.dataTransfer.getData("text");
         if (!elType) return;
 
         recordState();
 
-        // Create standard element configuration template
+        // Create standard element configuration templates
         const newEl = {
             id: "el_" + Math.random().toString(36).substr(2, 9),
             type: elType,
             settings: {}
         };
 
-        // Assign default element configurations
+        // Assign default values depending on dropped type
         switch (elType) {
             case 'heading':
                 newEl.settings = { content: "Main Headline Offer", fontSize: "22px", color: "#0F172A", align: "left" };
@@ -957,7 +1030,7 @@
                 newEl.settings = { imageUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop", borderRadius: "8px", align: "center" };
                 break;
             case 'button':
-                newEl.settings = { text: "Action Link Button", link: "#", backgroundColor: "#4F46E5", textColor: "#ffffff", borderRadius: "8px", align: "center", paddingTop: "12px", paddingBottom: "12px", paddingLeft: "24px", paddingRight: "24px" };
+                newEl.settings = { text: "Action Link Button", link: "#", backgroundColor: "#6D5EF5", textColor: "#ffffff", borderRadius: "8px", align: "center", paddingTop: "12px", paddingBottom: "12px", paddingLeft: "24px", paddingRight: "24px" };
                 break;
             case 'divider':
                 newEl.settings = { color: "#E2E8F0", spacing: "15px" };
@@ -972,15 +1045,11 @@
                 newEl.settings = { align: "center" };
                 break;
             case 'coupon':
-                newEl.settings = { code: "LPNEW50", discount: "50% OFF", desc: "Start building and save half off first plan invoice.", backgroundColor: "#EEF2F6", borderColor: "#4F46E5" };
-                break;
-            case 'countdown':
-                newEl.settings = { align: "center" };
+                newEl.settings = { code: "LPNEW50", discount: "50% OFF", desc: "Start building and save half off first plan invoice.", backgroundColor: "#FAF9FF", borderColor: "#6D5EF5" };
                 break;
         }
 
         if (targetSectionId === 'bottom') {
-            // Drop outside sections: create a new section container
             const newSec = {
                 id: "sec_" + Date.now(),
                 type: "section",
@@ -991,7 +1060,6 @@
             selectedElementId = newEl.id;
             selectedSectionId = newSec.id;
         } else if (targetSectionId) {
-            // Drop inside existing section
             const sec = canvasData.find(s => s.id === targetSectionId);
             if (sec) {
                 if (insertIndex !== null && insertIndex !== undefined) {
@@ -1003,7 +1071,6 @@
                 selectedSectionId = sec.id;
             }
         } else {
-            // First drop on completely empty canvas
             const newSec = {
                 id: "sec_" + Date.now(),
                 type: "section",
@@ -1017,6 +1084,7 @@
 
         renderCanvas();
         renderPropertiesPanel();
+        updateCanvasBreadcrumbs();
     };
 
     // Duplicate element helper
@@ -1048,6 +1116,7 @@
             }
             renderCanvas();
             renderPropertiesPanel();
+            updateCanvasBreadcrumbs();
             showNotification('success', 'Deleted block.');
         }
     };
@@ -1081,38 +1150,90 @@
         }
         renderCanvas();
         renderPropertiesPanel();
+        updateCanvasBreadcrumbs();
         showNotification('success', 'Deleted section.');
     };
 
-    // Select Canvas Element
+    // Select Canvas Element helper
     window.selectCanvasElement = function(id, event) {
         if (event) event.stopPropagation();
         selectedElementId = id;
-        selectedSectionId = null; // Unselect section properties
+        selectedSectionId = null;
         renderCanvas();
         renderPropertiesPanel();
+        updateCanvasBreadcrumbs();
     };
 
-    // Select Section Element
+    // Select Section Element helper
     window.selectCanvasSection = function(id, event) {
         if (event) event.stopPropagation();
-        // Only select section properties if we didn't click directly on an element
         if (event.target.closest('.group\\/element')) return;
         
         selectedSectionId = id;
-        selectedElementId = null; // Unselect element properties
+        selectedElementId = null;
         renderCanvas();
+        renderPropertiesPanel();
+        updateCanvasBreadcrumbs();
+    };
+
+    // Footer breadcrumbs dynamic builder path text helper
+    function updateCanvasBreadcrumbs() {
+        const breadcrumbs = document.getElementById('canvas-breadcrumbs');
+        if (!breadcrumbs) return;
+
+        if (selectedElementId) {
+            let elType = "Element";
+            for (const sec of canvasData) {
+                const el = sec.elements.find(e => e.id === selectedElementId);
+                if (el) {
+                    elType = el.type.charAt(0).toUpperCase() + el.type.slice(1);
+                    break;
+                }
+            }
+            breadcrumbs.innerHTML = `
+                <span>Body</span> <i data-lucide="chevron-right" class="h-3 w-3 inline text-slate-400"></i>
+                <span>Section</span> <i data-lucide="chevron-right" class="h-3 w-3 inline text-slate-400"></i>
+                <span>Row</span> <i data-lucide="chevron-right" class="h-3 w-3 inline text-slate-400"></i>
+                <span>Column</span> <i data-lucide="chevron-right" class="h-3 w-3 inline text-slate-400"></i>
+                <span class="text-[#6D5EF5] font-bold">${elType}</span>
+            `;
+        } else if (selectedSectionId) {
+            breadcrumbs.innerHTML = `
+                <span>Body</span> <i data-lucide="chevron-right" class="h-3 w-3 inline text-slate-400"></i>
+                <span class="text-[#6D5EF5] font-bold">Section</span>
+            `;
+        } else {
+            breadcrumbs.innerHTML = `
+                <span class="text-[#6D5EF5] font-bold">Body</span>
+            `;
+        }
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    // Toggle Properties sidebar Tab selection (Content / Style / Advanced)
+    let activePropertiesTab = 'content';
+    window.setPropertiesTab = function(tab) {
+        activePropertiesTab = tab;
+        const cBtn = document.getElementById('tab-prop-content');
+        const sBtn = document.getElementById('tab-prop-style');
+        const aBtn = document.getElementById('tab-prop-advanced');
+
+        if (cBtn && sBtn && aBtn) {
+            cBtn.style.cssText = tab === 'content' ? "background-color:#ffffff; color:#0f172a; font-weight:bold;" : "background-color:transparent; color:#64748b;";
+            sBtn.style.cssText = tab === 'style' ? "background-color:#ffffff; color:#0f172a; font-weight:bold;" : "background-color:transparent; color:#64748b;";
+            aBtn.style.cssText = tab === 'advanced' ? "background-color:#ffffff; color:#0f172a; font-weight:bold;" : "background-color:transparent; color:#64748b;";
+        }
         renderPropertiesPanel();
     };
 
-    // Render Right Panel Properties controls dynamically
+    // Render Right Panel controls dynamically depending on active selection
     function renderPropertiesPanel() {
         const container = document.getElementById('properties-panel-content');
         const badge = document.getElementById('selected-type-badge');
-        if (!container || !badge) return;
+        const titleEl = document.getElementById('properties-panel-title');
+        if (!container || !badge || !titleEl) return;
 
         if (selectedElementId) {
-            // Find selected element
             let selectedEl = null;
             let parentSec = null;
             for (const sec of canvasData) {
@@ -1126,296 +1247,236 @@
 
             if (!selectedEl) return;
 
+            const elTitle = selectedEl.type.charAt(0).toUpperCase() + selectedEl.type.slice(1);
+            titleEl.innerHTML = `<i data-lucide="settings" class="h-3.5 w-3.5 mr-1.5 text-indigo-500"></i>${elTitle}`;
             badge.innerText = selectedEl.type.toUpperCase();
-            badge.className = "text-[9.5px] font-bold text-indigo-400 bg-indigo-950 border border-indigo-900 px-2 py-0.5 rounded-md";
+            badge.className = "text-[9.5px] font-bold text-[#6D5EF5] bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-md";
 
             let controlsHtml = "";
 
-            switch (selectedEl.type) {
-                case 'heading':
-                    controlsHtml = `
-                        <div class="space-y-4">
-                            <div class="space-y-1">
-                                <label class="font-bold text-slate-300">Heading Content</label>
-                                <textarea oninput="updateElementSetting('content', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500">${selectedEl.settings.content || ''}</textarea>
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
+            if (activePropertiesTab === 'content') {
+                switch (selectedEl.type) {
+                    case 'heading':
+                        controlsHtml = `
+                            <div class="space-y-4">
                                 <div class="space-y-1">
-                                    <label class="font-bold text-slate-300">Font Size</label>
-                                    <input type="text" oninput="updateElementSetting('fontSize', this.value)" value="${selectedEl.settings.fontSize || '22px'}" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-indigo-500">
-                                </div>
-                                <div class="space-y-1">
-                                    <label class="font-bold text-slate-300">Text Align</label>
-                                    <select onchange="updateElementSetting('align', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-indigo-500">
-                                        <option value="left" ${selectedEl.settings.align === 'left'?'selected':''}>Left</option>
-                                        <option value="center" ${selectedEl.settings.align === 'center'?'selected':''}>Center</option>
-                                        <option value="right" ${selectedEl.settings.align === 'right'?'selected':''}>Right</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="space-y-1">
-                                <label class="font-bold text-slate-300">Text Color</label>
-                                <div class="flex items-center space-x-2">
-                                    <input type="color" onchange="updateElementSetting('color', this.value)" value="${selectedEl.settings.color || '#000000'}" class="w-7 h-7 border-0 bg-transparent cursor-pointer rounded">
-                                    <span class="text-[10px] font-mono uppercase text-slate-400">${selectedEl.settings.color || '#0F172A'}</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    break;
-                case 'text':
-                    controlsHtml = `
-                        <div class="space-y-4">
-                            <div class="space-y-1">
-                                <label class="font-bold text-slate-300">Body Content (HTML tags supported)</label>
-                                <textarea oninput="updateElementSetting('content', this.value)" rows="6" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500">${selectedEl.settings.content || ''}</textarea>
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="space-y-1">
-                                    <label class="font-bold text-slate-300">Font Size</label>
-                                    <input type="text" oninput="updateElementSetting('fontSize', this.value)" value="${selectedEl.settings.fontSize || '15px'}" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-indigo-500">
-                                </div>
-                                <div class="space-y-1">
-                                    <label class="font-bold text-slate-300">Line Height</label>
-                                    <input type="text" oninput="updateElementSetting('lineHeight', this.value)" value="${selectedEl.settings.lineHeight || '1.6'}" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-indigo-500">
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="space-y-1">
-                                    <label class="font-bold text-slate-300">Text Align</label>
-                                    <select onchange="updateElementSetting('align', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-indigo-500">
-                                        <option value="left" ${selectedEl.settings.align === 'left'?'selected':''}>Left</option>
-                                        <option value="center" ${selectedEl.settings.align === 'center'?'selected':''}>Center</option>
-                                        <option value="right" ${selectedEl.settings.align === 'right'?'selected':''}>Right</option>
-                                    </select>
-                                </div>
-                                <div class="space-y-1">
-                                    <label class="font-bold text-slate-300">Text Color</label>
-                                    <div class="flex items-center space-x-2">
-                                        <input type="color" onchange="updateElementSetting('color', this.value)" value="${selectedEl.settings.color || '#334155'}" class="w-7 h-7 border-0 bg-transparent cursor-pointer rounded">
-                                        <span class="text-[10px] font-mono uppercase text-slate-400">${selectedEl.settings.color || '#334155'}</span>
+                                    <div class="flex items-center justify-between">
+                                        <label class="font-bold text-slate-350">Heading Text</label>
+                                        <button onclick="setLeftSidebarTab('ai')" class="text-[10px] font-bold text-[#6D5EF5] flex items-center hover:underline"><i data-lucide="sparkles" class="h-3 w-3 mr-1"></i> AI Write</button>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    break;
-                case 'image':
-                    controlsHtml = `
-                        <div class="space-y-4">
-                            <div class="space-y-1">
-                                <label class="font-bold text-slate-300">Image Source URL</label>
-                                <input type="text" oninput="updateElementSetting('imageUrl', this.value)" value="${selectedEl.settings.imageUrl || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="space-y-1">
-                                    <label class="font-bold text-slate-300">Border Radius</label>
-                                    <input type="text" oninput="updateElementSetting('borderRadius', this.value)" value="${selectedEl.settings.borderRadius || '6px'}" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-indigo-500">
+                                    <textarea oninput="updateElementSetting('content', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-indigo-500">${selectedEl.settings.content || ''}</textarea>
+                                    <div class="text-[9px] text-slate-400 text-right mt-0.5">${(selectedEl.settings.content || '').length}/300</div>
                                 </div>
                                 <div class="space-y-1">
-                                    <label class="font-bold text-slate-300">Align</label>
-                                    <select onchange="updateElementSetting('align', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-indigo-500">
-                                        <option value="left" ${selectedEl.settings.align === 'left'?'selected':''}>Left</option>
-                                        <option value="center" ${selectedEl.settings.align === 'center'?'selected':''}>Center</option>
-                                        <option value="right" ${selectedEl.settings.align === 'right'?'selected':''}>Right</option>
+                                    <label class="font-bold text-slate-300">HTML Tag</label>
+                                    <select onchange="updateElementSetting('htmlTag', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                                        <option value="H1">H1</option>
+                                        <option value="H2">H2</option>
+                                        <option value="H3">H3</option>
                                     </select>
                                 </div>
                             </div>
-                        </div>
-                    `;
-                    break;
-                case 'button':
-                    controlsHtml = `
-                        <div class="space-y-4">
-                            <div class="space-y-1">
-                                <label class="font-bold text-slate-300">Button Text</label>
-                                <input type="text" oninput="updateElementSetting('text', this.value)" value="${selectedEl.settings.text || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
-                            </div>
-                            <div class="space-y-1">
-                                <label class="font-bold text-slate-300">Link URL</label>
-                                <input type="text" oninput="updateElementSetting('link', this.value)" value="${selectedEl.settings.link || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
+                        `;
+                        break;
+                    case 'text':
+                        controlsHtml = `
+                            <div class="space-y-4">
                                 <div class="space-y-1">
-                                    <label class="font-bold text-slate-300">Background</label>
-                                    <div class="flex items-center space-x-1.5">
-                                        <input type="color" onchange="updateElementSetting('backgroundColor', this.value)" value="${selectedEl.settings.backgroundColor || '#4F46E5'}" class="w-6 h-6 border-0 bg-transparent cursor-pointer rounded">
-                                        <span class="text-[9px] font-mono uppercase text-slate-400">${selectedEl.settings.backgroundColor || '#4F46E5'}</span>
+                                    <div class="flex items-center justify-between">
+                                        <label class="font-bold text-slate-355">Paragraph Content</label>
+                                        <button onclick="setLeftSidebarTab('ai')" class="text-[10px] font-bold text-[#6D5EF5] flex items-center hover:underline"><i data-lucide="sparkles" class="h-3 w-3 mr-1"></i> AI Rewrite</button>
                                     </div>
+                                    <textarea oninput="updateElementSetting('content', this.value)" rows="6" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">${selectedEl.settings.content || ''}</textarea>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 'image':
+                        controlsHtml = `
+                            <div class="space-y-4">
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Image Source URL</label>
+                                    <input type="text" oninput="updateElementSetting('imageUrl', this.value)" value="${selectedEl.settings.imageUrl || ''}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 'button':
+                        controlsHtml = `
+                            <div class="space-y-4">
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Button Text</label>
+                                    <input type="text" oninput="updateElementSetting('text', this.value)" value="${selectedEl.settings.text || ''}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
                                 </div>
                                 <div class="space-y-1">
-                                    <label class="font-bold text-slate-300">Text Color</label>
-                                    <div class="flex items-center space-x-1.5">
-                                        <input type="color" onchange="updateElementSetting('textColor', this.value)" value="${selectedEl.settings.textColor || '#ffffff'}" class="w-6 h-6 border-0 bg-transparent cursor-pointer rounded">
-                                        <span class="text-[9px] font-mono uppercase text-slate-400">${selectedEl.settings.textColor || '#ffffff'}</span>
-                                    </div>
+                                    <label class="font-bold text-slate-300">Link URL</label>
+                                    <input type="text" oninput="updateElementSetting('link', this.value)" value="${selectedEl.settings.link || ''}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
                                 </div>
                             </div>
-                            <div class="grid grid-cols-2 gap-3">
+                        `;
+                        break;
+                    case 'logo':
+                        controlsHtml = `
+                            <div class="space-y-4">
                                 <div class="space-y-1">
-                                    <label class="font-bold text-slate-300">Radius</label>
-                                    <input type="text" oninput="updateElementSetting('borderRadius', this.value)" value="${selectedEl.settings.borderRadius || '8px'}" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-indigo-500">
-                                </div>
-                                <div class="space-y-1">
-                                    <label class="font-bold text-slate-300">Align</label>
-                                    <select onchange="updateElementSetting('align', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-indigo-500">
-                                        <option value="left" ${selectedEl.settings.align === 'left'?'selected':''}>Left</option>
-                                        <option value="center" ${selectedEl.settings.align === 'center'?'selected':''}>Center</option>
-                                        <option value="right" ${selectedEl.settings.align === 'right'?'selected':''}>Right</option>
-                                    </select>
+                                    <label class="font-bold text-slate-300">Logo Image URL</label>
+                                    <input type="text" oninput="updateElementSetting('logoUrl', this.value)" value="${selectedEl.settings.logoUrl || ''}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
                                 </div>
                             </div>
-                        </div>
-                    `;
-                    break;
-                case 'logo':
-                    controlsHtml = `
-                        <div class="space-y-4">
-                            <div class="space-y-1">
-                                <label class="font-bold text-slate-300">Logo Image URL</label>
-                                <input type="text" oninput="updateElementSetting('logoUrl', this.value)" value="${selectedEl.settings.logoUrl || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
+                        `;
+                        break;
+                    case 'coupon':
+                        controlsHtml = `
+                            <div class="space-y-4">
                                 <div class="space-y-1">
-                                    <label class="font-bold text-slate-300">Height</label>
-                                    <input type="text" oninput="updateElementSetting('height', this.value)" value="${selectedEl.settings.height || '40px'}" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-indigo-500">
+                                    <label class="font-bold text-slate-300">Discount Headline</label>
+                                    <input type="text" oninput="updateElementSetting('discount', this.value)" value="${selectedEl.settings.discount || '50% OFF'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
                                 </div>
                                 <div class="space-y-1">
-                                    <label class="font-bold text-slate-300">Align</label>
-                                    <select onchange="updateElementSetting('align', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-indigo-500">
-                                        <option value="left" ${selectedEl.settings.align === 'left'?'selected':''}>Left</option>
-                                        <option value="center" ${selectedEl.settings.align === 'center'?'selected':''}>Center</option>
-                                        <option value="right" ${selectedEl.settings.align === 'right'?'selected':''}>Right</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    break;
-                case 'coupon':
-                    controlsHtml = `
-                        <div class="space-y-4">
-                            <div class="space-y-1">
-                                <label class="font-bold text-slate-300">Discount Headline</label>
-                                <input type="text" oninput="updateElementSetting('discount', this.value)" value="${selectedEl.settings.discount || '50% OFF'}" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
-                            </div>
-                            <div class="space-y-1">
-                                <label class="font-bold text-slate-300">Coupon Code</label>
-                                <input type="text" oninput="updateElementSetting('code', this.value)" value="${selectedEl.settings.code || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
-                            </div>
-                            <div class="space-y-1">
-                                <label class="font-bold text-slate-300">Description</label>
-                                <textarea oninput="updateElementSetting('desc', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500">${selectedEl.settings.desc || ''}</textarea>
-                            </div>
-                        </div>
-                    `;
-                    break;
-                case 'divider':
-                    controlsHtml = `
-                        <div class="space-y-4">
-                            <div class="space-y-1">
-                                <label class="font-bold text-slate-300">Divider Line Color</label>
-                                <div class="flex items-center space-x-2">
-                                    <input type="color" onchange="updateElementSetting('color', this.value)" value="${selectedEl.settings.color || '#E2E8F0'}" class="w-7 h-7 border-0 bg-transparent cursor-pointer rounded">
-                                    <span class="text-[10px] font-mono uppercase text-slate-400">${selectedEl.settings.color || '#E2E8F0'}</span>
-                                </div>
-                            </div>
-                            <div class="space-y-1">
-                                <label class="font-bold text-slate-300">Vertical spacing margin</label>
-                                <input type="text" oninput="updateElementSetting('spacing', this.value)" value="${selectedEl.settings.spacing || '15px'}" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-indigo-500">
-                            </div>
-                        </div>
-                    `;
-                    break;
-                case 'spacer':
-                    controlsHtml = `
-                        <div class="space-y-4">
-                            <div class="space-y-1">
-                                <label class="font-bold text-slate-300">Spacer Height (px)</label>
-                                <input type="text" oninput="updateElementSetting('height', this.value)" value="${selectedEl.settings.height || '20px'}" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
-                            </div>
-                        </div>
-                    `;
-                    break;
-                case 'hero':
-                    controlsHtml = `
-                        <div class="space-y-4">
-                            <div class="space-y-1">
-                                <label class="font-bold text-slate-300">Hero Headline</label>
-                                <input type="text" oninput="updateElementSetting('title', this.value)" value="${selectedEl.settings.title || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
-                            </div>
-                            <div class="space-y-1">
-                                <label class="font-bold text-slate-300">Hero Subtitle</label>
-                                <textarea oninput="updateElementSetting('subtitle', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500">${selectedEl.settings.subtitle || ''}</textarea>
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="space-y-1">
-                                    <label class="font-bold text-slate-300">CTA Text</label>
-                                    <input type="text" oninput="updateElementSetting('ctaText', this.value)" value="${selectedEl.settings.ctaText || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-indigo-500">
+                                    <label class="font-bold text-slate-300">Coupon Code</label>
+                                    <input type="text" oninput="updateElementSetting('code', this.value)" value="${selectedEl.settings.code || ''}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
                                 </div>
                                 <div class="space-y-1">
-                                    <label class="font-bold text-slate-300">CTA Link</label>
-                                    <input type="text" oninput="updateElementSetting('ctaLink', this.value)" value="${selectedEl.settings.ctaLink || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-indigo-500">
+                                    <label class="font-bold text-slate-300">Description</label>
+                                    <textarea oninput="updateElementSetting('desc', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">${selectedEl.settings.desc || ''}</textarea>
                                 </div>
                             </div>
+                        `;
+                        break;
+                    default:
+                        controlsHtml = `<p class="text-slate-400">Content properties are not available for this block.</p>`;
+                }
+            } else if (activePropertiesTab === 'style') {
+                // Typography, Alignment, colors options inside Style Tab
+                controlsHtml = `
+                    <div class="space-y-4">
+                        <div class="space-y-1">
+                            <label class="font-bold text-slate-300">Font Family</label>
+                            <select onchange="updateElementSetting('fontFamily', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                                <option value="Inter">Inter</option>
+                                <option value="Arial">Arial</option>
+                                <option value="Georgia">Georgia</option>
+                            </select>
                         </div>
-                    `;
-                    break;
-                case 'footer':
-                    controlsHtml = `
-                        <div class="space-y-4">
-                            <div class="space-y-1">
-                                <label class="font-bold text-slate-300">Footer Text</label>
-                                <textarea oninput="updateElementSetting('content', this.value)" rows="5" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500">${selectedEl.settings.content || ''}</textarea>
+                        <div class="space-y-1">
+                            <label class="font-bold text-slate-300">Font Weight</label>
+                            <select onchange="updateElementSetting('fontWeight', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                                <option value="normal">400 - Normal</option>
+                                <option value="bold" selected>700 - Bold</option>
+                                <option value="800">800 - Extra Bold</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center justify-between">
+                                <label class="font-bold text-slate-300">Font Size</label>
+                                <span class="text-[10px] text-slate-500 font-bold" id="lbl-prop-fontsize">${selectedEl.settings.fontSize || '22px'}</span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <input type="range" min="12" max="72" value="${parseInt(selectedEl.settings.fontSize) || 22}" oninput="document.getElementById('lbl-prop-fontsize').innerText = this.value + 'px'; updateElementSetting('fontSize', this.value + 'px');" class="flex-grow accent-[#6D5EF5]">
                             </div>
                         </div>
-                    `;
-                    break;
+                        <div class="space-y-1">
+                            <label class="font-bold text-slate-300">Text Align</label>
+                            <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 max-w-[160px]">
+                                <button onclick="updateElementSetting('align', 'left')" class="flex-grow py-1 hover:bg-white rounded transition"><i data-lucide="align-left" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                <button onclick="updateElementSetting('align', 'center')" class="flex-grow py-1 hover:bg-white rounded transition"><i data-lucide="align-center" class="h-3.5 w-3.5 mx-auto"></i></button>
+                                <button onclick="updateElementSetting('align', 'right')" class="flex-grow py-1 hover:bg-white rounded transition"><i data-lucide="align-right" class="h-3.5 w-3.5 mx-auto"></i></button>
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="font-bold text-slate-300">Text Color</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="color" onchange="updateElementSetting('color', this.value)" value="${selectedEl.settings.color || '#000000'}" class="w-8 h-8 border border-slate-250 cursor-pointer rounded-lg bg-transparent">
+                                <span class="text-[10px] font-mono uppercase text-slate-500">${selectedEl.settings.color || '#0F172A'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (activePropertiesTab === 'advanced') {
+                controlsHtml = `
+                    <div class="space-y-4">
+                        <div class="space-y-1">
+                            <label class="font-bold text-slate-300">Border Radius (px)</label>
+                            <input type="text" oninput="updateElementSetting('borderRadius', this.value)" value="${selectedEl.settings.borderRadius || '6px'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="font-bold text-slate-300">Padding Top (px)</label>
+                            <input type="text" oninput="updateElementSetting('paddingTop', this.value)" value="${selectedEl.settings.paddingTop || '12px'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="font-bold text-slate-300">Padding Bottom (px)</label>
+                            <input type="text" oninput="updateElementSetting('paddingBottom', this.value)" value="${selectedEl.settings.paddingBottom || '12px'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                        </div>
+                    </div>
+                `;
             }
 
             container.innerHTML = controlsHtml;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
 
         } else if (selectedSectionId) {
-            // Find selected section
             const selectedSec = canvasData.find(s => s.id === selectedSectionId);
             if (!selectedSec) return;
 
+            titleEl.innerHTML = `<i data-lucide="settings" class="h-3.5 w-3.5 mr-1.5 text-indigo-500"></i>Section`;
             badge.innerText = "SECTION";
-            badge.className = "text-[9.5px] font-bold text-amber-400 bg-amber-950 border border-amber-900 px-2 py-0.5 rounded-md";
+            badge.className = "text-[9.5px] font-bold text-amber-500 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-md";
+
+            if (activePropertiesTab === 'content') {
+                container.innerHTML = `<p class="text-slate-400">Section components hold element structures. Click on Style or Advanced tabs to configure margin/padding spacing parameters.</p>`;
+            } else if (activePropertiesTab === 'style') {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="space-y-1">
+                            <label class="font-bold text-slate-300">Section Background Color</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="color" onchange="updateSectionSetting('backgroundColor', this.value)" value="${selectedSec.settings.backgroundColor || '#ffffff'}" class="w-8 h-8 border border-slate-250 cursor-pointer rounded-lg bg-transparent">
+                                <span class="text-[10px] font-mono uppercase text-slate-500">${selectedSec.settings.backgroundColor || '#ffffff'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (activePropertiesTab === 'advanced') {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="font-bold text-slate-300">Padding Top</label>
+                                <input type="text" oninput="updateSectionSetting('paddingTop', this.value)" value="${selectedSec.settings.paddingTop || '20px'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="font-bold text-slate-300">Padding Bottom</label>
+                                <input type="text" oninput="updateSectionSetting('paddingBottom', this.value)" value="${selectedSec.settings.paddingBottom || '20px'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="font-bold text-slate-300">Border Radius</label>
+                            <input type="text" oninput="updateSectionSetting('borderRadius', this.value)" value="${selectedSec.settings.borderRadius || '12px'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                        </div>
+                    </div>
+                `;
+            }
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        } else {
+            // Defaults to empty selection placeholder
+            titleEl.innerHTML = `<i data-lucide="settings" class="h-3.5 w-3.5 mr-1.5 text-indigo-500"></i>Properties`;
+            badge.innerText = "NONE";
+            badge.className = "text-[9.5px] font-bold text-slate-400 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md";
 
             container.innerHTML = `
-                <div class="space-y-4">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="space-y-1">
-                            <label class="font-bold text-slate-300">Padding Top</label>
-                            <input type="text" oninput="updateSectionSetting('paddingTop', this.value)" value="${selectedSec.settings.paddingTop || '20px'}" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-indigo-500">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="font-bold text-slate-300">Padding Bottom</label>
-                            <input type="text" oninput="updateSectionSetting('paddingBottom', this.value)" value="${selectedSec.settings.paddingBottom || '20px'}" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-indigo-500">
-                        </div>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="font-bold text-slate-300">Section Background Color</label>
-                        <div class="flex items-center space-x-2">
-                            <input type="color" onchange="updateSectionSetting('backgroundColor', this.value)" value="${selectedSec.settings.backgroundColor || '#ffffff'}" class="w-7 h-7 border-0 bg-transparent cursor-pointer rounded">
-                            <span class="text-[10px] font-mono uppercase text-slate-400">${selectedSec.settings.backgroundColor || '#ffffff'}</span>
-                        </div>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="font-bold text-slate-300">Border Radius</label>
-                        <input type="text" oninput="updateSectionSetting('borderRadius', this.value)" value="${selectedSec.settings.borderRadius || '12px'}" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-indigo-500">
-                    </div>
+                <div class="py-12 text-center text-slate-400">
+                    <i data-lucide="mouse-pointer" class="h-8 w-8 mx-auto mb-2 text-slate-300"></i>
+                    <p class="font-bold text-slate-500">Select any element</p>
+                    <p class="text-[10px] text-slate-400 mt-0.5">Click any block inside the canvas to edit its properties, typography, or styling details.</p>
                 </div>
             `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
     }
 
-    // Update settings property helper for elements
+    // Update individual properties details settings
     window.updateElementSetting = function(prop, val) {
         if (!selectedElementId) return;
-        
-        // Find selected element and update
         for (const sec of canvasData) {
             const el = sec.elements.find(e => e.id === selectedElementId);
             if (el) {
@@ -1426,10 +1487,8 @@
         renderCanvas();
     };
 
-    // Update settings property helper for sections
     window.updateSectionSetting = function(prop, val) {
         if (!selectedSectionId) return;
-
         const sec = canvasData.find(s => s.id === selectedSectionId);
         if (sec) {
             sec.settings[prop] = val;
@@ -1437,11 +1496,12 @@
         renderCanvas();
     };
 
-    // Autosave Status label renderer
-    function updateAutoSaveStatus(statusText = "Draft saved locally") {
+    // Update templates autosave status badge
+    function updateAutoSaveStatus(statusText = "Saved") {
         const el = document.getElementById('autosave-status');
         if (el) {
-            el.innerText = statusText;
+            el.innerHTML = `<i data-lucide="check-circle-2" class="h-3.5 w-3.5 mr-1 text-emerald-500"></i>${statusText}`;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
     }
 
@@ -1451,15 +1511,9 @@
         isSaving = true;
 
         if (!isSilent) {
-            updateAutoSaveStatus("Saving template...");
-            const saveBtn = document.getElementById('save-template-btn');
-            if (saveBtn) {
-                saveBtn.disabled = true;
-                saveBtn.innerText = "Saving...";
-            }
+            updateAutoSaveStatus("Saving...");
         }
 
-        // Generate Compiled HTML layout
         const compiledHtml = compileResponsiveHtml(canvasData);
 
         const payload = {
@@ -1476,7 +1530,7 @@
             const res = await apiCall('crm/save_custom_template.php', 'POST', payload);
             if (res.status === 'success' && res.data && res.data.id) {
                 activeTemplateId = res.data.id;
-                updateAutoSaveStatus("All changes saved");
+                updateAutoSaveStatus("Saved");
                 if (!isSilent) {
                     showNotification('success', 'Custom template saved successfully.');
                 }
@@ -1493,17 +1547,10 @@
             updateAutoSaveStatus("Save failed");
         } finally {
             isSaving = false;
-            if (!isSilent) {
-                const saveBtn = document.getElementById('save-template-btn');
-                if (saveBtn) {
-                    saveBtn.disabled = false;
-                    saveBtn.innerText = "Save Draft";
-                }
-            }
         }
     };
 
-    // Open Test Email Modal
+    // SMTP Test modal helpers
     window.openTestEmailModal = function() {
         const modal = document.getElementById('test-email-modal');
         if (modal) {
@@ -1512,7 +1559,6 @@
         }
     };
 
-    // Close Test Email Modal
     window.closeTestEmailModal = function() {
         const modal = document.getElementById('test-email-modal');
         if (modal) {
@@ -1520,7 +1566,6 @@
         }
     };
 
-    // Submit send test email
     window.submitSendTestEmail = async function() {
         const recipient = document.getElementById('test-recipient-email').value.trim();
         const subject = document.getElementById('test-subject').value.trim();
@@ -1530,10 +1575,8 @@
             return;
         }
 
-        // Compile HTML layout
         const compiledHtml = compileResponsiveHtml(canvasData);
 
-        // Send test request to server SMTP helper
         try {
             showNotification('info', 'Sending test email...');
             closeTestEmailModal();
@@ -1555,22 +1598,20 @@
         }
     };
 
-    // Exit Builder and restore dashboard
+    // Exit Builder SPA flow
     window.exitEmailBuilder = function() {
         if (autoSaveInterval) {
             clearInterval(autoSaveInterval);
             autoSaveInterval = null;
         }
         
-        // Restore global chat button
         const globalChat = document.getElementById('ai-chat-trigger-btn');
         if (globalChat) globalChat.classList.remove('hidden');
 
-        // Route back to Templates listing
         location.hash = '#/email-templates';
     };
 
-    // COMPILER ENGINE - Compile Canvas elements tree into responsive HTML Tables
+    // Generate responsive HTML table matching all mail clients
     function compileResponsiveHtml(data) {
         let rowsHtml = "";
 
@@ -1584,7 +1625,7 @@
                     case 'heading':
                         inner = `
                             <tr>
-                                <td align="${el.settings.align || 'left'}" style="padding: 10px 0; font-family: ${brandStyles.fontFamily}; font-size: ${el.settings.fontSize || '22px'}; font-weight: bold; color: ${el.settings.color || '#0F172A'};">
+                                <td align="${el.settings.align || 'left'}" style="padding: 10px 0; font-family: ${brandStyles.fontFamily}; font-size: ${el.settings.fontSize || '22px'}; font-weight: ${el.settings.fontWeight || 'bold'}; color: ${el.settings.color || '#0F172A'};">
                                     ${el.settings.content || 'Heading Title'}
                                 </td>
                             </tr>
@@ -1603,7 +1644,7 @@
                         inner = `
                             <tr>
                                 <td align="${el.settings.align || 'center'}" style="padding: 10px 0;">
-                                    <img src="${el.settings.imageUrl || 'https://placehold.co/600x300/e2e8f0/64748b?text=Image+Placeholder'}" style="display: block; max-width: 100%; height: auto; border-radius: ${el.settings.borderRadius || '6px'};" alt="Email Asset">
+                                    <img src="${el.settings.imageUrl || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop'}" style="display: block; max-width: 100%; height: auto; border-radius: ${el.settings.borderRadius || '6px'};" alt="Email Asset">
                                 </td>
                             </tr>
                         `;
@@ -1614,7 +1655,7 @@
                                 <td align="${el.settings.align || 'center'}" style="padding: 15px 0;">
                                     <table border="0" cellpadding="0" cellspacing="0" style="display: inline-block;">
                                         <tr>
-                                            <td align="center" bgcolor="${el.settings.backgroundColor || '#4F46E5'}" style="border-radius: ${el.settings.borderRadius || '8px'};">
+                                            <td align="center" bgcolor="${el.settings.backgroundColor || '#6D5EF5'}" style="border-radius: ${el.settings.borderRadius || '8px'};">
                                                 <a href="${el.settings.link || '#'}" target="_blank" style="display: inline-block; padding: ${el.settings.paddingTop || '12px'} ${el.settings.paddingRight || '24px'} ${el.settings.paddingBottom || '12px'} ${el.settings.paddingLeft || '24px'}; font-family: ${brandStyles.fontFamily}; font-size: 14px; font-weight: bold; color: ${el.settings.textColor || '#ffffff'}; text-decoration: none;">
                                                     ${el.settings.text || 'Action Button'}
                                                 </a>
@@ -1674,7 +1715,7 @@
                         inner = `
                             <tr>
                                 <td style="padding: 15px 0;">
-                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="${el.settings.backgroundColor || '#F1F5F9'}" style="border: 2px dashed ${el.settings.borderColor || '#4F46E5'}; border-radius: 10px; text-align: center;">
+                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="${el.settings.backgroundColor || '#FAF9FF'}" style="border: 2px dashed ${el.settings.borderColor || '#6D5EF5'}; border-radius: 10px; text-align: center;">
                                         <tr>
                                             <td style="padding: 24px;">
                                                 <span style="font-family: ${brandStyles.fontFamily}; font-size: 10px; font-weight: bold; text-transform: uppercase; color: #64748B; letter-spacing: 1px;">Discount Coupon</span>
@@ -1690,40 +1731,6 @@
                                             </td>
                                         </tr>
                                     </table>
-                                </td>
-                            </tr>
-                        `;
-                        break;
-                    case 'hero':
-                        inner = `
-                            <tr>
-                                <td style="padding: 15px 0;">
-                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="${el.settings.backgroundColor || '#F8FAFC'}" style="border-radius: 12px; text-align: center;">
-                                        <tr>
-                                            <td style="padding: 30px 24px;">
-                                                <h2 style="font-family: ${brandStyles.fontFamily}; font-size: 24px; margin: 0 0 10px 0; color: ${el.settings.titleColor || '#0F172A'}; font-weight: bold;">${el.settings.title || ''}</h2>
-                                                <p style="font-family: ${brandStyles.fontFamily}; font-size: 14px; margin: 0 0 20px 0; color: ${el.settings.subtitleColor || '#475569'}; line-height: 1.5;">${el.settings.subtitle || ''}</p>
-                                                <table border="0" cellpadding="0" cellspacing="0" style="display: inline-block;">
-                                                    <tr>
-                                                        <td bgcolor="#4F46E5" style="border-radius: 6px;">
-                                                            <a href="${el.settings.ctaLink || '#'}" target="_blank" style="display: inline-block; padding: 10px 22px; font-family: ${brandStyles.fontFamily}; font-size: 13px; font-weight: bold; color: #ffffff; text-decoration: none;">
-                                                                ${el.settings.ctaText || 'Get Started'}
-                                                            </a>
-                                                        </td>
-                                                    </tr>
-                                                </table>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                        `;
-                        break;
-                    case 'footer':
-                        inner = `
-                            <tr>
-                                <td align="${el.settings.align || 'center'}" style="padding: 20px 0; font-family: ${brandStyles.fontFamily}; font-size: ${el.settings.fontSize || '11px'}; color: ${el.settings.color || '#94a3b8'}; line-height: 1.6;">
-                                    ${el.settings.content || 'Footer copy text info'}
                                 </td>
                             </tr>
                         `;
@@ -1747,7 +1754,6 @@
             `;
         });
 
-        // Combined output responsive HTML boiler wrapper
         return `
         <!DOCTYPE html>
         <html>
@@ -1779,5 +1785,4 @@
         </html>
         `;
     }
-
 })();

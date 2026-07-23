@@ -723,6 +723,15 @@
                         );
                     };
                     document.head.appendChild(script);
+                } else {
+                    const container = document.getElementById("google-signin-container");
+                    if (container) {
+                        container.innerHTML = `
+                            <div class="text-xs font-semibold text-amber-600 bg-amber-50 border border-amber-200 rounded-xl p-3 text-center w-full">
+                                ⚠️ Google Sign-In is not configured. Define GOOGLE_CLIENT_ID in backend/config.php.
+                            </div>
+                        `;
+                    }
                 }
             } catch (err) {
                 console.error("Google OAuth Init Error:", err);

@@ -929,6 +929,136 @@
         }
     };
 
+    window.updateImageWidth = function(val) {
+        const txt = document.getElementById('img-width-val');
+        if (txt) txt.innerText = val + '%';
+        updateElementSetting('width', val + '%');
+    };
+
+    window.updateLogoWidth = function(val) {
+        const txt = document.getElementById('logo-width-val');
+        if (txt) txt.innerText = val + 'px';
+        updateElementSetting('height', val + 'px');
+    };
+
+    window.uploadImageElement = async function(input) {
+        if (!input.files || input.files.length === 0) return;
+        const file = input.files[0];
+        
+        const uploadBox = input.closest('.relative');
+        if (uploadBox) {
+            uploadBox.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-4 space-y-2">
+                    <span class="w-5 h-5 border-2 border-[#6D5EF5] border-t-transparent rounded-full animate-spin"></span>
+                    <span class="text-[10px] text-slate-500 font-bold">Uploading ${escapeHtml(file.name)}...</span>
+                </div>
+            `;
+        }
+        
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        try {
+            const token = typeof getAuthToken === 'function' ? getAuthToken() : localStorage.getItem('token');
+            const headers = {
+                'Accept': 'application/json'
+            };
+            if (token) {
+                headers['Authorization'] = 'Bearer ' + token;
+            }
+            
+            const uploadUrl = typeof API_BASE_URL !== 'undefined' ? `${API_BASE_URL}/crm/upload_image.php` : '/backend/api/crm/upload_image.php';
+            
+            const response = await fetch(uploadUrl, {
+                method: 'POST',
+                headers: headers,
+                body: formData
+            });
+            const res = await response.json();
+            
+            if (res.status === 'success' && res.data && res.data.url) {
+                let url = res.data.url;
+                if (!url.startsWith('http') && !url.startsWith('/')) {
+                    url = window.location.origin + '/' + url;
+                }
+                
+                const urlInput = document.getElementById('prop-image-url');
+                if (urlInput) {
+                    urlInput.value = url;
+                }
+                
+                updateElementSetting('imageUrl', url);
+                showNotification('success', 'Image uploaded successfully!');
+            } else {
+                showNotification('error', res.message || 'Image upload failed.');
+                renderPropertiesPanel();
+            }
+        } catch (err) {
+            console.error(err);
+            showNotification('error', 'Network error during image upload.');
+            renderPropertiesPanel();
+        }
+    };
+
+    window.uploadLogoElement = async function(input) {
+        if (!input.files || input.files.length === 0) return;
+        const file = input.files[0];
+        
+        const uploadBox = input.closest('.relative');
+        if (uploadBox) {
+            uploadBox.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-4 space-y-2">
+                    <span class="w-5 h-5 border-2 border-[#6D5EF5] border-t-transparent rounded-full animate-spin"></span>
+                    <span class="text-[10px] text-slate-500 font-bold">Uploading ${escapeHtml(file.name)}...</span>
+                </div>
+            `;
+        }
+        
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        try {
+            const token = typeof getAuthToken === 'function' ? getAuthToken() : localStorage.getItem('token');
+            const headers = {
+                'Accept': 'application/json'
+            };
+            if (token) {
+                headers['Authorization'] = 'Bearer ' + token;
+            }
+            
+            const uploadUrl = typeof API_BASE_URL !== 'undefined' ? `${API_BASE_URL}/crm/upload_image.php` : '/backend/api/crm/upload_image.php';
+            
+            const response = await fetch(uploadUrl, {
+                method: 'POST',
+                headers: headers,
+                body: formData
+            });
+            const res = await response.json();
+            
+            if (res.status === 'success' && res.data && res.data.url) {
+                let url = res.data.url;
+                if (!url.startsWith('http') && !url.startsWith('/')) {
+                    url = window.location.origin + '/' + url;
+                }
+                
+                const urlInput = document.getElementById('prop-logo-url');
+                if (urlInput) {
+                    urlInput.value = url;
+                }
+                
+                updateElementSetting('logoUrl', url);
+                showNotification('success', 'Logo uploaded successfully!');
+            } else {
+                showNotification('error', res.message || 'Logo upload failed.');
+                renderPropertiesPanel();
+            }
+        } catch (err) {
+            console.error(err);
+            showNotification('error', 'Network error during logo upload.');
+            renderPropertiesPanel();
+        }
+    };
+
     // HTML Output render onto Center Canvas
     window.renderCanvas = function() {
         const container = document.getElementById('email-builder-canvas');
@@ -1004,7 +1134,7 @@
                         case 'image':
                             elementInner = `
                                 <div style="text-align:${el.settings.align || 'center'};">
-                                    <img src="${el.settings.imageUrl || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop'}" style="max-width:100%; height:auto; border-radius:${el.settings.borderRadius || '6px'};" alt="Email Asset">
+                                    <img src="${el.settings.imageUrl || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop'}" style="width:${el.settings.width || '100%'}; max-width:100%; height:auto; border-radius:${el.settings.borderRadius || '6px'};" alt="Email Asset">
                                 </div>
                             `;
                             break;
@@ -1524,7 +1654,23 @@
                             <div class="space-y-4">
                                 <div class="space-y-1">
                                     <label class="font-bold text-slate-300">Image Source URL</label>
-                                    <input type="text" oninput="updateElementSetting('imageUrl', this.value)" value="${selectedEl.settings.imageUrl || ''}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
+                                    <input type="text" id="prop-image-url" oninput="updateElementSetting('imageUrl', this.value)" value="${selectedEl.settings.imageUrl || ''}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="flex items-center justify-between">
+                                        <label class="font-bold text-slate-300">Image Width</label>
+                                        <span class="text-[10px] text-slate-500 font-bold" id="img-width-val">${selectedEl.settings.width || '100%'}</span>
+                                    </div>
+                                    <input type="range" min="10" max="100" step="5" value="${parseInt(selectedEl.settings.width) || 100}" oninput="updateImageWidth(this.value)" class="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#6D5EF5]">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Or Upload Image</label>
+                                    <div class="relative border-2 border-dashed border-slate-200 hover:border-[#6D5EF5] transition rounded-xl p-4 flex flex-col items-center justify-center bg-slate-50 cursor-pointer group" onclick="document.getElementById('image-upload-input').click()">
+                                        <i data-lucide="upload-cloud" class="h-6 w-6 text-slate-400 group-hover:text-[#6D5EF5] mb-1.5"></i>
+                                        <span class="text-[10px] text-slate-500 font-bold group-hover:text-[#6D5EF5]">Click to upload image</span>
+                                        <span class="text-[8px] text-slate-400">JPG, PNG, GIF, WEBP up to 2MB</span>
+                                        <input type="file" id="image-upload-input" accept="image/*" class="hidden" onchange="uploadImageElement(this)">
+                                    </div>
                                 </div>
                             </div>
                         `;
@@ -1548,7 +1694,23 @@
                             <div class="space-y-4">
                                 <div class="space-y-1">
                                     <label class="font-bold text-slate-300">Logo Image URL</label>
-                                    <input type="text" oninput="updateElementSetting('logoUrl', this.value)" value="${selectedEl.settings.logoUrl || ''}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
+                                    <input type="text" id="prop-logo-url" oninput="updateElementSetting('logoUrl', this.value)" value="${selectedEl.settings.logoUrl || ''}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="flex items-center justify-between">
+                                        <label class="font-bold text-slate-300">Logo Width (px)</label>
+                                        <span class="text-[10px] text-slate-500 font-bold" id="logo-width-val">${selectedEl.settings.height || '36px'}</span>
+                                    </div>
+                                    <input type="range" min="15" max="150" step="5" value="${parseInt(selectedEl.settings.height) || 36}" oninput="updateLogoWidth(this.value)" class="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#6D5EF5]">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Or Upload Logo</label>
+                                    <div class="relative border-2 border-dashed border-slate-200 hover:border-[#6D5EF5] transition rounded-xl p-4 flex flex-col items-center justify-center bg-slate-50 cursor-pointer group" onclick="document.getElementById('logo-upload-input').click()">
+                                        <i data-lucide="upload-cloud" class="h-6 w-6 text-slate-400 group-hover:text-[#6D5EF5] mb-1.5"></i>
+                                        <span class="text-[10px] text-slate-500 font-bold group-hover:text-[#6D5EF5]">Click to upload logo</span>
+                                        <span class="text-[8px] text-slate-400">JPG, PNG, GIF, WEBP up to 2MB</span>
+                                        <input type="file" id="logo-upload-input" accept="image/*" class="hidden" onchange="uploadLogoElement(this)">
+                                    </div>
                                 </div>
                             </div>
                         `;
@@ -1898,7 +2060,7 @@
                         inner = `
                             <tr>
                                 <td align="${el.settings.align || 'center'}" style="padding: 10px 0;">
-                                    <img src="${el.settings.imageUrl || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop'}" style="display: block; max-width: 100%; height: auto; border-radius: ${el.settings.borderRadius || '6px'};" alt="Email Asset">
+                                    <img src="${el.settings.imageUrl || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop'}" style="display: block; width: ${el.settings.width || '100%'}; max-width: 100%; height: auto; border-radius: ${el.settings.borderRadius || '6px'};" alt="Email Asset">
                                 </td>
                             </tr>
                         `;

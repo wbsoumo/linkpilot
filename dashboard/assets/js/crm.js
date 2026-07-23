@@ -404,12 +404,20 @@ async function navigateTo(view, params = {}) {
         const contentArea = document.getElementById('main-content-viewport');
         if (!contentArea) return;
         
-        if (view !== 'automation' || !window.wfState.activeWorkflow) {
-            toggleSidebarCollapsed(false);
+        // Hide/Show sidebar and header for visual builder
+        const sidebar = document.getElementById('sidebar-panel');
+        const header = document.getElementById('dashboard-header');
+        if (view === 'email-builder') {
+            if (sidebar) sidebar.style.display = 'none';
+            if (header) header.style.display = 'none';
+        } else {
+            if (sidebar) sidebar.style.display = '';
+            if (header) header.style.display = '';
         }
         
-        // Dynamically manage full-bleed for inbox, followups and visual builder
-        if (view === 'inbox' || view === 'email' || view === 'sent' || view === 'starred' || view === 'drafts' || view === 'archived' || view === 'snoozed' || view === 'trash' || view === 'spam' || view === 'whatsapp-inbox' || view === 'followups' || view === 'email-followups' || (view === 'automation' && window.wfState.activeWorkflow)) {
+        if (view === 'email-builder') {
+            contentArea.className = "flex-grow overflow-hidden w-full h-screen flex flex-col bg-slate-900";
+        } else if (view === 'inbox' || view === 'email' || view === 'sent' || view === 'starred' || view === 'drafts' || view === 'archived' || view === 'snoozed' || view === 'trash' || view === 'spam' || view === 'whatsapp-inbox' || view === 'followups' || view === 'email-followups' || (view === 'automation' && window.wfState.activeWorkflow)) {
             contentArea.className = "flex-grow overflow-hidden w-full h-[calc(100vh-61px)] flex flex-col";
         } else {
             contentArea.className = "flex-grow p-6 md:p-8 overflow-y-auto max-w-7xl w-full mx-auto";
@@ -466,6 +474,9 @@ async function navigateTo(view, params = {}) {
             case 'email-templates':
             case 'templates':
                 await renderEmailTemplates(contentArea);
+                break;
+            case 'email-builder':
+                await renderEmailBuilder(contentArea, params.id);
                 break;
             case 'email-campaigns':
             case 'campaigns':
@@ -17854,15 +17865,45 @@ function getMixedUpTemplates(list) {
 
 async function renderEmailTemplates(container) {
     try {
-        const categories = ["All", "Sales", "Meetings", "Onboarding", "Follow-ups", "Support", "Invoices", "Feedback", "Networking"];
+        const categories = ["All", "Custom", "Sales", "Meetings", "Onboarding", "Follow-ups", "Support", "Invoices", "Feedback", "Networking"];
         const currentCat = window.emailTemplateFilters.category || "All";
         const q = (window.emailTemplateFilters.search || "").toLowerCase();
 
-        let filteredTemplates = EMAIL_TEMPLATES_DATA.filter(t => {
+        // 1. Fetch custom templates from backend
+        let customTemplates = [];
+        try {
+            const res = await apiCall('crm/get_custom_templates.php');
+            if (res.status === 'success' && res.data && res.data.templates) {
+                customTemplates = res.data.templates.map(t => ({
+                    id: t.id,
+                    title: t.name,
+                    subject: t.subject || '',
+                    category: t.category || 'Custom',
+                    tag: t.tag || 'Saved',
+                    openRate: 'N/A',
+                    isCustom: true,
+                    html_content: t.html_content || ''
+                }));
+            }
+        } catch (e) {
+            console.error("Failed to load custom templates", e);
+        }
+
+        // Combine custom and standard templates
+        const allTemplates = [...customTemplates, ...EMAIL_TEMPLATES_DATA];
+
+        let filteredTemplates = allTemplates.filter(t => {
             const cat = (t.category || "").toLowerCase();
             const selCat = currentCat.toLowerCase();
-            const matchesCat = selCat === 'all' || cat === selCat || cat.includes(selCat.replace('s', ''));
-            const matchesSearch = !q || t.title.toLowerCase().includes(q) || t.subject.toLowerCase().includes(q) || (t.tag && t.tag.toLowerCase().includes(q)) || t.body.toLowerCase().includes(q);
+            let matchesCat = false;
+            if (selCat === 'all') {
+                matchesCat = true;
+            } else if (selCat === 'custom') {
+                matchesCat = !!t.isCustom;
+            } else {
+                matchesCat = cat === selCat || cat.includes(selCat.replace('s', ''));
+            }
+            const matchesSearch = !q || t.title.toLowerCase().includes(q) || t.subject.toLowerCase().includes(q) || (t.tag && t.tag.toLowerCase().includes(q)) || (t.body && t.body.toLowerCase().includes(q));
             return matchesCat && matchesSearch;
         });
 
@@ -17881,17 +17922,24 @@ async function renderEmailTemplates(container) {
                         </div>
                         <div class="min-w-0">
                             <div class="flex items-center space-x-2">
-                                <h1 class="text-base font-bold text-slate-900 leading-tight">50+ Premium HTML Marketing Templates</h1>
-                                <span class="px-2 py-0.5 bg-indigo-600 text-white rounded-full text-[10px] font-extrabold" style="color: #ffffff !important;">55 ACTIVE</span>
+                                <h1 class="text-base font-bold text-slate-900 leading-tight">Premium HTML Marketing Templates</h1>
+                                <span class="px-2 py-0.5 bg-indigo-600 text-white rounded-full text-[10px] font-extrabold" style="color: #ffffff !important;">${allTemplates.length} TEMPLATES</span>
                             </div>
-                            <p class="text-xs text-slate-500 font-medium truncate mt-0.5">Live visual HTML desktop previews. Hover any template to edit directly.</p>
+                            <p class="text-xs text-slate-500 font-medium truncate mt-0.5">Edit custom drag & drop templates or select pre-made layouts.</p>
                         </div>
                     </div>
 
-                    <!-- Search Box -->
-                    <div class="relative w-full md:w-72 shrink-0">
-                        <i data-lucide="search" class="absolute left-3.5 top-2.5 h-3.5 w-3.5 text-slate-400 pointer-events-none z-10"></i>
-                        <input type="text" id="template-search-input" oninput="handleTemplatesSearch(this.value)" value="${window.emailTemplateFilters.search}" placeholder="Search 50+ templates..." class="w-full pr-3.5 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white transition" style="padding-left: 36px !important;">
+                    <!-- Search & Create Bar -->
+                    <div class="flex items-center space-x-3 shrink-0 w-full md:w-auto">
+                        <!-- Search Box -->
+                        <div class="relative w-full md:w-64">
+                            <i data-lucide="search" class="absolute left-3.5 top-2.5 h-3.5 w-3.5 text-slate-400 pointer-events-none z-10"></i>
+                            <input type="text" id="template-search-input" oninput="handleTemplatesSearch(this.value)" value="${window.emailTemplateFilters.search || ''}" placeholder="Search templates..." class="w-full pr-3.5 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white transition" style="padding-left: 36px !important;">
+                        </div>
+                        <button onclick="location.hash = '#/email-builder'" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold rounded-full shadow-md flex items-center space-x-1.5 transition shrink-0 cursor-pointer" style="color: #ffffff !important; background-color: #4F46E5 !important;">
+                            <i data-lucide="plus" class="h-3.5 w-3.5 text-white" style="color: #ffffff !important;"></i>
+                            <span class="text-white font-extrabold" style="color: #ffffff !important;">Create Custom Template</span>
+                        </button>
                     </div>
                 </div>
 
@@ -17899,7 +17947,14 @@ async function renderEmailTemplates(container) {
                 <div class="bg-white border-b border-slate-200 px-6 py-2.5 flex items-center space-x-2 overflow-x-auto no-scrollbar shrink-0 text-xs font-bold">
                     ${categories.map(cat => {
                         const isActive = currentCat.toLowerCase() === cat.toLowerCase();
-                        const count = cat === 'All' ? EMAIL_TEMPLATES_DATA.length : EMAIL_TEMPLATES_DATA.filter(t => (t.category || '').toLowerCase() === cat.toLowerCase() || (t.category || '').toLowerCase().includes(cat.toLowerCase().replace('s',''))).length;
+                        let count = 0;
+                        if (cat === 'All') {
+                            count = allTemplates.length;
+                        } else if (cat === 'Custom') {
+                            count = customTemplates.length;
+                        } else {
+                            count = allTemplates.filter(t => (t.category || '').toLowerCase() === cat.toLowerCase() || (t.category || '').toLowerCase().includes(cat.toLowerCase().replace('s',''))).length;
+                        }
                         return `
                             <button onclick="filterTemplatesCategory('${cat}')" class="px-3.5 py-1.5 rounded-full transition-all shrink-0 cursor-pointer ${isActive ? 'bg-indigo-600 text-white font-extrabold shadow-xs ring-2 ring-indigo-500/20' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium'}" ${isActive ? 'style="color: #ffffff !important; background-color: #4F46E5 !important;"' : ''}>
                                 <span>${cat}</span>
@@ -17919,47 +17974,70 @@ async function renderEmailTemplates(container) {
                         </div>
                     ` : `
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                            ${filteredTemplates.map(t => `
-                                <div class="group relative bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:border-indigo-400 transition-all duration-200 flex flex-col justify-between overflow-hidden">
-                                    
-                                    <!-- Card Content -->
-                                    <div class="space-y-2.5 min-w-0">
-                                        <div class="flex justify-between items-center">
-                                            <span class="px-2.5 py-0.5 rounded-md text-[9px] font-extrabold tracking-wider uppercase bg-indigo-50 text-indigo-700 border border-indigo-100">${t.category} • ${t.tag}</span>
-                                            <span class="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center">
-                                                <i data-lucide="zap" class="h-2.5 w-2.5 mr-1 text-emerald-600"></i>${t.openRate} OPEN
-                                            </span>
-                                        </div>
+                            ${filteredTemplates.map(t => {
+                                const previewHtml = t.isCustom ? t.html_content : getTemplateHtmlPreview(t);
+                                return `
+                                    <div class="group relative bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:border-indigo-400 transition-all duration-200 flex flex-col justify-between overflow-hidden">
                                         
-                                        <h3 class="text-xs font-bold text-slate-900 leading-snug line-clamp-1 group-hover:text-indigo-600 transition" title="${t.title}">${t.title}</h3>
-                                        
-                                        <!-- FULL DESKTOP VIEW HTML PREVIEW CONTAINER -->
-                                        <div class="relative w-full h-48 bg-slate-100 rounded-xl border border-slate-200/80 overflow-hidden shadow-xs pointer-events-none select-none flex items-start justify-start">
-                                            <div style="width: 760px; height: 500px; transform: scale(0.46); transform-origin: top left;" class="pointer-events-none select-none overflow-hidden bg-white shrink-0">
-                                                ${getTemplateHtmlPreview(t)}
+                                        <!-- Card Content -->
+                                        <div class="space-y-2.5 min-w-0">
+                                            <div class="flex justify-between items-center">
+                                                <span class="px-2.5 py-0.5 rounded-md text-[9px] font-extrabold tracking-wider uppercase bg-indigo-50 text-indigo-700 border border-indigo-100">${t.category} • ${t.tag}</span>
+                                                ${t.isCustom ? `
+                                                    <span class="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase bg-amber-50 text-amber-700 border border-amber-200 flex items-center">
+                                                        <i data-lucide="pen-tool" class="h-2.5 w-2.5 mr-1 text-amber-600"></i>BUILDER
+                                                    </span>
+                                                ` : `
+                                                    <span class="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center">
+                                                        <i data-lucide="zap" class="h-2.5 w-2.5 mr-1 text-emerald-600"></i>${t.openRate} OPEN
+                                                    </span>
+                                                `}
+                                            </div>
+                                            
+                                            <h3 class="text-xs font-bold text-slate-900 leading-snug line-clamp-1 group-hover:text-indigo-600 transition" title="${t.title}">${t.title}</h3>
+                                            
+                                            <!-- FULL DESKTOP VIEW HTML PREVIEW CONTAINER -->
+                                            <div class="relative w-full h-48 bg-slate-100 rounded-xl border border-slate-200/80 overflow-hidden shadow-xs pointer-events-none select-none flex items-start justify-start">
+                                                <div style="width: 760px; height: 500px; transform: scale(0.46); transform-origin: top left;" class="pointer-events-none select-none overflow-hidden bg-white shrink-0 w-full h-full">
+                                                    <iframe srcdoc="${previewHtml.replace(/"/g, '&quot;')}" class="w-[217%] h-[217%] border-0 pointer-events-none select-none" style="transform: scale(0.46); transform-origin: top left;"></iframe>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div class="pt-3 border-t border-slate-100 flex items-center justify-between mt-3 text-[11px] text-slate-400 font-medium">
-                                        <span class="truncate max-w-[150px] font-semibold text-slate-700">${t.subject}</span>
-                                        <span class="text-indigo-600 font-bold group-hover:underline shrink-0">Hover to Use & Edit →</span>
-                                    </div>
+                                        <div class="pt-3 border-t border-slate-100 flex items-center justify-between mt-3 text-[11px] text-slate-400 font-medium">
+                                            <span class="truncate max-w-[150px] font-semibold text-slate-700">${t.subject}</span>
+                                            <span class="text-indigo-600 font-bold group-hover:underline shrink-0">
+                                                ${t.isCustom ? 'Hover to Edit/Delete →' : 'Hover to Use & Edit →'}
+                                            </span>
+                                        </div>
 
-                                    <!-- MOUSE HOVER OVERLAY WITH "USE TEMPLATE" BUTTON -->
-                                    <div class="absolute inset-0 bg-slate-900/85 backdrop-blur-xs rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center p-6 space-y-3 pointer-events-none group-hover:pointer-events-auto">
-                                        <h4 class="text-xs font-bold text-white text-center line-clamp-1 px-2">${t.title}</h4>
-                                        <button onclick="openEmailComposerModal(${t.id})" class="w-full max-w-[210px] py-2.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-extrabold rounded-xl shadow-lg hover:scale-105 transition flex items-center justify-center space-x-2 cursor-pointer" style="color: #ffffff !important;">
-                                            <i data-lucide="edit-3" class="h-3.5 w-3.5 text-white" style="color: #ffffff !important;"></i>
-                                            <span class="text-white font-extrabold" style="color: #ffffff !important;">Use & Edit HTML Template</span>
-                                        </button>
-                                        <button onclick="previewTemplateModal(${t.id})" class="w-full max-w-[210px] py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-lg transition cursor-pointer" style="color: #ffffff !important;">
-                                            Preview HTML Modal
-                                        </button>
-                                    </div>
+                                        <!-- MOUSE HOVER OVERLAY WITH ACTION BUTTONS -->
+                                        <div class="absolute inset-0 bg-slate-900/85 backdrop-blur-xs rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center p-6 space-y-2.5 pointer-events-none group-hover:pointer-events-auto">
+                                            <h4 class="text-xs font-bold text-white text-center line-clamp-1 px-2">${t.title}</h4>
+                                            
+                                            ${t.isCustom ? `
+                                                <button onclick="location.hash = '#/email-builder?id=${t.id}'" class="w-full max-w-[210px] py-2.5 bg-indigo-600 hover:bg-indigo-750 text-white text-xs font-extrabold rounded-xl shadow-lg hover:scale-105 transition flex items-center justify-center space-x-2 cursor-pointer" style="color: #ffffff !important; background-color: #4F46E5 !important;">
+                                                    <i data-lucide="edit-3" class="h-3.5 w-3.5 text-white" style="color: #ffffff !important;"></i>
+                                                    <span class="text-white font-extrabold" style="color: #ffffff !important;">Open Builder Editor</span>
+                                                </button>
+                                                <button onclick="deleteCustomTemplate(${t.id}, event)" class="w-full max-w-[210px] py-2 bg-red-650 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition flex items-center justify-center space-x-1.5 cursor-pointer" style="color: #ffffff !important; background-color: #E11D48 !important;">
+                                                    <i data-lucide="trash-2" class="h-3.5 w-3.5 text-white" style="color: #ffffff !important;"></i>
+                                                    <span class="text-white font-bold" style="color: #ffffff !important;">Delete Template</span>
+                                                </button>
+                                            ` : `
+                                                <button onclick="openEmailComposerModal(${t.id})" class="w-full max-w-[210px] py-2.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-extrabold rounded-xl shadow-lg hover:scale-105 transition flex items-center justify-center space-x-2 cursor-pointer" style="color: #ffffff !important;">
+                                                    <i data-lucide="edit-3" class="h-3.5 w-3.5 text-white" style="color: #ffffff !important;"></i>
+                                                    <span class="text-white font-extrabold" style="color: #ffffff !important;">Use & Edit HTML Template</span>
+                                                </button>
+                                                <button onclick="previewTemplateModal(${t.id})" class="w-full max-w-[210px] py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-lg transition cursor-pointer" style="color: #ffffff !important;">
+                                                    Preview HTML Modal
+                                                </button>
+                                            `}
+                                        </div>
 
-                                </div>
-                            `).join('')}
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
                     `}
                 </div>
@@ -17970,6 +18048,25 @@ async function renderEmailTemplates(container) {
         container.innerHTML = `<div class="p-6 text-center text-rose-500 text-xs font-bold">Failed to render email templates: ${err.message}</div>`;
     }
 }
+
+// Global delete handler
+window.deleteCustomTemplate = async function(id, event) {
+    if (event) event.stopPropagation();
+    if (!confirm('Are you sure you want to delete this custom template?')) return;
+    
+    try {
+        const res = await apiCall('crm/delete_custom_template.php', 'POST', { id });
+        if (res.status === 'success') {
+            showNotification('success', 'Template deleted successfully.');
+            const contentArea = document.getElementById('main-content-viewport');
+            if (contentArea) renderEmailTemplates(contentArea);
+        } else {
+            showNotification('error', res.message || 'Failed to delete template.');
+        }
+    } catch (err) {
+        showNotification('error', err.message || 'An error occurred.');
+    }
+};
 
 window.filterTemplatesCategory = function(cat) {
     window.emailTemplateFilters.category = cat;

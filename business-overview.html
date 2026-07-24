@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-[#FAFAFC] font-['Outfit',sans-serif]">
+<html lang="en" class="h-full bg-[#020617] text-slate-200">
 <head>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-V8YZETRHHM"></script>
@@ -20,86 +20,118 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="assets/css/marketing.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <link rel="preload" href="assets/landing/fonts/EuclidCircularA-Regular-WebS.284399c33ec6205bda4f.woff2" as="font" crossorigin>
+    <link rel="preload" href="assets/landing/fonts/EuclidCircularA-Medium-WebS.15f0eb8048ed2e045e66.woff2" as="font" crossorigin>
+    <link rel="preload" href="assets/landing/fonts/EuclidCircularA-Bold-WebS.3c4d4e8b6ac98aefdb54.woff2" as="font" crossorigin>
     
     <style>
+        @font-face {
+            font-family: 'Euclid Circular A';
+            src: url('assets/landing/fonts/EuclidCircularA-Regular-WebS.284399c33ec6205bda4f.woff2') format('woff2');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Euclid Circular A';
+            src: url('assets/landing/fonts/EuclidCircularA-Medium-WebS.15f0eb8048ed2e045e66.woff2') format('woff2');
+            font-weight: 500;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Euclid Circular A';
+            src: url('assets/landing/fonts/EuclidCircularA-Bold-WebS.3c4d4e8b6ac98aefdb54.woff2') format('woff2');
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        body {
+            font-family: 'Euclid Circular A', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.05) 0%, rgba(15, 23, 42, 0) 50%),
+                        radial-gradient(circle at bottom left, rgba(95, 67, 208, 0.05) 0%, rgba(15, 23, 42, 0) 50%),
+                        #020617;
+        }
         .gradient-text {
-            background: linear-gradient(135deg, #5f43d0 0%, #8b6ff0 100%);
+            background: linear-gradient(135deg, #14b8a6 0%, #a78bfa 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        .hero-gradient {
-            background: radial-gradient(circle at top right, rgba(95, 67, 208, 0.08) 0%, rgba(250, 250, 252, 0) 50%),
-                        radial-gradient(circle at bottom left, rgba(95, 67, 208, 0.05) 0%, rgba(250, 250, 252, 0) 50%);
-        }
         .tab-active {
-            color: #5f43d0;
-            border-bottom: 2px solid #5f43d0;
+            color: #14b8a6;
+            border-bottom: 2px solid #14b8a6;
         }
-        .card-hover:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgba(95, 67, 208, 0.06), 0 10px 10px -5px rgba(95, 67, 208, 0.02);
+        .calculator-card {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
     </style>
 </head>
-<body class="h-full bg-[#FAFAFC] text-slate-600 flex flex-col antialiased hero-gradient">
+<body class="h-full text-slate-200 flex flex-col antialiased">
     
-    <!-- Sticky Navigation -->
-    <nav class="sticky top-0 z-50 w-full px-6 py-4 bg-white/80 backdrop-blur-md border-b border-slate-100/80">
-        <div class="max-w-6xl mx-auto w-full flex items-center justify-between">
-            <a href="index.html" class="flex items-center space-x-2 text-xl font-bold tracking-tight text-[#0B0B1E]">
-                <img src="dashboard/assets/img/logo.png" class="h-7 w-7 object-contain" alt="LinkPilot AI">
-                <span class="font-extrabold text-[#0B0B1E]">LinkPilot</span>
+    <!-- Navigation -->
+    <nav class="glass-nav sticky top-0 z-50 w-full px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-10">
+            <a href="index.html" class="flex items-center space-x-2 text-xl font-bold tracking-wider">
+                <span class="text-teal-400 font-outfit">✨ LinkPilot</span>
+                <span class="text-xs px-2 py-0.5 bg-slate-800 text-teal-400 border border-slate-700 rounded-full font-semibold">AI</span>
             </a>
-            <div class="hidden lg:flex items-center space-x-8 text-sm font-medium text-slate-500">
-                <a href="index.html#features" class="hover:text-[#5f43d0] transition">Features</a>
-                <a href="index.html#solutions" class="hover:text-[#5f43d0] transition">Solutions</a>
-                <a href="pricing.html" class="hover:text-[#5f43d0] transition">Pricing</a>
-                <a href="docs.html" class="hover:text-[#5f43d0] transition">Docs</a>
-                <a href="business-overview.html" class="text-[#5f43d0] font-semibold transition">Business Plan</a>
-                <a href="about.html" class="hover:text-[#5f43d0] transition">About</a>
+            <div class="hidden lg:flex items-center space-x-6 text-sm font-medium text-slate-300">
+                <a href="index.html#features" class="nav-link hover:text-white transition">Features</a>
+                <a href="index.html#solutions" class="nav-link hover:text-white transition">Solutions</a>
+                <a href="pricing.html" class="nav-link hover:text-white transition">Pricing</a>
+                <a href="docs.html" class="nav-link hover:text-white transition">Docs</a>
+                <a href="business-overview.html" class="nav-link text-teal-400 font-semibold transition">Business Plan</a>
+                <a href="about.html" class="nav-link hover:text-white transition">About</a>
             </div>
-            <div class="hidden sm:flex items-center space-x-4">
-                <a href="dashboard/login.html" class="text-sm font-semibold text-slate-500 hover:text-[#5f43d0] transition">Log In</a>
-                <a href="dashboard/register.html" class="px-5 py-2.5 text-sm font-bold text-white bg-[#5f43d0] hover:bg-[#4f32c0] rounded-xl shadow-sm transition">Get Started</a>
-            </div>
+        </div>
+        <div class="hidden sm:flex items-center space-x-4">
+            <a href="dashboard/login.html" class="text-sm font-semibold text-slate-300 hover:text-white transition">Log In</a>
+            <a href="dashboard/register.html" class="px-4 py-2 text-sm font-semibold text-slate-950 btn-primary rounded-lg shadow transition bg-[#5f43d0] hover:bg-[#4f32c0] text-white">Get Started</a>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <header class="py-16 md:py-24 text-center max-w-4xl mx-auto px-6 space-y-6">
-        <div class="inline-flex items-center space-x-2 bg-[#5f43d0]/10 text-[#5f43d0] px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider">
+    <header class="py-16 md:py-24 text-center max-w-5xl mx-auto px-6 space-y-6">
+        <div class="inline-flex items-center space-x-2 bg-teal-500/10 text-teal-400 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider border border-teal-500/20">
             <i data-lucide="briefcase" class="h-3.5 w-3.5"></i>
-            <span>LinkPilot AI Strategic Briefing</span>
+            <span>Strategic Business Overview</span>
         </div>
-        <h1 class="text-4xl sm:text-6xl font-extrabold text-[#0B0B1E] tracking-tight leading-tight">
+        <h1 class="text-4xl sm:text-6xl font-extrabold text-white tracking-tight leading-tight">
             Strategic Business Plan & <span class="gradient-text">Overview</span>
         </h1>
-        <p class="text-slate-500 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
-            Eliminating outreach friction and scaling customer engagement. A native CRM ecosystem combining LinkedIn outreach, background email parsing, and 24/7 WhatsApp autopilot.
+        <p class="text-slate-450 text-slate-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+            Eliminate outreach friction and scale customer engagement. A unified CRM ecosystem combining LinkedIn scraping, background email synchronization, and 24/7 WhatsApp autopilot.
         </p>
         <div class="flex flex-wrap justify-center gap-4 pt-4">
-            <a href="#calculator" class="px-6 py-3 bg-[#5f43d0] hover:bg-[#4f32c0] text-white font-bold rounded-xl shadow-sm transition flex items-center space-x-2 text-sm">
+            <a href="#calculator" class="px-6 py-3 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-teal-500/10 transition flex items-center space-x-2 text-xs">
                 <i data-lucide="calculator" class="h-4 w-4"></i>
-                <span>ROI Calculator</span>
+                <span>ROI Savings Calculator</span>
             </a>
-            <a href="contact.html" class="px-6 py-3 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-bold rounded-xl shadow-sm transition flex items-center space-x-2 text-sm">
+            <a href="contact.html" class="px-6 py-3 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 font-bold rounded-xl transition flex items-center space-x-2 text-xs">
                 <i data-lucide="mail" class="h-4 w-4"></i>
-                <span>Contact Business Team</span>
+                <span>Support Business Team</span>
             </a>
+        </div>
+
+        <!-- Product Hero Image Mockup -->
+        <div class="pt-12 max-w-4xl mx-auto">
+            <div class="relative rounded-2xl border border-slate-800/80 bg-slate-900/40 p-2 backdrop-blur shadow-2xl">
+                <img src="assets/img/tophero.png" class="w-full rounded-xl border border-slate-800/50 shadow-inner object-cover" alt="LinkPilot AI Outreach Dashboard">
+                <div class="absolute -bottom-4 -right-4 bg-teal-500 text-slate-950 text-[10px] font-bold px-3 py-1 rounded-full shadow-lg">Live Overview Console</div>
+            </div>
         </div>
     </header>
 
     <!-- Quick Navigation Tabs -->
-    <div class="sticky top-[73px] z-40 bg-white/70 backdrop-blur-md border-b border-slate-100">
+    <div class="sticky top-[73px] z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-900">
         <div class="max-w-6xl mx-auto px-6 overflow-x-auto">
-            <div class="flex space-x-8 py-4 text-sm font-semibold text-slate-400 whitespace-nowrap">
-                <a href="#summary" class="tab-link hover:text-slate-700 transition" id="tab-summary">Executive Summary</a>
-                <a href="#who-we-are" class="tab-link hover:text-slate-700 transition" id="tab-who-we-are">Who We Are</a>
-                <a href="#how-we-help" class="tab-link hover:text-slate-700 transition" id="tab-how-we-help">How We Help</a>
-                <a href="#architecture" class="tab-link hover:text-slate-700 transition" id="tab-architecture">Product Architecture</a>
-                <a href="#roi" class="tab-link hover:text-slate-700 transition" id="tab-roi">Business Value & ROI</a>
-                <a href="#trust" class="tab-link hover:text-slate-700 transition" id="tab-trust">Security & Trust</a>
+            <div class="flex space-x-8 py-4 text-xs font-semibold text-slate-400 whitespace-nowrap">
+                <a href="#summary" class="tab-link hover:text-white transition" id="tab-summary">Executive Summary</a>
+                <a href="#who-we-are" class="tab-link hover:text-white transition" id="tab-who-we-are">Who We Are</a>
+                <a href="#how-we-help" class="tab-link hover:text-white transition" id="tab-how-we-help">How We Help</a>
+                <a href="#architecture" class="tab-link hover:text-white transition" id="tab-architecture">Architecture</a>
+                <a href="#roi" class="tab-link hover:text-white transition" id="tab-roi">Business Value & ROI</a>
+                <a href="#trust" class="tab-link hover:text-white transition" id="tab-trust">Security & Trust</a>
             </div>
         </div>
     </div>
@@ -110,20 +142,20 @@
         <!-- SECTION 1: Executive Summary -->
         <section id="summary" class="scroll-mt-32 space-y-6">
             <div class="flex items-center space-x-3">
-                <div class="p-2 bg-[#5f43d0]/10 text-[#5f43d0] rounded-lg">
+                <div class="p-2 bg-teal-500/10 text-teal-400 rounded-lg border border-teal-500/20">
                     <i data-lucide="file-text" class="h-5 w-5"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-[#0B0B1E]">Executive Summary</h2>
+                <h2 class="text-xl font-bold text-white">Executive Summary</h2>
             </div>
             
-            <div class="bg-white border border-slate-150/80 shadow-md shadow-slate-100/40 p-8 rounded-3xl space-y-6">
-                <p class="leading-relaxed">
+            <div class="glass-panel p-8 rounded-3xl space-y-6">
+                <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
                     Modern outbound customer acquisition is severely bottle-necked. Despite advances in generic artificial intelligence, sales agents spend up to <strong>60% of their operational hours</strong> in routine, fragmented administrative cycles. The core challenges include manual lead profiling, copy-pasting across platforms, inconsistent message personalization, and poor CRM data entry.
                 </p>
-                <div class="border-l-4 border-[#5f43d0] pl-4 italic text-slate-500 text-sm leading-relaxed">
-                    "LinkPilot AI offers an unified answer: an enterprise-grade customer relationship management (CRM) and multi-channel outreach autopilot ecosystem that works natively inside the channels your customers live in."
+                <div class="border-l-4 border-teal-500 pl-4 italic text-slate-450 text-slate-400 text-xs leading-relaxed">
+                    "LinkPilot AI offers a unified answer: an enterprise-grade customer relationship management (CRM) and multi-channel outreach autopilot ecosystem that works natively inside the channels your customers live in."
                 </div>
-                <p class="leading-relaxed">
+                <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
                     By merging instant email synchronization, background parsing queues, a companion Chrome extension, and an automated WhatsApp autopilot, LinkPilot AI scales business outreach securely and cost-effectively.
                 </p>
             </div>
@@ -132,29 +164,29 @@
         <!-- SECTION 2: Who We Are -->
         <section id="who-we-are" class="scroll-mt-32 space-y-6">
             <div class="flex items-center space-x-3">
-                <div class="p-2 bg-[#5f43d0]/10 text-[#5f43d0] rounded-lg">
+                <div class="p-2 bg-teal-500/10 text-teal-400 rounded-lg border border-teal-500/20">
                     <i data-lucide="users" class="h-5 w-5"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-[#0B0B1E]">Who We Are & Our Mission</h2>
+                <h2 class="text-xl font-bold text-white">Who We Are & Our Mission</h2>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="bg-white border border-slate-150/80 shadow-md shadow-slate-100/40 p-6 rounded-3xl space-y-3 card-hover transition duration-300">
-                    <div class="flex items-center space-x-2 text-[#5f43d0]">
+                <div class="glass-panel p-6 rounded-3xl space-y-3 card-hover transition duration-300">
+                    <div class="flex items-center space-x-2 text-teal-400">
                         <i data-lucide="target" class="h-4 w-4"></i>
-                        <h4 class="font-bold text-[#0B0B1E] text-sm uppercase tracking-wider">Our Core Mission</h4>
+                        <h4 class="font-bold text-white text-xs uppercase tracking-wider">Our Core Mission</h4>
                     </div>
-                    <p class="text-xs leading-relaxed">
+                    <p class="text-slate-400 text-xs leading-relaxed">
                         To eliminate manual data entry and generic outreach templates, ensuring that every B2B communication feels highly customized, profile-aware, and impactful—while scaling productivity infinitely in the background.
                     </p>
                 </div>
                 
-                <div class="bg-white border border-slate-150/80 shadow-md shadow-slate-100/40 p-6 rounded-3xl space-y-3 card-hover transition duration-300">
-                    <div class="flex items-center space-x-2 text-[#5f43d0]">
+                <div class="glass-panel p-6 rounded-3xl space-y-3 card-hover transition duration-300">
+                    <div class="flex items-center space-x-2 text-teal-400">
                         <i data-lucide="compass" class="h-4 w-4"></i>
-                        <h4 class="font-bold text-[#0B0B1E] text-sm uppercase tracking-wider">Our Product Philosophy</h4>
+                        <h4 class="font-bold text-white text-xs uppercase tracking-wider">Our Product Philosophy</h4>
                     </div>
-                    <p class="text-xs leading-relaxed">
+                    <p class="text-slate-400 text-xs leading-relaxed">
                         Security-first, user-centric, and context-aware. Your SMTP parameters are local, your data is fully encrypted, and your workflows trigger dynamically without creating unnecessary browser overlays or data overhead.
                     </p>
                 </div>
@@ -164,52 +196,58 @@
         <!-- SECTION 3: How We Help -->
         <section id="how-we-help" class="scroll-mt-32 space-y-6">
             <div class="flex items-center space-x-3">
-                <div class="p-2 bg-[#5f43d0]/10 text-[#5f43d0] rounded-lg">
+                <div class="p-2 bg-teal-500/10 text-teal-400 rounded-lg border border-teal-500/20">
                     <i data-lucide="trending-up" class="h-5 w-5"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-[#0B0B1E]">How We Grow Your Business</h2>
+                <h2 class="text-xl font-bold text-white">How We Grow Your Business</h2>
             </div>
             
-            <div class="bg-white border border-slate-150/80 shadow-md shadow-slate-100/40 p-8 rounded-3xl space-y-8">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="space-y-3">
-                        <div class="flex items-center space-x-2 text-slate-800 font-bold">
-                            <i data-lucide="zap" class="h-4 w-4 text-[#5f43d0]"></i>
-                            <span>1-Click Personalization</span>
+            <div class="space-y-12">
+                <!-- Feature 1 -->
+                <div class="glass-panel p-8 rounded-3xl flex flex-col md:flex-row items-center gap-8">
+                    <div class="flex-1 space-y-4">
+                        <div class="flex items-center space-x-2 text-white font-bold">
+                            <i data-lucide="zap" class="h-5 w-5 text-teal-400"></i>
+                            <span class="text-sm">1-Click LinkedIn Outreach Overlay</span>
                         </div>
-                        <p class="text-xs leading-relaxed text-slate-500">
+                        <p class="text-xs leading-relaxed text-slate-400">
                             Our native Chrome extension inserts an "AI Action" directly in your LinkedIn feed. Click once, read post contexts, and generate tailored outreach materials without switching windows or copying strings.
                         </p>
                     </div>
-                    
-                    <div class="space-y-3">
-                        <div class="flex items-center space-x-2 text-slate-800 font-bold">
-                            <i data-lucide="phone-call" class="h-4 w-4 text-[#5f43d0]"></i>
-                            <span>WhatsApp Autopilot</span>
-                        </div>
-                        <p class="text-xs leading-relaxed text-slate-500">
-                            Provide 24/7 conversational engagement. The system manages customer conversations automatically, syncing with CRM records, setting appointments, and answering queries via our semantic memory summarizer.
-                        </p>
+                    <div class="w-full md:w-80 shrink-0">
+                        <img src="assets/img/2nd.png" class="w-full rounded-xl border border-slate-800 shadow-lg object-cover" alt="LinkedIn extension overlay interface">
                     </div>
-                    
-                    <div class="space-y-3">
-                        <div class="flex items-center space-x-2 text-slate-800 font-bold">
-                            <i data-lucide="database" class="h-4 w-4 text-[#5f43d0]"></i>
-                            <span>Zero-Latency Lead Ingestion</span>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="glass-panel p-8 rounded-3xl flex flex-col md:flex-row-reverse items-center gap-8">
+                    <div class="flex-1 space-y-4">
+                        <div class="flex items-center space-x-2 text-white font-bold">
+                            <i data-lucide="database" class="h-5 w-5 text-teal-400"></i>
+                            <span class="text-sm">Zero-Latency Email & Lead Ingestion</span>
                         </div>
-                        <p class="text-xs leading-relaxed text-slate-500">
+                        <p class="text-xs leading-relaxed text-slate-400">
                             Inbound emails match directly with IMAP configurations in under 1 second. Fast local heuristics isolate newsletters, while async background queues parse context and build leads dynamically.
                         </p>
                     </div>
-                    
-                    <div class="space-y-3">
-                        <div class="flex items-center space-x-2 text-slate-800 font-bold">
-                            <i data-lucide="send" class="h-4 w-4 text-[#5f43d0]"></i>
-                            <span>Verified Deliverability</span>
+                    <div class="w-full md:w-80 shrink-0">
+                        <img src="assets/img/4th.png" class="w-full rounded-xl border border-slate-800 shadow-lg object-cover" alt="CRM Lead dashboard showing ingestion and sync metrics">
+                    </div>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="glass-panel p-8 rounded-3xl flex flex-col md:flex-row items-center gap-8">
+                    <div class="flex-1 space-y-4">
+                        <div class="flex items-center space-x-2 text-white font-bold">
+                            <i data-lucide="phone-call" class="h-5 w-5 text-teal-400"></i>
+                            <span class="text-sm">WhatsApp Autopilot & Inbox Integration</span>
                         </div>
-                        <p class="text-xs leading-relaxed text-slate-500">
-                            Emails are relayed via SMTP nodes with custom headers aligning to target threads (`In-Reply-To`/`References`), avoiding promotions tab routing or getting flagged by spam filters.
+                        <p class="text-xs leading-relaxed text-slate-400">
+                            Provide 24/7 conversational engagement. The system manages customer conversations automatically, syncing with CRM records, setting appointments, and answering queries via our semantic memory summarizer.
                         </p>
+                    </div>
+                    <div class="w-full md:w-80 shrink-0">
+                        <img src="assets/img/whatsapp.png" class="w-full rounded-xl border border-slate-800 shadow-lg object-cover" alt="WhatsApp Autopilot settings and chat interface">
                     </div>
                 </div>
             </div>
@@ -218,69 +256,69 @@
         <!-- SECTION 4: Product Architecture -->
         <section id="architecture" class="scroll-mt-32 space-y-6">
             <div class="flex items-center space-x-3">
-                <div class="p-2 bg-[#5f43d0]/10 text-[#5f43d0] rounded-lg">
+                <div class="p-2 bg-teal-500/10 text-teal-400 rounded-lg border border-teal-500/20">
                     <i data-lucide="git-branch" class="h-5 w-5"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-[#0B0B1E]">Product Architecture & Pipeline</h2>
+                <h2 class="text-xl font-bold text-white">Product Architecture & Pipeline</h2>
             </div>
             
-            <div class="bg-white border border-slate-150/80 shadow-md shadow-slate-100/40 p-8 rounded-3xl space-y-6">
-                <p class="text-sm">
+            <div class="glass-panel p-8 rounded-3xl space-y-6">
+                <p class="text-xs sm:text-sm text-slate-300">
                     LinkPilot AI divides operations into distinct modular engines to secure data and speed up response flows:
                 </p>
                 
                 <!-- Pipeline Card -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-                    <div class="bg-slate-50 border border-slate-100 p-5 rounded-2xl space-y-2">
-                        <div class="text-[#5f43d0] font-bold text-xs uppercase">1. Ingestion Layer</div>
-                        <p class="text-[11px] text-slate-500 leading-relaxed">
+                    <div class="bg-slate-900/40 border border-slate-850 border-slate-800 p-5 rounded-2xl space-y-2">
+                        <div class="text-teal-400 font-bold text-xs uppercase">1. Ingestion Layer</div>
+                        <p class="text-[11px] text-slate-455 text-slate-400 leading-relaxed">
                             IMAP sync helper checks connected mailboxes instantly. The Chrome extension hooks into LinkedIn DOM events. WhatsApp webhooks listen to incoming events.
                         </p>
                     </div>
-                    <div class="bg-slate-50 border border-slate-100 p-5 rounded-2xl space-y-2">
-                        <div class="text-[#5f43d0] font-bold text-xs uppercase">2. Queued Processing</div>
-                        <p class="text-[11px] text-slate-500 leading-relaxed">
+                    <div class="bg-slate-900/40 border border-slate-850 border-slate-800 p-5 rounded-2xl space-y-2">
+                        <div class="text-teal-400 font-bold text-xs uppercase">2. Queued Processing</div>
+                        <p class="text-[11px] text-slate-455 text-slate-400 leading-relaxed">
                             The queue worker extracts payloads, processes spam heuristics, and calls LLM endpoints asynchronously to extract budget, details, and timeline logs.
                         </p>
                     </div>
-                    <div class="bg-slate-50 border border-slate-100 p-5 rounded-2xl space-y-2">
-                        <div class="text-[#5f43d0] font-bold text-xs uppercase">3. Delivery & CRM</div>
-                        <p class="text-[11px] text-slate-500 leading-relaxed">
+                    <div class="bg-slate-900/40 border border-slate-850 border-slate-800 p-5 rounded-2xl space-y-2">
+                        <div class="text-teal-400 font-bold text-xs uppercase">3. Delivery & CRM</div>
+                        <p class="text-[11px] text-slate-455 text-slate-400 leading-relaxed">
                             Structured data is provisioned into the Lead Vault. Outbound communications route through SMTP nodes with message headers synced for thread integrity.
                         </p>
                     </div>
                 </div>
 
                 <!-- Custom visual component representing memory -->
-                <div class="bg-slate-50 border border-slate-100 rounded-2xl p-6 space-y-4">
-                    <h4 class="font-bold text-xs text-slate-800 flex items-center space-x-2">
-                        <i data-lucide="cpu" class="h-4 w-4 text-[#5f43d0]"></i>
+                <div class="bg-slate-900/40 border border-slate-850 border-slate-800 rounded-2xl p-6 space-y-4">
+                    <h4 class="font-bold text-xs text-white flex items-center space-x-2">
+                        <i data-lucide="cpu" class="h-4 w-4 text-teal-400"></i>
                         <span>WhatsApp Autopilot Semantic Memory Architecture</span>
                     </h4>
-                    <p class="text-[11px] text-slate-500">
+                    <p class="text-[11px] text-slate-400">
                         To preserve budgets and token efficiency, memory is bifurcated. Instead of sending long chat logs, we merge summarized contexts with recent messages:
                     </p>
                     <div class="flex flex-col sm:flex-row items-stretch justify-between gap-4 text-center">
-                        <div class="bg-white border border-slate-200 p-4 rounded-xl flex-1 space-y-1">
-                            <div class="text-[10px] text-slate-400 font-bold uppercase">Short-Term Context</div>
-                            <div class="text-xs font-bold text-[#0B0B1E]">Last 10 Raw Messages</div>
-                            <p class="text-[9px] text-slate-500">Maintains exact tone and context for ongoing discussions.</p>
+                        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex-1 space-y-1">
+                            <div class="text-[10px] text-slate-500 font-bold uppercase">Short-Term Context</div>
+                            <div class="text-xs font-bold text-white">Last 10 Raw Messages</div>
+                            <p class="text-[9px] text-slate-450 text-slate-500">Maintains exact tone and context for ongoing discussions.</p>
                         </div>
-                        <div class="flex items-center justify-center text-[#5f43d0]">
+                        <div class="flex items-center justify-center text-teal-400">
                             <i data-lucide="plus" class="h-5 w-5"></i>
                         </div>
-                        <div class="bg-white border border-slate-200 p-4 rounded-xl flex-1 space-y-1">
-                            <div class="text-[10px] text-slate-400 font-bold uppercase">Long-Term Context</div>
-                            <div class="text-xs font-bold text-[#0B0B1E]">Compressed Summary</div>
-                            <p class="text-[9px] text-slate-500">Written after 24h of inactivity. Conserves up to 75% API tokens.</p>
+                        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex-1 space-y-1">
+                            <div class="text-[10px] text-slate-500 font-bold uppercase">Long-Term Context</div>
+                            <div class="text-xs font-bold text-white">Compressed Summary</div>
+                            <p class="text-[9px] text-slate-450 text-slate-500">Written after 24h of inactivity. Conserves up to 75% API tokens.</p>
                         </div>
-                        <div class="flex items-center justify-center text-[#5f43d0]">
+                        <div class="flex items-center justify-center text-teal-400">
                             <i data-lucide="arrow-right" class="h-5 w-5"></i>
                         </div>
-                        <div class="bg-[#5f43d0]/10 border border-[#5f43d0]/20 p-4 rounded-xl flex-1 flex flex-col justify-center space-y-1">
-                            <div class="text-[10px] text-[#5f43d0] font-bold uppercase">Prompt Generation</div>
-                            <div class="text-xs font-bold text-[#0B0B1E]">Instant Context Reply</div>
-                            <p class="text-[9px] text-slate-500">Fast, smart, and fully context-aware replies.</p>
+                        <div class="bg-teal-500/10 border border-teal-500/20 p-4 rounded-xl flex-1 flex flex-col justify-center space-y-1">
+                            <div class="text-[10px] text-teal-400 font-bold uppercase">Prompt Generation</div>
+                            <div class="text-xs font-bold text-white">Context Reply</div>
+                            <p class="text-[9px] text-slate-450 text-slate-400">Fast, smart, and fully context-aware replies.</p>
                         </div>
                     </div>
                 </div>
@@ -290,61 +328,61 @@
         <!-- SECTION 5: Business ROI & Calculator -->
         <section id="roi" class="scroll-mt-32 space-y-6">
             <div class="flex items-center space-x-3">
-                <div class="p-2 bg-[#5f43d0]/10 text-[#5f43d0] rounded-lg">
+                <div class="p-2 bg-teal-500/10 text-teal-400 rounded-lg border border-teal-500/20">
                     <i data-lucide="bar-chart-2" class="h-5 w-5"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-[#0B0B1E]">Business Value & ROI</h2>
+                <h2 class="text-xl font-bold text-white">Business Value & ROI</h2>
             </div>
             
-            <div class="bg-white border border-slate-150/80 shadow-md shadow-slate-100/40 p-8 rounded-3xl space-y-8">
+            <div class="glass-panel p-8 rounded-3xl space-y-8">
                 <!-- Comparison Table -->
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs border-collapse">
                         <thead>
-                            <tr class="border-b border-slate-100 text-slate-400 uppercase tracking-wider text-[10px]">
+                            <tr class="border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[10px]">
                                 <th class="py-3 font-semibold">Operational Indicator</th>
                                 <th class="py-3 font-semibold">Legacy Workflow</th>
-                                <th class="py-3 font-semibold text-[#5f43d0]">LinkPilot AI Workflow</th>
+                                <th class="py-3 font-semibold text-teal-400">LinkPilot AI Workflow</th>
                                 <th class="py-3 font-semibold">Efficiency Gain</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 text-slate-600">
-                            <tr class="hover:bg-slate-50/50 transition">
-                                <td class="py-4 font-semibold text-slate-800">Outreach Drafting Speed</td>
+                        <tbody class="divide-y divide-slate-800/60 text-slate-300">
+                            <tr class="hover:bg-slate-900/30 transition">
+                                <td class="py-4 font-semibold text-white">Outreach Drafting Speed</td>
                                 <td class="py-4">5 - 10 minutes / message</td>
-                                <td class="py-4 font-bold text-[#5f43d0]">< 5 seconds (1 Click)</td>
-                                <td class="py-4"><span class="px-2 py-0.5 bg-green-50 text-green-600 rounded-full font-bold">98% Faster</span></td>
+                                <td class="py-4 font-bold text-teal-400">< 5 seconds (1 Click)</td>
+                                <td class="py-4"><span class="px-2 py-0.5 bg-teal-500/10 text-teal-400 rounded-full font-bold">98% Faster</span></td>
                             </tr>
-                            <tr class="hover:bg-slate-50/50 transition">
-                                <td class="py-4 font-semibold text-slate-800">Lead Logging & Sync</td>
+                            <tr class="hover:bg-slate-900/30 transition">
+                                <td class="py-4 font-semibold text-white">Lead Logging & Sync</td>
                                 <td class="py-4">Manual log (2 mins / lead)</td>
-                                <td class="py-4 font-bold text-[#5f43d0]">Instant Background Capture</td>
-                                <td class="py-4"><span class="px-2 py-0.5 bg-green-50 text-green-600 rounded-full font-bold">100% Automated</span></td>
+                                <td class="py-4 font-bold text-teal-400">Instant Background Capture</td>
+                                <td class="py-4"><span class="px-2 py-0.5 bg-teal-500/10 text-teal-400 rounded-full font-bold">100% Automated</span></td>
                             </tr>
-                            <tr class="hover:bg-slate-50/50 transition">
-                                <td class="py-4 font-semibold text-slate-800">Outbound Email Open Rates</td>
+                            <tr class="hover:bg-slate-900/30 transition">
+                                <td class="py-4 font-semibold text-white">Outbound Email Open Rates</td>
                                 <td class="py-4">Poorly tracked templates</td>
-                                <td class="py-4 font-bold text-[#5f43d0]">Threaded SMTP Sync</td>
-                                <td class="py-4"><span class="px-2 py-0.5 bg-green-50 text-green-600 rounded-full font-bold">+35% Replies</span></td>
+                                <td class="py-4 font-bold text-teal-400">Threaded SMTP Sync</td>
+                                <td class="py-4"><span class="px-2 py-0.5 bg-teal-500/10 text-teal-400 rounded-full font-bold">+35% Replies</span></td>
                             </tr>
-                            <tr class="hover:bg-slate-50/50 transition">
-                                <td class="py-4 font-semibold text-slate-800">Autopilot Operating Cost</td>
+                            <tr class="hover:bg-slate-900/30 transition">
+                                <td class="py-4 font-semibold text-white">Autopilot Operating Cost</td>
                                 <td class="py-4">Large LLM context calls ($$$)</td>
-                                <td class="py-4 font-bold text-[#5f43d0]">Semantic Inactivity Compression</td>
-                                <td class="py-4"><span class="px-2 py-0.5 bg-green-50 text-green-600 rounded-full font-bold">-75% Tokens</span></td>
+                                <td class="py-4 font-bold text-teal-400">Semantic Inactivity Compression</td>
+                                <td class="py-4"><span class="px-2 py-0.5 bg-teal-500/10 text-teal-400 rounded-full font-bold">-75% Tokens</span></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
                 <!-- SECTION: Interactive ROI Calculator -->
-                <div id="calculator" class="bg-slate-50 border border-slate-100 rounded-2xl p-6 sm:p-8 space-y-6">
+                <div id="calculator" class="calculator-card rounded-2xl p-6 sm:p-8 space-y-6">
                     <div class="space-y-2">
-                        <h4 class="font-bold text-sm text-slate-800 flex items-center space-x-2">
-                            <i data-lucide="calculator" class="h-4.5 w-4.5 text-[#5f43d0]"></i>
+                        <h4 class="font-bold text-sm text-white flex items-center space-x-2">
+                            <i data-lucide="calculator" class="h-4.5 w-4.5 text-teal-400"></i>
                             <span>Interactive Business ROI Calculator</span>
                         </h4>
-                        <p class="text-xs text-slate-500">
+                        <p class="text-xs text-slate-400">
                             Estimate your organization's monthly resource and cost savings when switching outreach automation to LinkPilot AI.
                         </p>
                     </div>
@@ -352,34 +390,34 @@
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
                         <!-- Input 1 -->
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Team Size (Reps)</label>
-                            <input type="number" id="calc-team-size" value="5" min="1" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-[#0B0B1E] font-bold focus:outline-none focus:ring-2 focus:ring-[#5f43d0]/20 focus:border-[#5f43d0]">
+                            <label class="text-[10px] font-bold text-slate-450 text-slate-400 uppercase tracking-wider block">Team Size (Reps)</label>
+                            <input type="number" id="calc-team-size" value="5" min="1" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white font-bold focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-450 focus:border-teal-500">
                         </div>
                         <!-- Input 2 -->
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Outreach/Rep/Day</label>
-                            <input type="number" id="calc-outreach-day" value="30" min="1" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-[#0B0B1E] font-bold focus:outline-none focus:ring-2 focus:ring-[#5f43d0]/20 focus:border-[#5f43d0]">
+                            <label class="text-[10px] font-bold text-slate-450 text-slate-400 uppercase tracking-wider block">Outreach/Rep/Day</label>
+                            <input type="number" id="calc-outreach-day" value="30" min="1" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white font-bold focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-450 focus:border-teal-500">
                         </div>
                         <!-- Input 3 -->
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Rep Hourly Cost ($)</label>
-                            <input type="number" id="calc-hourly-rate" value="25" min="1" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-[#0B0B1E] font-bold focus:outline-none focus:ring-2 focus:ring-[#5f43d0]/20 focus:border-[#5f43d0]">
+                            <label class="text-[10px] font-bold text-slate-450 text-slate-400 uppercase tracking-wider block">Rep Hourly Cost ($)</label>
+                            <input type="number" id="calc-hourly-rate" value="25" min="1" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white font-bold focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-450 focus:border-teal-500">
                         </div>
                     </div>
 
                     <!-- Calculated Results Display -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-200/60">
-                        <div class="bg-white border border-slate-200/50 p-4 rounded-xl text-center space-y-1">
-                            <div class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Hours Saved / Mo</div>
-                            <div class="text-xl font-extrabold text-[#5f43d0]" id="res-hours-saved">150 hrs</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-800">
+                        <div class="bg-slate-900/50 border border-slate-800 p-4 rounded-xl text-center space-y-1">
+                            <div class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Hours Saved / Mo</div>
+                            <div class="text-xl font-extrabold text-teal-450 text-teal-450 text-teal-400" id="res-hours-saved">150 hrs</div>
                         </div>
-                        <div class="bg-white border border-slate-200/50 p-4 rounded-xl text-center space-y-1">
-                            <div class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Resource Savings / Mo</div>
-                            <div class="text-xl font-extrabold text-[#0B0B1E]" id="res-money-saved">$3,750</div>
+                        <div class="bg-slate-900/50 border border-slate-800 p-4 rounded-xl text-center space-y-1">
+                            <div class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Resource Savings / Mo</div>
+                            <div class="text-xl font-extrabold text-white" id="res-money-saved">$3,750</div>
                         </div>
-                        <div class="bg-[#5f43d0]/10 border border-[#5f43d0]/20 p-4 rounded-xl text-center space-y-1 flex flex-col justify-center">
-                            <div class="text-[9px] text-[#5f43d0] font-bold uppercase tracking-wider">Productivity Multiplier</div>
-                            <div class="text-xl font-extrabold text-[#5f43d0]">12.5x</div>
+                        <div class="bg-teal-500/10 border border-teal-500/20 p-4 rounded-xl text-center space-y-1 flex flex-col justify-center">
+                            <div class="text-[9px] text-teal-400 font-bold uppercase tracking-wider">Productivity Multiplier</div>
+                            <div class="text-xl font-extrabold text-teal-450 text-teal-400">12.5x</div>
                         </div>
                     </div>
                 </div>
@@ -389,44 +427,44 @@
         <!-- SECTION 6: Security & Trust -->
         <section id="trust" class="scroll-mt-32 space-y-6">
             <div class="flex items-center space-x-3">
-                <div class="p-2 bg-[#5f43d0]/10 text-[#5f43d0] rounded-lg">
+                <div class="p-2 bg-teal-500/10 text-teal-400 rounded-lg border border-teal-500/20">
                     <i data-lucide="shield-check" class="h-5 w-5"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-[#0B0B1E]">Data Privacy, Security & Compliance</h2>
+                <h2 class="text-xl font-bold text-white">Data Privacy, Security & Compliance</h2>
             </div>
             
-            <div class="bg-white border border-slate-150/80 shadow-md shadow-slate-100/40 p-8 rounded-3xl space-y-6">
-                <p class="text-sm">
+            <div class="glass-panel p-8 rounded-3xl space-y-6">
+                <p class="text-xs sm:text-sm text-slate-300">
                     Because we handle outbound communications and sync incoming profiles, data protection remains the primary foundational pillar of LinkPilot AI:
                 </p>
                 <div class="space-y-4">
                     <div class="flex items-start space-x-3">
-                        <div class="p-1 bg-[#5f43d0]/10 text-[#5f43d0] rounded mt-0.5">
+                        <div class="p-1 bg-teal-500/10 text-teal-400 rounded mt-0.5">
                             <i data-lucide="key" class="h-3.5 w-3.5"></i>
                         </div>
                         <div>
-                            <h5 class="text-xs font-bold text-slate-800">AES Credential Encryption</h5>
-                            <p class="text-[11px] text-slate-500">Every external client credentials, SMTP node details, or IMAP password coordinate saved in the database is securely hashed and encrypted at rest.</p>
+                            <h5 class="text-xs font-bold text-white">AES Credential Encryption</h5>
+                            <p class="text-[11px] text-slate-400">Every external client credentials, SMTP node details, or IMAP password coordinate saved in the database is securely hashed and encrypted at rest.</p>
                         </div>
                     </div>
                     
                     <div class="flex items-start space-x-3">
-                        <div class="p-1 bg-[#5f43d0]/10 text-[#5f43d0] rounded mt-0.5">
+                        <div class="p-1 bg-teal-500/10 text-teal-400 rounded mt-0.5">
                             <i data-lucide="lock" class="h-3.5 w-3.5"></i>
                         </div>
                         <div>
-                            <h5 class="text-xs font-bold text-slate-800">Sovereign Data Storage</h5>
-                            <p class="text-[11px] text-slate-500">Your harvested contacts and conversation pipelines remain completely under your account workspace control. We never lease or sell telemetry logs.</p>
+                            <h5 class="text-xs font-bold text-white">Sovereign Data Storage</h5>
+                            <p class="text-[11px] text-slate-400">Your harvested contacts and conversation pipelines remain completely under your account workspace control. We never lease or sell telemetry logs.</p>
                         </div>
                     </div>
 
                     <div class="flex items-start space-x-3">
-                        <div class="p-1 bg-[#5f43d0]/10 text-[#5f43d0] rounded mt-0.5">
+                        <div class="p-1 bg-teal-500/10 text-teal-400 rounded mt-0.5">
                             <i data-lucide="eye-off" class="h-3.5 w-3.5"></i>
                         </div>
                         <div>
-                            <h5 class="text-xs font-bold text-slate-800">Minimized Scope Extension permissions</h5>
-                            <p class="text-[11px] text-slate-500">The companion scraper extension operates solely on active web nodes (e.g. LinkedIn feed) and never intercepts background browser activity outside configured domains.</p>
+                            <h5 class="text-xs font-bold text-white">Minimized Scope Extension permissions</h5>
+                            <p class="text-[11px] text-slate-400">The companion scraper extension operates solely on active web nodes (e.g. LinkedIn feed) and never intercepts background browser activity outside configured domains.</p>
                         </div>
                     </div>
                 </div>
@@ -434,10 +472,10 @@
         </section>
 
         <!-- CTA Section -->
-        <section class="bg-[#0B0B1E] text-white p-8 sm:p-12 rounded-3xl text-center space-y-6 relative overflow-hidden">
+        <section class="bg-slate-900/60 border border-slate-800 text-white p-8 sm:p-12 rounded-3xl text-center space-y-6 relative overflow-hidden">
             <!-- Decorative circle -->
-            <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#5f43d0]/20 rounded-full blur-2xl"></div>
-            <div class="absolute -bottom-12 -left-12 w-48 h-48 bg-[#5f43d0]/10 rounded-full blur-2xl"></div>
+            <div class="absolute -top-12 -right-12 w-48 h-48 bg-teal-500/10 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-12 -left-12 w-48 h-48 bg-teal-500/5 rounded-full blur-2xl"></div>
             
             <h3 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Ready to Automate & Grow?</h3>
             <p class="text-slate-400 text-xs sm:text-sm max-w-lg mx-auto">
@@ -456,40 +494,41 @@
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-slate-100 bg-[#FAFAFC] py-12 text-slate-400 text-xs mt-auto">
+    <footer class="border-t border-slate-900 bg-[#020617] py-12 text-slate-500 text-xs mt-auto">
         <div class="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-5 gap-8">
             <div class="col-span-2 space-y-4">
-                <div class="flex items-center space-x-2 text-[#0B0B1E] font-bold text-sm">
+                <div class="flex items-center space-x-2 text-white font-bold text-sm">
                     <img src="dashboard/assets/img/logo.png" class="h-6 w-6 object-contain" alt="LinkPilot AI">
-                    <span class="font-extrabold text-[#0B0B1E]">LinkPilot AI</span>
+                    <span class="font-extrabold text-white">LinkPilot AI</span>
                 </div>
-                <p class="max-w-xs text-slate-500 leading-relaxed">AI CRM to automate WhatsApp, Gmail, and Instagram conversations, appointments, and workflows.</p>
-                <div class="text-slate-400">Charge it with Taskbazi 2024 -26. All rights reserved.</div>
+                <p class="max-w-xs text-slate-405 text-slate-400 leading-relaxed">AI CRM to automate WhatsApp, Gmail, and Instagram conversations, appointments, and workflows.</p>
+                <div class="text-slate-500">Charge it with Taskbazi 2024 -26. All rights reserved.</div>
             </div>
             <div class="space-y-3">
-                <h5 class="text-slate-600 font-bold uppercase tracking-wider text-[10px]">Product</h5>
+                <h5 class="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Product</h5>
                 <ul class="space-y-2">
-                    <li><a href="index.html#features" class="hover:text-[#5f43d0] transition">Features</a></li>
-                    <li><a href="pricing.html" class="hover:text-[#5f43d0] transition">Pricing</a></li>
-                    <li><a href="docs.html" class="hover:text-[#5f43d0] transition">Documentation</a></li>
+                    <li><a href="index.html#features" class="hover:text-white transition">Features</a></li>
+                    <li><a href="pricing.html" class="hover:text-white transition">Pricing</a></li>
+                    <li><a href="docs.html" class="hover:text-white transition">Documentation</a></li>
+                    <li><a href="business-overview.html" class="hover:text-white transition">Business Plan</a></li>
                 </ul>
             </div>
             <div class="space-y-3">
-                <h5 class="text-slate-600 font-bold uppercase tracking-wider text-[10px]">Company</h5>
+                <h5 class="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Company</h5>
                 <ul class="space-y-2">
-                    <li><a href="about.html" class="hover:text-[#5f43d0] transition">About Us</a></li>
-                    <li><a href="blog.html" class="hover:text-[#5f43d0] transition">Blog & Updates</a></li>
-                    <li><a href="contact.html" class="hover:text-[#5f43d0] transition">Support Contact</a></li>
+                    <li><a href="about.html" class="hover:text-white transition">About Us</a></li>
+                    <li><a href="blog.html" class="hover:text-white transition">Blog & Updates</a></li>
+                    <li><a href="contact.html" class="hover:text-white transition">Support Contact</a></li>
                 </ul>
             </div>
             <div class="space-y-3">
-                <h5 class="text-slate-600 font-bold uppercase tracking-wider text-[10px]">Legal</h5>
+                <h5 class="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Legal</h5>
                 <ul class="space-y-2">
-                    <li><a href="privacy.html" class="hover:text-[#5f43d0] transition">Privacy Policy</a></li>
-                    <li><a href="terms.html" class="hover:text-[#5f43d0] transition">Terms of Service</a></li>
-                    <li><a href="cookies.html" class="hover:text-[#5f43d0] transition">Cookie Policy</a></li>
-                    <li><a href="disclaimer.html" class="hover:text-[#5f43d0] transition">Disclaimer</a></li>
-                    <li><a href="sitemap.html" class="hover:text-[#5f43d0] transition">Sitemap</a></li>
+                    <li><a href="privacy.html" class="hover:text-white transition">Privacy Policy</a></li>
+                    <li><a href="terms.html" class="hover:text-white transition">Terms of Service</a></li>
+                    <li><a href="cookies.html" class="hover:text-white transition">Cookie Policy</a></li>
+                    <li><a href="disclaimer.html" class="hover:text-white transition">Disclaimer</a></li>
+                    <li><a href="sitemap.html" class="hover:text-white transition">Sitemap</a></li>
                 </ul>
             </div>
         </div>

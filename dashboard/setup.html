@@ -1761,9 +1761,9 @@
         let emailSetupSkipped = false;
 
         function updateSuccessChecklistVisibility() {
-            const smtpActive = document.getElementById('badge-status-smtp') && document.getElementById('badge-status-smtp').textContent === 'Active';
-            const imapActive = document.getElementById('badge-status-imap') && document.getElementById('badge-status-imap').textContent === 'Active';
-            const waActive = document.getElementById('badge-status-wa') && document.getElementById('badge-status-wa').textContent === 'Connected';
+            const smtpActive = document.getElementById('badge-status-smtp') && document.getElementById('badge-status-smtp').textContent.includes('Active');
+            const imapActive = document.getElementById('badge-status-imap') && document.getElementById('badge-status-imap').textContent.includes('Active');
+            const waActive = document.getElementById('badge-status-wa') && document.getElementById('badge-status-wa').textContent.includes('Connected');
             const geminiActive = document.getElementById('pref-ai-reply') && document.getElementById('pref-ai-reply').checked;
 
             const cardSmtp = document.getElementById('success-card-smtp');

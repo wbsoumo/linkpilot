@@ -1418,10 +1418,10 @@
                         </div>
 
                         <!-- Configured Checklist -->
-                        <div
+                        <div id="success-checklist-container"
                             class="max-w-2xl mx-auto bg-white border border-slate-100 rounded-2xl p-4 text-left grid grid-cols-1 sm:grid-cols-2 gap-4 shadow-3xs">
                             <!-- SMTP Outbound Server -->
-                            <div
+                            <div id="success-card-smtp"
                                 class="flex items-center justify-between p-3 border border-slate-100 rounded-xl hover:bg-slate-50/40 transition">
                                 <div class="flex items-center space-x-3">
                                     <div
@@ -1435,7 +1435,7 @@
                             </div>
 
                             <!-- IMAP Incoming Syncer -->
-                            <div
+                            <div id="success-card-imap"
                                 class="flex items-center justify-between p-3 border border-slate-100 rounded-xl hover:bg-slate-50/40 transition">
                                 <div class="flex items-center space-x-3">
                                     <div
@@ -1449,7 +1449,7 @@
                             </div>
 
                             <!-- WhatsApp Cloud API -->
-                            <div
+                            <div id="success-card-whatsapp"
                                 class="flex items-center justify-between p-3 border border-slate-100 rounded-xl hover:bg-slate-50/40 transition">
                                 <div class="flex items-center space-x-3">
                                     <div
@@ -1463,7 +1463,7 @@
                             </div>
 
                             <!-- Gemini AI Reply Agent -->
-                            <div
+                            <div id="success-card-gemini"
                                 class="flex items-center justify-between p-3 border border-slate-100 rounded-xl hover:bg-slate-50/40 transition">
                                 <div class="flex items-center space-x-3">
                                     <div
@@ -1760,6 +1760,44 @@
         let activeStep = 1;
         let emailSetupSkipped = false;
 
+        function updateSuccessChecklistVisibility() {
+            const smtpActive = document.getElementById('badge-status-smtp') && document.getElementById('badge-status-smtp').textContent === 'Active';
+            const imapActive = document.getElementById('badge-status-imap') && document.getElementById('badge-status-imap').textContent === 'Active';
+            const waActive = document.getElementById('badge-status-wa') && document.getElementById('badge-status-wa').textContent === 'Connected';
+            const geminiActive = document.getElementById('pref-ai-reply') && document.getElementById('pref-ai-reply').checked;
+
+            const cardSmtp = document.getElementById('success-card-smtp');
+            const cardImap = document.getElementById('success-card-imap');
+            const cardWhatsapp = document.getElementById('success-card-whatsapp');
+            const cardGemini = document.getElementById('success-card-gemini');
+
+            if (cardSmtp) {
+                if (smtpActive) cardSmtp.classList.remove('hidden');
+                else cardSmtp.classList.add('hidden');
+            }
+            if (cardImap) {
+                if (imapActive) cardImap.classList.remove('hidden');
+                else cardImap.classList.add('hidden');
+            }
+            if (cardWhatsapp) {
+                if (waActive) cardWhatsapp.classList.remove('hidden');
+                else cardWhatsapp.classList.add('hidden');
+            }
+            if (cardGemini) {
+                if (geminiActive) cardGemini.classList.remove('hidden');
+                else cardGemini.classList.add('hidden');
+            }
+
+            const checklistContainer = document.getElementById('success-checklist-container');
+            if (checklistContainer) {
+                if (smtpActive || imapActive || waActive || geminiActive) {
+                    checklistContainer.classList.remove('hidden');
+                } else {
+                    checklistContainer.classList.add('hidden');
+                }
+            }
+        }
+
         window.skipEmailSetup = function () {
             emailSetupSkipped = true;
             // Update Connection Status badges to "Skipped"
@@ -1923,6 +1961,7 @@
             if (stepNum === 5) {
                 if (sidebar) sidebar.classList.add('hidden');
                 if (leftCol) leftCol.className = 'lg:col-span-10 max-w-3xl mx-auto w-full space-y-6';
+                updateSuccessChecklistVisibility();
             } else {
                 if (sidebar) sidebar.classList.remove('hidden');
                 if (leftCol) leftCol.className = 'lg:col-span-6 space-y-6';

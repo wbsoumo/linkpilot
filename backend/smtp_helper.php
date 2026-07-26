@@ -83,9 +83,52 @@ class SMTPHelper {
         // Intercept and route via Gmail API if user connected Google integration
         require_once __DIR__ . '/external_apps_helper.php';
         if (ExternalAppsHelper::isGoogleConnected($userId)) {
-            $gmailResult = ExternalAppsHelper::sendGmailEmail($userId, $recipientEmail, $subject, $body, $attachments, $originalMessageId, $ccEmails);
+            $templateId = 'minimalist';
+            try {
+                $stmtUser = $db->prepare("SELECT active_email_template FROM users WHERE id = ?");
+                $stmtUser->execute([$userId]);
+                $userRes = $stmtUser->fetch();
+                if ($userRes && !empty($userRes['active_email_template'])) {
+                    $templateId = $userRes['active_email_template'];
+                }
+            } catch (Exception $e) {}
+
+            $senderDetails = [
+                'name' => '',
+                'email' => '',
+                'title' => '',
+                'company' => '',
+                'linkedin' => ''
+            ];
+
+            try {
+                $stmtConn = $db->prepare("SELECT connected_email, connected_name FROM external_app_connections WHERE user_id = ? AND provider = 'google' LIMIT 1");
+                $stmtConn->execute([$userId]);
+                $conn = $stmtConn->fetch();
+                if ($conn) {
+                    $senderDetails['name'] = $conn['connected_name'] ?? '';
+                    $senderDetails['email'] = $conn['connected_email'] ?? '';
+                }
+            } catch (Exception $e) {}
+
+            try {
+                $stmtProfile = $db->prepare("SELECT job_title, company_name, linkedin_url FROM user_profiles WHERE user_id = ?");
+                $stmtProfile->execute([$userId]);
+                $profRes = $stmtProfile->fetch();
+                if ($profRes) {
+                    $senderDetails['title'] = $profRes['job_title'] ?? '';
+                    $senderDetails['company'] = $profRes['company_name'] ?? '';
+                    $senderDetails['linkedin'] = $profRes['linkedin_url'] ?? '';
+                }
+            } catch (Exception $e) {}
+
+            require_once __DIR__ . '/email_template_helper.php';
+            $formattedBody = (strpos($body, '<p>') === false && strpos($body, '<br>') === false && strpos($body, '<br/>') === false) ? nl2br($body) : $body;
+            $wrappedBody = EmailTemplateHelper::wrap($formattedBody, $templateId, $senderDetails);
+
+            $gmailResult = ExternalAppsHelper::sendGmailEmail($userId, $recipientEmail, $subject, $wrappedBody, $attachments, $originalMessageId, $ccEmails);
             if ($gmailResult['status']) {
-                self::logSentEmail($userId, $recipientEmail, $subject, $body, 'sent', null, $trackingId);
+                self::logSentEmail($userId, $recipientEmail, $subject, $wrappedBody, 'sent', null, $trackingId);
                 updateStatistic($userId, 'emails_sent');
                 logActivity($userId, "Sent outreach email via Gmail API to: " . $recipientEmail);
                 return [

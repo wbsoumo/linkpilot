@@ -643,13 +643,15 @@ class ExternalAppsHelper {
         }
 
         if (empty($attachments)) {
-            $rawMessage .= "Content-Type: text/html; charset=utf-8\r\n\r\n";
-            $rawMessage .= $body;
+            $rawMessage .= "Content-Type: text/html; charset=utf-8\r\n";
+            $rawMessage .= "Content-Transfer-Encoding: base64\r\n\r\n";
+            $rawMessage .= chunk_split(base64_encode($body));
         } else {
             $rawMessage .= "Content-Type: multipart/mixed; boundary=\"$boundary\"\r\n\r\n";
             $rawMessage .= "--$boundary\r\n";
-            $rawMessage .= "Content-Type: text/html; charset=utf-8\r\n\r\n";
-            $rawMessage .= $body . "\r\n";
+            $rawMessage .= "Content-Type: text/html; charset=utf-8\r\n";
+            $rawMessage .= "Content-Transfer-Encoding: base64\r\n\r\n";
+            $rawMessage .= chunk_split(base64_encode($body)) . "\r\n";
 
             foreach ($attachments as $att) {
                 if (isset($att['path']) && is_file($att['path'])) {
@@ -708,8 +710,9 @@ class ExternalAppsHelper {
         $rawMessage = "To: $recipientEmail\r\n";
         $rawMessage .= "Subject: =?utf-8?B?" . base64_encode($subject) . "?=\r\n";
         $rawMessage .= "MIME-Version: 1.0\r\n";
-        $rawMessage .= "Content-Type: text/html; charset=utf-8\r\n\r\n";
-        $rawMessage .= $body;
+        $rawMessage .= "Content-Type: text/html; charset=utf-8\r\n";
+        $rawMessage .= "Content-Transfer-Encoding: base64\r\n\r\n";
+        $rawMessage .= chunk_split(base64_encode($body));
 
         $encodedRaw = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($rawMessage));
 

@@ -171,12 +171,12 @@ class _WhatsAppInboxScreenState extends ConsumerState<WhatsAppInboxScreen> {
                       } else if (isPriya) {
                         avatarUrl = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80';
                       } else if (isApple) {
-                        avatarUrl = 'https://img.logo.dev/apple.com';
+                        avatarUrl = 'https://img.logo.dev/apple.com?token=pk_N-oU80_cR4CQ8ojWxHTECA';
                         showVerifiedCheck = true;
                       } else if (isAshwin) {
                         avatarUrl = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80';
                       } else if (isMeera) {
-                        avatarUrl = 'https://img.logo.dev/zara.com';
+                        avatarUrl = 'https://img.logo.dev/zara.com?token=pk_N-oU80_cR4CQ8ojWxHTECA';
                         showVerifiedCheck = true;
                       } else if (isRahul) {
                         avatarUrl = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80';
@@ -494,11 +494,11 @@ class _WhatsAppChatScreenState extends ConsumerState<WhatsAppChatScreen> {
     } else if (isPriya) {
       avatarUrl = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80';
     } else if (isApple) {
-      avatarUrl = 'https://img.logo.dev/apple.com';
+      avatarUrl = 'https://img.logo.dev/apple.com?token=pk_N-oU80_cR4CQ8ojWxHTECA';
     } else if (isAshwin) {
       avatarUrl = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80';
     } else if (isMeera) {
-      avatarUrl = 'https://img.logo.dev/zara.com';
+      avatarUrl = 'https://img.logo.dev/zara.com?token=pk_N-oU80_cR4CQ8ojWxHTECA';
     } else if (isRahul) {
       avatarUrl = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80';
     } else if (isTeam) {

@@ -202,7 +202,7 @@ class _EmailListScreenState extends ConsumerState<EmailListScreen> {
                                     border: Border.all(color: cardBorder),
                                     image: DecorationImage(
                                       image: NetworkImage(
-                                        'https://img.logo.dev/${_getDomainFromEmail(email['sender_email'])}',
+                                        'https://img.logo.dev/${_getDomainFromEmail(email['sender_email'])}?token=pk_N-oU80_cR4CQ8ojWxHTECA',
                                       ),
                                       fit: BoxFit.contain,
                                       onError: (exception, stackTrace) {},

@@ -804,7 +804,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             final domain = item['sender_email']?.toString().split('@').last ?? 'gmail.com';
                             
                             return _buildEmailItem(
-                              logoUrl: 'https://img.logo.dev/$domain',
+                              logoUrl: 'https://img.logo.dev/$domain?token=pk_N-oU80_cR4CQ8ojWxHTECA',
                               name: name,
                               subject: subject,
                               time: time,
@@ -823,7 +823,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     error: (err, stack) => Column(
                       children: [
                         _buildEmailItem(
-                          logoUrl: 'https://img.logo.dev/gmail.com',
+                          logoUrl: 'https://img.logo.dev/gmail.com?token=pk_N-oU80_cR4CQ8ojWxHTECA',
                           name: 'Alex Johnson',
                           subject: 'Proposal for LinkPilot Enterprise',
                           time: '10:24 AM',
@@ -831,7 +831,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           priorityColor: Colors.deepPurple,
                         ),
                         _buildEmailItem(
-                          logoUrl: 'https://img.logo.dev/microsoft.com',
+                          logoUrl: 'https://img.logo.dev/microsoft.com?token=pk_N-oU80_cR4CQ8ojWxHTECA',
                           name: 'Mark Thompson',
                           subject: 'Re: Integration Discussion',
                           time: '09:15 AM',
@@ -899,11 +899,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             } else if (isPriya) {
                               avatarUrl = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80';
                             } else if (isApple) {
-                              avatarUrl = 'https://img.logo.dev/apple.com';
+                              avatarUrl = 'https://img.logo.dev/apple.com?token=pk_N-oU80_cR4CQ8ojWxHTECA';
                             } else if (isAshwin) {
                               avatarUrl = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80';
                             } else if (isMeera) {
-                              avatarUrl = 'https://img.logo.dev/zara.com';
+                              avatarUrl = 'https://img.logo.dev/zara.com?token=pk_N-oU80_cR4CQ8ojWxHTECA';
                             } else if (isRahul) {
                               avatarUrl = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80';
                             } else if (isNeha) {

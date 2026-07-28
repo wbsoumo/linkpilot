@@ -130,6 +130,13 @@ class ApiClient {
     });
   }
 
+  Future<Response> getAiReplySuggestion(int waContactId) async {
+    return await dio.post('/backend/api/whatsapp/inbox.php', data: {
+      'action': 'apply_ai_reply',
+      'wa_contact_id': waContactId,
+    });
+  }
+
   Future<Response> sendWhatsAppMessage({
     required int waContactId,
     required String body,

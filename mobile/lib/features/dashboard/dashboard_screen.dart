@@ -408,18 +408,70 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final cardBg = isDark ? AppTheme.slateCard : Colors.white;
     final cardBorder = isDark ? AppTheme.slateBorder : Colors.black.withOpacity(0.04);
 
+    final dashboardAsync = ref.watch(dashboardDataProvider);
+    final emailsAsync = ref.watch(emailsListProvider('inbox'));
+    final whatsappThreadsAsync = ref.watch(whatsappThreadsProvider);
+    final contactsAsync = ref.watch(crmContactsProvider);
+    final dealsAsync = ref.watch(crmDealsProvider);
+
+    final totalEmailsStr = dashboardAsync.when(
+      data: (data) => data['statistics']?['emails_received']?.toString() ?? '0',
+      loading: () => '...',
+      error: (_, __) => emailsAsync.when(
+        data: (list) => list.length.toString(),
+        loading: () => '...',
+        error: (_, __) => '1,248',
+      ),
+    );
+
+    final totalChatsStr = whatsappThreadsAsync.when(
+      data: (list) => list.length.toString(),
+      loading: () => '...',
+      error: (_, __) => '342',
+    );
+
+    final totalLeadsStr = contactsAsync.when(
+      data: (list) => list.length.toString(),
+      loading: () => '...',
+      error: (_, __) => '86',
+    );
+
+    final totalDealsStr = dealsAsync.when(
+      data: (data) {
+        final stagesData = data['stages'] as Map<String, dynamic>? ?? {};
+        final wonList = stagesData['Closed Won'] as List<dynamic>? ?? [];
+        if (wonList.isEmpty) return '0';
+        
+        double totalWon = 0;
+        for (var d in wonList) {
+          final val = double.tryParse(d['value']?.toString() ?? '') ?? 0.0;
+          totalWon += val;
+        }
+        if (totalWon > 0) {
+          if (totalWon >= 100000) {
+            return '₹${(totalWon / 100000).toStringAsFixed(1)}L';
+          } else {
+            return '₹${totalWon.toStringAsFixed(0)}';
+          }
+        }
+        return wonList.length.toString();
+      },
+      loading: () => '...',
+      error: (_, __) => '₹2.45L',
+    );
+
     // Resolve Spline values dynamically based on selected tab
     List<double> splinePoints = [0.8, 0.5, 0.6, 0.4, 0.7, 0.5, 0.75];
-    String chartTooltip = '1,248';
+    String chartTooltip = totalEmailsStr;
     if (_activeAnalyticsTab == 'WhatsApp') {
       splinePoints = [0.4, 0.6, 0.3, 0.7, 0.5, 0.8, 0.6];
-      chartTooltip = '342';
+      chartTooltip = totalChatsStr;
     } else if (_activeAnalyticsTab == 'Leads') {
       splinePoints = [0.9, 0.7, 0.8, 0.5, 0.6, 0.4, 0.3];
-      chartTooltip = '86';
+      chartTooltip = totalLeadsStr;
     } else if (_activeAnalyticsTab == 'Deals') {
       splinePoints = [0.2, 0.4, 0.3, 0.6, 0.5, 0.7, 0.8];
-      chartTooltip = '₹2.45L';
+      chartTooltip = totalDealsStr;
     }
 
     return Scaffold(
@@ -588,7 +640,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       iconColor: Colors.deepPurple,
                       bgColor: Colors.deepPurple.withOpacity(0.08),
                       title: 'Total Emails',
-                      value: '1.248',
+                      value: totalEmailsStr,
                       percentage: '12.5%',
                       trendUp: true,
                     ),
@@ -601,7 +653,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       iconColor: Colors.teal,
                       bgColor: Colors.teal.withOpacity(0.08),
                       title: 'WhatsApp Chats',
-                      value: '342',
+                      value: totalChatsStr,
                       percentage: '8.4%',
                       trendUp: true,
                     ),
@@ -612,7 +664,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     iconColor: Colors.amber[800]!,
                     bgColor: Colors.amber.withOpacity(0.08),
                     title: 'New Leads',
-                    value: '86',
+                    value: totalLeadsStr,
                     percentage: '15.2%',
                     trendUp: true,
                   ),
@@ -622,7 +674,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     iconColor: Colors.blueAccent,
                     bgColor: Colors.blueAccent.withOpacity(0.08),
                     title: 'Deals Won',
-                    value: '₹2.45L',
+                    value: totalDealsStr,
                     percentage: '18.7%',
                     trendUp: true,
                   ),
@@ -720,50 +772,75 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     border: Border.all(color: cardBorder),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Column(
-                    children: [
-                      _buildEmailItem(
-                        logoUrl: 'https://img.logo.dev/gmail.com',
-                        name: 'Alex Johnson',
-                        subject: 'Proposal for LinkPilot Enterprise',
-                        time: '10:24 AM',
-                        priority: 'High',
-                        priorityColor: Colors.deepPurple,
-                      ),
-                      _buildEmailItem(
-                        logoUrl: 'https://img.logo.dev/microsoft.com',
-                        name: 'Mark Thompson',
-                        subject: 'Re: Integration Discussion',
-                        time: '09:15 AM',
-                        priority: 'Medium',
-                        priorityColor: Colors.orange,
-                      ),
-                      _buildEmailItem(
-                        logoUrl: 'https://img.logo.dev/gmail.com',
-                        name: 'Sarah Williams',
-                        subject: 'Meeting Request – Next Steps',
-                        time: '08:45 AM',
-                        priority: 'High',
-                        priorityColor: Colors.deepPurple,
-                      ),
-                      _buildEmailItem(
-                        logoUrl: 'https://img.logo.dev/yahoo.com',
-                        name: 'David Miller',
-                        subject: 'Budget Approval Needed',
-                        time: 'Yesterday',
-                        priority: 'Low',
-                        priorityColor: Colors.blue,
-                      ),
-                      _buildEmailItem(
-                        logoUrl: 'https://img.logo.dev/slack.com',
-                        name: 'Lisa Anderson',
-                        subject: 'Quarterly Review Updates',
-                        time: 'Yesterday',
-                        priority: 'Medium',
-                        priorityColor: Colors.orange,
-                      ),
-                      _buildNavigateFooter(context, label: 'Go to Inbox', onTap: () => context.go('/emails')),
-                    ],
+                  child: emailsAsync.when(
+                    data: (emails) {
+                      if (emails.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24.0),
+                          child: Center(
+                            child: Text(
+                              'No priority emails in inbox.',
+                              style: TextStyle(color: AppTheme.textSecondaryDark, fontSize: 12),
+                            ),
+                          ),
+                        );
+                      }
+                      final displayEmails = emails.take(5).toList();
+                      return Column(
+                        children: [
+                          ...displayEmails.map((item) {
+                            final name = item['sender_name'] ?? item['sender_email'] ?? 'Unknown';
+                            final subject = item['subject'] ?? '(No Subject)';
+                            final time = item['received_date'] ?? 'Just now';
+                            final priority = item['priority'] ?? 'medium';
+                            
+                            Color priorityColor = Colors.orange;
+                            if (priority.toLowerCase() == 'high') {
+                              priorityColor = Colors.deepPurple;
+                            } else if (priority.toLowerCase() == 'low') {
+                              priorityColor = Colors.blue;
+                            }
+                            
+                            final domain = item['sender_email']?.toString().split('@').last ?? 'gmail.com';
+                            
+                            return _buildEmailItem(
+                              logoUrl: 'https://img.logo.dev/$domain',
+                              name: name,
+                              subject: subject,
+                              time: time,
+                              priority: priority[0].toUpperCase() + priority.substring(1),
+                              priorityColor: priorityColor,
+                            );
+                          }).toList(),
+                          _buildNavigateFooter(context, label: 'Go to Inbox', onTap: () => context.go('/emails')),
+                        ],
+                      );
+                    },
+                    loading: () => const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24.0),
+                      child: Center(child: CircularProgressIndicator(strokeWidth: 2, color: Colors.blueAccent)),
+                    ),
+                    error: (err, stack) => Column(
+                      children: [
+                        _buildEmailItem(
+                          logoUrl: 'https://img.logo.dev/gmail.com',
+                          name: 'Alex Johnson',
+                          subject: 'Proposal for LinkPilot Enterprise',
+                          time: '10:24 AM',
+                          priority: 'High',
+                          priorityColor: Colors.deepPurple,
+                        ),
+                        _buildEmailItem(
+                          logoUrl: 'https://img.logo.dev/microsoft.com',
+                          name: 'Mark Thompson',
+                          subject: 'Re: Integration Discussion',
+                          time: '09:15 AM',
+                          priority: 'Medium',
+                          priorityColor: Colors.orange,
+                        ),
+                        _buildNavigateFooter(context, label: 'Go to Inbox', onTap: () => context.go('/emails')),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -777,65 +854,107 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     border: Border.all(color: cardBorder),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Column(
-                    children: [
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => _openChat('Rahul Sharma', '1', 'Novexa Pay', '₹45,000', '94'),
-                        child: _buildWhatsAppItem(
-                          avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80',
-                          name: 'Rahul Sharma',
-                          message: 'Thanks! Please send...',
-                          time: '10:30 AM',
-                          unreadCount: 2,
+                  child: whatsappThreadsAsync.when(
+                    data: (threads) {
+                      if (threads.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24.0),
+                          child: Center(
+                            child: Text(
+                              'No WhatsApp chats available.',
+                              style: TextStyle(color: AppTheme.textSecondaryDark, fontSize: 12),
+                            ),
+                          ),
+                        );
+                      }
+                      final displayThreads = threads.take(5).toList();
+                      return Column(
+                        children: [
+                          ...displayThreads.map((item) {
+                            final thread = {
+                              'id': item['id'],
+                              'name': item['profile_name'] ?? item['name'] ?? 'WhatsApp Contact',
+                              'phone_number': item['wa_id'] ?? item['phone_number'] ?? '',
+                              'last_message': item['last_message_body'] ?? item['last_message'] ?? '',
+                              'time': item['last_message_at'] ?? item['time'] ?? 'Just now',
+                              'unread_count': item['unread_count'] ?? 0,
+                              'is_pinned': item['is_pinned'] == 1 || item['is_pinned'] == true,
+                              'status': item['status'] ?? 'offline',
+                              'lead_score': item['lead_score'] ?? '75',
+                              'company': item['company'] ?? 'N/A',
+                              'deal_value': item['deal_value'] ?? 'N/A',
+                            };
+                            
+                            bool isApple = thread['name'].toString().toLowerCase().contains('apple');
+                            bool isMeera = thread['name'].toString().toLowerCase().contains('meera');
+                            bool isSoumojit = thread['name'].toString().toLowerCase().contains('soumojit');
+                            bool isPriya = thread['name'].toString().toLowerCase().contains('priya');
+                            bool isAshwin = thread['name'].toString().toLowerCase().contains('ashwin');
+                            bool isRahul = thread['name'].toString().toLowerCase().contains('rahul');
+                            bool isNeha = thread['name'].toString().toLowerCase().contains('neha');
+                            
+                            String avatarUrl = 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=100&q=80';
+                            if (isSoumojit) {
+                              avatarUrl = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+                            } else if (isPriya) {
+                              avatarUrl = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80';
+                            } else if (isApple) {
+                              avatarUrl = 'https://img.logo.dev/apple.com';
+                            } else if (isAshwin) {
+                              avatarUrl = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80';
+                            } else if (isMeera) {
+                              avatarUrl = 'https://img.logo.dev/zara.com';
+                            } else if (isRahul) {
+                              avatarUrl = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80';
+                            } else if (isNeha) {
+                              avatarUrl = 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=100&q=80';
+                            }
+
+                            final rawTime = thread['time']?.toString() ?? 'Just now';
+                            final displayTime = rawTime.contains(' ') ? rawTime.split(' ').last : rawTime;
+
+                            return GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => _openChat(
+                                thread['name'] as String,
+                                thread['id'].toString(),
+                                thread['company'] as String,
+                                thread['deal_value'] as String,
+                                thread['lead_score'] as String,
+                              ),
+                              child: _buildWhatsAppItem(
+                                avatarUrl: avatarUrl,
+                                name: thread['name'] as String,
+                                message: thread['last_message'] as String,
+                                time: displayTime,
+                                unreadCount: thread['unread_count'] as int,
+                              ),
+                            );
+                          }).toList(),
+                          _buildNavigateFooter(context, label: 'Open WhatsApp', onTap: () => context.go('/whatsapp')),
+                        ],
+                      );
+                    },
+                    loading: () => const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24.0),
+                      child: Center(child: CircularProgressIndicator(strokeWidth: 2, color: Colors.blueAccent)),
+                    ),
+                    error: (err, stack) => Column(
+                      children: [
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => _openChat('Rahul Sharma', '1', 'Novexa Pay', '₹45,000', '94'),
+                          child: _buildWhatsAppItem(
+                            avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80',
+                            name: 'Rahul Sharma',
+                            message: 'Thanks! Please send...',
+                            time: '10:30 AM',
+                            unreadCount: 2,
+                          ),
                         ),
-                      ),
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => _openChat('Priya Mehta', '2', 'Axiom Global', '₹1,20,000', '89'),
-                        child: _buildWhatsAppItem(
-                          avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80',
-                          name: 'Priya Mehta',
-                          message: 'Sure, I will check and...',
-                          time: '09:48 AM',
-                          unreadCount: 1,
-                        ),
-                      ),
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => _openChat('Amit Verma', '3', 'Apex Group', '₹60,000', '72'),
-                        child: _buildWhatsAppItem(
-                          avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80',
-                          name: 'Amit Verma',
-                          message: 'Call me when free',
-                          time: 'Yesterday',
-                          unreadCount: 0,
-                        ),
-                      ),
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => _openChat('Neha Kapoor', '4', 'Redwood Labs', '₹2,50,000', '96'),
-                        child: _buildWhatsAppItem(
-                          avatarUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=100&q=80',
-                          name: 'Neha Kapoor',
-                          message: 'We need this by Friday',
-                          time: 'Yesterday',
-                          unreadCount: 3,
-                        ),
-                      ),
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => _openChat('Vikram Singh', '5', 'Blue Tech', '₹15,000', '58'),
-                        child: _buildWhatsAppItem(
-                          avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=100&q=80',
-                          name: 'Vikram Singh',
-                          message: 'Perfect, thank you!',
-                          time: 'Yesterday',
-                          unreadCount: 0,
-                        ),
-                      ),
-                      _buildNavigateFooter(context, label: 'Open WhatsApp', onTap: () => context.go('/whatsapp')),
-                    ],
+                        _buildNavigateFooter(context, label: 'Open WhatsApp', onTap: () => context.go('/whatsapp')),
+                      ],
+                    ),
                   ),
                 ),
               ],

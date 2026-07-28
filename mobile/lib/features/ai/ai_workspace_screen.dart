@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/theme.dart';
-import '../../core/widgets/bottom_nav.dart';
 import '../../core/widgets/ai_floating_button.dart';
 import '../../core/providers/providers.dart';
 
@@ -209,7 +208,6 @@ class _AiWorkspaceScreenState extends ConsumerState<AiWorkspaceScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: const LinkPilotBottomNav(currentIndex: 4),
     );
   }
 

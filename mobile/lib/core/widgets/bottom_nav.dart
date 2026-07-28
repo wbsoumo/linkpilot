@@ -26,12 +26,6 @@ class LinkPilotBottomNav extends StatelessWidget {
       case 3:
         context.go('/crm');
         break;
-      case 4:
-        context.go('/ai');
-        break;
-      case 5:
-        context.go('/settings');
-        break;
     }
   }
 
@@ -66,16 +60,6 @@ class LinkPilotBottomNav extends StatelessWidget {
           icon: Icon(Icons.people_alt_outlined),
           activeIcon: Icon(Icons.people_alt),
           label: 'CRM',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.psychology_outlined),
-          activeIcon: Icon(Icons.psychology),
-          label: 'AI',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.settings_outlined),
-          activeIcon: Icon(Icons.settings),
-          label: 'Settings',
         ),
       ],
     );

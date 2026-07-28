@@ -181,31 +181,67 @@ class _EmailListScreenState extends ConsumerState<EmailListScreen> {
                               children: [
                                 // Read/Unread circle indicator
                                 Container(
-                                  margin: const EdgeInsets.only(top: 14),
+                                  margin: const EdgeInsets.only(top: 18),
                                   width: 8,
                                   height: 8,
                                   decoration: BoxDecoration(
                                     color: email['is_read'] ? Colors.transparent : AppTheme.primaryPurple,
                                     shape: BoxShape.circle,
+                                    boxShadow: email['is_read']
+                                        ? null
+                                        : [BoxShadow(color: AppTheme.primaryPurple.withOpacity(0.4), blurRadius: 4)],
                                   ),
                                 ),
                                 const SizedBox(width: 12),
 
-                                // logo.dev integration
+                                // logo.dev integration - Rounded square card with white background and border
                                 Container(
                                   margin: const EdgeInsets.only(top: 4, right: 12),
-                                  width: 32,
-                                  height: 32,
+                                  width: 38,
+                                  height: 38,
+                                  padding: const EdgeInsets.all(3),
                                   decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
-                                    border: Border.all(color: cardBorder),
-                                    image: DecorationImage(
-                                      image: NetworkImage(
-                                        'https://img.logo.dev/${_getDomainFromEmail(email['sender_email'])}?token=pk_N-oU80_cR4CQ8ojWxHTECA',
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: isDark 
+                                          ? Colors.white.withOpacity(0.15) 
+                                          : Colors.black.withOpacity(0.08),
+                                      width: 1.5,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.04),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
                                       ),
+                                    ],
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(6),
+                                    child: Image.network(
+                                      'https://img.logo.dev/${_getDomainFromEmail(email['sender_email'])}?token=pk_N-oU80_cR4CQ8ojWxHTECA',
                                       fit: BoxFit.contain,
-                                      onError: (exception, stackTrace) {},
+                                      errorBuilder: (context, error, stackTrace) {
+                                        final firstChar = email['sender_name'].isNotEmpty 
+                                            ? email['sender_name'][0].toUpperCase() 
+                                            : 'M';
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.blueAccent.withOpacity(0.1),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          alignment: Alignment.center,
+                                          child: Text(
+                                            firstChar,
+                                            style: const TextStyle(
+                                              color: Colors.blueAccent,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ),
                                 ),
@@ -262,19 +298,21 @@ class _EmailListScreenState extends ConsumerState<EmailListScreen> {
                                       const SizedBox(height: 8),
 
                                       // Priority pill
-                                      if (email['priority'] == 'high')
+                                      if (email['priority'].toString().toLowerCase() == 'high' || email['priority'].toString().toLowerCase() == 'priority') ...[
+                                        const SizedBox(height: 4),
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                           decoration: BoxDecoration(
-                                            color: AppTheme.priorityOrange.withOpacity(0.15),
-                                            borderRadius: BorderRadius.circular(4),
-                                            border: Border.all(color: AppTheme.priorityOrange.withOpacity(0.5)),
+                                            color: Colors.red.withOpacity(0.08),
+                                            borderRadius: BorderRadius.circular(6),
+                                            border: Border.all(color: Colors.red.withOpacity(0.2)),
                                           ),
                                           child: const Text(
                                             'Priority',
-                                            style: TextStyle(color: AppTheme.priorityOrange, fontSize: 10, fontWeight: FontWeight.bold),
+                                            style: TextStyle(color: Colors.redAccent, fontSize: 9, fontWeight: FontWeight.bold),
                                           ),
                                         ),
+                                      ],
                                     ],
                                   ),
                                 ),

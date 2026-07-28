@@ -420,6 +420,7 @@ class WhatsAppChatScreen extends ConsumerStatefulWidget {
 class _WhatsAppChatScreenState extends ConsumerState<WhatsAppChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   Timer? _pollingTimer;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -448,9 +449,16 @@ class _WhatsAppChatScreenState extends ConsumerState<WhatsAppChatScreen> {
     final text = _messageController.text.trim();
     _messageController.clear();
 
+    setState(() {
+      _isLoading = true;
+    });
+
     final success = await ref.read(whatsappMessagesProvider(waContactId).notifier).sendMessage(text);
-    if (!success) {
-      if (mounted) {
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+      if (!success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to send message.')),
         );
@@ -738,6 +746,36 @@ class _WhatsAppChatScreenState extends ConsumerState<WhatsAppChatScreen> {
                 ),
               ),
             ),
+            if (_isLoading)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppTheme.slateCard : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: cardBorder),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.green),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Sending message / thinking...',
+                          style: TextStyle(color: textSecondary, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
 
             // Message Composer input row
             Container(
@@ -979,6 +1017,10 @@ class _WhatsAppChatScreenState extends ConsumerState<WhatsAppChatScreen> {
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
 
+    setState(() {
+      _isLoading = true;
+    });
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -989,6 +1031,9 @@ class _WhatsAppChatScreenState extends ConsumerState<WhatsAppChatScreen> {
       final response = await ref.read(apiClientProvider).getAiReplySuggestion(waContactId);
       if (mounted) {
         navigator.pop(); // Close loading dialog
+        setState(() {
+          _isLoading = false;
+        });
       }
       
       if (response.data['status'] == 'success') {
@@ -1005,6 +1050,9 @@ class _WhatsAppChatScreenState extends ConsumerState<WhatsAppChatScreen> {
     } catch (e) {
       if (mounted) {
         navigator.pop(); // Close loading dialog
+        setState(() {
+          _isLoading = false;
+        });
       }
       messenger.showSnackBar(
         const SnackBar(content: Text('Error loading AI suggestion')),
@@ -1028,11 +1076,20 @@ class _WhatsAppChatScreenState extends ConsumerState<WhatsAppChatScreen> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Note saved to CRM profile successfully.')),
-              );
+              setState(() {
+                _isLoading = true;
+              });
+              await Future.delayed(const Duration(milliseconds: 600));
+              if (mounted) {
+                setState(() {
+                  _isLoading = false;
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Note saved to CRM profile successfully.')),
+                );
+              }
             },
             child: const Text('Save'),
           ),
@@ -1059,7 +1116,17 @@ class _WhatsAppChatScreenState extends ConsumerState<WhatsAppChatScreen> {
     );
     if (time == null) return;
 
+    setState(() {
+      _isLoading = true;
+    });
+
+    await Future.delayed(const Duration(milliseconds: 600));
+
     if (!context.mounted) return;
+    setState(() {
+      _isLoading = false;
+    });
+
     final timeString = time.format(context);
     messenger.showSnackBar(
       SnackBar(content: Text('Reminder set for ${date.toLocal().toString().split(' ')[0]} at $timeString successfully.')),

@@ -439,52 +439,170 @@ class _WhatsAppChatScreenState extends ConsumerState<WhatsAppChatScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textPrimary = isDark ? Colors.white : AppTheme.textPrimaryLight;
     final textSecondary = isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight;
+    final scaffoldBg = isDark ? AppTheme.obsidianBlack : const Color(0xFFF7F8FA);
+    final cardBg = isDark ? AppTheme.slateCard : Colors.white;
+    final cardBorder = isDark ? AppTheme.slateBorder : Colors.black.withOpacity(0.04);
 
     final int waContactId = int.tryParse(widget.thread['id'].toString()) ?? 0;
     final messagesAsync = ref.watch(whatsappMessagesProvider(waContactId));
 
+    // Resolve avatar image dynamically
+    String avatarUrl = 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=100&q=80';
+    bool isApple = widget.thread['name'].toString().toLowerCase().contains('apple');
+    bool isMeera = widget.thread['name'].toString().toLowerCase().contains('meera');
+    bool isSoumojit = widget.thread['name'].toString().toLowerCase().contains('soumojit');
+    bool isPriya = widget.thread['name'].toString().toLowerCase().contains('priya');
+    bool isAshwin = widget.thread['name'].toString().toLowerCase().contains('ashwin');
+    bool isTeam = widget.thread['name'].toString().toLowerCase().contains('team');
+    bool isRahul = widget.thread['name'].toString().toLowerCase().contains('rahul');
+    bool isNeha = widget.thread['name'].toString().toLowerCase().contains('neha');
+
+    if (isSoumojit) {
+      avatarUrl = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+    } else if (isPriya) {
+      avatarUrl = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80';
+    } else if (isApple) {
+      avatarUrl = 'https://img.logo.dev/apple.com';
+    } else if (isAshwin) {
+      avatarUrl = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80';
+    } else if (isMeera) {
+      avatarUrl = 'https://img.logo.dev/zara.com';
+    } else if (isRahul) {
+      avatarUrl = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80';
+    } else if (isTeam) {
+      avatarUrl = 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=100&q=80';
+    } else if (isNeha) {
+      avatarUrl = 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=100&q=80';
+    }
+
     return Scaffold(
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
         titleSpacing: 0,
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: isDark ? AppTheme.obsidianBlack : Colors.white,
         iconTheme: IconThemeData(color: textPrimary),
         title: Row(
           children: [
             CircleAvatar(
-              backgroundColor: AppTheme.primaryPurple.withOpacity(0.2),
               radius: 18,
-              child: Text(widget.thread['name'][0], style: TextStyle(color: textPrimary, fontSize: 14)),
+              backgroundImage: NetworkImage(avatarUrl),
             ),
             const SizedBox(width: 10),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(widget.thread['name'], style: TextStyle(color: textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
-                Text(widget.thread['status'], style: const TextStyle(color: Colors.greenAccent, fontSize: 11)),
+                Text(
+                  widget.thread['name'],
+                  style: TextStyle(color: textPrimary, fontSize: 15, fontWeight: FontWeight.bold),
+                ),
+                const Text(
+                  'Online',
+                  style: TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold),
+                ),
               ],
             ),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.videocam_outlined),
+            icon: Icon(Icons.videocam_outlined, color: textPrimary),
             onPressed: () {},
           ),
           IconButton(
-            icon: const Icon(Icons.phone_outlined),
+            icon: Icon(Icons.phone_outlined, color: textPrimary),
             onPressed: () {},
           ),
           IconButton(
-            icon: const Icon(Icons.more_vert),
+            icon: Icon(Icons.more_vert, color: textPrimary),
             onPressed: () => _openWhatsAppOverlayPanel(context),
           ),
         ],
       ),
       body: Container(
-        decoration: BoxDecoration(gradient: AppTheme.bgGradient(context)),
+        decoration: BoxDecoration(
+          color: scaffoldBg,
+        ),
         child: Column(
           children: [
-            // Chat bubbles
+            // Lead • Customer Profile Info Banner
+            Container(
+              margin: const EdgeInsets.all(12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: cardBg,
+                border: Border.all(color: cardBorder),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 4),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.contact_mail_outlined, color: Colors.green, size: 18),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              'Lead',
+                              style: TextStyle(color: textPrimary, fontSize: 12, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '• Customer',
+                              style: TextStyle(color: textSecondary, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'LinkPilot',
+                          style: TextStyle(color: Colors.green, fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => _openWhatsAppOverlayPanel(context),
+                    child: Row(
+                      children: const [
+                        Text(
+                          'View Profile',
+                          style: TextStyle(color: Colors.indigoAccent, fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(width: 2),
+                        Icon(Icons.chevron_right, color: Colors.indigoAccent, size: 14),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Today Centered Chip
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white.withOpacity(0.04) : Colors.black.withOpacity(0.03),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'Today',
+                style: TextStyle(color: textSecondary, fontSize: 10, fontWeight: FontWeight.bold),
+              ),
+            ),
+
+            // Chat bubbles (ListView reverse: true for default scroll-to-bottom)
             Expanded(
               child: messagesAsync.when(
                 data: (messages) {
@@ -497,11 +615,15 @@ class _WhatsAppChatScreenState extends ConsumerState<WhatsAppChatScreen> {
                     );
                   }
 
+                  // Reverse list to match ListView reverse builder
+                  final reversedMessages = messages.reversed.toList();
+
                   return ListView.builder(
-                    padding: const EdgeInsets.all(20),
-                    itemCount: messages.length,
+                    reverse: true,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    itemCount: reversedMessages.length,
                     itemBuilder: (context, index) {
-                      final msg = messages[index];
+                      final msg = reversedMessages[index];
                       final isOutbound = msg['direction'] == 'outbound';
                       final messageId = msg['message_id']?.toString() ?? '';
                       final isBot = isOutbound && (messageId.toLowerCase().contains('auto') || messageId.toLowerCase().contains('mockauto'));
@@ -519,9 +641,9 @@ class _WhatsAppChatScreenState extends ConsumerState<WhatsAppChatScreen> {
                           constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
                           decoration: BoxDecoration(
                             color: isUser
-                                ? Colors.greenAccent.withOpacity(0.25)
+                                ? (isDark ? Colors.teal.withOpacity(0.2) : const Color(0xFFE2F9EC))
                                 : isBot
-                                    ? AppTheme.primaryPurple.withOpacity(0.25)
+                                    ? (isDark ? Colors.deepPurple.withOpacity(0.15) : const Color(0xFFECEBFC))
                                     : (isDark ? AppTheme.slateCard : Colors.white),
                             borderRadius: BorderRadius.only(
                               topLeft: const Radius.circular(16),
@@ -538,23 +660,41 @@ class _WhatsAppChatScreenState extends ConsumerState<WhatsAppChatScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               if (isBot) ...[
-                                const Text(
-                                  '🤖 Autopilot Reply',
-                                  style: TextStyle(color: AppTheme.secondaryPurple, fontSize: 9, fontWeight: FontWeight.bold),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: const [
+                                    Icon(Icons.auto_awesome, color: Colors.indigoAccent, size: 10),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'Autopilot Reply',
+                                      style: TextStyle(color: Colors.indigoAccent, fontSize: 8, fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
                                 ),
                                 const SizedBox(height: 4),
                               ],
                               Text(
                                 msg['body'] ?? msg['body_text'] ?? '',
-                                style: TextStyle(color: textPrimary, fontSize: 14),
+                                style: TextStyle(
+                                  color: isDark ? Colors.white : Colors.black.withOpacity(0.85),
+                                  fontSize: 13,
+                                  height: 1.3,
+                                ),
                               ),
                               const SizedBox(height: 4),
-                              Align(
-                                alignment: Alignment.bottomRight,
-                                child: Text(
-                                  timeDisplay,
-                                  style: TextStyle(color: textSecondary, fontSize: 10),
-                                ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    timeDisplay,
+                                    style: TextStyle(color: textSecondary, fontSize: 9),
+                                  ),
+                                  if (isOutbound) ...[
+                                    const SizedBox(width: 4),
+                                    const Icon(Icons.done_all, color: Colors.green, size: 13),
+                                  ],
+                                ],
                               ),
                             ],
                           ),
@@ -575,38 +715,111 @@ class _WhatsAppChatScreenState extends ConsumerState<WhatsAppChatScreen> {
               ),
             ),
 
-            // Message Composer input bar
+            // Message Composer input row
             Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isDark ? AppTheme.slateCard : Colors.white,
-                border: Border(top: BorderSide(color: isDark ? AppTheme.slateBorder : Colors.black.withOpacity(0.04))),
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              color: isDark ? AppTheme.obsidianBlack : const Color(0xFFF7F8FA),
               child: Row(
                 children: [
                   Expanded(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.white.withOpacity(0.04) : Colors.black.withOpacity(0.03),
+                        color: cardBg,
                         borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: cardBorder),
                       ),
-                      child: TextField(
-                        controller: _messageController,
-                        style: TextStyle(color: textPrimary),
-                        decoration: InputDecoration(
-                          hintText: 'Type a message...',
-                          hintStyle: TextStyle(color: textSecondary),
-                          border: InputBorder.none,
-                        ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.sentiment_satisfied_alt_outlined, color: textSecondary, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: TextField(
+                              controller: _messageController,
+                              style: TextStyle(color: textPrimary, fontSize: 13),
+                              decoration: InputDecoration(
+                                hintText: 'Type a message...',
+                                hintStyle: TextStyle(color: textSecondary, fontSize: 13),
+                                border: InputBorder.none,
+                                isDense: true,
+                              ),
+                            ),
+                          ),
+                          Icon(Icons.attach_file, color: textSecondary, size: 20),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.indigoAccent.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: const [
+                                Icon(Icons.auto_awesome, color: Colors.indigoAccent, size: 10),
+                                SizedBox(width: 2),
+                                Text(
+                                  'AI',
+                                  style: TextStyle(color: Colors.indigoAccent, fontSize: 8, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  FloatingActionButton.small(
-                    backgroundColor: Colors.greenAccent,
-                    onPressed: () => _sendMessage(waContactId),
-                    child: const Icon(Icons.send, color: Colors.black),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () => _sendMessage(waContactId),
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: const BoxDecoration(
+                        color: Colors.green,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.send, color: Colors.white, size: 18),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Bottom Horizontal Actions Toolbar Panel
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.obsidianBlack : Colors.white,
+                border: Border(
+                  top: BorderSide(color: cardBorder),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildToolbarItem(
+                    icon: Icons.flash_on_outlined,
+                    label: 'Quick Reply',
+                    color: Colors.purple,
+                  ),
+                  _buildToolbarItem(
+                    icon: Icons.description_outlined,
+                    label: 'Template',
+                    color: Colors.blue,
+                  ),
+                  _buildToolbarItem(
+                    icon: Icons.auto_awesome_outlined,
+                    label: 'AI Reply',
+                    color: Colors.green,
+                  ),
+                  _buildToolbarItem(
+                    icon: Icons.assignment_outlined,
+                    label: 'Note',
+                    color: Colors.orange,
+                  ),
+                  _buildToolbarItem(
+                    icon: Icons.notifications_none_outlined,
+                    label: 'Reminder',
+                    color: Colors.deepPurple,
                   ),
                 ],
               ),
@@ -614,6 +827,31 @@ class _WhatsAppChatScreenState extends ConsumerState<WhatsAppChatScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildToolbarItem({
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: color, size: 18),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w600),
+        ),
+      ],
     );
   }
 

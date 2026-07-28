@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authorize LinkPilot App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0B0F19;
+        }
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-6 text-white">
+    <div class="glass-panel max-w-md w-full rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+        <!-- Background Gradient Decor -->
+        <div class="absolute -top-24 -left-24 w-48 h-48 bg-purple-600 rounded-full blur-3xl opacity-30"></div>
+        <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-teal-500 rounded-full blur-3xl opacity-20"></div>
+
+        <div class="relative z-10">
+            <!-- Brand Logo -->
+            <div class="flex justify-center mb-6">
+                <div class="p-4 bg-purple-600/10 border border-purple-500/30 rounded-2xl">
+                    <svg class="h-10 w-10 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                    </svg>
+                </div>
+            </div>
+
+            <h1 class="text-2xl font-bold text-center mb-1">Authorize Mobile Access</h1>
+            <p class="text-gray-400 text-sm text-center mb-6">Connect your workspace with the official LinkPilot App</p>
+
+            <!-- User Info Panel -->
+            <div class="bg-gray-900/60 border border-gray-800 rounded-2xl p-4 mb-6">
+                <div class="flex items-center">
+                    <div class="h-12 w-12 rounded-full bg-purple-600 flex items-center justify-center font-bold text-lg text-white mr-4 shadow-lg shadow-purple-600/30" id="user-avatar">
+                        U
+                    </div>
+                    <div>
+                        <div class="font-semibold text-white" id="user-name">Loading Profile...</div>
+                        <div class="text-xs text-gray-400" id="user-email">please wait...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Permission Details -->
+            <div class="space-y-3 mb-8">
+                <div class="text-xs font-semibold text-purple-400 uppercase tracking-wider mb-2">Permissions requested:</div>
+                <div class="flex items-start text-sm text-gray-300">
+                    <svg class="h-5 w-5 text-teal-400 mr-2 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Read your campaigns, metrics and statistics</span>
+                </div>
+                <div class="flex items-start text-sm text-gray-300">
+                    <svg class="h-5 w-5 text-teal-400 mr-2 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Sync WhatsApp threads & CRM leads</span>
+                </div>
+                <div class="flex items-start text-sm text-gray-300">
+                    <svg class="h-5 w-5 text-teal-400 mr-2 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Send automated campaigns on your behalf</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col gap-3">
+                <button onclick="handleAuthorize()" class="w-full bg-purple-600 hover:bg-purple-500 transition py-3.5 rounded-xl font-semibold shadow-lg shadow-purple-600/30 text-center">
+                    Authorize Now
+                </button>
+                <button onclick="handleCancel()" class="w-full bg-gray-900 hover:bg-gray-800 border border-gray-800 transition py-3.5 rounded-xl font-semibold text-gray-400 text-center">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Parse Query Params
+        const params = new URLSearchParams(window.location.search);
+        const redirectUri = params.get('redirect_uri') || 'http://localhost:63806/';
+
+        // Get Active Session
+        const token = localStorage.getItem('linkpilot_token');
+        const userJson = localStorage.getItem('linkpilot_user');
+
+        if (!token || !userJson) {
+            // Redirect to Login page if not authenticated on website
+            const loginRedirect = window.location.origin + '/dashboard/login.html?redirect=' + encodeURIComponent(window.location.href);
+            window.location.href = loginRedirect;
+        } else {
+            try {
+                const user = JSON.parse(userJson);
+                document.getElementById('user-name').innerText = user.name || 'LinkPilot User';
+                document.getElementById('user-email').innerText = user.email || '';
+                document.getElementById('user-avatar').innerText = (user.name || 'U')[0].toUpperCase();
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        function handleAuthorize() {
+            // Redirect back to flutter web app with auth token & profile details
+            const targetUrl = new URL(redirectUri);
+            
+            // Reconstruct path inside router hash
+            let finalHref = redirectUri;
+            if (finalHref.includes('/#/login')) {
+                finalHref = finalHref.split('?')[0] + `?token=${encodeURIComponent(token)}&user=${encodeURIComponent(userJson)}`;
+            } else if (finalHref.includes('#')) {
+                // If it is localhost:63806/#/
+                finalHref = finalHref.replace('#/', '#/login') + `?token=${encodeURIComponent(token)}&user=${encodeURIComponent(userJson)}`;
+            } else {
+                finalHref += `#/login?token=${encodeURIComponent(token)}&user=${encodeURIComponent(userJson)}`;
+            }
+
+            window.location.href = finalHref;
+        }
+
+        function handleCancel() {
+            // Go back to redirect URI without credentials
+            window.location.href = redirectUri;
+        }
+    </script>
+</body>
+</html>

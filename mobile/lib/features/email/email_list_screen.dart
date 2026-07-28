@@ -18,7 +18,10 @@ class _EmailListScreenState extends ConsumerState<EmailListScreen> {
   String _selectedFilter = 'Priority';
   final List<String> _filters = ['Priority', 'Unread', 'All', 'Starred', 'Needs Reply'];
 
-
+  String _getDomainFromEmail(String emailStr) {
+    if (emailStr.isEmpty || !emailStr.contains('@')) return 'gmail.com';
+    return emailStr.split('@').last.trim();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -178,7 +181,7 @@ class _EmailListScreenState extends ConsumerState<EmailListScreen> {
                               children: [
                                 // Read/Unread circle indicator
                                 Container(
-                                  margin: const EdgeInsets.only(top: 6),
+                                  margin: const EdgeInsets.only(top: 14),
                                   width: 8,
                                   height: 8,
                                   decoration: BoxDecoration(
@@ -187,6 +190,25 @@ class _EmailListScreenState extends ConsumerState<EmailListScreen> {
                                   ),
                                 ),
                                 const SizedBox(width: 12),
+
+                                // logo.dev integration
+                                Container(
+                                  margin: const EdgeInsets.only(top: 4, right: 12),
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
+                                    border: Border.all(color: cardBorder),
+                                    image: DecorationImage(
+                                      image: NetworkImage(
+                                        'https://img.logo.dev/${_getDomainFromEmail(email['sender_email'])}',
+                                      ),
+                                      fit: BoxFit.contain,
+                                      onError: (exception, stackTrace) {},
+                                    ),
+                                  ),
+                                ),
 
                                 // Content details
                                 Expanded(

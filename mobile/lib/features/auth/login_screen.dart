@@ -26,21 +26,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void _checkForRedirectParams() {
     if (kIsWeb) {
       try {
-        final uri = Uri.parse(html.window.location.href);
-        final token = uri.queryParameters['token'];
-        final userJson = uri.queryParameters['user'];
+        final href = html.window.location.href;
+        if (href.contains('?')) {
+          final queryString = href.split('?').last;
+          final queryParams = Uri.splitQueryString(queryString);
+          final token = queryParams['token'];
+          final userJson = queryParams['user'];
 
-        if (token != null && userJson != null) {
-          final cleanUrl = html.window.location.href.split('?').first;
-          html.window.history.replaceState({}, '', cleanUrl);
+          if (token != null && userJson != null) {
+            final cleanUrl = href.split('?').first;
+            html.window.history.replaceState({}, '', cleanUrl);
 
-          WidgetsBinding.instance.addPostFrameCallback((_) async {
-            final user = jsonDecode(userJson) as Map<String, dynamic>;
-            await ref.read(authStateProvider.notifier).mockAuthenticate(user, token);
-            if (mounted) {
-              context.go('/dashboard');
-            }
-          });
+            WidgetsBinding.instance.addPostFrameCallback((_) async {
+              final decodedUser = jsonDecode(Uri.decodeComponent(userJson)) as Map<String, dynamic>;
+              await ref.read(authStateProvider.notifier).mockAuthenticate(decodedUser, token);
+              if (mounted) {
+                context.go('/dashboard');
+              }
+            });
+          }
         }
       } catch (e) {}
     }

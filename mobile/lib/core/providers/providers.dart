@@ -220,3 +220,29 @@ final crmContactsProvider = FutureProvider<List<dynamic>>((ref) async {
   }
   throw Exception(response.data['message'] ?? 'Failed to load contacts');
 });
+
+final crmMeetingsProvider = FutureProvider<List<dynamic>>((ref) async {
+  final client = ref.watch(apiClientProvider);
+  final response = await client.getCRMMeetings();
+  if (response.data['status'] == 'success') {
+    final data = response.data['data'];
+    if (data is Map && data.containsKey('meetings')) {
+      return data['meetings'] as List<dynamic>;
+    }
+    return [];
+  }
+  throw Exception(response.data['message'] ?? 'Failed to load meetings');
+});
+
+final crmTasksProvider = FutureProvider<List<dynamic>>((ref) async {
+  final client = ref.watch(apiClientProvider);
+  final response = await client.getCRMTasks();
+  if (response.data['status'] == 'success') {
+    final data = response.data['data'];
+    if (data is Map && data.containsKey('tasks')) {
+      return data['tasks'] as List<dynamic>;
+    }
+    return [];
+  }
+  throw Exception(response.data['message'] ?? 'Failed to load tasks');
+});

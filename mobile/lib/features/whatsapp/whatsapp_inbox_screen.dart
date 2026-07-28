@@ -14,35 +14,7 @@ class WhatsAppInboxScreen extends ConsumerStatefulWidget {
 }
 
 class _WhatsAppInboxScreenState extends ConsumerState<WhatsAppInboxScreen> {
-  // Dummy WhatsApp thread list
-  final List<Map<String, dynamic>> _threads = [
-    {
-      'id': 201,
-      'name': 'Rohan Sharma',
-      'phone_number': '+91 98765 43210',
-      'last_message': 'Thanks, that proposal looks good. When does the campaign trigger?',
-      'time': '11:15 AM',
-      'unread_count': 3,
-      'is_pinned': true,
-      'status': 'online',
-      'lead_score': '92',
-      'company': 'Sharma Logistics',
-      'deal_value': '₹4,50,000',
-    },
-    {
-      'id': 202,
-      'name': 'Aditi Verma',
-      'phone_number': '+91 99887 76655',
-      'last_message': 'Can you share the invoice download links for the wallet recharges?',
-      'time': 'Yesterday',
-      'unread_count': 0,
-      'is_pinned': false,
-      'status': 'offline',
-      'lead_score': '75',
-      'company': 'Verma Designs',
-      'deal_value': '₹1,20,000',
-    },
-  ];
+
 
   @override
   Widget build(BuildContext context) {
@@ -70,12 +42,23 @@ class _WhatsAppInboxScreenState extends ConsumerState<WhatsAppInboxScreen> {
         ),
         child: ref.watch(whatsappThreadsProvider).when(
           data: (threads) {
-            final listToDisplay = threads.isNotEmpty ? threads : _threads;
+            if (threads.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.forum_outlined, size: 48, color: AppTheme.textSecondaryDark.withOpacity(0.5)),
+                    const SizedBox(height: 12),
+                    const Text('No WhatsApp conversations found.', style: TextStyle(color: AppTheme.textSecondaryDark)),
+                  ],
+                ),
+              );
+            }
 
             return ListView.builder(
-              itemCount: listToDisplay.length,
+              itemCount: threads.length,
               itemBuilder: (context, index) {
-                final item = listToDisplay[index];
+                final item = threads[index];
                 final thread = {
                   'id': item['id'] ?? index,
                   'name': item['profile_name'] ?? item['name'] ?? 'WhatsApp Contact',

@@ -18,48 +18,7 @@ class _EmailListScreenState extends ConsumerState<EmailListScreen> {
   String _selectedFilter = 'Priority';
   final List<String> _filters = ['Priority', 'Unread', 'All', 'Starred', 'Needs Reply'];
 
-  // Dummy email data mirroring production LinkPilot inbox
-  final List<Map<String, dynamic>> _dummyEmails = [
-    {
-      'id': 101,
-      'sender_name': 'Sarah Jenkins',
-      'sender_email': 'sarah@attio.com',
-      'subject': 'Attio CRM Integration Proposal',
-      'body_text': 'Hi, I reviewed the custom API webhook schemas you sent yesterday. Let\'s coordinate a quick call at 2:00 PM today to finalize our data sync contract and credentials...',
-      'received_date': '10:45 AM',
-      'is_read': false,
-      'is_starred': true,
-      'priority': 'high',
-      'ai_summary': 'Sarah reviewed webhooks and proposed a meeting at 2:00 PM to finalize Attio integration sync.',
-      'ai_suggested_reply': 'Hi Sarah, 2:00 PM works perfectly for me. I\'ll send over the Google Meet invite shortly.',
-    },
-    {
-      'id': 102,
-      'sender_name': 'Github Notifications',
-      'sender_email': 'noreply@github.com',
-      'subject': '[GitHub] Security Alert: 3 dependencies require updates',
-      'body_text': 'We found security vulnerabilities in dependencies of wbsoumo/linkpilot. Please upgrade packages as listed in security tab...',
-      'received_date': 'Yesterday',
-      'is_read': true,
-      'is_starred': false,
-      'priority': 'medium',
-      'ai_summary': 'Dependabot security alerts detected in three repository libraries.',
-      'ai_suggested_reply': 'Acknowledge security alert. Will audit dependencies package.json lockfile.',
-    },
-    {
-      'id': 103,
-      'sender_name': 'Novexa Merchant Support',
-      'sender_email': 'support@novexapay.com',
-      'subject': 'Merchant Account Verification Complete',
-      'body_text': 'Dear LinkPilot Partner, we are pleased to inform you that your Merchant API access has been fully verified and activated. You can now process real-time customer invoice recharges...',
-      'received_date': '26 Jul',
-      'is_read': false,
-      'is_starred': false,
-      'priority': 'high',
-      'ai_summary': 'Novexa merchant API account has been verified and wallet recharge routes are open.',
-      'ai_suggested_reply': 'Thanks for the confirmation. We\'ll begin API testing immediately.',
-    },
-  ];
+
 
   @override
   Widget build(BuildContext context) {
@@ -135,12 +94,23 @@ class _EmailListScreenState extends ConsumerState<EmailListScreen> {
             Expanded(
               child: ref.watch(emailsListProvider(_selectedFolder.toLowerCase())).when(
                 data: (emails) {
-                  final listToDisplay = emails.isNotEmpty ? emails : _dummyEmails;
+                  if (emails.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.email_outlined, size: 48, color: AppTheme.textSecondaryDark.withOpacity(0.5)),
+                          const SizedBox(height: 12),
+                          const Text('No emails found in this folder.', style: TextStyle(color: AppTheme.textSecondaryDark)),
+                        ],
+                      ),
+                    );
+                  }
 
                   return ListView.builder(
-                    itemCount: listToDisplay.length,
+                    itemCount: emails.length,
                     itemBuilder: (context, index) {
-                      final item = listToDisplay[index];
+                      final item = emails[index];
                       final email = {
                         'id': item['id'] ?? index,
                         'sender_name': item['sender_name'] ?? item['sender_email'] ?? 'Unknown',

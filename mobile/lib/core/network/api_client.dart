@@ -176,6 +176,14 @@ class ApiClient {
     });
   }
 
+  Future<Response> getCRMMeetings() async {
+    return await dio.get('/backend/api/crm/meetings.php');
+  }
+
+  Future<Response> getCRMTasks() async {
+    return await dio.get('/backend/api/crm/tasks.php');
+  }
+
   // --- AI Workspace APIs ---
   Future<Response> generateAIEmailReply(int emailId, String prompt) async {
     return await dio.post('/backend/api/crm/ai_email_writer.php', data: {

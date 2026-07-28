@@ -211,17 +211,27 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              _buildMeetingItem(
-                time: '11:00 AM',
-                title: 'LinkPilot Integration Review',
-                attendees: 'Amit S., Soumojit S.',
-                platform: 'Google Meet',
-              ),
-              _buildMeetingItem(
-                time: '03:30 PM',
-                title: 'Meta API Autopilot Connect',
-                attendees: 'Novexa Merchant Support',
-                platform: 'Zoom call',
+              ref.watch(crmMeetingsProvider).when(
+                data: (meetings) {
+                  if (meetings.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text('No meetings scheduled for today.', style: TextStyle(color: AppTheme.textSecondaryDark, fontSize: 13)),
+                    );
+                  }
+                  return Column(
+                    children: meetings.map((meet) {
+                      return _buildMeetingItem(
+                        time: meet['meeting_time'] ?? meet['time'] ?? 'All Day',
+                        title: meet['title'] ?? 'CRM Event',
+                        attendees: meet['attendees'] ?? '',
+                        platform: meet['location'] ?? meet['platform'] ?? 'Video Call',
+                      );
+                    }).toList(),
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.primaryPurple)),
+                error: (err, stack) => const Text('Error loading meetings.', style: TextStyle(color: AppTheme.textSecondaryDark)),
               ),
               const SizedBox(height: 28),
 
@@ -244,9 +254,24 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ],
               ),
               const SizedBox(height: 8),
-              _buildTaskItem('Verify missing WhatsApp Business permissions', true),
-              _buildTaskItem('Respond to proposal request from Attio partner', false),
-              _buildTaskItem('Optimize long-term semantic summary cache', false),
+              ref.watch(crmTasksProvider).when(
+                data: (tasks) {
+                  if (tasks.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text('All tasks completed!', style: TextStyle(color: AppTheme.textSecondaryDark, fontSize: 13)),
+                    );
+                  }
+                  return Column(
+                    children: tasks.map((task) {
+                      final isCompleted = task['status'] == 'Completed' || task['status'] == 'completed';
+                      return _buildTaskItem(task['title'] ?? 'CRM Task', isCompleted);
+                    }).toList(),
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.primaryPurple)),
+                error: (err, stack) => const Text('Error loading tasks.', style: TextStyle(color: AppTheme.textSecondaryDark)),
+              ),
               const SizedBox(height: 40),
             ],
           ),

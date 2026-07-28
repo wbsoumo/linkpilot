@@ -407,34 +407,31 @@ class _WhatsAppInboxScreenState extends ConsumerState<WhatsAppInboxScreen> {
   }
 }
 
-class WhatsAppChatScreen extends StatefulWidget {
+class WhatsAppChatScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> thread;
 
   const WhatsAppChatScreen({super.key, required this.thread});
 
   @override
-  State<WhatsAppChatScreen> createState() => _WhatsAppChatScreenState();
+  ConsumerState<WhatsAppChatScreen> createState() => _WhatsAppChatScreenState();
 }
 
-class _WhatsAppChatScreenState extends State<WhatsAppChatScreen> {
-  final List<Map<String, dynamic>> _messages = [
-    {'sender': 'client', 'text': 'Hi, I received the payment webhook link.', 'time': '10:14 AM'},
-    {'sender': 'bot', 'text': 'Perfect! The Novexa Pay merchant portal will process the recharge instantly.', 'time': '10:15 AM'},
-    {'sender': 'client', 'text': 'Thanks, that proposal looks good. When does the campaign trigger?', 'time': '11:15 AM'},
-  ];
-
+class _WhatsAppChatScreenState extends ConsumerState<WhatsAppChatScreen> {
   final TextEditingController _messageController = TextEditingController();
 
-  void _sendMessage() {
+  void _sendMessage(int waContactId) async {
     if (_messageController.text.trim().isEmpty) return;
-    setState(() {
-      _messages.add({
-        'sender': 'user',
-        'text': _messageController.text.trim(),
-        'time': 'Just now',
-      });
-      _messageController.clear();
-    });
+    final text = _messageController.text.trim();
+    _messageController.clear();
+
+    final success = await ref.read(whatsappMessagesProvider(waContactId).notifier).sendMessage(text);
+    if (!success) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to send message.')),
+        );
+      }
+    }
   }
 
   @override
@@ -442,6 +439,9 @@ class _WhatsAppChatScreenState extends State<WhatsAppChatScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textPrimary = isDark ? Colors.white : AppTheme.textPrimaryLight;
     final textSecondary = isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight;
+
+    final int waContactId = int.tryParse(widget.thread['id'].toString()) ?? 0;
+    final messagesAsync = ref.watch(whatsappMessagesProvider(waContactId));
 
     return Scaffold(
       appBar: AppBar(
@@ -486,59 +486,92 @@ class _WhatsAppChatScreenState extends State<WhatsAppChatScreen> {
           children: [
             // Chat bubbles
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(20),
-                itemCount: _messages.length,
-                itemBuilder: (context, index) {
-                  final msg = _messages[index];
-                  final isUser = msg['sender'] == 'user';
-                  final isBot = msg['sender'] == 'bot';
+              child: messagesAsync.when(
+                data: (messages) {
+                  if (messages.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'No messages in this chat.',
+                        style: TextStyle(color: textSecondary),
+                      ),
+                    );
+                  }
 
-                  return Align(
-                    alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
-                      decoration: BoxDecoration(
-                        color: isUser
-                            ? Colors.greenAccent.withOpacity(0.25)
-                            : isBot
-                                ? AppTheme.primaryPurple.withOpacity(0.25)
-                                : AppTheme.slateCard,
-                        borderRadius: BorderRadius.only(
-                          topLeft: const Radius.circular(16),
-                          topRight: const Radius.circular(16),
-                          bottomLeft: Radius.circular(isUser ? 16 : 0),
-                          bottomRight: Radius.circular(isUser ? 0 : 16),
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(20),
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      final msg = messages[index];
+                      final isOutbound = msg['direction'] == 'outbound';
+                      final messageId = msg['message_id']?.toString() ?? '';
+                      final isBot = isOutbound && (messageId.toLowerCase().contains('auto') || messageId.toLowerCase().contains('mockauto'));
+                      final isUser = isOutbound && !isBot;
+
+                      final rawTime = msg['created_at']?.toString() ?? '';
+                      final timePart = rawTime.contains(' ') ? rawTime.split(' ')[1] : rawTime;
+                      final timeDisplay = timePart.length > 5 ? timePart.substring(0, 5) : timePart;
+
+                      return Align(
+                        alignment: isOutbound ? Alignment.centerRight : Alignment.centerLeft,
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+                          decoration: BoxDecoration(
+                            color: isUser
+                                ? Colors.greenAccent.withOpacity(0.25)
+                                : isBot
+                                    ? AppTheme.primaryPurple.withOpacity(0.25)
+                                    : (isDark ? AppTheme.slateCard : Colors.white),
+                            borderRadius: BorderRadius.only(
+                              topLeft: const Radius.circular(16),
+                              topRight: const Radius.circular(16),
+                              bottomLeft: Radius.circular(isOutbound ? 16 : 0),
+                              bottomRight: Radius.circular(isOutbound ? 0 : 16),
+                            ),
+                            border: Border.all(
+                              color: isDark ? AppTheme.slateBorder : Colors.black.withOpacity(0.04),
+                              width: 1,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (isBot) ...[
+                                const Text(
+                                  '🤖 Autopilot Reply',
+                                  style: TextStyle(color: AppTheme.secondaryPurple, fontSize: 9, fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 4),
+                              ],
+                              Text(
+                                msg['body'] ?? msg['body_text'] ?? '',
+                                style: TextStyle(color: textPrimary, fontSize: 14),
+                              ),
+                              const SizedBox(height: 4),
+                              Align(
+                                alignment: Alignment.bottomRight,
+                                child: Text(
+                                  timeDisplay,
+                                  style: TextStyle(color: textSecondary, fontSize: 10),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (isBot)
-                            const Text(
-                              '🤖 Autopilot Reply',
-                              style: TextStyle(color: AppTheme.secondaryPurple, fontSize: 9, fontWeight: FontWeight.bold),
-                            ),
-                          if (isBot) const SizedBox(height: 4),
-                          Text(
-                            msg['text'],
-                            style: TextStyle(color: textPrimary, fontSize: 14),
-                          ),
-                          const SizedBox(height: 4),
-                          Align(
-                            alignment: Alignment.bottomRight,
-                            child: Text(
-                              msg['time'],
-                              style: TextStyle(color: textSecondary, fontSize: 10),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                      );
+                    },
                   );
                 },
+                loading: () => const Center(
+                  child: CircularProgressIndicator(color: AppTheme.primaryPurple),
+                ),
+                error: (err, stack) => Center(
+                  child: Text(
+                    'Error loading messages.',
+                    style: TextStyle(color: textSecondary),
+                  ),
+                ),
               ),
             ),
 
@@ -572,7 +605,7 @@ class _WhatsAppChatScreenState extends State<WhatsAppChatScreen> {
                   const SizedBox(width: 12),
                   FloatingActionButton.small(
                     backgroundColor: Colors.greenAccent,
-                    onPressed: _sendMessage,
+                    onPressed: () => _sendMessage(waContactId),
                     child: const Icon(Icons.send, color: Colors.black),
                   ),
                 ],

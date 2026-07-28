@@ -246,3 +246,47 @@ final crmTasksProvider = FutureProvider<List<dynamic>>((ref) async {
   }
   throw Exception(response.data['message'] ?? 'Failed to load tasks');
 });
+
+class WhatsAppMessagesNotifier extends StateNotifier<AsyncValue<List<dynamic>>> {
+  final ApiClient _client;
+  final int _waContactId;
+
+  WhatsAppMessagesNotifier(this._client, this._waContactId) : super(const AsyncValue.loading()) {
+    fetchMessages();
+  }
+
+  Future<void> fetchMessages() async {
+    try {
+      final response = await _client.getWhatsAppMessages(_waContactId);
+      if (response.data['status'] == 'success') {
+        final messages = response.data['data']['messages'] as List<dynamic>;
+        state = AsyncValue.data(messages);
+      } else {
+        state = AsyncValue.error(response.data['message'] ?? 'Failed to load messages', StackTrace.current);
+      }
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
+  }
+
+  Future<bool> sendMessage(String body) async {
+    try {
+      final response = await _client.sendWhatsAppMessage(
+        waContactId: _waContactId,
+        body: body,
+      );
+      if (response.data['status'] == 'success') {
+        await fetchMessages();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+}
+
+final whatsappMessagesProvider = StateNotifierProvider.family<WhatsAppMessagesNotifier, AsyncValue<List<dynamic>>, int>((ref, waContactId) {
+  final client = ref.watch(apiClientProvider);
+  return WhatsAppMessagesNotifier(client, waContactId);
+});

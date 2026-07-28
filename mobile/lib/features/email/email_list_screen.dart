@@ -218,18 +218,23 @@ class _EmailListScreenState extends ConsumerState<EmailListScreen> {
                                       Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(
-                                            email['sender_name'],
-                                            style: TextStyle(
-                                              fontWeight: email['is_read'] ? FontWeight.normal : FontWeight.bold,
-                                              color: Colors.white,
-                                              fontSize: 15,
+                                          Expanded(
+                                            child: Text(
+                                              email['sender_name'],
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontWeight: email['is_read'] ? FontWeight.normal : FontWeight.bold,
+                                                color: textPrimary,
+                                                fontSize: 15,
+                                              ),
                                             ),
                                           ),
+                                          const SizedBox(width: 8),
                                           Text(
                                             email['received_date'],
-                                            style: const TextStyle(
-                                              color: AppTheme.textSecondaryDark,
+                                            style: TextStyle(
+                                              color: textSecondary,
                                               fontSize: 12,
                                             ),
                                           ),
@@ -239,7 +244,7 @@ class _EmailListScreenState extends ConsumerState<EmailListScreen> {
                                       Text(
                                         email['subject'],
                                         style: TextStyle(
-                                          color: Colors.white,
+                                          color: textPrimary,
                                           fontSize: 14,
                                           fontWeight: email['is_read'] ? FontWeight.w500 : FontWeight.bold,
                                         ),
@@ -249,8 +254,8 @@ class _EmailListScreenState extends ConsumerState<EmailListScreen> {
                                         email['body_text'],
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          color: AppTheme.textSecondaryDark,
+                                        style: TextStyle(
+                                          color: textSecondary,
                                           fontSize: 13,
                                         ),
                                       ),

@@ -18,27 +18,32 @@ class _WhatsAppInboxScreenState extends ConsumerState<WhatsAppInboxScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? Colors.white : AppTheme.textPrimaryLight;
+    final textSecondary = isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'WhatsApp Inbox',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.white),
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: textPrimary),
         ),
-        backgroundColor: AppTheme.obsidianBlack,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        iconTheme: IconThemeData(color: textPrimary),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
+            icon: Icon(Icons.search, color: textPrimary),
             onPressed: () {},
           ),
           IconButton(
-            icon: const Icon(Icons.filter_list, color: Colors.white),
+            icon: Icon(Icons.filter_list, color: textPrimary),
             onPressed: () {},
           ),
         ],
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.premiumDarkGradient,
+        decoration: BoxDecoration(
+          gradient: AppTheme.bgGradient(context),
         ),
         child: ref.watch(whatsappThreadsProvider).when(
           data: (threads) {
@@ -47,9 +52,9 @@ class _WhatsAppInboxScreenState extends ConsumerState<WhatsAppInboxScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.forum_outlined, size: 48, color: AppTheme.textSecondaryDark.withOpacity(0.5)),
+                    Icon(Icons.forum_outlined, size: 48, color: textSecondary.withOpacity(0.5)),
                     const SizedBox(height: 12),
-                    const Text('No WhatsApp conversations found.', style: TextStyle(color: AppTheme.textSecondaryDark)),
+                    Text('No WhatsApp conversations found.', style: TextStyle(color: textSecondary)),
                   ],
                 ),
               );
@@ -78,7 +83,7 @@ class _WhatsAppInboxScreenState extends ConsumerState<WhatsAppInboxScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     decoration: BoxDecoration(
                       border: Border(
-                        bottom: BorderSide(color: Colors.white.withOpacity(0.05)),
+                        bottom: BorderSide(color: textPrimary.withOpacity(0.05)),
                       ),
                     ),
                     child: Row(
@@ -91,7 +96,7 @@ class _WhatsAppInboxScreenState extends ConsumerState<WhatsAppInboxScreen> {
                               radius: 26,
                               child: Text(
                                 thread['name'][0],
-                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                                style: TextStyle(color: textPrimary, fontWeight: FontWeight.bold, fontSize: 18),
                               ),
                             ),
                             if (thread['status'] == 'online')
@@ -104,7 +109,7 @@ class _WhatsAppInboxScreenState extends ConsumerState<WhatsAppInboxScreen> {
                                   decoration: BoxDecoration(
                                     color: Colors.greenAccent,
                                     shape: BoxShape.circle,
-                                    border: Border.all(color: AppTheme.obsidianBlack, width: 2),
+                                    border: Border.all(color: Theme.of(context).scaffoldBackgroundColor, width: 2),
                                   ),
                                 ),
                               ),
@@ -122,11 +127,11 @@ class _WhatsAppInboxScreenState extends ConsumerState<WhatsAppInboxScreen> {
                                 children: [
                                   Text(
                                     thread['name'],
-                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                                    style: TextStyle(color: textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
                                   ),
                                   Text(
                                     thread['time'].toString().split(' ').last,
-                                    style: const TextStyle(color: AppTheme.textSecondaryDark, fontSize: 12),
+                                    style: TextStyle(color: textSecondary, fontSize: 12),
                                   ),
                                 ],
                               ),
@@ -135,7 +140,7 @@ class _WhatsAppInboxScreenState extends ConsumerState<WhatsAppInboxScreen> {
                                 thread['last_message'],
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(color: AppTheme.textSecondaryDark, fontSize: 13),
+                                style: TextStyle(color: textSecondary, fontSize: 13),
                               ),
                             ],
                           ),
@@ -146,7 +151,7 @@ class _WhatsAppInboxScreenState extends ConsumerState<WhatsAppInboxScreen> {
                         Column(
                           children: [
                             if (thread['is_pinned'])
-                              const Icon(Icons.push_pin, color: AppTheme.textSecondaryDark, size: 16),
+                              Icon(Icons.push_pin, color: textSecondary, size: 16),
                             const SizedBox(height: 6),
                             if (thread['unread_count'] > 0)
                               Container(

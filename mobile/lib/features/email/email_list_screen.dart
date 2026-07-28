@@ -22,28 +22,35 @@ class _EmailListScreenState extends ConsumerState<EmailListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? Colors.white : AppTheme.textPrimaryLight;
+    final textSecondary = isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight;
+    final cardBg = isDark ? AppTheme.slateCard : AppTheme.lightCard;
+    final cardBorder = isDark ? AppTheme.slateBorder : AppTheme.lightBorder;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
           _selectedFolder,
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.white),
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: textPrimary),
         ),
-        backgroundColor: AppTheme.obsidianBlack,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        iconTheme: IconThemeData(color: textPrimary),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
+            icon: Icon(Icons.search, color: textPrimary),
             onPressed: () {},
           ),
           IconButton(
-            icon: const Icon(Icons.edit_note, color: Colors.white, size: 28),
+            icon: Icon(Icons.edit_note, color: textPrimary, size: 28),
             onPressed: () => _openComposeBottomSheet(context),
           ),
         ],
       ),
       drawer: _buildDrawer(),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.premiumDarkGradient,
+        decoration: BoxDecoration(
+          gradient: AppTheme.bgGradient(context),
         ),
         child: Column(
           children: [
@@ -68,17 +75,17 @@ class _EmailListScreenState extends ConsumerState<EmailListScreen> {
                       margin: const EdgeInsets.only(right: 8),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                       decoration: BoxDecoration(
-                        color: isSelected ? AppTheme.primaryPurple : AppTheme.slateCard,
+                        color: isSelected ? AppTheme.primaryPurple : cardBg,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: isSelected ? AppTheme.primaryPurple : AppTheme.slateBorder,
+                          color: isSelected ? AppTheme.primaryPurple : cardBorder,
                         ),
                       ),
                       child: Center(
                         child: Text(
                           filter,
                           style: TextStyle(
-                            color: isSelected ? Colors.white : AppTheme.textSecondaryDark,
+                            color: isSelected ? Colors.white : textSecondary,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
@@ -272,13 +279,17 @@ class _EmailListScreenState extends ConsumerState<EmailListScreen> {
   }
 
   Widget _buildDrawer() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? Colors.white : AppTheme.textPrimaryLight;
+    final cardBg = isDark ? AppTheme.slateCard : AppTheme.lightCard;
+
     return Drawer(
-      backgroundColor: AppTheme.obsidianBlack,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            decoration: const BoxDecoration(color: AppTheme.slateCard),
+            decoration: BoxDecoration(color: cardBg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -287,7 +298,7 @@ class _EmailListScreenState extends ConsumerState<EmailListScreen> {
                 const SizedBox(height: 12),
                 Text(
                   'LinkPilot Mailboxes',
-                  style: GoogleFonts.outfit(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                  style: GoogleFonts.outfit(color: textPrimary, fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -304,12 +315,18 @@ class _EmailListScreenState extends ConsumerState<EmailListScreen> {
   }
 
   Widget _buildDrawerItem(IconData icon, String title) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textSecondary = isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight;
     final isSelected = _selectedFolder == title;
+
     return ListTile(
-      leading: Icon(icon, color: isSelected ? AppTheme.primaryPurple : AppTheme.textSecondaryDark),
+      leading: Icon(icon, color: isSelected ? AppTheme.primaryPurple : textSecondary),
       title: Text(
         title,
-        style: TextStyle(color: isSelected ? Colors.white : AppTheme.textSecondaryDark, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
+        style: TextStyle(
+          color: isSelected ? AppTheme.primaryPurple : textSecondary,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
       ),
       selected: isSelected,
       onTap: () {

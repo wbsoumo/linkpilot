@@ -41,9 +41,9 @@ class LinkPilotBottomNav extends StatelessWidget {
       currentIndex: currentIndex,
       onTap: (index) => _onTap(context, index),
       type: BottomNavigationBarType.fixed,
-      backgroundColor: AppTheme.slateCard,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppTheme.slateCard : AppTheme.pureWhite,
       selectedItemColor: AppTheme.primaryPurple,
-      unselectedItemColor: AppTheme.textSecondaryDark,
+      unselectedItemColor: Theme.of(context).brightness == Brightness.dark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight,
       selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
       unselectedLabelStyle: const TextStyle(fontSize: 11),
       items: const [

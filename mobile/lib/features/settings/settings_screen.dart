@@ -16,17 +16,22 @@ class SettingsScreen extends ConsumerWidget {
     final themeMode = ref.watch(themeStateProvider);
     final user = authState.user;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? Colors.white : AppTheme.textPrimaryLight;
+    final textSecondary = isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Settings & Hub',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.white),
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: textPrimary),
         ),
-        backgroundColor: AppTheme.obsidianBlack,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        iconTheme: IconThemeData(color: textPrimary),
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.premiumDarkGradient,
+        decoration: BoxDecoration(
+          gradient: AppTheme.bgGradient(context),
         ),
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -34,7 +39,7 @@ class SettingsScreen extends ConsumerWidget {
             // Profile Card
             Container(
               padding: const EdgeInsets.all(20),
-              decoration: AppTheme.glassBox(),
+              decoration: AppTheme.glassBoxAdaptive(context),
               child: Row(
                 children: [
                   CircleAvatar(
@@ -52,12 +57,12 @@ class SettingsScreen extends ConsumerWidget {
                       children: [
                         Text(
                           user?['name'] ?? 'LinkPilot User',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                          style: TextStyle(color: textPrimary, fontWeight: FontWeight.bold, fontSize: 18),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           user?['email'] ?? 'user@linkpilot.work',
-                          style: const TextStyle(color: AppTheme.textSecondaryDark, fontSize: 13),
+                          style: TextStyle(color: textSecondary, fontSize: 13),
                         ),
                         const SizedBox(height: 2),
                         Container(
@@ -82,16 +87,18 @@ class SettingsScreen extends ConsumerWidget {
             // Connection Statuses
             Text(
               'INTEGRATION STATUS',
-              style: GoogleFonts.outfit(color: AppTheme.textSecondaryDark, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+              style: GoogleFonts.outfit(color: textSecondary, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.5),
             ),
             const SizedBox(height: 8),
             _buildSettingTile(
+              context,
               icon: Icons.mark_as_unread,
               title: 'Gmail / SMTP Settings',
               trailing: const Text('Connected', style: TextStyle(color: Colors.greenAccent, fontSize: 13, fontWeight: FontWeight.bold)),
               onTap: () {},
             ),
             _buildSettingTile(
+              context,
               icon: Icons.phone_android,
               title: 'WhatsApp Business Cloud API',
               trailing: const Text('Connected', style: TextStyle(color: Colors.greenAccent, fontSize: 13, fontWeight: FontWeight.bold)),
@@ -102,14 +109,15 @@ class SettingsScreen extends ConsumerWidget {
             // Campaigns Launcher
             Text(
               'CAMPAIGN CREATOR',
-              style: GoogleFonts.outfit(color: AppTheme.textSecondaryDark, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+              style: GoogleFonts.outfit(color: textSecondary, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.5),
             ),
             const SizedBox(height: 8),
             _buildSettingTile(
+              context,
               icon: Icons.rocket_launch,
               title: 'Launch Campaigns & Automation Builder',
               subtitle: 'Redirects to LinkPilot Web in Desktop Mode',
-              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+              trailing: Icon(Icons.arrow_forward_ios, color: textSecondary, size: 16),
               onTap: () {
                 context.push('/campaigns');
               },
@@ -119,10 +127,11 @@ class SettingsScreen extends ConsumerWidget {
             // Preference Settings
             Text(
               'PREFERENCES',
-              style: GoogleFonts.outfit(color: AppTheme.textSecondaryDark, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+              style: GoogleFonts.outfit(color: textSecondary, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.5),
             ),
             const SizedBox(height: 8),
             _buildSettingTile(
+              context,
               icon: themeMode == ThemeMode.dark ? Icons.dark_mode : Icons.light_mode,
               title: 'Dark Theme Mode',
               trailing: Switch(
@@ -135,6 +144,7 @@ class SettingsScreen extends ConsumerWidget {
               onTap: () {},
             ),
             _buildSettingTile(
+              context,
               icon: Icons.fingerprint,
               title: 'Biometric Secure Lock',
               trailing: Switch(
@@ -170,20 +180,25 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSettingTile({
+  Widget _buildSettingTile(
+    BuildContext context, {
     required IconData icon,
     required String title,
     String? subtitle,
     required Widget trailing,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? Colors.white : AppTheme.textPrimaryLight;
+    final textSecondary = isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      decoration: AppTheme.glassBox(),
+      decoration: AppTheme.glassBoxAdaptive(context),
       child: ListTile(
         leading: Icon(icon, color: AppTheme.secondaryPurple),
-        title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
-        subtitle: subtitle != null ? Text(subtitle, style: const TextStyle(color: AppTheme.textSecondaryDark, fontSize: 11)) : null,
+        title: Text(title, style: TextStyle(color: textPrimary, fontWeight: FontWeight.w600, fontSize: 14)),
+        subtitle: subtitle != null ? Text(subtitle, style: TextStyle(color: textSecondary, fontSize: 11)) : null,
         trailing: trailing,
         onTap: onTap,
       ),

@@ -27,9 +27,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       appBar: AppBar(
         title: Text(
           'LinkPilot Hub',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.white),
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : AppTheme.textPrimaryLight,
+          ),
         ),
-        backgroundColor: AppTheme.obsidianBlack,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         actions: [
           // Auto-Reply status badge
           GestureDetector(
@@ -85,8 +88,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ],
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.premiumDarkGradient,
+        decoration: BoxDecoration(
+          gradient: AppTheme.bgGradient(context),
         ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
@@ -99,12 +102,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 style: GoogleFonts.outfit(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : AppTheme.textPrimaryLight,
                 ),
               ),
-              const Text(
+              Text(
                 'Here is your outreach activity outline for today.',
-                style: TextStyle(color: AppTheme.textSecondaryDark),
+                style: TextStyle(
+                  color: Theme.of(context).brightness == Brightness.dark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight,
+                ),
               ),
               const SizedBox(height: 24),
 
@@ -207,16 +212,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 style: GoogleFonts.outfit(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : AppTheme.textPrimaryLight,
                 ),
               ),
               const SizedBox(height: 12),
               ref.watch(crmMeetingsProvider).when(
                 data: (meetings) {
                   if (meetings.isEmpty) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text('No meetings scheduled for today.', style: TextStyle(color: AppTheme.textSecondaryDark, fontSize: 13)),
+                    final textSec = Theme.of(context).brightness == Brightness.dark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text('No meetings scheduled for today.', style: TextStyle(color: textSec, fontSize: 13)),
                     );
                   }
                   return Column(
@@ -231,7 +237,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.primaryPurple)),
-                error: (err, stack) => const Text('Error loading meetings.', style: TextStyle(color: AppTheme.textSecondaryDark)),
+                error: (err, stack) {
+                  final textSec = Theme.of(context).brightness == Brightness.dark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight;
+                  return Text('Error loading meetings.', style: TextStyle(color: textSec));
+                },
               ),
               const SizedBox(height: 28),
 
@@ -244,7 +253,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     style: GoogleFonts.outfit(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white : AppTheme.textPrimaryLight,
                     ),
                   ),
                   TextButton(
@@ -257,9 +266,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               ref.watch(crmTasksProvider).when(
                 data: (tasks) {
                   if (tasks.isEmpty) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text('All tasks completed!', style: TextStyle(color: AppTheme.textSecondaryDark, fontSize: 13)),
+                    final textSec = Theme.of(context).brightness == Brightness.dark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text('All tasks completed!', style: TextStyle(color: textSec, fontSize: 13)),
                     );
                   }
                   return Column(
@@ -270,7 +280,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.primaryPurple)),
-                error: (err, stack) => const Text('Error loading tasks.', style: TextStyle(color: AppTheme.textSecondaryDark)),
+                error: (err, stack) {
+                  final textSec = Theme.of(context).brightness == Brightness.dark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight;
+                  return Text('Error loading tasks.', style: TextStyle(color: textSec));
+                },
               ),
               const SizedBox(height: 40),
             ],
@@ -289,9 +302,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     required String subtitle,
     required Color color,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? Colors.white : AppTheme.textPrimaryLight;
+    final textSecondary = isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight;
+
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: AppTheme.glassBox(),
+      decoration: AppTheme.glassBoxAdaptive(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -300,7 +317,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Icon(icon, color: color, size: 28),
-              const Icon(Icons.arrow_forward_ios, color: AppTheme.textSecondaryDark, size: 12),
+              Icon(Icons.arrow_forward_ios, color: textSecondary, size: 12),
             ],
           ),
           Column(
@@ -308,17 +325,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             children: [
               Text(
                 title,
-                style: const TextStyle(color: AppTheme.textSecondaryDark, fontSize: 13),
+                style: TextStyle(color: textSecondary, fontSize: 13),
               ),
               const SizedBox(height: 4),
               Text(
                 value,
-                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(color: textPrimary, fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 2),
               Text(
                 subtitle,
-                style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 11),
+                style: TextStyle(color: textPrimary.withOpacity(0.5), fontSize: 11),
               ),
             ],
           ),
@@ -333,10 +350,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     required String attendees,
     required String platform,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? Colors.white : AppTheme.textPrimaryLight;
+    final textSecondary = isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
-      decoration: AppTheme.glassBox(),
+      decoration: AppTheme.glassBoxAdaptive(context),
       child: Row(
         children: [
           Column(
@@ -351,7 +372,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ),
               ),
               const SizedBox(height: 4),
-              const Text('Today', style: TextStyle(color: AppTheme.textSecondaryDark, fontSize: 11)),
+              Text('Today', style: TextStyle(color: textSecondary, fontSize: 11)),
             ],
           ),
           const SizedBox(width: 16),
@@ -361,12 +382,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                  style: TextStyle(color: textPrimary, fontWeight: FontWeight.bold, fontSize: 15),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   'With $attendees | $platform',
-                  style: const TextStyle(color: AppTheme.textSecondaryDark, fontSize: 12),
+                  style: TextStyle(color: textSecondary, fontSize: 12),
                 ),
               ],
             ),
@@ -377,15 +398,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget _buildTaskItem(String text, bool checked) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? Colors.white : AppTheme.textPrimaryLight;
+    final textSecondary = isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: AppTheme.glassBox(),
+      decoration: AppTheme.glassBoxAdaptive(context),
       child: Row(
         children: [
           Icon(
             checked ? Icons.check_circle : Icons.radio_button_unchecked,
-            color: checked ? Colors.greenAccent : AppTheme.textSecondaryDark,
+            color: checked ? Colors.greenAccent : textSecondary,
             size: 20,
           ),
           const SizedBox(width: 12),
@@ -393,7 +418,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             child: Text(
               text,
               style: TextStyle(
-                color: checked ? AppTheme.textSecondaryDark : Colors.white,
+                color: checked ? textSecondary : textPrimary,
                 decoration: checked ? TextDecoration.lineThrough : null,
                 fontSize: 14,
               ),

@@ -46,6 +46,36 @@ class AppTheme {
     end: Alignment.bottomRight,
   );
 
+  static LinearGradient bgGradient(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? premiumDarkGradient : const LinearGradient(
+      colors: [iceWhite, pureWhite],
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+    );
+  }
+
+  static BoxDecoration glassBoxAdaptive(BuildContext context, {
+    double borderRadius = 16.0,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return BoxDecoration(
+      color: isDark ? Colors.white.withOpacity(0.06) : Colors.black.withOpacity(0.03),
+      borderRadius: BorderRadius.circular(borderRadius),
+      border: Border.all(
+        color: isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.06),
+        width: 1.0,
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: isDark ? Colors.black.withOpacity(0.15) : Colors.black.withOpacity(0.02),
+          blurRadius: 10.0,
+          spreadRadius: -2.0,
+        ),
+      ],
+    );
+  }
+
   // Glassmorphism Box Decoration
   static BoxDecoration glassBox({
     Color? borderStyleColor,

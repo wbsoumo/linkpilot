@@ -1,0 +1,1648 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#f8fafc]">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-V8YZETRHHM"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-V8YZETRHHM');
+    </script>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="dashboard/assets/img/logo.png">
+    
+    <title>Careers - Taskbazi x LinkPilot AI</title>
+    <meta name="description" content="Build the future of SaaS, marketing and AI automation with Taskbazi x LinkPilot. Join India's next-generation rewards and CRM outreach platform.">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Dashboard Style Sheet -->
+    <link rel="stylesheet" href="dashboard/assets/css/style.css?v=5.37">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Base Styling & Custom Overrides to fit Dashboard Style */
+        body {
+            font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+            background-color: #f8fafc !important;
+            color: #1e293b !important;
+        }
+
+        /* Glassmorphism Accents */
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 30px rgba(15, 23, 42, 0.03);
+        }
+
+        /* Premium Animations & Micro-Interactions */
+        @keyframes float-slow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(1deg); }
+        }
+        @keyframes float-medium {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-18px) rotate(-1deg); }
+        }
+        @keyframes float-fast {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(0.5deg); }
+        }
+        @keyframes blob-bounce {
+            0%, 100% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+        .animate-float-slow {
+            animation: float-slow 6s ease-in-out infinite;
+        }
+        .animate-float-medium {
+            animation: float-medium 5s ease-in-out infinite;
+        }
+        .animate-float-fast {
+            animation: float-fast 4s ease-in-out infinite;
+        }
+        .animate-blob-bounce {
+            animation: blob-bounce 12s infinite alternate;
+        }
+
+        /* Page element scroll animations */
+        .reveal-element {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal-element.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Card Hover Lift (dashboard styled) */
+        .card-lift {
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .card-lift:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
+            border-color: #2563eb !important;
+        }
+
+        /* Ripple Effect on Buttons */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple::after {
+            content: "";
+            background: rgba(255, 255, 255, 0.3);
+            display: block;
+            position: absolute;
+            border-radius: 50%;
+            padding-top: 240%;
+            padding-left: 240%;
+            margin-top: -120%;
+            margin-left: -120%;
+            opacity: 0;
+            transition: all 0.8s;
+        }
+        .ripple:active::after {
+            padding: 0;
+            margin: 0;
+            opacity: 1;
+            transition: 0s;
+        }
+
+        /* Gradient running timeline line */
+        .timeline-runner {
+            background: linear-gradient(90deg, #2563eb 0%, #10b981 50%, #2563eb 100%);
+            background-size: 200% auto;
+            animation: timeline-glow 4s linear infinite;
+        }
+        @keyframes timeline-glow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Success modal SVG checkmark draw */
+        .checkmark__circle {
+            stroke-dasharray: 166;
+            stroke-dashoffset: 166;
+            stroke-width: 2;
+            stroke-miterlimit: 10;
+            stroke: #10B981;
+            fill: none;
+            animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+        .checkmark {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: block;
+            stroke-width: 2;
+            stroke: #fff;
+            stroke-miterlimit: 10;
+            margin: 10% auto;
+            box-shadow: inset 0px 0px 0px #10B981;
+            animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s forwards;
+        }
+        .checkmark__check {
+            transform-origin: 50% 50%;
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+        }
+        @keyframes stroke {
+            100% { stroke-dashoffset: 0; }
+        }
+        @keyframes scale {
+            0%, 100% { transform: none; }
+            50% { transform: scale3d(1.1, 1.1, 1); }
+        }
+        @keyframes fill {
+            100% { box-shadow: inset 0px 0px 0px 30px #10B981; }
+        }
+    </style>
+</head>
+<body class="h-full bg-[#f8fafc] text-slate-800 flex flex-col antialiased">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-24 right-6 z-50 flex flex-col space-y-3 pointer-events-none"></div>
+
+    <!-- 1. PREMIUM HEADER / STICKY NAVBAR -->
+    <nav class="sticky top-0 z-50 w-full px-6 py-4 glass-nav">
+        <div class="max-w-7xl mx-auto w-full flex items-center justify-between">
+            <!-- Brand Logo -->
+            <a href="index.html" class="flex items-center space-x-2 text-xl font-bold tracking-tight text-slate-900">
+                <img src="dashboard/assets/img/logo.png" class="h-8 w-8 object-contain" alt="LinkPilot Logo">
+                <span class="font-extrabold text-slate-900 tracking-tight flex items-center">
+                    LinkPilot <span class="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold bg-blue-100 text-blue-700 rounded border border-blue-200 uppercase tracking-wider">x Taskbazi</span>
+                </span>
+            </a>
+            
+            <!-- Mid navigation -->
+            <div class="hidden lg:flex items-center space-x-8 text-sm font-semibold text-slate-600">
+                <a href="index.html#features" class="hover:text-blue-600 transition">Features</a>
+                <a href="index.html#solutions" class="hover:text-blue-600 transition">Solutions</a>
+                <a href="pricing.html" class="hover:text-blue-600 transition">Pricing</a>
+                <a href="docs.html" class="hover:text-blue-600 transition">Docs</a>
+                <a href="about.html" class="hover:text-blue-600 transition">About</a>
+                <a href="careers.html" class="text-blue-600 relative after:content-[''] after:absolute after:-bottom-5 after:left-0 after:w-full after:height after:h-[2px] after:bg-blue-600">Careers</a>
+            </div>
+
+            <!-- CTA Buttons -->
+            <div class="flex items-center space-x-4">
+                <a href="dashboard/login.html" class="text-sm font-bold text-slate-600 hover:text-blue-600 transition">Log In</a>
+                <a href="dashboard/register.html" class="ripple px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg shadow-md shadow-blue-500/10 hover:shadow-blue-500/25 hover:-translate-y-0.5 active:translate-y-0.5 transition duration-150">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content wrapper -->
+    <main class="flex-grow">
+
+        <!-- 1. HERO SECTION -->
+        <section class="relative py-20 lg:py-32 overflow-hidden bg-gradient-to-b from-blue-50/20 via-transparent to-transparent">
+            <!-- Background blobs -->
+            <div class="absolute top-1/4 left-1/10 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl animate-blob-bounce pointer-events-none"></div>
+            <div class="absolute bottom-1/4 right-1/10 w-96 h-96 bg-emerald-400/10 rounded-full blur-3xl animate-blob-bounce pointer-events-none" style="animation-delay: -4s;"></div>
+
+            <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center relative z-10">
+                <!-- Left Details -->
+                <div class="lg:col-span-6 space-y-6 text-left reveal-element active">
+                    <div class="inline-flex items-center space-x-2 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-blue-700 font-semibold text-xs tracking-wide">
+                        <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
+                        <span>We're Hiring Builders</span>
+                    </div>
+                    <h1 class="text-4xl sm:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                        Build the Future with <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Taskbazi</span>
+                    </h1>
+                    <p class="text-slate-500 text-base sm:text-lg leading-relaxed max-w-xl">
+                        We're building India's next-generation performance marketing and rewards platform. Join a team that moves fast, experiments daily, and creates products used by thousands.
+                    </p>
+                    <div class="flex flex-wrap gap-4 pt-2">
+                        <a href="#application-form-section" class="ripple px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold shadow-lg shadow-blue-500/15 hover:shadow-blue-500/30 hover:-translate-y-0.5 active:translate-y-0.5 transition duration-150">
+                            Apply Now
+                        </a>
+                        <a href="#job-openings-section" class="px-6 py-3.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-lg text-sm font-bold shadow-xs hover:border-slate-300 hover:-translate-y-0.5 active:translate-y-0.5 transition duration-150">
+                            View Open Positions
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Right Hero Dashboard Mockup (Floating Cards Grid) -->
+                <div class="lg:col-span-6 relative h-[450px] sm:h-[500px] w-full flex items-center justify-center reveal-element active">
+                    <!-- Base Layer Gradients -->
+                    <div class="absolute w-80 h-80 bg-gradient-to-tr from-blue-600/15 to-indigo-600/5 rounded-full blur-2xl"></div>
+                    
+                    <!-- Floating Campaign Status Card -->
+                    <div class="absolute top-4 left-6 sm:left-12 glass-card rounded-2xl p-5 w-64 shadow-lg border border-slate-200/60 animate-float-slow z-20">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-2">
+                                <span class="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+                                    <i data-lucide="megaphone" class="h-4 w-4"></i>
+                                </span>
+                                <div>
+                                    <h4 class="text-xs font-bold text-slate-900">Campaigns</h4>
+                                    <p class="text-[9px] text-slate-400">Taskbazi Rewards</p>
+                                </div>
+                            </div>
+                            <span class="px-2 py-0.5 text-[8px] font-bold bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200">Active</span>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-[10px] text-slate-500">
+                                <span>Completed Tasks</span>
+                                <span class="font-bold text-slate-900">84.2%</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div class="h-full bg-emerald-500 rounded-full" style="width: 84.2%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Floating Marketing Analytics Card -->
+                    <div class="absolute bottom-8 left-2 sm:left-8 glass-card rounded-2xl p-5 w-72 shadow-lg border border-slate-200/60 animate-float-medium z-30">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="text-xs font-bold text-slate-900">Monthly Growth</h4>
+                            <span class="text-[10px] font-bold text-emerald-600 flex items-center">
+                                <i data-lucide="trending-up" class="h-3 w-3 mr-0.5"></i> +28.4%
+                            </span>
+                        </div>
+                        <!-- Mini SVG chart -->
+                        <div class="h-20 w-full mb-3">
+                            <svg class="h-full w-full" viewBox="0 0 100 30" preserveAspectRatio="none">
+                                <defs>
+                                    <linearGradient id="chart-glow" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#2563eb" stop-opacity="0.25"/>
+                                        <stop offset="100%" stop-color="#2563eb" stop-opacity="0"/>
+                                    </linearGradient>
+                                </defs>
+                                <path d="M0 25 C10 20, 20 28, 30 18 C40 8, 50 15, 60 12 C70 9, 80 5, 90 8 L100 2 L100 30 L0 30 Z" fill="url(#chart-glow)"/>
+                                <path d="M0 25 C10 20, 20 28, 30 18 C40 8, 50 15, 60 12 C70 9, 80 5, 90 8 L100 2" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-linecap="round"/>
+                                <circle cx="100" cy="2" r="2.5" fill="#2563eb"/>
+                                <circle cx="100" cy="2" r="4.5" fill="none" stroke="#2563eb" stroke-opacity="0.4" stroke-width="1"/>
+                            </svg>
+                        </div>
+                        <div class="flex justify-between border-t border-slate-100 pt-3 text-[10px] text-slate-400">
+                            <div>
+                                <p class="text-[9px]">Conversion Rate</p>
+                                <p class="font-bold text-slate-900 mt-0.5">4.82%</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[9px]">Total Leads</p>
+                                <p class="font-bold text-slate-900 mt-0.5">14,280</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Floating Notification Card -->
+                    <div class="absolute top-1/3 right-4 sm:right-10 glass-card rounded-2xl p-4 w-60 shadow-lg border border-slate-200/60 animate-float-fast z-10">
+                        <div class="flex items-center space-x-3">
+                            <span class="h-7 w-7 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+                                <i data-lucide="bell" class="h-3.5 w-3.5"></i>
+                            </span>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[10px] font-bold text-slate-800 truncate">New Applicant Joined</p>
+                                <p class="text-[8px] text-slate-400 truncate">UI/UX Designer • Just now</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Floating Performance Rewards badge -->
+                    <div class="absolute bottom-16 right-10 sm:right-20 glass-card rounded-xl p-3 w-44 shadow-lg border border-slate-200/60 animate-float-slow z-25 flex items-center space-x-2.5">
+                        <div class="h-6 w-6 rounded bg-amber-100 flex items-center justify-center text-amber-600 shrink-0">
+                            <i data-lucide="zap" class="h-3.5 w-3.5"></i>
+                        </div>
+                        <div>
+                            <p class="text-[9px] text-slate-400">Rewards Distributed</p>
+                            <p class="text-xs font-bold text-slate-900">₹4.2L Today</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. WHY JOIN TASKBAZI -->
+        <section class="py-20 bg-white border-y border-slate-100">
+            <div class="max-w-7xl mx-auto px-6 text-center space-y-12">
+                <!-- Section title -->
+                <div class="max-w-2xl mx-auto space-y-3 reveal-element">
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Why Join Taskbazi</h2>
+                    <p class="text-slate-500 text-sm sm:text-base leading-relaxed">
+                        We skip the corporate bureaucracy and focus entirely on creating real market impact, personal growth, and cutting-edge software.
+                    </p>
+                </div>
+
+                <!-- 3-Column Layout -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Card 1 -->
+                    <div class="card-lift bg-[#f8fafc] border border-slate-200/60 p-8 rounded-2xl text-left space-y-4">
+                        <span class="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 shadow-sm">
+                            <i data-lucide="rocket" class="h-5 w-5"></i>
+                        </span>
+                        <h3 class="text-lg font-bold text-slate-900">Work on Real Products</h3>
+                        <p class="text-slate-500 text-xs sm:text-sm leading-relaxed">
+                            Build products used by real users instead of internal projects. Get direct visibility into how your code/campaign drives growth.
+                        </p>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="card-lift bg-[#f8fafc] border border-slate-200/60 p-8 rounded-2xl text-left space-y-4">
+                        <span class="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm">
+                            <i data-lucide="lightbulb" class="h-5 w-5"></i>
+                        </span>
+                        <h3 class="text-lg font-bold text-slate-900">Learn Every Day</h3>
+                        <p class="text-slate-500 text-xs sm:text-sm leading-relaxed">
+                            Work directly with founders, marketers, and developers. No siloing—everyone contributes to ideas, growth strategies, and execution.
+                        </p>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="card-lift bg-[#f8fafc] border border-slate-200/60 p-8 rounded-2xl text-left space-y-4">
+                        <span class="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-violet-50 text-violet-600 border border-violet-100 shadow-sm">
+                            <i data-lucide="globe" class="h-5 w-5"></i>
+                        </span>
+                        <h3 class="text-lg font-bold text-slate-900">Flexible Work</h3>
+                        <p class="text-slate-500 text-xs sm:text-sm leading-relaxed">
+                            Remote-friendly culture built on ownership and trust. We don't track hours; we track output, shipping velocity, and metrics.
+                        </p>
+                    </div>
+
+                    <!-- Card 4 -->
+                    <div class="card-lift bg-[#f8fafc] border border-slate-200/60 p-8 rounded-2xl text-left space-y-4">
+                        <span class="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 shadow-sm">
+                            <i data-lucide="trending-up" class="h-5 w-5"></i>
+                        </span>
+                        <h3 class="text-lg font-bold text-slate-900">Fast Career Growth</h3>
+                        <p class="text-slate-500 text-xs sm:text-sm leading-relaxed">
+                            Performance matters more than years of experience. Deliver results, assume responsibilities, and lead projects directly.
+                        </p>
+                    </div>
+
+                    <!-- Card 5 -->
+                    <div class="card-lift bg-[#f8fafc] border border-slate-200/60 p-8 rounded-2xl text-left space-y-4">
+                        <span class="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-cyan-50 text-cyan-600 border border-cyan-100 shadow-sm">
+                            <i data-lucide="bot" class="h-5 w-5"></i>
+                        </span>
+                        <h3 class="text-lg font-bold text-slate-900">AI-First Company</h3>
+                        <p class="text-slate-500 text-xs sm:text-sm leading-relaxed">
+                            We encourage using modern AI tools in your daily workflow. Automate the mundane so you can focus on hard technical and growth problems.
+                        </p>
+                    </div>
+
+                    <!-- Card 6 -->
+                    <div class="card-lift bg-[#f8fafc] border border-slate-200/60 p-8 rounded-2xl text-left space-y-4">
+                        <span class="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 shadow-sm">
+                            <i data-lucide="target" class="h-5 w-5"></i>
+                        </span>
+                        <h3 class="text-lg font-bold text-slate-900">High Impact</h3>
+                        <p class="text-slate-500 text-xs sm:text-sm leading-relaxed">
+                            Your work directly affects business growth. Every launch, optimization, or campaign is evaluated live with users and rewards.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. OPEN POSITIONS -->
+        <section id="job-openings-section" class="py-20 bg-slate-50/50">
+            <div class="max-w-7xl mx-auto px-6 space-y-12">
+                
+                <!-- Section Title -->
+                <div class="max-w-2xl mx-auto text-center space-y-3 reveal-element">
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Open Opportunities</h2>
+                    <p class="text-slate-500 text-sm sm:text-base leading-relaxed">
+                        Find a role that fits your core expertise. If you don't see a match, select "Speculative Application" in the role form.
+                    </p>
+                </div>
+
+                <!-- Sleek Search & Filters Panel (Dashboard Input styles) -->
+                <div class="glass-card p-6 rounded-2xl border border-slate-200 max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-4 gap-4 items-center shadow-xs">
+                    <!-- Search Input -->
+                    <div class="relative sm:col-span-1">
+                        <span class="absolute inset-y-0 left-3.5 flex items-center text-slate-400">
+                            <i data-lucide="search" class="h-4 w-4"></i>
+                        </span>
+                        <input type="text" id="job-search-input" oninput="filterJobs()" placeholder="Search jobs..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition">
+                    </div>
+
+                    <!-- Department Filter -->
+                    <div>
+                        <select id="department-select" onchange="filterJobs()" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition">
+                            <option value="All">All Departments</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Growth">Growth</option>
+                            <option value="Design">Design</option>
+                            <option value="Tech">Tech</option>
+                            <option value="Support">Support</option>
+                        </select>
+                    </div>
+
+                    <!-- Location Filter -->
+                    <div>
+                        <select id="location-select" onchange="filterJobs()" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition">
+                            <option value="All">All Locations</option>
+                            <option value="Remote">Remote</option>
+                            <option value="Office">Office (New Delhi)</option>
+                        </select>
+                    </div>
+
+                    <!-- Employment Type Filter -->
+                    <div>
+                        <select id="type-select" onchange="filterJobs()" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition">
+                            <option value="All">All Job Types</option>
+                            <option value="Full-time">Full-time</option>
+                            <option value="Part-time">Part-time</option>
+                            <option value="Contract">Contract</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Job Openings Grid Container -->
+                <div id="job-cards-container" class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+                    <!-- JavaScript will dynamically populate these cards -->
+                </div>
+
+                <!-- No Results State -->
+                <div id="no-jobs-found" class="hidden text-center py-16 space-y-4 max-w-5xl mx-auto glass-card rounded-2xl border border-slate-200">
+                    <span class="h-12 w-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto">
+                        <i data-lucide="frown" class="h-6 w-6"></i>
+                    </span>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">No open roles found</h3>
+                        <p class="text-xs text-slate-500 mt-1">Try modifying your filters or search keywords, or submit a speculative application below.</p>
+                    </div>
+                    <a href="#application-form-section" onclick="preselectJob('Speculative Application')" class="inline-flex items-center space-x-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition">
+                        <span>Submit Speculative App</span>
+                        <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. HIRING PROCESS TIMELINE -->
+        <section class="py-20 bg-white border-y border-slate-100 overflow-hidden">
+            <div class="max-w-7xl mx-auto px-6 space-y-16">
+                <!-- Section Title -->
+                <div class="max-w-2xl mx-auto text-center space-y-3 reveal-element">
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Our Hiring Process</h2>
+                    <p class="text-slate-500 text-sm sm:text-base leading-relaxed">
+                        We respect your time. Our hiring pipeline is structured to be fast, clear, and focused on output.
+                    </p>
+                </div>
+
+                <!-- Process horizontal/vertical timeline -->
+                <div class="relative max-w-5xl mx-auto pt-8">
+                    <!-- Background Connector line (Desktop) -->
+                    <div class="hidden lg:block absolute top-[52px] left-12 right-12 h-1 bg-slate-100 rounded-full z-0 overflow-hidden">
+                        <div class="timeline-runner h-full w-full"></div>
+                    </div>
+
+                    <!-- Steps Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-4 relative z-10">
+                        <!-- Step 1 -->
+                        <div class="flex flex-col items-center text-center space-y-3 reveal-element">
+                            <div class="h-12 w-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-blue-500/10 border-4 border-white z-10 shrink-0">
+                                <i data-lucide="file-text" class="h-5 w-5"></i>
+                            </div>
+                            <div class="bg-slate-550/30 lg:bg-transparent p-4 rounded-xl border border-slate-200/50 lg:border-transparent">
+                                <span class="text-[10px] font-extrabold uppercase text-blue-600 tracking-wider">Step 1</span>
+                                <h3 class="text-sm font-bold text-slate-900 mt-1">Apply Online</h3>
+                                <p class="text-slate-500 text-xs mt-1.5 leading-relaxed max-w-[180px] mx-auto">Submit your form details and background projects.</p>
+                            </div>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="flex flex-col items-center text-center space-y-3 reveal-element">
+                            <div class="h-12 w-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-blue-500/10 border-4 border-white z-10 shrink-0">
+                                <i data-lucide="zap" class="h-5 w-5"></i>
+                            </div>
+                            <div class="bg-slate-550/30 lg:bg-transparent p-4 rounded-xl border border-slate-200/50 lg:border-transparent">
+                                <span class="text-[10px] font-extrabold uppercase text-blue-600 tracking-wider">Step 2</span>
+                                <h3 class="text-sm font-bold text-slate-900 mt-1">Marketing Challenge</h3>
+                                <p class="text-slate-500 text-xs mt-1.5 leading-relaxed max-w-[180px] mx-auto">Complete a practical task tailored to show your core thinking.</p>
+                            </div>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="flex flex-col items-center text-center space-y-3 reveal-element">
+                            <div class="h-12 w-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-blue-500/10 border-4 border-white z-10 shrink-0">
+                                <i data-lucide="eye" class="h-5 w-5"></i>
+                            </div>
+                            <div class="bg-slate-550/30 lg:bg-transparent p-4 rounded-xl border border-slate-200/50 lg:border-transparent">
+                                <span class="text-[10px] font-extrabold uppercase text-blue-600 tracking-wider">Step 3</span>
+                                <h3 class="text-sm font-bold text-slate-900 mt-1">Review</h3>
+                                <p class="text-slate-500 text-xs mt-1.5 leading-relaxed max-w-[180px] mx-auto">Our core team reviews your challenge details and output.</p>
+                            </div>
+                        </div>
+
+                        <!-- Step 4 -->
+                        <div class="flex flex-col items-center text-center space-y-3 reveal-element">
+                            <div class="h-12 w-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-blue-500/10 border-4 border-white z-10 shrink-0">
+                                <i data-lucide="message-square" class="h-5 w-5"></i>
+                            </div>
+                            <div class="bg-slate-550/30 lg:bg-transparent p-4 rounded-xl border border-slate-200/50 lg:border-transparent">
+                                <span class="text-[10px] font-extrabold uppercase text-blue-600 tracking-wider">Step 4</span>
+                                <h3 class="text-sm font-bold text-slate-900 mt-1">Founder Discussion</h3>
+                                <p class="text-slate-500 text-xs mt-1.5 leading-relaxed max-w-[180px] mx-auto">Align on goals, career aspirations, and culture fit.</p>
+                            </div>
+                        </div>
+
+                        <!-- Step 5 -->
+                        <div class="flex flex-col items-center text-center space-y-3 reveal-element">
+                            <div class="h-12 w-12 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-emerald-500/10 border-4 border-white z-10 shrink-0">
+                                <i data-lucide="party-popper" class="h-5 w-5"></i>
+                            </div>
+                            <div class="bg-slate-550/30 lg:bg-transparent p-4 rounded-xl border border-slate-200/50 lg:border-transparent">
+                                <span class="text-[10px] font-extrabold uppercase text-emerald-600 tracking-wider">Step 5</span>
+                                <h3 class="text-sm font-bold text-slate-900 mt-1">You're In</h3>
+                                <p class="text-slate-500 text-xs mt-1.5 leading-relaxed max-w-[180px] mx-auto">Get offer release details and start building with us!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. FEATURED CHALLENGE SECTION ("Skip the Resume") -->
+        <section class="py-20 bg-slate-50/50">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="glass-card max-w-5xl mx-auto rounded-3xl p-8 sm:p-12 border border-slate-200/80 shadow-md grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-white relative overflow-hidden reveal-element">
+                    <!-- Gradient highlights -->
+                    <div class="absolute -right-20 -top-20 w-80 h-80 bg-blue-600/5 rounded-full blur-2xl"></div>
+
+                    <!-- Left details -->
+                    <div class="lg:col-span-7 space-y-5 text-left relative z-10">
+                        <div class="inline-flex items-center space-x-2 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-blue-700 font-semibold text-xs">
+                            <i data-lucide="zap" class="h-3.5 w-3.5"></i>
+                            <span>Fast-track hiring</span>
+                        </div>
+                        <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                            Skip the Resume. <br class="hidden sm:inline">Show Your Skills.
+                        </h2>
+                        <p class="text-slate-500 text-xs sm:text-sm leading-relaxed max-w-lg">
+                            We don't hire based on fancy resumes or pedigree. We hire based on your thinking and output. Take our marketing challenge directly, solve it, and skip straight to the final round.
+                        </p>
+                        <div class="flex flex-wrap gap-3 pt-2">
+                            <button onclick="openChallengeModal()" class="ripple px-5 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold shadow-md shadow-blue-500/10 hover:shadow-blue-500/20 hover:-translate-y-0.5 active:translate-y-0.5 transition duration-150 flex items-center space-x-1.5">
+                                <i data-lucide="play" class="h-3.5 w-3.5"></i>
+                                <span>Start Challenge</span>
+                            </button>
+                            <span class="inline-flex items-center px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[10px] text-slate-500 font-bold">
+                                <i data-lucide="clock" class="h-3.5 w-3.5 mr-1.5"></i> Est: 60-90 Mins
+                            </span>
+                            <span class="inline-flex items-center px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[10px] text-slate-500 font-bold">
+                                <i data-lucide="gauge" class="h-3.5 w-3.5 mr-1.5"></i> Intermediate
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Right progress illustration (CSS Dashboard widget) -->
+                    <div class="lg:col-span-5 relative w-full flex items-center justify-center">
+                        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 w-full max-w-xs shadow-xs relative">
+                            <!-- Challenge Header -->
+                            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-200/60">
+                                <span class="text-xs font-extrabold text-slate-900">Taskbazi Challenge</span>
+                                <span class="text-[10px] font-bold text-blue-600">ID: #MKTG-01</span>
+                            </div>
+                            
+                            <!-- Tasks list -->
+                            <div class="space-y-3.5">
+                                <div class="flex items-start space-x-2.5">
+                                    <span class="h-5 w-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                                        <i data-lucide="check" class="h-3 w-3"></i>
+                                    </span>
+                                    <div>
+                                        <p class="text-[11px] font-bold text-slate-800">Analyze user conversion funnel</p>
+                                        <p class="text-[9px] text-slate-400">Completed in 15 mins</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-2.5">
+                                    <span class="h-5 w-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mt-0.5 animate-pulse">
+                                        <i data-lucide="loader" class="h-3 w-3 animate-spin"></i>
+                                    </span>
+                                    <div>
+                                        <p class="text-[11px] font-bold text-slate-800">Draft rewards program campaign</p>
+                                        <p class="text-[9px] text-slate-400">In Progress...</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-2.5 opacity-60">
+                                    <span class="h-5 w-5 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center shrink-0 mt-0.5">
+                                        <i data-lucide="circle" class="h-2 w-2"></i>
+                                    </span>
+                                    <div>
+                                        <p class="text-[11px] font-bold text-slate-700">Submit copy draft & deck</p>
+                                        <p class="text-[9px] text-slate-400">Pending</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Challenge Progress Bar widget -->
+                            <div class="mt-6 pt-4 border-t border-slate-200/60">
+                                <div class="flex justify-between text-[10px] font-bold text-slate-600 mb-1.5">
+                                    <span>Overall Progress</span>
+                                    <span>45%</span>
+                                </div>
+                                <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                                    <div class="h-full bg-blue-600 rounded-full" style="width: 45%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. APPLICATION FORM -->
+        <section id="application-form-section" class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-6">
+                <!-- Section Header -->
+                <div class="max-w-2xl mx-auto text-center space-y-3 mb-12 reveal-element">
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Careers Portal</h2>
+                    <p class="text-slate-500 text-sm sm:text-base leading-relaxed">
+                        Submit your details below. Once reviewed, our recruitment coordinators will contact you within 48 business hours.
+                    </p>
+                </div>
+
+                <!-- Form Card -->
+                <div class="glass-card max-w-4xl mx-auto rounded-3xl p-6 sm:p-10 border border-slate-200/80 shadow-md bg-white reveal-element">
+                    <form id="careers-application-form" onsubmit="handleFormSubmit(event)" class="space-y-8">
+                        <!-- Heading -->
+                        <div class="pb-4 border-b border-slate-100">
+                            <h3 class="text-lg font-bold text-slate-900">Application Form</h3>
+                            <p class="text-xs text-slate-400 mt-1">Please fill in all details accurately. Fields marked * are mandatory.</p>
+                        </div>
+
+                        <!-- 1. Personal Details -->
+                        <div class="space-y-5">
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3">1. Personal Information</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <!-- Full Name -->
+                                <div class="space-y-1.5">
+                                    <label for="fullname" class="text-xs font-bold text-slate-700">Full Name *</label>
+                                    <input type="text" id="fullname" required placeholder="Enter full name" class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition">
+                                </div>
+                                <!-- Email Address -->
+                                <div class="space-y-1.5">
+                                    <label for="email_address" class="text-xs font-bold text-slate-700">Email Address *</label>
+                                    <input type="email" id="email_address" required placeholder="Enter email address" class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition">
+                                </div>
+                                <!-- Phone Number -->
+                                <div class="space-y-1.5">
+                                    <label for="phone_number" class="text-xs font-bold text-slate-700">Phone Number *</label>
+                                    <input type="tel" id="phone_number" required placeholder="Enter 10-digit mobile number" class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition">
+                                </div>
+                                <!-- Current City -->
+                                <div class="space-y-1.5">
+                                    <label for="current_city" class="text-xs font-bold text-slate-700">Current City *</label>
+                                    <input type="text" id="current_city" required placeholder="e.g., New Delhi" class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Professional Details -->
+                        <div class="space-y-5 pt-4 border-t border-slate-100">
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3">2. Professional Details</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <!-- LinkedIn Profile -->
+                                <div class="space-y-1.5">
+                                    <label for="linkedin_url" class="text-xs font-bold text-slate-700">LinkedIn Profile URL *</label>
+                                    <input type="url" id="linkedin_url" required placeholder="https://linkedin.com/in/username" class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition">
+                                </div>
+                                <!-- Portfolio URL -->
+                                <div class="space-y-1.5">
+                                    <label for="portfolio_url" class="text-xs font-bold text-slate-700">Portfolio/GitHub Website</label>
+                                    <input type="url" id="portfolio_url" placeholder="https://portfolio.com or github.com" class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition">
+                                </div>
+                                <!-- Current Company -->
+                                <div class="space-y-1.5">
+                                    <label for="current_company" class="text-xs font-bold text-slate-700">Current Company</label>
+                                    <input type="text" id="current_company" placeholder="e.g., Acme Corp (Write N/A if fresher)" class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition">
+                                </div>
+                                <!-- Target Position (Auto-filled on Apply button clicks) -->
+                                <div class="space-y-1.5">
+                                    <label for="target_role" class="text-xs font-bold text-slate-700">Target Role *</label>
+                                    <select id="target_role" required class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition">
+                                        <option value="">Select Role</option>
+                                        <option value="Digital Marketing Executive">Digital Marketing Executive</option>
+                                        <option value="SEO Specialist">SEO Specialist</option>
+                                        <option value="Performance Marketing Expert">Performance Marketing Expert</option>
+                                        <option value="Affiliate Manager">Affiliate Manager</option>
+                                        <option value="Graphic Designer">Graphic Designer</option>
+                                        <option value="UI/UX Designer">UI/UX Designer</option>
+                                        <option value="Flutter Developer">Flutter Developer</option>
+                                        <option value="PHP Backend Developer">PHP Backend Developer</option>
+                                        <option value="Customer Support Executive">Customer Support Executive</option>
+                                        <option value="Business Development Executive">Business Development Executive</option>
+                                        <option value="Speculative Application">Speculative Application (Other)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Qualifications and Requirements -->
+                        <div class="space-y-5 pt-4 border-t border-slate-100">
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3">3. Compensation & Availability</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                                <!-- Years of Experience -->
+                                <div class="space-y-1.5 sm:col-span-1">
+                                    <label for="years_experience" class="text-xs font-bold text-slate-700">Experience (Yrs) *</label>
+                                    <input type="number" step="0.5" id="years_experience" min="0" required placeholder="e.g., 2.5" class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition">
+                                </div>
+                                <!-- Expected Salary -->
+                                <div class="space-y-1.5 sm:col-span-1">
+                                    <label for="expected_salary" class="text-xs font-bold text-slate-700">Expected Salary *</label>
+                                    <input type="text" id="expected_salary" required placeholder="e.g., ₹8 LPA" class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition">
+                                </div>
+                                <!-- Notice Period -->
+                                <div class="space-y-1.5 sm:col-span-1">
+                                    <label for="notice_period" class="text-xs font-bold text-slate-700">Notice Period (Days) *</label>
+                                    <input type="number" id="notice_period" min="0" required placeholder="e.g., 30" class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition">
+                                </div>
+                                <!-- Availability / Joining Date -->
+                                <div class="space-y-1.5 sm:col-span-1">
+                                    <label for="availability_date" class="text-xs font-bold text-slate-700">Availability *</label>
+                                    <input type="text" id="availability_date" required placeholder="e.g., Immediate / 15 Days" class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. Cover Letter & Resume Drag/Drop -->
+                        <div class="space-y-5 pt-4 border-t border-slate-100">
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3">4. Profile Files</h4>
+                            
+                            <!-- Why Should We Hire You -->
+                            <div class="space-y-1.5">
+                                <label for="why_hire" class="text-xs font-bold text-slate-700">Why should we hire you? *</label>
+                                <textarea id="why_hire" required rows="4" placeholder="Briefly describe what makes you a great fit for Taskbazi x Linkpilot..." class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition"></textarea>
+                            </div>
+
+                            <!-- Resume Drag-and-Drop Area -->
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-bold text-slate-700">Upload Resume (PDF/DOCX) *</label>
+                                <div id="resume-dropzone" class="border-2 border-dashed border-slate-200 hover:border-blue-500 rounded-2xl p-8 text-center bg-slate-50/50 hover:bg-slate-50 transition cursor-pointer relative">
+                                    <input type="file" id="resume-file-input" required class="absolute inset-0 opacity-0 cursor-pointer" accept=".pdf,.doc,.docx">
+                                    <div class="space-y-2 pointer-events-none" id="dropzone-default-view">
+                                        <span class="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
+                                            <i data-lucide="upload-cloud" class="h-5 w-5"></i>
+                                        </span>
+                                        <p class="text-xs font-bold text-slate-800">Drag and drop your resume here, or <span class="text-blue-600 hover:underline">browse</span></p>
+                                        <p class="text-[10px] text-slate-400">Supports PDF, DOC, DOCX up to 5MB</p>
+                                    </div>
+                                    <!-- Selected File View (Hidden by default) -->
+                                    <div class="hidden space-y-3 pointer-events-none" id="dropzone-file-view">
+                                        <span class="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                            <i data-lucide="file-check-2" class="h-5 w-5"></i>
+                                        </span>
+                                        <div>
+                                            <p id="uploaded-filename" class="text-xs font-bold text-slate-800">resume.pdf</p>
+                                            <p id="uploaded-filesize" class="text-[10px] text-slate-400">1.2 MB</p>
+                                        </div>
+                                        <div class="max-w-[200px] mx-auto w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                                            <div class="h-full bg-emerald-500 rounded-full" style="width: 100%;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 5. Consent and Submit -->
+                        <div class="pt-6 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div class="flex items-start">
+                                <div class="flex items-center h-5">
+                                    <input id="terms-consent" type="checkbox" required class="h-4 w-4 rounded border-slate-350 text-blue-600 focus:ring-blue-500 transition">
+                                </div>
+                                <div class="ml-3 text-xs leading-5">
+                                    <label for="terms-consent" class="font-semibold text-slate-500">I agree to the <a href="privacy.html" target="_blank" class="text-blue-600 hover:underline">Privacy Policy</a> and <a href="terms.html" target="_blank" class="text-blue-600 hover:underline">Terms</a>.</label>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button type="submit" id="submit-application-btn" class="ripple px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold shadow-lg shadow-blue-500/10 hover:shadow-blue-500/25 transition flex items-center justify-center space-x-2 shrink-0">
+                                <span>Submit Application</span>
+                                <i data-lucide="send" class="h-3.5 w-3.5"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. LIFE AT TASKBAZI (Image Grid with hover zoom effect) -->
+        <section class="py-20 bg-slate-50/50 border-t border-slate-100">
+            <div class="max-w-7xl mx-auto px-6 space-y-12">
+                <!-- Section Title -->
+                <div class="max-w-2xl mx-auto text-center space-y-3 reveal-element">
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Life at Taskbazi</h2>
+                    <p class="text-slate-500 text-sm sm:text-base leading-relaxed">
+                        Step inside our workspace. We balance intense sprint sessions with team trips, events, and collaborative research.
+                    </p>
+                </div>
+
+                <!-- Modern grid layout -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                    <!-- Photo 1: Office/Workstation -->
+                    <div class="group relative overflow-hidden rounded-2xl aspect-[4/3] border border-slate-200/60 bg-white shadow-xs reveal-element">
+                        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80" alt="Modern collaboration office" class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" loading="lazy">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                            <span class="text-xs font-bold text-white">Taskbazi HQ Workstation</span>
+                        </div>
+                    </div>
+
+                    <!-- Photo 2: Remote Collaboration -->
+                    <div class="group relative overflow-hidden rounded-2xl aspect-[4/3] border border-slate-200/60 bg-white shadow-xs reveal-element">
+                        <img src="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=crop&w=600&q=80" alt="Remote workspace setup" class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" loading="lazy">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                            <span class="text-xs font-bold text-white">Hybrid & Remote Collaborations</span>
+                        </div>
+                    </div>
+
+                    <!-- Photo 3: Team Discussions -->
+                    <div class="group relative overflow-hidden rounded-2xl aspect-[4/3] border border-slate-200/60 bg-white shadow-xs reveal-element">
+                        <img src="https://images.unsplash.com/photo-1531538606174-0f90ff5dce83?auto=format&fit=crop&w=600&q=80" alt="Design discussion meeting" class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" loading="lazy">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                            <span class="text-xs font-bold text-white">Daily Standups & Ideation</span>
+                        </div>
+                    </div>
+
+                    <!-- Photo 4: Social events -->
+                    <div class="group relative overflow-hidden rounded-2xl aspect-[4/3] border border-slate-200/60 bg-white shadow-xs reveal-element">
+                        <img src="https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=600&q=80" alt="Team meeting and dinner" class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" loading="lazy">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                            <span class="text-xs font-bold text-white">Offsite Trips & Success Celebrations</span>
+                        </div>
+                    </div>
+
+                    <!-- Photo 5: Workstations -->
+                    <div class="group relative overflow-hidden rounded-2xl aspect-[4/3] border border-slate-200/60 bg-white shadow-xs reveal-element">
+                        <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80" alt="Sleek workspace setups" class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" loading="lazy">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                            <span class="text-xs font-bold text-white">Developer Workstations</span>
+                        </div>
+                    </div>
+
+                    <!-- Photo 6: Achievement Moments -->
+                    <div class="group relative overflow-hidden rounded-2xl aspect-[4/3] border border-slate-200/60 bg-white shadow-xs reveal-element">
+                        <img src="https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=600&q=80" alt="Happy workspace moments" class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" loading="lazy">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                            <span class="text-xs font-bold text-white">Milestone & Rewards Celebrations</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 8. EMPLOYEE BENEFITS -->
+        <section class="py-20 bg-white border-b border-slate-100">
+            <div class="max-w-7xl mx-auto px-6 space-y-12">
+                <!-- Section Title -->
+                <div class="max-w-2xl mx-auto text-center space-y-3 reveal-element">
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Our Benefits & Perks</h2>
+                    <p class="text-slate-500 text-sm sm:text-base leading-relaxed">
+                        We invest in our builders. Enjoy competitive support mechanisms, resources, and systems.
+                    </p>
+                </div>
+
+                <!-- 4x2 Benefits Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+                    <!-- Benefit 1 -->
+                    <div class="card-lift bg-slate-50/50 p-6 rounded-2xl border border-slate-200/60 space-y-3">
+                        <span class="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 shadow-sm">
+                            <i data-lucide="clock-3" class="h-5 w-5"></i>
+                        </span>
+                        <h3 class="text-sm font-bold text-slate-900">Flexible Working</h3>
+                        <p class="text-slate-500 text-xs leading-relaxed">Choose your workspace setup and adjust hours for overlap with the core engineering group.</p>
+                    </div>
+
+                    <!-- Benefit 2 -->
+                    <div class="card-lift bg-slate-50/50 p-6 rounded-2xl border border-slate-200/60 space-y-3">
+                        <span class="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm">
+                            <i data-lucide="gem" class="h-5 w-5"></i>
+                        </span>
+                        <h3 class="text-sm font-bold text-slate-900">Performance Bonus</h3>
+                        <p class="text-slate-500 text-xs leading-relaxed">Quarterly metrics-aligned bonuses linked directly to performance achievements and campaign metrics.</p>
+                    </div>
+
+                    <!-- Benefit 3 -->
+                    <div class="card-lift bg-slate-50/50 p-6 rounded-2xl border border-slate-200/60 space-y-3">
+                        <span class="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-violet-50 text-violet-600 border border-violet-100 shadow-sm">
+                            <i data-lucide="graduation-cap" class="h-5 w-5"></i>
+                        </span>
+                        <h3 class="text-sm font-bold text-slate-900">Learning Budget</h3>
+                        <p class="text-slate-500 text-xs leading-relaxed">Annual stipend for books, online programs, technical certifications, and design publications.</p>
+                    </div>
+
+                    <!-- Benefit 4 -->
+                    <div class="card-lift bg-slate-50/50 p-6 rounded-2xl border border-slate-200/60 space-y-3">
+                        <span class="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 shadow-sm">
+                            <i data-lucide="umbrella" class="h-5 w-5"></i>
+                        </span>
+                        <h3 class="text-sm font-bold text-slate-900">Paid Leave</h3>
+                        <p class="text-slate-500 text-xs leading-relaxed">Generous annual paid leaves, national holidays, wellness leaves, and custom bereavement structures.</p>
+                    </div>
+
+                    <!-- Benefit 5 -->
+                    <div class="card-lift bg-slate-50/50 p-6 rounded-2xl border border-slate-200/60 space-y-3">
+                        <span class="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-cyan-50 text-cyan-600 border border-cyan-100 shadow-sm">
+                            <i data-lucide="heart-pulse" class="h-5 w-5"></i>
+                        </span>
+                        <h3 class="text-sm font-bold text-slate-900">Health Benefits</h3>
+                        <p class="text-slate-500 text-xs leading-relaxed">Premium healthcare support, clinical insurance coverage, and custom fitness and wellness subsidies.</p>
+                    </div>
+
+                    <!-- Benefit 6 -->
+                    <div class="card-lift bg-slate-50/50 p-6 rounded-2xl border border-slate-200/60 space-y-3">
+                        <span class="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-teal-50 text-teal-600 border border-teal-100 shadow-sm">
+                            <i data-lucide="cpu" class="h-5 w-5"></i>
+                        </span>
+                        <h3 class="text-sm font-bold text-slate-900">AI Tools Access</h3>
+                        <p class="text-slate-500 text-xs leading-relaxed">Subscriptions for ChatGPT Plus, Claude Pro, Cursor, GitHub Copilot, and premium marketing suites.</p>
+                    </div>
+
+                    <!-- Benefit 7 -->
+                    <div class="card-lift bg-slate-50/50 p-6 rounded-2xl border border-slate-200/60 space-y-3">
+                        <span class="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 shadow-sm">
+                            <i data-lucide="laptop" class="h-5 w-5"></i>
+                        </span>
+                        <h3 class="text-sm font-bold text-slate-900">Latest Hardware</h3>
+                        <p class="text-slate-500 text-xs leading-relaxed">Receive a custom MacBook Pro or top-spec machine, complete with 4K monitors and ergonomic gear.</p>
+                    </div>
+
+                    <!-- Benefit 8 -->
+                    <div class="card-lift bg-slate-50/50 p-6 rounded-2xl border border-slate-200/60 space-y-3">
+                        <span class="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 shadow-sm">
+                            <i data-lucide="compass" class="h-5 w-5"></i>
+                        </span>
+                        <h3 class="text-sm font-bold text-slate-900">Career Mentorship</h3>
+                        <p class="text-slate-500 text-xs leading-relaxed">Weekly 1-on-1 mentorship with marketing and engineering leaders to guide your career goals.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 9. FAQ SECTION (Accordion) -->
+        <section class="py-20 bg-slate-50/50">
+            <div class="max-w-7xl mx-auto px-6 space-y-12">
+                <!-- Section Title -->
+                <div class="max-w-2xl mx-auto text-center space-y-3 reveal-element">
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Frequently Asked Questions</h2>
+                    <p class="text-slate-500 text-sm sm:text-base leading-relaxed">
+                        Got questions? We've compiled detailed explanations for the most common hiring concerns.
+                    </p>
+                </div>
+
+                <!-- Accordion container -->
+                <div class="max-w-3xl mx-auto space-y-4">
+                    <!-- FAQ 1 -->
+                    <div class="glass-card rounded-xl border border-slate-200 overflow-hidden bg-white">
+                        <button onclick="toggleAccordion('faq-1')" class="w-full px-6 py-4 flex items-center justify-between text-left focus:outline-none select-none">
+                            <span class="text-xs sm:text-sm font-bold text-slate-900">How does hiring work at Taskbazi x Linkpilot?</span>
+                            <span id="faq-1-chevron" class="transform transition-transform duration-200 text-slate-400">
+                                <i data-lucide="chevron-down" class="h-4 w-4"></i>
+                            </span>
+                        </button>
+                        <div id="faq-1-content" class="hidden px-6 pb-5 transition-all duration-300">
+                            <p class="text-slate-500 text-xs leading-relaxed">
+                                Our pipeline begins with an online application. Selected candidates undergo a marketing or technical task challenge. Once reviewed, you'll align with team heads and founders in final discussions before offer release.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- FAQ 2 -->
+                    <div class="glass-card rounded-xl border border-slate-200 overflow-hidden bg-white">
+                        <button onclick="toggleAccordion('faq-2')" class="w-full px-6 py-4 flex items-center justify-between text-left focus:outline-none select-none">
+                            <span class="text-xs sm:text-sm font-bold text-slate-900">Can freshers or beginners apply?</span>
+                            <span id="faq-2-chevron" class="transform transition-transform duration-200 text-slate-400">
+                                <i data-lucide="chevron-down" class="h-4 w-4"></i>
+                            </span>
+                        </button>
+                        <div id="faq-2-content" class="hidden px-6 pb-5 transition-all duration-300">
+                            <p class="text-slate-500 text-xs leading-relaxed">
+                                Yes, freshers are welcome! We value potential, skills, and thinking more than pedigree. Apply for suitable executive or trainee roles, or submit a Speculative Application showing your side-projects.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- FAQ 3 -->
+                    <div class="glass-card rounded-xl border border-slate-200 overflow-hidden bg-white">
+                        <button onclick="toggleAccordion('faq-3')" class="w-full px-6 py-4 flex items-center justify-between text-left focus:outline-none select-none">
+                            <span class="text-xs sm:text-sm font-bold text-slate-900">Are these positions remote or office-based?</span>
+                            <span id="faq-3-chevron" class="transform transition-transform duration-200 text-slate-400">
+                                <i data-lucide="chevron-down" class="h-4 w-4"></i>
+                            </span>
+                        </button>
+                        <div id="faq-3-content" class="hidden px-6 pb-5 transition-all duration-300">
+                            <p class="text-slate-500 text-xs leading-relaxed">
+                                Most of our positions are remote-friendly, supporting flexible hybrid working systems. We maintain a collaborative workspace in New Delhi for builders who prefer offline interactions.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- FAQ 4 -->
+                    <div class="glass-card rounded-xl border border-slate-200 overflow-hidden bg-white">
+                        <button onclick="toggleAccordion('faq-4')" class="w-full px-6 py-4 flex items-center justify-between text-left focus:outline-none select-none">
+                            <span class="text-xs sm:text-sm font-bold text-slate-900">How long does the hiring loop usually take?</span>
+                            <span id="faq-4-chevron" class="transform transition-transform duration-200 text-slate-400">
+                                <i data-lucide="chevron-down" class="h-4 w-4"></i>
+                            </span>
+                        </button>
+                        <div id="faq-4-content" class="hidden px-6 pb-5 transition-all duration-300">
+                            <p class="text-slate-500 text-xs leading-relaxed">
+                                We aim to wrap up the entire loop from online application to the founder interview in 7-10 working days. The coordinator will update your status regularly.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- FAQ 5 -->
+                    <div class="glass-card rounded-xl border border-slate-200 overflow-hidden bg-white">
+                        <button onclick="toggleAccordion('faq-5')" class="w-full px-6 py-4 flex items-center justify-between text-left focus:outline-none select-none">
+                            <span class="text-xs sm:text-sm font-bold text-slate-900">Will I receive feedback if my challenge is rejected?</span>
+                            <span id="faq-5-chevron" class="transform transition-transform duration-200 text-slate-400">
+                                <i data-lucide="chevron-down" class="h-4 w-4"></i>
+                            </span>
+                        </button>
+                        <div id="faq-5-content" class="hidden px-6 pb-5 transition-all duration-300">
+                            <p class="text-slate-500 text-xs leading-relaxed">
+                                Absolutely. We respect the effort candidates dedicate to our challenges. You will receive customized reviews highlighting key areas of feedback from our evaluation leads.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10. FINAL CTA -->
+        <section class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="max-w-4xl mx-auto bg-gradient-to-tr from-slate-900 to-[#0A1128] rounded-3xl p-8 sm:p-16 text-center space-y-6 relative overflow-hidden shadow-2xl reveal-element">
+                    <!-- Ambient Glow Blobs inside the Dark CTA Card (as permitted in final CTAs for premium SaaS feel) -->
+                    <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-blue-600/20 rounded-full blur-2xl"></div>
+                    
+                    <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
+                        Ready to Build Something Great?
+                    </h2>
+                    <p class="text-slate-400 text-sm sm:text-base leading-relaxed max-w-xl mx-auto">
+                        Join a team that values creativity, ownership, speed, and innovation. Shape the next-generation rewards & CRM platform.
+                    </p>
+                    <div class="flex flex-wrap justify-center gap-4 pt-4 relative z-10">
+                        <a href="#application-form-section" class="ripple px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20 hover:-translate-y-0.5 active:translate-y-0.5 transition duration-150">
+                            Apply Now
+                        </a>
+                        <a href="#job-openings-section" class="px-6 py-3.5 bg-slate-800 text-slate-350 hover:bg-slate-700/80 border border-slate-700/60 rounded-lg text-xs font-bold transition">
+                            Explore Openings
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER (Matching about.html style) -->
+    <footer class="border-t border-slate-100 bg-[#FAFAFC] py-12 text-slate-400 text-xs">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-5 gap-8">
+            <div class="col-span-2 space-y-4">
+                <div class="flex items-center space-x-2 text-[#0B0B1E] font-bold text-sm">
+                    <img src="dashboard/assets/img/logo.png" class="h-6 w-6 object-contain" alt="LinkPilot Logo">
+                    <span class="font-extrabold text-[#0B0B1E]">LinkPilot AI</span>
+                </div>
+                <p class="max-w-xs text-slate-500 leading-relaxed">AI CRM to automate WhatsApp, Gmail, and Instagram conversations, appointments, and workflows.</p>
+                <div class="text-slate-400">Charge it with Taskbazi 2024 -26. All rights reserved.</div>
+            </div>
+            <div class="space-y-3">
+                <h5 class="text-slate-600 font-bold uppercase tracking-wider text-[10px]">Product</h5>
+                <ul class="space-y-2">
+                    <li><a href="index.html#features" class="hover:text-blue-600 transition">Features</a></li>
+                    <li><a href="pricing.html" class="hover:text-blue-600 transition">Pricing</a></li>
+                    <li><a href="docs.html" class="hover:text-blue-600 transition">Documentation</a></li>
+                    <li><a href="business-overview.html" class="hover:text-blue-600 transition">Business Plan</a></li>
+                </ul>
+            </div>
+            <div class="space-y-3">
+                <h5 class="text-slate-600 font-bold uppercase tracking-wider text-[10px]">Company</h5>
+                <ul class="space-y-2">
+                    <li><a href="about.html" class="hover:text-blue-600 transition">About Us</a></li>
+                    <li><a href="blog.html" class="hover:text-blue-600 transition">Blog & Updates</a></li>
+                    <li><a href="contact.html" class="hover:text-blue-600 transition">Support Contact</a></li>
+                </ul>
+            </div>
+            <div class="space-y-3">
+                <h5 class="text-slate-600 font-bold uppercase tracking-wider text-[10px]">Legal</h5>
+                <ul class="space-y-2">
+                    <li><a href="privacy.html" class="hover:text-blue-600 transition">Privacy Policy</a></li>
+                    <li><a href="terms.html" class="hover:text-blue-600 transition">Terms of Service</a></li>
+                    <li><a href="cookies.html" class="hover:text-blue-600 transition">Cookie Policy</a></li>
+                    <li><a href="disclaimer.html" class="hover:text-blue-600 transition">Disclaimer</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVE CHALLENGE MODAL (Hidden by default) -->
+    <div id="challenge-modal" class="fixed inset-0 z-50 overflow-y-auto hidden flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div onclick="closeChallengeModal()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity duration-300"></div>
+        <!-- Modal Card -->
+        <div class="glass-card bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative z-10 border border-slate-200 animate-fade-in">
+            <button onclick="closeChallengeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition focus:outline-none">
+                <i data-lucide="x" class="h-5 w-5"></i>
+            </button>
+            <div class="space-y-5">
+                <div class="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center">
+                    <i data-lucide="terminal" class="h-5 w-5"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900">Taskbazi Skills Challenge</h3>
+                    <p class="text-xs text-slate-500 mt-1">Select a challenge track. Completed projects can be uploaded directly in the application form below.</p>
+                </div>
+                <div class="space-y-3.5 pt-2">
+                    <!-- Option 1 -->
+                    <div onclick="selectChallenge('Marketing Challenge')" class="p-4 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-slate-50/50 transition cursor-pointer flex items-center justify-between group">
+                        <div class="flex items-center space-x-3.5">
+                            <span class="h-8 w-8 rounded-lg bg-orange-50 text-orange-600 border border-orange-100 flex items-center justify-center shrink-0">
+                                <i data-lucide="megaphone" class="h-4.5 w-4.5"></i>
+                            </span>
+                            <div class="text-left">
+                                <h4 class="text-xs font-bold text-slate-800">Growth & Performance Marketing</h4>
+                                <p class="text-[10px] text-slate-400">Est. Time: 60 mins • Difficulty: Medium</p>
+                            </div>
+                        </div>
+                        <i data-lucide="arrow-right" class="h-4 w-4 text-slate-350 group-hover:text-blue-600 group-hover:translate-x-0.5 transition"></i>
+                    </div>
+
+                    <!-- Option 2 -->
+                    <div onclick="selectChallenge('Design Challenge')" class="p-4 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-slate-50/50 transition cursor-pointer flex items-center justify-between group">
+                        <div class="flex items-center space-x-3.5">
+                            <span class="h-8 w-8 rounded-lg bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center shrink-0">
+                                <i data-lucide="palette" class="h-4.5 w-4.5"></i>
+                            </span>
+                            <div class="text-left">
+                                <h4 class="text-xs font-bold text-slate-800">UI/UX & Graphic Illustration</h4>
+                                <p class="text-[10px] text-slate-400">Est. Time: 90 mins • Difficulty: Medium</p>
+                            </div>
+                        </div>
+                        <i data-lucide="arrow-right" class="h-4 w-4 text-slate-350 group-hover:text-blue-600 group-hover:translate-x-0.5 transition"></i>
+                    </div>
+
+                    <!-- Option 3 -->
+                    <div onclick="selectChallenge('Tech Challenge')" class="p-4 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-slate-50/50 transition cursor-pointer flex items-center justify-between group">
+                        <div class="flex items-center space-x-3.5">
+                            <span class="h-8 w-8 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
+                                <i data-lucide="code-2" class="h-4.5 w-4.5"></i>
+                            </span>
+                            <div class="text-left">
+                                <h4 class="text-xs font-bold text-slate-800">Flutter & Backend API integration</h4>
+                                <p class="text-[10px] text-slate-400">Est. Time: 120 mins • Difficulty: Hard</p>
+                            </div>
+                        </div>
+                        <i data-lucide="arrow-right" class="h-4 w-4 text-slate-350 group-hover:text-blue-600 group-hover:translate-x-0.5 transition"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUCCESS SUBMISSION MODAL (Hidden by default) -->
+    <div id="success-modal" class="fixed inset-0 z-50 overflow-y-auto hidden flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity duration-300"></div>
+        <!-- Modal Card -->
+        <div class="glass-card bg-white rounded-2xl shadow-xl w-full max-w-md p-8 relative z-10 border border-slate-200 text-center space-y-5 animate-fade-in">
+            <!-- Animated Checkmark -->
+            <div class="py-4">
+                <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                    <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+                    <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-slate-900">Application Submitted!</h3>
+                <p class="text-xs text-slate-500 mt-2 max-w-sm mx-auto">
+                    Thank you for applying. We have received your profile and files. A recruitment coordinator will review your application and follow up shortly.
+                </p>
+            </div>
+            <button onclick="closeSuccessModal()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold shadow-md transition duration-150">
+                Close Portal
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // 1. Initial job openings data array (10 positions)
+        const jobRoles = [
+            {
+                title: "Digital Marketing Executive",
+                dept: "Marketing",
+                loc: "Remote",
+                exp: "1-3 Yrs",
+                type: "Full-time",
+                salary: "₹4.5L - ₹6.5L LPA",
+                desc: "Drive daily performance campaigns across social networks and optimize CPC metrics for rewards acquisitions.",
+                skills: ["Google Ads", "Meta Ads Manager", "Copywriting", "Campaign Analysis"]
+            },
+            {
+                title: "SEO Specialist",
+                dept: "Marketing",
+                loc: "Remote",
+                exp: "2-4 Yrs",
+                type: "Full-time",
+                salary: "₹5L - ₹8L LPA",
+                desc: "Optimize high-volume keyword funnels and scale organic search referrals for our rewards and extension pages.",
+                skills: ["Keyword Research", "Technical SEO", "Ahrefs / Semrush", "Link Building"]
+            },
+            {
+                title: "Performance Marketing Expert",
+                dept: "Marketing",
+                loc: "Remote",
+                exp: "3-5 Yrs",
+                type: "Full-time",
+                salary: "₹8L - ₹12L LPA",
+                desc: "Manage and scale monthly marketing budgets. Build high-converting performance marketing structures and run analytics audits.",
+                skills: ["Paid Search", "Conversion Rate Optimization", "ROAS Audits", "Data Analytics"]
+            },
+            {
+                title: "Affiliate Manager",
+                dept: "Growth",
+                loc: "Remote",
+                exp: "2-4 Yrs",
+                type: "Full-time",
+                salary: "₹6L - ₹9L LPA",
+                desc: "Nurture partnerships and recruit digital affiliates to scale rewards campaign distributions across active networks.",
+                skills: ["Affiliate Software", "Partner Communication", "CRM Tracking", "Growth Campaigns"]
+            },
+            {
+                title: "Graphic Designer",
+                dept: "Design",
+                loc: "Office",
+                exp: "1-3 Yrs",
+                type: "Full-time",
+                salary: "₹4L - ₹6L LPA",
+                desc: "Create beautiful, premium landing page visuals, illustrations, and campaign creatives matching Taskbazi's aesthetics.",
+                skills: ["Photoshop", "Illustrator", "Figma Design", "Typography"]
+            },
+            {
+                title: "UI/UX Designer",
+                dept: "Design",
+                loc: "Remote",
+                exp: "2-5 Yrs",
+                type: "Full-time",
+                salary: "₹8L - ₹14L LPA",
+                desc: "Design premium SaaS dashboard features, customer workflows, and layouts using glassmorphism and clean typography.",
+                skills: ["Figma Systems", "Interactive Prototyping", "User Research", "SaaS UX Patterns"]
+            },
+            {
+                title: "Flutter Developer",
+                dept: "Tech",
+                loc: "Remote",
+                exp: "2-4 Yrs",
+                type: "Full-time",
+                salary: "₹8L - ₹15L LPA",
+                desc: "Develop, build, and maintain our premium mobile applications. Implement state management and sync with backend APIs.",
+                skills: ["Dart / Flutter", "Provider / BLoC", "REST APIs", "Mobile Performance"]
+            },
+            {
+                title: "PHP Backend Developer",
+                dept: "Tech",
+                loc: "Remote",
+                exp: "3-6 Yrs",
+                type: "Full-time",
+                salary: "₹10L - ₹18L LPA",
+                desc: "Scale database architectures and maintain rest-relays, workflows, and integrations for CRM modules.",
+                skills: ["Modern PHP", "MySQL Optimization", "REST APIs", "Server Security"]
+            },
+            {
+                title: "Customer Support Executive",
+                dept: "Support",
+                loc: "Office",
+                exp: "0-2 Yrs",
+                type: "Full-time",
+                salary: "₹3L - ₹5L LPA",
+                desc: "Provide fast assistance to user queries. Guide them on platform campaigns, redemptions, and setups.",
+                skills: ["Support Tickets", "Customer Communication", "Troubleshooting", "Active Listening"]
+            },
+            {
+                title: "Business Development Executive",
+                dept: "Growth",
+                loc: "Office",
+                exp: "1-3 Yrs",
+                type: "Full-time",
+                salary: "₹4L - ₹6L LPA + Incentives",
+                desc: "Onboard new partners and enterprises onto LinkPilot CRM and rewards distribution networks.",
+                skills: ["Lead Generation", "Outreach Writing", "Negotiation", "B2B CRM Modules"]
+            }
+        ];
+
+        // 2. Initialize and draw cards
+        function renderJobs(filteredList) {
+            const container = document.getElementById('job-cards-container');
+            const noJobs = document.getElementById('no-jobs-found');
+            
+            container.innerHTML = '';
+            
+            if (filteredList.length === 0) {
+                noJobs.classList.remove('hidden');
+                container.classList.add('hidden');
+                return;
+            } else {
+                noJobs.classList.add('hidden');
+                container.classList.remove('hidden');
+            }
+
+            filteredList.forEach(job => {
+                const card = document.createElement('div');
+                card.className = "card-lift bg-white border border-slate-200/80 p-6 rounded-2xl text-left space-y-4 shadow-xs";
+                
+                // Skill pills
+                let skillBadgesHTML = '';
+                job.skills.forEach(skill => {
+                    skillBadgesHTML += `<span class="px-2 py-0.5 text-[9px] font-bold bg-slate-100 text-slate-600 rounded-md">${skill}</span>`;
+                });
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h3 class="text-sm sm:text-base font-extrabold text-slate-900">${job.title}</h3>
+                            <div class="flex flex-wrap items-center gap-2 mt-2">
+                                <span class="px-2 py-0.5 text-[9px] font-bold bg-blue-50 text-blue-700 rounded-md border border-blue-100">${job.dept}</span>
+                                <span class="px-2 py-0.5 text-[9px] font-bold bg-emerald-50 text-emerald-700 rounded-md border border-emerald-100">${job.loc}</span>
+                                <span class="px-2 py-0.5 text-[9px] font-bold bg-amber-50 text-amber-700 rounded-md border border-amber-100">${job.type}</span>
+                            </div>
+                        </div>
+                        <span class="text-xs font-bold text-slate-900 mt-1">${job.salary}</span>
+                    </div>
+                    <p class="text-slate-500 text-xs leading-relaxed">${job.desc}</p>
+                    <div class="pt-2 border-t border-slate-100 flex flex-wrap gap-1.5 items-center justify-between">
+                        <div class="flex flex-wrap gap-1.5">${skillBadgesHTML}</div>
+                        <a href="#application-form-section" onclick="preselectJob('${job.title}')" class="ripple px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[10px] font-bold transition flex items-center space-x-1">
+                            <span>Apply</span>
+                            <i data-lucide="arrow-right" class="h-3 w-3"></i>
+                        </a>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            
+            // Re-instantiate icons inside new components
+            lucide.createIcons();
+        }
+
+        // 3. Filter open positions
+        function filterJobs() {
+            const query = document.getElementById('job-search-input').value.toLowerCase();
+            const dept = document.getElementById('department-select').value;
+            const loc = document.getElementById('location-select').value;
+            const type = document.getElementById('type-select').value;
+
+            const filtered = jobRoles.filter(job => {
+                const matchesSearch = job.title.toLowerCase().includes(query) || job.desc.toLowerCase().includes(query) || job.skills.some(s => s.toLowerCase().includes(query));
+                const matchesDept = dept === 'All' || job.dept === dept;
+                const matchesLoc = loc === 'All' || job.loc === loc;
+                const matchesType = type === 'All' || job.type === type;
+
+                return matchesSearch && matchesDept && matchesLoc && matchesType;
+            });
+
+            renderJobs(filtered);
+        }
+
+        // 4. Preselect target job role from card clicks
+        function preselectJob(jobTitle) {
+            const roleSelect = document.getElementById('target_role');
+            roleSelect.value = jobTitle;
+            
+            // Trigger focus ring glow
+            roleSelect.focus();
+            
+            // Trigger toast notification
+            showToast(`Role selected: ${jobTitle}`, "info");
+        }
+
+        // 5. Setup Drag and Drop File Upload
+        const dropzone = document.getElementById('resume-dropzone');
+        const fileInput = document.getElementById('resume-file-input');
+        const defaultView = document.getElementById('dropzone-default-view');
+        const fileView = document.getElementById('dropzone-file-view');
+        const uploadedFilename = document.getElementById('uploaded-filename');
+        const uploadedFilesize = document.getElementById('uploaded-filesize');
+
+        // Drag events
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('border-slate-200');
+                dropzone.classList.add('border-blue-500', 'bg-blue-50/30');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('border-blue-500', 'bg-blue-50/30');
+                dropzone.classList.add('border-slate-200');
+            }, false);
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelection(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (fileInput.files.length > 0) {
+                handleFileSelection(fileInput.files[0]);
+            }
+        });
+
+        function handleFileSelection(file) {
+            // Check file size (<5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showToast("File size exceeds 5MB limit", "danger");
+                fileInput.value = '';
+                return;
+            }
+            
+            // Check file extension
+            const allowed = ['.pdf', '.doc', '.docx'];
+            const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+            if (!allowed.includes(ext)) {
+                showToast("Only PDF, DOC, DOCX files are supported", "danger");
+                fileInput.value = '';
+                return;
+            }
+
+            // Show details
+            uploadedFilename.textContent = file.name;
+            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            uploadedFilesize.textContent = `${sizeMB} MB`;
+
+            defaultView.classList.add('hidden');
+            fileView.classList.remove('hidden');
+            showToast("Resume uploaded successfully", "success");
+        }
+
+        // 6. Accordion toggle logic
+        function toggleAccordion(id) {
+            const content = document.getElementById(`${id}-content`);
+            const chevron = document.getElementById(`${id}-chevron`);
+            
+            // Toggle visibility
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                chevron.classList.add('rotate-180');
+            } else {
+                content.classList.add('hidden');
+                chevron.classList.remove('rotate-180');
+            }
+        }
+
+        // 7. Modals triggers
+        function openChallengeModal() {
+            document.getElementById('challenge-modal').classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeChallengeModal() {
+            document.getElementById('challenge-modal').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        function selectChallenge(trackName) {
+            closeChallengeModal();
+            
+            // Pre-select speculative or suitable role if needed
+            const roleSelect = document.getElementById('target_role');
+            if (trackName === 'Marketing Challenge') {
+                roleSelect.value = "Performance Marketing Expert";
+            } else if (trackName === 'Design Challenge') {
+                roleSelect.value = "UI/UX Designer";
+            } else if (trackName === 'Tech Challenge') {
+                roleSelect.value = "PHP Backend Developer";
+            }
+            roleSelect.focus();
+            
+            showToast(`Challenge Track selected: ${trackName}. Please upload output with resume.`, "success");
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('success-modal').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+            
+            // Reset form details
+            document.getElementById('careers-application-form').reset();
+            defaultView.classList.remove('hidden');
+            fileView.classList.add('hidden');
+        }
+
+        // 8. Submit Application Action
+        function handleFormSubmit(event) {
+            event.preventDefault();
+
+            const submitBtn = document.getElementById('submit-application-btn');
+            const originalHTML = submitBtn.innerHTML;
+            
+            // Toggle Loading spinner
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `
+                <svg class="animate-spin h-3.5 w-3.5 text-white mr-1.5" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <span>Submitting Profile...</span>
+            `;
+
+            // Simulate server network delays
+            setTimeout(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalHTML;
+                
+                // Show modal & toast
+                document.getElementById('success-modal').classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+                showToast("Application submitted successfully!", "success");
+            }, 1800);
+        }
+
+        // 9. Toast Notification helper
+        function showToast(message, type = "info") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgClass = "bg-white border-slate-200 text-slate-800";
+            let iconHTML = `<i data-lucide="info" class="h-4 w-4 text-blue-500"></i>`;
+            
+            if (type === "success") {
+                bgClass = "bg-emerald-50 border-emerald-200 text-emerald-800";
+                iconHTML = `<i data-lucide="check-circle" class="h-4 w-4 text-emerald-600"></i>`;
+            } else if (type === "danger") {
+                bgClass = "bg-rose-50 border-rose-200 text-rose-800";
+                iconHTML = `<i data-lucide="alert-triangle" class="h-4 w-4 text-rose-600"></i>`;
+            }
+            
+            toast.className = `flex items-center space-x-2.5 px-4 py-3 rounded-xl border shadow-lg text-xs font-semibold ${bgClass} transition-all duration-300 transform translate-x-12 opacity-0 pointer-events-auto`;
+            toast.innerHTML = `
+                ${iconHTML}
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-x-12', 'opacity-0');
+            }, 50);
+
+            // Dismiss timer
+            setTimeout(() => {
+                toast.classList.add('translate-x-12', 'opacity-0');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3500);
+        }
+
+        // 10. Scroll reveals
+        window.addEventListener('scroll', handleReveal);
+        function handleReveal() {
+            const reveals = document.querySelectorAll('.reveal-element');
+            for (let i = 0; i < reveals.length; i++) {
+                const windowHeight = window.innerHeight;
+                const elementTop = reveals[i].getBoundingClientRect().top;
+                const elementVisible = 120;
+                
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add('active');
+                }
+            }
+        }
+
+        // On document ready load jobs
+        window.addEventListener('DOMContentLoaded', () => {
+            renderJobs(jobRoles);
+            handleReveal();
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

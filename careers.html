@@ -566,23 +566,23 @@
         <div class="w-full flex-grow flex items-center justify-center py-6 relative z-10">
             
             <!-- STEP 1 CONTAINER (Samay Raina Interstitial) -->
-            <div id="step-content-1" class="w-full max-w-5xl mx-auto flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12">
+            <div id="step-content-1" class="w-full max-w-5xl mx-auto flex flex-col lg:flex-row-reverse items-center justify-center gap-8 lg:gap-12">
                 <!-- Comedian Samay Raina image spotlight panel -->
                 <div class="w-full lg:w-1/2 flex justify-center relative">
-                    <div class="relative group max-w-sm w-full flex items-center justify-center min-h-[300px]">
+                    <div class="relative group max-w-sm w-full flex items-center justify-center min-h-[220px] sm:min-h-[300px]">
                         <!-- Background glow spotlight -->
-                        <div class="absolute w-72 h-72 rounded-full bg-gradient-to-tr from-blue-500/20 to-emerald-500/20 blur-2xl"></div>
-                        <div class="absolute w-56 h-56 rounded-full bg-blue-500/5 border border-blue-500/10 scale-95 transition duration-500"></div>
-                        <!-- Transparent Samay Image -->
-                        <img src="assets/img/samay_raina_transparent_v2.png" id="samay-talking-img" class="relative max-w-xs w-full object-contain filter drop-shadow-[0_15px_30px_rgba(37,99,235,0.12)] transition duration-500 hover:scale-[1.02] origin-bottom z-10" alt="Samay Raina">
+                        <div class="absolute w-48 h-48 sm:w-72 sm:h-72 rounded-full bg-gradient-to-tr from-blue-500/20 to-emerald-500/20 blur-2xl"></div>
+                        <div class="absolute w-36 h-36 sm:w-56 sm:h-56 rounded-full bg-blue-500/5 border border-blue-500/10 scale-95 transition duration-500"></div>
+                        <!-- Transparent Samay Image (small on mobile) -->
+                        <img src="assets/img/samay_raina_transparent_v2.png" id="samay-talking-img" class="relative max-w-[180px] sm:max-w-xs w-full object-contain filter drop-shadow-[0_15px_30px_rgba(37,99,235,0.12)] transition duration-500 hover:scale-[1.02] origin-bottom z-10" alt="Samay Raina">
                     </div>
                 </div>
                 
                 <!-- Humorous speech bubble panel -->
                 <div class="w-full lg:w-1/2 flex justify-center">
                     <div class="relative rounded-3xl p-6 sm:p-8 shadow-xl max-w-md w-full relative z-10 text-left" style="background-color: #ffffff !important; border: 1px solid #e2e8f0 !important;">
-                        <!-- Bubble tail pointing left towards Samay -->
-                        <div class="absolute top-1/2 -left-3 -translate-y-1/2 w-0 h-0 border-t-8 border-t-transparent border-r-8 border-r-[#ffffff] border-b-8 border-b-transparent drop-shadow-[-1px_1px_1px_rgba(0,0,0,0.03)] hidden lg:block"></div>
+                        <!-- Bubble tail pointing right towards Samay -->
+                        <div class="absolute top-1/2 -right-3 -translate-y-1/2 w-0 h-0 border-t-8 border-t-transparent border-l-8 border-l-[#ffffff] border-b-8 border-b-transparent drop-shadow-[1px_1px_1px_rgba(0,0,0,0.03)] hidden lg:block"></div>
                         
                         <div class="space-y-4">
                             <div class="flex items-center justify-between pb-3 border-b border-slate-200/50">

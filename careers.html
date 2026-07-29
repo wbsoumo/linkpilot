@@ -132,6 +132,14 @@
             animation: blob-bounce 14s infinite alternate;
         }
 
+        @keyframes speaking-bob {
+            0%, 100% { transform: scale(1) translateY(0); }
+            50% { transform: scale(1.03) translateY(-4px) rotate(0.3deg); }
+        }
+        .talking-bob {
+            animation: speaking-bob 0.45s ease-in-out infinite;
+        }
+
         /* Page element scroll reveals */
         .reveal-element {
             opacity: 0;
@@ -558,35 +566,56 @@
         <div class="w-full flex-grow flex items-center justify-center py-6 relative z-10">
             
             <!-- STEP 1 CONTAINER (Samay Raina Interstitial) -->
-            <div id="step-content-1" class="w-full max-w-5xl mx-auto flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16">
-                <!-- Comedian Samay Raina image panel -->
-                <div class="w-full lg:w-1/2 flex justify-center">
-                    <div class="relative group max-w-sm w-full">
-                        <div class="absolute -inset-1 bg-gradient-to-tr from-blue-600 to-emerald-500 rounded-2xl blur-xl opacity-30 group-hover:opacity-50 transition duration-1000"></div>
-                        <img src="assets/img/samay_raina.png" class="relative rounded-2xl w-full object-cover shadow-2xl border border-white/20" alt="Samay Raina">
+            <div id="step-content-1" class="w-full max-w-5xl mx-auto flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12">
+                <!-- Comedian Samay Raina image spotlight panel -->
+                <div class="w-full lg:w-1/2 flex justify-center relative">
+                    <div class="relative group max-w-sm w-full flex items-center justify-center min-h-[300px]">
+                        <!-- Background glow spotlight -->
+                        <div class="absolute w-72 h-72 rounded-full bg-gradient-to-tr from-blue-500/20 to-emerald-500/20 blur-2xl"></div>
+                        <div class="absolute w-56 h-56 rounded-full bg-blue-500/5 border border-blue-500/10 scale-95 transition duration-500"></div>
+                        <!-- Transparent Samay Image -->
+                        <img src="assets/img/samay_raina.png" id="samay-talking-img" class="relative max-w-xs w-full object-contain filter drop-shadow-[0_15px_30px_rgba(37,99,235,0.12)] transition duration-500 hover:scale-[1.02] origin-bottom z-10" alt="Samay Raina">
                     </div>
                 </div>
                 
-                <!-- Humorous subtitles panel -->
-                <div class="w-full lg:w-1/2 space-y-6 text-left px-4">
-                    <div class="inline-flex items-center space-x-1.5 px-3.5 py-1 bg-amber-50 border border-amber-100 rounded-full text-amber-700 font-bold text-[10px] uppercase tracking-wider">
-                        <i data-lucide="message-square" class="h-3.5 w-3.5"></i>
-                        <span>Incoming Message</span>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <h2 class="text-xs font-bold text-blue-600 uppercase tracking-widest">A message from our partner</h2>
-                        <!-- Animated lines loaded dynamically via JS -->
-                        <div id="samay-lines-box" class="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight space-y-3.5">
-                            <!-- Lines appear one by one -->
+                <!-- Humorous speech bubble panel -->
+                <div class="w-full lg:w-1/2 flex justify-center">
+                    <div class="relative bg-white/75 backdrop-blur-md border border-slate-205 border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xl max-w-md w-full relative z-10 text-left">
+                        <!-- Bubble tail pointing left towards Samay -->
+                        <div class="absolute top-1/2 -left-3 -translate-y-1/2 w-0 h-0 border-t-8 border-t-transparent border-r-8 border-r-white/70 border-b-8 border-b-transparent drop-shadow-[-1px_1px_1px_rgba(0,0,0,0.03)] hidden lg:block"></div>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between pb-3 border-b border-slate-200/50">
+                                <span class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Samay Raina</span>
+                                <!-- Audio Waveform -->
+                                <div id="samay-waveform" class="flex items-center space-x-1 opacity-0 transition-opacity duration-300">
+                                    <span class="w-0.5 h-3 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></span>
+                                    <span class="w-0.5 h-5 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></span>
+                                    <span class="w-0.5 h-4 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.3s"></span>
+                                    <span class="w-0.5 h-6 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.4s"></span>
+                                    <span class="w-0.5 h-3 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.5s"></span>
+                                </div>
+                            </div>
+                            
+                            <!-- Current line -->
+                            <div id="samay-active-speech" class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight leading-tight min-h-[4.5rem] transition-all duration-300">
+                                <!-- Line appears here -->
+                            </div>
+
+                            <!-- Prev lines history -->
+                            <div id="samay-speech-history" class="space-y-2 border-t border-slate-200/40 pt-4 text-xs text-slate-400 max-h-32 overflow-y-auto hidden">
+                                <!-- Previous lines are populated here -->
+                            </div>
+                        </div>
+
+                        <!-- Continue button -->
+                        <div class="pt-4 border-t border-slate-200/40 mt-4 flex justify-end">
+                            <button id="samay-proceed-btn" onclick="moveToOnboardingStep(2)" class="magnetic-button hidden ripple px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold shadow-lg shadow-blue-500/10 hover:shadow-blue-500/25 transition flex items-center space-x-1.5 nav-interactive">
+                                <span>Continue Challenge</span>
+                                <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+                            </button>
                         </div>
                     </div>
-
-                    <!-- Continue button (shown after lines load) -->
-                    <button id="samay-proceed-btn" onclick="moveToOnboardingStep(2)" class="magnetic-button hidden ripple px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold shadow-lg shadow-blue-500/15 hover:shadow-blue-500/30 transition flex items-center space-x-2 nav-interactive">
-                        <span>Continue Challenge</span>
-                        <i data-lucide="arrow-right" class="h-4 w-4"></i>
-                    </button>
                 </div>
             </div>
 
@@ -813,34 +842,67 @@
         ];
 
         let speechIndex = 0;
-        let speechBox = document.getElementById('samay-lines-box');
+        let activeSpeech = document.getElementById('samay-active-speech');
+        let speechHistory = document.getElementById('samay-speech-history');
+        let waveform = document.getElementById('samay-waveform');
+        let talkingImg = document.getElementById('samay-talking-img');
         let proceedBtn = document.getElementById('samay-proceed-btn');
 
         function animateSamaySpeech() {
-            speechBox.innerHTML = '';
-            speechIndex = 0;
+            activeSpeech.innerHTML = '';
+            speechHistory.innerHTML = '';
+            speechHistory.classList.add('hidden');
             proceedBtn.classList.add('hidden');
-            
+            waveform.classList.remove('opacity-0');
+            if (talkingImg) talkingImg.classList.add('talking-bob');
+
+            speechIndex = 0;
+
             function showNextLine() {
                 if (speechIndex < speeches.length) {
-                    const line = document.createElement('p');
-                    line.className = "subtitle-line text-slate-900";
-                    line.textContent = speeches[speechIndex];
-                    speechBox.appendChild(line);
+                    const currentLine = speeches[speechIndex];
                     
-                    // Force repaint then show
+                    // Fade text in smoothly
+                    activeSpeech.style.opacity = 0;
+                    activeSpeech.style.transform = 'translateY(6px)';
+                    
                     setTimeout(() => {
-                        line.classList.add('show');
-                        speechIndex++;
-                        setTimeout(showNextLine, 1200); // 1.2s delay per subtitle
-                    }, 50);
+                        activeSpeech.textContent = currentLine;
+                        activeSpeech.style.opacity = 1;
+                        activeSpeech.style.transform = 'translateY(0)';
+                    }, 150);
+
+                    // Add to history (except first line initially)
+                    if (speechIndex > 0) {
+                        speechHistory.classList.remove('hidden');
+                        const historyLine = document.createElement('p');
+                        historyLine.className = "opacity-0 transition-opacity duration-300 text-slate-500 border-l-2 border-blue-500/30 pl-2 py-0.5";
+                        historyLine.textContent = speeches[speechIndex - 1];
+                        speechHistory.appendChild(historyLine);
+                        setTimeout(() => { historyLine.classList.remove('opacity-0'); }, 50);
+                        
+                        // Scroll history to bottom
+                        speechHistory.scrollTop = speechHistory.scrollHeight;
+                    }
+
+                    speechIndex++;
+                    setTimeout(showNextLine, 2400); // 2.4 seconds per line
                 } else {
-                    // Reveal the CTA button smoothly
+                    // Speech finished
+                    waveform.classList.add('opacity-0');
+                    if (talkingImg) talkingImg.classList.remove('talking-bob');
                     proceedBtn.classList.remove('hidden');
-                    proceedBtn.classList.add('animate-fade-in');
+                    
+                    // Append last line to history
+                    speechHistory.classList.remove('hidden');
+                    const historyLine = document.createElement('p');
+                    historyLine.className = "text-slate-500 border-l-2 border-blue-500/30 pl-2 py-0.5";
+                    historyLine.textContent = speeches[speeches.length - 1];
+                    speechHistory.appendChild(historyLine);
+                    speechHistory.scrollTop = speechHistory.scrollHeight;
                 }
             }
-            
+
             showNextLine();
         }
 

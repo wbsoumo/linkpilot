@@ -72,11 +72,11 @@
         }
 
         .glass-card {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(226, 232, 240, 0.8);
-            box-shadow: 0 4px 30px rgba(15, 23, 42, 0.02);
+            box-shadow: 0 10px 40px -10px rgba(15, 23, 42, 0.04);
         }
 
         /* Premium Gradient Border Card */
@@ -132,7 +132,7 @@
             animation: blob-bounce 14s infinite alternate;
         }
 
-        /* Page element scroll animations */
+        /* Page element scroll reveals */
         .reveal-element {
             opacity: 0;
             transform: translateY(15px);
@@ -143,7 +143,7 @@
             transform: translateY(0);
         }
 
-        /* Card Hover Lift (dashboard styled) */
+        /* Card Hover Lift */
         .card-lift {
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -157,6 +157,56 @@
         .magnetic-button {
             transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
         }
+
+        /* Success checkmark */
+        .checkmark__circle {
+            stroke-dasharray: 166;
+            stroke-dashoffset: 166;
+            stroke-width: 2;
+            stroke-miterlimit: 10;
+            stroke: #10B981;
+            fill: none;
+            animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+        .checkmark {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: block;
+            stroke-width: 2;
+            stroke: #fff;
+            stroke-miterlimit: 10;
+            margin: 10% auto;
+            box-shadow: inset 0px 0px 0px #10B981;
+            animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s forwards;
+        }
+        .checkmark__check {
+            transform-origin: 50% 50%;
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+        }
+        @keyframes stroke {
+            100% { stroke-dashoffset: 0; }
+        }
+        @keyframes scale {
+            0%, 100% { transform: none; }
+            50% { transform: scale3d(1.1, 1.1, 1); }
+        }
+        @keyframes fill {
+            100% { box-shadow: inset 0px 0px 0px 30px #10B981; }
+        }
+
+        /* Subtitle Fade In Stagger */
+        .subtitle-line {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .subtitle-line.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body class="h-full bg-[#f8fafc] text-slate-800 flex flex-col antialiased">
@@ -167,442 +217,552 @@
     <!-- Toast Notification Container -->
     <div id="toast-container" class="fixed top-24 right-6 z-50 flex flex-col space-y-3 pointer-events-none"></div>
 
-    <!-- Sticky Navigation Bar -->
-    <nav class="sticky top-0 z-50 w-full px-6 py-4 glass-nav">
-        <div class="max-w-7xl mx-auto w-full flex items-center justify-between">
-            <!-- Brand Logo -->
-            <a href="index.html" class="flex items-center space-x-2 text-xl font-bold tracking-tight text-slate-900 nav-interactive">
-                <img src="dashboard/assets/img/logo.png" class="h-8 w-8 object-contain" alt="LinkPilot Logo">
-                <span class="font-extrabold text-slate-900 tracking-tight flex items-center">
-                    LinkPilot <span class="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold bg-blue-100 text-blue-700 rounded border border-blue-200 uppercase tracking-wider">x Taskbazi</span>
-                </span>
-            </a>
-            
-            <!-- Mid navigation -->
-            <div class="hidden lg:flex items-center space-x-8 text-sm font-semibold text-slate-600">
-                <a href="index.html#features" class="hover:text-blue-600 transition nav-interactive">Features</a>
-                <a href="index.html#solutions" class="hover:text-blue-600 transition nav-interactive">Solutions</a>
-                <a href="pricing.html" class="hover:text-blue-600 transition nav-interactive">Pricing</a>
-                <a href="docs.html" class="hover:text-blue-600 transition nav-interactive">Docs</a>
-                <a href="about.html" class="hover:text-blue-600 transition nav-interactive">About</a>
-                <a href="careers.html" class="text-blue-600 relative after:content-[''] after:absolute after:-bottom-5 after:left-0 after:w-full after:height after:h-[2px] after:bg-blue-600 nav-interactive">Careers</a>
-            </div>
-
-            <!-- CTA Buttons -->
-            <div class="flex items-center space-x-4">
-                <a href="dashboard/login.html" class="text-sm font-bold text-slate-600 hover:text-blue-600 transition nav-interactive">Log In</a>
-                <a href="dashboard/register.html" class="magnetic-button px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg shadow-md shadow-blue-500/10 hover:shadow-blue-500/25 transition duration-150 nav-interactive">Get Started</a>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Content wrapper -->
-    <main class="flex-grow">
-
-        <!-- 1. HERO SECTION -->
-        <section class="relative py-20 lg:py-32 overflow-hidden bg-gradient-to-b from-blue-50/10 via-transparent to-transparent">
-            <!-- Background blobs -->
-            <div class="absolute top-1/4 left-1/10 w-96 h-96 bg-blue-400/5 rounded-full blur-3xl animate-blob-bounce pointer-events-none"></div>
-            <div class="absolute bottom-1/4 right-1/10 w-96 h-96 bg-emerald-400/5 rounded-full blur-3xl animate-blob-bounce pointer-events-none" style="animation-delay: -5s;"></div>
-
-            <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center relative z-10">
-                <!-- Left Details -->
-                <div class="lg:col-span-6 space-y-6 text-left reveal-element active">
-                    <div class="inline-flex items-center space-x-2 px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-full text-emerald-700 font-semibold text-xs tracking-wide">
-                        <span class="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-ping"></span>
-                        <span>We're Not Hiring.</span>
-                    </div>
-                    <h1 class="text-4xl sm:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight">
-                        We're Recruiting Our Next <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Growth Machine</span>.
-                    </h1>
-                    <p class="text-slate-500 text-base sm:text-lg leading-relaxed max-w-xl">
-                        Forget boring resumes. Show us how you think. If you can grow brands and scale digital products, you'll fit right in.
-                    </p>
-                    <div class="flex flex-wrap gap-4 pt-2">
-                        <a href="#challenge-experience-section" class="magnetic-button px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold shadow-lg shadow-blue-500/15 hover:shadow-blue-500/30 transition duration-150 nav-interactive">
-                            Take the Challenge
-                        </a>
-                        <a href="index.html" class="px-6 py-3.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-lg text-sm font-bold shadow-xs hover:border-slate-350 transition duration-150 nav-interactive">
-                            Explore LinkPilot
-                        </a>
-                    </div>
+    <!-- MAIN PAGE CONTAINER -->
+    <div id="main-content-view" class="flex flex-col min-h-screen">
+        
+        <!-- Sticky Navigation Bar -->
+        <nav class="sticky top-0 z-50 w-full px-6 py-4 glass-nav">
+            <div class="max-w-7xl mx-auto w-full flex items-center justify-between">
+                <!-- Brand Logo -->
+                <a href="index.html" class="flex items-center space-x-2 text-xl font-bold tracking-tight text-slate-900 nav-interactive">
+                    <img src="dashboard/assets/img/logo.png" class="h-8 w-8 object-contain" alt="LinkPilot Logo">
+                    <span class="font-extrabold text-slate-900 tracking-tight flex items-center">
+                        LinkPilot <span class="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold bg-blue-100 text-blue-700 rounded border border-blue-200 uppercase tracking-wider">x Taskbazi</span>
+                    </span>
+                </a>
+                
+                <!-- Mid navigation -->
+                <div class="hidden lg:flex items-center space-x-8 text-sm font-semibold text-slate-600">
+                    <a href="index.html#features" class="hover:text-blue-600 transition nav-interactive">Features</a>
+                    <a href="index.html#solutions" class="hover:text-blue-600 transition nav-interactive">Solutions</a>
+                    <a href="pricing.html" class="hover:text-blue-600 transition nav-interactive">Pricing</a>
+                    <a href="docs.html" class="hover:text-blue-600 transition nav-interactive">Docs</a>
+                    <a href="about.html" class="hover:text-blue-600 transition nav-interactive">About</a>
+                    <a href="careers.html" class="text-blue-600 relative after:content-[''] after:absolute after:-bottom-5 after:left-0 after:w-full after:height after:h-[2px] after:bg-blue-600 nav-interactive">Careers</a>
                 </div>
 
-                <!-- Right Hero Dashboard Mockup (Floating Cards Grid) -->
-                <div class="lg:col-span-6 relative h-[450px] sm:h-[500px] w-full flex items-center justify-center reveal-element active pointer-events-none">
-                    <!-- Base Layer Gradients -->
-                    <div class="absolute w-80 h-80 bg-gradient-to-tr from-blue-600/10 to-indigo-600/5 rounded-full blur-2xl"></div>
-                    
-                    <!-- Floating Marketing Campaign status -->
-                    <div class="absolute top-4 left-6 sm:left-12 glass-card rounded-2xl p-5 w-64 shadow-lg border border-slate-200/60 animate-float-slow z-20">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-2">
-                                <span class="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
-                                    <i data-lucide="megaphone" class="h-4 w-4"></i>
-                                </span>
-                                <div>
-                                    <h4 class="text-xs font-bold text-slate-900">Email Campaign</h4>
-                                    <p class="text-[9px] text-slate-400">Taskbazi Affiliate Launch</p>
-                                </div>
-                            </div>
-                            <span class="px-2 py-0.5 text-[8px] font-bold bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200">Active</span>
-                        </div>
-                        <div class="space-y-3">
-                            <div class="flex justify-between text-[10px] text-slate-500">
-                                <span>Open Rate</span>
-                                <span class="font-bold text-slate-900">68.4%</span>
-                            </div>
-                            <div class="flex justify-between text-[10px] text-slate-500">
-                                <span>Reply Rate</span>
-                                <span class="font-bold text-slate-900">18.5%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Floating Marketing Growth Analytics Card -->
-                    <div class="absolute bottom-8 left-2 sm:left-8 glass-card rounded-2xl p-5 w-72 shadow-lg border border-slate-200/60 animate-float-medium z-30">
-                        <div class="flex items-center justify-between mb-3">
-                            <h4 class="text-xs font-bold text-slate-900">Acquisition Analytics</h4>
-                            <span class="text-[10px] font-bold text-emerald-600 flex items-center">
-                                <i data-lucide="trending-up" class="h-3 w-3 mr-0.5"></i> +40.2%
-                            </span>
-                        </div>
-                        <!-- Mini SVG chart -->
-                        <div class="h-20 w-full mb-3">
-                            <svg class="h-full w-full" viewBox="0 0 100 30" preserveAspectRatio="none">
-                                <defs>
-                                    <linearGradient id="chart-glow" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stop-color="#2563eb" stop-opacity="0.2"/>
-                                        <stop offset="100%" stop-color="#2563eb" stop-opacity="0"/>
-                                    </linearGradient>
-                                </defs>
-                                <path d="M0 25 C10 18, 20 25, 30 15 C40 5, 50 12, 60 8 C70 6, 80 2, 90 5 L100 0 L100 30 L0 30 Z" fill="url(#chart-glow)"/>
-                                <path d="M0 25 C10 18, 20 25, 30 15 C40 5, 50 12, 60 8 C70 6, 80 2, 90 5 L100 0" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-linecap="round"/>
-                                <circle cx="100" cy="0" r="2.5" fill="#2563eb"/>
-                            </svg>
-                        </div>
-                        <div class="flex justify-between border-t border-slate-100 pt-3 text-[10px] text-slate-400">
-                            <div>
-                                <p class="text-[9px]">Conversion Rate</p>
-                                <p class="font-bold text-slate-900 mt-0.5">6.12%</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-[9px]">Total Members</p>
-                                <p class="font-bold text-slate-900 mt-0.5">24,510</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Floating AI Assistant Card -->
-                    <div class="absolute top-1/3 right-4 sm:right-10 glass-card rounded-2xl p-4 w-64 shadow-lg border border-slate-200/60 animate-float-fast z-10">
-                        <div class="space-y-3">
-                            <div class="flex items-center space-x-2">
-                                <span class="h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
-                                    <i data-lucide="sparkles" class="h-3 w-3"></i>
-                                </span>
-                                <span class="text-[10px] font-bold text-slate-900">LinkPilot AI assistant</span>
-                            </div>
-                            <div class="p-2 bg-slate-50 border border-slate-200/65 rounded-lg text-[9px] text-slate-600 leading-relaxed">
-                                "Hey Soumojit, noticed your recent campaign on Taskbazi. Love the conversion strategy..."
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Floating Performance badge -->
-                    <div class="absolute bottom-16 right-10 sm:right-20 glass-card rounded-xl p-3 w-40 shadow-lg border border-slate-200/60 animate-float-slow z-25 flex items-center space-x-2.5">
-                        <div class="h-6 w-6 rounded bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center shrink-0">
-                            <i data-lucide="zap" class="h-3.5 w-3.5"></i>
-                        </div>
-                        <div>
-                            <p class="text-[8px] text-slate-400">Growth Index</p>
-                            <p class="text-xs font-bold text-slate-900">₹9.8L Weekly</p>
-                        </div>
-                    </div>
+                <!-- CTA Buttons -->
+                <div class="flex items-center space-x-4">
+                    <a href="dashboard/login.html" class="text-sm font-bold text-slate-600 hover:text-blue-600 transition nav-interactive">Log In</a>
+                    <a href="dashboard/register.html" class="magnetic-button px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg shadow-md shadow-blue-500/10 hover:shadow-blue-500/25 transition duration-150 nav-interactive">Get Started</a>
                 </div>
             </div>
-        </section>
+        </nav>
 
-        <!-- 2. THIS ISN'T A NORMAL INTERVIEW -->
-        <section class="py-20 bg-white border-y border-slate-100">
-            <div class="max-w-7xl mx-auto px-6 text-center space-y-12">
-                <!-- Section title -->
-                <div class="max-w-2xl mx-auto space-y-3 reveal-element">
-                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">This Isn't a Normal Interview</h2>
-                    <p class="text-slate-500 text-sm sm:text-base leading-relaxed">
-                        We don't do corporate checklists or clinical evaluations. Here's how we find our partners:
-                    </p>
-                </div>
+        <!-- Main Content -->
+        <main class="flex-grow">
+            <!-- Hero Section -->
+            <section class="relative py-20 lg:py-32 overflow-hidden bg-gradient-to-b from-blue-50/10 via-transparent to-transparent">
+                <!-- Background blobs -->
+                <div class="absolute top-1/4 left-1/10 w-96 h-96 bg-blue-400/5 rounded-full blur-3xl animate-blob-bounce pointer-events-none"></div>
+                <div class="absolute bottom-1/4 right-1/10 w-96 h-96 bg-emerald-400/5 rounded-full blur-3xl animate-blob-bounce pointer-events-none" style="animation-delay: -5s;"></div>
 
-                <!-- 4-Column Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
-                    <!-- Card 1 -->
-                    <div class="card-lift bg-[#f8fafc] border border-slate-200/60 p-6 rounded-2xl text-left space-y-3">
-                        <span class="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
-                            <i data-lucide="file-x" class="h-5 w-5"></i>
-                        </span>
-                        <h3 class="text-sm font-bold text-slate-900">🚀 No Resume Required</h3>
-                        <p class="text-slate-500 text-xs leading-relaxed">
-                            We care more about your ideas, copywriting, and growth experiments than your CV.
-                        </p>
-                    </div>
-
-                    <!-- Card 2 -->
-                    <div class="card-lift bg-[#f8fafc] border border-slate-200/60 p-6 rounded-2xl text-left space-y-3">
-                        <span class="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
-                            <i data-lucide="brain" class="h-5 w-5"></i>
-                        </span>
-                        <h3 class="text-sm font-bold text-slate-900">🧠 Show Us Your Brain</h3>
-                        <p class="text-slate-500 text-xs leading-relaxed">
-                            Answer three simple questions about improvements, marketing funnels, and your unique perspective.
-                        </p>
-                    </div>
-
-                    <!-- Card 3 -->
-                    <div class="card-lift bg-[#f8fafc] border border-slate-200/60 p-6 rounded-2xl text-left space-y-3">
-                        <span class="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-violet-50 text-violet-600 border border-violet-100">
-                            <i data-lucide="bot" class="h-5 w-5"></i>
-                        </span>
-                        <h3 class="text-sm font-bold text-slate-900">🤖 AI Friendly</h3>
-                        <p class="text-slate-500 text-xs leading-relaxed">
-                            Use AI if you want. We care about execution, speed, and real metrics, not your writing process.
-                        </p>
-                    </div>
-
-                    <!-- Card 4 -->
-                    <div class="card-lift bg-[#f8fafc] border border-slate-200/60 p-6 rounded-2xl text-left space-y-3">
-                        <span class="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-rose-50 text-rose-600 border border-rose-100">
-                            <i data-lucide="zap" class="h-5 w-5"></i>
-                        </span>
-                        <h3 class="text-sm font-bold text-slate-900">⚡ Fast Hiring</h3>
-                        <p class="text-slate-500 text-xs leading-relaxed">
-                            No endless interview loops or corporate gatekeeping. Direct review and founder alignment.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 3. ONLY ONE OPEN POSITION -->
-        <section class="py-20 bg-slate-50/50">
-            <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 max-w-5xl mx-auto items-center">
-                <!-- Left Details: Single Job Card -->
-                <div class="lg:col-span-6 reveal-element">
-                    <div class="gradient-border-card p-6 shadow-lg border border-slate-200 text-left space-y-6">
-                        <div class="flex items-center justify-between">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-600 border border-rose-100">
-                                🔥 We're Hiring
-                            </span>
-                            <span class="text-xs font-bold text-slate-400">Digital Marketing Specialist</span>
+                <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center relative z-10">
+                    <!-- Left Details -->
+                    <div class="lg:col-span-6 space-y-6 text-left reveal-element active">
+                        <div class="inline-flex items-center space-x-2 px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-full text-emerald-700 font-semibold text-xs tracking-wide">
+                            <span class="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-ping"></span>
+                            <span>We're Not Hiring.</span>
                         </div>
-                        
-                        <div class="space-y-2">
-                            <h3 class="text-2xl font-extrabold text-slate-900">Digital Marketing Specialist</h3>
-                            <div class="flex flex-wrap gap-2">
-                                <span class="px-2.5 py-0.5 text-[10px] font-bold bg-blue-50 text-blue-600 rounded-md">Remote</span>
-                                <span class="px-2.5 py-0.5 text-[10px] font-bold bg-emerald-50 text-emerald-600 rounded-md">0-3 Years Exp</span>
-                                <span class="px-2.5 py-0.5 text-[10px] font-bold bg-violet-50 text-violet-600 rounded-md">Full Time</span>
-                            </div>
-                        </div>
-
-                        <p class="text-slate-500 text-xs leading-relaxed">
-                            We're looking for a creative, metrics-obsessed growth marketer to execute high-converting performance campaigns, manage community incentives, and drive new affiliate pipelines.
+                        <h1 class="text-4xl sm:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                            We're Recruiting Our Next <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Growth Machine</span>.
+                        </h1>
+                        <p class="text-slate-500 text-base sm:text-lg leading-relaxed max-w-xl">
+                            Forget boring resumes. Show us how you think. If you can grow brands and scale digital products, you'll fit right in.
                         </p>
-
-                        <div class="pt-4 border-t border-slate-100">
-                            <a href="#challenge-experience-section" class="ripple w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1.5 nav-interactive">
-                                <span>Accept Challenge →</span>
+                        <div class="flex flex-wrap gap-4 pt-2">
+                            <button onclick="startInteractiveChallenge()" class="magnetic-button px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold shadow-lg shadow-blue-500/15 hover:shadow-blue-500/30 transition duration-150 nav-interactive">
+                                Take the Challenge
+                            </button>
+                            <a href="index.html" class="px-6 py-3.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-lg text-sm font-bold shadow-xs hover:border-slate-350 transition duration-150 nav-interactive">
+                                Explore LinkPilot
                             </a>
                         </div>
                     </div>
-                </div>
 
-                <!-- Right Details: What You'll Actually Do -->
-                <div class="lg:col-span-6 text-left space-y-6 reveal-element">
-                    <div class="inline-flex items-center space-x-2 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-blue-700 font-semibold text-xs">
-                        <i data-lucide="compass" class="h-3.5 w-3.5"></i>
-                        <span>What You'll Actually Do</span>
+                    <!-- Right Hero Dashboard Mockup (Floating Cards Grid) -->
+                    <div class="lg:col-span-6 relative h-[450px] sm:h-[500px] w-full flex items-center justify-center reveal-element active pointer-events-none">
+                        <!-- Base Layer Gradients -->
+                        <div class="absolute w-80 h-80 bg-gradient-to-tr from-blue-600/10 to-indigo-600/5 rounded-full blur-2xl"></div>
+                        
+                        <!-- Floating Marketing Campaign status -->
+                        <div class="absolute top-4 left-6 sm:left-12 glass-card rounded-2xl p-5 w-64 shadow-lg border border-slate-200/60 animate-float-slow z-20">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center space-x-2">
+                                    <span class="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+                                        <i data-lucide="megaphone" class="h-4 w-4"></i>
+                                    </span>
+                                    <div>
+                                        <h4 class="text-xs font-bold text-slate-900">Email Campaign</h4>
+                                        <p class="text-[9px] text-slate-400">Taskbazi Affiliate Launch</p>
+                                    </div>
+                                </div>
+                                <span class="px-2 py-0.5 text-[8px] font-bold bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200">Active</span>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex justify-between text-[10px] text-slate-500">
+                                    <span>Open Rate</span>
+                                    <span class="font-bold text-slate-900">68.4%</span>
+                                </div>
+                                <div class="flex justify-between text-[10px] text-slate-500">
+                                    <span>Reply Rate</span>
+                                    <span class="font-bold text-slate-900">18.5%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Floating Marketing Growth Analytics Card -->
+                        <div class="absolute bottom-8 left-2 sm:left-8 glass-card rounded-2xl p-5 w-72 shadow-lg border border-slate-200/60 animate-float-medium z-30">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="text-xs font-bold text-slate-900">Acquisition Analytics</h4>
+                                <span class="text-[10px] font-bold text-emerald-600 flex items-center">
+                                    <i data-lucide="trending-up" class="h-3 w-3 mr-0.5"></i> +40.2%
+                                </span>
+                            </div>
+                            <!-- Mini SVG chart -->
+                            <div class="h-20 w-full mb-3">
+                                <svg class="h-full w-full" viewBox="0 0 100 30" preserveAspectRatio="none">
+                                    <defs>
+                                        <linearGradient id="chart-glow" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stop-color="#2563eb" stop-opacity="0.2"/>
+                                            <stop offset="100%" stop-color="#2563eb" stop-opacity="0"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <path d="M0 25 C10 18, 20 25, 30 15 C40 5, 50 12, 60 8 C70 6, 80 2, 90 5 L100 0 L100 30 L0 30 Z" fill="url(#chart-glow)"/>
+                                    <path d="M0 25 C10 18, 20 25, 30 15 C40 5, 50 12, 60 8 C70 6, 80 2, 90 5 L100 0" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-linecap="round"/>
+                                    <circle cx="100" cy="0" r="2.5" fill="#2563eb"/>
+                                </svg>
+                            </div>
+                            <div class="flex justify-between border-t border-slate-100 pt-3 text-[10px] text-slate-400">
+                                <div>
+                                    <p class="text-[9px]">Conversion Rate</p>
+                                    <p class="font-bold text-slate-900 mt-0.5">6.12%</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-[9px]">Total Members</p>
+                                    <p class="font-bold text-slate-900 mt-0.5">24,510</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Floating AI Assistant Card -->
+                        <div class="absolute top-1/3 right-4 sm:right-10 glass-card rounded-2xl p-4 w-64 shadow-lg border border-slate-200/60 animate-float-fast z-10">
+                            <div class="space-y-3">
+                                <div class="flex items-center space-x-2">
+                                    <span class="h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+                                        <i data-lucide="sparkles" class="h-3 w-3"></i>
+                                    </span>
+                                    <span class="text-[10px] font-bold text-slate-900">LinkPilot AI assistant</span>
+                                </div>
+                                <div class="p-2 bg-slate-50 border border-slate-200/65 rounded-lg text-[9px] text-slate-600 leading-relaxed">
+                                    "Hey Soumojit, noticed your recent campaign on Taskbazi. Love the conversion strategy..."
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Floating Performance badge -->
+                        <div class="absolute bottom-16 right-10 sm:right-20 glass-card rounded-xl p-3 w-40 shadow-lg border border-slate-200/60 animate-float-slow z-25 flex items-center space-x-2.5">
+                            <div class="h-6 w-6 rounded bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center shrink-0">
+                                <i data-lucide="zap" class="h-3.5 w-3.5"></i>
+                            </div>
+                            <div>
+                                <p class="text-[8px] text-slate-400">Growth Index</p>
+                                <p class="text-xs font-bold text-slate-900">₹9.8L Weekly</p>
+                            </div>
+                        </div>
                     </div>
-                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
-                        Grow with us.
-                    </h2>
-                    <ul class="space-y-4 text-slate-500 text-xs sm:text-sm leading-relaxed">
-                        <li class="flex items-start">
-                            <span class="h-5 w-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mr-3 mt-0.5">
-                                <i data-lucide="check" class="h-3.5 w-3.5"></i>
+                </div>
+            </section>
+
+            <!-- Culture Section -->
+            <section class="py-20 bg-white border-y border-slate-100">
+                <div class="max-w-7xl mx-auto px-6 text-center space-y-12">
+                    <div class="max-w-2xl mx-auto space-y-3 reveal-element">
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">This Isn't a Normal Interview</h2>
+                        <p class="text-slate-500 text-sm sm:text-base leading-relaxed">
+                            We don't do corporate checklists or clinical evaluations. Here's how we find our partners:
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+                        <div class="card-lift bg-[#f8fafc] border border-slate-200/60 p-6 rounded-2xl text-left space-y-3">
+                            <span class="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
+                                <i data-lucide="file-x" class="h-5 w-5"></i>
                             </span>
-                            <span>Scale organic and paid conversion funnels across LinkPilot's CRM modules and extension landing pages.</span>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="h-5 w-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mr-3 mt-0.5">
-                                <i data-lucide="check" class="h-3.5 w-3.5"></i>
+                            <h3 class="text-sm font-bold text-slate-900">🚀 No Resume Required</h3>
+                            <p class="text-slate-500 text-xs leading-relaxed">We care more about your ideas, copywriting, and growth experiments than your CV.</p>
+                        </div>
+                        <div class="card-lift bg-[#f8fafc] border border-slate-200/60 p-6 rounded-2xl text-left space-y-3">
+                            <span class="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                <i data-lucide="brain" class="h-5 w-5"></i>
                             </span>
-                            <span>Draft and test copywriting for ad creatives, conversion assets, and user newsletters.</span>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="h-5 w-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mr-3 mt-0.5">
-                                <i data-lucide="check" class="h-3.5 w-3.5"></i>
+                            <h3 class="text-sm font-bold text-slate-900">🧠 Show Us Your Brain</h3>
+                            <p class="text-slate-500 text-xs leading-relaxed">Answer three simple questions about improvements, marketing funnels, and your unique perspective.</p>
+                        </div>
+                        <div class="card-lift bg-[#f8fafc] border border-slate-200/60 p-6 rounded-2xl text-left space-y-3">
+                            <span class="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-violet-50 text-violet-600 border border-violet-100">
+                                <i data-lucide="bot" class="h-5 w-5"></i>
                             </span>
-                            <span>Work directly alongside founder and tech leaders to orchestrate rewards promotions and referral funnels.</span>
-                        </li>
+                            <h3 class="text-sm font-bold text-slate-900">🤖 AI Friendly</h3>
+                            <p class="text-slate-500 text-xs leading-relaxed">Use AI if you want. We care about execution, speed, and real metrics, not your writing process.</p>
+                        </div>
+                        <div class="card-lift bg-[#f8fafc] border border-slate-200/60 p-6 rounded-2xl text-left space-y-3">
+                            <span class="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-rose-50 text-rose-600 border border-rose-100">
+                                <i data-lucide="zap" class="h-5 w-5"></i>
+                            </span>
+                            <h3 class="text-sm font-bold text-slate-900">⚡ Fast Hiring</h3>
+                            <p class="text-slate-500 text-xs leading-relaxed">No endless interview loops or corporate gatekeeping. Direct review and founder alignment.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Single Open Position -->
+            <section class="py-20 bg-slate-50/50">
+                <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 max-w-5xl mx-auto items-center">
+                    <div class="lg:col-span-6 reveal-element">
+                        <div class="gradient-border-card p-6 shadow-lg border border-slate-200 text-left space-y-6">
+                            <div class="flex items-center justify-between">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-600 border border-rose-100">
+                                    🔥 We're Hiring
+                                </span>
+                                <span class="text-xs font-bold text-slate-400">Digital Marketing Specialist</span>
+                            </div>
+                            <div class="space-y-2">
+                                <h3 class="text-2xl font-extrabold text-slate-900">Digital Marketing Specialist</h3>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="px-2.5 py-0.5 text-[10px] font-bold bg-blue-50 text-blue-600 rounded-md">Remote</span>
+                                    <span class="px-2.5 py-0.5 text-[10px] font-bold bg-emerald-50 text-emerald-600 rounded-md">0-3 Years Exp</span>
+                                    <span class="px-2.5 py-0.5 text-[10px] font-bold bg-violet-50 text-violet-600 rounded-md">Full Time</span>
+                                </div>
+                            </div>
+                            <p class="text-slate-500 text-xs leading-relaxed">
+                                We're looking for a creative, metrics-obsessed growth marketer to execute high-converting performance campaigns, manage community incentives, and drive new affiliate pipelines.
+                            </p>
+                            <div class="pt-4 border-t border-slate-100">
+                                <button onclick="startInteractiveChallenge()" class="ripple w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1.5 nav-interactive">
+                                    <span>Accept Challenge →</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-6 text-left space-y-6 reveal-element">
+                        <div class="inline-flex items-center space-x-2 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-blue-700 font-semibold text-xs">
+                            <i data-lucide="compass" class="h-3.5 w-3.5"></i>
+                            <span>What You'll Actually Do</span>
+                        </div>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">Grow with us.</h2>
+                        <ul class="space-y-4 text-slate-500 text-xs sm:text-sm leading-relaxed">
+                            <li class="flex items-start">
+                                <span class="h-5 w-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mr-3 mt-0.5"><i data-lucide="check" class="h-3.5 w-3.5"></i></span>
+                                <span>Scale organic and paid conversion funnels across LinkPilot's CRM modules and extension landing pages.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="h-5 w-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mr-3 mt-0.5"><i data-lucide="check" class="h-3.5 w-3.5"></i></span>
+                                <span>Draft and test copywriting for ad creatives, conversion assets, and user newsletters.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="h-5 w-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mr-3 mt-0.5"><i data-lucide="check" class="h-3.5 w-3.5"></i></span>
+                                <span>Work directly alongside founder and tech leaders to orchestrate rewards promotions and referral funnels.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="border-t border-slate-100 bg-[#FAFAFC] py-12 text-slate-400 text-xs">
+            <div class="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-5 gap-8">
+                <div class="col-span-2 space-y-4">
+                    <div class="flex items-center space-x-2 text-[#0B0B1E] font-bold text-sm">
+                        <img src="dashboard/assets/img/logo.png" class="h-6 w-6 object-contain" alt="LinkPilot Logo">
+                        <span class="font-extrabold text-[#0B0B1E]">LinkPilot AI</span>
+                    </div>
+                    <p class="max-w-xs text-slate-500 leading-relaxed">AI CRM to automate WhatsApp, Gmail, and Instagram conversations, appointments, and workflows.</p>
+                    <div class="text-slate-400">Charge it with Taskbazi 2024 -26. All rights reserved.</div>
+                </div>
+                <div class="space-y-3">
+                    <h5 class="text-slate-600 font-bold uppercase tracking-wider text-[10px]">Product</h5>
+                    <ul class="space-y-2">
+                        <li><a href="index.html#features" class="hover:text-blue-600 transition nav-interactive">Features</a></li>
+                        <li><a href="pricing.html" class="hover:text-blue-600 transition nav-interactive">Pricing</a></li>
+                        <li><a href="docs.html" class="hover:text-blue-600 transition nav-interactive">Documentation</a></li>
+                        <li><a href="business-overview.html" class="hover:text-blue-600 transition nav-interactive">Business Plan</a></li>
+                    </ul>
+                </div>
+                <div class="space-y-3">
+                    <h5 class="text-slate-600 font-bold uppercase tracking-wider text-[10px]">Company</h5>
+                    <ul class="space-y-2">
+                        <li><a href="about.html" class="hover:text-blue-600 transition nav-interactive">About Us</a></li>
+                        <li><a href="blog.html" class="hover:text-blue-600 transition nav-interactive">Blog & Updates</a></li>
+                        <li><a href="contact.html" class="hover:text-blue-600 transition nav-interactive">Support Contact</a></li>
+                    </ul>
+                </div>
+                <div class="space-y-3">
+                    <h5 class="text-slate-600 font-bold uppercase tracking-wider text-[10px]">Legal</h5>
+                    <ul class="space-y-2">
+                        <li><a href="privacy.html" class="hover:text-blue-600 transition nav-interactive">Privacy Policy</a></li>
+                        <li><a href="terms.html" class="hover:text-blue-600 transition nav-interactive">Terms of Service</a></li>
+                        <li><a href="cookies.html" class="hover:text-blue-600 transition nav-interactive">Cookie Policy</a></li>
+                        <li><a href="disclaimer.html" class="hover:text-blue-600 transition nav-interactive">Disclaimer</a></li>
                     </ul>
                 </div>
             </div>
-        </section>
+        </footer>
+    </div>
 
-        <!-- 4. CHALLENGE EXPERIENCE SECTION (No resume / frictionless form) -->
-        <section id="challenge-experience-section" class="py-20 bg-white">
-            <div class="max-w-7xl mx-auto px-6">
-                <!-- Section title -->
-                <div class="max-w-2xl mx-auto text-center space-y-3 mb-12 reveal-element">
-                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Ready? Let's see how you think.</h2>
-                    <p class="text-slate-500 text-xs sm:text-sm leading-relaxed">
-                        We'd rather see how you think than read another PDF. Complete this 2-minute challenge to start.
+    <!-- 2. FULL SCREEN ONBOARDING EXPERIENCE MODAL / CONTAINER (Hidden by default) -->
+    <div id="interactive-challenge-overlay" class="fixed inset-0 z-50 bg-[#f8fafc] hidden flex flex-col justify-between overflow-y-auto p-6 md:p-10 select-none">
+        
+        <!-- Subtle particle canvas -->
+        <canvas id="particles-canvas" class="absolute inset-0 pointer-events-none z-0 opacity-40"></canvas>
+
+        <!-- Dynamic mesh lighting colors in backdrop -->
+        <div class="absolute top-0 left-0 w-full h-full pointer-events-none z-0 bg-gradient-to-tr from-blue-100/20 via-slate-50/10 to-emerald-100/10"></div>
+
+        <!-- Top Header & Progress indicator -->
+        <div class="w-full max-w-6xl mx-auto flex items-center justify-between relative z-10 pb-6 border-b border-slate-200/50 shrink-0">
+            <!-- Brand -->
+            <div class="flex items-center space-x-2">
+                <img src="dashboard/assets/img/logo.png" class="h-6 w-6 object-contain" alt="LinkPilot Logo">
+                <span class="text-xs font-extrabold text-slate-800 tracking-tight">Onboarding Portal</span>
+            </div>
+
+            <!-- Steps bar -->
+            <div class="flex items-center space-x-2 md:space-x-4">
+                <div id="step-indicator-1" class="flex items-center space-x-1.5 text-[10px] font-bold text-blue-600">
+                    <span class="h-4.5 w-4.5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">1</span>
+                    <span class="hidden sm:inline">Samay's Callout</span>
+                </div>
+                <i data-lucide="chevron-right" class="h-3.5 w-3.5 text-slate-350"></i>
+                <div id="step-indicator-2" class="flex items-center space-x-1.5 text-[10px] font-bold text-slate-400">
+                    <span class="h-4.5 w-4.5 rounded-full bg-slate-100 text-slate-450 flex items-center justify-center">2</span>
+                    <span class="hidden sm:inline">Mission #1</span>
+                </div>
+                <i data-lucide="chevron-right" class="h-3.5 w-3.5 text-slate-350"></i>
+                <div id="step-indicator-3" class="flex items-center space-x-1.5 text-[10px] font-bold text-slate-400">
+                    <span class="h-4.5 w-4.5 rounded-full bg-slate-100 text-slate-450 flex items-center justify-center">3</span>
+                    <span class="hidden sm:inline">Submit</span>
+                </div>
+            </div>
+
+            <!-- Cancel challenge portal -->
+            <button onclick="closeInteractiveChallenge()" class="text-slate-400 hover:text-slate-700 transition focus:outline-none nav-interactive" title="Cancel Challenge">
+                <i data-lucide="x" class="h-5 w-5"></i>
+            </button>
+        </div>
+
+        <!-- Scrollable content zone -->
+        <div class="w-full flex-grow flex items-center justify-center py-6 relative z-10">
+            
+            <!-- STEP 1 CONTAINER (Samay Raina Interstitial) -->
+            <div id="step-content-1" class="w-full max-w-5xl mx-auto flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16">
+                <!-- Comedian Samay Raina image panel -->
+                <div class="w-full lg:w-1/2 flex justify-center">
+                    <div class="relative group max-w-sm w-full">
+                        <div class="absolute -inset-1 bg-gradient-to-tr from-blue-600 to-emerald-500 rounded-2xl blur-xl opacity-30 group-hover:opacity-50 transition duration-1000"></div>
+                        <img src="assets/img/samay_raina.png" class="relative rounded-2xl w-full object-cover shadow-2xl border border-white/20" alt="Samay Raina">
+                    </div>
+                </div>
+                
+                <!-- Humorous subtitles panel -->
+                <div class="w-full lg:w-1/2 space-y-6 text-left px-4">
+                    <div class="inline-flex items-center space-x-1.5 px-3.5 py-1 bg-amber-50 border border-amber-100 rounded-full text-amber-700 font-bold text-[10px] uppercase tracking-wider">
+                        <i data-lucide="message-square" class="h-3.5 w-3.5"></i>
+                        <span>Incoming Message</span>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <h2 class="text-xs font-bold text-blue-600 uppercase tracking-widest">A message from our partner</h2>
+                        <!-- Animated lines loaded dynamically via JS -->
+                        <div id="samay-lines-box" class="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight space-y-3.5">
+                            <!-- Lines appear one by one -->
+                        </div>
+                    </div>
+
+                    <!-- Continue button (shown after lines load) -->
+                    <button id="samay-proceed-btn" onclick="moveToOnboardingStep(2)" class="magnetic-button hidden ripple px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold shadow-lg shadow-blue-500/15 hover:shadow-blue-500/30 transition flex items-center space-x-2 nav-interactive">
+                        <span>Continue Challenge</span>
+                        <i data-lucide="arrow-right" class="h-4 w-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 2 CONTAINER (Creative Mission & AI Assist) -->
+            <div id="step-content-2" class="w-full max-w-4xl mx-auto space-y-8 hidden">
+                <div class="text-center space-y-3 max-w-xl mx-auto">
+                    <div class="inline-flex items-center space-x-1.5 px-3.5 py-1 bg-rose-50 border border-rose-100 rounded-full text-rose-700 font-bold text-[10px] uppercase tracking-wider">
+                        <span>🔥 Mission #1</span>
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Before we ask about YOU...</h2>
+                    <p class="text-slate-500 text-xs sm:text-sm">Let's see how your brain works. Take the prompt below and create a marketing play.</p>
+                </div>
+
+                <!-- Mission Card -->
+                <div class="glass-card rounded-2xl p-6 sm:p-8 border border-slate-200/80 text-left space-y-4">
+                    <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400">The Challenge</h3>
+                    <p class="text-sm font-bold text-slate-900">
+                        Imagine you're hired as LinkPilot's Digital Marketing Specialist. Create ONE creative marketing campaign that can help LinkPilot get more users.
+                    </p>
+                    <p class="text-slate-500 text-xs leading-relaxed">
+                        It can be an Instagram campaign, a LinkedIn strategy, a viral reel idea, meme marketing, a referral campaign, an AI campaign, or guerrilla marketing. We don't care if it's perfect—we care how you think.
                     </p>
                 </div>
 
+                <!-- AI Copilot Card -->
+                <div class="glass-card rounded-2xl p-6 sm:p-8 border border-slate-200/80 text-left space-y-5 bg-[#ffffff]/60">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900">Need a little inspiration?</h3>
+                            <p class="text-xs text-slate-450 text-slate-400 mt-1">We know you're probably going to use AI. That's completely fine. Use it, improve it, make it yours.</p>
+                        </div>
+                        <span class="h-8 w-8 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                            <i data-lucide="bot" class="h-4.5 w-4.5"></i>
+                        </span>
+                    </div>
+
+                    <!-- AI shortcuts -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <a href="https://chatgpt.com" target="_blank" class="px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-350 transition text-center flex items-center justify-center space-x-1.5 nav-interactive">
+                            <span>Open in ChatGPT</span>
+                        </a>
+                        <a href="https://gemini.google.com" target="_blank" class="px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-350 transition text-center flex items-center justify-center space-x-1.5 nav-interactive">
+                            <span>Open in Gemini</span>
+                        </a>
+                        <a href="https://claude.ai" target="_blank" class="px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-350 transition text-center flex items-center justify-center space-x-1.5 nav-interactive">
+                            <span>Open in Claude</span>
+                        </a>
+                        <a href="https://meta.ai" target="_blank" class="px-4 py-2.5 bg-white border border-slate-200 hover:border-rose-300 text-rose-600 rounded-lg text-[10px] font-bold hover:bg-rose-50/50 transition text-center flex items-center justify-center space-x-1.5 nav-interactive" title="Haha we know you will">
+                            <span>🤣 "I Know You'll Use Meta AI"</span>
+                        </a>
+                    </div>
+
+                    <!-- Prompt copyable box -->
+                    <div class="p-4 bg-slate-555/40 bg-slate-50 border border-slate-200 rounded-xl space-y-3 relative">
+                        <div class="flex items-center justify-between border-b border-slate-200/50 pb-2">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center">
+                                <i data-lucide="clipboard" class="h-3.5 w-3.5 mr-1.5 text-slate-400"></i> Prompt Starter
+                            </span>
+                            <button onclick="copyChallengePrompt()" class="text-[10px] font-bold text-blue-600 hover:underline flex items-center space-x-1 nav-interactive">
+                                <i data-lucide="copy" class="h-3 w-3"></i> <span>Copy Prompt</span>
+                            </button>
+                        </div>
+                        <p id="challenge-prompt-text" class="text-[11px] text-slate-600 leading-relaxed italic">
+                            "I'm applying for a Digital Marketing role at LinkPilot. Help me create one unique, creative, realistic marketing campaign that could increase user growth. Avoid generic ideas. Think like a fast-growing SaaS startup. Provide something original that feels achievable."
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Step 2 Actions -->
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                    <button onclick="moveToOnboardingStep(3)" class="magnetic-button px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold shadow-md transition duration-150 flex items-center space-x-1.5 nav-interactive">
+                        <span>🤖 I Got My AI Response</span>
+                    </button>
+                    <button onclick="moveToOnboardingStep(3)" class="magnetic-button px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold shadow-md transition duration-150 flex items-center space-x-1.5 nav-interactive">
+                        <span>🐐 I Created It Myself (I'm a GOAT)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 3 CONTAINER (Form & Submission) -->
+            <div id="step-content-3" class="w-full max-w-xl mx-auto space-y-6 hidden">
+                <div class="text-center space-y-2 max-w-md mx-auto">
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Frictionless Application</h2>
+                    <p class="text-slate-500 text-xs">Answer the details below to complete your challenge. No PDFs or resumes needed.</p>
+                </div>
+
                 <!-- Form Card -->
-                <div class="glass-card max-w-2xl mx-auto rounded-3xl p-6 sm:p-10 border border-slate-200/80 shadow-md bg-white reveal-element">
-                    <!-- Form Container -->
-                    <form id="careers-challenge-form" onsubmit="submitRedesignedForm(event)" class="space-y-8">
+                <div class="glass-card rounded-2xl p-6 sm:p-8 border border-slate-200/80 text-left bg-white">
+                    <form id="careers-steps-form" onsubmit="submitOnboardingForm(event)" class="space-y-5">
                         
-                        <!-- Basic details -->
-                        <div class="space-y-4">
-                            <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3">1. Basic Details</h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div class="space-y-1.5 text-left">
-                                    <label for="name" class="text-xs font-bold text-slate-700">Tell us your name *</label>
-                                    <input type="text" id="name" required placeholder="Enter full name" class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition nav-interactive">
-                                </div>
-                                <div class="space-y-1.5 text-left">
-                                    <label for="email" class="text-xs font-bold text-slate-700">Email Address *</label>
-                                    <input type="email" id="email" required placeholder="name@email.com" class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition nav-interactive">
-                                </div>
-                                <div class="space-y-1.5 text-left sm:col-span-2">
-                                    <label for="phone" class="text-xs font-bold text-slate-700">Phone Number *</label>
-                                    <input type="tel" id="phone" required placeholder="Enter 10-digit number" class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition nav-interactive">
-                                </div>
-                            </div>
+                        <!-- Name -->
+                        <div class="space-y-1.5">
+                            <label for="c_fullname" class="text-xs font-bold text-slate-700">Full Name *</label>
+                            <input type="text" id="c_fullname" required placeholder="Enter full name" class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition nav-interactive">
                         </div>
 
-                        <!-- Challenge details -->
-                        <div class="space-y-6 pt-6 border-t border-slate-100 text-left">
-                            <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3">2. Skills Challenge</h3>
-
-                            <!-- Q1 -->
-                            <div class="space-y-2">
-                                <label for="q1_response" class="text-xs font-bold text-slate-800">
-                                    Take 5 minutes and explore LinkPilot. Tell us honestly... What's ONE thing you'd improve? *
-                                </label>
-                                <textarea id="q1_response" required rows="3" placeholder="Design... UX... Copy... Features... Anything. Tell us your story." class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition nav-interactive"></textarea>
-                            </div>
-
-                            <!-- Q2 -->
-                            <div class="space-y-2">
-                                <label for="q2_response" class="text-xs font-bold text-slate-800">
-                                    Imagine you join tomorrow. How would you get our first 1,000 customers? *
-                                </label>
-                                <span class="block text-[10px] text-slate-450 text-slate-400 mb-1">No right answer. We want your thinking.</span>
-                                <textarea id="q2_response" required rows="3" placeholder="Describe your strategy. Tell us your story." class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition nav-interactive"></textarea>
-                            </div>
-
-                            <!-- Q3 -->
-                            <div class="space-y-2">
-                                <label for="q3_response" class="text-xs font-bold text-slate-800">
-                                    Why should we hire YOU instead of ChatGPT? *
-                                </label>
-                                <span class="block text-[10px] text-slate-450 text-slate-400 mb-1">This is your chance to stand out.</span>
-                                <textarea id="q3_response" required rows="3" placeholder="What unique value do you bring? Tell us your story." class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition nav-interactive"></textarea>
-                            </div>
-
-                            <!-- Optional Work URL -->
-                            <div class="space-y-2">
-                                <label for="work_url" class="text-xs font-bold text-slate-800">
-                                    Drop your best work (Optional)
-                                </label>
-                                <span class="block text-[10px] text-slate-450 text-slate-400 mb-1">Portfolio, Instagram, LinkedIn, Behance, Drive, or Website link.</span>
-                                <input type="url" id="work_url" placeholder="https://..." class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition nav-interactive">
-                            </div>
+                        <!-- Email -->
+                        <div class="space-y-1.5">
+                            <label for="c_email" class="text-xs font-bold text-slate-700">Email Address *</label>
+                            <input type="email" id="c_email" required placeholder="name@email.com" class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition nav-interactive">
                         </div>
 
-                        <!-- No Resume Statement & Action -->
-                        <div class="pt-6 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                            <p class="text-[11px] text-slate-400 text-left sm:max-w-xs leading-relaxed">
-                                "We'd rather see how you think than read another PDF."
+                        <!-- Phone -->
+                        <div class="space-y-1.5">
+                            <label for="c_phone" class="text-xs font-bold text-slate-700">Phone Number *</label>
+                            <input type="tel" id="c_phone" required placeholder="Enter 10-digit number" class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition nav-interactive">
+                        </div>
+
+                        <!-- Portfolio / LinkedIn -->
+                        <div class="space-y-1.5">
+                            <label for="c_portfolio" class="text-xs font-bold text-slate-700">Portfolio / LinkedIn (Optional)</label>
+                            <input type="url" id="c_portfolio" placeholder="https://..." class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition nav-interactive">
+                        </div>
+
+                        <!-- Campaign text -->
+                        <div class="space-y-1.5">
+                            <label for="c_campaign_text" class="text-xs font-bold text-slate-800">Paste your campaign idea here... *</label>
+                            <span class="block text-[10px] text-slate-400 mb-1">Tell us your story.</span>
+                            <textarea id="c_campaign_text" required rows="5" placeholder="Paste your final marketing idea here. We'll actually read it." class="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition nav-interactive"></textarea>
+                        </div>
+
+                        <!-- Consent & Action -->
+                        <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <p class="text-[10px] text-slate-400 text-left sm:max-w-[200px] leading-relaxed">
+                                Every application is reviewed by a real human. No AI filtering. No resume screening. Just good ideas.
                             </p>
-                            
-                            <!-- Action button -->
-                            <button type="submit" id="submit-challenge-btn" class="magnetic-button px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold shadow-md shadow-blue-500/10 hover:shadow-blue-500/25 transition flex items-center justify-center space-x-2 shrink-0 nav-interactive">
-                                <span>Start My Journey</span>
+                            <!-- Submit Button -->
+                            <button type="submit" id="c-submit-btn" class="magnetic-button px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold shadow-md shadow-blue-500/10 hover:shadow-blue-500/25 transition flex items-center justify-center space-x-2 shrink-0 nav-interactive">
+                                <span>Submit My Challenge</span>
                                 <i data-lucide="send" class="h-3.5 w-3.5"></i>
                             </button>
                         </div>
+
                     </form>
-
-                    <!-- Success State (Hidden by default, shown on successful submission) -->
-                    <div id="redesigned-success-state" class="hidden text-center py-8 space-y-6">
-                        <div class="py-4">
-                            <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-                                <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
-                                <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-                            </svg>
-                        </div>
-                        <div class="space-y-3">
-                            <h3 class="text-2xl font-extrabold text-slate-900">🎉 Challenge Accepted.</h3>
-                            <p class="text-slate-500 text-xs leading-relaxed max-w-md mx-auto">
-                                We'll personally review every application. If your thinking impresses us, we'll reach out directly.
-                            </p>
-                        </div>
-                        
-                        <div class="max-w-xs mx-auto p-4 bg-slate-50 border border-slate-200/80 rounded-2xl flex justify-between items-center text-[10px] font-bold text-slate-500">
-                            <span>Estimated review time</span>
-                            <span class="text-blue-600">3-5 Days</span>
-                        </div>
-                    </div>
                 </div>
             </div>
-        </section>
 
-    </main>
-
-    <!-- FOOTER (Matching about.html style) -->
-    <footer class="border-t border-slate-100 bg-[#FAFAFC] py-12 text-slate-400 text-xs">
-        <div class="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-5 gap-8">
-            <div class="col-span-2 space-y-4">
-                <div class="flex items-center space-x-2 text-[#0B0B1E] font-bold text-sm">
-                    <img src="dashboard/assets/img/logo.png" class="h-6 w-6 object-contain" alt="LinkPilot Logo">
-                    <span class="font-extrabold text-[#0B0B1E]">LinkPilot AI</span>
+            <!-- STEP 4 CONTAINER (Success Celebration Pane) -->
+            <div id="step-content-4" class="w-full max-w-md mx-auto text-center space-y-6 hidden">
+                <div class="py-4">
+                    <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                        <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+                        <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                    </svg>
                 </div>
-                <p class="max-w-xs text-slate-500 leading-relaxed">AI CRM to automate WhatsApp, Gmail, and Instagram conversations, appointments, and workflows.</p>
-                <div class="text-slate-400">Charge it with Taskbazi 2024 -26. All rights reserved.</div>
+                <div class="space-y-3">
+                    <h3 class="text-2xl font-extrabold text-slate-900">Challenge Accepted 🚀</h3>
+                    <p class="text-slate-500 text-xs leading-relaxed max-w-sm mx-auto">
+                        Your application has officially landed in our inbox. If your thinking stands out, we'll reach out directly. Good luck. See you on the other side.
+                    </p>
+                </div>
+                
+                <div class="max-w-xs mx-auto p-4 bg-slate-50 border border-slate-200/80 rounded-2xl flex justify-between items-center text-[10px] font-bold text-slate-500">
+                    <span>Estimated review time</span>
+                    <span class="text-blue-600">3-5 Days</span>
+                </div>
+
+                <div class="pt-4">
+                    <button onclick="closeInteractiveChallenge()" class="px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold shadow-md transition nav-interactive">
+                        Back to Careers Home
+                    </button>
+                </div>
             </div>
-            <div class="space-y-3">
-                <h5 class="text-slate-600 font-bold uppercase tracking-wider text-[10px]">Product</h5>
-                <ul class="space-y-2">
-                    <li><a href="index.html#features" class="hover:text-blue-600 transition nav-interactive">Features</a></li>
-                    <li><a href="pricing.html" class="hover:text-blue-600 transition nav-interactive">Pricing</a></li>
-                    <li><a href="docs.html" class="hover:text-blue-600 transition nav-interactive">Documentation</a></li>
-                    <li><a href="business-overview.html" class="hover:text-blue-600 transition nav-interactive">Business Plan</a></li>
-                </ul>
-            </div>
-            <div class="space-y-3">
-                <h5 class="text-slate-600 font-bold uppercase tracking-wider text-[10px]">Company</h5>
-                <ul class="space-y-2">
-                    <li><a href="about.html" class="hover:text-blue-600 transition nav-interactive">About Us</a></li>
-                    <li><a href="blog.html" class="hover:text-blue-600 transition nav-interactive">Blog & Updates</a></li>
-                    <li><a href="contact.html" class="hover:text-blue-600 transition nav-interactive">Support Contact</a></li>
-                </ul>
-            </div>
-            <div class="space-y-3">
-                <h5 class="text-slate-600 font-bold uppercase tracking-wider text-[10px]">Legal</h5>
-                <ul class="space-y-2">
-                    <li><a href="privacy.html" class="hover:text-blue-600 transition nav-interactive">Privacy Policy</a></li>
-                    <li><a href="terms.html" class="hover:text-blue-600 transition nav-interactive">Terms of Service</a></li>
-                    <li><a href="cookies.html" class="hover:text-blue-600 transition nav-interactive">Cookie Policy</a></li>
-                    <li><a href="disclaimer.html" class="hover:text-blue-600 transition nav-interactive">Disclaimer</a></li>
-                </ul>
+
+        </div>
+
+        <!-- Sticky Footer Branding in Onboarding -->
+        <div class="w-full max-w-6xl mx-auto flex items-center justify-between relative z-10 pt-4 border-t border-slate-200/50 text-[10px] font-bold text-slate-400 shrink-0">
+            <span>Taskbazi x LinkPilot AI CRM © 2026</span>
+            <div class="flex space-x-3">
+                <a href="privacy.html" target="_blank" class="hover:text-slate-600 transition">Privacy</a>
+                <a href="terms.html" target="_blank" class="hover:text-slate-600 transition">Terms</a>
             </div>
         </div>
-    </footer>
+
+    </div>
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
@@ -614,34 +774,160 @@
             customCursor.style.top = `${e.clientY}px`;
         });
 
-        // Toggle hover size on specific elements
-        document.querySelectorAll('.nav-interactive').forEach(el => {
-            el.addEventListener('mouseenter', () => {
-                customCursor.classList.add('cursor-hovering');
+        // Trigger hover cursor style on active elements
+        function rebindCursorHoverEffects() {
+            document.querySelectorAll('.nav-interactive').forEach(el => {
+                el.addEventListener('mouseenter', () => {
+                    customCursor.classList.add('cursor-hovering');
+                });
+                el.addEventListener('mouseleave', () => {
+                    customCursor.classList.remove('cursor-hovering');
+                });
             });
-            el.addEventListener('mouseleave', () => {
-                customCursor.classList.remove('cursor-hovering');
-            });
-        });
+        }
 
         // 2. Magnetic Buttons implementation
-        document.querySelectorAll('.magnetic-button').forEach(btn => {
-            btn.addEventListener('mousemove', (e) => {
-                const rect = btn.getBoundingClientRect();
-                const x = e.clientX - rect.left - rect.width / 2;
-                const y = e.clientY - rect.top - rect.height / 2;
-                btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+        function rebindMagneticButtons() {
+            document.querySelectorAll('.magnetic-button').forEach(btn => {
+                btn.addEventListener('mousemove', (e) => {
+                    const rect = btn.getBoundingClientRect();
+                    const x = e.clientX - rect.left - rect.width / 2;
+                    const y = e.clientY - rect.top - rect.height / 2;
+                    btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+                });
+                btn.addEventListener('mouseleave', () => {
+                    btn.style.transform = 'translate(0px, 0px)';
+                });
             });
-            btn.addEventListener('mouseleave', () => {
-                btn.style.transform = 'translate(0px, 0px)';
-            });
-        });
+        }
 
-        // 3. Redesigned Form Submission & Confetti Explodes
-        function submitRedesignedForm(event) {
+        // 3. Challenge Speech array and animation helper for Step 1
+        const speeches = [
+            "So... you think you're a marketer?",
+            "Good.",
+            "Because resumes don't impress us.",
+            "Ideas do.",
+            "If you're about to copy-paste something from ChatGPT...",
+            "...at least make it look like your own.",
+            "Ready?"
+        ];
+
+        let speechIndex = 0;
+        let speechBox = document.getElementById('samay-lines-box');
+        let proceedBtn = document.getElementById('samay-proceed-btn');
+
+        function animateSamaySpeech() {
+            speechBox.innerHTML = '';
+            speechIndex = 0;
+            proceedBtn.classList.add('hidden');
+            
+            function showNextLine() {
+                if (speechIndex < speeches.length) {
+                    const line = document.createElement('p');
+                    line.className = "subtitle-line text-slate-900";
+                    line.textContent = speeches[speechIndex];
+                    speechBox.appendChild(line);
+                    
+                    // Force repaint then show
+                    setTimeout(() => {
+                        line.classList.add('show');
+                        speechIndex++;
+                        setTimeout(showNextLine, 1200); // 1.2s delay per subtitle
+                    }, 50);
+                } else {
+                    // Reveal the CTA button smoothly
+                    proceedBtn.classList.remove('hidden');
+                    proceedBtn.classList.add('animate-fade-in');
+                }
+            }
+            
+            showNextLine();
+        }
+
+        // 4. Onboarding state navigation logic
+        let currentStep = 1;
+
+        function startInteractiveChallenge() {
+            // Hide main landing page, show challenge screen full screen
+            document.getElementById('main-content-view').classList.add('hidden');
+            const overlay = document.getElementById('interactive-challenge-overlay');
+            overlay.classList.remove('hidden');
+            
+            // Lock body scroll
+            document.body.classList.add('overflow-hidden');
+            
+            // Start from step 1
+            moveToOnboardingStep(1);
+
+            // Initialize background particles
+            initParticles();
+        }
+
+        function closeInteractiveChallenge() {
+            // Show main page, hide challenge screen
+            document.getElementById('main-content-view').classList.remove('hidden');
+            document.getElementById('interactive-challenge-overlay').classList.add('hidden');
+            
+            // Unlock body scroll
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        function moveToOnboardingStep(stepNumber) {
+            currentStep = stepNumber;
+
+            // Update Progress indicators in header
+            document.getElementById('step-indicator-1').className = `flex items-center space-x-1.5 text-[10px] font-bold ${stepNumber >= 1 ? 'text-blue-600' : 'text-slate-400'}`;
+            document.getElementById('step-indicator-1').querySelector('span').className = `h-4.5 w-4.5 rounded-full ${stepNumber >= 1 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-450'} flex items-center justify-center`;
+
+            document.getElementById('step-indicator-2').className = `flex items-center space-x-1.5 text-[10px] font-bold ${stepNumber >= 2 ? 'text-blue-600' : 'text-slate-400'}`;
+            document.getElementById('step-indicator-2').querySelector('span').className = `h-4.5 w-4.5 rounded-full ${stepNumber >= 2 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-450'} flex items-center justify-center`;
+
+            document.getElementById('step-indicator-3').className = `flex items-center space-x-1.5 text-[10px] font-bold ${stepNumber >= 3 ? 'text-blue-600' : 'text-slate-400'}`;
+            document.getElementById('step-indicator-3').querySelector('span').className = `h-4.5 w-4.5 rounded-full ${stepNumber >= 3 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-450'} flex items-center justify-center`;
+
+            // Toggle step content panes
+            document.getElementById('step-content-1').classList.add('hidden');
+            document.getElementById('step-content-2').classList.add('hidden');
+            document.getElementById('step-content-3').classList.add('hidden');
+            document.getElementById('step-content-4').classList.add('hidden');
+
+            const activeContent = document.getElementById(`step-content-${stepNumber}`);
+            activeContent.classList.remove('hidden');
+            activeContent.classList.add('animate-fade-in');
+
+            // Trigger action specific triggers
+            if (stepNumber === 1) {
+                animateSamaySpeech();
+            } else if (stepNumber === 4) {
+                // Burst confetti
+                confetti({
+                    particleCount: 150,
+                    spread: 80,
+                    origin: { y: 0.6 }
+                });
+            }
+
+            // Re-instantiate icons
+            lucide.createIcons();
+            rebindCursorHoverEffects();
+            rebindMagneticButtons();
+        }
+
+        // 5. Copy prompt shortcut helper
+        function copyChallengePrompt() {
+            const promptText = document.getElementById('challenge-prompt-text').innerText;
+            navigator.clipboard.writeText(promptText).then(() => {
+                showToast("Prompt copied to clipboard!", "success");
+            }).catch(() => {
+                showToast("Could not copy prompt, please select manually.", "danger");
+            });
+        }
+
+        // 6. Submit Application form logic
+        function submitOnboardingForm(event) {
             event.preventDefault();
 
-            const submitBtn = document.getElementById('submit-challenge-btn');
+            const submitBtn = document.getElementById('c-submit-btn');
             const originalHTML = submitBtn.innerHTML;
 
             // Loading state
@@ -651,26 +937,69 @@
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                 </svg>
-                <span>Evaluating Brain...</span>
+                <span>Submitting Profile...</span>
             `;
 
             setTimeout(() => {
-                // Toggles success state views
-                document.getElementById('careers-challenge-form').classList.add('hidden');
-                document.getElementById('redesigned-success-state').classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalHTML;
 
-                // Burst confetti
-                confetti({
-                    particleCount: 150,
-                    spread: 80,
-                    origin: { y: 0.6 }
-                });
-
-                showToast("Challenge profile submitted!", "success");
+                // Move to step 4 (Success pane)
+                moveToOnboardingStep(4);
             }, 1800);
         }
 
-        // 4. Toast Notification helper
+        // 7. Particle animation loop
+        let particles = [];
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function initParticles() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            particles = [];
+            for (let i = 0; i < 40; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 3 + 1,
+                    speedY: Math.random() * 0.4 + 0.1,
+                    alpha: Math.random() * 0.4 + 0.1
+                });
+            }
+        }
+
+        function drawParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(37, 99, 235, 0.3)';
+            
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Move up
+                p.y -= p.speedY;
+                if (p.y < 0) {
+                    p.y = canvas.height;
+                    p.x = Math.random() * canvas.width;
+                }
+            });
+            requestAnimationFrame(drawParticles);
+        }
+
+        window.addEventListener('resize', () => {
+            if (canvas) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+        });
+
+        // Start drawing particles loop
+        drawParticles();
+
+        // 8. Toast Notification helper
         function showToast(message, type = "info") {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -681,6 +1010,9 @@
             if (type === "success") {
                 bgClass = "bg-emerald-50 border-emerald-200 text-emerald-800";
                 iconHTML = `<i data-lucide="check-circle" class="h-4 w-4 text-emerald-600"></i>`;
+            } else if (type === "danger") {
+                bgClass = "bg-rose-50 border-rose-200 text-rose-800";
+                iconHTML = `<i data-lucide="alert-triangle" class="h-4 w-4 text-rose-600"></i>`;
             }
             
             toast.className = `flex items-center space-x-2.5 px-4 py-3 rounded-xl border shadow-lg text-xs font-semibold ${bgClass} transition-all duration-300 transform translate-x-12 opacity-0 pointer-events-auto`;
@@ -706,7 +1038,7 @@
             }, 3500);
         }
 
-        // 5. Scroll reveals
+        // 9. Scroll reveals
         window.addEventListener('scroll', handleReveal);
         function handleReveal() {
             const reveals = document.querySelectorAll('.reveal-element');
@@ -725,6 +1057,8 @@
         window.addEventListener('DOMContentLoaded', () => {
             handleReveal();
             lucide.createIcons();
+            rebindCursorHoverEffects();
+            rebindMagneticButtons();
         });
     </script>
 </body>

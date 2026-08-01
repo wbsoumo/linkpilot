@@ -71,7 +71,7 @@ try {
 
     if (count($keys) === 0) {
         // Fallback to check environment variables
-        $fallbackKey = getenv('GITHUB_TOKEN') ?: getenv('GEMINI_API_KEY') ?: getenv('OPENROUTER_API_KEY') ?: '';
+        $fallbackKey = getenv('GITHUB_TOKEN') ?: getenv('GITHUB_API_KEY') ?: (defined('GITHUB_TOKEN') ? GITHUB_TOKEN : '') ?: getenv('GEMINI_API_KEY') ?: getenv('OPENROUTER_API_KEY') ?: OPENROUTER_API_KEY;
         if (empty($fallbackKey) || strpos($fallbackKey, 'placeholder') !== false) {
             sendJsonResponse('success', 'Auto-Reply is inactive.', [
                 'live' => false,

@@ -153,18 +153,18 @@ if (!function_exists('callAI')) {
 
         if (empty($apiKeysList)) {
             if ($provider === 'github_models') {
-                $apiKey = getenv('GITHUB_API_KEY') ?: '';
-                if (!empty($apiKey)) {
+                $apiKey = getenv('GITHUB_API_KEY') ?: getenv('GITHUB_TOKEN') ?: (defined('GITHUB_TOKEN') ? GITHUB_TOKEN : '');
+                if (!empty($apiKey) && strpos($apiKey, 'placeholder') === false) {
                     $apiKeysList[] = ['id' => null, 'api_key' => encryptData($apiKey), 'status' => 'active'];
                 }
             } elseif ($provider === 'google_ai_studio') {
                 $apiKey = getenv('GEMINI_API_KEY') ?: '';
-                if (!empty($apiKey)) {
+                if (!empty($apiKey) && strpos($apiKey, 'placeholder') === false) {
                     $apiKeysList[] = ['id' => null, 'api_key' => encryptData($apiKey), 'status' => 'active'];
                 }
             } else {
                 $apiKey = getenv('OPENROUTER_API_KEY') ?: '';
-                if (!empty($apiKey)) {
+                if (!empty($apiKey) && strpos($apiKey, 'placeholder') === false) {
                     $apiKeysList[] = ['id' => null, 'api_key' => encryptData($apiKey), 'status' => 'active'];
                 }
             }

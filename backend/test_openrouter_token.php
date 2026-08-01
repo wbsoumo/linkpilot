@@ -21,62 +21,85 @@ try {
     
     echo "--- OpenRouter Token Tester & Recovery Tool ---\n";
     echo "Testing Key ID 1...\n";
-    echo "Token Length: " . strlen($apiKey) . " characters\n";
-    echo "Testing model: google/gemini-2.5-flash:free\n\n";
+    echo "Token Length: " . strlen($apiKey) . " characters\n\n";
     
-    $headers = [
-        "Authorization: Bearer " . $apiKey,
-        "Content-Type: application/json",
-        "HTTP-Referer: https://linkpilot.work",
-        "X-Title: LinkPilot AI"
+    // List of models to test in order of preference
+    $modelsToTest = [
+        "google/gemini-2.5-flash", // Paid, but standard & high quality
+        "meta-llama/llama-3.3-70b-instruct:free", // Free Llama 3.3
+        "meta-llama/llama-3.1-8b-instruct:free", // Free Llama 3.1
+        "google/gemini-2.0-flash-exp:free" // Free Gemini 2.0 Exp
     ];
+    
+    $workingModel = null;
+    $successResponse = null;
+    
+    foreach ($modelsToTest as $model) {
+        echo "Testing model: $model ... ";
+        
+        $headers = [
+            "Authorization: Bearer " . $apiKey,
+            "Content-Type: application/json",
+            "HTTP-Referer: https://linkpilot.work",
+            "X-Title: LinkPilot AI"
+        ];
 
-    $postFields = [
-        "model" => "google/gemini-2.5-flash:free",
-        "messages" => [
-            ["role" => "user", "content" => "Ping. Reply with: Pong."]
-        ],
-        "max_tokens" => 10
-    ];
+        $postFields = [
+            "model" => $model,
+            "messages" => [
+                ["role" => "user", "content" => "Ping."]
+            ],
+            "max_tokens" => 5
+        ];
 
-    $ch = curl_init("https://openrouter.ai/api/v1/chat/completions");
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        $ch = curl_init("https://openrouter.ai/api/v1/chat/completions");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $error = curl_error($ch);
-    curl_close($ch);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
 
-    if ($error) {
-        throw new Exception("Connection Error: $error");
+        if ($error) {
+            echo "Failed (Connection error: $error)\n";
+            continue;
+        }
+
+        $data = json_decode($response, true);
+        if ($httpCode === 200 && isset($data['choices'][0]['message']['content'])) {
+            echo "SUCCESS!\n";
+            $workingModel = $model;
+            $successResponse = $data;
+            break;
+        } else {
+            $msg = $data['error']['message'] ?? "Status Code $httpCode";
+            echo "Failed ($msg)\n";
+        }
     }
-
-    echo "HTTP Status Code: $httpCode\n";
-    echo "Response:\n$response\n\n";
     
-    $data = json_decode($response, true);
-    if ($httpCode === 200 && isset($data['choices'][0]['message']['content'])) {
-        echo "SUCCESS! OpenRouter connection is fully working.\n\n";
+    if ($workingModel) {
+        echo "\nSUCCESS! Found a working model: $workingModel\n\n";
         
         // Recover key status in DB
         $stmtUpdate = $db->prepare("UPDATE user_ai_keys SET status = 'active', error_message = NULL WHERE id = 1");
         $stmtUpdate->execute();
         
-        // Switch active provider to openrouter
-        $stmtUser = $db->prepare("UPDATE users SET active_ai_provider = 'openrouter', active_ai_model = 'google/gemini-2.5-flash:free' WHERE id = 1");
-        $stmtUser->execute();
+        // Switch active provider to openrouter and set working model
+        $stmtUser = $db->prepare("UPDATE users SET active_ai_provider = 'openrouter', active_ai_model = ? WHERE id = 1");
+        $stmtUser->execute([$workingModel]);
         
+        // Update default model constant for fallback in config.php (since it is read from DB, we also save it in users table)
         echo "Recovered Settings:\n";
         echo "1. Set OpenRouter Key ID 1 status to 'active'.\n";
-        echo "2. Set active provider to 'openrouter' with model 'google/gemini-2.5-flash:free'.\n";
+        echo "2. Set active provider to 'openrouter' with model '$workingModel'.\n";
         echo "\nTry using your extension now!";
     } else {
-        echo "FAILED: OpenRouter returned an error. Please verify your OpenRouter API key credits or validity.";
+        echo "\nFAILED: All tested OpenRouter models failed. Please verify your OpenRouter account has enough credits or if your key is active.";
     }
     
 } catch (Exception $e) {

@@ -12,22 +12,21 @@ $content = file_get_contents($configFile);
 
 $updated = false;
 
-// 1. Force add debug logging to OpenRouter block if not present
-if (strpos($content, 'api_debug.log') === false) {
-    echo "1. Adding debug logging to config.php...\n";
-    
-    $target = '                        $response = curl_exec($ch);
+// Force inject logging to the system temp directory
+echo "1. Patching config.php with writable system temp path logging...\n";
+
+$target = '                        $response = curl_exec($ch);
                         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                         $error = curl_error($ch);
                         curl_close($ch);';
                         
-    $replacement = '                        $response = curl_exec($ch);
+$replacement = '                        $response = curl_exec($ch);
                         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                         $error = curl_error($ch);
                         curl_close($ch);
 
-                        // Debug logging
-                        file_put_contents(__DIR__ . \'/api_debug.log\', sprintf(
+                        // Safe system temp debug logging
+                        file_put_contents(sys_get_temp_dir() . \'/api_debug.log\', sprintf(
                             "[%s] Model: %s, HTTP Code: %d, Error: %s, Response: %s\n",
                             date(\'Y-m-d H:i:s\'),
                             $currentModel,
@@ -36,17 +35,19 @@ if (strpos($content, 'api_debug.log') === false) {
                             $response ?: \'Empty\'
                         ), FILE_APPEND);';
                         
-    // Normalize newlines for search
-    $normalizedContent = str_replace("\r\n", "\n", $content);
-    $normalizedTarget = str_replace("\r\n", "\n", $target);
-    $normalizedReplacement = str_replace("\r\n", "\n", $replacement);
-    
-    if (strpos($normalizedContent, $normalizedTarget) !== false) {
-        $content = str_replace($normalizedTarget, $normalizedReplacement, $normalizedContent);
-        $updated = true;
-    } else {
-        echo "   WARNING: Target curl response block not found for debug logging.\n";
-    }
+// Normalize newlines for search
+$normalizedContent = str_replace("\r\n", "\n", $content);
+$normalizedTarget = str_replace("\r\n", "\n", $target);
+$normalizedReplacement = str_replace("\r\n", "\n", $replacement);
+
+// Remove any existing local api_debug.log paths first to update cleanly
+$normalizedContent = preg_replace('/\/\/ Debug logging.*?FILE_APPEND\);/s', '', $normalizedContent);
+
+if (strpos($normalizedContent, $normalizedTarget) !== false) {
+    $content = str_replace($normalizedTarget, $normalizedReplacement, $normalizedContent);
+    $updated = true;
+} else {
+    echo "   WARNING: Target curl response block not found for debug logging.\n";
 }
 
 // 2. Force update OPENROUTER_MODEL to google/gemini-2.5-flash
@@ -68,7 +69,7 @@ if ($updated) {
         echo "Error: Failed to write patched config.php!\n";
     }
 } else {
-    echo "config.php is already updated with debug logs and models.\n";
+    echo "config.php is already updated.\n";
 }
 
 if (function_exists('opcache_reset')) {

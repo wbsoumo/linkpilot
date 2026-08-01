@@ -21,7 +21,7 @@ try {
     $systemPrompt = "You are LinkPilot AI, a premium outreach generator. Write the email in the specified tone: Professional.";
     $userPrompt = "LinkedIn Post Content: \"Hello world! Let's connect.\" Generate a personalized outreach email.";
     
-    echo "--- OpenRouter Full Request Tester ---\n";
+    echo "--- OpenRouter Full Request Tester (With Max Tokens Limit) ---\n";
     echo "Testing Key ID 1...\n";
     echo "Model: google/gemini-2.5-flash\n\n";
     
@@ -37,7 +37,8 @@ try {
         "messages" => [
             ["role" => "system", "content" => $systemPrompt],
             ["role" => "user", "content" => $userPrompt]
-        ]
+        ],
+        "max_tokens" => 1000
     ];
 
     $ch = curl_init("https://openrouter.ai/api/v1/chat/completions");

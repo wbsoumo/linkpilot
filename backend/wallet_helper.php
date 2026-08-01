@@ -140,15 +140,28 @@ if (!function_exists('callAI')) {
 
         $apiKeysList = [];
         try {
-            $stmtKeys = $db->prepare("
-                SELECT k.id, k.api_key, k.status 
-                FROM user_ai_keys k 
-                JOIN users u ON k.user_id = u.id 
-                WHERE u.role = 'admin' AND k.provider = ? AND k.status NOT IN ('invalid', 'paused') 
-                ORDER BY FIELD(k.status, 'active', 'limit_exceeded') ASC, k.id ASC
-            ");
-            $stmtKeys->execute([$provider]);
-            $apiKeysList = $stmtKeys->fetchAll();
+            if ($userId !== null) {
+                $stmtKeys = $db->prepare("
+                    SELECT k.id, k.api_key, k.status 
+                    FROM user_ai_keys k 
+                    WHERE k.user_id = ? AND k.provider = ? AND k.status NOT IN ('invalid', 'paused') 
+                    ORDER BY FIELD(k.status, 'active', 'limit_exceeded') ASC, k.id ASC
+                ");
+                $stmtKeys->execute([$userId, $provider]);
+                $apiKeysList = $stmtKeys->fetchAll();
+            }
+            
+            if (empty($apiKeysList)) {
+                $stmtKeys = $db->prepare("
+                    SELECT k.id, k.api_key, k.status 
+                    FROM user_ai_keys k 
+                    JOIN users u ON k.user_id = u.id 
+                    WHERE u.role = 'admin' AND k.provider = ? AND k.status NOT IN ('invalid', 'paused') 
+                    ORDER BY FIELD(k.status, 'active', 'limit_exceeded') ASC, k.id ASC
+                ");
+                $stmtKeys->execute([$provider]);
+                $apiKeysList = $stmtKeys->fetchAll();
+            }
         } catch (Exception $e) {}
 
         if (empty($apiKeysList)) {

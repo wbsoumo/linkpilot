@@ -210,7 +210,8 @@ if (!function_exists('callAI')) {
                         "messages" => [
                             ["role" => "system", "content" => $systemPrompt],
                             ["role" => "user", "content" => $userPrompt]
-                        ]
+                        ],
+                        "max_tokens" => 1000
                     ];
 
                     $ch = curl_init("https://models.inference.ai.azure.com/chat/completions");
@@ -268,7 +269,8 @@ if (!function_exists('callAI')) {
                         "messages" => [
                             ["role" => "system", "content" => $systemPrompt],
                             ["role" => "user", "content" => $userPrompt]
-                        ]
+                        ],
+                        "max_tokens" => 1000
                     ];
 
                     $ch = curl_init("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions");
@@ -343,7 +345,8 @@ if (!function_exists('callAI')) {
                                 "messages" => [
                                     ["role" => "system", "content" => $systemPrompt],
                                     ["role" => "user", "content" => $userPrompt]
-                                ]
+                                ],
+                                "max_tokens" => 1000
                             ];
 
                             $ch = curl_init("https://openrouter.ai/api/v1/chat/completions");

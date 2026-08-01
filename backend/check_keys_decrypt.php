@@ -6,7 +6,11 @@ header('Content-Type: text/plain');
 
 $db = Database::getConnection();
 try {
-    $stmt = $db->query("SELECT id, provider, api_key, status, error_message FROM user_ai_keys");
+    $stmt = $db->query("
+        SELECT k.id, k.user_id, u.name as user_name, u.role as user_role, k.provider, k.api_key, k.status, k.error_message 
+        FROM user_ai_keys k
+        JOIN users u ON k.user_id = u.id
+    ");
     $keys = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     echo "--- LinkPilot AI Key Diagnostic Tool ---\n\n";
@@ -18,6 +22,7 @@ try {
         $decrypted = decryptData($raw);
         
         echo "Key ID: {$k['id']}\n";
+        echo "Owner: ID={$k['user_id']}, Name={$k['user_name']}, Role={$k['user_role']}\n";
         echo "Provider: {$k['provider']}\n";
         echo "Status: {$k['status']}\n";
         echo "Decryption success: " . ($decrypted !== false ? "YES" : "NO") . "\n";

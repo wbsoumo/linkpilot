@@ -513,7 +513,7 @@ if (!function_exists('testAIKeyConnection')) {
             return true;
             
         } else { // openrouter
-            $model = "google/gemini-2.0-flash-lite:free";
+            $model = "google/gemini-2.5-flash";
             $headers = [
                 "Authorization: Bearer " . $apiKey,
                 "Content-Type: application/json",

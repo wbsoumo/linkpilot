@@ -5,7 +5,7 @@ ErrorDocument 403 /error-403.html
 ErrorDocument 401 /error-401.html
 
 # Booking URL Rewriting
-Options +FollowSymLinks
+Options +SymLinksIfOwnerMatch
 RewriteEngine On
 RewriteBase /
 RewriteRule ^careers/?$ careers.html [L]

@@ -47,6 +47,7 @@ class GoogleSheetsHelper {
                 "ALTER TABLE `lead_vault` ADD COLUMN `lead_score` INT DEFAULT NULL",
                 "ALTER TABLE `lead_vault` ADD COLUMN `last_contact_date` TIMESTAMP NULL DEFAULT NULL",
                 "ALTER TABLE `lead_vault` ADD COLUMN `next_followup_date` TIMESTAMP NULL DEFAULT NULL",
+                "ALTER TABLE `lead_vault` ADD COLUMN `post_summary` TEXT DEFAULT NULL",
                 "ALTER TABLE `lead_vault` ADD COLUMN `generated_email` TEXT DEFAULT NULL",
                 "ALTER TABLE `lead_vault` ADD COLUMN `generated_whatsapp` TEXT DEFAULT NULL",
                 "ALTER TABLE `lead_vault` ADD COLUMN `generated_comment` TEXT DEFAULT NULL",

@@ -119,10 +119,10 @@
                 <thead>
                     <tr class="border-b border-slate-800">
                         <th class="py-4 px-6">Name</th>
-                        <th class="py-4 px-6">Company</th>
                         <th class="py-4 px-6">Contact Info</th>
-                        <th class="py-4 px-6">Post Details</th>
-                        <th class="py-4 px-6">Source</th>
+                        <th class="py-4 px-6">Post Content</th>
+                        <th class="py-4 px-6">Post Summary</th>
+                        <th class="py-4 px-6">Status</th>
                         <th class="py-4 px-6">Date Added</th>
                     </tr>
                 </thead>
@@ -232,9 +232,7 @@
                             <span class="text-xs font-semibold text-white">Post URL</span>
                             <span class="text-[9px] text-slate-400 leading-tight">Link to source post</span>
                         </div>
-                    </label>
-
-                    <label class="flex items-center space-x-3 p-3 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-800/50 hover:border-slate-700 rounded-xl transition cursor-pointer select-none">
+                    </label>                    <label class="flex items-center space-x-3 p-3 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-800/50 hover:border-slate-700 rounded-xl transition cursor-pointer select-none">
                         <input type="checkbox" value="source" checked class="export-col-checkbox w-4.5 h-4.5 rounded border-slate-700 bg-slate-900 text-teal-500 focus:ring-teal-500 focus:ring-offset-slate-900 focus:ring-2">
                         <div class="flex flex-col">
                             <span class="text-xs font-semibold text-white">Capture Source</span>
@@ -242,6 +240,22 @@
                         </div>
                     </label>
 
+                    <label class="flex items-center space-x-3 p-3 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-800/50 hover:border-slate-700 rounded-xl transition cursor-pointer select-none">
+                        <input type="checkbox" value="post_summary" checked class="export-col-checkbox w-4.5 h-4.5 rounded border-slate-700 bg-slate-900 text-teal-500 focus:ring-teal-500 focus:ring-offset-slate-900 focus:ring-2">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-semibold text-white">Post Summary</span>
+                            <span class="text-[9px] text-slate-400 leading-tight">AI post summary text</span>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center space-x-3 p-3 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-800/50 hover:border-slate-700 rounded-xl transition cursor-pointer select-none">
+                        <input type="checkbox" value="current_status" checked class="export-col-checkbox w-4.5 h-4.5 rounded border-slate-700 bg-slate-900 text-teal-500 focus:ring-teal-500 focus:ring-offset-slate-900 focus:ring-2">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-semibold text-white">Lead Status</span>
+                            <span class="text-[9px] text-slate-400 leading-tight">CRM lifecycle stage</span>
+                        </div>
+                    </label>
+ 
                     <label class="flex items-center space-x-3 p-3 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-800/50 hover:border-slate-700 rounded-xl transition cursor-pointer select-none">
                         <input type="checkbox" value="created_at" checked class="export-col-checkbox w-4.5 h-4.5 rounded border-slate-700 bg-slate-900 text-teal-500 focus:ring-teal-500 focus:ring-offset-slate-900 focus:ring-2">
                         <div class="flex flex-col">
@@ -317,7 +331,7 @@
                     const date = new Date(lead.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
                     
                     const linkedinLink = lead.linkedin_url ? `<a href="${lead.linkedin_url}" target="_blank" class="text-teal-400 hover:underline flex items-center space-x-1"><span>${lead.name}</span><i data-lucide="external-link" class="h-3.5 w-3.5 inline"></i></a>` : lead.name;
-                    const postLink = lead.post_url ? `<a href="${lead.post_url}" target="_blank" class="text-slate-400 hover:text-white transition flex items-center space-x-1"><i data-lucide="link" class="h-3.5 w-3.5 mr-1"></i>View Post</a>` : '<span class="text-slate-600">-</span>';
+                    const postLink = lead.post_url ? `<a href="${lead.post_url}" target="_blank" class="text-slate-400 hover:text-white transition flex items-center space-x-1"><i data-lucide="link" class="h-3.5 w-3.5 mr-1"></i>View Post</a>` : '';
                     
                     // Contact details cell
                     let contacts = '';
@@ -325,13 +339,36 @@
                     if (lead.phone_number) contacts += `<div class="flex items-center text-xs text-slate-300 mt-1"><i data-lucide="phone" class="h-3 w-3 mr-1 text-slate-500"></i>${lead.phone_number}</div>`;
                     if (!lead.email && !lead.phone_number) contacts = '<span class="text-slate-600">None detected</span>';
 
+                    // Truncate post content and summary for table view
+                    const escPostContent = (lead.post_content || '').replace(/"/g, '&quot;');
+                    const escPostSummary = (lead.post_summary || '').replace(/"/g, '&quot;');
+                    
+                    const postContentCell = lead.post_content 
+                        ? `<div class="max-w-xs truncate text-slate-300 hover:text-white cursor-help" title="${escPostContent}">${lead.post_content}</div>${postLink}`
+                        : '<span class="text-slate-600">-</span>';
+                        
+                    const postSummaryCell = lead.post_summary
+                        ? `<div class="max-w-xs truncate text-slate-300 hover:text-white cursor-help font-medium text-teal-300" title="${escPostSummary}">${lead.post_summary}</div>`
+                        : '<span class="text-slate-600">Generating summary...</span>';
+
+                    // Status Badge styling
+                    const statusColors = {
+                        'New': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+                        'Contacted': 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+                        'Interested': 'bg-green-500/10 text-green-400 border-green-500/20',
+                        'Not Interested': 'bg-red-500/10 text-red-400 border-red-500/20',
+                        'Qualified': 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                    };
+                    const statusClass = statusColors[lead.current_status] || 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+                    const statusBadge = `<span class="px-2.5 py-1 text-xs font-semibold rounded-full border ${statusClass}">${lead.current_status || 'New'}</span>`;
+
                     return `
                         <tr class="hover:bg-slate-900/40">
                             <td class="py-4 px-6 text-sm font-semibold text-white whitespace-nowrap">${linkedinLink}</td>
-                            <td class="py-4 px-6 text-sm text-slate-300 whitespace-nowrap">${lead.company_name || '<span class="text-slate-600">Not specified</span>'}</td>
                             <td class="py-4 px-6 text-sm text-slate-300 whitespace-nowrap">${contacts}</td>
-                            <td class="py-4 px-6 text-sm text-slate-300 max-w-xs truncate">${postLink}</td>
-                            <td class="py-4 px-6 text-sm text-slate-400 whitespace-nowrap">${lead.source}</td>
+                            <td class="py-4 px-6 text-sm text-slate-300">${postContentCell}</td>
+                            <td class="py-4 px-6 text-sm text-slate-300">${postSummaryCell}</td>
+                            <td class="py-4 px-6 text-sm whitespace-nowrap">${statusBadge}</td>
                             <td class="py-4 px-6 text-sm text-slate-400 whitespace-nowrap">${date}</td>
                         </tr>
                     `;

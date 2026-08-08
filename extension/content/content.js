@@ -2045,7 +2045,7 @@
                 <!-- Tabs Bar -->
                 <div class="tabs-bar">
                     <button class="tab-btn active" data-tab="email">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="tab-icon" style="color: #3B82F6;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="tab-icon" style="color: #EA4335;">
                             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                             <polyline points="22,6 12,13 2,6"></polyline>
                         </svg>
@@ -2396,6 +2396,24 @@
                 action: 'trackAction',
                 payload: { event_type: 'popup_opened', details: `Opened popup for post URL: ${details.postUrl}` }
             }, () => {});
+
+            // Autosave lead details to database on click of AI button (opening the modal)
+            window.LinkPilotUtils.safeSendMessage({
+                action: 'saveLead',
+                payload: {
+                    name: details.author || 'LinkedIn Member',
+                    company_name: details.company || '',
+                    linkedin_url: details.profileUrl || '',
+                    email: details.email || '',
+                    phone_number: details.phone || '',
+                    post_url: details.postUrl || '',
+                    post_content: details.postText || '',
+                    source: 'LinkedIn Extension',
+                    current_status: 'New'
+                }
+            }, (res) => {
+                window.LinkPilotLogger.debug('Autosave lead result:', res);
+            });
 
             document.body.appendChild(container);
         });

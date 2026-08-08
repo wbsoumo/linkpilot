@@ -23,6 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $source = trim($input['source'] ?? 'LinkedIn Extension');
     $postUrl = trim($input['post_url'] ?? '');
     $postContent = trim($input['post_content'] ?? '');
+    $postSummary = trim($input['post_summary'] ?? '');
+    $currentStatus = trim($input['current_status'] ?? 'New');
     
     if (empty($name) && empty($companyName)) {
         sendJsonResponse('error', 'Name or Company Name is required to save lead.', [], 400);
@@ -31,10 +33,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $db = Database::getConnection();
     
     try {
-        $stmt = $db->prepare("INSERT INTO lead_vault (user_id, name, company_name, linkedin_url, email, phone_number, source, post_url, post_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$userId, $name, $companyName, $linkedinUrl, $email, $phoneNumber, $source, $postUrl, $postContent]);
+        // If no summary is provided but we have post content, generate it via AI
+        if (empty($postSummary) && !empty($postContent)) {
+            try {
+                $systemPrompt = "You are a professional assistant. Summarize the provided LinkedIn post in 1-2 sentences. Keep it clear, concise, and professional.";
+                $userPrompt = "LinkedIn Post:\n\n" . $postContent;
+                $aiResponse = callAI($systemPrompt, $userPrompt, $userId);
+                if ($aiResponse && is_string($aiResponse)) {
+                    $postSummary = trim(strip_tags($aiResponse));
+                }
+            } catch (Exception $e) {
+                error_log("Failed to generate post summary: " . $e->getMessage());
+            }
+        }
+
+        // Check if lead already exists for this user by linkedinUrl or postUrl
+        $leadId = null;
+        if (!empty($linkedinUrl)) {
+            $stmtCheck = $db->prepare("SELECT id FROM lead_vault WHERE user_id = ? AND linkedin_url = ?");
+            $stmtCheck->execute([$userId, $linkedinUrl]);
+            $existing = $stmtCheck->fetch();
+            if ($existing) {
+                $leadId = $existing['id'];
+            }
+        }
         
-        sendJsonResponse('success', 'Lead saved successfully to Lead Vault.', ['lead_id' => $db->lastInsertId()]);
+        if (!$leadId && !empty($postUrl)) {
+            $stmtCheck = $db->prepare("SELECT id FROM lead_vault WHERE user_id = ? AND post_url = ?");
+            $stmtCheck->execute([$userId, $postUrl]);
+            $existing = $stmtCheck->fetch();
+            if ($existing) {
+                $leadId = $existing['id'];
+            }
+        }
+
+        if ($leadId) {
+            // Update existing lead
+            $stmt = $db->prepare("
+                UPDATE lead_vault 
+                SET name = ?, company_name = ?, email = ?, phone_number = ?, source = ?, post_url = ?, post_content = ?, post_summary = ?, current_status = ?, updated_at = CURRENT_TIMESTAMP 
+                WHERE id = ? AND user_id = ?
+            ");
+            $stmt->execute([$name, $companyName ?: null, $email ?: null, $phoneNumber ?: null, $source, $postUrl ?: null, $postContent, $postSummary ?: null, $currentStatus, $leadId, $userId]);
+            
+            sendJsonResponse('success', 'Lead updated successfully in Lead Vault.', ['lead_id' => $leadId]);
+        } else {
+            // Insert new lead
+            $stmt = $db->prepare("
+                INSERT INTO lead_vault (user_id, name, company_name, linkedin_url, email, phone_number, source, post_url, post_content, post_summary, current_status) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([$userId, $name, $companyName ?: null, $linkedinUrl ?: null, $email ?: null, $phoneNumber ?: null, $source, $postUrl ?: null, $postContent, $postSummary ?: null, $currentStatus]);
+            $newLeadId = $db->lastInsertId();
+            
+            sendJsonResponse('success', 'Lead saved successfully to Lead Vault.', ['lead_id' => $newLeadId]);
+        }
     } catch (Exception $e) {
         sendJsonResponse('error', 'Failed to save lead: ' . $e->getMessage(), [], 500);
     }

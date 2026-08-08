@@ -112,6 +112,7 @@ CREATE TABLE IF NOT EXISTS `lead_vault` (
     `phone_number` VARCHAR(50) DEFAULT NULL,
     `post_url` VARCHAR(500) DEFAULT NULL,
     `post_content` TEXT DEFAULT NULL,
+    `post_summary` TEXT DEFAULT NULL,
     `source` VARCHAR(100) DEFAULT 'LinkedIn Extension',
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT `fk_leads_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,

@@ -20,7 +20,7 @@ $company = trim($_GET['company'] ?? '');
 
 try {
     // Base SQL
-    $sql = "SELECT name, company_name, linkedin_url, email, phone_number, post_url, source, created_at FROM lead_vault WHERE user_id = :user_id";
+    $sql = "SELECT name, company_name, linkedin_url, email, phone_number, post_url, source, post_summary, current_status, created_at FROM lead_vault WHERE user_id = :user_id";
     $params = ['user_id' => $userId];
     
     if ($search !== '') {
@@ -53,6 +53,8 @@ try {
         'phone_number' => 'Phone Number',
         'post_url' => 'Post URL',
         'source' => 'Source',
+        'post_summary' => 'Post Summary',
+        'current_status' => 'Lead Status',
         'created_at' => 'Date Added'
     ];
 

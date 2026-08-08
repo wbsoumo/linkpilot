@@ -5,7 +5,9 @@ ErrorDocument 403 /error-403.html
 ErrorDocument 401 /error-401.html
 
 # Booking URL Rewriting
+Options +FollowSymLinks
 RewriteEngine On
+RewriteBase /
 RewriteRule ^careers/?$ careers.html [L]
 RewriteRule ^m/([a-zA-Z0-9]+)/?$ dashboard/meet.html?id=$1 [L,QSA]
 RewriteRule ^o/([a-zA-Z0-9]+)/?$ backend/api/crm/track_open.php?id=$1 [L,QSA]

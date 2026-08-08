@@ -72,6 +72,27 @@
             return true;
         }
 
+        // 4. Exclude all elements in the notification/activity header (which is separated by a <hr>)
+        const hr = postRoot.querySelector('hr');
+        if (hr && (el.compareDocumentPosition(hr) & Node.DOCUMENT_POSITION_FOLLOWING)) {
+            // Check if any sibling before the <hr> contains action keywords (commented, reposted, likes, etc.)
+            let sibling = hr.previousElementSibling;
+            while (sibling) {
+                const text = (sibling.innerText || '').toLowerCase();
+                if (text.includes('commented') || 
+                    text.includes('reposted') || 
+                    text.includes('likes') || 
+                    text.includes('reacted') || 
+                    text.includes('shared') || 
+                    text.includes('loves') || 
+                    text.includes('celebrates') || 
+                    text.includes('supports')) {
+                    return true;
+                }
+                sibling = sibling.previousElementSibling;
+            }
+        }
+
         return false;
     };
 

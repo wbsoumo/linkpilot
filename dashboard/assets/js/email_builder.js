@@ -3123,9 +3123,29 @@
                         inner = `
                             <tr>
                                 <td align="${escapeAttr(el.settings.align || 'center')}" style="padding: 15px 0;">
-                                    <a href="${sanitizeUrl(el.settings.videoUrl)}" target="_blank" style="display: inline-block; position: relative; text-decoration: none;">
-                                        <img src="${sanitizeUrl(el.settings.thumbnailUrl || 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&auto=format&fit=crop')}" width="100%" style="max-width: 540px; height: auto; border-radius: 12px; display: block;" alt="Video">
-                                    </a>
+                                    <table border="0" cellpadding="0" cellspacing="0" style="display: inline-block;">
+                                        <tr>
+                                            <td align="center" style="position: relative;">
+                                                <a href="${sanitizeUrl(el.settings.videoUrl)}" target="_blank" style="display: inline-block; position: relative; text-decoration: none; border-radius: 12px; overflow: hidden;">
+                                                    <img src="${sanitizeUrl(el.settings.thumbnailUrl || 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&auto=format&fit=crop')}" width="100%" style="max-width: 540px; height: auto; border-radius: 12px; display: block; border: 0;" alt="Watch Video">
+                                                    <!-- Centered High-Visibility Play Button Badge -->
+                                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; height: 100%;">
+                                                        <tr>
+                                                            <td align="center" valign="middle">
+                                                                <table border="0" cellpadding="0" cellspacing="0" bgcolor="#6D5EF5" style="border-radius: 50%; width: 56px; height: 56px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                                                                    <tr>
+                                                                        <td align="center" valign="middle" style="width: 56px; height: 56px; font-size: 22px; color: #ffffff; line-height: 1;">
+                                                                            &#9654;
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
                                 </td>
                             </tr>
                         `;

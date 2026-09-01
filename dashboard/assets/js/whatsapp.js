@@ -2629,14 +2629,26 @@ function renderWhatsAppContacts(container) {
     checkWaConnectionAndRender('contacts', container, async (contentArea) => {
         try {
             const res = await apiCall('whatsapp/contacts.php');
-            const list = res.contacts || [];
+            window._allWaContactsList = res.contacts || [];
+            window._waContactsCurrentPage = 1;
+            window._waContactsPageSize = 25;
+            window._waContactsSearchQuery = '';
 
             contentArea.innerHTML = `
                 <div class="space-y-6">
-                    <div class="flex items-center justify-between border-b border-slate-200 pb-4 bg-white p-5 rounded-2xl shadow-sm">
+                    <div class="flex items-center justify-between flex-wrap gap-4 border-b border-slate-200 pb-4 bg-white p-5 rounded-2xl shadow-sm">
                         <div>
-                            <h2 class="text-sm font-bold text-slate-800">WhatsApp Subscriber List</h2>
+                            <div class="flex items-center space-x-2">
+                                <h2 class="text-sm font-bold text-slate-800">WhatsApp Subscriber List</h2>
+                                <span class="bg-indigo-50 text-indigo-700 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-indigo-100" id="wa-contacts-total-count">${window._allWaContactsList.length} CONTACTS</span>
+                            </div>
                             <p class="text-[11px] text-slate-400 mt-0.5">Contacts who connected with your number via WhatsApp.</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="relative w-64">
+                                <i data-lucide="search" class="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400"></i>
+                                <input type="text" id="wa-contacts-search-input" oninput="handleWaContactsSearch(this.value)" placeholder="Search profile, phone, or tags..." class="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-indigo-500 focus:bg-white transition">
+                            </div>
                         </div>
                     </div>
 
@@ -2645,7 +2657,7 @@ function renderWhatsAppContacts(container) {
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse text-xs">
                                 <thead>
-                                    <tr class="border-b border-slate-100 text-slate-500">
+                                    <tr class="border-b border-slate-100 text-slate-500 font-extrabold uppercase text-[10px] tracking-wider">
                                         <th class="py-3 px-4">Profile Name</th>
                                         <th class="py-3 px-4">Phone Number</th>
                                         <th class="py-3 px-4">CRM Profile Link</th>
@@ -2654,38 +2666,107 @@ function renderWhatsAppContacts(container) {
                                         <th class="py-3 px-4">Last Active</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    ${list.length > 0 ? list.map(c => `
-                                        <tr class="hover:bg-slate-50 border-b border-slate-100">
-                                            <td class="py-3 px-4 font-bold text-slate-700 flex items-center space-x-2">
-                                                <div class="h-6 w-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-[10px]">
-                                                    ${(c.profile_name || 'WhatsApp Contact').charAt(0).toUpperCase()}
-                                                </div>
-                                                <span>${c.profile_name || 'WhatsApp Contact'}</span>
-                                            </td>
-                                            <td class="py-3 px-4 text-slate-600 font-mono">${formatPhoneNumber(c.wa_id)}</td>
-                                            <td class="py-3 px-4 text-slate-600">
-                                                ${c.crm_name ? `<span class="px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-md font-bold">${c.crm_name}</span>` : '<span class="text-slate-400 italic">Not Linked</span>'}
-                                            </td>
-                                            <td class="py-3 px-4 text-slate-500">${c.crm_title || 'None'}</td>
-                                            <td class="py-3 px-4">
-                                                ${c.tags ? c.tags.split(',').map(t => `<span class="inline-block px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[9px] font-bold mr-1">${t}</span>`).join('') : '<span class="text-slate-400 italic">No Tags</span>'}
-                                            </td>
-                                            <td class="py-3 px-4 text-slate-400">${new Date(c.last_message_at).toLocaleDateString()}</td>
-                                        </tr>
-                                    `).join('') : '<tr><td colspan="6" class="text-center py-10 text-slate-400">No contacts synced.</td></tr>'}
+                                <tbody id="wa-contacts-tbody" class="divide-y divide-slate-100">
                                 </tbody>
                             </table>
+                        </div>
+
+                        <!-- Pagination Footer -->
+                        <div class="flex items-center justify-between border-t border-slate-100 pt-4 mt-2 px-2 text-xs text-slate-500 font-medium">
+                            <div id="wa-contacts-pagination-info">Showing 0-0 of 0</div>
+                            <div class="flex items-center space-x-2">
+                                <button id="wa-contacts-prev-btn" onclick="changeWaContactsPage(-1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 font-bold transition disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
+                                <span id="wa-contacts-page-indicator" class="font-bold text-slate-800 px-2">Page 1 of 1</span>
+                                <button id="wa-contacts-next-btn" onclick="changeWaContactsPage(1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 font-bold transition disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             `;
-            lucide.createIcons();
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            renderWaContactsTablePage();
         } catch (err) {
             showNotification('error', err.message);
         }
     });
 }
+
+window.handleWaContactsSearch = function(val) {
+    window._waContactsSearchQuery = (val || '').toLowerCase().trim();
+    window._waContactsCurrentPage = 1;
+    renderWaContactsTablePage();
+};
+
+window.changeWaContactsPage = function(delta) {
+    window._waContactsCurrentPage += delta;
+    renderWaContactsTablePage();
+};
+
+window.renderWaContactsTablePage = function() {
+    const list = window._allWaContactsList || [];
+    const q = window._waContactsSearchQuery || '';
+    
+    const filtered = list.filter(c => {
+        if (!q) return true;
+        const name = (c.profile_name || '').toLowerCase();
+        const phone = (c.wa_id || '').toLowerCase();
+        const crmName = (c.crm_name || '').toLowerCase();
+        const tags = (c.tags || '').toLowerCase();
+        return name.includes(q) || phone.includes(q) || crmName.includes(q) || tags.includes(q);
+    });
+
+    const pageSize = window._waContactsPageSize || 25;
+    const totalItems = filtered.length;
+    const totalPages = Math.ceil(totalItems / pageSize) || 1;
+
+    if (window._waContactsCurrentPage < 1) window._waContactsCurrentPage = 1;
+    if (window._waContactsCurrentPage > totalPages) window._waContactsCurrentPage = totalPages;
+
+    const startIdx = (window._waContactsCurrentPage - 1) * pageSize;
+    const pageItems = filtered.slice(startIdx, startIdx + pageSize);
+
+    const tbody = document.getElementById('wa-contacts-tbody');
+    if (tbody) {
+        if (pageItems.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-10 text-slate-400 font-medium">No contacts match your query.</td></tr>`;
+        } else {
+            tbody.innerHTML = pageItems.map(c => `
+                <tr class="hover:bg-slate-50 border-b border-slate-100">
+                    <td class="py-3 px-4 font-bold text-slate-700 flex items-center space-x-2">
+                        <div class="h-6 w-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-[10px] shrink-0">
+                            ${(c.profile_name || 'WhatsApp Contact').charAt(0).toUpperCase()}
+                        </div>
+                        <span class="truncate">${escapeHtml(c.profile_name || 'WhatsApp Contact')}</span>
+                    </td>
+                    <td class="py-3 px-4 text-slate-600 font-mono">${formatPhoneNumber(c.wa_id)}</td>
+                    <td class="py-3 px-4 text-slate-600">
+                        ${c.crm_name ? `<span class="px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-md font-bold">${escapeHtml(c.crm_name)}</span>` : '<span class="text-slate-400 italic">Not Linked</span>'}
+                    </td>
+                    <td class="py-3 px-4 text-slate-500">${escapeHtml(c.crm_title || 'None')}</td>
+                    <td class="py-3 px-4">
+                        ${c.tags ? c.tags.split(',').map(t => `<span class="inline-block px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[9px] font-bold mr-1">${escapeHtml(t.trim())}</span>`).join('') : '<span class="text-slate-400 italic">No Tags</span>'}
+                    </td>
+                    <td class="py-3 px-4 text-slate-400">${new Date(c.last_message_at).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+        }
+    }
+
+    const infoEl = document.getElementById('wa-contacts-pagination-info');
+    if (infoEl) {
+        const endIdx = Math.min(startIdx + pageSize, totalItems);
+        infoEl.textContent = totalItems > 0 ? `Showing ${startIdx + 1}-${endIdx} of ${totalItems} contacts` : 'Showing 0-0 of 0 contacts';
+    }
+
+    const indicatorEl = document.getElementById('wa-contacts-page-indicator');
+    if (indicatorEl) indicatorEl.textContent = `Page ${window._waContactsCurrentPage} of ${totalPages}`;
+
+    const prevBtn = document.getElementById('wa-contacts-prev-btn');
+    if (prevBtn) prevBtn.disabled = (window._waContactsCurrentPage <= 1);
+
+    const nextBtn = document.getElementById('wa-contacts-next-btn');
+    if (nextBtn) nextBtn.disabled = (window._waContactsCurrentPage >= totalPages);
+};
 
 // ----------------------------------------------------
 // 5. WHATSAPP CAMPAIGNS VIEW

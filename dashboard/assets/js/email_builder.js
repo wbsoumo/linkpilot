@@ -1445,6 +1445,36 @@
                 case 'coupon':
                     newEl.settings = { code: "LPNEW50", discount: "50% OFF", desc: "Start building and save half off first plan invoice.", backgroundColor: "#FAF9FF", borderColor: "#6D5EF5" };
                     break;
+                case 'columns':
+                    newEl.settings = { col1Content: "Column 1 text details and messaging goes here...", col2Content: "Column 2 text details and messaging goes here...", gap: "20px" };
+                    break;
+                case 'html':
+                    newEl.settings = { htmlCode: '<div style="padding:15px; background-color:#e0e7ff; color:#3730a3; font-family:sans-serif; text-align:center; font-weight:bold; border-radius:8px;">Custom HTML Snippet Banner</div>' };
+                    break;
+                case 'menu':
+                    newEl.settings = { link1Text: "Home", link1Url: "#", link2Text: "Shop", link2Url: "#", link3Text: "Contact", link3Url: "#", align: "center" };
+                    break;
+                case 'icon':
+                    newEl.settings = { iconName: "star", size: "36px", color: "#6D5EF5", align: "center" };
+                    break;
+                case 'video':
+                    newEl.settings = { videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", thumbnailUrl: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&auto=format&fit=crop", align: "center" };
+                    break;
+                case 'countdown':
+                    newEl.settings = { targetDate: "2026-12-31", backgroundColor: "#0F172A", textColor: "#ffffff", align: "center" };
+                    break;
+                case 'product':
+                    newEl.settings = { productName: "Premium Athletic Sneaker", productDesc: "Ultra comfortable performance footwear designed for everyday activities.", productPrice: "$89.00", productImage: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&auto=format&fit=crop", productLink: "#" };
+                    break;
+                case 'signature':
+                    newEl.settings = { senderName: "Sarah Jenkins", senderTitle: "VP of Customer Outreach, LinkPilot", senderEmail: "sarah@linkpilot.work", avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop" };
+                    break;
+                case 'faq':
+                    newEl.settings = { question: "How quickly will my campaign be delivered?", answer: "Our high-performance SMTP helper processes and dispatches outreach emails instantly with zero queue delays." };
+                    break;
+                case 'testimonial':
+                    newEl.settings = { quote: "This email builder transformed our marketing performance completely. 10/10 recommendation!", author: "Alex Rivera, CEO of GrowthScale" };
+                    break;
             }
             return newEl;
         }

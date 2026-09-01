@@ -27,10 +27,69 @@ window.addEventListener("message", function (event) {
     }
 });
 
-/**
- * Main switchboard to check connection state and render either setup wizard or target screen
- */
 async function checkWaConnectionAndRender(viewName, container, renderFn) {
+    if (!document.getElementById('wa-global-phone-styles')) {
+        const style = document.createElement('style');
+        style.id = 'wa-global-phone-styles';
+        style.innerHTML = `
+            .phone-simulator {
+                border: 12px solid #1e293b;
+                border-radius: 40px;
+                background-color: #efeae2;
+                box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+                overflow: hidden;
+                width: 310px;
+                height: 630px;
+                position: relative;
+            }
+            .phone-screen {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                width: 100%;
+            }
+            .phone-header {
+                background-color: #f0f2f5;
+                color: #111b21;
+                padding: 16px 12px 6px 12px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                border-bottom: 1px solid #e2e8f0;
+                height: 58px;
+                flex-shrink: 0;
+            }
+            .chat-messages {
+                flex-grow: 1;
+                overflow-y: auto;
+                padding: 14px;
+                background-color: #efeae2;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%23e5ddd5' fill-opacity='0.4'%3E%3Cpath d='M10 10h5v5h-5zm10 0h5v5h-5zm-10 10h5v5h-5zm10 0h5v5h-5zm20-20h5v5h-5zm10 0h5v5h-5zm-10 10h5v5h-5zm10 0h5v5h-5zm20 0h5v5h-5zm10 0h5v5h-5zm-10 10h5v5h-5zm10 0h5v5h-5zm-40 20h5v5h-5zm10 0h5v5h-5zm-10 10h5v5h-5zm10 0h5v5h-5zm20-20h5v5h-5zm10 0h5v5h-5zm-10 10h5v5h-5zm10 0h5v5h-5zm20 0h5v5h-5zm10 0h5v5h-5zm-10 10h5v5h-5zm10 0h5v5h-5z'/%3E%3C/g%3E%3C/svg%3E");
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            .bubble {
+                max-width: 80%;
+                padding: 6px 10px 6px 10px;
+                font-size: 11px;
+                line-height: 1.35;
+                border-radius: 8px;
+                word-wrap: break-word;
+                position: relative;
+                box-shadow: 0 1px 0.5px rgba(11,20,26,.13);
+                display: flex;
+                flex-direction: column;
+            }
+            .bubble.incoming {
+                background-color: #ffffff;
+                color: #111b21;
+                align-self: flex-start;
+                border-top-left-radius: 0;
+            }
+        `;
+        document.head.appendChild(style);
+    }
     try {
         const res = await apiCall('whatsapp/setup.php?t=' + Date.now());
         console.log("[Diagnostics] Connection status fetched:", res);

@@ -15,14 +15,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $responseOutput = "Error: Gemini API key is missing. Please enter your API key in the API Key input box.";
     } else if (isset($_POST['list_models'])) {
         // Fetch available models for this API key via ListModels endpoint
-        $url = 'https://generativelanguage.googleapis.com/v1beta/models';
+        $url = 'https://generativelanguage.googleapis.com/v1beta/models?key=' . urlencode($apiKey);
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Content-Type: application/json',
             'X-goog-api-key: ' . $apiKey
         ]);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         $result = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
@@ -45,7 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $modelsToTry = array_unique([$model, 'gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-1.5-flash-8b', 'gemini-flash-latest']);
             
             foreach ($modelsToTry as $currentModel) {
-                $url = 'https://generativelanguage.googleapis.com/v1beta/models/' . $currentModel . ':generateContent';
+                // Support both X-goog-api-key header and ?key= query parameter
+                $url = 'https://generativelanguage.googleapis.com/v1beta/models/' . $currentModel . ':generateContent?key=' . urlencode($apiKey);
                 
                 $payload = json_encode([
                     'contents' => [
@@ -65,7 +69,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'Content-Type: application/json',
                     'X-goog-api-key: ' . $apiKey
                 ]);
-                curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
                 
                 $result = curl_exec($ch);
                 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);

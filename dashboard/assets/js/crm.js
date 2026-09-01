@@ -16159,7 +16159,6 @@ window.openIntegrationSetupModal = function(type) {
         };
     }
 };
-}
 
 async function triggerIntegrationsManualSync(btn) {
     const origText = btn.innerHTML;

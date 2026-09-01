@@ -253,6 +253,14 @@ try {
                     
                     $db->commit();
 
+                    // Immediately process WhatsApp AI queue synchronously for instant auto-reply response
+                    try {
+                        require_once __DIR__ . '/../../queue_worker.php';
+                        QueueWorker::processWhatsAppQueue();
+                    } catch (Throwable $qEx) {
+                        WhatsAppMetaService::logDebug("Synchronous queue worker error: " . $qEx->getMessage());
+                    }
+
                     // Trigger active visual workflows for whatsapp_received
                     try {
                         require_once __DIR__ . '/../../workflow_runner.php';

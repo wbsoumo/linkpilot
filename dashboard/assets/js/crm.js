@@ -579,7 +579,7 @@ async function navigateTo(view, params = {}) {
                 await renderExternalApps(contentArea);
                 break;
             case 'settings':
-                await renderSettings(contentArea);
+                await renderSettings(contentArea, params);
                 break;
             case 'install-extensions':
                 await renderInstallExtensions(contentArea);
@@ -15779,7 +15779,7 @@ function toggleAIProviderFields(provider) {
     }
 }
 
-async function renderSettings(container) {
+async function renderSettings(container, params = {}) {
     container.innerHTML = `
         <div class="flex items-center justify-center py-12">
             <i data-lucide="loader-2" class="h-8 w-8 animate-spin text-indigo-655"></i>
@@ -15810,17 +15810,21 @@ async function renderSettings(container) {
 
         let initialTab = 'profile';
 
-        // Read URL query parameters from location.search or hash string (e.g. #/settings?tab=whatsapp)
+        // Parse URL query parameters from route params, location.search or hash string (e.g. #/settings?tab=whatsapp)
         try {
-            const searchParams = new URLSearchParams(window.location.search);
-            let tabParam = searchParams.get('tab');
-            if (!tabParam && window.location.hash.includes('?')) {
-                const hashQuery = window.location.hash.split('?')[1];
-                const hashParams = new URLSearchParams(hashQuery);
-                tabParam = hashParams.get('tab');
-            }
-            if (tabParam) {
-                initialTab = tabParam.trim().toLowerCase();
+            if (params && params.tab) {
+                initialTab = params.tab.trim().toLowerCase();
+            } else {
+                const searchParams = new URLSearchParams(window.location.search);
+                let tabParam = searchParams.get('tab');
+                if (!tabParam && window.location.hash.includes('?')) {
+                    const hashQuery = window.location.hash.split('?')[1];
+                    const hashParams = new URLSearchParams(hashQuery);
+                    tabParam = hashParams.get('tab');
+                }
+                if (tabParam) {
+                    initialTab = tabParam.trim().toLowerCase();
+                }
             }
         } catch (e) {
             console.error("Error reading URL parameters in settings:", e);

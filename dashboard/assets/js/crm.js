@@ -7783,9 +7783,9 @@ async function openInspectCompanyModal(companyId) {
                                 <span class="font-bold text-slate-800">-</span>
                             </div>
                             
-                            <div class="flex justify-between items-center py-0.5">
-                                <span class="text-slate-700 font-bold flex items-center"><i data-lucide="database" class="h-3.5 w-3.5 mr-2 text-slate-500"></i>Source</span>
-                                <span class="px-2.5 py-1 bg-slate-900 text-white rounded text-[10px] font-extrabold uppercase tracking-wider shadow-xs" style="color: #ffffff !important;">${c.source || 'CRM Manual'}</span>
+                            <div class="flex justify-between items-center py-1">
+                                <span class="text-slate-700 font-bold flex items-center"><i data-lucide="database" class="h-3.5 w-3.5 mr-2 text-indigo-600"></i>Source</span>
+                                <span class="px-3 py-1 bg-indigo-600 text-white rounded-md text-[10px] font-black uppercase tracking-wider shadow-sm select-none" style="color: #ffffff !important; background-color: #4f46e5 !important;">${c.source || 'CRM Manual'}</span>
                             </div>
                         </div>
                     </div>

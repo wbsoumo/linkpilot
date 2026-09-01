@@ -4190,56 +4190,127 @@ async function renderLeads(container) {
         const res = await apiCall('crm/leads.php');
         const leads = res.leads || [];
         
+        // Read persisted view preference from localStorage
+        let currentViewMode = localStorage.getItem('pipeline_view') || 'kanban';
+
+        // Build Kanban Stage Columns
+        const stages = ['New Lead', 'Contacted', 'Qualified', 'Proposal Sent', 'Won', 'Lost'];
+        const stageThemes = {
+            'New Lead': { bg: 'bg-indigo-50 border-indigo-200 text-indigo-700', badge: 'bg-indigo-100 text-indigo-700' },
+            'Contacted': { bg: 'bg-blue-50 border-blue-200 text-blue-700', badge: 'bg-blue-100 text-blue-700' },
+            'Qualified': { bg: 'bg-amber-50 border-amber-200 text-amber-700', badge: 'bg-amber-100 text-amber-700' },
+            'Proposal Sent': { bg: 'bg-purple-50 border-purple-200 text-purple-700', badge: 'bg-purple-100 text-purple-700' },
+            'Won': { bg: 'bg-emerald-50 border-emerald-200 text-emerald-700', badge: 'bg-emerald-100 text-emerald-700' },
+            'Lost': { bg: 'bg-rose-50 border-rose-200 text-rose-700', badge: 'bg-rose-100 text-rose-700' }
+        };
+
+        const kanbanColsHtml = stages.map(st => {
+            const stageLeads = leads.filter(l => (l.stage || 'New Lead').toLowerCase() === st.toLowerCase());
+            const theme = stageThemes[st] || { bg: 'bg-slate-50 border-slate-200 text-slate-700', badge: 'bg-slate-100 text-slate-700' };
+
+            const cardsHtml = stageLeads.length > 0 ? stageLeads.map(l => `
+                <div onclick="editCrmLead(${l.id})" class="bg-white border border-slate-200 p-3.5 rounded-xl shadow-2xs hover:shadow-md hover:border-indigo-300 transition cursor-pointer space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-slate-900 text-xs truncate max-w-[130px]">${escapeHtml(l.name)}</span>
+                        <span class="text-[10px] font-black text-indigo-600">${window.formatCurrency(l.budget)}</span>
+                    </div>
+                    <div class="text-[11px] text-slate-500 truncate">${escapeHtml(l.company || l.email || 'No company')}</div>
+                    <div class="flex items-center justify-between pt-1 border-t border-slate-100 text-[10px]">
+                        <span class="px-2 py-0.5 rounded font-extrabold ${theme.badge}">${st}</span>
+                        <span class="text-slate-400 font-medium">${l.priority || 'Normal'}</span>
+                    </div>
+                </div>
+            `).join('') : `
+                <div class="p-6 text-center text-slate-400 border border-dashed border-slate-200 rounded-xl text-[11px] font-medium">
+                    No leads in stage
+                </div>
+            `;
+
+            return `
+                <div class="w-72 shrink-0 bg-slate-50/80 border border-slate-200/80 rounded-2xl p-3 flex flex-col space-y-3">
+                    <div class="flex items-center justify-between px-1">
+                        <span class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center">
+                            <span class="h-2 w-2 rounded-full mr-2 ${theme.badge}"></span>
+                            ${st}
+                        </span>
+                        <span class="px-2 py-0.5 bg-white border border-slate-200 rounded-full text-[10px] font-bold text-slate-600 shadow-2xs">${stageLeads.length}</span>
+                    </div>
+                    <div class="space-y-2.5 overflow-y-auto max-h-[520px] pr-1">
+                        ${cardsHtml}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
         let leadRows = leads.length > 0 ? leads.map(l => {
             const date = new Date(l.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
             return `
-                <tr class="hover:bg-slate-900/40">
-                    <td class="py-3 px-4 font-bold text-white">${l.name}</td>
-                    <td class="py-3 px-4 text-slate-300 font-medium">${l.company || '-'}</td>
-                    <td class="py-3 px-4 text-slate-400 font-mono text-[11px]">${l.email}</td>
-                    <td class="py-3 px-4 text-indigo-400 font-bold">${window.formatCurrency(l.budget)}</td>
+                <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                    <td class="py-3 px-4 font-bold text-slate-900">${escapeHtml(l.name)}</td>
+                    <td class="py-3 px-4 text-slate-600 font-medium">${escapeHtml(l.company || '-')}</td>
+                    <td class="py-3 px-4 text-slate-500 font-mono text-[11px]">${escapeHtml(l.email)}</td>
+                    <td class="py-3 px-4 text-indigo-600 font-bold">${window.formatCurrency(l.budget)}</td>
                     <td class="py-3 px-4">
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-teal-500/10 text-teal-400 border border-teal-500/20">${l.stage}</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-teal-50 text-teal-700 border border-teal-200">${escapeHtml(l.stage)}</span>
                     </td>
-                    <td class="py-3 px-4 text-slate-400">${l.priority}</td>
-                    <td class="py-3 px-4 text-slate-500">${date}</td>
+                    <td class="py-3 px-4 text-slate-500 font-semibold">${escapeHtml(l.priority || 'Normal')}</td>
+                    <td class="py-3 px-4 text-slate-400 font-medium">${date}</td>
                     <td class="py-3 px-4 text-right">
-                        <button onclick="editCrmLead(${l.id})" class="text-xs px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-md hover:border-teal-400 hover:text-teal-400 transition">View Details</button>
+                        <button onclick="editCrmLead(${l.id})" class="text-xs px-3 py-1 bg-indigo-50 text-indigo-600 font-bold rounded-lg hover:bg-indigo-100 transition cursor-pointer">View Details</button>
                     </td>
                 </tr>
             `;
-        }).join('') : `<tr><td colspan="8" class="text-center py-10 text-slate-500">No leads added to pipeline yet.</td></tr>`;
+        }).join('') : `<tr><td colspan="8" class="text-center py-10 text-slate-400 font-medium">No leads added to pipeline yet.</td></tr>`;
 
         container.innerHTML = `
-            <div class="space-y-6 animate-fade-in pt-4">
-                <div class="flex justify-between items-center border-b border-slate-850 pb-4">
+            <div class="space-y-6 animate-fade-in font-sans text-slate-800">
+                <!-- Header & View Switcher Bar -->
+                <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs flex-wrap gap-4">
                     <div>
-                        <h1 class="text-2xl font-extrabold text-white">Lead Vault</h1>
-                        <p class="text-slate-400 text-xs mt-1">All inbound client leads captured automatically from Email sync and Scraping.</p>
+                        <h1 class="text-xl font-black text-slate-900 tracking-tight">Lead Vault & Sales Pipeline</h1>
+                        <p class="text-xs text-slate-500 font-semibold mt-0.5">All inbound client leads captured automatically from Email sync and Scraping.</p>
                     </div>
-                    <button onclick="createNewLeadModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center space-x-1.5">
-                        <i data-lucide="plus" class="h-3.5 w-3.5"></i>
-                        <span>Add New Lead</span>
-                    </button>
+                    <div class="flex items-center space-x-3">
+                        <!-- Kanban / Table Toggle Pills -->
+                        <div class="bg-slate-100 p-1 rounded-xl flex items-center space-x-1 border border-slate-200 text-xs font-bold">
+                            <button onclick="switchLeadsViewMode('kanban')" id="leads-view-kanban-btn" class="px-3.5 py-1.5 rounded-lg transition flex items-center space-x-1.5 cursor-pointer ${currentViewMode === 'kanban' ? 'bg-white shadow-2xs text-indigo-600 font-extrabold' : 'text-slate-600 hover:text-slate-900'}">
+                                <i data-lucide="kanban" class="h-3.5 w-3.5"></i>
+                                <span>Kanban View</span>
+                            </button>
+                            <button onclick="switchLeadsViewMode('table')" id="leads-view-table-btn" class="px-3.5 py-1.5 rounded-lg transition flex items-center space-x-1.5 cursor-pointer ${currentViewMode === 'table' ? 'bg-white shadow-2xs text-indigo-600 font-extrabold' : 'text-slate-600 hover:text-slate-900'}">
+                                <i data-lucide="table" class="h-3.5 w-3.5"></i>
+                                <span>Table View</span>
+                            </button>
+                        </div>
+                        <button onclick="createNewLeadModal()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-extrabold shadow-md transition flex items-center space-x-1.5 cursor-pointer" style="color: #ffffff !important; background-color: #4F46E5 !important;">
+                            <i data-lucide="plus" class="h-4 w-4 text-white" style="color: #ffffff !important;"></i>
+                            <span class="text-white font-extrabold" style="color: #ffffff !important;">Add New Lead</span>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Table panel -->
-                <div class="glass-panel p-5 bg-slate-900/40">
+                <!-- Kanban Board View -->
+                <div id="leads-kanban-container" class="${currentViewMode === 'kanban' ? 'flex' : 'hidden'} space-x-4 overflow-x-auto pb-4">
+                    ${kanbanColsHtml}
+                </div>
+
+                <!-- Table View Panel -->
+                <div id="leads-table-container" class="${currentViewMode === 'table' ? 'block' : 'hidden'} bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse custom-table text-xs">
-                            <thead>
-                                <tr class="border-b border-slate-800">
-                                    <th class="py-3 px-4">Lead Name</th>
-                                    <th class="py-3 px-4">Company</th>
-                                    <th class="py-3 px-4">Email</th>
-                                    <th class="py-3 px-4">Budget</th>
-                                    <th class="py-3 px-4">Stage</th>
-                                    <th class="py-3 px-4">Priority</th>
-                                    <th class="py-3 px-4">Created Date</th>
-                                    <th class="py-3 px-4 text-right">Actions</th>
+                        <table class="w-full text-left border-collapse text-xs font-medium text-slate-700">
+                            <thead class="bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500 font-extrabold border-b border-slate-200">
+                                <tr>
+                                    <th class="py-3.5 px-4">Lead Name</th>
+                                    <th class="py-3.5 px-4">Company</th>
+                                    <th class="py-3.5 px-4">Email</th>
+                                    <th class="py-3.5 px-4">Budget</th>
+                                    <th class="py-3.5 px-4">Stage</th>
+                                    <th class="py-3.5 px-4">Priority</th>
+                                    <th class="py-3.5 px-4">Created Date</th>
+                                    <th class="py-3.5 px-4 text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="leads-table-body">
+                            <tbody id="leads-table-body" class="divide-y divide-slate-100 bg-white">
                                 ${leadRows}
                             </tbody>
                         </table>
@@ -4247,11 +4318,38 @@ async function renderLeads(container) {
                 </div>
             </div>
         `;
-        lucide.createIcons();
+        if (typeof lucide !== 'undefined') lucide.createIcons();
     } catch (err) {
         showNotification('error', err.message);
     }
 }
+
+window.switchLeadsViewMode = function(mode) {
+    localStorage.setItem('pipeline_view', mode);
+    const kanbanBtn = document.getElementById('leads-view-kanban-btn');
+    const tableBtn = document.getElementById('leads-view-table-btn');
+    const kanbanBox = document.getElementById('leads-kanban-container');
+    const tableBox = document.getElementById('leads-table-container');
+
+    if (!kanbanBox || !tableBox || !kanbanBtn || !tableBtn) return;
+
+    if (mode === 'kanban') {
+        kanbanBox.classList.remove('hidden');
+        kanbanBox.classList.add('flex');
+        tableBox.classList.add('hidden');
+        tableBox.classList.remove('block');
+        kanbanBtn.className = "px-3.5 py-1.5 bg-white shadow-2xs text-indigo-600 rounded-lg text-xs font-extrabold transition flex items-center space-x-1.5 cursor-pointer";
+        tableBtn.className = "px-3.5 py-1.5 text-slate-600 hover:text-slate-900 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer";
+    } else {
+        tableBox.classList.remove('hidden');
+        tableBox.classList.add('block');
+        kanbanBox.classList.add('hidden');
+        kanbanBox.classList.remove('flex');
+        tableBtn.className = "px-3.5 py-1.5 bg-white shadow-2xs text-indigo-600 rounded-lg text-xs font-extrabold transition flex items-center space-x-1.5 cursor-pointer";
+        kanbanBtn.className = "px-3.5 py-1.5 text-slate-600 hover:text-slate-900 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer";
+    }
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+};
 
 function createNewLeadModal(prefills = {}) {
     // Remove existing modal if any

@@ -22685,23 +22685,23 @@ function getSettingsBaseLayout(user) {
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <!-- Sidebar Tabs -->
                 <div class="lg:col-span-4 xl:col-span-3 space-y-2" id="settings-tabs-sidebar">
-                    <button onclick="switchSettingsTab('profile', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left bg-indigo-50/90 border border-indigo-200/80 text-indigo-700 font-bold active-settings-tab shadow-2xs">
+                    <button onclick="switchSettingsTab('profile', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left bg-indigo-600 text-white font-bold active-settings-tab shadow-md" style="color: #ffffff !important;">
                         <div class="flex items-center space-x-3.5">
-                            <div class="h-8 w-8 rounded-lg bg-indigo-100/80 text-indigo-700 flex items-center justify-center shrink-0">
-                                <i data-lucide="user" class="h-4 w-4"></i>
+                            <div class="h-8 w-8 rounded-lg bg-white/20 text-white flex items-center justify-center shrink-0">
+                                <i data-lucide="user" class="h-4 w-4 text-white" style="color: #ffffff !important;"></i>
                             </div>
                             <div>
-                                <p class="font-extrabold text-slate-900 text-xs">Profile & Credentials</p>
-                                <p class="text-[10px] text-slate-500 font-medium">Manage personal details</p>
+                                <p class="font-extrabold text-white text-xs" style="color: #ffffff !important;">Profile & Credentials</p>
+                                <p class="text-[10px] text-indigo-100 font-medium">Manage personal details</p>
                             </div>
                         </div>
-                        <i data-lucide="chevron-right" class="h-4 w-4 text-indigo-600"></i>
+                        <i data-lucide="chevron-right" class="h-4 w-4 text-white" style="color: #ffffff !important;"></i>
                     </button>
                     
-                    <button onclick="switchSettingsTab('business', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-700 hover:bg-slate-100/80 border border-slate-200/60 bg-white">
+                    <button onclick="switchSettingsTab('business', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-800 hover:bg-slate-100 border border-slate-200 bg-white">
                         <div class="flex items-center space-x-3.5">
                             <div class="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                                <i data-lucide="briefcase" class="h-4 w-4"></i>
+                                <i data-lucide="briefcase" class="h-4 w-4 text-slate-600"></i>
                             </div>
                             <div>
                                 <p class="font-extrabold text-slate-900 text-xs">Business Settings</p>
@@ -22711,10 +22711,10 @@ function getSettingsBaseLayout(user) {
                         <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 opacity-0"></i>
                     </button>
 
-                    <button onclick="switchSettingsTab('whatsapp', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-700 hover:bg-slate-100/80 border border-slate-200/60 bg-white">
+                    <button onclick="switchSettingsTab('whatsapp', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-800 hover:bg-slate-100 border border-slate-200 bg-white">
                         <div class="flex items-center space-x-3.5">
                             <div class="h-8 w-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                                <i data-lucide="message-circle" class="h-4 w-4"></i>
+                                <i data-lucide="message-circle" class="h-4 w-4 text-emerald-600"></i>
                             </div>
                             <div>
                                 <p class="font-extrabold text-slate-900 text-xs">WhatsApp Settings</p>
@@ -22724,10 +22724,10 @@ function getSettingsBaseLayout(user) {
                         <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 opacity-0"></i>
                     </button>
 
-                    <button onclick="switchSettingsTab('team', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-700 hover:bg-slate-100/80 border border-slate-200/60 bg-white">
+                    <button onclick="switchSettingsTab('team', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-800 hover:bg-slate-100 border border-slate-200 bg-white">
                         <div class="flex items-center space-x-3.5">
                             <div class="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                                <i data-lucide="users" class="h-4 w-4"></i>
+                                <i data-lucide="users" class="h-4 w-4 text-slate-600"></i>
                             </div>
                             <div>
                                 <p class="font-extrabold text-slate-900 text-xs">Team & Access</p>
@@ -22737,10 +22737,10 @@ function getSettingsBaseLayout(user) {
                         <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 opacity-0"></i>
                     </button>
 
-                    <button onclick="switchSettingsTab('notifications', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-700 hover:bg-slate-100/80 border border-slate-200/60 bg-white">
+                    <button onclick="switchSettingsTab('notifications', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-800 hover:bg-slate-100 border border-slate-200 bg-white">
                         <div class="flex items-center space-x-3.5">
                             <div class="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                                <i data-lucide="bell" class="h-4 w-4"></i>
+                                <i data-lucide="bell" class="h-4 w-4 text-slate-600"></i>
                             </div>
                             <div>
                                 <p class="font-extrabold text-slate-900 text-xs">Notifications</p>
@@ -22750,10 +22750,10 @@ function getSettingsBaseLayout(user) {
                         <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 opacity-0"></i>
                     </button>
 
-                    <button onclick="switchSettingsTab('security', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-700 hover:bg-slate-100/80 border border-slate-200/60 bg-white">
+                    <button onclick="switchSettingsTab('security', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-800 hover:bg-slate-100 border border-slate-200 bg-white">
                         <div class="flex items-center space-x-3.5">
                             <div class="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                                <i data-lucide="shield-check" class="h-4 w-4"></i>
+                                <i data-lucide="shield-check" class="h-4 w-4 text-slate-600"></i>
                             </div>
                             <div>
                                 <p class="font-extrabold text-slate-900 text-xs">Security & Privacy</p>
@@ -22763,10 +22763,10 @@ function getSettingsBaseLayout(user) {
                         <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 opacity-0"></i>
                     </button>
 
-                    <button onclick="switchSettingsTab('billing', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-700 hover:bg-slate-100/80 border border-slate-200/60 bg-white">
+                    <button onclick="switchSettingsTab('billing', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-800 hover:bg-slate-100 border border-slate-200 bg-white">
                         <div class="flex items-center space-x-3.5">
                             <div class="h-8 w-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                                <i data-lucide="credit-card" class="h-4 w-4"></i>
+                                <i data-lucide="credit-card" class="h-4 w-4 text-amber-600"></i>
                             </div>
                             <div>
                                 <p class="font-extrabold text-slate-900 text-xs">Billing & Subscription</p>
@@ -22777,10 +22777,10 @@ function getSettingsBaseLayout(user) {
                     </button>
 
                     ${user.role === 'admin' ? `
-                    <button onclick="switchSettingsTab('api', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-700 hover:bg-slate-100/80 border border-slate-200/60 bg-white">
+                    <button onclick="switchSettingsTab('api', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-800 hover:bg-slate-100 border border-slate-200 bg-white">
                         <div class="flex items-center space-x-3.5">
                             <div class="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                                <i data-lucide="key" class="h-4 w-4"></i>
+                                <i data-lucide="key" class="h-4 w-4 text-slate-600"></i>
                             </div>
                             <div>
                                 <p class="font-extrabold text-slate-900 text-xs">API & Webhooks</p>
@@ -22791,10 +22791,10 @@ function getSettingsBaseLayout(user) {
                     </button>
                     ` : ''}
 
-                    <button onclick="switchSettingsTab('storage', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-700 hover:bg-slate-100/80 border border-slate-200/60 bg-white">
+                    <button onclick="switchSettingsTab('storage', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-800 hover:bg-slate-100 border border-slate-200 bg-white">
                         <div class="flex items-center space-x-3.5">
                             <div class="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                                <i data-lucide="database" class="h-4 w-4"></i>
+                                <i data-lucide="database" class="h-4 w-4 text-slate-600"></i>
                             </div>
                             <div>
                                 <p class="font-extrabold text-slate-900 text-xs">Data & Storage</p>
@@ -22890,21 +22890,49 @@ window.switchSettingsTab = function(tabName, btn) {
         const sidebar = document.getElementById('settings-tabs-sidebar');
         if (sidebar) {
             sidebar.querySelectorAll('button').forEach(b => {
-                b.className = "w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-700 hover:bg-slate-100/80 border border-slate-200/60 bg-white";
+                b.className = "w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-800 hover:bg-slate-100 border border-slate-200 bg-white";
+                b.style.color = "";
+                const iconBox = b.querySelector('.rounded-lg');
+                if (iconBox) {
+                    iconBox.className = "h-8 w-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0";
+                }
+                const pTitle = b.querySelector('p.font-extrabold');
+                if (pTitle) {
+                    pTitle.className = "font-extrabold text-slate-900 text-xs";
+                    pTitle.style.color = "";
+                }
+                const pSub = b.querySelector('p.text-\\[10px\\]');
+                if (pSub) {
+                    pSub.className = "text-[10px] text-slate-500 font-medium";
+                }
                 const chev = b.querySelector('i[data-lucide="chevron-right"]');
                 if (chev) {
                     chev.classList.add('opacity-0');
-                    chev.classList.remove('text-indigo-600');
-                    chev.classList.add('text-slate-400');
+                    chev.style.color = "";
                 }
             });
         }
-        btn.className = "w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left bg-indigo-50/90 border border-indigo-200/80 text-indigo-700 font-bold active-settings-tab shadow-2xs";
+
+        btn.className = "w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left bg-indigo-600 text-white font-bold active-settings-tab shadow-md";
+        btn.style.color = "#ffffff !important";
+
+        const iconBox = btn.querySelector('.rounded-lg');
+        if (iconBox) {
+            iconBox.className = "h-8 w-8 rounded-lg bg-white/20 text-white flex items-center justify-center shrink-0";
+        }
+        const pTitle = btn.querySelector('p.font-extrabold');
+        if (pTitle) {
+            pTitle.className = "font-extrabold text-white text-xs";
+            pTitle.style.color = "#ffffff !important";
+        }
+        const pSub = btn.querySelector('p.text-\\[10px\\]');
+        if (pSub) {
+            pSub.className = "text-[10px] text-indigo-100 font-medium";
+        }
         const activeChev = btn.querySelector('i[data-lucide="chevron-right"]');
         if (activeChev) {
             activeChev.classList.remove('opacity-0');
-            activeChev.classList.remove('text-slate-400');
-            activeChev.classList.add('text-indigo-600');
+            activeChev.style.color = "#ffffff !important";
         }
     }
 
@@ -22945,7 +22973,7 @@ function renderSettingsTabContent(tab, container) {
                         <h2 class="text-base font-black text-slate-900">Profile Credentials</h2>
                         <p class="text-slate-500 text-xs mt-0.5">Update your personal details and business info.</p>
                     </div>
-                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200/80">ACCOUNT PREFERENCES</span>
+                    <span class="px-3 py-1 rounded-lg text-[10px] font-black bg-indigo-600 text-white border border-indigo-700 uppercase tracking-wider" style="color: #ffffff !important;">ACCOUNT PREFERENCES</span>
                 </div>
 
                 <div class="space-y-4 pt-1">

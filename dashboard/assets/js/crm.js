@@ -7654,16 +7654,24 @@ async function openInspectCompanyModal(companyId) {
                                     <span class="block text-[10px] text-slate-400">No activity history available.</span>
                                 </div>
                             ` : `
-                                <div class="relative pl-4 border-l border-slate-200 space-y-4 text-left ml-2">
+                                <div class="relative pl-4 border-l border-slate-200 space-y-3 text-left ml-2">
                                     ${timeline.map(t => {
                                         const date = new Date(t.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                                        const badgeClass = t.badge_color || 'bg-indigo-50 text-indigo-700 border-indigo-100';
+                                        let iconName = 'activity';
+                                        if (t.type === 'email') iconName = 'mail';
+                                        if (t.type === 'whatsapp') iconName = 'message-square';
+                                        if (t.type === 'call') iconName = 'phone-call';
                                         return `
-                                            <div class="relative pb-0.5">
-                                                <!-- Bullet indicator -->
-                                                <span class="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full border-2 border-white bg-indigo-500 shadow-xs"></span>
-                                                <span class="block text-[9px] text-slate-400 font-mono">${date}</span>
-                                                <span class="block font-bold text-slate-800 text-[10px] mt-0.5">${t.activity_type}</span>
-                                                <span class="block text-slate-500 text-[9px] mt-0.5 leading-relaxed">${t.description}</span>
+                                            <div class="relative group">
+                                                <div class="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-indigo-600 border-2 border-white"></div>
+                                                <div class="flex items-center justify-between">
+                                                    <span class="font-extrabold text-[10px] text-slate-800 flex items-center space-x-1.5">
+                                                        <span class="px-1.5 py-0.5 rounded text-[8px] font-black uppercase border ${badgeClass}">${t.activity_type || 'Activity Log'}</span>
+                                                    </span>
+                                                    <span class="text-[9px] text-slate-400 font-medium">${date}</span>
+                                                </div>
+                                                <p class="text-[10px] text-slate-600 font-medium mt-1 leading-normal">${t.description}</p>
                                             </div>
                                         `;
                                     }).join('')}

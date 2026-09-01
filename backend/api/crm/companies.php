@@ -64,10 +64,83 @@ try {
             $stmtDocs->execute([$companyId, $userId]);
             $company['documents'] = $stmtDocs->fetchAll();
             
-            // Fetch timeline
+            // Fetch timeline & build unified activity history (Email + WhatsApp + Calls + CRM Events)
             $stmtTimeline = $db->prepare("SELECT * FROM crm_timeline WHERE company_id = ? AND user_id = ? ORDER BY created_at DESC");
             $stmtTimeline->execute([$companyId, $userId]);
-            $company['timeline'] = $stmtTimeline->fetchAll();
+            $rawTimeline = $stmtTimeline->fetchAll() ?: [];
+
+            $unifiedTimeline = [];
+
+            foreach ($rawTimeline as $t) {
+                $unifiedTimeline[] = [
+                    'id' => 'crm_' . $t['id'],
+                    'type' => 'crm_event',
+                    'activity_type' => $t['activity_type'] ?: 'Activity Logged',
+                    'description' => $t['description'],
+                    'created_at' => $t['created_at'],
+                    'badge_color' => 'bg-indigo-50 text-indigo-700 border-indigo-100'
+                ];
+            }
+
+            // Gather contact emails & phones linked to this company
+            $contactEmails = array_filter(array_column($company['contacts'], 'email'));
+            $contactPhones = array_filter(array_merge(
+                array_column($company['contacts'], 'phone'),
+                array_column($company['contacts'], 'whatsapp')
+            ));
+
+            // Fetch Email History
+            if (!empty($contactEmails)) {
+                $inEmails = implode(',', array_fill(0, count($contactEmails), '?'));
+                $paramsEmail = array_merge($contactEmails, $contactEmails, [$userId]);
+                $stmtEmails = $db->prepare("SELECT * FROM email_logs WHERE (recipient IN ($inEmails) OR sender IN ($inEmails)) AND user_id = ? ORDER BY created_at DESC LIMIT 20");
+                $stmtEmails->execute($paramsEmail);
+                $emailLogs = $stmtEmails->fetchAll() ?: [];
+
+                foreach ($emailLogs as $e) {
+                    $unifiedTimeline[] = [
+                        'id' => 'email_' . $e['id'],
+                        'type' => 'email',
+                        'activity_type' => 'Email ' . ucfirst($e['status'] ?: 'sent'),
+                        'description' => 'Subject: "' . ($e['subject'] ?: 'No Subject') . '" (' . $e['recipient'] . ')',
+                        'created_at' => $e['created_at'],
+                        'badge_color' => 'bg-blue-50 text-blue-700 border-blue-100'
+                    ];
+                }
+            }
+
+            // Fetch WhatsApp History
+            if (!empty($contactPhones)) {
+                $cleanPhones = array_values(array_filter(array_map(function($p) {
+                    return preg_replace('/[^0-9]/', '', $p);
+                }, $contactPhones)));
+
+                if (!empty($cleanPhones)) {
+                    $inPhones = implode(',', array_fill(0, count($cleanPhones), '?'));
+                    $paramsWa = array_merge($cleanPhones, $cleanPhones, [$userId]);
+                    $stmtWa = $db->prepare("SELECT * FROM whatsapp_messages WHERE (sender_id IN ($inPhones) OR recipient_id IN ($inPhones)) AND user_id = ? ORDER BY created_at DESC LIMIT 20");
+                    $stmtWa->execute($paramsWa);
+                    $waLogs = $stmtWa->fetchAll() ?: [];
+
+                    foreach ($waLogs as $w) {
+                        $unifiedTimeline[] = [
+                            'id' => 'wa_' . $w['id'],
+                            'type' => 'whatsapp',
+                            'activity_type' => 'WhatsApp ' . ucfirst($w['direction'] ?: 'message'),
+                            'description' => ($w['direction'] === 'inbound' ? 'Received: ' : 'Sent: ') . '"' . substr($w['body'] ?: 'Media Message', 0, 80) . '"',
+                            'created_at' => $w['created_at'],
+                            'badge_color' => 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                        ];
+                    }
+                }
+            }
+
+            // Sort aggregated timeline chronologically (latest first)
+            usort($unifiedTimeline, function($a, $b) {
+                return strtotime($b['created_at']) - strtotime($a['created_at']);
+            });
+
+            $company['timeline'] = array_slice($unifiedTimeline, 0, 30);
             
             sendJsonResponse('success', 'Company retrieved successfully', ['company' => $company]);
             

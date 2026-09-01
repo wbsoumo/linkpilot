@@ -7504,13 +7504,13 @@ async function openInspectContactModal(contactId) {
     if (existing) existing.remove();
 
     let modalHTML = `
-        <div id="crm-contact-inspect-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm animate-fade-in">
-            <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl p-6 text-slate-800 text-xs space-y-4 shadow-2xl relative">
+        <div id="crm-contact-inspect-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/25 backdrop-blur-md animate-fade-in p-4 sm:p-6">
+            <div class="bg-white border border-slate-200/90 rounded-2xl w-full max-w-2xl p-6 text-slate-800 text-xs space-y-4 shadow-2xl relative">
                 <button onclick="document.getElementById('crm-contact-inspect-modal').remove()" class="absolute top-4 right-4 h-7 w-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
                     <i data-lucide="x" class="h-4 w-4"></i>
                 </button>
                 <div class="flex items-center justify-center py-12">
-                    <i data-lucide="loader-2" class="h-8 w-8 animate-spin text-indigo-600"></i>
+                    <i data-lucide="loader-2" class="h-8 w-8 animate-spin text-indigo-650"></i>
                 </div>
             </div>
         </div>
@@ -7535,134 +7535,250 @@ async function openInspectContactModal(contactId) {
         const postUrl = customFieldsObj.post_url || '';
         const sourceVal = customFieldsObj.source || c.source || 'CRM Manual';
 
-        const modal = document.getElementById('crm-contact-inspect-modal');
-        if (!modal) return;
+        const modalContainer = document.getElementById('crm-contact-inspect-modal');
+        if (!modalContainer) return;
 
-        modal.innerHTML = `
-            <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-3xl text-slate-700 text-xs shadow-2xl relative flex flex-col max-h-[85vh]">
-                <div class="p-5 border-b border-slate-100 flex justify-between items-start">
-                    <div>
-                        <div class="flex items-center space-x-2.5">
-                            <h2 class="text-lg font-bold text-slate-800">${c.name}</h2>
-                            ${c.designation ? `<span class="px-2 py-0.5 bg-indigo-50 text-indigo-650 border border-indigo-100 rounded-full text-[10px] font-bold">${c.designation}</span>` : ''}
+        modalContainer.innerHTML = `
+            <div class="bg-white border border-slate-100 rounded-[24px] w-full max-w-4xl text-slate-700 text-xs shadow-2xl relative flex flex-col max-h-[90vh] p-6 space-y-5 animate-scale-up">
+                
+                <!-- Header -->
+                <div class="flex items-center justify-between pb-5 border-b border-slate-100">
+                    <div class="flex items-center space-x-4">
+                        <!-- Contact Avatar -->
+                        <div class="h-16 w-16 rounded-2xl bg-indigo-50 border border-slate-100 flex items-center justify-center shrink-0 shadow-sm overflow-hidden select-none">
+                            <div class="text-xl font-black text-indigo-700">${c.name ? c.name.charAt(0).toUpperCase() : 'C'}</div>
                         </div>
-                        <p class="text-slate-550 text-[11px] mt-0.5">${c.company_name || 'No Associated Company'} • ${c.department || 'No Department'}</p>
-                    </div>
-                    <button onclick="document.getElementById('crm-contact-inspect-modal').remove()" class="h-7 w-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
-                        <i data-lucide="x" class="h-4 w-4"></i>
-                    </button>
-                </div>
-
-                <div class="p-6 overflow-y-auto space-y-6 flex-1 text-left">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="space-y-4">
-                            <h3 class="text-xs font-bold text-teal-650 uppercase tracking-wider">Contact Details</h3>
-                            <div class="space-y-2.5 bg-slate-50 p-4 border border-slate-200/80 rounded-xl">
-                                <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-550 font-medium">Email:</span>
-                                    <span class="font-semibold text-slate-800">${c.email || '-'}</span>
-                                </div>
-                                ${c.alternate_email ? `
-                                <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-550 font-medium">Alternate Email:</span>
-                                    <span class="font-semibold text-slate-800">${c.alternate_email}</span>
-                                </div>` : ''}
-                                <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-550 font-medium">Phone:</span>
-                                    <span class="font-semibold text-slate-800">${c.phone || '-'}</span>
-                                </div>
-                                ${c.whatsapp ? `
-                                <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-550 font-medium">WhatsApp:</span>
-                                    <span class="font-semibold text-slate-800">${c.whatsapp}</span>
-                                </div>` : ''}
-                                <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-550 font-medium">LinkedIn Link:</span>
-                                    ${c.linkedin ? `<a href="${c.linkedin.startsWith('http') ? c.linkedin : `https://linkedin.com/in/${c.linkedin}`}" target="_blank" class="font-semibold text-indigo-600 hover:underline flex items-center space-x-1"><span>View Profile</span><i data-lucide="external-link" class="h-3 w-3"></i></a>` : '<span class="text-slate-500">-</span>'}
-                                </div>
-                                ${c.location ? `
-                                <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-550 font-medium">Location:</span>
-                                    <span class="font-semibold text-slate-800">${c.location}</span>
-                                </div>` : ''}
+                        
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h2 class="text-lg font-bold text-slate-900 leading-tight">${c.name}</h2>
+                                ${c.designation ? `
+                                    <span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200/80 rounded-md text-[10px] font-extrabold">${c.designation}</span>
+                                ` : ''}
+                            </div>
+                            <p class="text-slate-500 text-[11px] mt-0.5 font-semibold">${c.company_name || 'No Associated Company'} • ${c.department || 'No Department'}</p>
+                            
+                            <div class="flex items-center space-x-2 mt-2 text-[10px] text-slate-500 font-semibold">
+                                <span class="flex items-center text-slate-500">
+                                    <i data-lucide="map-pin" class="h-3.5 w-3.5 mr-1 text-slate-400"></i>
+                                    <span>${c.location || 'No Location'}</span>
+                                </span>
                                 ${c.birthday ? `
-                                <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-550 font-medium">Birthday:</span>
-                                    <span class="font-semibold text-slate-800">${c.birthday}</span>
-                                </div>` : ''}
-                                <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-550 font-medium">Source:</span>
-                                    <span class="font-semibold text-slate-750 px-1.5 py-0.5 bg-slate-100 rounded border border-slate-200 text-[10px]">${sourceVal}</span>
-                                </div>
-                                ${postUrl ? `
-                                <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-slate-550 font-medium">LinkedIn Post:</span>
-                                    <a href="${postUrl}" target="_blank" class="font-semibold text-indigo-600 hover:underline flex items-center space-x-1"><span>View Post</span><i data-lucide="external-link" class="h-3 w-3"></i></a>
-                                </div>` : ''}
+                                    <span class="text-slate-300">•</span>
+                                    <span class="flex items-center text-slate-500">
+                                        <i data-lucide="cake" class="h-3.5 w-3.5 mr-1 text-slate-400"></i>
+                                        <span>${c.birthday}</span>
+                                    </span>
+                                ` : ''}
                             </div>
                         </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2 shrink-0">
+                        ${c.linkedin ? `
+                            <button onclick="window.open('${c.linkedin.startsWith('http') ? c.linkedin : `https://linkedin.com/in/${c.linkedin}`}', '_blank')" class="px-4 py-2 border border-indigo-200 hover:bg-indigo-50/20 text-indigo-650 rounded-lg text-[10px] font-bold flex items-center space-x-1.5 transition shadow-xs" style="color: #4f46e5 !important;">
+                                <i data-lucide="external-link" class="h-3.5 w-3.5" style="stroke: #4f46e5 !important;"></i>
+                                <span style="color: #4f46e5 !important;">View LinkedIn</span>
+                            </button>
+                        ` : ''}
+                        
+                        <button onclick="document.getElementById('crm-contact-inspect-modal').remove()" class="h-7 w-7 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
+                            <i data-lucide="x" class="h-4 w-4"></i>
+                        </button>
+                    </div>
+                </div>
 
-                        <div class="space-y-4">
-                            <h3 class="text-xs font-bold text-teal-650 uppercase tracking-wider">Extension Scraped Data / Notes</h3>
-                            <div class="bg-slate-50 p-4 border border-slate-200/80 rounded-xl max-h-[175px] overflow-y-auto text-slate-700 whitespace-pre-line leading-relaxed">
-                                ${c.notes || 'No scraped notes or LinkedIn post contents available for this contact.'}
+                <!-- 2x2 Grid Content -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 overflow-y-auto max-h-[60vh] pr-1">
+                    
+                    <!-- Box 1: Contact Details -->
+                    <div class="bg-white border border-slate-100 rounded-2xl p-5 space-y-4 shadow-2xs">
+                        <div class="flex items-center space-x-2 pb-2 border-b border-slate-50">
+                            <div class="h-7 w-7 rounded-full bg-indigo-50 text-indigo-650 flex items-center justify-center shrink-0">
+                                <i data-lucide="user" class="h-4 w-4" style="stroke: #4f46e5 !important;"></i>
+                            </div>
+                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Contact Details</h3>
+                        </div>
+                        
+                        <div class="space-y-3 text-[11px]">
+                            <div class="flex justify-between items-center py-0.5">
+                                <span class="text-slate-500 font-semibold flex items-center"><i data-lucide="mail" class="h-3.5 w-3.5 mr-2 text-slate-400"></i>Email</span>
+                                <span class="font-bold text-slate-800">${c.email || '-'}</span>
+                            </div>
+                            ${c.alternate_email ? `
+                                <div class="flex justify-between items-center py-0.5">
+                                    <span class="text-slate-500 font-semibold flex items-center"><i data-lucide="mail-plus" class="h-3.5 w-3.5 mr-2 text-slate-400"></i>Alternate Email</span>
+                                    <span class="font-bold text-slate-800">${c.alternate_email}</span>
+                                </div>
+                            ` : ''}
+                            <div class="flex justify-between items-center py-0.5">
+                                <span class="text-slate-500 font-semibold flex items-center"><i data-lucide="phone" class="h-3.5 w-3.5 mr-2 text-slate-400"></i>Phone</span>
+                                <span class="font-bold text-slate-800">${c.phone || '-'}</span>
+                            </div>
+                            ${c.whatsapp ? `
+                                <div class="flex justify-between items-center py-0.5">
+                                    <span class="text-slate-500 font-semibold flex items-center"><i data-lucide="message-square" class="h-3.5 w-3.5 mr-2 text-slate-400"></i>WhatsApp</span>
+                                    <span class="font-bold text-slate-800">${c.whatsapp}</span>
+                                </div>
+                            ` : ''}
+                            <div class="flex justify-between items-center py-0.5">
+                                <span class="text-slate-500 font-semibold flex items-center"><i data-lucide="link" class="h-3.5 w-3.5 mr-2 text-slate-400"></i>LinkedIn Link</span>
+                                ${c.linkedin ? `
+                                    <a href="${c.linkedin.startsWith('http') ? c.linkedin : `https://linkedin.com/in/${c.linkedin}`}" target="_blank" class="font-bold text-indigo-600 hover:underline">Profile</a>
+                                ` : '<span class="font-bold text-slate-800">-</span>'}
+                            </div>
+                            
+                            <div class="flex justify-between items-center py-1">
+                                <span class="text-slate-700 font-bold flex items-center"><i data-lucide="database" class="h-3.5 w-3.5 mr-2 text-indigo-600"></i>Source</span>
+                                <span class="px-3 py-1 bg-indigo-600 text-white rounded-md text-[10px] font-black uppercase tracking-wider shadow-sm select-none" style="color: #ffffff !important; background-color: #4f46e5 !important;">${sourceVal}</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                        <div class="space-y-3">
-                            <h3 class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Scheduled Tasks & Meetings</h3>
-                            <div class="space-y-2 bg-slate-50 p-4 border border-slate-200/80 rounded-xl max-h-[160px] overflow-y-auto">
-                                ${tasks.length === 0 && meetings.length === 0 ? `<div class="text-slate-450 text-center py-4">No tasks or meetings scheduled.</div>` : ''}
-                                ${tasks.map(t => `
-                                    <div class="flex justify-between items-start border-b border-slate-100 pb-1.5 last:border-b-0 last:pb-0">
-                                        <div>
-                                            <span class="font-semibold text-slate-800 block">${t.title}</span>
-                                            <span class="text-[10px] text-slate-450">Task • Due: ${new Date(t.due_date).toLocaleDateString()}</span>
-                                        </div>
-                                        <span class="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded text-[9px] font-bold uppercase">${t.priority}</span>
-                                    </div>
-                                `).join('')}
-                                ${meetings.map(m => `
-                                    <div class="flex justify-between items-start border-b border-slate-100 pb-1.5 last:border-b-0 last:pb-0">
-                                        <div>
-                                            <span class="font-semibold text-slate-800 block">${m.title}</span>
-                                            <span class="text-[10px] text-slate-450">Meeting • Start: ${new Date(m.start_time).toLocaleString()}</span>
-                                        </div>
-                                    </div>
-                                `).join('')}
+                    <!-- Box 2: Extension Scraped Data / Notes -->
+                    <div class="bg-white border border-slate-100 rounded-2xl p-5 space-y-4 shadow-2xs flex flex-col h-full">
+                        <div class="flex items-center space-x-2 pb-2 border-b border-slate-50 shrink-0">
+                            <div class="h-7 w-7 rounded-full bg-indigo-50 text-indigo-650 flex items-center justify-center shrink-0">
+                                <i data-lucide="file-text" class="h-4 w-4" style="stroke: #4f46e5 !important;"></i>
                             </div>
+                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Extension Scraped Data / Notes</h3>
                         </div>
+                        
+                        <div class="flex flex-col bg-slate-50/50 border border-slate-200/50 rounded-xl p-5 min-h-[140px] justify-center items-center text-center">
+                            ${(c.notes && c.notes.length > 0) ? `
+                                <p class="text-[11px] text-slate-700 leading-relaxed font-medium text-left w-full whitespace-pre-line">${c.notes}</p>
+                            ` : `
+                                <div class="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0 mb-2">
+                                    <i data-lucide="file-spreadsheet" class="h-5 w-5 text-slate-400"></i>
+                                </div>
+                                <span class="block font-bold text-[11px] mb-0.5 text-slate-800">No extension data or notes available.</span>
+                                <span class="block text-[9px] text-slate-500 max-w-[200px] leading-relaxed">Use browser extension to capture data and add notes about this contact.</span>
+                            `}
+                        </div>
+                    </div>
 
-                        <div class="space-y-3">
-                            <h3 class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Activity Timeline</h3>
-                            <div class="space-y-2 bg-slate-50 p-4 border border-slate-200/80 rounded-xl max-h-[160px] overflow-y-auto text-[11px]">
-                                ${timeline.length === 0 ? `<div class="text-slate-450 text-center py-4">No activities logged.</div>` : ''}
-                                ${timeline.map(t => {
-                                    const date = new Date(t.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-                                    return `
-                                        <div class="border-b border-slate-100 pb-1.5 last:border-b-0 last:pb-0">
-                                            <span class="text-[10px] text-slate-400 block font-mono">${date}</span>
-                                            <span class="font-semibold text-slate-700">${t.activity_type}:</span>
-                                            <span class="text-slate-600">${t.description}</span>
-                                        </div>
-                                    `;
-                                }).join('')}
+                    <!-- Box 3: Scheduled Tasks & Meetings -->
+                    <div class="bg-white border border-slate-100 rounded-2xl p-5 space-y-4 shadow-2xs">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-50">
+                            <div class="flex items-center space-x-2">
+                                <div class="h-7 w-7 rounded-full bg-indigo-50 text-indigo-650 flex items-center justify-center shrink-0">
+                                    <i data-lucide="calendar" class="h-4 w-4" style="stroke: #4f46e5 !important;"></i>
+                                </div>
+                                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Scheduled Tasks & Meetings</h3>
                             </div>
+                            
+                            <button onclick="createNewTaskModal({ contact_id: ${c.id} })" class="text-indigo-655 hover:text-indigo-700 text-[10px] font-bold flex items-center space-x-0.5">
+                                <i data-lucide="plus" class="h-3 w-3" style="stroke: #4f46e5 !important;"></i>
+                                <span>Add New</span>
+                            </button>
+                        </div>
+                        
+                        <div class="flex flex-col bg-slate-50/50 border border-slate-200/50 rounded-xl p-4 min-h-[140px] justify-center">
+                            ${(tasks.length === 0 && meetings.length === 0) ? `
+                                <div class="flex flex-col items-center text-center">
+                                    <div class="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0 mb-2">
+                                        <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                                        </svg>
+                                    </div>
+                                    <span class="block font-bold text-[11px] mb-0.5" style="color: #334155 !important;">No tasks or meetings scheduled.</span>
+                                    <span class="block text-[9px] mt-1 max-w-[200px] leading-relaxed" style="color: #64748b !important;">Schedule tasks or meetings to stay on top of your follow-ups.</span>
+                                    <button onclick="createNewTaskModal({ contact_id: ${c.id} })" class="mt-3 px-3 py-1.5 bg-[#4f46e5] hover:bg-indigo-600 text-white rounded-lg font-bold text-[9px] flex items-center space-x-1.5 transition shadow-sm" style="color: #ffffff !important;">
+                                        <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="stroke: #ffffff !important;">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                        </svg>
+                                        <span style="color: #ffffff !important;">Schedule Task / Meeting</span>
+                                    </button>
+                                </div>
+                            ` : `
+                                <div class="space-y-2 max-h-[120px] overflow-y-auto pr-1">
+                                    ${tasks.map(t => {
+                                        const date = new Date(t.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+                                        return `
+                                            <div class="flex justify-between items-center bg-white border border-slate-100 p-2.5 rounded-lg">
+                                                <div class="flex items-center space-x-2">
+                                                    <span class="h-2 w-2 rounded-full ${t.status === 'Completed' ? 'bg-emerald-500' : 'bg-amber-500'}"></span>
+                                                    <span class="font-bold text-[11px] text-slate-800">${t.title}</span>
+                                                </div>
+                                                <span class="text-[10px] text-slate-400 font-medium">${date}</span>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            `}
+                        </div>
+                    </div>
+
+                    <!-- Box 4: Activity Timeline -->
+                    <div class="bg-white border border-slate-100 rounded-2xl p-5 space-y-4 shadow-2xs flex flex-col h-full">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-50 shrink-0">
+                            <div class="flex items-center space-x-2">
+                                <div class="h-7 w-7 rounded-full bg-indigo-50 text-indigo-650 flex items-center justify-center shrink-0">
+                                    <i data-lucide="activity" class="h-4 w-4" style="stroke: #4f46e5 !important;"></i>
+                                </div>
+                                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Activity Timeline</h3>
+                            </div>
+                            
+                            <button class="text-indigo-655 hover:text-indigo-700 text-[10px] font-bold">View All Activity</button>
+                        </div>
+                        
+                        <div class="flex-1 overflow-y-auto max-h-[160px] pr-1">
+                            ${timeline.length === 0 ? `
+                                <div class="flex flex-col items-center justify-center text-center py-8">
+                                    <span class="block text-[10px] text-slate-400">No activity history available.</span>
+                                </div>
+                            ` : `
+                                <div class="relative pl-4 border-l border-slate-200 space-y-3 text-left ml-2">
+                                    ${timeline.map(t => {
+                                        const date = new Date(t.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                                        const actType = (t.activity_type || 'Activity').toLowerCase();
+                                        let bColor = 'bg-slate-100 text-slate-900 border-slate-300';
+                                        if (actType.includes('email')) bColor = 'bg-blue-100 text-blue-900 border-blue-300';
+                                        else if (actType.includes('lead')) bColor = 'bg-emerald-100 text-emerald-900 border-emerald-300';
+                                        else if (actType.includes('deal')) bColor = 'bg-purple-100 text-purple-900 border-purple-300';
+                                        else if (actType.includes('contact')) bColor = 'bg-indigo-100 text-indigo-900 border-indigo-300';
+                                        return `
+                                            <div class="relative group">
+                                                <div class="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-indigo-600 border-2 border-white"></div>
+                                                <div class="flex items-center justify-between">
+                                                    <span class="font-bold text-[10px] text-slate-900 flex items-center space-x-1.5">
+                                                        <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border ${bColor}">${t.activity_type || 'Activity Log'}</span>
+                                                    </span>
+                                                    <span class="text-[9.5px] text-slate-500 font-semibold">${date}</span>
+                                                </div>
+                                                <p class="text-[11px] text-slate-800 font-semibold mt-1 leading-normal">${t.description}</p>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            `}
                         </div>
                     </div>
                 </div>
 
-                <div class="p-5 border-t border-slate-100 flex justify-end">
-                    <button onclick="document.getElementById('crm-contact-inspect-modal').remove()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold transition">Close</button>
+                <!-- Footer -->
+                <div class="flex items-center justify-between pt-4 border-t border-slate-100 shrink-0">
+                    <button onclick="confirmDeleteContact(${c.id})" class="px-3 py-1.5 border border-red-200 hover:bg-red-50/20 text-red-600 rounded-lg text-[10px] font-bold flex items-center space-x-1 transition shadow-xs">
+                        <i data-lucide="trash-2" class="h-3.5 w-3.5 text-red-500"></i>
+                        <span>Delete Contact</span>
+                    </button>
+                    
+                    <div class="flex items-center space-x-2">
+                        <button onclick="document.getElementById('crm-contact-inspect-modal').remove()" class="px-4 py-2 bg-slate-500 hover:bg-slate-600 rounded-lg font-bold text-[10px] transition shadow-xs" style="color: #ffffff !important;">
+                            <span style="color: #ffffff !important;">Close</span>
+                        </button>
+                        <button onclick="openEditContactModal(${c.id})" class="px-4 py-2 bg-[#4f46e5] hover:bg-indigo-600 rounded-lg font-bold text-[10px] flex items-center space-x-1.5 transition shadow-sm" style="color: #ffffff !important;">
+                            <i data-lucide="edit" class="h-3.5 w-3.5" style="stroke: #ffffff !important;"></i>
+                            <span style="color: #ffffff !important;">Edit Contact</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
         lucide.createIcons();
     } catch (e) {
         showNotification('error', 'Failed to retrieve contact details: ' + e.message);
-     }
+    }
 }
 
 async function openInspectCompanyModal(companyId) {

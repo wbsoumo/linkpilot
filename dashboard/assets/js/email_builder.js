@@ -2414,20 +2414,32 @@
                         controlsHtml = `
                             <div class="space-y-4">
                                 <div class="space-y-1">
-                                    <label class="font-bold text-slate-300">Signature Name</label>
-                                    <input type="text" oninput="updateElementSetting('signName', this.value)" value="${selectedEl.settings.signName || 'Sincerely, Jane Doe'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
+                                    <label class="font-bold text-slate-300">Sender Name</label>
+                                    <input type="text" oninput="updateElementSetting('senderName', this.value); updateElementSetting('signName', this.value);" value="${selectedEl.settings.senderName || selectedEl.settings.signName || 'Soumojit Saha'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
                                 </div>
                                 <div class="space-y-1">
-                                    <label class="font-bold text-slate-300">Signature Title</label>
-                                    <input type="text" oninput="updateElementSetting('signTitle', this.value)" value="${selectedEl.settings.signTitle || 'Head of Operations, LinkPilot'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">
+                                    <label class="font-bold text-slate-300">Job Title</label>
+                                    <input type="text" oninput="updateElementSetting('senderTitle', this.value); updateElementSetting('signTitle', this.value);" value="${selectedEl.settings.senderTitle || selectedEl.settings.signTitle || 'Founder & CEO'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
                                 </div>
                                 <div class="space-y-1">
-                                    <label class="font-bold text-slate-300">Alignment</label>
-                                    <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 max-w-[160px]">
-                                        <button onclick="updateElementSetting('align', 'left')" class="flex-grow py-1 hover:bg-white rounded transition ${(!selectedEl.settings.align || selectedEl.settings.align === 'left') ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-left" class="h-3.5 w-3.5 mx-auto"></i></button>
-                                        <button onclick="updateElementSetting('align', 'center')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'center' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-center" class="h-3.5 w-3.5 mx-auto"></i></button>
-                                        <button onclick="updateElementSetting('align', 'right')" class="flex-grow py-1 hover:bg-white rounded transition ${selectedEl.settings.align === 'right' ? 'bg-white shadow-2xs text-[#6D5EF5]' : 'text-slate-500'}"><i data-lucide="align-right" class="h-3.5 w-3.5 mx-auto"></i></button>
-                                    </div>
+                                    <label class="font-bold text-slate-300">Company Name</label>
+                                    <input type="text" oninput="updateElementSetting('company', this.value)" value="${selectedEl.settings.company || 'LinkPilot AI'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Phone Number</label>
+                                    <input type="text" oninput="updateElementSetting('phone', this.value)" value="${selectedEl.settings.phone || '+91 98765 43210'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Email Address</label>
+                                    <input type="text" oninput="updateElementSetting('senderEmail', this.value)" value="${selectedEl.settings.senderEmail || 'soumojit@linkpilot.work'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Website URL</label>
+                                    <input type="text" oninput="updateElementSetting('website', this.value)" value="${selectedEl.settings.website || 'https://linkpilot.work'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Avatar / Signature Image</label>
+                                    <input type="text" oninput="updateElementSetting('avatarUrl', this.value)" value="${selectedEl.settings.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
                                 </div>
                             </div>
                         `;
@@ -3216,24 +3228,45 @@
                         `;
                         break;
                     case 'signature':
-                        inner = `
-                            <tr>
-                                <td style="padding: 15px 0;">
-                                    <table border="0" cellpadding="0" cellspacing="0">
-                                        <tr>
-                                            <td width="55" valign="top" style="padding-right: 12px;">
-                                                <img src="${el.settings.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop'}" width="48" height="48" style="border-radius: 50%; display: block;" alt="Avatar">
-                                            </td>
-                                            <td valign="middle" style="font-family: ${brandStyles.fontFamily};">
-                                                <h5 style="margin: 0; font-size: 13px; font-weight: bold; color: #0F172A;">${el.settings.senderName || 'Sarah Jenkins'}</h5>
-                                                <p style="margin: 2px 0 0 0; font-size: 11px; color: #64748B;">${el.settings.senderTitle || 'VP of Customer Outreach'}</p>
-                                                <p style="margin: 2px 0 0 0; font-size: 10px; color: #6D5EF5; font-weight: bold;">${el.settings.senderEmail || 'sarah@linkpilot.work'}</p>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                        `;
+                        {
+                            const name = el.settings.senderName || el.settings.signName || 'Soumojit Saha';
+                            const title = el.settings.senderTitle || el.settings.signTitle || 'Founder & CEO';
+                            const company = el.settings.company || 'LinkPilot AI';
+                            const phone = el.settings.phone || '+91 98765 43210';
+                            const email = el.settings.senderEmail || 'soumojit@linkpilot.work';
+                            const website = el.settings.website || 'https://linkpilot.work';
+                            const avatar = el.settings.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop';
+
+                            inner = `
+                                <tr>
+                                    <td style="padding: 15px 0;">
+                                        <p style="margin: 0 0 12px 0; font-family: ${brandStyles.fontFamily}; font-size: 14px; color: #334155;">Best Regards,</p>
+                                        <table border="0" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                ${avatar ? `
+                                                <td width="55" valign="top" style="padding-right: 14px;">
+                                                    <img src="${sanitizeUrl(avatar)}" width="48" height="48" style="border-radius: 50%; display: block; object-fit: cover;" alt="${escapeAttr(name)}">
+                                                </td>
+                                                ` : ''}
+                                                <td valign="top" style="font-family: ${brandStyles.fontFamily}; border-left: 2px solid #6D5EF5; padding-left: 12px;">
+                                                    <h5 style="margin: 0; font-size: 14px; font-weight: bold; color: #0F172A;">${escapeHtml(name)}</h5>
+                                                    <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748B; font-weight: 500;">${escapeHtml(title)}${company ? ' &bull; ' + escapeHtml(company) : ''}</p>
+                                                    <p style="margin: 4px 0 0 0; font-size: 11px; color: #475569;">
+                                                        ${phone ? '<span>' + escapeHtml(phone) + '</span> &bull; ' : ''}
+                                                        <a href="mailto:${escapeAttr(email)}" style="color: #6D5EF5; text-decoration: none; font-weight: bold;">${escapeHtml(email)}</a>
+                                                    </p>
+                                                    ${website ? `
+                                                    <p style="margin: 2px 0 0 0; font-size: 11px;">
+                                                        <a href="${sanitizeUrl(website)}" target="_blank" style="color: #6D5EF5; text-decoration: underline;">${escapeHtml(website)}</a>
+                                                    </p>
+                                                    ` : ''}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            `;
+                        }
                         break;
                     case 'faq':
                         {

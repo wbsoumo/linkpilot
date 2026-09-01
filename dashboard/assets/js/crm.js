@@ -2824,12 +2824,41 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                     <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                         <div>
                             <h2 class="text-lg font-bold text-slate-900">4. Email Open Tracking</h2>
-                            <p class="text-xs text-slate-500 font-medium">Track email open rates using transparent tracking pixels.</p>
+                            <p class="text-xs text-slate-500 font-medium">Track real-time email opens using 1x1 transparent tracking pixels and detect recipient activity.</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="es_open_tracking_enabled" ${advanced.open_tracking_enabled ? 'checked' : ''} class="sr-only peer">
                             <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                         </label>
+                    </div>
+
+                    <div class="space-y-5 max-w-xl">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Custom Open Tracking CNAME Domain (Optional)</label>
+                            <input type="text" id="es_open_tracking_domain" value="${advanced.open_tracking_domain || ''}" placeholder="open.yourdomain.com" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                            <p class="text-[11px] text-slate-400 mt-1">Use a white-labeled custom domain for open tracking pixel requests to improve deliverability.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Exclude IP Addresses from Open Counts</label>
+                            <textarea id="es_open_tracking_exclude_ips" rows="2" placeholder="192.168.1.1, 10.0.0.1 (comma separated)" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition font-mono">${advanced.open_tracking_exclude_ips || ''}</textarea>
+                            <p class="text-[11px] text-slate-400 mt-1">Prevents internal opens from team member IP addresses from inflating open statistics.</p>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 flex items-center justify-between">
+                            <div>
+                                <h4 class="text-xs font-bold text-slate-800">Bot & Security Scanner Filtering</h4>
+                                <p class="text-[11px] text-slate-500">Filter out automated email security proxy opens (e.g., Barracuda, Mimecast, Google Proxy).</p>
+                            </div>
+                            <span class="px-2.5 py-1 bg-emerald-100 text-emerald-950 text-[10px] font-extrabold rounded-full border border-emerald-300/80">Active Filter</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 flex justify-end">
+                        <button type="button" onclick="saveAllEmailSettings(this)" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer">
+                            <i data-lucide="save" class="h-4 w-4"></i>
+                            <span>Save Open Tracking Settings</span>
+                        </button>
                     </div>
                 </div>
             `;
@@ -2840,12 +2869,43 @@ function renderEmailSettingsTabContent(tabId, showPassword) {
                     <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                         <div>
                             <h2 class="text-lg font-bold text-slate-900">5. Link Click Tracking</h2>
-                            <p class="text-xs text-slate-500 font-medium">Track link clicks across outgoing emails and campaigns.</p>
+                            <p class="text-xs text-slate-500 font-medium">Automatically rewrite links in outgoing emails to track click-through rates and recipient engagement.</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="es_click_tracking_enabled" ${advanced.click_tracking_enabled ? 'checked' : ''} class="sr-only peer">
                             <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                         </label>
+                    </div>
+
+                    <div class="space-y-5 max-w-xl">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Custom Click Tracking CNAME Domain (Optional)</label>
+                            <input type="text" id="es_click_tracking_domain" value="${advanced.click_tracking_domain || ''}" placeholder="click.yourdomain.com" class="w-full bg-slate-50/50 border border-slate-200/90 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                            <p class="text-[11px] text-slate-400 mt-1">Improves domain reputation by using your custom subdomain for link redirection.</p>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-xs font-bold text-slate-800">Preserve UTM Parameters & Query Strings</h4>
+                                <span class="px-2.5 py-1 bg-blue-100 text-blue-950 text-[10px] font-extrabold rounded-full border border-blue-300/80">Enabled</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500">Maintains original URL query strings (e.g. <code>?utm_source=email</code>) upon final redirect.</p>
+                        </div>
+
+                        <div class="p-4 bg-emerald-50/60 border border-emerald-200/80 rounded-2xl flex items-start space-x-3">
+                            <i data-lucide="check-circle-2" class="h-5 w-5 text-emerald-600 shrink-0 mt-0.5"></i>
+                            <div>
+                                <h4 class="text-xs font-bold text-emerald-950">Automatic Exclusion Rules</h4>
+                                <p class="text-[11px] text-emerald-800 mt-0.5">Special links (<code>mailto:</code>, <code>tel:</code>, anchor links <code>#</code>, and unsubscribe links) are automatically preserved without tracking wrappers.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 flex justify-end">
+                        <button type="button" onclick="saveAllEmailSettings(this)" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer">
+                            <i data-lucide="save" class="h-4 w-4"></i>
+                            <span>Save Click Tracking Settings</span>
+                        </button>
                     </div>
                 </div>
             `;

@@ -479,44 +479,57 @@ if (!function_exists('testAIKeyConnection')) {
             return true;
             
         } elseif ($provider === 'google_ai_studio') {
-            $model = "gemini-3.6-flash";
-            $headers = [
-                "Authorization: Bearer " . $apiKey,
-                "Content-Type: application/json"
-            ];
-            $postFields = [
-                "model" => $model,
-                "messages" => [
-                    ["role" => "system", "content" => $systemPrompt],
-                    ["role" => "user", "content" => $userPrompt]
-                ],
-                "max_tokens" => 5
-            ];
+            $lastException = null;
+            $modelsToTry = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-1.5-flash-8b'];
             
-            $ch = curl_init("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions");
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_USERAGENT, 'LinkPilot-AI/1.0');
-            curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-            curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-            
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $error = curl_error($ch);
-            curl_close($ch);
-            
-            if ($error) {
-                throw new Exception("Connection failed: " . $error);
+            // Retry loop up to 3 attempts across models/endpoints
+            for ($attempt = 1; $attempt <= 3; $attempt++) {
+                $currentModel = $modelsToTry[($attempt - 1) % count($modelsToTry)];
+                
+                // Attempt via native v1beta generateContent endpoint
+                $url = "https://generativelanguage.googleapis.com/v1beta/models/{$currentModel}:generateContent?key=" . urlencode($apiKey);
+                $postFields = [
+                    "contents" => [
+                        ["parts" => [["text" => "hi"]]]
+                    ]
+                ];
+                
+                $ch = curl_init($url);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+                curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+                curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+                
+                $response = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $error = curl_error($ch);
+                curl_close($ch);
+                
+                if (!$error && $httpCode === 200) {
+                    return true; // Test succeeded
+                }
+                
+                if ($error) {
+                    $lastException = new Exception("Connection attempt {$attempt} failed ({$currentModel}): " . $error);
+                } else {
+                    $data = json_decode($response, true);
+                    $msg = $data['error']['message'] ?? "HTTP error {$httpCode}";
+                    $lastException = new Exception("HTTP {$httpCode} ({$currentModel}): {$msg}");
+                }
+                
+                // Small 300ms pause before retry
+                usleep(300000);
             }
-            $data = json_decode($response, true);
-            if ($httpCode !== 200) {
-                $msg = $data['message'] ?? ($data['error']['message'] ?? "HTTP error {$httpCode}");
-                throw new Exception($msg);
+            
+            if ($lastException) {
+                throw $lastException;
             }
             return true;
             

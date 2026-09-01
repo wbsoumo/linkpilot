@@ -1550,10 +1550,16 @@
                             }
                             break;
                         case 'html':
+                            const cleanHtmlPreview = sanitizeCustomHtml(el.settings.htmlCode || '');
                             elementInner = `
-                                <div style="padding: 12px; background-color: #0F172A; color: #34D399; font-family: monospace; font-size: 12px; border-radius: 8px; border: 1px solid #1E293B;">
-                                    <div style="font-size: 10px; text-transform: uppercase; color: #94A3B8; margin-bottom: 4px; font-weight: bold;">Custom HTML Code Preview</div>
-                                    <div style="white-space: pre-wrap; word-break: break-all;">${escapeHtml(el.settings.htmlCode || '<!-- Add custom HTML code here -->')}</div>
+                                <div class="rounded-xl overflow-hidden border border-slate-200 bg-white">
+                                    <div class="px-3 py-1.5 bg-slate-900 text-slate-300 text-[10px] font-bold flex items-center justify-between">
+                                        <span class="flex items-center space-x-1.5"><i data-lucide="code" class="h-3 w-3 text-emerald-400"></i><span>CUSTOM HTML LIVE PREVIEW</span></span>
+                                        <span class="text-[9px] font-mono text-slate-400">${(el.settings.htmlCode || '').length} chars</span>
+                                    </div>
+                                    <div class="p-3">
+                                        ${cleanHtmlPreview || '<div class="py-6 text-center text-slate-400 font-mono text-xs"><span>&lt;!-- Add custom HTML code in properties panel --&gt;</span></div>'}
+                                    </div>
                                 </div>
                             `;
                             break;
@@ -2356,9 +2362,17 @@
                         controlsHtml = `
                             <div class="space-y-4">
                                 <div class="space-y-1">
-                                    <label class="font-bold text-slate-300">Custom HTML Code</label>
-                                    <textarea oninput="updateElementSetting('htmlCode', this.value)" rows="8" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-mono text-xs">${selectedEl.settings.htmlCode || ''}</textarea>
+                                    <div class="flex items-center justify-between">
+                                        <label class="font-bold text-slate-300">Custom HTML Code</label>
+                                        <button onclick="openLivePreviewTab()" class="text-[10px] font-bold text-[#6D5EF5] hover:underline flex items-center space-x-1" title="Preview rendered email HTML">
+                                            <i data-lucide="eye" class="h-3 w-3"></i><span>Preview HTML</span>
+                                        </button>
+                                    </div>
+                                    <textarea oninput="updateElementSetting('htmlCode', this.value)" rows="10" placeholder="Paste your HTML code here..." class="w-full bg-slate-900 text-emerald-400 border border-slate-700 rounded-xl p-3 font-mono text-[11px] leading-normal focus:border-[#6D5EF5] focus:outline-none">${selectedEl.settings.htmlCode || ''}</textarea>
                                 </div>
+                                <button onclick="openLivePreviewTab()" class="w-full py-2 bg-indigo-50 hover:bg-indigo-100 text-[#6D5EF5] border border-indigo-200 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                                    <i data-lucide="external-link" class="h-3.5 w-3.5"></i><span>Open Full Preview in Browser</span>
+                                </button>
                             </div>
                         `;
                         break;

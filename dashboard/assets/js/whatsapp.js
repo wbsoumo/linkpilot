@@ -1940,12 +1940,14 @@ function renderWhatsAppInbox(container) {
                         </div>
 
                         <form onsubmit="sendWaMessage(event)" class="flex items-center space-x-2 relative">
-                            <button type="button" onclick="triggerWaAIChatAnalysis()" class="h-8 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200/50 rounded-lg flex items-center justify-center shrink-0 transition" title="Ask AI reply draft suggestion">
-                                <i data-lucide="sparkles" class="h-4 w-4"></i>
+                            <input type="text" id="wa-chat-input" placeholder="Type a message..." class="flex-grow px-3.5 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:border-indigo-500 rounded-xl text-xs transition focus:outline-none">
+                            <button type="button" onclick="triggerWaAIChatAnalysis()" class="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-650 border border-indigo-200/80 rounded-xl font-extrabold text-[11px] flex items-center space-x-1.5 shrink-0 transition shadow-2xs group" title="Generate contextual AI response draft">
+                                <i data-lucide="sparkles" class="h-3.5 w-3.5 text-indigo-600 group-hover:scale-110 transition duration-200"></i>
+                                <span>AI Reply</span>
                             </button>
-                            <input type="text" id="wa-chat-input" placeholder="Type a message..." class="flex-grow px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500">
-                            <button type="submit" class="h-8 w-8 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg flex items-center justify-center shrink-0 transition shadow-sm">
-                                <i data-lucide="send" class="h-4 w-4"></i>
+                            <button type="submit" class="h-9 px-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl text-xs flex items-center justify-center space-x-1.5 shrink-0 transition shadow-sm" style="color: #ffffff !important;">
+                                <span style="color: #ffffff !important;">Send</span>
+                                <i data-lucide="send" class="h-3.5 w-3.5" style="color: #ffffff !important;"></i>
                             </button>
                         </form>
                     </div>
@@ -2231,12 +2233,14 @@ async function loadWaThreadMessages() {
                         </div>
 
                         <form onsubmit="sendWaMessage(event)" class="flex items-center space-x-2 relative">
-                            <button type="button" onclick="triggerWaAIChatAnalysis()" class="h-8 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200/50 rounded-lg flex items-center justify-center shrink-0 transition" title="Ask AI reply draft suggestion">
-                                <i data-lucide="sparkles" class="h-4 w-4"></i>
+                            <input type="text" id="wa-chat-input" placeholder="Type a message..." class="flex-grow px-3.5 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:border-indigo-500 rounded-xl text-xs transition focus:outline-none">
+                            <button type="button" onclick="triggerWaAIChatAnalysis()" class="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-650 border border-indigo-200/80 rounded-xl font-extrabold text-[11px] flex items-center space-x-1.5 shrink-0 transition shadow-2xs group" title="Generate contextual AI response draft">
+                                <i data-lucide="sparkles" class="h-3.5 w-3.5 text-indigo-600 group-hover:scale-110 transition duration-200"></i>
+                                <span>AI Reply</span>
                             </button>
-                            <input type="text" id="wa-chat-input" placeholder="Type a message..." class="flex-grow px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500">
-                            <button type="submit" class="h-8 w-8 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg flex items-center justify-center shrink-0 transition shadow-sm">
-                                <i data-lucide="send" class="h-4 w-4"></i>
+                            <button type="submit" class="h-9 px-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl text-xs flex items-center justify-center space-x-1.5 shrink-0 transition shadow-sm" style="color: #ffffff !important;">
+                                <span style="color: #ffffff !important;">Send</span>
+                                <i data-lucide="send" class="h-3.5 w-3.5" style="color: #ffffff !important;"></i>
                             </button>
                         </form>
                     `;

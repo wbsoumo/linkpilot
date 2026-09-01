@@ -15778,47 +15778,104 @@ async function renderIntegrations(container) {
                 <!-- Integrations bottom listing -->
                 <div class="space-y-4">
                     <div>
-                        <h2 class="text-lg font-extrabold text-slate-800">Integrations</h2>
-                        <p class="text-slate-500 text-xs mt-0.5">Manage third-party services and API connections</p>
+                        <h2 class="text-lg font-extrabold text-slate-800">Available Integrations</h2>
+                        <p class="text-slate-500 text-xs mt-0.5">Click any integration to inspect setup requirements, required permissions, credentials, and connection status.</p>
                     </div>
 
-                    <!-- Grid of 2 Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Grid of Integration Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <!-- SMTP Card -->
-                        <div onclick="toggleMailForm()" class="glass-panel p-4 bg-white shadow-sm border border-slate-200 hover:border-indigo-400 hover:shadow transition duration-200 rounded-2xl flex items-center justify-between cursor-pointer">
+                        <div onclick="openIntegrationSetupModal('smtp')" class="glass-panel p-4 bg-white shadow-sm border border-slate-200 hover:border-indigo-500 hover:shadow-md transition duration-200 rounded-2xl flex items-center justify-between cursor-pointer group">
                             <div class="flex items-center space-x-3.5">
-                                <div class="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0">
-                                    <i data-lucide="mail" class="h-5 w-5"></i>
+                                <div class="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                                    <i data-lucide="send" class="h-5 w-5"></i>
                                 </div>
                                 <div>
-                                    <span class="block font-extrabold text-slate-800 text-sm">SMTP Service</span>
-                                    <span class="text-slate-400 text-[10px] block mt-0.5">Send emails through your SMTP server.</span>
+                                    <span class="block font-extrabold text-slate-800 text-sm">SMTP Email Dispatch</span>
+                                    <span class="text-slate-400 text-[10px] block mt-0.5">Outbound transaction emails</span>
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-3">
-                                <span class="px-2 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider ${connection.smtp_host ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-slate-400 border border-slate-200'}">
-                                    ${connection.smtp_host ? 'Connected' : 'Not Configured'}
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider ${connection.smtp_host ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'}">
+                                    ${connection.smtp_host ? 'Connected' : 'Setup Required'}
                                 </span>
-                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400"></i>
+                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 group-hover:text-indigo-600 transition"></i>
                             </div>
                         </div>
 
                         <!-- IMAP Card -->
-                        <div onclick="toggleMailForm()" class="glass-panel p-4 bg-white shadow-sm border border-slate-200 hover:border-indigo-400 hover:shadow transition duration-200 rounded-2xl flex items-center justify-between cursor-pointer">
+                        <div onclick="openIntegrationSetupModal('imap')" class="glass-panel p-4 bg-white shadow-sm border border-slate-200 hover:border-indigo-500 hover:shadow-md transition duration-200 rounded-2xl flex items-center justify-between cursor-pointer group">
                             <div class="flex items-center space-x-3.5">
-                                <div class="h-10 w-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
-                                    <i data-lucide="mail" class="h-5 w-5"></i>
+                                <div class="h-10 w-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                                    <i data-lucide="inbox" class="h-5 w-5"></i>
                                 </div>
                                 <div>
-                                    <span class="block font-extrabold text-slate-800 text-sm">IMAP Service</span>
-                                    <span class="text-slate-400 text-[10px] block mt-0.5">Sync and fetch emails from IMAP server.</span>
+                                    <span class="block font-extrabold text-slate-800 text-sm">IMAP Mail Sync</span>
+                                    <span class="text-slate-400 text-[10px] block mt-0.5">Inbound lead extraction pipeline</span>
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-3">
-                                <span class="px-2 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider ${connection.imap_host ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-slate-400 border border-slate-200'}">
-                                    ${connection.imap_host ? 'Connected' : 'Not Configured'}
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider ${connection.imap_host ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'}">
+                                    ${connection.imap_host ? 'Connected' : 'Setup Required'}
                                 </span>
-                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400"></i>
+                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 group-hover:text-amber-600 transition"></i>
+                            </div>
+                        </div>
+
+                        <!-- OpenRouter AI Card -->
+                        <div onclick="openIntegrationSetupModal('openrouter')" class="glass-panel p-4 bg-white shadow-sm border border-slate-200 hover:border-indigo-500 hover:shadow-md transition duration-200 rounded-2xl flex items-center justify-between cursor-pointer group">
+                            <div class="flex items-center space-x-3.5">
+                                <div class="h-10 w-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                                    <i data-lucide="sparkles" class="h-5 w-5"></i>
+                                </div>
+                                <div>
+                                    <span class="block font-extrabold text-slate-800 text-sm">OpenRouter AI</span>
+                                    <span class="text-slate-400 text-[10px] block mt-0.5">LLM intelligence & summary engine</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200">
+                                    Connected
+                                </span>
+                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 group-hover:text-purple-600 transition"></i>
+                            </div>
+                        </div>
+
+                        <!-- Google Calendar Card -->
+                        <div onclick="openIntegrationSetupModal('gcal')" class="glass-panel p-4 bg-white shadow-sm border border-slate-200 hover:border-indigo-500 hover:shadow-md transition duration-200 rounded-2xl flex items-center justify-between cursor-pointer group">
+                            <div class="flex items-center space-x-3.5">
+                                <div class="h-10 w-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                                    <i data-lucide="calendar" class="h-5 w-5"></i>
+                                </div>
+                                <div>
+                                    <span class="block font-extrabold text-slate-800 text-sm">Google Calendar & Meet</span>
+                                    <span class="text-slate-400 text-[10px] block mt-0.5">Automated meeting scheduling</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-200">
+                                    Connected
+                                </span>
+                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 group-hover:text-blue-600 transition"></i>
+                            </div>
+                        </div>
+
+                        <!-- WhatsApp Webhook Card -->
+                        <div onclick="openIntegrationSetupModal('whatsapp')" class="glass-panel p-4 bg-white shadow-sm border border-slate-200 hover:border-indigo-500 hover:shadow-md transition duration-200 rounded-2xl flex items-center justify-between cursor-pointer group">
+                            <div class="flex items-center space-x-3.5">
+                                <div class="h-10 w-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                                    <i data-lucide="message-square" class="h-5 w-5"></i>
+                                </div>
+                                <div>
+                                    <span class="block font-extrabold text-slate-800 text-sm">WhatsApp Business API</span>
+                                    <span class="text-slate-400 text-[10px] block mt-0.5">Outbound chat automation</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200">
+                                    Connected
+                                </span>
+                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 group-hover:text-emerald-600 transition"></i>
                             </div>
                         </div>
                     </div>
@@ -15838,6 +15895,270 @@ async function renderIntegrations(container) {
             </div>
         `;
     }
+}
+
+window.openIntegrationSetupModal = function(type) {
+    const existing = document.getElementById('integration-setup-drawer');
+    if (existing) existing.remove();
+
+    const configs = {
+        smtp: {
+            title: 'SMTP Email Outbound Setup',
+            icon: 'send',
+            iconColor: 'text-indigo-600',
+            iconBg: 'bg-indigo-50',
+            status: 'Requires Configuration',
+            statusClass: 'bg-amber-50 text-amber-700 border-amber-200',
+            purpose: 'Allows LinkPilot AI to send transactional email replies, meeting invitations, and automated follow-ups directly through your domain email server.',
+            credentials: [
+                { name: 'SMTP Host', detail: 'e.g., smtp.gmail.com or smtp.office365.com' },
+                { name: 'SMTP Port', detail: '587 (TLS/STARTTLS) or 465 (SSL)' },
+                { name: 'Username & Password', detail: 'Your mailbox email address and App Password / Secret' }
+            ],
+            permissions: [
+                'Mail Send (`SMTP AUTH`) permission',
+                'TLS 1.2+ secure connection handshake'
+            ],
+            steps: [
+                'Click "Edit Connection" at the top of the Integrations Control panel.',
+                'Select your Email Provider Type (Gmail, Outlook, or Custom Server).',
+                'Enter your SMTP host, port, username, and password.',
+                'Click "Test SMTP Connection" to perform an automated handshake test.',
+                'Save Mailbox Credentials to persist settings.'
+            ],
+            troubleshooting: [
+                'Google Gmail Users: You must generate a 16-character App Password under Google Account > Security > 2-Step Verification.',
+                'Connection Timeout: Verify your firewall permits outbound traffic on port 587 or 465.'
+            ],
+            actionBtnText: 'Configure SMTP Now',
+            actionFn: () => { toggleMailForm(); }
+        },
+        imap: {
+            title: 'IMAP Mail Sync Setup',
+            icon: 'inbox',
+            iconColor: 'text-amber-600',
+            iconBg: 'bg-amber-50',
+            status: 'Requires Configuration',
+            statusClass: 'bg-amber-50 text-amber-700 border-amber-200',
+            purpose: 'Continuously monitors your inbox to automatically download inbound emails, extract prospective leads, and categorize intent with AI.',
+            credentials: [
+                { name: 'IMAP Host', detail: 'e.g., imap.gmail.com or outlook.office365.com' },
+                { name: 'IMAP Port', detail: '993 (SSL Encryption required)' },
+                { name: 'Username & App Password', detail: 'Mailbox account credentials' }
+            ],
+            permissions: [
+                'Read Mailbox (`IMAP SEARCH / FETCH`) permission',
+                'Background worker polling access'
+            ],
+            steps: [
+                'Open "Edit Connection" in the Integrations panel.',
+                'Fill in IMAP Host (e.g. imap.gmail.com) and Port (993).',
+                'Input your IMAP Username and App Password.',
+                'Select your preferred background sync frequency (15, 30, or 60 minutes).',
+                'Check "Enable background mail downloader worker pipeline" and save.'
+            ],
+            troubleshooting: [
+                'IMAP Disabled Error: Check mailbox settings in Gmail/Outlook to confirm IMAP access is enabled.',
+                'Authentication Failed: Verify 2FA App Passwords are used instead of master account passwords.'
+            ],
+            actionBtnText: 'Configure IMAP Now',
+            actionFn: () => { toggleMailForm(); }
+        },
+        openrouter: {
+            title: 'OpenRouter AI Intelligence Setup',
+            icon: 'sparkles',
+            iconColor: 'text-purple-600',
+            iconBg: 'bg-purple-50',
+            status: 'Active & Connected',
+            statusClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+            purpose: 'Powers autonomous email categorization, sentiment scoring, automated AI meeting summaries, and natural language analytics.',
+            credentials: [
+                { name: 'API Key', detail: 'OpenRouter API Key (`sk-or-v1-...`) configured in environment' },
+                { name: 'Credit Wallet', detail: 'Live token wallet balance managed via profile API' }
+            ],
+            permissions: [
+                'LLM Model Inference (`anthropic/claude-3-5-sonnet`, `openai/gpt-4o-mini`)'
+            ],
+            steps: [
+                'OpenRouter API is pre-configured with default system fallback keys.',
+                'Token wallet balance is monitored automatically.',
+                'To top up credits, navigate to the AI Insights tab or click Recharge.'
+            ],
+            troubleshooting: [
+                'Credit Exhaustion Alert: If wallet balance reaches 0, AI features temporarily pause until recharged.'
+            ],
+            actionBtnText: 'Check AI Wallet',
+            actionFn: () => { window.location.hash = '#/ai-insights'; }
+        },
+        gcal: {
+            title: 'Google Calendar & Meet Setup',
+            icon: 'calendar',
+            iconColor: 'text-blue-600',
+            iconBg: 'bg-blue-50',
+            status: 'Active & Connected',
+            statusClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+            purpose: 'Syncs your weekly availability, generates Google Meet video links for booked appointments, and prevents double-booking.',
+            credentials: [
+                { name: 'OAuth 2.0 Token', detail: 'Authenticated Google User Session' }
+            ],
+            permissions: [
+                'Read/Write Calendar Events (`https://www.googleapis.com/auth/calendar.events`)',
+                'Create Google Meet Conference Data'
+            ],
+            steps: [
+                'Navigate to Booking Setup (`#/booking-setup`).',
+                'Select "Google Meet" as your primary meeting provider.',
+                'Configure your weekly operating hours and default meeting duration.'
+            ],
+            troubleshooting: [
+                'Missing Meet Links: Ensure Google Meet provider is toggled under Booking Settings.'
+            ],
+            actionBtnText: 'Go to Booking Setup',
+            actionFn: () => { window.location.hash = '#/booking-setup'; }
+        },
+        whatsapp: {
+            title: 'WhatsApp Business API Setup',
+            icon: 'message-square',
+            iconColor: 'text-emerald-600',
+            iconBg: 'bg-emerald-50',
+            status: 'Active & Connected',
+            statusClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+            purpose: 'Triggers automated WhatsApp message follow-ups and meeting reminders directly to prospect phones.',
+            credentials: [
+                { name: 'Webhook Secret Token', detail: 'Configured in backend/api/whatsapp/webhook.php' },
+                { name: 'Phone Number ID', detail: 'Meta WhatsApp Business Account ID' }
+            ],
+            permissions: [
+                'Outbound Template Message Dispatch',
+                'Inbound Webhook Listener'
+            ],
+            steps: [
+                'Set your Meta WhatsApp Access Token in environment settings.',
+                'Define workflow automation rules using the Workflow Builder (`#/automation`).',
+                'Test message delivery using the simulator.'
+            ],
+            troubleshooting: [
+                'Webhook Handshake Failure: Verify public HTTPS endpoint accessibility.'
+            ],
+            actionBtnText: 'Open Workflow Automation',
+            actionFn: () => { window.location.hash = '#/automation'; }
+        }
+    };
+
+    const cfg = configs[type] || configs.smtp;
+
+    const modalHTML = `
+        <div id="integration-setup-drawer" class="fixed inset-0 z-50 flex items-center justify-end bg-slate-900/60 backdrop-blur-xs animate-fade-in p-4 sm:p-6 select-none">
+            <div class="bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-xl h-full max-h-[90vh] flex flex-col overflow-hidden text-left animate-slide-left">
+                <!-- Drawer Header -->
+                <div class="p-6 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/50">
+                    <div class="flex items-center space-x-3.5">
+                        <div class="h-11 w-11 ${cfg.iconBg} ${cfg.iconColor} rounded-2xl flex items-center justify-center border border-slate-200/60 shadow-2xs">
+                            <i data-lucide="${cfg.icon}" class="h-5.5 w-5.5"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-black text-slate-850">${cfg.title}</h3>
+                            <span class="inline-block mt-0.5 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded-md border ${cfg.statusClass}">
+                                ${cfg.status}
+                            </span>
+                        </div>
+                    </div>
+                    <button onclick="document.getElementById('integration-setup-drawer').remove()" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition focus:outline-none">
+                        <i data-lucide="x" class="h-5 w-5"></i>
+                    </button>
+                </div>
+
+                <!-- Drawer Content -->
+                <div class="flex-grow overflow-y-auto p-6 space-y-6 text-xs text-slate-700">
+                    <!-- Purpose -->
+                    <div class="space-y-1.5">
+                        <h4 class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Integration Purpose</h4>
+                        <p class="text-slate-650 leading-relaxed font-semibold bg-slate-50 border border-slate-100 p-3.5 rounded-2xl">${cfg.purpose}</p>
+                    </div>
+
+                    <!-- Required Credentials -->
+                    <div class="space-y-2">
+                        <h4 class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Required Credentials</h4>
+                        <div class="space-y-2">
+                            ${cfg.credentials.map(c => `
+                                <div class="p-3 bg-white border border-slate-200/80 rounded-xl flex items-start space-x-3 shadow-2xs">
+                                    <div class="h-6 w-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 mt-0.5">
+                                        <i data-lucide="key" class="h-3.5 w-3.5"></i>
+                                    </div>
+                                    <div>
+                                        <span class="block font-extrabold text-slate-800 text-xs">${c.name}</span>
+                                        <span class="text-[11px] text-slate-500 font-semibold">${c.detail}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Required Permissions -->
+                    <div class="space-y-2">
+                        <h4 class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Required Permissions</h4>
+                        <ul class="space-y-1.5 bg-slate-50 border border-slate-100 p-3.5 rounded-2xl">
+                            ${cfg.permissions.map(p => `
+                                <li class="flex items-center space-x-2 text-slate-650 font-semibold">
+                                    <i data-lucide="shield-check" class="h-4 w-4 text-emerald-500 shrink-0"></i>
+                                    <span>${p}</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+
+                    <!-- Setup Steps -->
+                    <div class="space-y-2">
+                        <h4 class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Step-by-Step Configuration</h4>
+                        <div class="space-y-2">
+                            ${cfg.steps.map((step, idx) => `
+                                <div class="flex items-start space-x-3 p-2.5 bg-white border border-slate-200/60 rounded-xl">
+                                    <div class="h-5 w-5 rounded-full bg-indigo-600 text-white font-black text-[10px] flex items-center justify-center shrink-0 mt-0.5" style="color: #ffffff !important;">${idx + 1}</div>
+                                    <span class="text-slate-700 font-bold leading-normal text-xs">${step}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Troubleshooting -->
+                    <div class="space-y-2">
+                        <h4 class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Troubleshooting Guide</h4>
+                        <div class="space-y-2 bg-amber-50/50 border border-amber-200/60 p-3.5 rounded-2xl text-amber-900">
+                            ${cfg.troubleshooting.map(t => `
+                                <div class="flex items-start space-x-2 text-[11px] font-semibold">
+                                    <i data-lucide="help-circle" class="h-4 w-4 text-amber-600 shrink-0 mt-0.5"></i>
+                                    <span>${t}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Action -->
+                <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end space-x-3 shrink-0">
+                    <button onclick="document.getElementById('integration-setup-drawer').remove()" class="px-4 py-2.5 border border-slate-200 hover:bg-slate-100 text-slate-600 font-bold rounded-xl text-xs transition">
+                        Close
+                    </button>
+                    <button id="integration-drawer-action-btn" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl text-xs transition shadow-md flex items-center space-x-1.5" style="color: #ffffff !important;">
+                        <span>${cfg.actionBtnText}</span>
+                        <i data-lucide="arrow-right" class="h-4 w-4" style="color: #ffffff !important;"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    lucide.createIcons();
+
+    const actionBtn = document.getElementById('integration-drawer-action-btn');
+    if (actionBtn) {
+        actionBtn.onclick = () => {
+            document.getElementById('integration-setup-drawer').remove();
+            cfg.actionFn();
+        };
+    }
+};
 }
 
 async function triggerIntegrationsManualSync(btn) {

@@ -196,7 +196,7 @@ try {
                         $bodyText = $msg['button']['text'] ?? '';
                     } elseif ($msgType === 'interactive') {
                         $bodyText = $msg['interactive']['button_reply']['title'] ?? ($msg['interactive']['list_reply']['title'] ?? '');
-                    } elseif (in_array($msgType, ['image', 'video', 'document', 'audio'])) {
+                    } elseif (in_array($msgType, ['image', 'video', 'document', 'audio', 'voice', 'sticker'])) {
                         $mediaIdToDownload = $msg[$msgType]['id'] ?? null;
                         $mediaMimeType = $msg[$msgType]['mime_type'] ?? '';
                         $bodyText = $msg[$msgType]['caption'] ?? ($msg[$msgType]['filename'] ?? ucfirst($msgType) . " Attachment");
@@ -252,7 +252,7 @@ try {
                         ]);
 
                         $stmtQueueIn = $db->prepare("INSERT INTO whatsapp_queue (user_id, phone_number_id, recipient_number, payload_json, type, status) VALUES (?, ?, ?, ?, 'inbound_ai_reply', 'pending')");
-                        $stmtQueueIn->execute([$userId, $phoneNumberId, $fromWaId, $queuePayload, 'inbound_ai_reply']);
+                        $stmtQueueIn->execute([$userId, $phoneNumberId, $fromWaId, $queuePayload]);
                     }
                     
                     // Always commit transaction first to ensure message is persisted to DB

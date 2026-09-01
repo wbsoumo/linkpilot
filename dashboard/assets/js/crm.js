@@ -9541,15 +9541,45 @@ window.meetingsCalendarYear = new Date().getFullYear();
 // Connect/Disconnect functions for meetings page
 window.connectGoogleMeetings = async function() {
     try {
-        showNotification('info', 'Redirecting to Google Calendar OAuth page...');
-        const res = await apiCall('external_apps/auth.php?type=calendar&from=meetings');
-        if (res.status === 'success' && res.auth_url) {
-            window.location.href = res.auth_url;
+        showNotification('info', 'Opening Google OAuth authorization window...');
+        const res = await apiCall('external_apps/auth.php?type=calendar&from=popup');
+        let authUrl = (res.status === 'success' && res.auth_url) ? res.auth_url : null;
+        
+        if (!authUrl) {
+            // Fallback request
+            const fb = await apiCall('external_apps/auth.php?type=calendar&from=meetings');
+            authUrl = fb.auth_url;
+        }
+
+        if (authUrl) {
+            const width = 600;
+            const height = 700;
+            const left = (window.screen.width - width) / 2;
+            const top = (window.screen.height - height) / 2;
+            
+            const popup = window.open(
+                authUrl,
+                'GoogleOAuthPopup',
+                `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`
+            );
+
+            if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+                showNotification('warning', 'Popup blocked by browser. Redirecting directly...');
+                window.location.href = authUrl;
+            }
         } else {
-            showNotification('error', res.message || 'Failed to construct authorization URL.');
+            showNotification('error', 'Failed to construct authorization URL.');
         }
     } catch (err) {
-        showNotification('error', 'OAuth redirect failed: ' + err.message);
+        showNotification('error', 'OAuth popup failed: ' + err.message);
+    }
+};
+
+window.handleGoogleOAuthCallback = function(data) {
+    showNotification('success', 'Google Workspace Calendar connected successfully!');
+    const viewport = document.getElementById('main-content-viewport');
+    if (viewport && currentView === 'meetings') {
+        renderMeetings(viewport);
     }
 };
 

@@ -4681,7 +4681,7 @@ async function renderDeals(container) {
                 }
 
                 return `
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3 card-hover relative group cursor-grab active:cursor-grabbing" draggable="true" ondragstart="handleDealDragStart(event, ${c.id})" oncontextmenu="openDealContextMenu(event, ${c.id})" ondblclick="openDealLogsModal(${c.id})">
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3 card-hover relative group cursor-grab active:cursor-grabbing select-none" draggable="true" ondragstart="handleDealDragStart(event, ${c.id})" ontouchstart="handleDealTouchStart(event, ${c.id})" ontouchmove="handleDealTouchMove(event)" ontouchend="handleDealTouchEnd(event)" oncontextmenu="openDealContextMenu(event, ${c.id})" ondblclick="openDealLogsModal(${c.id})">
                         <!-- Action Menu Button -->
                         <div class="absolute top-3.5 right-3.5 z-10">
                             <button onclick="openDealMenu(event, ${c.id})" class="h-6 w-6 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-50 flex items-center justify-center transition">
@@ -4715,7 +4715,7 @@ async function renderDeals(container) {
             }).join('');
 
             return `
-                <div class="flex-1 min-w-[280px] bg-slate-50/30 rounded-2xl border border-slate-200/50 p-4 space-y-4 flex flex-col min-h-[500px] border-t-4 ${theme.text.split(' ')[1]}" ondragover="event.preventDefault()" ondrop="handleDealDrop(event, '${st}')">
+                <div data-kanban-stage="${st}" class="flex-1 min-w-[280px] bg-slate-50/30 rounded-2xl border border-slate-200/50 p-4 space-y-4 flex flex-col min-h-[500px] border-t-4 ${theme.text.split(' ')[1]}" ondragover="event.preventDefault()" ondrop="handleDealDrop(event, '${st}')">
                     <!-- Column Header -->
                     <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                         <div class="flex items-center space-x-2">
@@ -5329,13 +5329,83 @@ window.openEditDealModal = async function(dealId) {
 };
 
 let draggedDealId = null;
+let touchDraggedCard = null;
+let touchClone = null;
+
 function handleDealDragStart(e, id) {
     draggedDealId = id;
-    e.dataTransfer.setData('text/plain', id);
+    if (e.dataTransfer) {
+        e.dataTransfer.setData('text/plain', id);
+    }
 }
 
+// Touch support / polyfill for mobile drag and drop on Kanban cards
+window.handleDealTouchStart = function(e, id) {
+    draggedDealId = id;
+    touchDraggedCard = e.currentTarget;
+    
+    const touch = e.touches[0];
+    if (!touch || !touchDraggedCard) return;
+
+    // Create visual dragging clone
+    touchClone = touchDraggedCard.cloneNode(true);
+    touchClone.id = 'kanban-touch-drag-clone';
+    touchClone.style.position = 'fixed';
+    touchClone.style.zIndex = '99999';
+    touchClone.style.pointerEvents = 'none';
+    touchClone.style.opacity = '0.9';
+    touchClone.style.width = touchDraggedCard.offsetWidth + 'px';
+    touchClone.style.top = (touch.clientY - 30) + 'px';
+    touchClone.style.left = (touch.clientX - (touchDraggedCard.offsetWidth / 2)) + 'px';
+    touchClone.style.transform = 'scale(1.03) rotate(2deg)';
+    touchClone.style.boxShadow = '0 20px 25px -5px rgba(0,0,0,0.2)';
+
+    document.body.appendChild(touchClone);
+    touchDraggedCard.classList.add('opacity-40');
+};
+
+window.handleDealTouchMove = function(e) {
+    if (!touchClone || !e.touches[0]) return;
+    e.preventDefault(); // Prevent page scrolling during drag
+    const touch = e.touches[0];
+    touchClone.style.top = (touch.clientY - 30) + 'px';
+    touchClone.style.left = (touch.clientX - (touchClone.offsetWidth / 2)) + 'px';
+};
+
+window.handleDealTouchEnd = function(e) {
+    if (touchClone) {
+        touchClone.remove();
+        touchClone = null;
+    }
+    if (touchDraggedCard) {
+        touchDraggedCard.classList.remove('opacity-40');
+        touchDraggedCard = null;
+    }
+
+    const touch = e.changedTouches[0];
+    if (!touch || !draggedDealId) return;
+
+    // Find element under touch position
+    const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (!dropTarget) {
+        draggedDealId = null;
+        return;
+    }
+
+    // Find nearest Kanban column with stage attribute
+    const column = dropTarget.closest('[data-kanban-stage]');
+    if (column) {
+        const targetStage = column.getAttribute('data-kanban-stage');
+        if (targetStage) {
+            handleDealDrop(e, targetStage);
+            return;
+        }
+    }
+    draggedDealId = null;
+};
+
 async function handleDealDrop(e, targetStage) {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     if (!draggedDealId) return;
     
     try {

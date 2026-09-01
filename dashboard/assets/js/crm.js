@@ -15484,8 +15484,9 @@ async function renderReports(container) {
 
 window.handleReportsDateRangeChange = function(newRange) {
     sessionStorage.setItem('reports_date_range', newRange);
+    showNotification('info', `Date range filter updated to ${newRange.toUpperCase()}`);
     const viewport = document.getElementById('main-content-viewport');
-    if (viewport && currentView === 'reports') {
+    if (viewport) {
         renderReports(viewport);
     }
 };

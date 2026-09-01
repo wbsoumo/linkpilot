@@ -929,12 +929,35 @@
     };
 
     function escapeHtml(text) {
-        return text
+        if (!text) return "";
+        return String(text)
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
+    }
+
+    function escapeAttr(text) {
+        if (!text) return "";
+        return String(text)
+            .replace(/&/g, "&amp;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    }
+
+    function sanitizeUrl(urlStr) {
+        if (!urlStr) return "#";
+        let str = String(urlStr).trim();
+        if (str.startsWith('javascript:') || str.startsWith('vbscript:') || str.startsWith('data:text/html')) {
+            return "#";
+        }
+        if (str !== '#' && !str.startsWith('http://') && !str.startsWith('https://') && !str.startsWith('mailto:') && !str.startsWith('tel:') && !str.startsWith('/') && !str.startsWith('#')) {
+            str = 'https://' + str;
+        }
+        return escapeAttr(str);
     }
 
     window.toggleCanvasCodeView = function() {
@@ -2649,8 +2672,10 @@
                     case 'image':
                         inner = `
                             <tr>
-                                <td align="${el.settings.align || 'center'}" style="padding: 10px 0;">
-                                    <img src="${el.settings.imageUrl || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop'}" style="display: inline-block; width: ${el.settings.width || '100%'}; max-width: 100%; height: auto; border-radius: ${el.settings.borderRadius || '6px'};" alt="Email Asset">
+                                <td align="${escapeAttr(el.settings.align || 'center')}" style="padding: 10px 0;">
+                                    ${el.settings.link ? `<a href="${sanitizeUrl(el.settings.link)}" target="_blank" style="text-decoration:none;">` : ''}
+                                    <img src="${sanitizeUrl(el.settings.imageUrl || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop')}" style="display: inline-block; width: ${escapeAttr(el.settings.width || '100%')}; max-width: 100%; height: auto; border-radius: ${escapeAttr(el.settings.borderRadius || '6px')};" alt="${escapeAttr(el.settings.alt || 'Email Asset')}">
+                                    ${el.settings.link ? `</a>` : ''}
                                 </td>
                             </tr>
                         `;
@@ -2658,12 +2683,12 @@
                     case 'button':
                         inner = `
                             <tr>
-                                <td align="${el.settings.align || 'center'}" style="padding: 15px 0;">
+                                <td align="${escapeAttr(el.settings.align || 'center')}" style="padding: 15px 0;">
                                     <table border="0" cellpadding="0" cellspacing="0" style="display: inline-block;">
                                         <tr>
-                                            <td align="center" bgcolor="${el.settings.backgroundColor || '#6D5EF5'}" style="border-radius: ${el.settings.borderRadius || '8px'};">
-                                                <a href="${el.settings.link || '#'}" target="_blank" style="display: inline-block; padding: ${el.settings.paddingTop || '12px'} ${el.settings.paddingRight || '24px'} ${el.settings.paddingBottom || '12px'} ${el.settings.paddingLeft || '24px'}; font-family: ${brandStyles.fontFamily}; font-size: 14px; font-weight: bold; color: ${el.settings.textColor || '#ffffff'}; text-decoration: none;">
-                                                    ${el.settings.text || 'Action Button'}
+                                            <td align="center" bgcolor="${escapeAttr(el.settings.backgroundColor || '#6D5EF5')}" style="border-radius: ${escapeAttr(el.settings.borderRadius || '8px')};">
+                                                <a href="${sanitizeUrl(el.settings.link)}" target="_blank" style="display: inline-block; padding: ${escapeAttr(el.settings.paddingTop || '12px')} ${escapeAttr(el.settings.paddingRight || '24px')} ${escapeAttr(el.settings.paddingBottom || '12px')} ${escapeAttr(el.settings.paddingLeft || '24px')}; font-family: ${brandStyles.fontFamily}; font-size: 14px; font-weight: bold; color: ${escapeAttr(el.settings.textColor || '#ffffff')}; text-decoration: none;">
+                                                    ${escapeHtml(el.settings.text || 'Action Button')}
                                                 </a>
                                             </td>
                                         </tr>
@@ -2675,10 +2700,10 @@
                     case 'divider':
                         inner = `
                             <tr>
-                                <td style="padding: ${el.settings.spacing || '15px'} 0;">
+                                <td style="padding: ${escapeAttr(el.settings.spacing || '15px')} 0;">
                                     <table border="0" cellpadding="0" cellspacing="0" width="100%">
                                         <tr>
-                                            <td style="border-top: 1px solid ${el.settings.color || '#E2E8F0'}; height: 1px; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                                            <td style="border-top: 1px solid ${escapeAttr(el.settings.color || '#E2E8F0')}; height: 1px; line-height: 1px; font-size: 1px;">&nbsp;</td>
                                         </tr>
                                     </table>
                                 </td>
@@ -2688,15 +2713,15 @@
                     case 'spacer':
                         inner = `
                             <tr>
-                                <td style="height: ${el.settings.height || '20px'}; font-size: 1px; line-height: 1px;">&nbsp;</td>
+                                <td style="height: ${escapeAttr(el.settings.height || '20px')}; font-size: 1px; line-height: 1px;">&nbsp;</td>
                             </tr>
                         `;
                         break;
                     case 'logo':
                         inner = `
                             <tr>
-                                <td align="${el.settings.align || 'center'}" style="padding: 10px 0;">
-                                    <img src="${el.settings.logoUrl || 'https://img.icons8.com/color/96/000000/send.png'}" style="display: block; height: ${el.settings.height || '40px'}; width: auto;" alt="Logo">
+                                <td align="${escapeAttr(el.settings.align || 'center')}" style="padding: 10px 0;">
+                                    <img src="${sanitizeUrl(el.settings.logoUrl || 'https://img.icons8.com/color/96/000000/send.png')}" style="display: block; height: ${escapeAttr(el.settings.height || '40px')}; width: auto;" alt="Logo">
                                 </td>
                             </tr>
                         `;
@@ -2704,13 +2729,13 @@
                     case 'social':
                         inner = `
                             <tr>
-                                <td align="${el.settings.align || 'center'}" style="padding: 15px 0;">
+                                <td align="${escapeAttr(el.settings.align || 'center')}" style="padding: 15px 0;">
                                     <table border="0" cellpadding="0" cellspacing="0" style="display: inline-block;">
                                         <tr>
-                                            <td style="padding: 0 8px;"><a href="#" target="_blank"><img src="https://img.icons8.com/color/48/000000/facebook-new.png" width="24" height="24" style="display: block;" alt="FB"></a></td>
-                                            <td style="padding: 0 8px;"><a href="#" target="_blank"><img src="https://img.icons8.com/color/48/000000/twitter.png" width="24" height="24" style="display: block;" alt="TW"></a></td>
-                                            <td style="padding: 0 8px;"><a href="#" target="_blank"><img src="https://img.icons8.com/color/48/000000/linkedin.png" width="24" height="24" style="display: block;" alt="LN"></a></td>
-                                            <td style="padding: 0 8px;"><a href="#" target="_blank"><img src="https://img.icons8.com/color/48/000000/instagram-new.png" width="24" height="24" style="display: block;" alt="IG"></a></td>
+                                            <td style="padding: 0 8px;"><a href="${sanitizeUrl(el.settings.facebookLink)}" target="_blank"><img src="https://img.icons8.com/color/48/000000/facebook-new.png" width="24" height="24" style="display: block;" alt="FB"></a></td>
+                                            <td style="padding: 0 8px;"><a href="${sanitizeUrl(el.settings.twitterLink)}" target="_blank"><img src="https://img.icons8.com/color/48/000000/twitter.png" width="24" height="24" style="display: block;" alt="TW"></a></td>
+                                            <td style="padding: 0 8px;"><a href="${sanitizeUrl(el.settings.linkedinLink)}" target="_blank"><img src="https://img.icons8.com/color/48/000000/linkedin.png" width="24" height="24" style="display: block;" alt="LN"></a></td>
+                                            <td style="padding: 0 8px;"><a href="${sanitizeUrl(el.settings.instagramLink)}" target="_blank"><img src="https://img.icons8.com/color/48/000000/instagram-new.png" width="24" height="24" style="display: block;" alt="IG"></a></td>
                                         </tr>
                                     </table>
                                 </td>
@@ -2721,16 +2746,16 @@
                         inner = `
                             <tr>
                                 <td style="padding: 15px 0;">
-                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="${el.settings.backgroundColor || '#FAF9FF'}" style="border: 2px dashed ${el.settings.borderColor || '#6D5EF5'}; border-radius: 10px; text-align: center;">
+                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="${escapeAttr(el.settings.backgroundColor || '#FAF9FF')}" style="border: 2px dashed ${escapeAttr(el.settings.borderColor || '#6D5EF5')}; border-radius: 10px; text-align: center;">
                                         <tr>
                                             <td style="padding: 24px;">
                                                 <span style="font-family: ${brandStyles.fontFamily}; font-size: 10px; font-weight: bold; text-transform: uppercase; color: #64748B; letter-spacing: 1px;">Discount Coupon</span>
-                                                <h3 style="font-family: ${brandStyles.fontFamily}; font-size: 26px; margin: 8px 0; color: #0F172A; font-weight: 850;">${el.settings.discount || '50% OFF'}</h3>
-                                                <p style="font-family: ${brandStyles.fontFamily}; font-size: 13px; margin: 0 0 16px 0; color: #475569;">${el.settings.desc || ''}</p>
+                                                <h3 style="font-family: ${brandStyles.fontFamily}; font-size: 26px; margin: 8px 0; color: #0F172A; font-weight: 850;">${escapeHtml(el.settings.discount || '50% OFF')}</h3>
+                                                <p style="font-family: ${brandStyles.fontFamily}; font-size: 13px; margin: 0 0 16px 0; color: #475569;">${escapeHtml(el.settings.desc || '')}</p>
                                                 <table border="0" cellpadding="0" cellspacing="0" style="display: inline-block;">
                                                     <tr>
                                                         <td bgcolor="#ffffff" style="border: 1px solid #E2E8F0; padding: 8px 20px; font-family: monospace; font-size: 15px; font-weight: bold; color: #0F172A; border-radius: 6px; letter-spacing: 1.5px;">
-                                                            ${el.settings.code || 'WELCOME50'}
+                                                            ${escapeHtml(el.settings.code || 'WELCOME50')}
                                                         </td>
                                                     </tr>
                                                 </table>
@@ -2772,10 +2797,10 @@
                     case 'menu':
                         inner = `
                             <tr>
-                                <td align="${el.settings.align || 'center'}" style="padding: 15px 0; font-family: ${brandStyles.fontFamily}; font-size: 13px; font-weight: bold;">
-                                    <a href="${el.settings.link1Url || '#'}" target="_blank" style="color: #475569; text-decoration: none; margin: 0 10px;">${el.settings.link1Text || 'Home'}</a> &nbsp;&bull;&nbsp;
-                                    <a href="${el.settings.link2Url || '#'}" target="_blank" style="color: #475569; text-decoration: none; margin: 0 10px;">${el.settings.link2Text || 'Shop'}</a> &nbsp;&bull;&nbsp;
-                                    <a href="${el.settings.link3Url || '#'}" target="_blank" style="color: #475569; text-decoration: none; margin: 0 10px;">${el.settings.link3Text || 'Contact'}</a>
+                                <td align="${escapeAttr(el.settings.align || 'center')}" style="padding: 15px 0; font-family: ${brandStyles.fontFamily}; font-size: 13px; font-weight: bold;">
+                                    <a href="${sanitizeUrl(el.settings.link1Url)}" target="_blank" style="color: #475569; text-decoration: none; margin: 0 10px;">${escapeHtml(el.settings.link1Text || 'Home')}</a> &nbsp;&bull;&nbsp;
+                                    <a href="${sanitizeUrl(el.settings.link2Url)}" target="_blank" style="color: #475569; text-decoration: none; margin: 0 10px;">${escapeHtml(el.settings.link2Text || 'Shop')}</a> &nbsp;&bull;&nbsp;
+                                    <a href="${sanitizeUrl(el.settings.link3Url)}" target="_blank" style="color: #475569; text-decoration: none; margin: 0 10px;">${escapeHtml(el.settings.link3Text || 'Contact')}</a>
                                 </td>
                             </tr>
                         `;
@@ -2783,8 +2808,8 @@
                     case 'icon':
                         inner = `
                             <tr>
-                                <td align="${el.settings.align || 'center'}" style="padding: 10px 0;">
-                                    <img src="https://img.icons8.com/color/96/000000/${el.settings.iconName || 'star'}.png" width="${parseInt(el.settings.size) || 36}" height="${parseInt(el.settings.size) || 36}" style="display: inline-block;" alt="Icon">
+                                <td align="${escapeAttr(el.settings.align || 'center')}" style="padding: 10px 0;">
+                                    <img src="https://img.icons8.com/color/96/000000/${escapeAttr(el.settings.iconName || 'star')}.png" width="${parseInt(el.settings.size) || 36}" height="${parseInt(el.settings.size) || 36}" style="display: inline-block;" alt="Icon">
                                 </td>
                             </tr>
                         `;
@@ -2792,9 +2817,9 @@
                     case 'video':
                         inner = `
                             <tr>
-                                <td align="${el.settings.align || 'center'}" style="padding: 15px 0;">
-                                    <a href="${el.settings.videoUrl || '#'}" target="_blank" style="display: inline-block; position: relative; text-decoration: none;">
-                                        <img src="${el.settings.thumbnailUrl || 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&auto=format&fit=crop'}" width="100%" style="max-width: 540px; height: auto; border-radius: 12px; display: block;" alt="Video">
+                                <td align="${escapeAttr(el.settings.align || 'center')}" style="padding: 15px 0;">
+                                    <a href="${sanitizeUrl(el.settings.videoUrl)}" target="_blank" style="display: inline-block; position: relative; text-decoration: none;">
+                                        <img src="${sanitizeUrl(el.settings.thumbnailUrl || 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&auto=format&fit=crop')}" width="100%" style="max-width: 540px; height: auto; border-radius: 12px; display: block;" alt="Video">
                                     </a>
                                 </td>
                             </tr>

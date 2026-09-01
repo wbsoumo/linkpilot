@@ -960,6 +960,27 @@
         return escapeAttr(str);
     }
 
+    // HTML Block Sanitization Pipeline: User HTML -> Validate -> Sanitize -> Compile -> Final Email HTML
+    function sanitizeCustomHtml(rawHtml) {
+        if (!rawHtml) return "";
+        let cleanHtml = String(rawHtml);
+        
+        // 1. Remove dangerous script tags and event attributes
+        cleanHtml = cleanHtml.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+        cleanHtml = cleanHtml.replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '');
+        cleanHtml = cleanHtml.replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '');
+        cleanHtml = cleanHtml.replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, '');
+        cleanHtml = cleanHtml.replace(/<applet\b[^<]*(?:(?!<\/applet>)<[^<]*)*<\/applet>/gi, '');
+        cleanHtml = cleanHtml.replace(/\s*on\w+\s*=\s*(["']).*?\1/gi, '');
+        cleanHtml = cleanHtml.replace(/\s*on\w+\s*=\s*[^>\s]+/gi, '');
+
+        // 2. Remove dangerous protocol targets (javascript:, vbscript:, data:)
+        cleanHtml = cleanHtml.replace(/href\s*=\s*(["'])\s*(javascript|vbscript|data):.*?\1/gi, 'href="#"');
+        cleanHtml = cleanHtml.replace(/src\s*=\s*(["'])\s*(javascript|vbscript|data):.*?\1/gi, 'src=""');
+
+        return cleanHtml;
+    }
+
     window.toggleCanvasCodeView = function() {
         if (isCodeViewActive) {
             // We are switching from Code View -> Visual View
@@ -2543,7 +2564,7 @@
             updateAutoSaveStatus("Saving...");
         }
 
-        const compiledHtml = customHtmlOverride !== null ? customHtmlOverride : compileResponsiveHtml(canvasData);
+        const compiledHtml = customHtmlOverride !== null ? sanitizeCustomHtml(customHtmlOverride) : compileResponsiveHtml(canvasData);
 
         const payload = {
             id: activeTemplateId,
@@ -2551,7 +2572,7 @@
             subject: templateSubject,
             category: templateCategory,
             tag: templateTag,
-            json_data: customHtmlOverride !== null ? JSON.stringify({ isRawHtml: true, customHtml: customHtmlOverride }) : JSON.stringify(canvasData),
+            json_data: customHtmlOverride !== null ? JSON.stringify({ isRawHtml: true, customHtml: sanitizeCustomHtml(customHtmlOverride) }) : JSON.stringify(canvasData),
             html_content: compiledHtml
         };
 
@@ -2789,7 +2810,7 @@
                         inner = `
                             <tr>
                                 <td style="padding: 10px 0;">
-                                    ${el.settings.htmlCode || ''}
+                                    ${sanitizeCustomHtml(el.settings.htmlCode || '')}
                                 </td>
                             </tr>
                         `;

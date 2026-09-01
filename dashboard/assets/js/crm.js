@@ -372,10 +372,10 @@ async function navigateTo(view, params = {}) {
                     if (r === 'email-archived') return 'archived';
                     if (r === 'email-snoozed') return 'snoozed';
                     if (r === 'email-trash') return 'spam';
-                    if (r === 'scheduled') return 'email-scheduled';
-                    if (r === 'sequences') return 'email-sequences';
-                    if (r === 'templates') return 'email-templates';
-                    if (r === 'campaigns') return 'email-campaigns';
+                    if (r === 'email-scheduled' || r === 'scheduled') return 'email-scheduled';
+                    if (r === 'email-sequences' || r === 'sequences') return 'email-sequences';
+                    if (r === 'email-templates' || r === 'templates') return 'email-templates';
+                    if (r === 'email-campaigns' || r === 'campaigns') return 'email-campaigns';
                     return r;
                 };
 

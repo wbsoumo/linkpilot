@@ -280,7 +280,7 @@
                         <!-- Top-Left Navigation Control: Back to CRM -->
                         <button onclick="exitEmailBuilder()" style="background-color: #EEF2FF !important; color: #4F46E5 !important; border: 1px solid #C7D2FE !important;" class="px-3 py-1.5 hover:bg-indigo-100 text-indigo-600 rounded-xl font-extrabold text-xs transition flex items-center space-x-1.5 shadow-2xs cursor-pointer" title="Return to LinkPilot CRM">
                             <i data-lucide="arrow-left" class="h-3.5 w-3.5 text-indigo-600"></i>
-                            <span>← Back to CRM</span>
+                            <span>Back to CRM</span>
                         </button>
                         <div class="border-l border-slate-200 h-6 mx-1"></div>
                         <div class="flex items-center space-x-2">
@@ -552,6 +552,12 @@
     // Toggle Left sidebar active Tab selection
     window.setLeftSidebarTab = function(tab) {
         activeSidebarTab = tab;
+        const sidebar = document.getElementById('builder-left-sidebar');
+        if (sidebar && sidebar.classList.contains('w-0')) {
+            sidebar.classList.remove('w-0', 'p-0');
+            sidebar.classList.add('w-64', 'border-r');
+        }
+
         const container = document.getElementById('left-sidebar-scroll-area');
         const titleEl = document.getElementById('left-sidebar-title');
         if (!container || !titleEl) return;

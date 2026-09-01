@@ -144,7 +144,7 @@ try {
                 SELECT 
                     c.*,
                     COALESCE(SUM(CASE WHEN t.open_count > 0 THEN 1 ELSE 0 END), 0) AS opens_count,
-                    COALESCE(SUM(CASE WHEN cl.id IS NOT NULL THEN 1 ELSE 0 END), 0) AS clicks_count,
+                    COALESCE(SUM(CASE WHEN cl.campaign_log_id IS NOT NULL THEN 1 ELSE 0 END), 0) AS clicks_count,
                     COALESCE(SUM(CASE WHEN l.is_replied = 1 THEN 1 ELSE 0 END), 0) AS replies_count,
                     COALESCE(SUM(CASE WHEN l.is_bounced = 1 OR l.status = 'Failed' THEN 1 ELSE 0 END), 0) AS bounces_count
                 FROM email_campaigns c

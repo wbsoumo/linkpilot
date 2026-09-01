@@ -385,6 +385,12 @@ You MUST return your response as a valid, parsable JSON block with the following
             $isMock = (strpos($accessToken, 'Mock') !== false || $accessToken === 'EAAGemini' || $accessToken === 'EAAGeminiTest');
             
             try {
+                if ($type === 'inbound_ai_reply') {
+                    self::processInboundAiReply($db, $queueId, $userId, $item, $payload, $accessToken, $isMock);
+                    $processedCount++;
+                    continue;
+                }
+
                 // Credits balance validation
                 // Campaigns and normal broadcasts are free, no credit checks needed
                 $isUser = false;
@@ -508,6 +514,381 @@ You MUST return your response as a valid, parsable JSON block with the following
         }
         
         return $processedCount;
+    }
+
+    /**
+     * Process asynchronous inbound AI reply queue item
+     */
+    private static function processInboundAiReply($db, $queueId, $userId, $item, $payload, $accessToken, $isMock) {
+        $phoneNumberId = $payload['phone_number_id'] ?? $item['phone_number_id'];
+        $fromWaId = $payload['from_wa_id'] ?? $item['recipient_number'];
+        $waContactId = (int)($payload['wa_contact_id'] ?? 0);
+        $crmContactId = !empty($payload['crm_contact_id']) ? (int)$payload['crm_contact_id'] : null;
+        $profileName = $payload['profile_name'] ?? 'WhatsApp Contact';
+        $bodyText = $payload['body_text'] ?? '';
+        $messageDbId = (int)($payload['message_db_id'] ?? 0);
+        $businessName = $payload['business_name'] ?? 'Business';
+
+        // 1. Fetch Today's & Upcoming Meetings
+        $stmtMeetings = $db->prepare("SELECT title, description, start_time, location, meet_link FROM crm_meetings WHERE user_id = ? AND start_time >= NOW() ORDER BY start_time ASC LIMIT 5");
+        $stmtMeetings->execute([$userId]);
+        $meetings = $stmtMeetings->fetchAll(PDO::FETCH_ASSOC);
+
+        // 2. Fetch Pending/Active Tasks
+        $stmtTasks = $db->prepare("SELECT title, description, status, due_date, due_time, priority, meet_link FROM crm_tasks WHERE user_id = ? AND status != 'Completed' ORDER BY due_date ASC LIMIT 8");
+        $stmtTasks->execute([$userId]);
+        $tasks = $stmtTasks->fetchAll(PDO::FETCH_ASSOC);
+
+        // 3. Fetch Recent CRM Leads
+        $stmtLeads = $db->prepare("SELECT name, company, email, phone, budget, stage, priority, requirements FROM crm_leads WHERE user_id = ? ORDER BY created_at DESC LIMIT 10");
+        $stmtLeads->execute([$userId]);
+        $leads = $stmtLeads->fetchAll(PDO::FETCH_ASSOC);
+
+        // 4. Fetch Recent Inbox Emails
+        $stmtEmails = $db->prepare("SELECT sender_name, sender_email, subject, category, ai_summary, received_date FROM received_emails WHERE user_id = ? AND is_spam = 0 AND is_archived = 0 ORDER BY received_date DESC LIMIT 5");
+        $stmtEmails->execute([$userId]);
+        $emails = $stmtEmails->fetchAll(PDO::FETCH_ASSOC);
+
+        // 5. Fetch Timeline Remarks for this Contact
+        $timeline = [];
+        if ($crmContactId) {
+            $stmtTimeline = $db->prepare("SELECT activity_type, description, created_at FROM crm_timeline WHERE user_id = ? AND contact_id = ? ORDER BY created_at DESC LIMIT 8");
+            $stmtTimeline->execute([$userId, $crmContactId]);
+            $timeline = $stmtTimeline->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        // Fetch WhatsApp Contact Details
+        $stmtWaCon = $db->prepare("SELECT chat_summary, last_message_at FROM whatsapp_contacts WHERE id = ? LIMIT 1");
+        $stmtWaCon->execute([$waContactId]);
+        $waContact = $stmtWaCon->fetch(PDO::FETCH_ASSOC);
+
+        $chatSummaryText = $waContact ? ($waContact['chat_summary'] ?? '') : '';
+
+        // 6. Fetch Conversation History (last 10 messages)
+        $stmtChatHist = $db->prepare("SELECT direction, body, created_at FROM whatsapp_messages WHERE wa_contact_id = ? ORDER BY created_at DESC LIMIT 10");
+        $stmtChatHist->execute([$waContactId]);
+        $chatHist = array_reverse($stmtChatHist->fetchAll(PDO::FETCH_ASSOC));
+
+        // Build context strings
+        $leadsCtx = "";
+        foreach ($leads as $l) {
+            $leadsCtx .= "- Lead: {$l['name']} | Company: {$l['company']} | Budget: INR {$l['budget']} | Stage: {$l['stage']} | Requirements: {$l['requirements']}\n";
+        }
+        
+        $tasksCtx = "";
+        foreach ($tasks as $t) {
+            $tasksCtx .= "- Task: {$t['title']} | Due: {$t['due_date']} @ " . ($t['due_time'] ?: 'N/A') . " | Status: {$t['status']} | Priority: {$t['priority']}" . (!empty($t['meet_link']) ? " | Meet Link: {$t['meet_link']}" : "") . "\n";
+        }
+        
+        $meetingsCtx = "";
+        foreach ($meetings as $m) {
+            $meetingsCtx .= "- Meeting: {$m['title']} | Time: {$m['start_time']} | Location: {$m['location']}" . (!empty($m['meet_link']) ? " | Meet Link: {$m['meet_link']}" : "") . "\n";
+        }
+        
+        $emailsCtx = "";
+        foreach ($emails as $e) {
+            $emailsCtx .= "- Email from {$e['sender_name']} <{$e['sender_email']}> | Subject: {$e['subject']} | Category: {$e['category']} | Summary: {$e['ai_summary']}\n";
+        }
+        
+        $remarksCtx = "";
+        foreach ($timeline as $tl) {
+            $remarksCtx .= "- [{$tl['created_at']}] {$tl['activity_type']}: {$tl['description']}\n";
+        }
+        
+        $chatHistCtx = "";
+        foreach ($chatHist as $ch) {
+            $sender = ($ch['direction'] === 'inbound') ? $profileName : "You (AI)";
+            $chatHistCtx .= "- [{$ch['created_at']}] $sender: {$ch['body']}\n";
+        }
+
+        $stmtUser = $db->prepare("SELECT name FROM users WHERE id = ? LIMIT 1");
+        $stmtUser->execute([$userId]);
+        $userProfileName = $stmtUser->fetchColumn() ?: $businessName;
+
+        // Fetch trained agent settings
+        $agentKb = "";
+        $agentRules = "";
+        $agentCaps = "";
+        $websiteUrl = "";
+        
+        $stmtAgent = $db->prepare("SELECT * FROM whatsapp_agents WHERE user_id = ? AND status = 'live' LIMIT 1");
+        $stmtAgent->execute([$userId]);
+        $waAgent = $stmtAgent->fetch(PDO::FETCH_ASSOC);
+        
+        if ($waAgent) {
+            $websiteUrl = $waAgent['website_url'] ?? '';
+            if (!empty($waAgent['knowledge_base'])) {
+                $agentKb = "\n--- BUSINESS KNOWLEDGE BASE (SCRAPED FROM " . $waAgent['website_url'] . ") ---\n" . $waAgent['knowledge_base'] . "\n";
+            }
+            if (!empty($waAgent['ground_rules'])) {
+                $agentRules = "\n--- BUSINESS GROUND RULES & INSTRUCTIONS ---\n" . $waAgent['ground_rules'] . "\n";
+            }
+            if (!empty($waAgent['capabilities'])) {
+                $capsArray = explode(',', $waAgent['capabilities']);
+                $agentCaps = "\n--- AGENT CAPABILITIES ---\n";
+                if (in_array('faq_support', $capsArray)) {
+                    $agentCaps .= "- FAQ / Support Role: Answer customer questions regarding the business using the business knowledge base details provided above. If the answer cannot be found in the knowledge base, state politely that you will double-check with the team and get back to them.\n";
+                }
+                if (in_array('human_handoff', $capsArray)) {
+                    $agentCaps .= "- Human Handoff Role: If the customer specifically asks to talk to a human, manager, or representative, OR expresses high frustration, acknowledge this request politely and state that a human manager has been notified and will contact them directly.\n";
+                }
+            }
+        }
+
+        $currentDate = date('Y-m-d');
+        $currentTime = date('H:i:s');
+        $systemPrompt = "You are a professional human representative/assistant for $userProfileName (representing the business '$businessName'" . (!empty($websiteUrl) ? " operating at $websiteUrl" : "") . ").
+Your goal is to reply to incoming customer messages on behalf of $userProfileName / $businessName.
+" . $agentCaps . $agentRules . $agentKb . "
+
+CRITICAL IDENTITY & CONVERSATIONAL RULES:
+1. Never say you are an 'AI', 'AI CRM', 'bot', 'AI assistant', 'CRM assistant', or a chatbot.
+2. You are a real professional human representing $userProfileName. If asked who you are, what your name is, or who you represent, reply that you are $userProfileName or representing $userProfileName.
+3. Respond like a real professional human. Use natural, warm, confident, conversational language with occasional fillers such as \"Hmm...\", \"Okay\", \"I see\", \"Sure\", or \"Got it\" where they fit naturally.
+4. Avoid sounding robotic, overly formal, or repetitive. Responses must feel like they are coming from a knowledgeable person having a genuine conversation, while remaining clear, concise, and respectful.
+5. Stay strictly on-topic. Focus entirely on the customer's business relationship, leads, bookings, invoices, and sales inquiries. Do not discuss general knowledge or unrelated subjects.
+6. If you need to schedule a meeting, check the meetings/availability list below. Propose slot options that do not conflict with existing meetings.
+7. If you do not have enough information to close a deal or answer a technical question, ask polite clarifying questions.
+7.5 If the customer asks for the link or details of an upcoming scheduled meeting/task in the context:
+    - Check if there is a 'Meet Link' or location provided for that task/meeting in the context.
+    - If present, you MUST write the link directly in your 'suggested_reply' so they can join.
+8. CRITICAL MEETING SCHEDULING FLOW:
+   - If the customer mentions scheduling a meeting, call, or appointment, OR is currently replying to your scheduling request with a datetime or their Gmail/email address:
+      - Even if the latest message is just their email address (e.g. 'myemail@gmail.com') or a date/time, you MUST treat this as part of the ongoing scheduling flow and extract the task info.
+      - Check the conversation history to see if a date and time are finalized. If not, set 'meeting_flow_stage' to 'ask_datetime' and ask them to select a date and time in your 'suggested_reply'.
+      - If a date and time are finalized but we do not have their Gmail/email address, set 'meeting_flow_stage' to 'ask_gmail' and ask them to provide their Gmail address in your 'suggested_reply' so you can send them a calendar invite.
+      - If both date/time and Gmail are provided (either in the latest message or context history), set 'meeting_flow_stage' to 'finalize' (and specify the finalized due_date, due_time, and contact_gmail).
+      - If they refuse or cannot provide an email, set 'meeting_flow_stage' to 'finalize' and do not ask again.
+9. You MUST return your response as a valid, parsable JSON block with the following keys, and nothing else (no extra markdown blocks outside JSON):
+{
+  \"summary\": \"Brief 1-sentence summary of the user message\",
+  \"suggested_reply\": \"The message text that you will automatically write back to the customer on WhatsApp. Write it in a natural, friendly, human-like professional tone representing $userProfileName. Do not use generic placeholders.\",
+  \"sentiment\": \"positive|neutral|negative\",
+  \"extracted_lead\": {
+    \"person_name\": \"...\",
+    \"company_name\": \"...\",
+    \"budget\": 0.00,
+    \"services\": \"...\",
+    \"timeline\": \"...\",
+    \"priority\": \"high|medium|low\"
+  },
+  \"extracted_task\": {
+    \"title\": \"Describe the task/meeting to set, e.g., 'Follow up on proposed quote' or 'Introduce services call'\",
+    \"description\": \"Any additional task or meeting details/description requested by the sender\",
+    \"category\": \"Meeting|Follow-up|Reply|Arrange|General\",
+    \"due_date\": \"YYYY-MM-DD\",
+    \"due_time\": \"HH:MM:SS\" or null,
+    \"priority\": \"high|medium|low\",
+    \"contact_gmail\": \"Gmail address if provided, else null\",
+    \"meeting_flow_stage\": \"ask_datetime|ask_gmail|finalize|none\"
+  }
+}
+
+TODAY'S DATE AND TIME: $currentDate $currentTime.
+
+--- USER WORKSPACE CONTEXT ---
+## RECENT PIPELINE LEADS:
+" . ($leadsCtx ?: "No leads in pipeline.") . "
+
+## RECENT TASKS:
+" . ($tasksCtx ?: "No active tasks.") . "
+
+## UPCOMING MEETINGS & AVAILABILITY:
+" . ($meetingsCtx ?: "No upcoming meetings scheduled.") . "
+
+## RECENT INBOX EMAILS:
+" . ($emailsCtx ?: "No recent emails.") . "
+
+## RECENT REMARKS & TIMELINE FOR THIS CONTACT:
+" . ($remarksCtx ?: "No timeline logs found.") . "
+
+## CONVERSATION HISTORY SUMMARY (PREVIOUS CONTEXT):
+" . ($chatSummaryText ?: "No previous conversation summary available.") . "
+
+## CONVERSATION HISTORY (LAST 10 MESSAGES):
+" . ($chatHistCtx ?: "No previous chat history.") . "
+";
+
+        $userPrompt = "Sender Name: $profileName\nMessage: $bodyText";
+
+        $ai = callAI($systemPrompt, $userPrompt, $userId);
+        $aiRes = json_decode($ai['text'], true);
+        
+        $aiSummary = null;
+        $aiSuggestedReply = null;
+        $sentiment = 'neutral';
+        $secondWaMessageText = null;
+
+        if ($aiRes) {
+            $aiSummary = $aiRes['summary'] ?? null;
+            $aiSuggestedReply = $aiRes['suggested_reply'] ?? null;
+            $sentiment = $aiRes['sentiment'] ?? 'neutral';
+
+            // Update inbound message with AI summary & sentiment
+            if ($messageDbId > 0) {
+                $db->prepare("UPDATE whatsapp_messages SET ai_summary = ?, ai_suggested_reply = ?, sentiment = ? WHERE id = ?")
+                   ->execute([$aiSummary, $aiSuggestedReply, $sentiment, $messageDbId]);
+            }
+
+            // Auto CRM Lead Creation
+            $leadInfo = $aiRes['extracted_lead'] ?? [];
+            if (is_array($leadInfo) && (!empty($leadInfo['person_name']) || !empty($leadInfo['company_name']))) {
+                $leadName = (!empty($leadInfo['person_name']) && is_string($leadInfo['person_name'])) ? trim($leadInfo['person_name']) : $profileName;
+                $leadCompany = (!empty($leadInfo['company_name']) && is_string($leadInfo['company_name'])) ? trim($leadInfo['company_name']) : '';
+                $leadBudget = (float)($leadInfo['budget'] ?? 0.00);
+                $leadServices = (!empty($leadInfo['services']) && is_string($leadInfo['services'])) ? trim($leadInfo['services']) : '';
+                $leadPriority = (!empty($leadInfo['priority']) && is_string($leadInfo['priority'])) ? trim($leadInfo['priority']) : 'medium';
+                
+                $stmtLeadCheck = $db->prepare("SELECT id FROM crm_leads WHERE (phone = ? OR email = ?) AND user_id = ? LIMIT 1");
+                $stmtLeadCheck->execute([$fromWaId, '', $userId]);
+                if (!$stmtLeadCheck->fetchColumn()) {
+                    $stmtLeadIns = $db->prepare("INSERT INTO crm_leads (user_id, contact_id, name, phone, company, budget, services_required, priority, lead_source, stage) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'WhatsApp', 'New')");
+                    $stmtLeadIns->execute([$userId, $crmContactId, $leadName, $fromWaId, $leadCompany, $leadBudget, $leadServices, $leadPriority]);
+                    $newLeadId = $db->lastInsertId();
+                    
+                    $db->prepare("INSERT INTO crm_timeline (user_id, lead_id, contact_id, activity_type, description) VALUES (?, ?, ?, 'Lead Created', ?)")
+                       ->execute([$userId, $newLeadId, $crmContactId, "Lead '$leadName' automatically created via AI WhatsApp parser."]);
+                }
+            }
+
+            // Auto CRM Task / Meeting Creation
+            $taskInfo = $aiRes['extracted_task'] ?? null;
+            if ($taskInfo && is_array($taskInfo) && !empty($taskInfo['title'])) {
+                $taskTitle = trim($taskInfo['title']);
+                $taskDesc = trim($taskInfo['description'] ?? '');
+                $taskCategory = trim($taskInfo['category'] ?? 'General');
+                $taskDueDate = !empty($taskInfo['due_date']) ? trim($taskInfo['due_date']) : date('Y-m-d');
+                $taskDueTime = !empty($taskInfo['due_time']) ? trim($taskInfo['due_time']) : null;
+                $taskPriority = trim($taskInfo['priority'] ?? 'medium');
+                $contactGmail = !empty($taskInfo['contact_gmail']) ? trim($taskInfo['contact_gmail']) : null;
+                $meetingFlowStage = trim($taskInfo['meeting_flow_stage'] ?? 'none');
+
+                if ($meetingFlowStage === 'finalize' && ($taskCategory === 'Meeting' || strpos($taskTitle, '[Meeting]') !== false)) {
+                    $companyId = null;
+                    if ($crmContactId) {
+                        $stmtComp = $db->prepare("SELECT company_id FROM crm_contacts WHERE id = ? LIMIT 1");
+                        $stmtComp->execute([$crmContactId]);
+                        $companyId = $stmtComp->fetchColumn() ?: null;
+                    }
+                    $leadId = null;
+                    if ($crmContactId) {
+                        $stmtLead = $db->prepare("SELECT id FROM crm_leads WHERE contact_id = ? AND user_id = ? ORDER BY id DESC LIMIT 1");
+                        $stmtLead->execute([$crmContactId, $userId]);
+                        $leadId = $stmtLead->fetchColumn() ?: null;
+                    }
+
+                    if (strpos($taskTitle, '[Meeting]') === false) {
+                        $taskTitle = "[Meeting] " . $taskTitle;
+                    }
+
+                    $stmtTaskIns = $db->prepare("INSERT INTO crm_tasks (user_id, company_id, contact_id, lead_id, title, description, due_date, due_time, priority, status, sync_to_calendar) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 1)");
+                    $stmtTaskIns->execute([
+                        $userId, $companyId, $crmContactId, $leadId, $taskTitle, $taskDesc, $taskDueDate, $taskDueTime, $taskPriority
+                    ]);
+                    $newTaskId = $db->lastInsertId();
+
+                    $meetLink = null;
+                    try {
+                        require_once __DIR__ . '/external_apps_helper.php';
+                        if (ExternalAppsHelper::isGoogleConnected($userId)) {
+                            $meetLink = ExternalAppsHelper::generateGoogleMeetForTask($userId, $newTaskId);
+                        }
+                    } catch (Throwable $meetEx) {
+                        WhatsAppMetaService::logDebug("Google Meet generation failed: " . $meetEx->getMessage());
+                    }
+
+                    if (empty($meetLink)) {
+                        $chars = 'abcdefghijklmnopqrstuvwxyz';
+                        $part1 = substr(str_shuffle($chars), 0, 3);
+                        $part2 = substr(str_shuffle($chars), 0, 4);
+                        $part3 = substr(str_shuffle($chars), 0, 3);
+                        $meetLink = "https://meet.google.com/{$part1}-{$part2}-{$part3}";
+                        $db->prepare("UPDATE crm_tasks SET meet_link = ? WHERE id = ?")->execute([$meetLink, $newTaskId]);
+                    }
+
+                    if ($contactGmail) {
+                        try {
+                            ExternalAppsHelper::sendTaskMeetingInviteEmail($userId, $newTaskId, $meetLink, $contactGmail);
+                        } catch (Throwable $emailEx) {
+                            WhatsAppMetaService::logDebug("Auto calendar email invite failed: " . $emailEx->getMessage());
+                        }
+                    }
+
+                    $timingFormatted = date('jS F Y', strtotime($taskDueDate)) . ' at ' . ($taskDueTime ? substr($taskDueTime, 0, 5) : '09:00');
+                    $secondWaMessageText = "📅 *Meeting Scheduled Details*:\n";
+                    $secondWaMessageText .= "• *Subject*: " . str_replace('[Meeting] ', '', $taskTitle) . "\n";
+                    $secondWaMessageText .= "• *Time*: " . $timingFormatted . "\n";
+                    if (!empty($taskDesc)) {
+                        $secondWaMessageText .= "• *Agenda*: " . $taskDesc . "\n";
+                    }
+                    if ($meetLink) {
+                        $secondWaMessageText .= "• *Google Meet Link*: " . $meetLink . "\n";
+                    }
+                    if ($contactGmail) {
+                        $secondWaMessageText .= "\nI have sent a calendar invitation email to your email: *" . $contactGmail . "* containing the invite attachment. Looking forward to our call!";
+                    }
+
+                    $db->prepare("INSERT INTO crm_timeline (user_id, lead_id, contact_id, company_id, activity_type, description) VALUES (?, ?, ?, ?, 'Task Created', ?)")
+                       ->execute([$userId, $leadId, $crmContactId, $companyId, "Meeting task '$taskTitle' was automatically scheduled and invite sent via WhatsApp AI agent."]);
+                }
+            }
+        }
+
+        // Transmit AI reply if generated
+        if (!empty($aiSuggestedReply)) {
+            // Verify credit balance
+            $stmtWallet = $db->prepare("SELECT remaining_credits, free_credits, purchased_credits FROM user_email_credits WHERE user_id = ?");
+            $stmtWallet->execute([$userId]);
+            $wallet = $stmtWallet->fetch();
+            $creditsAvailable = $wallet ? (int)$wallet['remaining_credits'] : 0;
+
+            if ($creditsAvailable >= 1) {
+                $replyMsgId = '';
+                if (!$isMock) {
+                    $sendRes = WhatsAppMetaService::sendTextMessage($userId, $phoneNumberId, $fromWaId, $aiSuggestedReply, $accessToken);
+                    $replyMsgId = $sendRes['messages'][0]['id'] ?? 'wamid.auto.' . uniqid();
+                } else {
+                    $replyMsgId = 'wamid.MockAuto.' . uniqid();
+                }
+
+                $stmtInsAutoMsg = $db->prepare("INSERT INTO whatsapp_messages (user_id, wa_contact_id, message_id, direction, type, body, status) VALUES (?, ?, ?, 'outbound', 'text', ?, 'sent')");
+                $stmtInsAutoMsg->execute([$userId, $waContactId, $replyMsgId, $aiSuggestedReply]);
+
+                $freeCredits = $wallet ? (int)$wallet['free_credits'] : 0;
+                $purchasedCredits = $wallet ? (int)$wallet['purchased_credits'] : 0;
+                if ($freeCredits >= 1) {
+                    $freeCredits--;
+                } elseif ($purchasedCredits >= 1) {
+                    $purchasedCredits--;
+                }
+                $newRemaining = $freeCredits + $purchasedCredits;
+
+                $stmtDeduct = $db->prepare("UPDATE user_email_credits SET free_credits = ?, purchased_credits = ?, remaining_credits = ?, used_credits = used_credits + 1 WHERE user_id = ?");
+                $stmtDeduct->execute([$freeCredits, $purchasedCredits, $newRemaining, $userId]);
+
+                $stmtTx = $db->prepare("INSERT INTO email_credit_transactions (user_id, type, credits, provider_used, status) VALUES (?, 'usage', 1, 'whatsapp_ai', 'success')");
+                $stmtTx->execute([$userId]);
+
+                if (!empty($secondWaMessageText)) {
+                    usleep(500000);
+                    $secondReplyMsgId = '';
+                    if (!$isMock) {
+                        $sendRes2 = WhatsAppMetaService::sendTextMessage($userId, $phoneNumberId, $fromWaId, $secondWaMessageText, $accessToken);
+                        $secondReplyMsgId = $sendRes2['messages'][0]['id'] ?? 'wamid.auto.sec.' . uniqid();
+                    } else {
+                        $secondReplyMsgId = 'wamid.MockAuto.sec.' . uniqid();
+                    }
+                    $stmtInsAutoMsg2 = $db->prepare("INSERT INTO whatsapp_messages (user_id, wa_contact_id, message_id, direction, type, body, status) VALUES (?, ?, ?, 'outbound', 'text', ?, 'sent')");
+                    $stmtInsAutoMsg2->execute([$userId, $waContactId, $secondReplyMsgId, $secondWaMessageText]);
+                }
+
+                $db->prepare("UPDATE whatsapp_contacts SET last_message_at = NOW() WHERE id = ?")->execute([$waContactId]);
+                $db->prepare("INSERT INTO crm_timeline (user_id, contact_id, activity_type, description) VALUES (?, ?, 'WhatsApp Outbound', ?)")
+                   ->execute([$userId, $crmContactId, "AI Auto-Pilot replied to '$profileName': " . substr($aiSuggestedReply, 0, 100)]);
+            }
+        }
+
+        $db->prepare("UPDATE whatsapp_queue SET status = 'processed', error_message = NULL WHERE id = ?")->execute([$queueId]);
     }
 
     /**

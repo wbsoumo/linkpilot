@@ -3559,14 +3559,12 @@
             rowsHtml += `
                 <!-- Section Container Row -->
                 <tr>
-                    <td bgcolor="${sec.settings.backgroundColor || '#ffffff'}" style="padding: ${sec.settings.paddingTop || '16px'} 24px ${sec.settings.paddingBottom || '16px'} 24px; border-radius: ${sec.settings.borderRadius || '12px'};">
+                    <td bgcolor="${sec.settings.backgroundColor || 'transparent'}" style="${sec.settings.backgroundColor ? `background-color: ${sec.settings.backgroundColor};` : ''} padding: ${sec.settings.paddingTop || '0px'} 0px ${sec.settings.paddingBottom || '0px'} 0px; border-radius: ${sec.settings.borderRadius || '0px'};">
                         <table border="0" cellpadding="0" cellspacing="0" width="100%">
                             ${elementsHtml}
                         </table>
                     </td>
                 </tr>
-                <!-- Vertical gap row -->
-                <tr><td style="height: 10px; font-size: 1px; line-height: 1px;">&nbsp;</td></tr>
             `;
         });
 
@@ -3588,11 +3586,11 @@
                 }
             </style>
         </head>
-        <body style="margin: 0; padding: 30px 10px; background-color: ${brandStyles.backgroundColor}; font-family: ${brandStyles.fontFamily};">
-            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+        <body style="margin: 0; padding: 0; background-color: ${brandStyles.backgroundColor}; font-family: ${brandStyles.fontFamily};">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: ${brandStyles.backgroundColor};">
                 <tr>
-                    <td align="center" valign="top">
-                        <table class="email-container" border="0" cellpadding="0" cellspacing="0" width="600" style="max-width: 600px; width: 600px;">
+                    <td align="center" valign="top" style="padding: 20px 0;">
+                        <table class="email-container" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 640px; width: 100%;">
                             ${rowsHtml}
                         </table>
                     </td>

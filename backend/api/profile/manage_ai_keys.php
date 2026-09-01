@@ -67,7 +67,7 @@ try {
                 sendJsonResponse('error', 'Provider and API Key are required fields.', [], 400);
             }
 
-            if (!in_array($provider, ['openrouter', 'github_models', 'google_ai_studio'])) {
+            if (!in_array($provider, ['openrouter', 'github_models', 'google_ai_studio', 'groq'])) {
                 sendJsonResponse('error', 'Invalid AI Provider specified.', [], 400);
             }
 

@@ -96,44 +96,32 @@ if (!function_exists('checkContactLimit')) {
     }
 }
 
-if (!function_exists('callAI')) {
-    function callAI($systemPrompt, $userPrompt, $userId = null) {
-        $provider = 'github_models';
-        $model = GITHUB_MODELS_MODEL;
-
+if (!function_exists('callAIProvider')) {
+    function callAIProvider($provider, $systemPrompt, $userPrompt, $userId = null) {
         $db = Database::getConnection();
-        
+        $model = '';
+
+        if ($provider === 'github_models') {
+            $model = GITHUB_MODELS_MODEL;
+        } elseif ($provider === 'google_ai_studio') {
+            $model = GOOGLE_AI_STUDIO_MODEL;
+        } elseif ($provider === 'groq') {
+            $model = GROQ_MODEL;
+        } else {
+            $model = OPENROUTER_MODEL;
+        }
+
         try {
-            $stmtAdmin = $db->query("SELECT active_ai_provider, active_ai_model FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1");
+            $stmtAdmin = $db->query("SELECT active_ai_model FROM users WHERE role = 'admin' AND active_ai_provider = " . $db->quote($provider) . " LIMIT 1");
             $adminRes = $stmtAdmin->fetch();
-            if ($adminRes) {
-                if (!empty($adminRes['active_ai_provider'])) {
-                    $provider = $adminRes['active_ai_provider'];
-                }
-                if ($provider === 'github_models') {
-                    $model = !empty($adminRes['active_ai_model']) ? $adminRes['active_ai_model'] : GITHUB_MODELS_MODEL;
-                } elseif ($provider === 'google_ai_studio') {
-                    $model = !empty($adminRes['active_ai_model']) ? $adminRes['active_ai_model'] : GOOGLE_AI_STUDIO_MODEL;
-                } else {
-                    $model = !empty($adminRes['active_ai_model']) ? $adminRes['active_ai_model'] : OPENROUTER_MODEL;
-                }
-            } else {
-                if ($userId !== null) {
-                    $stmtUser = $db->prepare("SELECT active_ai_provider, active_ai_model FROM users WHERE id = ?");
-                    $stmtUser->execute([$userId]);
-                    $res = $stmtUser->fetch();
-                    if ($res) {
-                        if (!empty($res['active_ai_provider'])) {
-                            $provider = $res['active_ai_provider'];
-                        }
-                        if ($provider === 'github_models') {
-                            $model = !empty($res['active_ai_model']) ? $res['active_ai_model'] : GITHUB_MODELS_MODEL;
-                        } elseif ($provider === 'google_ai_studio') {
-                            $model = !empty($res['active_ai_model']) ? $res['active_ai_model'] : GOOGLE_AI_STUDIO_MODEL;
-                        } else {
-                            $model = !empty($res['active_ai_model']) ? $res['active_ai_model'] : OPENROUTER_MODEL;
-                        }
-                    }
+            if ($adminRes && !empty($adminRes['active_ai_model'])) {
+                $model = $adminRes['active_ai_model'];
+            } elseif ($userId !== null) {
+                $stmtUser = $db->prepare("SELECT active_ai_model FROM users WHERE id = ? AND active_ai_provider = ?");
+                $stmtUser->execute([$userId, $provider]);
+                $res = $stmtUser->fetch();
+                if ($res && !empty($res['active_ai_model'])) {
+                    $model = $res['active_ai_model'];
                 }
             }
         } catch (Exception $e) {}
@@ -175,6 +163,11 @@ if (!function_exists('callAI')) {
                 if (!empty($apiKey) && strpos($apiKey, 'placeholder') === false) {
                     $apiKeysList[] = ['id' => null, 'api_key' => encryptData($apiKey), 'status' => 'active'];
                 }
+            } elseif ($provider === 'groq') {
+                $apiKey = getenv('GROQ_API_KEY') ?: '';
+                if (!empty($apiKey) && strpos($apiKey, 'placeholder') === false) {
+                    $apiKeysList[] = ['id' => null, 'api_key' => encryptData($apiKey), 'status' => 'active'];
+                }
             } else {
                 $apiKey = getenv('OPENROUTER_API_KEY') ?: '';
                 if (!empty($apiKey) && strpos($apiKey, 'placeholder') === false) {
@@ -184,7 +177,7 @@ if (!function_exists('callAI')) {
         }
 
         if (empty($apiKeysList)) {
-            throw new Exception("No active API keys found for central provider: '{$provider}'");
+            throw new Exception("No active API keys found for provider: '{$provider}'");
         }
 
         $errors = [];
@@ -257,6 +250,86 @@ if (!function_exists('callAI')) {
                         "text" => trim($generatedText),
                         "tokens" => $tokensUsed
                     ];
+
+                } elseif ($provider === 'groq') {
+                    $groqModelsToTry = array_unique([
+                        $model,
+                        'llama-3.3-70b-versatile',
+                        'llama3-8b-8192',
+                        'mixtral-8x7b-32768',
+                        'gemma2-9b-it',
+                        'llama-3.1-70b-versatile'
+                    ]);
+                    $lastGroqError = '';
+
+                    foreach ($groqModelsToTry as $currentGroqModel) {
+                        try {
+                            $headers = [
+                                "Authorization: Bearer " . $apiKey,
+                                "Content-Type: application/json",
+                                "User-Agent: LinkPilot-AI"
+                            ];
+
+                            $postFields = [
+                                "model" => $currentGroqModel,
+                                "messages" => [
+                                    ["role" => "system", "content" => $systemPrompt],
+                                    ["role" => "user", "content" => $userPrompt]
+                                ],
+                                "max_tokens" => 1000
+                            ];
+
+                            $ch = curl_init("https://api.groq.com/openai/v1/chat/completions");
+                            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+                            curl_setopt($ch, CURLOPT_POST, true);
+                            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
+                            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+
+                            $response = curl_exec($ch);
+                            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                            $error = curl_error($ch);
+                            curl_close($ch);
+
+                            if ($error) {
+                                throw new Exception("Groq connection error: " . $error);
+                            }
+
+                            $data = json_decode($response, true);
+                            if ($httpCode !== 200) {
+                                if ($httpCode === 401) {
+                                    throw new Exception("401: Unauthorized: Invalid Groq API Key.");
+                                }
+                                if ($httpCode === 429 || (isset($data['error']['message']) && strpos(strtolower($data['error']['message']), 'limit') !== false)) {
+                                    throw new Exception("429: Rate limit exceeded.");
+                                }
+                                $msg = $data['error']['message'] ?? "Unknown Groq API Error";
+                                throw new Exception("Groq API Error (HTTP {$httpCode}) with model {$currentGroqModel}: " . $msg);
+                            }
+
+                            if ($keyId !== null) {
+                                $stmtUpdate = $db->prepare("UPDATE user_ai_keys SET status = 'active', error_message = NULL WHERE id = ?");
+                                $stmtUpdate->execute([$keyId]);
+                                $stmtLog = $db->prepare("INSERT INTO user_ai_key_logs (key_id) VALUES (?)");
+                                $stmtLog->execute([$keyId]);
+                            }
+
+                            $generatedText = $data['choices'][0]['message']['content'] ?? '';
+                            $tokensUsed = $data['usage']['total_tokens'] ?? 0;
+
+                            return [
+                                "text" => trim($generatedText),
+                                "tokens" => $tokensUsed
+                            ];
+                        } catch (Exception $gEx) {
+                            $lastGroqError = $gEx->getMessage();
+                            if (strpos($lastGroqError, '401:') !== false || strpos($lastGroqError, '429:') !== false) {
+                                throw $gEx;
+                            }
+                        }
+                    }
+                    throw new Exception("Groq provider failed. Last error: " . $lastGroqError);
 
                 } elseif ($provider === 'google_ai_studio') {
                     $headers = [
@@ -404,7 +477,7 @@ if (!function_exists('callAI')) {
                         }
                     }
 
-                    throw new Exception("Failed to generate outreach content using OpenRouter. Last error: " . $lastError);
+                    throw new Exception("Failed to generate content using OpenRouter. Last error: " . $lastError);
                 }
             } catch (Exception $ex) {
                 $errMessage = $ex->getMessage();
@@ -428,6 +501,43 @@ if (!function_exists('callAI')) {
     }
 }
 
+if (!function_exists('callAI')) {
+    function callAI($systemPrompt, $userPrompt, $userId = null) {
+        $primaryProvider = 'google_ai_studio';
+        $db = Database::getConnection();
+
+        try {
+            $stmtAdmin = $db->query("SELECT active_ai_provider FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1");
+            $adminRes = $stmtAdmin->fetch();
+            if ($adminRes && !empty($adminRes['active_ai_provider'])) {
+                $primaryProvider = $adminRes['active_ai_provider'];
+            } elseif ($userId !== null) {
+                $stmtUser = $db->prepare("SELECT active_ai_provider FROM users WHERE id = ?");
+                $stmtUser->execute([$userId]);
+                $res = $stmtUser->fetch();
+                if ($res && !empty($res['active_ai_provider'])) {
+                    $primaryProvider = $res['active_ai_provider'];
+                }
+            }
+        } catch (Exception $e) {}
+
+        // Construct failover chain starting with primary provider
+        $allProviders = ['google_ai_studio', 'groq', 'github_models', 'openrouter'];
+        $failoverChain = array_merge([$primaryProvider], array_diff($allProviders, [$primaryProvider]));
+
+        $providerErrors = [];
+        foreach ($failoverChain as $currentProvider) {
+            try {
+                return callAIProvider($currentProvider, $systemPrompt, $userPrompt, $userId);
+            } catch (Exception $pEx) {
+                $providerErrors[] = "[{$currentProvider}]: " . $pEx->getMessage();
+            }
+        }
+
+        throw new Exception("All AI Providers in failover chain failed:\n" . implode("\n", $providerErrors));
+    }
+}
+
 if (!function_exists('callOpenRouter')) {
     function callOpenRouter($systemPrompt, $userPrompt, $userId = null) {
         return callAI($systemPrompt, $userPrompt, $userId);
@@ -438,8 +548,47 @@ if (!function_exists('testAIKeyConnection')) {
     function testAIKeyConnection($provider, $apiKey) {
         $systemPrompt = "You are a connectivity test bot. Reply with one word: Success.";
         $userPrompt = "ping";
-        
-        if ($provider === 'github_models') {
+
+        if ($provider === 'groq') {
+            $model = "llama-3.3-70b-versatile";
+            $headers = [
+                "Authorization: Bearer " . $apiKey,
+                "Content-Type: application/json",
+                "User-Agent: LinkPilot-AI"
+            ];
+            $postFields = [
+                "model" => $model,
+                "messages" => [
+                    ["role" => "system", "content" => $systemPrompt],
+                    ["role" => "user", "content" => $userPrompt]
+                ],
+                "max_tokens" => 5
+            ];
+
+            $ch = curl_init("https://api.groq.com/openai/v1/chat/completions");
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
+            curl_close($ch);
+
+            if ($error) {
+                throw new Exception("Groq connection failed: " . $error);
+            }
+            $data = json_decode($response, true);
+            if ($httpCode !== 200) {
+                $msg = $data['error']['message'] ?? "HTTP error {$httpCode}";
+                throw new Exception($msg);
+            }
+            return true;
+
+        } elseif ($provider === 'github_models') {
             $model = "gpt-4o-mini";
             $headers = [
                 "Authorization: Bearer " . $apiKey,

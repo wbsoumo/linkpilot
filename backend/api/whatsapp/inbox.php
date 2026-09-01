@@ -43,18 +43,16 @@ try {
             $suffix10 = (strlen($cleanDigits) >= 10) ? substr($cleanDigits, -10) : $cleanDigits;
 
             $stmtMsgs = $db->prepare("
-                SELECT DISTINCT m.* 
+                SELECT m.* 
                 FROM whatsapp_messages m
-                LEFT JOIN whatsapp_contacts c ON m.wa_contact_id = c.id
                 WHERE m.user_id = ? AND (
                     m.wa_contact_id = ? 
-                    OR RIGHT(c.wa_id, 10) = ?
-                    OR RIGHT(c.wa_id, 10) = RIGHT(?, 10)
+                    OR m.wa_contact_id IN (SELECT id FROM whatsapp_contacts WHERE user_id = ? AND RIGHT(wa_id, 10) = ?)
                 )
                 ORDER BY m.created_at DESC 
                 LIMIT 100
             ");
-            $stmtMsgs->execute([$userId, $waContactId, $suffix10, $thread['wa_id']]);
+            $stmtMsgs->execute([$userId, $waContactId, $userId, $suffix10]);
             $messages = array_reverse($stmtMsgs->fetchAll());
 
             // 3. Clear unread badge for all duplicate threads of this number

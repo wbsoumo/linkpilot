@@ -2341,7 +2341,7 @@ async function loadWaThreadMessages() {
 
                     let bubbleHtml = escapeHtml(m.body || '');
                     
-                    const mediaUrl = m.media_url || (m.body && (m.body.startsWith('http://') || m.body.startsWith('https://')) ? m.body : '');
+                    const mediaUrl = m.media_url || '';
                     const mimeType = (m.media_mime_type || '').toLowerCase();
                     const msgType = (m.message_type || m.type || '').toLowerCase();
 
@@ -2374,7 +2374,7 @@ async function loadWaThreadMessages() {
                                 ${m.body && m.body !== mediaUrl ? `<p class="text-xs leading-relaxed text-slate-800">${escapeHtml(m.body)}</p>` : ''}
                             </div>
                         `;
-                    } else if (isDoc || (mediaUrl && mediaUrl !== m.body)) {
+                    } else if (isDoc) {
                         const docSrc = mediaUrl.startsWith('http') ? mediaUrl : `../${mediaUrl.replace(/^\.\//, '')}`;
                         const fileName = mediaUrl.split('/').pop() || 'Attachment Document';
                         bubbleHtml = `

@@ -4910,7 +4910,7 @@ async function renderDeals(container) {
                 }
 
                 return `
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3 card-hover relative group cursor-grab active:cursor-grabbing select-none" draggable="true" ondragstart="handleDealDragStart(event, ${c.id})" ontouchstart="handleDealTouchStart(event, ${c.id})" ontouchmove="handleDealTouchMove(event)" ontouchend="handleDealTouchEnd(event)" oncontextmenu="openDealContextMenu(event, ${c.id})" ondblclick="openDealLogsModal(${c.id})">
+                    <div data-deal-id="${c.id}" data-deal-amount="${c.expected_revenue || 0}" class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3 card-hover relative group cursor-grab active:cursor-grabbing select-none" draggable="true" ondragstart="handleDealDragStart(event, ${c.id})" ontouchstart="handleDealTouchStart(event, ${c.id})" ontouchmove="handleDealTouchMove(event)" ontouchend="handleDealTouchEnd(event)" oncontextmenu="openDealContextMenu(event, ${c.id})" ondblclick="openDealLogsModal(${c.id})">
                         <!-- Action Menu Button -->
                         <div class="absolute top-3.5 right-3.5 z-10">
                             <button onclick="openDealMenu(event, ${c.id})" class="h-6 w-6 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-50 flex items-center justify-center transition">
@@ -4949,9 +4949,9 @@ async function renderDeals(container) {
                     <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                         <div class="flex items-center space-x-2">
                             <span class="text-xs font-extrabold ${theme.text.split(' ')[0]} tracking-wider uppercase">${theme.name}</span>
-                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black ${theme.bg} ${theme.text.split(' ')[0]}">${stages[st].length}</span>
+                            <span data-stage-count="${st}" class="px-2 py-0.5 rounded-full text-[9px] font-black ${theme.bg} ${theme.text.split(' ')[0]}">${stages[st].length}</span>
                         </div>
-                        <span class="text-[10px] font-black text-slate-800">${window.formatCurrency(data.totals[st] || 0)}</span>
+                        <span data-stage-total="${st}" class="text-[10px] font-black text-slate-800">${window.formatCurrency(data.totals[st] || 0)}</span>
                     </div>
                     
                     <!-- Cards Container -->
@@ -5636,20 +5636,59 @@ window.handleDealTouchEnd = function(e) {
 async function handleDealDrop(e, targetStage) {
     if (e && e.preventDefault) e.preventDefault();
     if (!draggedDealId) return;
+
+    const currentDealId = draggedDealId;
+    draggedDealId = null;
+
+    // Immediately move DOM card node to target stage container and recalculate totals
+    const cardNode = document.querySelector(`[data-deal-id="${currentDealId}"]`);
+    const targetStageCol = document.querySelector(`[data-kanban-stage="${targetStage}"]`);
+    
+    if (cardNode && targetStageCol) {
+        const cardsContainer = targetStageCol.querySelector('.flex-1.space-y-3');
+        if (cardsContainer) {
+            // Remove empty placeholder text if present
+            const placeholder = cardsContainer.querySelector('p');
+            if (placeholder) placeholder.remove();
+            cardsContainer.appendChild(cardNode);
+        }
+        recalculateKanbanStageTotals();
+    }
     
     try {
         await apiCall('crm/deals.php?action=update', 'POST', {
-            id: draggedDealId,
+            id: currentDealId,
             stage: targetStage
         });
         showNotification('success', `Deal stage updated to ${targetStage}!`);
-        navigateTo('deals');
     } catch (err) {
         showNotification('error', err.message);
-    } finally {
-        draggedDealId = null;
+        navigateTo('deals');
     }
 }
+
+window.recalculateKanbanStageTotals = function() {
+    const columns = document.querySelectorAll('[data-kanban-stage]');
+    columns.forEach(col => {
+        const stageName = col.getAttribute('data-kanban-stage');
+        const cards = col.querySelectorAll('[data-deal-id]');
+        let totalVal = 0;
+        cards.forEach(card => {
+            const amt = parseFloat(card.getAttribute('data-deal-amount') || 0);
+            if (!isNaN(amt)) totalVal += amt;
+        });
+
+        const totalElem = col.querySelector(`[data-stage-total="${stageName}"]`);
+        if (totalElem) {
+            totalElem.textContent = window.formatCurrency(totalVal);
+        }
+
+        const countElem = col.querySelector(`[data-stage-count="${stageName}"]`);
+        if (countElem) {
+            countElem.textContent = cards.length;
+        }
+    });
+};
 
 window.openDealContextMenu = function(event, dealId) {
     event.preventDefault();

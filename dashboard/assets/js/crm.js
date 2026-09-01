@@ -10315,7 +10315,7 @@ async function renderMeetings(container) {
                                 </p>
                             </div>
                             <button onclick="window.connectZoomMeetings()" class="w-full py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2.5 shadow-sm" style="color: #ffffff !important;">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/9/94/Zoom_App_Icon_June_2022.svg" class="h-4 w-4 object-contain" alt="Zoom">
+                                <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/zoom-communications-icon.png" class="h-4 w-4 object-contain" alt="Zoom">
                                 <span>Connect Zoom Meetings</span>
                             </button>
                         </div>
@@ -10397,7 +10397,7 @@ window.renderMeetingsList = async function(container, activeTab = null, searchQu
         if (zoomConnected) {
             connectionButtons += `
                 <button onclick="window.disconnectZoomMeetings(document.getElementById('main-content-viewport'))" class="px-3.5 py-2 bg-emerald-50 border border-emerald-100 hover:bg-rose-50 hover:border-rose-100 text-emerald-600 hover:text-rose-600 rounded-xl font-bold transition flex items-center space-x-1.5 text-[11px] group">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/94/Zoom_App_Icon_June_2022.svg" class="h-4 w-4 mr-1 object-contain" alt="Zoom">
+                    <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/zoom-communications-icon.png" class="h-4 w-4 mr-1 object-contain" alt="Zoom">
                     <span class="group-hover:hidden">Zoom Connected</span>
                     <span class="hidden group-hover:inline">Disconnect Zoom</span>
                 </button>
@@ -10405,7 +10405,7 @@ window.renderMeetingsList = async function(container, activeTab = null, searchQu
         } else {
             connectionButtons += `
                 <button onclick="window.connectZoomMeetings()" class="px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold transition flex items-center space-x-1.5 text-[11px]">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/94/Zoom_App_Icon_June_2022.svg" class="h-4 w-4 mr-1 object-contain" alt="Zoom">
+                    <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/zoom-communications-icon.png" class="h-4 w-4 mr-1 object-contain" alt="Zoom">
                     <span>Connect Zoom</span>
                 </button>
             `;
@@ -10625,11 +10625,7 @@ window.renderMeetingsList = async function(container, activeTab = null, searchQu
                                             if (isZoom) {
                                                 meetingIconHTML = `
                                                     <div class="h-7 w-7 rounded bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 mt-0.5" title="Zoom Meeting">
-                                                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <rect width="24" height="24" rx="6" fill="#2D8CFF"/>
-                                                            <path d="M6 8.5C6 7.67157 6.67157 7 7.5 7H13.5C14.3284 7 15 7.67157 15 8.5V13.5C15 14.3284 14.3284 15 13.5 15H7.5C6.67157 15 6 14.3284 6 13.5V8.5Z" fill="white"/>
-                                                            <path d="M16 10.2L18.4 8.4C18.7333 8.15 19 8.28333 19 8.7V15.3C19 15.7167 18.7333 15.85 18.4 15.6L16 13.8V10.2Z" fill="white"/>
-                                                        </svg>
+                                                        <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/zoom-communications-icon.png" class="h-4.5 w-4.5 object-contain" alt="Zoom">
                                                     </div>
                                                 `;
                                             } else if (isGoogle) {
@@ -11566,11 +11562,7 @@ window.showScheduleMeetingForm = async function(container, editMeetingId = null)
                     <span class="font-bold text-slate-800">Google Meet</span>
                 `,
                 'Zoom Meeting': `
-                    <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect width="24" height="24" rx="6" fill="#2D8CFF"/>
-                        <path d="M6 8.5C6 7.67157 6.67157 7 7.5 7H13.5C14.3284 7 15 7.67157 15 8.5V13.5C15 14.3284 14.3284 15 13.5 15H7.5C6.67157 15 6 14.3284 6 13.5V8.5Z" fill="white"/>
-                        <path d="M16 10.2L18.4 8.4C18.7333 8.15 19 8.28333 19 8.7V15.3C19 15.7167 18.7333 15.85 18.4 15.6L16 13.8V10.2Z" fill="white"/>
-                    </svg>
+                    <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/zoom-communications-icon.png" class="w-4 h-4 shrink-0 object-contain" alt="Zoom">
                     <span class="font-bold text-slate-800">Zoom Meeting</span>
                 `,
                 'Physical Venue': `
@@ -11790,11 +11782,7 @@ window.showScheduleMeetingForm = async function(container, editMeetingId = null)
                                          </div>` : ''}
                                          ${zoomConnected ? `
                                          <div onclick="window.selectLocationOption('Zoom Meeting')" class="px-3.5 py-3 hover:bg-slate-50 cursor-pointer flex items-center space-x-2.5 transition-all text-xs font-bold text-slate-700 border-b border-slate-100">
-                                             <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                 <rect width="24" height="24" rx="6" fill="#2D8CFF"/>
-                                                 <path d="M6 8.5C6 7.67157 6.67157 7 7.5 7H13.5C14.3284 7 15 7.67157 15 8.5V13.5C15 14.3284 14.3284 15 13.5 15H7.5C6.67157 15 6 14.3284 6 13.5V8.5Z" fill="white"/>
-                                                 <path d="M16 10.2L18.4 8.4C18.7333 8.15 19 8.28333 19 8.7V15.3C19 15.7167 18.7333 15.85 18.4 15.6L16 13.8V10.2Z" fill="white"/>
-                                             </svg>
+                                             <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/zoom-communications-icon.png" class="w-4 h-4 shrink-0 object-contain" alt="Zoom">
                                              <span class="font-bold text-slate-800">Zoom Meeting</span>
                                          </div>` : ''}
                                          <div onclick="window.selectLocationOption('Physical Venue')" class="px-3.5 py-3 hover:bg-slate-50 cursor-pointer flex items-center space-x-2.5 transition-all text-xs font-bold text-slate-700">
@@ -12219,10 +12207,7 @@ window.renderBookingSetup = async function(container) {
             if (!logoIndicator) return;
             if (val === 'zoom') {
                 logoIndicator.innerHTML = `
-                    <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="#2D8CFF">
-                        <path d="M0 0h24v24H0z" fill="none"/>
-                        <path d="M21.2 7c-.5-.4-1.2-.2-1.7.3l-3.5 3.5V8c0-1.7-1.3-3-3-3H3c-1.7 0-3 1.3-3 3v8c0 1.7 1.3 3 3 3h10c1.7 0 3-1.3 3-3v-2.8l3.5 3.5c.5.5 1.2.7 1.7.3.5-.4.8-1 .8-1.7V8.7c0-.7-.3-1.3-.8-1.7z"/>
-                    </svg>
+                    <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/zoom-communications-icon.png" class="h-4.5 w-4.5 object-contain" alt="Zoom">
                 `;
             } else {
                 logoIndicator.innerHTML = `
@@ -22561,7 +22546,7 @@ async function renderExternalApps(container) {
                         <div>
                             <div class="flex justify-between items-start">
                                 <div class="h-12 w-12 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-center p-2.5 shrink-0">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/94/Zoom_App_Icon_June_2022.svg" class="h-full w-full object-contain" alt="Zoom">
+                                    <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/zoom-communications-icon.png" class="h-full w-full object-contain" alt="Zoom">
                                 </div>
                                 ${buildStatusBadge(zoomConn.connected)}
                             </div>

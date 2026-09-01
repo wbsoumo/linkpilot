@@ -22015,6 +22015,36 @@ async function renderExternalApps(container) {
                             `}
                         </div>
                     </div>
+
+                    <!-- Webhook Endpoint Delivery Card -->
+                    <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl flex flex-col justify-between hover:shadow-md transition">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <div class="h-12 w-12 rounded-xl bg-indigo-50 border border-indigo-150 flex items-center justify-center p-2.5 text-indigo-600 shrink-0">
+                                    <i data-lucide="webhook" class="h-6 w-6"></i>
+                                </div>
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center space-x-1 shrink-0">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    <span>ACTIVE</span>
+                                </span>
+                            </div>
+                            <h3 class="text-sm font-extrabold text-slate-800 mt-4">Custom Webhook Listener</h3>
+                            <p class="text-slate-500 mt-1.5 leading-relaxed">Dispatch instant HTTP POST payload notifications to custom server endpoints when CRM events occur.</p>
+                            
+                            <div class="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-150 space-y-2 text-[10px]">
+                                <label class="font-bold text-slate-650 block uppercase tracking-wider text-[9px]">Target Endpoint URL</label>
+                                <input type="url" id="external-app-webhook-url" value="https://httpbin.org/post" placeholder="https://your-server.com/webhook" class="w-full px-2.5 py-1.5 bg-white border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500 text-[11px] font-mono">
+                                <span class="text-[9px] text-slate-400 block">Supports up to 15s server response timeout limit.</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 flex space-x-2 pt-2 border-t border-slate-100">
+                            <button id="ext-webhook-test-btn" onclick="testExternalAppWebhook(this)" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-center transition flex items-center justify-center space-x-2 select-none" style="color: #ffffff !important;">
+                                <i data-lucide="send" class="h-3.5 w-3.5" style="color: #ffffff !important;"></i>
+                                <span>Test Webhook (15s Timeout)</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -22027,6 +22057,55 @@ async function renderExternalApps(container) {
         `;
     }
 }
+
+window.testExternalAppWebhook = async function(btn) {
+    const inputEl = document.getElementById('external-app-webhook-url');
+    const targetUrl = inputEl ? inputEl.value.trim() : '';
+
+    if (!targetUrl || !targetUrl.startsWith('http')) {
+        showNotification('error', 'Please enter a valid HTTP/HTTPS target Webhook URL.');
+        return;
+    }
+
+    const origHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin text-white"></i><span>Testing Webhook (15s timeout)...</span>`;
+    lucide.createIcons();
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    try {
+        const response = await fetch(targetUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                event: 'webhook.test',
+                timestamp: new Date().toISOString(),
+                message: 'LinkPilot External Apps test payload'
+            }),
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+            showNotification('success', `Webhook test successful! Target server responded with HTTP ${response.status}.`);
+        } else {
+            showNotification('error', `Webhook target returned HTTP error status ${response.status}.`);
+        }
+    } catch (err) {
+        clearTimeout(timeoutId);
+        if (err.name === 'AbortError') {
+            showNotification('error', 'Webhook test failed: Target server timed out after 15 seconds.');
+        } else {
+            showNotification('error', 'Webhook test failed: ' + err.message);
+        }
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHTML;
+        lucide.createIcons();
+    }
+};
 
 // Global window OAuth flow handlers
 window.connectExternalGoogle = async function(type = 'login') {

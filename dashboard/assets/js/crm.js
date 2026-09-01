@@ -8126,8 +8126,11 @@ window.getTasksForTab = function(tasks, tab) {
 
 async function renderTasks(container) {
     container.innerHTML = `
-        <div class="flex items-center justify-center py-12">
-            <i data-lucide="loader-2" class="h-8 w-8 animate-spin text-indigo-600"></i>
+        <div class="flex items-center justify-center py-16">
+            <div class="flex flex-col items-center space-y-3">
+                <i data-lucide="loader-2" class="h-7 w-7 animate-spin text-indigo-600"></i>
+                <span class="text-xs font-semibold text-slate-500">Loading your tasks...</span>
+            </div>
         </div>
     `;
     lucide.createIcons();
@@ -8138,61 +8141,103 @@ async function renderTasks(container) {
         
         window.taskState = {
             tasks: tasks,
-            activeTab: 'all'
+            activeTab: 'all',
+            timeFilter: 'all',
+            searchQuery: '',
+            priorityFilter: 'all'
+        };
+
+        window.handleTaskSearchInput = function(e) {
+            window.taskState.searchQuery = (e.target.value || '').toLowerCase().trim();
+            updateTasksGrid();
+        };
+
+        window.filterTasksTimeView = function(timeVal) {
+            window.taskState.timeFilter = timeVal;
+            document.querySelectorAll('.task-time-filter-btn').forEach(btn => {
+                const isMatch = btn.dataset.time === timeVal;
+                btn.className = `task-time-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold transition duration-150 ${isMatch ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`;
+            });
+            updateTasksGrid();
+        };
+
+        window.filterTasksPriorityView = function(priVal) {
+            window.taskState.priorityFilter = priVal;
+            updateTasksGrid();
         };
         
         window.filterTasksView = function(tabName) {
             window.taskState.activeTab = tabName;
             
-            // Highlight active tab button
             document.querySelectorAll('.task-filter-tab').forEach(btn => {
-                btn.className = 'task-filter-tab px-4 py-2 border-b-2 border-transparent font-bold text-xs text-slate-500 hover:text-slate-800 transition duration-200';
+                btn.className = 'task-filter-tab px-3 py-1.5 rounded-lg font-bold text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition duration-150';
             });
             const activeBtn = document.getElementById(`task-tab-${tabName}`);
             if (activeBtn) {
-                activeBtn.className = 'task-filter-tab px-4 py-2 border-b-2 border-indigo-600 font-bold text-xs text-indigo-600 transition duration-200';
+                activeBtn.className = 'task-filter-tab px-3 py-1.5 rounded-lg font-bold text-xs bg-indigo-50 text-indigo-700 border border-indigo-200/70 shadow-2xs transition duration-150';
             }
             
-            // Re-render task columns
+            updateTasksGrid();
+        };
+
+        function updateTasksGrid() {
             const gridContainer = document.getElementById('tasks-grid-columns-container');
             if (gridContainer) {
                 gridContainer.innerHTML = getTasksGridHTML();
                 lucide.createIcons();
             }
-        };
+        }
 
-        const getCategoryHTML = (catName, catTasks, icon, colorClass, borderClass) => {
+        const getCategoryHTML = (catName, catTasks, icon, iconBg, badgeBg) => {
+            const pendingCount = catTasks.filter(t => t.status !== 'completed').length;
+            
             const listItems = catTasks.length > 0 ? catTasks.map(t => {
                 const isCompleted = t.status === 'completed';
                 const priority = t.priority || 'medium';
+                
                 let priorityBadge = '';
-                let borderAccent = 'border-l-4 border-l-slate-300';
+                let borderTopAccent = 'border-t-2 border-t-slate-200';
                 
                 if (priority === 'high') {
-                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-rose-50 text-rose-600 border border-rose-100 uppercase">High</span>`;
-                    borderAccent = 'border-l-4 border-l-rose-500';
+                    priorityBadge = `<span class="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-rose-50 text-rose-700 border border-rose-200/70 tracking-tight">HIGH</span>`;
+                    borderTopAccent = 'border-t-2 border-t-rose-500';
                 } else if (priority === 'medium') {
-                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100 uppercase">Medium</span>`;
-                    borderAccent = 'border-l-4 border-l-indigo-500';
+                    priorityBadge = `<span class="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200/70 tracking-tight">MED</span>`;
+                    borderTopAccent = 'border-t-2 border-t-indigo-500';
                 } else {
-                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-slate-50 text-slate-500 border border-slate-200 uppercase">Low</span>`;
-                    borderAccent = 'border-l-4 border-l-slate-350';
+                    priorityBadge = `<span class="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-slate-100 text-slate-600 border border-slate-200 tracking-tight">LOW</span>`;
+                    borderTopAccent = 'border-t-2 border-t-slate-300';
                 }
 
-                const timeStr = t.due_time ? ` @ ${t.due_time.substring(0, 5)}` : '';
-                const dateStr = t.due_date ? new Date(t.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + timeStr : 'No date';
-                
+                // Check due date relative to today
+                let dateBadge = '';
+                if (t.due_date) {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    const timeStr = t.due_time ? ` @ ${t.due_time.substring(0, 5)}` : '';
+                    const dateFormatted = new Date(t.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + timeStr;
+                    
+                    if (t.due_date < todayStr && !isCompleted) {
+                        dateBadge = `<div class="flex items-center text-[10px] text-rose-600 font-bold bg-rose-50 px-2 py-0.5 rounded border border-rose-100"><i data-lucide="alert-circle" class="h-3 w-3 mr-1 shrink-0"></i><span>${dateFormatted} (Overdue)</span></div>`;
+                    } else if (t.due_date === todayStr) {
+                        dateBadge = `<div class="flex items-center text-[10px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200/80"><i data-lucide="clock" class="h-3 w-3 mr-1 shrink-0"></i><span>Today${timeStr}</span></div>`;
+                    } else {
+                        dateBadge = `<div class="flex items-center text-[10px] text-slate-500 font-semibold"><i data-lucide="calendar" class="h-3 w-3 mr-1 shrink-0 text-slate-400"></i><span>${dateFormatted}</span></div>`;
+                    }
+                } else {
+                    dateBadge = `<div class="flex items-center text-[10px] text-slate-400 font-medium"><i data-lucide="calendar" class="h-3 w-3 mr-1 shrink-0"></i><span>No due date</span></div>`;
+                }
+
                 let meetLinkHTML = '';
                 if (t.meet_link) {
                     meetLinkHTML = `
-                        <a href="${t.meet_link}" target="_blank" class="mt-2 flex items-center space-x-1 text-[10px] text-blue-600 hover:text-blue-800 font-bold bg-blue-50 px-2 py-1 rounded-md border border-blue-100 transition inline-flex w-fit">
+                        <a href="${t.meet_link}" target="_blank" class="mt-2.5 flex items-center space-x-1.5 text-[11px] text-blue-700 hover:text-blue-900 font-bold bg-blue-50/80 hover:bg-blue-100/80 px-2.5 py-1 rounded-lg border border-blue-200/70 transition-all inline-flex w-fit shadow-2xs">
                             <i data-lucide="video" class="h-3.5 w-3.5 text-blue-600"></i>
-                            <span>Join Meet</span>
+                            <span>Join Google Meet</span>
                         </a>
                     `;
                 } else if (t.title.includes('[Meeting]') || t.title.startsWith('[Meeting]') || t.displayTitle.toLowerCase().includes('meeting')) {
                     meetLinkHTML = `
-                        <button onclick="openConfigureMeetingModal(${t.id})" class="mt-2 flex items-center space-x-1 text-[10px] text-rose-650 hover:text-rose-800 font-bold bg-rose-50 px-2 py-1 rounded-md border border-rose-100 transition inline-flex w-fit">
+                        <button onclick="openConfigureMeetingModal(${t.id})" class="mt-2.5 flex items-center space-x-1.5 text-[11px] text-rose-700 hover:text-rose-900 font-bold bg-rose-50/80 hover:bg-rose-100/80 px-2.5 py-1 rounded-lg border border-rose-200/70 transition-all inline-flex w-fit shadow-2xs">
                             <i data-lucide="video" class="h-3.5 w-3.5 text-rose-600"></i>
                             <span>Configure Invite</span>
                         </button>
@@ -8200,54 +8245,64 @@ async function renderTasks(container) {
                 }
 
                 return `
-                    <div class="task-card-contextable bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-2.5 transition hover:shadow-md cursor-context-menu ${borderAccent} ${isCompleted ? 'opacity-65' : ''}"
+                    <div class="group relative bg-white p-4 rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all duration-200 cursor-context-menu ${borderTopAccent} ${isCompleted ? 'bg-slate-50/60 opacity-60' : ''}"
                          oncontextmenu="handleTaskRightClick(event, ${t.id}, '${t.status}', '${t.title.replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${(t.description || '').replace(/\r?\n/g, ' ').replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${(t.meet_link || '').replace(/'/g, "\\'")}', '${(t.remarks || '').replace(/\r?\n/g, ' ').replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${t.category || ''}', '${t.due_date || ''}', '${t.due_time || ''}', '${t.priority || ''}')">
-                        <div class="flex items-start space-x-2.5">
-                            <input type="checkbox" ${isCompleted ? 'checked' : ''} onclick="toggleTaskStatus(${t.id}, '${t.status}')" class="mt-0.5 h-3.5 w-3.5 border-slate-300 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
-                            ${getTaskChannelLogoHTML(t.title, t.description, t.category)}
-                            <div class="flex-grow text-left">
-                                <h5 class="font-bold text-slate-800 leading-tight ${isCompleted ? 'line-through text-slate-400' : ''}">${t.displayTitle}</h5>
-                                <p class="text-[10px] text-slate-500 mt-1 line-clamp-2">${t.description || 'No extra description.'}</p>
+                        
+                        <div class="flex items-start space-x-3">
+                            <input type="checkbox" ${isCompleted ? 'checked' : ''} onclick="toggleTaskStatus(${t.id}, '${t.status}')" class="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer shrink-0 transition">
+                            
+                            <div class="flex-grow min-w-0 text-left">
+                                <div class="flex items-center space-x-2">
+                                    ${getTaskChannelLogoHTML(t.title, t.description, t.category)}
+                                    <h5 class="font-bold text-slate-900 text-xs leading-snug truncate ${isCompleted ? 'line-through text-slate-400' : ''}">${t.displayTitle}</h5>
+                                </div>
+                                ${t.description ? `<p class="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed font-normal">${t.description}</p>` : ''}
                                 ${meetLinkHTML}
                             </div>
                         </div>
-                        
-                        <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+
+                        <div class="flex justify-between items-center pt-3 mt-3 border-t border-slate-100">
                             <div class="flex items-center space-x-2">
-                                <div class="flex items-center text-[9px] text-slate-400 font-semibold">
-                                    <i data-lucide="calendar" class="h-3 w-3 mr-0.5"></i>
-                                    <span>${dateStr}</span>
-                                </div>
+                                ${dateBadge}
                                 ${priorityBadge}
                             </div>
-                            
-                            <div class="flex items-center space-x-1">
-                                <button onclick="editCrmTask(${t.id})" class="p-1 text-slate-400 hover:text-indigo-600 transition" title="Edit Task">
-                                    <i data-lucide="edit" class="h-3.5 w-3.5"></i>
+
+                            <!-- Contextual Hover Quick Actions -->
+                            <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                                <button onclick="editCrmTask(${t.id})" class="p-1 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-md transition" title="Edit Task">
+                                    <i data-lucide="edit-3" class="h-3.5 w-3.5"></i>
                                 </button>
-                                <button onclick="deleteCrmTask(this, ${t.id})" class="p-1 text-slate-400 hover:text-red-500 transition" title="Delete Task">
+                                <button onclick="deleteCrmTask(this, ${t.id})" class="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition" title="Delete Task">
                                     <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
                                 </button>
                             </div>
                         </div>
                     </div>
                 `;
-            }).join('') : `<div class="text-center py-6 text-slate-400 text-[10px] italic border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">No tasks in this category</div>`;
+            }).join('') : `
+                <div class="py-10 px-4 text-center border-2 border-dashed border-slate-200/80 rounded-xl bg-slate-50/40 flex flex-col items-center justify-center space-y-2">
+                    <div class="h-9 w-9 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center">
+                        <i data-lucide="check-circle-2" class="h-5 w-5"></i>
+                    </div>
+                    <p class="text-slate-600 font-bold text-xs">No tasks here</p>
+                    <p class="text-[11px] text-slate-400">All clear in ${catName}</p>
+                </div>
+            `;
 
             return `
-                <div class="glass-panel p-4 bg-white shadow-sm border border-slate-200 rounded-2xl flex flex-col space-y-3.5">
-                    <div class="pb-2 border-b border-slate-100 flex justify-between items-center">
-                        <div class="flex items-center space-x-2 text-slate-800 font-bold text-sm">
-                            <div class="h-7 w-7 rounded-lg ${colorClass} flex items-center justify-center shrink-0">
-                                <i data-lucide="${icon}" class="h-4 w-4"></i>
+                <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex flex-col space-y-4">
+                    <div class="pb-3 border-b border-slate-100 flex justify-between items-center">
+                        <div class="flex items-center space-x-2 text-slate-900 font-black text-xs uppercase tracking-wider">
+                            <div class="h-7 w-7 rounded-lg ${iconBg} flex items-center justify-center shrink-0">
+                                <i data-lucide="${icon}" class="h-3.5 w-3.5"></i>
                             </div>
                             <span>${catName}</span>
                         </div>
-                        <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                            ${catTasks.length}
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black ${pendingCount > 0 ? badgeBg : 'bg-slate-100 text-slate-600'} border border-slate-200/80">
+                            ${pendingCount}
                         </span>
                     </div>
-                    <div class="space-y-3 flex-grow overflow-y-auto max-h-[450px] pr-1">
+                    <div class="space-y-3 flex-grow overflow-y-auto max-h-[520px] pr-1">
                         ${listItems}
                     </div>
                 </div>
@@ -8255,8 +8310,35 @@ async function renderTasks(container) {
         };
 
         function getTasksGridHTML() {
-            const tabTasks = getTasksForTab(window.taskState.tasks, window.taskState.activeTab);
+            let filtered = getTasksForTab(window.taskState.tasks, window.taskState.activeTab);
             
+            // Apply Search Query Filter
+            if (window.taskState.searchQuery) {
+                const q = window.taskState.searchQuery;
+                filtered = filtered.filter(t => 
+                    (t.title || '').toLowerCase().includes(q) || 
+                    (t.description || '').toLowerCase().includes(q) || 
+                    (t.category || '').toLowerCase().includes(q)
+                );
+            }
+
+            // Apply Time Filter (Today / Overdue / Upcoming)
+            if (window.taskState.timeFilter !== 'all') {
+                const todayStr = new Date().toISOString().split('T')[0];
+                if (window.taskState.timeFilter === 'today') {
+                    filtered = filtered.filter(t => t.due_date === todayStr);
+                } else if (window.taskState.timeFilter === 'overdue') {
+                    filtered = filtered.filter(t => t.due_date && t.due_date < todayStr && t.status !== 'completed');
+                } else if (window.taskState.timeFilter === 'upcoming') {
+                    filtered = filtered.filter(t => t.due_date && t.due_date > todayStr);
+                }
+            }
+
+            // Apply Priority Filter
+            if (window.taskState.priorityFilter !== 'all') {
+                filtered = filtered.filter(t => (t.priority || 'medium') === window.taskState.priorityFilter);
+            }
+
             const cats = {
                 'Follow-up': [],
                 'Reply': [],
@@ -8265,7 +8347,7 @@ async function renderTasks(container) {
                 'General': []
             };
             
-            tabTasks.forEach(t => {
+            filtered.forEach(t => {
                 const title = t.title || '';
                 let category = 'General';
                 let cleanTitle = title;
@@ -8308,40 +8390,48 @@ async function renderTasks(container) {
                     return (priorityWeight[b.priority] || 2) - (priorityWeight[a.priority] || 2);
                 });
             });
-            
+
             return `
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
-                    ${getCategoryHTML('Follow-ups', cats['Follow-up'], 'phone-call', 'bg-indigo-50 text-indigo-600', 'border-indigo-500')}
-                    ${getCategoryHTML('Replies / Email', cats['Reply'], 'mail', 'bg-emerald-50 text-emerald-600', 'border-emerald-500')}
-                    ${getCategoryHTML('Meetings Set', cats['Meeting'], 'calendar', 'bg-blue-50 text-blue-600', 'border-blue-500')}
-                    ${getCategoryHTML('Need to Arrange', cats['Arrange'], 'sliders', 'bg-amber-50 text-amber-600', 'border-amber-500')}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 w-full">
+                    ${getCategoryHTML('Follow-ups', cats['Follow-up'], 'phone-call', 'bg-indigo-50 text-indigo-600', 'bg-indigo-50 text-indigo-700')}
+                    ${getCategoryHTML('Replies / Email', cats['Reply'], 'mail', 'bg-emerald-50 text-emerald-600', 'bg-emerald-50 text-emerald-700')}
+                    ${getCategoryHTML('Meetings Set', cats['Meeting'], 'calendar', 'bg-blue-50 text-blue-600', 'bg-blue-50 text-blue-700')}
+                    ${getCategoryHTML('Need to Arrange', cats['Arrange'], 'sliders', 'bg-amber-50 text-amber-600', 'bg-amber-50 text-amber-700')}
                 </div>
                 
                 ${cats['General'].length > 0 ? `
-                    <div class="mt-8">
-                        <div class="font-bold text-slate-800 text-xs mb-3 flex items-center space-x-1 text-left">
-                            <i data-lucide="clipboard-list" class="h-4 w-4 text-slate-600"></i>
-                            <span>General Tasks</span>
+                    <div class="mt-6 bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs">
+                        <div class="font-black text-slate-900 text-xs mb-4 uppercase tracking-wider flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <div class="h-7 w-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                                    <i data-lucide="clipboard-list" class="h-4 w-4"></i>
+                                </div>
+                                <span>General Tasks</span>
+                            </div>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-slate-100 text-slate-700 border border-slate-200/80">
+                                ${cats['General'].length}
+                            </span>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             ${cats['General'].map(t => {
                                 const isCompleted = t.status === 'completed';
                                 const priority = t.priority || 'medium';
                                 let priorityBadge = '';
-                                let borderAccent = 'border-l-4 border-l-slate-350';
+                                let borderTopAccent = 'border-t-2 border-t-slate-300';
                                 
                                 if (priority === 'high') {
-                                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-rose-50 text-rose-600 border border-rose-100 uppercase">High</span>`;
-                                    borderAccent = 'border-l-4 border-l-rose-500';
+                                    priorityBadge = `<span class="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-rose-50 text-rose-700 border border-rose-200/70 tracking-tight">HIGH</span>`;
+                                    borderTopAccent = 'border-t-2 border-t-rose-500';
                                 } else if (priority === 'medium') {
-                                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100 uppercase">Medium</span>`;
-                                    borderAccent = 'border-l-4 border-l-indigo-500';
+                                    priorityBadge = `<span class="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200/70 tracking-tight">MED</span>`;
+                                    borderTopAccent = 'border-t-2 border-t-indigo-500';
                                 } else {
-                                    priorityBadge = `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-slate-50 text-slate-500 border border-slate-200 uppercase">Low</span>`;
-                                    borderAccent = 'border-l-4 border-l-slate-350';
+                                    priorityBadge = `<span class="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-slate-100 text-slate-600 border border-slate-200 tracking-tight">LOW</span>`;
+                                    borderTopAccent = 'border-t-2 border-t-slate-300';
                                 }
+
                                 const timeStr = t.due_time ? ` @ ${t.due_time.substring(0, 5)}` : '';
-                                const dateStr = t.due_date ? new Date(t.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + timeStr : 'No date';
+                                const dateStr = t.due_date ? new Date(t.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + timeStr : 'No date';
                                 
                                 let meetLinkHTML = '';
                                 if (t.meet_link) {
@@ -8361,32 +8451,35 @@ async function renderTasks(container) {
                                 }
                                 
                                 return `
-                                    <div class="task-card-contextable bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-2.5 transition hover:shadow-md cursor-context-menu ${borderAccent} ${isCompleted ? 'opacity-65' : ''}"
+                                    <div class="group relative bg-white p-4 rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all duration-200 cursor-context-menu ${borderTopAccent} ${isCompleted ? 'bg-slate-50/60 opacity-60' : ''}"
                                          oncontextmenu="handleTaskRightClick(event, ${t.id}, '${t.status}', '${t.title.replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${(t.description || '').replace(/\r?\n/g, ' ').replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${(t.meet_link || '').replace(/'/g, "\\'")}', '${(t.remarks || '').replace(/\r?\n/g, ' ').replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${t.category || ''}', '${t.due_date || ''}', '${t.due_time || ''}', '${t.priority || ''}')">
-                                        <div class="flex items-start space-x-2.5">
-                                            <input type="checkbox" ${isCompleted ? 'checked' : ''} onclick="toggleTaskStatus(${t.id}, '${t.status}')" class="mt-0.5 h-3.5 w-3.5 border-slate-300 rounded text-indigo-650 focus:ring-indigo-500 cursor-pointer">
-                                            ${getTaskChannelLogoHTML(t.title, t.description, t.category)}
-                                            <div class="flex-grow text-left">
-                                                <h5 class="font-bold text-slate-800 leading-tight ${isCompleted ? 'line-through text-slate-400' : ''}">${t.displayTitle}</h5>
-                                                <p class="text-[10px] text-slate-500 mt-1 line-clamp-2">${t.description || 'No extra description.'}</p>
+                                        
+                                        <div class="flex items-start space-x-3">
+                                            <input type="checkbox" ${isCompleted ? 'checked' : ''} onclick="toggleTaskStatus(${t.id}, '${t.status}')" class="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer shrink-0 transition">
+                                            <div class="flex-grow min-w-0 text-left">
+                                                <div class="flex items-center space-x-2">
+                                                    ${getTaskChannelLogoHTML(t.title, t.description, t.category)}
+                                                    <h5 class="font-bold text-slate-900 text-xs leading-snug truncate ${isCompleted ? 'line-through text-slate-400' : ''}">${t.displayTitle}</h5>
+                                                </div>
+                                                ${t.description ? `<p class="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed font-normal">${t.description}</p>` : ''}
                                                 ${meetLinkHTML}
                                             </div>
                                         </div>
                                         
-                                        <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                                        <div class="flex justify-between items-center pt-3 mt-3 border-t border-slate-100">
                                             <div class="flex items-center space-x-2">
-                                                <div class="flex items-center text-[9px] text-slate-400 font-semibold">
-                                                    <i data-lucide="calendar" class="h-3 w-3 mr-0.5"></i>
+                                                <div class="flex items-center text-[10px] text-slate-500 font-medium">
+                                                    <i data-lucide="calendar" class="h-3 w-3 mr-1 shrink-0 text-slate-400"></i>
                                                     <span>${dateStr}</span>
                                                 </div>
                                                 ${priorityBadge}
                                             </div>
                                             
-                                            <div class="flex items-center space-x-1">
-                                                <button onclick="editCrmTask(${t.id})" class="p-1 text-slate-400 hover:text-indigo-600 transition" title="Edit Task">
-                                                    <i data-lucide="edit" class="h-3.5 w-3.5"></i>
+                                            <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                                                <button onclick="editCrmTask(${t.id})" class="p-1 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-md transition" title="Edit Task">
+                                                    <i data-lucide="edit-3" class="h-3.5 w-3.5"></i>
                                                 </button>
-                                                <button onclick="deleteCrmTask(this, ${t.id})" class="p-1 text-slate-400 hover:text-red-500 transition" title="Delete Task">
+                                                <button onclick="deleteCrmTask(this, ${t.id})" class="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition" title="Delete Task">
                                                     <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
                                                 </button>
                                             </div>
@@ -8401,34 +8494,63 @@ async function renderTasks(container) {
         }
 
         container.innerHTML = `
-            <div class="space-y-6 pt-4 animate-fade-in text-xs max-w-7xl mx-auto">
-                <div class="flex flex-col md:flex-row md:justify-between md:items-center border-b border-slate-150 pb-4 gap-4">
+            <div class="space-y-5 pt-2 animate-fade-in text-xs max-w-7xl mx-auto">
+                <!-- Clean Enterprise Header -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-slate-200/80 gap-3">
                     <div>
-                        <h1 class="text-2xl font-extrabold text-slate-800">Tasks Hub</h1>
-                        <p class="text-slate-500 text-xs mt-1">Manage, categorize, and complete tasks ordered by priority metrics.</p>
+                        <h1 class="text-xl font-black text-slate-900 tracking-tight">Tasks Hub</h1>
+                        <p class="text-slate-500 text-xs mt-0.5 font-medium">Prioritize, manage, and execute team workflow tasks.</p>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <button onclick="showQuickTaskModal()" class="px-4 py-2 border border-indigo-600 hover:bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 shadow-sm hover:shadow-indigo-100/50">
-                            <i data-lucide="sparkles" class="h-3.5 w-3.5 text-indigo-650"></i>
-                            <span>Quick Task (Ctrl+K)</span>
+                    <div class="flex items-center space-x-2.5 shrink-0">
+                        <button onclick="showQuickTaskModal()" class="px-3.5 py-2 border border-slate-200/90 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-white shadow-2xs">
+                            <i data-lucide="sparkles" class="h-4 w-4 text-indigo-600"></i>
+                            <span>Quick Task <span class="text-[10px] text-slate-400 font-semibold ml-0.5">Ctrl+K</span></span>
                         </button>
-                        <button onclick="createNewTaskModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition flex items-center space-x-1.5 shadow-sm">
-                            <i data-lucide="plus" class="h-3.5 w-3.5"></i>
-                            <span>Add New Task</span>
+                        <button onclick="createNewTaskModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-2 shadow-sm shadow-indigo-200">
+                            <i data-lucide="plus" class="h-4 w-4"></i>
+                            <span>New Task</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Tabs filtering row -->
-                <div class="flex items-center space-x-1 border-b border-slate-200 pb-px text-left w-full overflow-x-auto">
-                    <button onclick="filterTasksView('all')" id="task-tab-all" class="task-filter-tab px-4 py-2 border-b-2 border-indigo-600 font-bold text-xs text-indigo-600 transition duration-200">All</button>
-                    <button onclick="filterTasksView('communications')" id="task-tab-communications" class="task-filter-tab px-4 py-2 border-b-2 border-transparent font-bold text-xs text-slate-500 hover:text-slate-800 transition duration-200">Communications</button>
-                    <button onclick="filterTasksView('crm')" id="task-tab-crm" class="task-filter-tab px-4 py-2 border-b-2 border-transparent font-bold text-xs text-slate-500 hover:text-slate-800 transition duration-200">CRM Tasks</button>
-                    <button onclick="filterTasksView('marketing')" id="task-tab-marketing" class="task-filter-tab px-4 py-2 border-b-2 border-transparent font-bold text-xs text-slate-500 hover:text-slate-800 transition duration-200">Marketing Tasks</button>
-                    <button onclick="filterTasksView('general')" id="task-tab-general" class="task-filter-tab px-4 py-2 border-b-2 border-transparent font-bold text-xs text-slate-500 hover:text-slate-800 transition duration-200">General</button>
+                <!-- Modern Toolbar: Category Tabs + Search + Time View Filters -->
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200/90 shadow-2xs">
+                    <!-- Left Category Pills -->
+                    <div class="flex items-center space-x-1 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
+                        <button onclick="filterTasksView('all')" id="task-tab-all" class="task-filter-tab px-3 py-1.5 rounded-lg font-bold text-xs bg-indigo-50 text-indigo-700 border border-indigo-200/70 shadow-2xs transition duration-150">All Tasks</button>
+                        <button onclick="filterTasksView('communications')" id="task-tab-communications" class="task-filter-tab px-3 py-1.5 rounded-lg font-bold text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition duration-150">Communications</button>
+                        <button onclick="filterTasksView('crm')" id="task-tab-crm" class="task-filter-tab px-3 py-1.5 rounded-lg font-bold text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition duration-150">CRM Tasks</button>
+                        <button onclick="filterTasksView('marketing')" id="task-tab-marketing" class="task-filter-tab px-3 py-1.5 rounded-lg font-bold text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition duration-150">Marketing</button>
+                        <button onclick="filterTasksView('general')" id="task-tab-general" class="task-filter-tab px-3 py-1.5 rounded-lg font-bold text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition duration-150">General</button>
+                    </div>
+
+                    <!-- Right Controls: Time Filter + Search Input + Priority Filter -->
+                    <div class="flex items-center space-x-2 shrink-0">
+                        <!-- Time Segmented Buttons -->
+                        <div class="flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200/70">
+                            <button onclick="filterTasksTimeView('all')" data-time="all" class="task-time-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-xs transition duration-150">All</button>
+                            <button onclick="filterTasksTimeView('overdue')" data-time="overdue" class="task-time-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition duration-150">Overdue</button>
+                            <button onclick="filterTasksTimeView('today')" data-time="today" class="task-time-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition duration-150">Today</button>
+                            <button onclick="filterTasksTimeView('upcoming')" data-time="upcoming" class="task-time-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition duration-150">Upcoming</button>
+                        </div>
+
+                        <!-- Search Input -->
+                        <div class="relative w-48 sm:w-56">
+                            <i data-lucide="search" class="h-3.5 w-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                            <input type="text" oninput="handleTaskSearchInput(event)" placeholder="Search tasks..." class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-250 rounded-xl focus:bg-white focus:outline-none focus:border-indigo-500 transition">
+                        </div>
+
+                        <!-- Priority Selector -->
+                        <select onchange="filterTasksPriorityView(this.value)" class="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-250 rounded-xl font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-indigo-500 cursor-pointer">
+                            <option value="all">Priority: All</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
                 </div>
 
-                <!-- columns container -->
+                <!-- Main Columns Container -->
                 <div id="tasks-grid-columns-container" class="space-y-4">
                     ${getTasksGridHTML()}
                 </div>
@@ -8437,7 +8559,7 @@ async function renderTasks(container) {
         lucide.createIcons();
     } catch (err) {
         container.innerHTML = `
-            <div class="max-w-xl mx-auto p-5 text-center text-red-500">
+            <div class="max-w-xl mx-auto p-6 text-center text-rose-600 bg-rose-50 border border-rose-200 rounded-2xl">
                 Failed to load tasks: ${err.message}
             </div>
         `;

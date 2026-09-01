@@ -22,6 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'Content-Type: application/json',
             'X-goog-api-key: ' . $apiKey
         ]);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'LinkPilot-AI/1.0');
+        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
         curl_setopt($ch, CURLOPT_TIMEOUT, 15);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
@@ -69,8 +72,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'Content-Type: application/json',
                     'X-goog-api-key: ' . $apiKey
                 ]);
+                curl_setopt($ch, CURLOPT_USERAGENT, 'LinkPilot-AI/1.0');
+                curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+                curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
                 curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-                curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 20);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
                 

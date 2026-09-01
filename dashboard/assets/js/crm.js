@@ -25681,6 +25681,15 @@ window.renderEmailCampaigns = async function(container) {
             </div>
         </div>
     `;
+    if (window._campaignsPollInterval) clearInterval(window._campaignsPollInterval);
+    window._campaignsPollInterval = setInterval(() => {
+        if (location.hash === '#/email-campaigns' || location.hash === '#/campaigns') {
+            loadEmailCampaignsList().catch(() => {});
+        } else {
+            clearInterval(window._campaignsPollInterval);
+        }
+    }, 5000);
+
     if (typeof lucide !== 'undefined') lucide.createIcons();
     await loadEmailCampaignsList();
 };
@@ -25768,13 +25777,35 @@ window.renderEmailCampaignsTable = function(list) {
                     <div class="font-bold text-slate-900 text-xs">${escapeHtml(c.campaign_name)}</div>
                     <div class="text-[11px] text-slate-500 font-medium truncate max-w-xs mt-0.5">${escapeHtml(c.subject)}</div>
                 </td>
-                <td class="px-6 py-4 w-48">
-                    <div class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
-                        <span>${sent} / ${total} sent</span>
-                        <span class="text-indigo-600">${pct}%</span>
+                <td class="px-6 py-4 w-60">
+                    <!-- Real-Time Progress Bar & Metrics -->
+                    <div class="flex items-center justify-between text-[11px] font-extrabold text-slate-700 mb-1">
+                        <span class="flex items-center">
+                            <span class="h-2 w-2 rounded-full bg-indigo-500 mr-1.5 ${c.status === 'Active' ? 'animate-ping' : ''}"></span>
+                            <span>Progress</span>
+                        </span>
+                        <span class="text-indigo-600 font-black text-xs">${pct}%</span>
                     </div>
-                    <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                        <div class="bg-indigo-600 h-1.5 rounded-full transition-all" style="width: ${pct}%"></div>
+                    <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/60 shadow-2xs">
+                        <div class="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-1 mt-2 text-[9px] font-black tracking-tight text-center">
+                        <div class="bg-emerald-50 text-emerald-700 p-1 rounded-md border border-emerald-200/60" title="Sent">
+                            <div class="text-emerald-500 font-normal uppercase text-[8px]">Sent</div>
+                            <div>${sent}</div>
+                        </div>
+                        <div class="bg-amber-50 text-amber-700 p-1 rounded-md border border-amber-200/60" title="Pending">
+                            <div class="text-amber-500 font-normal uppercase text-[8px]">Pending</div>
+                            <div>${Math.max(0, total - sent)}</div>
+                        </div>
+                        <div class="bg-rose-50 text-rose-700 p-1 rounded-md border border-rose-200/60" title="Failed">
+                            <div class="text-rose-500 font-normal uppercase text-[8px]">Failed</div>
+                            <div>${parseInt(c.failed_count || 0)}</div>
+                        </div>
+                        <div class="bg-slate-100 text-slate-700 p-1 rounded-md border border-slate-200/60" title="Remaining">
+                            <div class="text-slate-400 font-normal uppercase text-[8px]">Remain</div>
+                            <div>${Math.max(0, total - sent - parseInt(c.failed_count || 0))}</div>
+                        </div>
                     </div>
                 </td>
                 <td class="px-6 py-4">

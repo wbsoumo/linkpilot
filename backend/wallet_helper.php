@@ -550,41 +550,60 @@ if (!function_exists('testAIKeyConnection')) {
         $userPrompt = "ping";
 
         if ($provider === 'groq') {
-            $model = "llama-3.3-70b-versatile";
-            $headers = [
-                "Authorization: Bearer " . $apiKey,
-                "Content-Type: application/json",
-                "User-Agent: LinkPilot-AI"
+            $modelsToTry = [
+                'llama-3.3-70b-versatile',
+                'llama-3.1-8b-instant',
+                'llama-3.1-70b-versatile',
+                'llama3-70b-8192',
+                'llama3-8b-8192',
+                'mixtral-8x7b-32768',
+                'gemma2-9b-it'
             ];
-            $postFields = [
-                "model" => $model,
-                "messages" => [
-                    ["role" => "system", "content" => $systemPrompt],
-                    ["role" => "user", "content" => $userPrompt]
-                ],
-                "max_tokens" => 5
-            ];
+            $lastException = null;
 
-            $ch = curl_init("https://api.groq.com/openai/v1/chat/completions");
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+            foreach ($modelsToTry as $currentModel) {
+                $headers = [
+                    "Authorization: Bearer " . $apiKey,
+                    "Content-Type: application/json",
+                    "User-Agent: LinkPilot-AI"
+                ];
+                $postFields = [
+                    "model" => $currentModel,
+                    "messages" => [
+                        ["role" => "system", "content" => $systemPrompt],
+                        ["role" => "user", "content" => $userPrompt]
+                    ],
+                    "max_tokens" => 5
+                ];
 
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $error = curl_error($ch);
-            curl_close($ch);
+                $ch = curl_init("https://api.groq.com/openai/v1/chat/completions");
+                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 15);
 
-            if ($error) {
-                throw new Exception("Groq connection failed: " . $error);
+                $response = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $error = curl_error($ch);
+                curl_close($ch);
+
+                if (!$error && $httpCode === 200) {
+                    return true; // Connection & model test succeeded
+                }
+
+                if ($error) {
+                    $lastException = new Exception("Groq connection failed ({$currentModel}): " . $error);
+                } else {
+                    $data = json_decode($response, true);
+                    $msg = $data['error']['message'] ?? "HTTP error {$httpCode}";
+                    $lastException = new Exception("Groq API ({$currentModel}): {$msg}");
+                }
             }
-            $data = json_decode($response, true);
-            if ($httpCode !== 200) {
-                $msg = $data['error']['message'] ?? "HTTP error {$httpCode}";
-                throw new Exception($msg);
+
+            if ($lastException) {
+                throw $lastException;
             }
             return true;
 

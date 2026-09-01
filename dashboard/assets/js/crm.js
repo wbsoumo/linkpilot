@@ -457,7 +457,7 @@ async function navigateTo(view, params = {}) {
         
         if (view === 'email-builder') {
             contentArea.className = "flex-grow overflow-hidden w-full h-screen flex flex-col bg-[#f8fafc]";
-        } else if (view === 'inbox' || view === 'email' || view === 'sent' || view === 'starred' || view === 'drafts' || view === 'archived' || view === 'snoozed' || view === 'trash' || view === 'spam' || view === 'whatsapp-inbox' || view === 'followups' || view === 'email-followups' || (view === 'automation' && window.wfState.activeWorkflow)) {
+        } else if (view === 'email-templates' || view === 'templates' || view === 'inbox' || view === 'email' || view === 'sent' || view === 'starred' || view === 'drafts' || view === 'archived' || view === 'snoozed' || view === 'trash' || view === 'spam' || view === 'whatsapp-inbox' || view === 'followups' || view === 'email-followups' || (view === 'automation' && window.wfState.activeWorkflow)) {
             contentArea.className = "flex-grow overflow-hidden w-full h-[calc(100vh-61px)] flex flex-col";
         } else {
             contentArea.className = "flex-grow p-6 md:p-8 overflow-y-auto max-w-7xl w-full mx-auto";
@@ -18725,7 +18725,7 @@ async function renderEmailTemplates(container) {
         }
 
         container.innerHTML = `
-            <div class="flex flex-col w-full h-full bg-slate-50 overflow-hidden font-sans text-slate-800 -m-6 md:-m-8">
+            <div class="flex flex-col w-full h-full bg-slate-50 overflow-hidden font-sans text-slate-800">
                 <!-- Header Bar -->
                 <div class="bg-white border-b border-slate-200 px-6 py-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 shadow-2xs">
                     <div class="flex items-center space-x-3 min-w-0">

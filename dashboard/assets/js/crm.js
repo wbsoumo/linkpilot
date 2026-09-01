@@ -23005,7 +23005,9 @@ window.switchSettingsTab = function(tabName, btn) {
         if (sidebar) {
             sidebar.querySelectorAll('button').forEach(b => {
                 b.className = "w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-800 hover:bg-slate-100 border border-slate-200 bg-white";
+                b.classList.remove('active-settings-tab');
                 b.style.removeProperty('color');
+                b.style.removeProperty('background-color');
                 const iconBox = b.querySelector('.rounded-lg');
                 if (iconBox) {
                     iconBox.className = "h-8 w-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0";
@@ -23018,6 +23020,7 @@ window.switchSettingsTab = function(tabName, btn) {
                 const pSub = b.querySelector('p.text-\\[10px\\]');
                 if (pSub) {
                     pSub.className = "text-[10px] text-slate-500 font-medium";
+                    pSub.style.removeProperty('color');
                 }
                 const chev = b.querySelector('i[data-lucide="chevron-right"]');
                 if (chev) {
@@ -23029,6 +23032,7 @@ window.switchSettingsTab = function(tabName, btn) {
 
         btn.className = "w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left bg-indigo-600 text-white font-bold active-settings-tab shadow-md";
         btn.style.setProperty('color', '#ffffff', 'important');
+        btn.style.setProperty('background-color', '#4f46e5', 'important');
 
         const iconBox = btn.querySelector('.rounded-lg');
         if (iconBox) {
@@ -23042,6 +23046,7 @@ window.switchSettingsTab = function(tabName, btn) {
         const pSub = btn.querySelector('p.text-\\[10px\\]');
         if (pSub) {
             pSub.className = "text-[10px] text-indigo-100 font-medium";
+            pSub.style.setProperty('color', '#e0e7ff', 'important');
         }
         const activeChev = btn.querySelector('i[data-lucide="chevron-right"]');
         if (activeChev) {

@@ -676,12 +676,20 @@ aside .bg-blue-600 * {
 
 /* Active Settings Page Sidebar Tab */
 .active-settings-tab {
-    background-color: #eef2ff !important; /* soft indigo-50 */
-    border-color: rgba(99, 102, 241, 0.3) !important;
-    color: #4f46e5 !important; /* indigo-600 */
+    background-color: #4f46e5 !important; /* solid indigo-600 */
+    border-color: #4338ca !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25) !important;
 }
-.active-settings-tab * {
-    color: #4f46e5 !important;
+.active-settings-tab *,
+.active-settings-tab p,
+.active-settings-tab i,
+.active-settings-tab span {
+    color: #ffffff !important;
+}
+.active-settings-tab p.text-\\[10px\\],
+.active-settings-tab .text-indigo-100 {
+    color: #e0e7ff !important; /* soft indigo-100 subtitle */
 }
 
 /* ==========================================

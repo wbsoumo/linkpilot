@@ -3047,7 +3047,7 @@
                     case 'heading':
                         inner = `
                             <tr>
-                                <td align="${el.settings.align || 'left'}" style="padding: 10px 0; font-family: ${brandStyles.fontFamily}; font-size: ${el.settings.fontSize || '22px'}; font-weight: ${el.settings.fontWeight || 'bold'}; color: ${el.settings.color || '#0F172A'};">
+                                <td align="${el.settings.align || 'left'}" style="padding: 4px 0 6px 0; font-family: ${brandStyles.fontFamily}; font-size: ${el.settings.fontSize || '22px'}; font-weight: ${el.settings.fontWeight || 'bold'}; color: ${el.settings.color || '#0F172A'};">
                                     ${el.settings.content || 'Heading Title'}
                                 </td>
                             </tr>
@@ -3056,7 +3056,7 @@
                     case 'text':
                         inner = `
                             <tr>
-                                <td align="${el.settings.align || 'left'}" style="padding: 10px 0; font-family: ${brandStyles.fontFamily}; font-size: ${el.settings.fontSize || '15px'}; line-height: ${el.settings.lineHeight || '1.6'}; color: ${el.settings.color || '#334155'};">
+                                <td align="${el.settings.align || 'left'}" style="padding: 4px 0 6px 0; font-family: ${brandStyles.fontFamily}; font-size: ${el.settings.fontSize || '15px'}; line-height: ${el.settings.lineHeight || '1.6'}; color: ${el.settings.color || '#334155'};">
                                     ${el.settings.content || 'Paragraph body content details...'}
                                 </td>
                             </tr>
@@ -3065,7 +3065,7 @@
                     case 'image':
                         inner = `
                             <tr>
-                                <td align="${escapeAttr(el.settings.align || 'center')}" style="padding: 10px 0;">
+                                <td align="${escapeAttr(el.settings.align || 'center')}" style="padding: 4px 0;">
                                     ${el.settings.link ? `<a href="${sanitizeUrl(el.settings.link)}" target="_blank" style="text-decoration:none;">` : ''}
                                     <img src="${sanitizeUrl(el.settings.imageUrl || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop')}" style="display: inline-block; width: ${escapeAttr(el.settings.width || '100%')}; max-width: 100%; height: auto; border-radius: ${escapeAttr(el.settings.borderRadius || '6px')};" alt="${escapeAttr(el.settings.alt || 'Email Asset')}">
                                     ${el.settings.link ? `</a>` : ''}
@@ -3076,7 +3076,7 @@
                     case 'button':
                         inner = `
                             <tr>
-                                <td align="${escapeAttr(el.settings.align || 'center')}" style="padding: 15px 0;">
+                                <td align="${escapeAttr(el.settings.align || 'center')}" style="padding: 8px 0;">
                                     <table border="0" cellpadding="0" cellspacing="0" style="display: inline-block;">
                                         <tr>
                                             <td align="center" bgcolor="${escapeAttr(el.settings.backgroundColor || '#6D5EF5')}" style="border-radius: ${escapeAttr(el.settings.borderRadius || '8px')};">
@@ -3543,14 +3543,14 @@
             rowsHtml += `
                 <!-- Section Container Row -->
                 <tr>
-                    <td bgcolor="${sec.settings.backgroundColor || '#ffffff'}" style="padding: ${sec.settings.paddingTop || '20px'} 40px ${sec.settings.paddingBottom || '20px'} 40px; border-radius: ${sec.settings.borderRadius || '12px'};">
+                    <td bgcolor="${sec.settings.backgroundColor || '#ffffff'}" style="padding: ${sec.settings.paddingTop || '16px'} 24px ${sec.settings.paddingBottom || '16px'} 24px; border-radius: ${sec.settings.borderRadius || '12px'};">
                         <table border="0" cellpadding="0" cellspacing="0" width="100%">
                             ${elementsHtml}
                         </table>
                     </td>
                 </tr>
                 <!-- Vertical gap row -->
-                <tr><td style="height: 15px; font-size: 1px; line-height: 1px;">&nbsp;</td></tr>
+                <tr><td style="height: 10px; font-size: 1px; line-height: 1px;">&nbsp;</td></tr>
             `;
         });
 

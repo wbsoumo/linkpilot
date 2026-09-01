@@ -22674,177 +22674,203 @@ window.shareMeetViaEmail = function() {
 // --- REDESIGNED PROFILE & SETTINGS HELPERS ---
 function getSettingsBaseLayout(user) {
     return `
-        <div class="space-y-6 pt-4 animate-fade-in text-xs max-w-7xl mx-auto text-left">
+        <div class="space-y-6 pt-2 animate-fade-in text-xs max-w-7xl mx-auto text-left">
             <!-- Header -->
-            <div class="border-b border-slate-150 pb-4">
-                <h1 class="text-2xl font-extrabold text-slate-800">Profile & Settings</h1>
-                <p class="text-slate-500 text-xs mt-1">Manage your account profile details, business descriptors, and workflow settings.</p>
+            <div class="border-b border-slate-200/80 pb-4">
+                <h1 class="text-2xl font-black text-slate-900 tracking-tight">Profile & Settings</h1>
+                <p class="text-slate-500 text-xs mt-1 font-medium">Manage your account profile details, business descriptors, and workflow settings.</p>
             </div>
 
             <!-- Main Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <!-- Sidebar -->
-                <div class="lg:col-span-3 space-y-2" id="settings-tabs-sidebar">
-                    <button onclick="switchSettingsTab('profile', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left bg-indigo-50 border border-indigo-100/50 text-indigo-650 font-bold active-settings-tab">
-                        <div class="flex items-center space-x-3">
-                            <i data-lucide="user" class="h-4 w-4"></i>
+                <!-- Sidebar Tabs -->
+                <div class="lg:col-span-4 xl:col-span-3 space-y-2" id="settings-tabs-sidebar">
+                    <button onclick="switchSettingsTab('profile', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left bg-indigo-50/90 border border-indigo-200/80 text-indigo-700 font-bold active-settings-tab shadow-2xs">
+                        <div class="flex items-center space-x-3.5">
+                            <div class="h-8 w-8 rounded-lg bg-indigo-100/80 text-indigo-700 flex items-center justify-center shrink-0">
+                                <i data-lucide="user" class="h-4 w-4"></i>
+                            </div>
                             <div>
-                                <p class="font-extrabold text-slate-850">Profile & Credentials</p>
-                                <p class="text-[10px] text-indigo-500 font-normal">Manage personal details</p>
+                                <p class="font-extrabold text-slate-900 text-xs">Profile & Credentials</p>
+                                <p class="text-[10px] text-slate-500 font-medium">Manage personal details</p>
                             </div>
                         </div>
-                        <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i>
+                        <i data-lucide="chevron-right" class="h-4 w-4 text-indigo-600"></i>
                     </button>
                     
-                    <button onclick="switchSettingsTab('business', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-655 hover:bg-slate-100 border border-transparent">
-                        <div class="flex items-center space-x-3">
-                            <i data-lucide="briefcase" class="h-4 w-4 text-slate-400"></i>
+                    <button onclick="switchSettingsTab('business', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-700 hover:bg-slate-100/80 border border-slate-200/60 bg-white">
+                        <div class="flex items-center space-x-3.5">
+                            <div class="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                                <i data-lucide="briefcase" class="h-4 w-4"></i>
+                            </div>
                             <div>
-                                <p class="font-extrabold text-slate-855">Business Settings</p>
-                                <p class="text-[10px] text-slate-400 font-normal">Configure business info</p>
+                                <p class="font-extrabold text-slate-900 text-xs">Business Settings</p>
+                                <p class="text-[10px] text-slate-500 font-medium">Configure business info</p>
                             </div>
                         </div>
-                        <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
+                        <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 opacity-0"></i>
                     </button>
 
-                    <button onclick="switchSettingsTab('whatsapp', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-655 hover:bg-slate-100 border border-transparent">
-                        <div class="flex items-center space-x-3">
-                            <i data-lucide="message-circle" class="h-4 w-4 text-slate-400"></i>
+                    <button onclick="switchSettingsTab('whatsapp', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-700 hover:bg-slate-100/80 border border-slate-200/60 bg-white">
+                        <div class="flex items-center space-x-3.5">
+                            <div class="h-8 w-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                                <i data-lucide="message-circle" class="h-4 w-4"></i>
+                            </div>
                             <div>
-                                <p class="font-extrabold text-slate-855">WhatsApp Settings</p>
-                                <p class="text-[10px] text-slate-400 font-normal">API connection properties</p>
+                                <p class="font-extrabold text-slate-900 text-xs">WhatsApp Settings</p>
+                                <p class="text-[10px] text-slate-500 font-medium">API connection properties</p>
                             </div>
                         </div>
-                        <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
+                        <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 opacity-0"></i>
                     </button>
 
-                    <button onclick="switchSettingsTab('team', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-655 hover:bg-slate-100 border border-transparent">
-                        <div class="flex items-center space-x-3">
-                            <i data-lucide="users" class="h-4 w-4 text-slate-400"></i>
+                    <button onclick="switchSettingsTab('team', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-700 hover:bg-slate-100/80 border border-slate-200/60 bg-white">
+                        <div class="flex items-center space-x-3.5">
+                            <div class="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                                <i data-lucide="users" class="h-4 w-4"></i>
+                            </div>
                             <div>
-                                <p class="font-extrabold text-slate-855">Team & Access</p>
-                                <p class="text-[10px] text-slate-400 font-normal">Invite & assign roles</p>
+                                <p class="font-extrabold text-slate-900 text-xs">Team & Access</p>
+                                <p class="text-[10px] text-slate-500 font-medium">Invite & assign roles</p>
                             </div>
                         </div>
-                        <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
+                        <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 opacity-0"></i>
                     </button>
 
-                    <button onclick="switchSettingsTab('notifications', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-655 hover:bg-slate-100 border border-transparent">
-                        <div class="flex items-center space-x-3">
-                            <i data-lucide="bell" class="h-4 w-4 text-slate-400"></i>
+                    <button onclick="switchSettingsTab('notifications', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-700 hover:bg-slate-100/80 border border-slate-200/60 bg-white">
+                        <div class="flex items-center space-x-3.5">
+                            <div class="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                                <i data-lucide="bell" class="h-4 w-4"></i>
+                            </div>
                             <div>
-                                <p class="font-extrabold text-slate-855">Notifications</p>
-                                <p class="text-[10px] text-slate-400 font-normal">Configure alerts & logs</p>
+                                <p class="font-extrabold text-slate-900 text-xs">Notifications</p>
+                                <p class="text-[10px] text-slate-500 font-medium">Configure alerts & logs</p>
                             </div>
                         </div>
-                        <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
+                        <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 opacity-0"></i>
                     </button>
 
-                    <button onclick="switchSettingsTab('security', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-655 hover:bg-slate-100 border border-transparent">
-                        <div class="flex items-center space-x-3">
-                            <i data-lucide="shield-check" class="h-4 w-4 text-slate-400"></i>
+                    <button onclick="switchSettingsTab('security', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-700 hover:bg-slate-100/80 border border-slate-200/60 bg-white">
+                        <div class="flex items-center space-x-3.5">
+                            <div class="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                                <i data-lucide="shield-check" class="h-4 w-4"></i>
+                            </div>
                             <div>
-                                <p class="font-extrabold text-slate-855">Security & Privacy</p>
-                                <p class="text-[10px] text-slate-400 font-normal">Password & 2FA setups</p>
+                                <p class="font-extrabold text-slate-900 text-xs">Security & Privacy</p>
+                                <p class="text-[10px] text-slate-500 font-medium">Password & 2FA setups</p>
                             </div>
                         </div>
-                        <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
+                        <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 opacity-0"></i>
                     </button>
 
-                    <button onclick="switchSettingsTab('billing', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-655 hover:bg-slate-100 border border-transparent">
-                        <div class="flex items-center space-x-3">
-                            <i data-lucide="credit-card" class="h-4 w-4 text-slate-400"></i>
+                    <button onclick="switchSettingsTab('billing', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-700 hover:bg-slate-100/80 border border-slate-200/60 bg-white">
+                        <div class="flex items-center space-x-3.5">
+                            <div class="h-8 w-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                                <i data-lucide="credit-card" class="h-4 w-4"></i>
+                            </div>
                             <div>
-                                <p class="font-extrabold text-slate-855">Billing & Subscription</p>
-                                <p class="text-[10px] text-slate-400 font-normal">Plan features & history</p>
+                                <p class="font-extrabold text-slate-900 text-xs">Billing & Subscription</p>
+                                <p class="text-[10px] text-slate-500 font-medium">Plan features & history</p>
                             </div>
                         </div>
-                        <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
+                        <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 opacity-0"></i>
                     </button>
 
                     ${user.role === 'admin' ? `
-                    <button onclick="switchSettingsTab('api', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-655 hover:bg-slate-100 border border-transparent">
-                        <div class="flex items-center space-x-3">
-                            <i data-lucide="key" class="h-4 w-4 text-slate-400"></i>
+                    <button onclick="switchSettingsTab('api', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-700 hover:bg-slate-100/80 border border-slate-200/60 bg-white">
+                        <div class="flex items-center space-x-3.5">
+                            <div class="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                                <i data-lucide="key" class="h-4 w-4"></i>
+                            </div>
                             <div>
-                                <p class="font-extrabold text-slate-855">API & Webhooks</p>
-                                <p class="text-[10px] text-slate-400 font-normal">Developer integrations</p>
+                                <p class="font-extrabold text-slate-900 text-xs">API & Webhooks</p>
+                                <p class="text-[10px] text-slate-500 font-medium">Developer integrations</p>
                             </div>
                         </div>
-                        <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
+                        <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 opacity-0"></i>
                     </button>
                     ` : ''}
 
-                    <button onclick="switchSettingsTab('storage', this)" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-655 hover:bg-slate-100 border border-transparent">
-                        <div class="flex items-center space-x-3">
-                            <i data-lucide="database" class="h-4 w-4 text-slate-400"></i>
+                    <button onclick="switchSettingsTab('storage', this)" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-700 hover:bg-slate-100/80 border border-slate-200/60 bg-white">
+                        <div class="flex items-center space-x-3.5">
+                            <div class="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                                <i data-lucide="database" class="h-4 w-4"></i>
+                            </div>
                             <div>
-                                <p class="font-extrabold text-slate-855">Data & Storage</p>
-                                <p class="text-[10px] text-slate-400 font-normal">Export databases & backups</p>
+                                <p class="font-extrabold text-slate-900 text-xs">Data & Storage</p>
+                                <p class="text-[10px] text-slate-500 font-medium">Export databases & backups</p>
                             </div>
                         </div>
-                        <i data-lucide="chevron-right" class="h-3.5 w-3.5 opacity-0"></i>
+                        <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 opacity-0"></i>
                     </button>
                 </div>
 
                 <!-- Form Area -->
-                <div class="lg:col-span-6 space-y-4" id="settings-tab-form-container"></div>
+                <div class="lg:col-span-8 xl:col-span-6 space-y-4" id="settings-tab-form-container"></div>
 
-                <!-- Right Card -->
-                <div class="lg:col-span-3 space-y-6">
-                    <div class="glass-panel bg-white border border-slate-200 rounded-2xl p-5 text-center flex flex-col items-center">
-                        <div class="relative h-20 w-20 rounded-full bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-600 font-extrabold text-2xl mb-4 shadow-inner">
+                <!-- Right Sidebar Card -->
+                <div class="lg:col-span-12 xl:col-span-3 space-y-6">
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 text-center flex flex-col items-center shadow-xs">
+                        <div class="relative h-20 w-20 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-700 font-black text-2xl mb-3 shadow-inner">
                             <span id="settings-sidebar-initials">...</span>
-                            <button class="absolute bottom-0 right-0 h-6 w-6 rounded-full bg-white border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-500 shadow-sm transition">
-                                <i data-lucide="edit-3" class="h-3.5 w-3.5"></i>
+                            <button onclick="window.activeSettingsEditFocusOverride = true; switchSettingsTab('profile');" class="absolute bottom-0 right-0 h-7 w-7 rounded-full bg-white border border-slate-200/90 hover:bg-indigo-50 flex items-center justify-center text-slate-600 shadow-sm transition" title="Edit Profile">
+                                <i data-lucide="edit-3" class="h-3.5 w-3.5 text-indigo-600"></i>
                             </button>
                         </div>
-                        <h3 class="text-sm font-extrabold text-slate-800" id="settings-sidebar-name">...</h3>
-                        <span class="mt-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-indigo-50 text-indigo-600 border border-indigo-100" id="settings-sidebar-role">USER</span>
+                        <h3 class="text-base font-black text-slate-900" id="settings-sidebar-name">...</h3>
+                        <span class="mt-1 px-3 py-0.5 rounded-full text-[10px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200/80 tracking-wider uppercase" id="settings-sidebar-role">USER</span>
 
-                        <div class="w-full mt-6 space-y-4 pt-4 border-t border-slate-100 text-slate-650 text-xs">
+                        <div class="w-full mt-5 space-y-3.5 pt-4 border-t border-slate-100 text-slate-650 text-xs">
                             <div class="flex items-center space-x-3">
-                                <i data-lucide="calendar" class="h-4 w-4 text-slate-400 shrink-0"></i>
+                                <div class="h-7 w-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+                                    <i data-lucide="calendar" class="h-3.5 w-3.5"></i>
+                                </div>
                                 <div class="text-left">
-                                    <p class="text-[9px] font-bold text-slate-450 uppercase tracking-wider">Member Since</p>
-                                    <p class="font-semibold text-slate-700" id="settings-sidebar-since">25 Jun, 2024</p>
+                                    <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Member Since</p>
+                                    <p class="font-bold text-slate-800 text-xs" id="settings-sidebar-since">25 Jun, 2024</p>
                                 </div>
                             </div>
                             <div class="flex items-center space-x-3">
-                                <i data-lucide="phone" class="h-4 w-4 text-slate-400 shrink-0"></i>
+                                <div class="h-7 w-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+                                    <i data-lucide="phone" class="h-3.5 w-3.5"></i>
+                                </div>
                                 <div class="text-left">
-                                    <p class="text-[9px] font-bold text-slate-455 uppercase tracking-wider">Phone</p>
-                                    <p class="font-semibold text-slate-700" id="settings-sidebar-phone">+91 92423 22991</p>
+                                    <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Phone</p>
+                                    <p class="font-bold text-slate-800 text-xs" id="settings-sidebar-phone">Not Set</p>
                                 </div>
                             </div>
                             <div class="flex items-center space-x-3">
-                                <i data-lucide="clock" class="h-4 w-4 text-slate-400 shrink-0"></i>
+                                <div class="h-7 w-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+                                    <i data-lucide="clock" class="h-3.5 w-3.5"></i>
+                                </div>
                                 <div class="text-left">
-                                    <p class="text-[9px] font-bold text-slate-455 uppercase tracking-wider">Time Zone</p>
-                                    <p class="font-semibold text-slate-700" id="settings-sidebar-timezone">Asia/Kolkata</p>
+                                    <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Time Zone</p>
+                                    <p class="font-bold text-slate-800 text-xs" id="settings-sidebar-timezone">Asia/Kolkata</p>
                                 </div>
                             </div>
                             <div class="flex items-center space-x-3">
-                                <i data-lucide="globe" class="h-4 w-4 text-slate-400 shrink-0"></i>
+                                <div class="h-7 w-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+                                    <i data-lucide="globe" class="h-3.5 w-3.5"></i>
+                                </div>
                                 <div class="text-left">
-                                    <p class="text-[9px] font-bold text-slate-455 uppercase tracking-wider">Language</p>
-                                    <p class="font-semibold text-slate-700">English</p>
+                                    <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Language</p>
+                                    <p class="font-bold text-slate-800 text-xs">English</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="p-4 bg-indigo-50/50 border border-indigo-100/50 rounded-2xl flex items-center justify-between">
+                    <div class="p-4 bg-gradient-to-br from-indigo-50/80 to-indigo-100/40 border border-indigo-200/80 rounded-2xl flex items-center justify-between shadow-2xs">
                         <div class="flex items-center space-x-3">
-                            <div class="h-8 w-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-650 shrink-0">
-                                <i data-lucide="shield-alert" class="h-4 w-4"></i>
+                            <div class="h-9 w-9 rounded-xl bg-white border border-indigo-200/80 flex items-center justify-center text-indigo-600 shrink-0 shadow-2xs">
+                                <i data-lucide="shield-check" class="h-4.5 w-4.5"></i>
                             </div>
                             <div class="text-left">
-                                <p class="font-bold text-slate-700">Keep account secure</p>
-                                <p class="text-[10px] text-slate-450 mt-0.5 leading-relaxed">Enable two-factor authentication.</p>
+                                <p class="font-black text-slate-900 text-xs">Account Security</p>
+                                <p class="text-[10px] text-slate-500 mt-0.5 leading-relaxed font-medium">Two-Factor Auth</p>
                             </div>
                         </div>
-                        <button onclick="toggleMock2FA(this)" id="settings-2fa-btn" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition shadow-sm" style="color: #ffffff !important;">Enable 2FA</button>
+                        <button onclick="toggleMock2FA(this)" id="settings-2fa-btn" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-black transition shadow-xs" style="color: #ffffff !important;">Enable 2FA</button>
                     </div>
                 </div>
             </div>
@@ -22864,14 +22890,22 @@ window.switchSettingsTab = function(tabName, btn) {
         const sidebar = document.getElementById('settings-tabs-sidebar');
         if (sidebar) {
             sidebar.querySelectorAll('button').forEach(b => {
-                b.className = "w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left text-slate-655 hover:bg-slate-100 border border-transparent";
+                b.className = "w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-700 hover:bg-slate-100/80 border border-slate-200/60 bg-white";
                 const chev = b.querySelector('i[data-lucide="chevron-right"]');
-                if (chev) chev.classList.add('opacity-0');
+                if (chev) {
+                    chev.classList.add('opacity-0');
+                    chev.classList.remove('text-indigo-600');
+                    chev.classList.add('text-slate-400');
+                }
             });
         }
-        btn.className = "w-full flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 text-left bg-indigo-50 border border-indigo-100/50 text-indigo-650 font-bold active-settings-tab";
+        btn.className = "w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left bg-indigo-50/90 border border-indigo-200/80 text-indigo-700 font-bold active-settings-tab shadow-2xs";
         const activeChev = btn.querySelector('i[data-lucide="chevron-right"]');
-        if (activeChev) activeChev.classList.remove('opacity-0');
+        if (activeChev) {
+            activeChev.classList.remove('opacity-0');
+            activeChev.classList.remove('text-slate-400');
+            activeChev.classList.add('text-indigo-600');
+        }
     }
 
     const formContainer = document.getElementById('settings-tab-form-container');
@@ -22905,49 +22939,52 @@ function renderSettingsTabContent(tab, container) {
 
     if (tab === 'profile') {
         container.innerHTML = `
-            <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm animate-fade-in">
-                <div class="pb-2 border-b border-slate-100">
-                    <h2 class="text-sm font-extrabold text-slate-800">Profile Credentials</h2>
-                    <p class="text-slate-400 text-[10px]">Update your personal details and business information.</p>
+            <div class="bg-white border border-slate-200/90 rounded-2xl p-6 space-y-5 shadow-xs animate-fade-in">
+                <div class="pb-3 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-black text-slate-900">Profile Credentials</h2>
+                        <p class="text-slate-500 text-xs mt-0.5">Update your personal details and business info.</p>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200/80">ACCOUNT PREFERENCES</span>
                 </div>
 
-                <div class="space-y-3.5 pt-2">
-                    <div class="grid grid-cols-2 gap-3.5">
+                <div class="space-y-4 pt-1">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Full Name</label>
-                            <input type="text" id="profile-name-input" value="${user.name || ''}" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">Full Name</label>
+                            <input type="text" id="profile-name-input" value="${user.name || ''}" class="w-full px-3.5 py-2.5 bg-slate-50/50 border border-slate-300 focus:bg-white focus:border-indigo-600 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none transition shadow-2xs">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Email Address</label>
-                            <input type="email" id="profile-email-input" value="${user.email || ''}" disabled class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-lg text-slate-400 cursor-not-allowed focus:outline-none">
+                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">Email Address</label>
+                            <input type="email" id="profile-email-input" value="${user.email || ''}" disabled class="w-full px-3.5 py-2.5 bg-slate-100/70 border border-slate-200 rounded-xl text-xs text-slate-500 font-semibold cursor-not-allowed focus:outline-none">
                         </div>
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-3.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Company / Business Name</label>
-                            <input type="text" id="profile-company-input" value="${profile.company_name || ''}" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">Company / Business Name</label>
+                            <input type="text" id="profile-company-input" value="${profile.company_name || ''}" class="w-full px-3.5 py-2.5 bg-slate-50/50 border border-slate-300 focus:bg-white focus:border-indigo-600 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none transition shadow-2xs">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Company Website URL</label>
-                            <input type="text" id="profile-website-input" value="${profile.website || ''}" placeholder="https://example.com" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">Company Website URL</label>
+                            <input type="text" id="profile-website-input" value="${profile.website || ''}" placeholder="https://example.com" class="w-full px-3.5 py-2.5 bg-slate-50/50 border border-slate-300 focus:bg-white focus:border-indigo-600 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none transition shadow-2xs">
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Job Title</label>
-                            <input type="text" id="profile-job-input" value="${profile.job_title || ''}" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">Job Title</label>
+                            <input type="text" id="profile-job-input" value="${profile.job_title || ''}" class="w-full px-3.5 py-2.5 bg-slate-50/50 border border-slate-300 focus:bg-white focus:border-indigo-600 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none transition shadow-2xs">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Phone Number</label>
-                            <input type="text" id="profile-phone-input" value="${user.phone_number || ''}" placeholder="+91 XXXXX XXXXX" class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">Phone Number</label>
+                            <input type="text" id="profile-phone-input" value="${user.phone_number || ''}" placeholder="+91 XXXXX XXXXX" class="w-full px-3.5 py-2.5 bg-slate-50/50 border border-slate-300 focus:bg-white focus:border-indigo-600 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none transition shadow-2xs">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Profile Role Type</label>
-                        <select id="profile-usertype-select" class="w-full px-3 py-2 bg-white border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500">
+                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">Profile Role Type</label>
+                        <select id="profile-usertype-select" class="w-full px-3.5 py-2.5 bg-slate-50/50 border border-slate-300 focus:bg-white focus:border-indigo-600 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none transition shadow-2xs">
                             <option value="owner" ${profile.user_type === 'owner' ? 'selected' : ''}>Business Owner / Founder</option>
                             <option value="freelancer" ${profile.user_type === 'freelancer' ? 'selected' : ''}>Freelancer / Contractor</option>
                             <option value="agency" ${profile.user_type === 'agency' ? 'selected' : ''}>Agency Executive</option>
@@ -22956,12 +22993,12 @@ function renderSettingsTabContent(tab, container) {
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Brief Description / Business About Details</label>
-                        <textarea id="profile-about-input" rows="3" placeholder="Provide details about your business offerings so the AI writes matching suggestions..." class="w-full px-3 py-2 border border-slate-250 rounded-lg text-slate-800 focus:outline-none focus:border-indigo-500 font-sans">${profile.about_me || ''}</textarea>
+                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">Brief Description / Business About Details</label>
+                        <textarea id="profile-about-input" rows="3" placeholder="Provide details about your business offerings so the AI writes matching suggestions..." class="w-full px-3.5 py-2.5 bg-slate-50/50 border border-slate-300 focus:bg-white focus:border-indigo-600 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none transition shadow-2xs font-sans">${profile.about_me || ''}</textarea>
                     </div>
                     
-                    <button onclick="saveProfileSettings(this)" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition flex items-center justify-center space-x-1.5 shadow-sm" style="color: #ffffff !important;">
-                        <i data-lucide="save" class="h-3.5 w-3.5"></i>
+                    <button onclick="saveProfileSettings(this)" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-extrabold text-xs transition flex items-center justify-center space-x-2 shadow-sm" style="color: #ffffff !important;">
+                        <i data-lucide="save" class="h-4 w-4"></i>
                         <span>Save Profile Details</span>
                     </button>
                 </div>

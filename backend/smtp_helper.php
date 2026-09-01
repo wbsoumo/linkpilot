@@ -133,7 +133,8 @@ class SMTPHelper {
             } catch (Exception $e) {}
 
             require_once __DIR__ . '/email_template_helper.php';
-            $formattedBody = (strpos($body, '<p>') === false && strpos($body, '<br>') === false && strpos($body, '<br/>') === false) ? nl2br($body) : $body;
+            $isHtmlBody = (strpos($body, '<') !== false && strpos($body, '>') !== false);
+            $formattedBody = (!$isHtmlBody && strpos($body, '<p>') === false && strpos($body, '<br>') === false) ? nl2br($body) : $body;
             $wrappedBody = EmailTemplateHelper::wrap($formattedBody, $templateId, $senderDetails);
 
             $gmailResult = ExternalAppsHelper::sendGmailEmail($userId, $recipientEmail, $subject, $wrappedBody, $attachments, $originalMessageId, $ccEmails);
@@ -215,7 +216,8 @@ class SMTPHelper {
         } catch (Exception $e) {}
 
         require_once __DIR__ . '/email_template_helper.php';
-        $formattedBody = (strpos($body, '<p>') === false && strpos($body, '<br>') === false && strpos($body, '<br/>') === false) ? nl2br($body) : $body;
+        $isHtmlBodyPHPMailer = (strpos($body, '<') !== false && strpos($body, '>') !== false);
+        $formattedBody = (!$isHtmlBodyPHPMailer && strpos($body, '<p>') === false && strpos($body, '<br>') === false) ? nl2br($body) : $body;
         $wrappedBody = EmailTemplateHelper::wrap($formattedBody, $templateId, $senderDetails);
         
         // 4. Setup PHPMailer

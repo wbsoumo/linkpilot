@@ -18716,9 +18716,9 @@ async function renderEmailTemplates(container) {
         }
 
         container.innerHTML = `
-            <div class="flex flex-col w-full h-full bg-[#f8fafc] overflow-hidden animate-fade-in font-sans text-slate-800">
+            <div class="flex flex-col w-full h-full bg-slate-50 overflow-hidden font-sans text-slate-800">
                 <!-- Header Bar -->
-                <div class="bg-white border-b border-slate-200 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0">
+                <div class="bg-white border-b border-slate-200 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0 shadow-2xs">
                     <div class="flex items-center space-x-3 min-w-0">
                         <div class="h-10 w-10 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 shadow-2xs">
                             <i data-lucide="file-text" class="h-5 w-5"></i>
@@ -18726,9 +18726,9 @@ async function renderEmailTemplates(container) {
                         <div class="min-w-0">
                             <div class="flex items-center space-x-2">
                                 <h1 class="text-base font-bold text-slate-900 leading-tight">Premium HTML Marketing Templates</h1>
-                                <span class="px-2 py-0.5 bg-indigo-600 text-white rounded-full text-[10px] font-extrabold" style="color: #ffffff !important;">${allTemplates.length} TEMPLATES</span>
+                                <span class="px-2.5 py-0.5 bg-indigo-600 text-white rounded-full text-[10px] font-extrabold" style="color: #ffffff !important;">${allTemplates.length} TEMPLATES</span>
                             </div>
-                            <p class="text-xs text-slate-500 font-medium truncate mt-0.5">Edit custom drag & drop templates or select pre-made layouts.</p>
+                            <p class="text-xs text-slate-500 font-medium truncate mt-0.5">Select a pre-built campaign layout or edit custom drag & drop templates.</p>
                         </div>
                     </div>
 
@@ -18747,7 +18747,7 @@ async function renderEmailTemplates(container) {
                 </div>
 
                 <!-- Category Filter Pills Bar -->
-                <div class="bg-white border-b border-slate-200 px-6 py-2.5 flex items-center space-x-2 overflow-x-auto no-scrollbar shrink-0 text-xs font-bold">
+                <div class="bg-white border-b border-slate-200 px-6 py-2.5 flex items-center space-x-2 overflow-x-auto no-scrollbar shrink-0 text-xs font-bold shadow-2xs">
                     ${categories.map(cat => {
                         const isActive = currentCat.toLowerCase() === cat.toLowerCase();
                         let count = 0;
@@ -18776,14 +18776,14 @@ async function renderEmailTemplates(container) {
                             <p class="text-xs text-slate-400 mt-1">Try adjusting your category filter or search terms.</p>
                         </div>
                     ` : `
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             ${filteredTemplates.map(t => {
                                 const previewHtml = t.isCustom ? t.html_content : getTemplateHtmlPreview(t);
                                 return `
-                                    <div class="group relative bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:border-indigo-400 transition-all duration-200 flex flex-col justify-between overflow-hidden">
+                                    <div class="group relative bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:border-indigo-400 transition-all duration-200 flex flex-col justify-between overflow-hidden">
                                         
                                         <!-- Card Content -->
-                                        <div class="space-y-2.5 min-w-0">
+                                        <div class="space-y-3 min-w-0">
                                             <div class="flex justify-between items-center">
                                                 <span class="px-2.5 py-0.5 rounded-md text-[9px] font-extrabold tracking-wider uppercase bg-indigo-100 text-indigo-950 border border-indigo-300/80">${t.category} • ${t.tag}</span>
                                                 ${t.isCustom ? `
@@ -18799,11 +18799,9 @@ async function renderEmailTemplates(container) {
                                             
                                             <h3 class="text-xs font-bold text-slate-900 leading-snug line-clamp-1 group-hover:text-indigo-600 transition" title="${t.title}">${t.title}</h3>
                                             
-                                            <!-- FULL DESKTOP VIEW HTML PREVIEW CONTAINER -->
-                                            <div class="relative w-full h-48 bg-slate-100 rounded-xl border border-slate-200/80 overflow-hidden shadow-xs pointer-events-none select-none flex items-start justify-start">
-                                                <div style="width: 760px; height: 500px; transform: scale(0.46); transform-origin: top left;" class="pointer-events-none select-none overflow-hidden bg-white shrink-0 w-full h-full">
-                                                    <iframe srcdoc="${previewHtml.replace(/"/g, '&quot;')}" class="w-[217%] h-[217%] border-0 pointer-events-none select-none" style="transform: scale(0.46); transform-origin: top left;"></iframe>
-                                                </div>
+                                            <!-- FULL WIDE VIEW HTML PREVIEW CONTAINER -->
+                                            <div class="relative w-full h-52 bg-slate-100 rounded-xl border border-slate-200/80 overflow-hidden shadow-xs pointer-events-none select-none flex items-center justify-center">
+                                                <iframe srcdoc="${previewHtml.replace(/"/g, '&quot;')}" class="w-[300%] h-[300%] border-0 pointer-events-none select-none" style="transform: scale(0.333); transform-origin: top left;"></iframe>
                                             </div>
                                         </div>
 

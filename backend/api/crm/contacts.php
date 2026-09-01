@@ -461,17 +461,44 @@ try {
             sendJsonResponse('error', 'Contact ID is required.', [], 400);
         }
         
-        $stmtCheck = $db->prepare("SELECT id, name FROM crm_contacts WHERE id = ? AND user_id = ?");
+        $stmtCheck = $db->prepare("SELECT id, name, phone, email, whatsapp FROM crm_contacts WHERE id = ? AND user_id = ?");
         $stmtCheck->execute([$contactId, $userId]);
         $contact = $stmtCheck->fetch();
         if (!$contact) {
             sendJsonResponse('error', 'Contact not found or access denied.', [], 404);
         }
-        
-        $stmt = $db->prepare("DELETE FROM crm_contacts WHERE id = ? AND user_id = ?");
-        $stmt->execute([$contactId, $userId]);
-        
-        sendJsonResponse('success', "Contact '{$contact['name']}' deleted successfully.");
+
+        $db->beginTransaction();
+        try {
+            // 1. Cleanup CRM Timeline & Notes
+            $db->prepare("DELETE FROM crm_timeline WHERE contact_id = ? AND user_id = ?")->execute([$contactId, $userId]);
+            $db->prepare("DELETE FROM crm_notes WHERE contact_id = ? AND user_id = ?")->execute([$contactId, $userId]);
+
+            // 2. Cleanup associated WhatsApp threads & messages linked to this contact
+            $db->prepare("DELETE FROM whatsapp_contacts WHERE contact_id = ? AND user_id = ?")->execute([$contactId, $userId]);
+            if (!empty($contact['phone']) || !empty($contact['whatsapp'])) {
+                $phone = $contact['phone'] ?: $contact['whatsapp'];
+                $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
+                if ($cleanPhone) {
+                    $db->prepare("DELETE FROM whatsapp_messages WHERE (sender_id = ? OR recipient_id = ?) AND user_id = ?")->execute([$cleanPhone, $cleanPhone, $userId]);
+                }
+            }
+
+            // 3. Cleanup associated IMAP / email logs
+            if (!empty($contact['email'])) {
+                $db->prepare("DELETE FROM email_logs WHERE (recipient = ? OR sender = ?) AND user_id = ?")->execute([$contact['email'], $contact['email'], $userId]);
+            }
+
+            // 4. Delete the contact record
+            $stmt = $db->prepare("DELETE FROM crm_contacts WHERE id = ? AND user_id = ?");
+            $stmt->execute([$contactId, $userId]);
+
+            $db->commit();
+            sendJsonResponse('success', "Contact '{$contact['name']}' and associated history purged successfully.");
+        } catch (\Exception $e) {
+            $db->rollBack();
+            sendJsonResponse('error', 'Failed purging contact details: ' . $e->getMessage(), [], 500);
+        }
     }
     
     elseif ($method === 'LINK_COMPANY') {

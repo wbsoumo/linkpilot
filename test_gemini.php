@@ -3,7 +3,7 @@
 require_once __DIR__ . '/backend/config.php';
 
 // Get API Key from POST parameter, environment variable, defined constant, or fallback input box
-$selectedModel = $_POST['model'] ?? 'gemini-2.5-flash';
+$selectedModel = $_POST['model'] ?? 'gemini-3.6-flash';
 $apiKeyInput = $_POST['api_key'] ?? (getenv('GEMINI_API_KEY') ?: (defined('GEMINI_API_KEY') ? GEMINI_API_KEY : ''));
 $promptInput = $_POST['prompt'] ?? 'Explain how AI works in a few words';
 $responseOutput = '';
@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } else if (isset($_POST['prompt'])) {
         $promptInput = trim($_POST['prompt']);
-        $model = trim($_POST['model'] ?? 'gemini-2.5-flash');
+        $model = trim($_POST['model'] ?? 'gemini-3.6-flash');
         
         if (!empty($promptInput)) {
             // List of models to try if the primary encounters 503 high demand or 404

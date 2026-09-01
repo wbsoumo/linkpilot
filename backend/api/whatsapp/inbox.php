@@ -38,16 +38,23 @@ try {
                 sendJsonResponse('error', 'Conversation thread not found.', [], 404);
             }
 
-            // 2. Load message history (latest 100 messages chronologically from all threads matching the same last 10 digits or contact ID)
+            // 2. Load message history (latest 100 messages chronologically matching thread contact ID or phone number suffix)
+            $cleanDigits = preg_replace('/[^0-9]/', '', $thread['wa_id']);
+            $suffix10 = (strlen($cleanDigits) >= 10) ? substr($cleanDigits, -10) : $cleanDigits;
+
             $stmtMsgs = $db->prepare("
-                SELECT m.* 
+                SELECT DISTINCT m.* 
                 FROM whatsapp_messages m
-                JOIN whatsapp_contacts c ON m.wa_contact_id = c.id
-                WHERE m.user_id = ? AND (m.wa_contact_id = ? OR RIGHT(c.wa_id, 10) = RIGHT(?, 10))
+                LEFT JOIN whatsapp_contacts c ON m.wa_contact_id = c.id
+                WHERE m.user_id = ? AND (
+                    m.wa_contact_id = ? 
+                    OR RIGHT(c.wa_id, 10) = ?
+                    OR RIGHT(c.wa_id, 10) = RIGHT(?, 10)
+                )
                 ORDER BY m.created_at DESC 
                 LIMIT 100
             ");
-            $stmtMsgs->execute([$userId, $waContactId, $thread['wa_id']]);
+            $stmtMsgs->execute([$userId, $waContactId, $suffix10, $thread['wa_id']]);
             $messages = array_reverse($stmtMsgs->fetchAll());
 
             // 3. Clear unread badge for all duplicate threads of this number
@@ -141,8 +148,9 @@ try {
             $tag = trim($_GET['tag'] ?? '');
 
             $sql = "SELECT c.*, 
-                           (SELECT body FROM whatsapp_messages WHERE wa_contact_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message_body,
-                           (SELECT type FROM whatsapp_messages WHERE wa_contact_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message_type
+                           COALESCE((SELECT body FROM whatsapp_messages WHERE wa_contact_id = c.id OR RIGHT(wa_contact_id, 10) = RIGHT(c.wa_id, 10) ORDER BY created_at DESC LIMIT 1), c.wa_id) AS last_message_body,
+                           COALESCE((SELECT type FROM whatsapp_messages WHERE wa_contact_id = c.id OR RIGHT(wa_contact_id, 10) = RIGHT(c.wa_id, 10) ORDER BY created_at DESC LIMIT 1), 'text') AS last_message_type,
+                           GREATEST(c.last_message_at, COALESCE((SELECT MAX(created_at) FROM whatsapp_messages WHERE wa_contact_id = c.id), c.last_message_at)) AS effective_last_message_at
                     FROM whatsapp_contacts c 
                     JOIN (
                         SELECT RIGHT(wa_id, 10) as clean_id, MAX(id) as max_id
@@ -163,7 +171,7 @@ try {
                 $params['tag'] = "%{$tag}%";
             }
 
-            $sql .= " ORDER BY c.last_message_at DESC";
+            $sql .= " ORDER BY effective_last_message_at DESC, c.id DESC";
 
             $stmt = $db->prepare($sql);
             $stmt->execute($params);

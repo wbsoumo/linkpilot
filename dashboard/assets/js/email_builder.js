@@ -27,26 +27,33 @@
         fontFamily: "Inter, system-ui, -apple-system, sans-serif"
     };
 
-    // Elements Library definitions
+    // Elements Library definitions categorized
     const draggableElements = [
-        { type: "heading", label: "Heading", icon: "heading", desc: "Main title text" },
-        { type: "text", label: "Text", icon: "align-left", desc: "Longform message block" },
-        { type: "image", label: "Image", icon: "image", desc: "Custom image upload" },
-        { type: "button", label: "Button", icon: "mouse-pointer", desc: "Action conversion link" },
-        { type: "divider", label: "Divider", icon: "minus", desc: "Horizontal separator line" },
-        { type: "spacer", label: "Spacer", icon: "move", desc: "Vertical spacing height" },
-        { type: "columns", label: "Columns", icon: "columns", desc: "Multi-column layout wrapper" },
-        { type: "social", label: "Social", icon: "share-2", desc: "Social media sharing links" },
-        { type: "html", label: "HTML", icon: "code", desc: "Embed custom HTML script" },
-        { type: "menu", label: "Menu", icon: "menu", desc: "Navigation menu header" },
-        { type: "icon", label: "Icon", icon: "star", desc: "Simple icon decorator" },
-        { type: "video", label: "Video", icon: "video", desc: "Embed hosted video link" },
-        { type: "countdown", label: "Countdown", icon: "clock", desc: "Promotional urgency timer" },
-        { type: "product", label: "Product", icon: "shopping-bag", desc: "Feature direct product card" },
-        { type: "coupon", label: "Coupon", icon: "ticket", desc: "Promotional discount card" },
-        { type: "signature", label: "Signature", icon: "pen-tool", desc: "Add personal sender signature" },
-        { type: "faq", label: "FAQ", icon: "help-circle", desc: "Accordion questions and answers" },
-        { type: "testimonial", label: "Testimonial", icon: "message-square", desc: "Add customer review block" }
+        // BASIC
+        { type: "heading", label: "Heading", icon: "heading", category: "BASIC", desc: "Main title text", keywords: ["title", "header", "h1", "h2"] },
+        { type: "text", label: "Text", icon: "align-left", category: "BASIC", desc: "Longform message block", keywords: ["paragraph", "body", "content"] },
+        { type: "image", label: "Image", icon: "image", category: "BASIC", desc: "Custom image asset", keywords: ["photo", "picture", "asset", "media"] },
+        { type: "button", label: "Button", icon: "mouse-pointer", category: "BASIC", desc: "Action conversion link", keywords: ["cta", "link", "action", "click"] },
+
+        // LAYOUT
+        { type: "columns", label: "Columns", icon: "columns", category: "LAYOUT", desc: "Multi-column layout wrapper", keywords: ["grid", "2-column", "3-column", "side-by-side", "layout"] },
+        { type: "divider", label: "Divider", icon: "minus", category: "LAYOUT", desc: "Horizontal separator line", keywords: ["line", "rule", "border", "separator"] },
+        { type: "spacer", label: "Spacer", icon: "move", category: "LAYOUT", desc: "Vertical spacing height", keywords: ["gap", "padding", "margin", "whitespace"] },
+
+        // MARKETING
+        { type: "coupon", label: "Coupon", icon: "ticket", category: "MARKETING", desc: "Promotional discount card", keywords: ["discount", "voucher", "promo", "code", "offer"] },
+        { type: "countdown", label: "Countdown", icon: "clock", category: "MARKETING", desc: "Promotional urgency timer", keywords: ["timer", "clock", "urgency", "deadline", "limited"] },
+        { type: "product", label: "Product", icon: "shopping-bag", category: "MARKETING", desc: "Feature direct product card", keywords: ["item", "store", "buy", "price", "ecommerce"] },
+        { type: "testimonial", label: "Testimonial", icon: "message-square", category: "MARKETING", desc: "Add customer review block", keywords: ["review", "quote", "feedback", "rating", "stars"] },
+
+        // ADVANCED
+        { type: "html", label: "HTML", icon: "code", category: "ADVANCED", desc: "Embed custom HTML script", keywords: ["custom", "code", "script", "embed", "raw"] },
+        { type: "menu", label: "Menu", icon: "menu", category: "ADVANCED", desc: "Navigation menu header", keywords: ["navigation", "links", "navbar", "header"] },
+        { type: "social", label: "Social", icon: "share-2", category: "ADVANCED", desc: "Social media sharing links", keywords: ["facebook", "twitter", "linkedin", "instagram", "share"] },
+        { type: "icon", label: "Icon", icon: "star", category: "ADVANCED", desc: "Simple icon decorator", keywords: ["symbol", "star", "badge", "heart"] },
+        { type: "video", label: "Video", icon: "video", category: "ADVANCED", desc: "Embed hosted video link", keywords: ["youtube", "vimeo", "play", "thumbnail", "media"] },
+        { type: "signature", label: "Signature", icon: "pen-tool", category: "ADVANCED", desc: "Add personal sender signature", keywords: ["sender", "bio", "footer", "contact", "name"] },
+        { type: "faq", label: "FAQ", icon: "help-circle", category: "ADVANCED", desc: "Accordion questions and answers", keywords: ["questions", "answers", "help", "support", "info"] }
     ];
 
     // Pre-built preset sections templates
@@ -278,10 +285,10 @@
                         <div class="border-l border-slate-200 h-6 mx-1"></div>
                         <div class="flex items-center space-x-2">
                             <span class="font-extrabold text-sm text-[#0F172A] flex items-center">
-                                <i data-lucide="send" class="h-4 w-4 mr-1.5 text-[#6D5EF5]"></i>LinkPilot
+                                <i data-lucide="send" class="h-4 w-4 mr-1.5 text-[#6D5EF5]"></i>
                             </span>
-                            <span class="text-xs text-slate-400 font-medium">Email Builder</span>
-                            <i data-lucide="edit-3" class="h-3 w-3 text-slate-400 cursor-pointer ml-1"></i>
+                            <input type="text" id="builder-template-name" value="${escapeAttr(templateName || 'Black Friday Campaign')}" onchange="templateName = this.value; saveTemplateDraft(true);" class="text-xs font-extrabold text-slate-800 bg-transparent hover:bg-slate-100 focus:bg-white border border-transparent focus:border-[#6D5EF5] rounded px-2 py-1 outline-none transition w-48 truncate" title="Click to rename template">
+                            <span class="text-[10px] text-slate-400 font-medium hidden lg:inline">Email Builder</span>
                         </div>
                         <div class="border-l border-slate-200 h-6 mx-1"></div>
                         <div class="flex items-center space-x-1.5">
@@ -330,87 +337,97 @@
                 <div class="flex flex-grow w-full overflow-hidden">
                     
                     <!-- 1. LEFT NAVIGATION RAIL -->
-                    <div class="w-16 border-r border-slate-200 bg-white flex flex-col items-center py-4 space-y-4 shrink-0">
-                        <button onclick="setLeftSidebarTab('elements')" id="rail-tab-elements" style="background-color: #indigo-50;" class="p-3.5 rounded-xl text-[#6D5EF5] transition-all relative group" title="Elements">
+                    <div class="w-14 border-r border-slate-200 bg-white flex flex-col items-center py-4 space-y-4 shrink-0">
+                        <button onclick="setLeftSidebarTab('elements')" id="rail-tab-elements" style="background-color: #indigo-50;" class="p-3 rounded-xl text-[#6D5EF5] transition-all relative group" title="Elements">
                             <i data-lucide="layout-grid" class="h-5 w-5"></i>
-                            <span class="absolute left-16 bg-slate-900 text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap z-50">Elements</span>
+                            <span class="absolute left-14 bg-slate-900 text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap z-50">Elements</span>
                         </button>
-                        <button onclick="setLeftSidebarTab('sections')" id="rail-tab-sections" class="p-3.5 rounded-xl text-slate-400 hover:text-slate-800 transition-all relative group" title="Sections">
+                        <button onclick="setLeftSidebarTab('sections')" id="rail-tab-sections" class="p-3 rounded-xl text-slate-400 hover:text-slate-800 transition-all relative group" title="Sections">
                             <i data-lucide="layout-template" class="h-5 w-5"></i>
-                            <span class="absolute left-16 bg-slate-900 text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap z-50">Sections</span>
+                            <span class="absolute left-14 bg-slate-900 text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap z-50">Sections</span>
                         </button>
-                        <button onclick="setLeftSidebarTab('templates')" id="rail-tab-templates" class="p-3.5 rounded-xl text-slate-400 hover:text-slate-800 transition-all relative group" title="Templates">
+                        <button onclick="setLeftSidebarTab('templates')" id="rail-tab-templates" class="p-3 rounded-xl text-slate-400 hover:text-slate-800 transition-all relative group" title="Templates">
                             <i data-lucide="folder-open" class="h-5 w-5"></i>
-                            <span class="absolute left-16 bg-slate-900 text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap z-50">Templates</span>
+                            <span class="absolute left-14 bg-slate-900 text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap z-50">Templates</span>
                         </button>
-                        <button onclick="setLeftSidebarTab('blocks')" id="rail-tab-blocks" class="p-3.5 rounded-xl text-slate-400 hover:text-slate-800 transition-all relative group" title="Saved Blocks">
+                        <button onclick="setLeftSidebarTab('blocks')" id="rail-tab-blocks" class="p-3 rounded-xl text-slate-400 hover:text-slate-800 transition-all relative group" title="Saved Blocks">
                             <i data-lucide="database" class="h-5 w-5"></i>
-                            <span class="absolute left-16 bg-slate-900 text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap z-50">Saved Blocks</span>
+                            <span class="absolute left-14 bg-slate-900 text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap z-50">Saved Blocks</span>
                         </button>
-                        <button onclick="setLeftSidebarTab('brand')" id="rail-tab-brand" class="p-3.5 rounded-xl text-slate-400 hover:text-slate-800 transition-all relative group" title="Brand Kit">
+                        <button onclick="setLeftSidebarTab('brand')" id="rail-tab-brand" class="p-3 rounded-xl text-slate-400 hover:text-slate-800 transition-all relative group" title="Brand Kit">
                             <i data-lucide="palette" class="h-5 w-5"></i>
-                            <span class="absolute left-16 bg-slate-900 text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap z-50">Brand Kit</span>
+                            <span class="absolute left-14 bg-slate-900 text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap z-50">Brand Kit</span>
                         </button>
-                        <button onclick="setLeftSidebarTab('ai')" id="rail-tab-ai" class="p-3.5 rounded-xl text-slate-400 hover:text-slate-800 relative group transition-all" title="AI Assistant">
+                        <button onclick="setLeftSidebarTab('ai')" id="rail-tab-ai" class="p-3 rounded-xl text-slate-400 hover:text-slate-800 relative group transition-all" title="AI Assistant">
                             <i data-lucide="sparkles" class="h-5 w-5"></i>
-                            <span class="absolute left-16 bg-slate-900 text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap z-50">AI Assistant</span>
+                            <span class="absolute left-14 bg-slate-900 text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap z-50">AI Assistant</span>
                         </button>
                     </div>
 
-                    <!-- 2. LEFT ELEMENTS PANEL -->
-                    <div id="builder-left-sidebar" class="w-72 border-r border-slate-200 bg-white flex flex-col shrink-0 overflow-hidden relative z-40 transition-all duration-300">
-                        <div class="p-4 border-b border-slate-100 space-y-3">
+                    <!-- 2. LEFT ELEMENTS PANEL (~22% width ratio, compact w-60/w-64) -->
+                    <div id="builder-left-sidebar" class="w-64 border-r border-slate-200 bg-white flex flex-col shrink-0 overflow-hidden relative z-40 transition-all duration-300">
+                        <div class="p-3.5 border-b border-slate-100 flex items-center justify-between">
                             <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider" id="left-sidebar-title">Elements</h3>
+                            <button onclick="toggleLeftSidebarCollapse()" class="text-slate-400 hover:text-slate-700 p-1 rounded hover:bg-slate-100 transition" title="Toggle Sidebar">
+                                <i data-lucide="panel-left-close" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+                        <div class="px-3 py-2 border-b border-slate-100">
                             <div class="relative">
                                 <i data-lucide="search" class="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400"></i>
-                                <input type="text" id="left-sidebar-search" oninput="searchSidebarElements(this.value)" placeholder="Search elements...          ⌘ K" class="w-full pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 placeholder-slate-450 focus:outline-none focus:border-[#6D5EF5]">
+                                <input type="text" id="left-sidebar-search" oninput="searchSidebarElements(this.value)" placeholder="Search blocks & keywords..." class="w-full pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 placeholder-slate-450 focus:outline-none focus:border-[#6D5EF5]">
                             </div>
                         </div>
 
                         <!-- Scroll tab content container -->
-                        <div id="left-sidebar-scroll-area" class="flex-grow overflow-y-auto p-4 custom-scrollbar">
+                        <div id="left-sidebar-scroll-area" class="flex-grow overflow-y-auto p-3 custom-scrollbar">
                             <!-- Injected dynamically based on selected tab -->
                         </div>
 
                         <!-- Drag and Drop footer badge -->
-                        <div class="p-4 border-t border-slate-100 bg-[#FAF9FF] flex items-center justify-between">
+                        <div class="p-3 border-t border-slate-100 bg-[#FAF9FF] flex items-center justify-between shrink-0">
                             <div class="flex items-center space-x-2">
                                 <i data-lucide="sparkles" class="h-4 w-4 text-[#6D5EF5]"></i>
                                 <div class="flex flex-col">
                                     <span class="text-[10px] font-bold text-slate-700">Drag & Drop</span>
-                                    <span class="text-[8px] text-slate-400">Add elements to build your email</span>
+                                    <span class="text-[8px] text-slate-400">Add elements to canvas</span>
                                 </div>
                             </div>
-                            <i data-lucide="x" class="h-3 w-3 text-slate-400 cursor-pointer"></i>
                         </div>
                     </div>
 
-                    <!-- 3. CENTER CANVAS - PREVIEW AREA -->
+                    <!-- 3. CENTER CANVAS - PREVIEW AREA (~58% usable width ratio) -->
                     <div class="flex-grow bg-[#F1F5F9] flex flex-col overflow-hidden relative select-text" id="builder-canvas-viewport">
                         
-                        <!-- Canvas Header Area Controls (matching layout) -->
-                        <div class="w-full bg-white border-b border-slate-200/80 py-2.5 px-6 flex items-center justify-between shrink-0 text-slate-550 select-none z-30 shadow-2xs">
-                            <div class="w-full max-w-[760px] mx-auto flex items-center justify-between">
-                                <div class="flex items-center space-x-4 text-xs font-bold">
-                                    <button onclick="builderUndo()" class="text-slate-655 hover:text-slate-900 transition flex items-center space-x-1">
-                                        <i data-lucide="undo" class="h-3.5 w-3.5 text-slate-505"></i><span>Undo</span>
+                        <!-- Canvas Header Toolbar Area -->
+                        <div class="w-full bg-white border-b border-slate-200/80 py-2 px-6 flex items-center justify-between shrink-0 text-slate-550 select-none z-30 shadow-2xs">
+                            <div class="w-full max-w-[800px] mx-auto flex items-center justify-between">
+                                <div class="flex items-center space-x-3 text-xs font-bold">
+                                    <button onclick="builderUndo()" class="text-slate-600 hover:text-slate-900 transition flex items-center space-x-1">
+                                        <i data-lucide="undo" class="h-3.5 w-3.5"></i><span>Undo</span>
                                     </button>
-                                    <button onclick="builderRedo()" class="text-slate-350 hover:text-slate-500 transition flex items-center space-x-1">
-                                        <i data-lucide="redo" class="h-3.5 w-3.5 text-slate-300"></i><span>Redo</span>
+                                    <button onclick="builderRedo()" class="text-slate-600 hover:text-slate-900 transition flex items-center space-x-1">
+                                        <i data-lucide="redo" class="h-3.5 w-3.5"></i><span>Redo</span>
                                     </button>
-                                    <button class="text-slate-655 hover:text-slate-900 transition flex items-center space-x-1">
-                                        <i data-lucide="history" class="h-3.5 w-3.5 text-slate-505"></i><span>Version History</span>
-                                    </button>
-                                    <button onclick="openLivePreviewTab()" class="text-slate-655 hover:text-slate-900 transition flex items-center space-x-1">
-                                        <i data-lucide="external-link" class="h-3.5 w-3.5 text-slate-505"></i><span>View in Browser</span>
+                                    <div class="border-l border-slate-200 h-4 mx-1"></div>
+                                    <button onclick="openLivePreviewTab()" class="text-slate-600 hover:text-slate-900 transition flex items-center space-x-1">
+                                        <i data-lucide="external-link" class="h-3.5 w-3.5"></i><span>View in Browser</span>
                                     </button>
                                 </div>
 
-                                <div class="flex items-center space-x-3.5">
-                                    <button onclick="setLeftSidebarTab('ai')" class="px-4 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 rounded-xl text-xs font-black text-[#6D5EF5] flex items-center space-x-2 transition shadow-xs">
-                                        <i data-lucide="sparkles" class="h-3.5 w-3.5 text-[#6D5EF5]"></i> <span>AI Generate</span>
+                                <!-- Zoom Controls -->
+                                <div class="flex items-center space-x-1.5 bg-slate-100 border border-slate-200/80 px-2 py-1 rounded-lg text-xs">
+                                    <button onclick="zoomCanvas(-10)" class="p-0.5 text-slate-600 hover:text-slate-900 rounded font-bold" title="Zoom Out">−</button>
+                                    <span id="canvas-zoom-level" class="font-mono text-[10px] font-bold text-slate-700 min-w-[36px] text-center">100%</span>
+                                    <button onclick="zoomCanvas(10)" class="p-0.5 text-slate-600 hover:text-slate-900 rounded font-bold" title="Zoom In">+</button>
+                                    <button onclick="zoomCanvas(0)" class="ml-1 text-[9px] font-bold text-[#6D5EF5] hover:underline" title="Fit Zoom">Fit</button>
+                                </div>
+
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="setLeftSidebarTab('ai')" class="px-3 py-1 border border-slate-200 bg-white hover:bg-slate-50 rounded-lg text-xs font-bold text-[#6D5EF5] flex items-center space-x-1.5 transition shadow-2xs">
+                                        <i data-lucide="sparkles" class="h-3.5 w-3.5 text-[#6D5EF5]"></i> <span>AI Assistant</span>
                                     </button>
-                                    <button onclick="toggleCanvasCodeView()" id="btn-canvas-code-view" class="px-3 py-1.5 hover:bg-slate-100 border border-transparent hover:border-slate-200 text-slate-655 hover:text-slate-900 rounded-xl text-xs font-black flex items-center space-x-1.5 transition">
+                                    <button onclick="toggleCanvasCodeView()" id="btn-canvas-code-view" class="px-3 py-1 hover:bg-slate-100 border border-slate-200 text-slate-655 hover:text-slate-900 rounded-lg text-xs font-bold flex items-center space-x-1.5 transition">
                                         <i data-lucide="code-2" class="h-3.5 w-3.5 text-slate-505"></i> <span>Code View</span>
                                     </button>
                                 </div>
@@ -420,7 +437,7 @@
                         <!-- Scrollable Center Canvas Body -->
                         <div class="flex-grow overflow-y-auto p-4 md:p-8 select-text relative flex flex-col bg-[#F1F5F9]" id="canvas-scroll-container">
                             <!-- Canvas Responsive Resizable Frame -->
-                            <div id="canvas-device-frame" class="w-full max-w-[640px] bg-white rounded-2xl transition-all duration-300 flex flex-col min-h-[600px] my-6 mx-auto select-none relative shadow-xl border border-slate-200/90 overflow-hidden">
+                            <div id="canvas-device-frame" class="w-full max-w-[640px] bg-white rounded-2xl transition-all duration-300 flex flex-col min-h-[600px] my-6 mx-auto select-none relative shadow-xl border border-slate-200/90 overflow-hidden" style="transform-origin: top center;">
                                 
                                 <!-- Frame Device Bar Indicator -->
                                 <div class="w-full bg-slate-100 border-b border-slate-200 px-4 py-2 flex items-center justify-between text-[11px] font-bold text-slate-500 select-none shrink-0">
@@ -429,7 +446,7 @@
                                         <span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
                                         <span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
                                     </div>
-                                    <span id="canvas-device-label" class="font-mono text-[10px] text-slate-600 tracking-tight">Desktop View (600px Email Container)</span>
+                                    <span id="canvas-device-label" class="font-mono text-[10px] text-slate-600 tracking-tight">Desktop View (600px Email Width)</span>
                                 </div>
 
                                 <!-- Main canvas dropping container -->
@@ -443,24 +460,19 @@
                             </div>
                         </div>
 
-                        <!-- Footer breadcrumbs bar (stay locked at bottom) -->
-                        <div class="w-full h-10 bg-white border-t border-slate-200 px-6 flex items-center justify-between text-[11px] font-medium text-slate-400 select-none z-30 shrink-0">
+                        <!-- Footer breadcrumbs bar -->
+                        <div class="w-full h-9 bg-white border-t border-slate-200 px-6 flex items-center justify-between text-[11px] font-medium text-slate-400 select-none z-30 shrink-0">
                             <div class="flex items-center space-x-1.5" id="canvas-breadcrumbs">
-                                <span>Body</span> <i data-lucide="chevron-right" class="h-3 w-3"></i>
-                                <span>Section</span> <i data-lucide="chevron-right" class="h-3 w-3"></i>
-                                <span>Row</span> <i data-lucide="chevron-right" class="h-3 w-3"></i>
-                                <span>Column</span> <i data-lucide="chevron-right" class="h-3 w-3"></i>
-                                <span class="text-[#6D5EF5] font-bold">Heading</span>
+                                <span class="hover:text-[#6D5EF5] cursor-pointer" onclick="deselectCanvasElement()">Body</span>
                             </div>
                             <div class="flex items-center space-x-4">
                                 <span class="flex items-center"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5"></span>Autosaved just now</span>
-                                <button class="hover:text-slate-800 transition">Feedback</button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 4. RIGHT PANEL - DYNAMIC PROPERTIES -->
-                    <div id="builder-right-sidebar" class="w-80 border-l border-slate-200 bg-white flex flex-col shrink-0 overflow-hidden z-40">
+                    <!-- 4. RIGHT PANEL - DYNAMIC PROPERTIES (~20% width ratio, compact w-64) -->
+                    <div id="builder-right-sidebar" class="w-64 border-l border-slate-200 bg-white flex flex-col shrink-0 overflow-hidden z-40 transition-all duration-300">
                         <div class="p-4 border-b border-slate-200 shrink-0 flex flex-col">
                             <div class="flex items-center justify-between mb-3">
                                 <h3 class="text-xs font-black tracking-wider uppercase text-slate-850 flex items-center" id="properties-panel-title">
@@ -576,24 +588,58 @@
         }
     };
 
-    // Element rendering list logic
+    // Element rendering list logic with categories & keyword matching
     function renderElementsList(container, filterQuery = "") {
-        const filtered = draggableElements.filter(el => el.label.toLowerCase().includes(filterQuery.toLowerCase()));
-        container.innerHTML = `
-            <div class="grid grid-cols-2 gap-3" id="draggable-items-grid">
-                ${filtered.map(el => `
-                    <div class="bg-white border border-slate-200 rounded-xl p-3.5 flex flex-col items-center justify-center text-center cursor-grab active:cursor-grabbing hover:border-[#6D5EF5] hover:bg-slate-50 transition select-none group"
-                         draggable="true" 
-                         ondragstart="onBuilderDragStart(event, '${el.type}')">
-                        <div class="h-9 w-9 rounded-lg bg-indigo-50 text-[#6D5EF5] flex items-center justify-center mb-2 group-hover:scale-115 transition duration-200">
-                            <i data-lucide="${el.icon}" class="h-4.5 w-4.5"></i>
+        const q = filterQuery.toLowerCase().trim();
+        const filtered = draggableElements.filter(el => {
+            if (!q) return true;
+            const matchLabel = el.label.toLowerCase().includes(q);
+            const matchDesc = el.desc.toLowerCase().includes(q);
+            const matchType = el.type.toLowerCase().includes(q);
+            const matchKeywords = el.keywords && el.keywords.some(k => k.toLowerCase().includes(q));
+            return matchLabel || matchDesc || matchType || matchKeywords;
+        });
+
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div class="py-8 text-center text-slate-400">
+                    <i data-lucide="search-x" class="h-6 w-6 mx-auto mb-2 text-slate-300"></i>
+                    <p class="text-xs font-bold text-slate-600">No matching blocks</p>
+                    <p class="text-[10px] text-slate-400 mt-0.5">Try searching for "button", "timer", or "social"</p>
+                </div>
+            `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            return;
+        }
+
+        const categories = ["BASIC", "LAYOUT", "MARKETING", "ADVANCED"];
+        let groupsHtml = "";
+
+        categories.forEach(cat => {
+            const catElements = filtered.filter(e => e.category === cat);
+            if (catElements.length > 0) {
+                groupsHtml += `
+                    <div class="mb-4">
+                        <span class="block text-[9.5px] font-black uppercase text-slate-400 tracking-wider mb-2">${cat}</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            ${catElements.map(el => `
+                                <div class="bg-white border border-slate-200/90 rounded-xl p-2.5 flex flex-col items-center justify-center text-center cursor-grab active:cursor-grabbing hover:border-[#6D5EF5] hover:bg-indigo-50/30 transition select-none group shadow-2xs"
+                                     draggable="true" 
+                                     ondragstart="onBuilderDragStart(event, '${el.type}')">
+                                    <div class="h-7 w-7 rounded-lg bg-indigo-50 text-[#6D5EF5] flex items-center justify-center mb-1.5 group-hover:scale-110 transition duration-150 shrink-0">
+                                        <i data-lucide="${el.icon}" class="h-4 w-4"></i>
+                                    </div>
+                                    <span class="font-bold text-[11px] text-slate-700 leading-tight">${el.label}</span>
+                                    <span class="text-[8.5px] text-slate-400 mt-0.5 truncate w-full">${el.desc}</span>
+                                </div>
+                            `).join('')}
                         </div>
-                        <span class="font-bold text-[11px] text-slate-700">${el.label}</span>
-                        <span class="text-[9px] text-slate-400 mt-1 truncate w-full">${el.desc}</span>
                     </div>
-                `).join('')}
-            </div>
-        `;
+                `;
+            }
+        });
+
+        container.innerHTML = `<div id="draggable-items-grid" class="space-y-1">${groupsHtml}</div>`;
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
@@ -994,6 +1040,35 @@
         }
         return escapeAttr(str);
     }
+
+    // Zoom Canvas level helper
+    let currentCanvasZoom = 100;
+    window.zoomCanvas = function(delta) {
+        if (delta === 0) {
+            currentCanvasZoom = 100;
+        } else {
+            currentCanvasZoom = Math.min(150, Math.max(50, currentCanvasZoom + delta));
+        }
+        const frame = document.getElementById('canvas-device-frame');
+        const zoomText = document.getElementById('canvas-zoom-level');
+        if (frame) {
+            frame.style.transform = `scale(${currentCanvasZoom / 100})`;
+        }
+        if (zoomText) {
+            zoomText.innerText = currentCanvasZoom + '%';
+        }
+    };
+
+    // Toggle Left Sidebar collapse
+    window.toggleLeftSidebarCollapse = function() {
+        const sidebar = document.getElementById('builder-left-sidebar');
+        if (sidebar) {
+            sidebar.classList.toggle('w-64');
+            sidebar.classList.toggle('w-0');
+            sidebar.classList.toggle('p-0');
+            sidebar.classList.toggle('border-r');
+        }
+    };
 
     // HTML Block Sanitization Pipeline: User HTML -> Validate -> Sanitize -> Compile -> Final Email HTML
     function sanitizeCustomHtml(rawHtml) {
@@ -1976,7 +2051,15 @@
         showNotification('success', 'Deleted section.');
     };
 
-    // Select Canvas Element helper
+    // Deselect canvas element helper
+    window.deselectCanvasElement = function(event) {
+        if (event) event.stopPropagation();
+        selectedElementId = null;
+        selectedSectionId = null;
+        renderCanvas();
+        renderPropertiesPanel();
+        updateCanvasBreadcrumbs();
+    };
     window.selectCanvasElement = function(id, event) {
         if (event) event.stopPropagation();
         selectedElementId = id;
@@ -1998,35 +2081,35 @@
         updateCanvasBreadcrumbs();
     };
 
-    // Footer breadcrumbs dynamic builder path text helper
+    // Footer breadcrumbs dynamic builder path text helper with interactive level selection
     function updateCanvasBreadcrumbs() {
         const breadcrumbs = document.getElementById('canvas-breadcrumbs');
         if (!breadcrumbs) return;
 
         if (selectedElementId) {
             let elType = "Element";
+            let parentSecId = null;
             for (const sec of canvasData) {
                 const el = sec.elements.find(e => e.id === selectedElementId);
                 if (el) {
                     elType = el.type.charAt(0).toUpperCase() + el.type.slice(1);
+                    parentSecId = sec.id;
                     break;
                 }
             }
             breadcrumbs.innerHTML = `
-                <span>Body</span> <i data-lucide="chevron-right" class="h-3 w-3 inline text-slate-400"></i>
-                <span>Section</span> <i data-lucide="chevron-right" class="h-3 w-3 inline text-slate-400"></i>
-                <span>Row</span> <i data-lucide="chevron-right" class="h-3 w-3 inline text-slate-400"></i>
-                <span>Column</span> <i data-lucide="chevron-right" class="h-3 w-3 inline text-slate-400"></i>
+                <span class="hover:text-[#6D5EF5] cursor-pointer" onclick="deselectCanvasElement()">Body</span> <i data-lucide="chevron-right" class="h-3 w-3 inline text-slate-400"></i>
+                <span class="hover:text-[#6D5EF5] cursor-pointer" onclick="selectCanvasSection('${parentSecId}', event)">Section</span> <i data-lucide="chevron-right" class="h-3 w-3 inline text-slate-400"></i>
                 <span class="text-[#6D5EF5] font-bold">${elType}</span>
             `;
         } else if (selectedSectionId) {
             breadcrumbs.innerHTML = `
-                <span>Body</span> <i data-lucide="chevron-right" class="h-3 w-3 inline text-slate-400"></i>
+                <span class="hover:text-[#6D5EF5] cursor-pointer" onclick="deselectCanvasElement()">Body</span> <i data-lucide="chevron-right" class="h-3 w-3 inline text-slate-400"></i>
                 <span class="text-[#6D5EF5] font-bold">Section</span>
             `;
         } else {
             breadcrumbs.innerHTML = `
-                <span class="text-[#6D5EF5] font-bold">Body</span>
+                <span class="text-[#6D5EF5] font-bold">Body & Canvas</span>
             `;
         }
         if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -2714,16 +2797,47 @@
             }
             if (typeof lucide !== 'undefined') lucide.createIcons();
         } else {
-            // Defaults to empty selection placeholder
-            titleEl.innerHTML = `<i data-lucide="settings" class="h-3.5 w-3.5 mr-1.5 text-indigo-500"></i>Properties`;
-            badge.innerText = "NONE";
-            badge.className = "text-[9.5px] font-bold text-slate-400 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md";
+            // Render Global Email Settings when no specific block is selected
+            titleEl.innerHTML = `<i data-lucide="sliders" class="h-3.5 w-3.5 mr-1.5 text-[#6D5EF5]"></i>Email Settings`;
+            badge.innerText = "GLOBAL";
+            badge.className = "text-[9.5px] font-bold text-[#6D5EF5] bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md";
 
             container.innerHTML = `
-                <div class="py-12 text-center text-slate-400">
-                    <i data-lucide="mouse-pointer" class="h-8 w-8 mx-auto mb-2 text-slate-300"></i>
-                    <p class="font-bold text-slate-500">Select any element</p>
-                    <p class="text-[10px] text-slate-400 mt-0.5">Click any block inside the canvas to edit its properties, typography, or styling details.</p>
+                <div class="space-y-4">
+                    <div class="p-3 bg-indigo-50/60 border border-indigo-100 rounded-xl">
+                        <span class="text-[11px] font-bold text-slate-800 block mb-0.5">Global Brand & Design Settings</span>
+                        <span class="text-[10px] text-slate-500 block leading-normal">These default styles apply across the entire email template layout.</span>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="font-bold text-slate-400 text-[10px] uppercase">Outer Canvas Background</label>
+                        <div class="flex items-center space-x-2">
+                            <input type="color" oninput="brandStyles.backgroundColor = this.value; renderCanvas();" value="${brandStyles.backgroundColor || '#f1f5f9'}" class="w-8 h-8 border border-slate-200 cursor-pointer rounded-lg bg-transparent">
+                            <span class="text-xs font-mono uppercase text-slate-600">${brandStyles.backgroundColor || '#f1f5f9'}</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="font-bold text-slate-400 text-[10px] uppercase">Brand Accent Color</label>
+                        <div class="flex items-center space-x-2">
+                            <input type="color" oninput="brandStyles.primaryColor = this.value; renderCanvas();" value="${brandStyles.primaryColor || '#6D5EF5'}" class="w-8 h-8 border border-slate-200 cursor-pointer rounded-lg bg-transparent">
+                            <span class="text-xs font-mono uppercase text-slate-600">${brandStyles.primaryColor || '#6D5EF5'}</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="font-bold text-slate-400 text-[10px] uppercase">Default Body Typography</label>
+                        <select onchange="brandStyles.fontFamily = this.value; renderCanvas();" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#6D5EF5]">
+                            <option value="Inter, system-ui, sans-serif" ${brandStyles.fontFamily.includes('Inter') ? 'selected' : ''}>Inter (Modern Sans)</option>
+                            <option value="Helvetica, Arial, sans-serif" ${brandStyles.fontFamily.includes('Helvetica') ? 'selected' : ''}>Helvetica / Arial</option>
+                            <option value="Georgia, serif" ${brandStyles.fontFamily.includes('Georgia') ? 'selected' : ''}>Georgia (Editorial Serif)</option>
+                            <option value="Roboto, sans-serif" ${brandStyles.fontFamily.includes('Roboto') ? 'selected' : ''}>Roboto</option>
+                        </select>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-100 text-center">
+                        <span class="text-[10px] text-slate-400">Click any block inside the canvas to edit element-specific styles.</span>
+                    </div>
                 </div>
             `;
             if (typeof lucide !== 'undefined') lucide.createIcons();

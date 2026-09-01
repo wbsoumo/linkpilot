@@ -686,7 +686,7 @@ async function renderDashboard(container) {
                             </div>
                         </div>
                         <div class="flex items-center space-x-3">
-                            <span class="text-xs font-black text-indigo-700 bg-indigo-50 border border-indigo-150 px-3 py-1 rounded-full">${progress}% Complete</span>
+                            <span class="text-xs font-black text-indigo-950 bg-indigo-100 border border-indigo-300/80 px-3 py-1 rounded-full shadow-2xs">${progress}% Complete</span>
                             <button type="button" onclick="window.toggleWorkspaceSetupBanner();" class="text-[10px] font-bold text-slate-400 hover:text-slate-700 transition">Hide Checklist</button>
                         </div>
                     </div>
@@ -738,7 +738,7 @@ async function renderDashboard(container) {
                         <span class="text-xs font-bold text-slate-800 flex items-center gap-2">
                             <i data-lucide="check-square" class="h-3.5 w-3.5 text-indigo-600 shrink-0"></i>
                             <span>Activate AI Auto-Pilot</span>
-                            <span class="text-[10px] text-indigo-700 font-black bg-indigo-50 border border-indigo-150 px-2 py-0.5 rounded-full">${progress}% Complete</span>
+                            <span class="text-[10px] text-indigo-950 font-black bg-indigo-100 border border-indigo-300/80 px-2.5 py-0.5 rounded-full shadow-2xs">${progress}% Complete</span>
                         </span>
                     </div>
                     <button type="button" onclick="window.toggleWorkspaceSetupBanner();" class="text-[10px] font-bold text-slate-500 hover:text-slate-850 transition flex items-center space-x-1 cursor-pointer py-1 px-2.5 rounded-lg hover:bg-slate-100 border-0 bg-transparent">

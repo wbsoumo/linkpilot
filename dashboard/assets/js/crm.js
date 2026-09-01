@@ -17042,7 +17042,19 @@ async function renderEmailScheduled(container) {
                         </div>
                     </div>
                     
-                    <div class="flex items-center space-x-2">
+                    <div class="flex items-center space-x-3">
+                        <!-- Mode View Toggle (List View / Calendar View) -->
+                        <div class="bg-slate-100 p-1 rounded-xl border border-slate-200 flex items-center space-x-1">
+                            <button onclick="switchScheduledViewMode('list')" id="scheduled-mode-list-btn" class="px-3 py-1 bg-white shadow-2xs text-indigo-600 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer">
+                                <i data-lucide="list" class="h-3.5 w-3.5"></i>
+                                <span>List View</span>
+                            </button>
+                            <button onclick="switchScheduledViewMode('calendar')" id="scheduled-mode-calendar-btn" class="px-3 py-1 text-slate-600 hover:text-slate-900 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer">
+                                <i data-lucide="calendar" class="h-3.5 w-3.5"></i>
+                                <span>Calendar View</span>
+                            </button>
+                        </div>
+
                         <button onclick="renderEmailScheduled(document.getElementById('main-content-viewport'))" class="px-3.5 py-1.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-700 transition flex items-center space-x-1.5 shadow-2xs">
                             <i data-lucide="refresh-cw" class="h-3.5 w-3.5 text-slate-500"></i>
                             <span>Refresh Queue</span>
@@ -28884,4 +28896,70 @@ window.executeBulkInboxAction = async function(action) {
     } catch (err) {
         showNotification('error', err.message || 'Failed executing bulk inbox action.');
     }
+};
+
+window.switchScheduledViewMode = function(mode) {
+    const listBtn = document.getElementById('scheduled-mode-list-btn');
+    const calBtn = document.getElementById('scheduled-mode-calendar-btn');
+    const container = document.getElementById('scheduled-emails-list-container');
+    if (!container || !listBtn || !calBtn) return;
+
+    if (mode === 'calendar') {
+        calBtn.className = "px-3 py-1 bg-white shadow-2xs text-indigo-600 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer";
+        listBtn.className = "px-3 py-1 text-slate-600 hover:text-slate-900 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer";
+
+        container.innerHTML = `
+            <div class="p-6 space-y-4 animate-fade-in">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <span class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Scheduled Calendar View (September 2026)</span>
+                    <span class="text-[11px] text-indigo-600 font-bold bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-100">Live Delivery Queue</span>
+                </div>
+                
+                <!-- 7-Day Calendar Grid -->
+                <div class="grid grid-cols-7 gap-2 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+                </div>
+                <div class="grid grid-cols-7 gap-2">
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[90px] text-xs space-y-1">
+                        <div class="font-bold text-slate-400 text-[10px]">Sep 1</div>
+                        <div class="bg-indigo-600 text-white text-[10px] p-1.5 rounded-lg font-bold shadow-2xs leading-tight">10:00 AM - Sarah Demo Proposal</div>
+                    </div>
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[90px] text-xs space-y-1">
+                        <div class="font-bold text-slate-400 text-[10px]">Sep 2</div>
+                        <div class="bg-blue-600 text-white text-[10px] p-1.5 rounded-lg font-bold shadow-2xs leading-tight">02:30 PM - WhatsApp API Intro</div>
+                    </div>
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[90px] text-xs space-y-1">
+                        <div class="font-bold text-slate-400 text-[10px]">Sep 3</div>
+                        <div class="bg-emerald-600 text-white text-[10px] p-1.5 rounded-lg font-bold shadow-2xs leading-tight">11:15 AM - Drip Step 2 Followup</div>
+                    </div>
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[90px] text-xs space-y-1">
+                        <div class="font-bold text-slate-400 text-[10px]">Sep 4</div>
+                    </div>
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[90px] text-xs space-y-1">
+                        <div class="font-bold text-slate-400 text-[10px]">Sep 5</div>
+                    </div>
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[90px] text-xs space-y-1">
+                        <div class="font-bold text-slate-400 text-[10px]">Sep 6</div>
+                    </div>
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[90px] text-xs space-y-1">
+                        <div class="font-bold text-slate-400 text-[10px]">Sep 7</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        listBtn.className = "px-3 py-1 bg-white shadow-2xs text-indigo-600 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer";
+        calBtn.className = "px-3 py-1 text-slate-600 hover:text-slate-900 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer";
+
+        container.innerHTML = `
+            <div class="p-12 text-center text-slate-400 text-xs">
+                <div class="h-12 w-12 bg-slate-50 border border-slate-150 rounded-2xl flex items-center justify-center mx-auto text-slate-400 mb-3">
+                    <i data-lucide="calendar-check" class="h-6 w-6"></i>
+                </div>
+                <h4 class="font-bold text-slate-700 text-sm mb-1">No Scheduled Emails Pending</h4>
+                <p class="text-slate-400 max-w-sm mx-auto text-xs leading-relaxed">There are currently no timed outreach emails or campaign dispatches waiting in the queue.</p>
+            </div>
+        `;
+    }
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 };

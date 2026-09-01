@@ -480,7 +480,7 @@ if (!function_exists('testAIKeyConnection')) {
             
         } elseif ($provider === 'google_ai_studio') {
             $lastException = null;
-            $modelsToTry = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-1.5-flash-8b'];
+            $modelsToTry = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-flash-latest'];
             
             // Retry loop up to 3 attempts across models/endpoints
             for ($attempt = 1; $attempt <= 3; $attempt++) {

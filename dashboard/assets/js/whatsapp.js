@@ -7263,15 +7263,15 @@ window.renderWhatsAppSendTemplate = function (container, params = {}) {
                             <h3 class="font-bold text-slate-800 text-xs self-start mb-4">Live Preview</h3>
                             
                             <!-- Mobile Phone Frame Simulator -->
-                            <div class="phone-simulator relative w-full max-w-[280px] h-[550px] bg-[#1e293b] rounded-[45px] p-2 shadow-2xl border-4 border-[#0f172a] overflow-hidden">
+                            <div class="phone-simulator">
                                 <!-- Dynamic Island Pill Notch -->
                                 <div class="absolute top-1.5 left-1/2 -translate-x-1/2 w-20 h-3.5 bg-[#1e293b] rounded-full z-30 flex items-center justify-center pointer-events-none">
                                     <div class="w-1 h-1 rounded-full bg-[#334155] mr-2"></div>
                                     <div class="w-1 h-1 rounded-full bg-[#0f172a]"></div>
                                 </div>
-                                <div class="phone-screen w-full h-full bg-[#efeae2] rounded-[38px] overflow-hidden flex flex-col relative" style="background-image: radial-gradient(#d1d5db 1px, transparent 1px); background-size: 20px 20px;">
+                                <div class="phone-screen">
                                     <!-- Phone Header -->
-                                    <div class="phone-header flex items-center justify-between p-3 bg-white/95 backdrop-blur-sm border-b border-slate-200">
+                                    <div class="phone-header">
                                         <div class="flex items-center space-x-2 flex-grow">
                                             <i data-lucide="chevron-left" class="h-4.5 w-4.5 text-[#54656f] cursor-pointer -ml-1 shrink-0"></i>
                                             <div class="h-8 w-8 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center shrink-0 border border-slate-300">
@@ -7291,8 +7291,8 @@ window.renderWhatsAppSendTemplate = function (container, params = {}) {
                                     
                                     <!-- Messages Body -->
                                     <div class="chat-messages flex-grow overflow-y-auto p-3.5 flex flex-col gap-2">
-                                        <div class="bubble incoming bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-200" style="max-width: 90%;">
-                                            <div class="bubble-text w-full text-[10px] text-slate-800" id="mock-send-bubble-text">
+                                        <div class="bubble incoming" style="max-width: 90%;">
+                                            <div class="bubble-text w-full" id="mock-send-bubble-text">
                                                 <!-- Filled live template body text -->
                                             </div>
                                         </div>

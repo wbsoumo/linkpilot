@@ -28614,6 +28614,81 @@ window.renderEmailSequences = async function(container) {
                 </div>
             </div>
 
+            <!-- Visual Sequence Timeline Card -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center">
+                            <i data-lucide="git-commit" class="h-4 w-4 mr-2 text-indigo-600"></i>
+                            Visual Sequence Automation Timeline
+                        </h3>
+                        <p class="text-xs text-slate-500 font-medium">Interactive timeline preview of email steps, delays, and stop conditions</p>
+                    </div>
+                    <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">Cold Outreach 4-Step Nurture</span>
+                </div>
+
+                <!-- Step-by-Step Flowchart Timeline -->
+                <div class="flex items-center justify-between overflow-x-auto no-scrollbar py-4 px-2 space-x-3 text-xs">
+                    <!-- Step 1 -->
+                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl shrink-0 w-48 shadow-2xs space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="h-5 w-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px] font-black">1</span>
+                            <span class="text-[9px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">Immediate</span>
+                        </div>
+                        <div class="font-bold text-slate-900 truncate">Email 1: Welcome & Intro</div>
+                        <div class="text-[10px] text-slate-500 leading-snug">Initial value prop & demo invite link</div>
+                    </div>
+
+                    <!-- Connector 1 -->
+                    <div class="flex flex-col items-center shrink-0 space-y-1 text-slate-400">
+                        <span class="text-[10px] font-extrabold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full">Wait 2 Days</span>
+                        <i data-lucide="arrow-right" class="h-4 w-4 text-indigo-500"></i>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl shrink-0 w-48 shadow-2xs space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="h-5 w-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px] font-black">2</span>
+                            <span class="text-[9px] font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">+2 Days</span>
+                        </div>
+                        <div class="font-bold text-slate-900 truncate">Email 2: Case Study & Proof</div>
+                        <div class="text-[10px] text-slate-500 leading-snug">Customer success metric & ROI factsheet</div>
+                    </div>
+
+                    <!-- Connector 2 -->
+                    <div class="flex flex-col items-center shrink-0 space-y-1 text-slate-400">
+                        <span class="text-[10px] font-extrabold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full">Wait 3 Days</span>
+                        <i data-lucide="arrow-right" class="h-4 w-4 text-indigo-500"></i>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl shrink-0 w-48 shadow-2xs space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="h-5 w-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px] font-black">3</span>
+                            <span class="text-[9px] font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">+5 Days Total</span>
+                        </div>
+                        <div class="font-bold text-slate-900 truncate">Email 3: Objection Handling</div>
+                        <div class="text-[10px] text-slate-500 leading-snug">Addressing WhatsApp Cloud API & CRM concerns</div>
+                    </div>
+
+                    <!-- Connector 3 -->
+                    <div class="flex flex-col items-center shrink-0 space-y-1 text-slate-400">
+                        <span class="text-[10px] font-extrabold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full">Wait 4 Days</span>
+                        <i data-lucide="arrow-right" class="h-4 w-4 text-indigo-500"></i>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl shrink-0 w-48 shadow-2xs space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="h-5 w-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px] font-black">4</span>
+                            <span class="text-[9px] font-extrabold text-purple-600 bg-purple-50 px-2 py-0.5 rounded border border-purple-100">Final Break-Up</span>
+                        </div>
+                        <div class="font-bold text-slate-900 truncate">Email 4: Closing the Loop</div>
+                        <div class="text-[10px] text-slate-500 leading-snug">Final check-in before sequence unenrollment</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Sequences List Table -->
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
                 <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between flex-wrap gap-3">

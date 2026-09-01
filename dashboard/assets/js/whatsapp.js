@@ -6537,6 +6537,33 @@ function renderWhatsAppSettings(container) {
             `;
             lucide.createIcons();
 
+            window.copyAndValidateWebhookUrl = function() {
+                const input = document.getElementById('wa-webhook-url-input');
+                const url = (input ? input.value : window.location.origin + '/backend/api/whatsapp/webhook.php').trim();
+                
+                if (!url.startsWith('https://')) {
+                    showNotification('warning', 'SECURITY WARNING: Meta Cloud API requires a valid HTTPS/SSL connection for Webhook callback URLs. Meta will reject non-HTTPS URLs.');
+                }
+                
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url).then(() => {
+                        showNotification('success', 'Webhook Callback URL copied to clipboard! (Ensure SSL/HTTPS is active in Meta Console)');
+                    }).catch(() => {
+                        copyFallback(url);
+                    });
+                } else {
+                    copyFallback(url);
+                }
+
+                function copyFallback(str) {
+                    if (input) {
+                        input.select();
+                        document.execCommand('copy');
+                        showNotification('success', 'Webhook Callback URL copied to clipboard!');
+                    }
+                }
+            };
+
             // AI Autopilot Toggle Handler & Privacy Policy Modal
             window.toggleAiProcessing = function (checkbox) {
                 if (checkbox.checked) {

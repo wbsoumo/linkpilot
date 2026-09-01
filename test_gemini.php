@@ -18,10 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $url = 'https://generativelanguage.googleapis.com/v1beta/models?key=' . urlencode($apiKey);
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'X-goog-api-key: ' . $apiKey
-        ]);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
         curl_setopt($ch, CURLOPT_USERAGENT, 'LinkPilot-AI/1.0');
         curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
         curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
@@ -44,16 +41,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } else if (isset($_POST['prompt'])) {
         $promptInput = trim($_POST['prompt']);
-        $model = trim($_POST['model'] ?? 'gemini-3.6-flash');
         
         if (!empty($promptInput)) {
-            // List of models to try if the primary encounters 503 high demand or 404
-            $modelsToTry = array_unique([$model, 'gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-flash-latest']);
+            // Models to benchmark in parallel simultaneously
+            $modelsToTest = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-flash-latest'];
             
-            foreach ($modelsToTry as $currentModel) {
-                // Support both X-goog-api-key header and ?key= query parameter
-                $url = 'https://generativelanguage.googleapis.com/v1beta/models/' . $currentModel . ':generateContent?key=' . urlencode($apiKey);
-                
+            $mh = curl_multi_init();
+            $curlHandles = [];
+            $startTime = microtime(true);
+            
+            foreach ($modelsToTest as $mName) {
+                $url = 'https://generativelanguage.googleapis.com/v1beta/models/' . $mName . ':generateContent?key=' . urlencode($apiKey);
                 $payload = json_encode([
                     'contents' => [
                         [
@@ -68,41 +66,96 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                 curl_setopt($ch, CURLOPT_POST, true);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                    'Content-Type: application/json',
-                    'X-goog-api-key: ' . $apiKey
-                ]);
-                curl_setopt($ch, CURLOPT_USERAGENT, 'LinkPilot-AI/1.0');
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)');
                 curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
                 curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-                curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 6);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 15);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
                 
-                $result = curl_exec($ch);
+                curl_multi_add_handle($mh, $ch);
+                $curlHandles[$mName] = $ch;
+            }
+            
+            // Execute all multi-cURL handles in parallel
+            $running = null;
+            do {
+                curl_multi_exec($mh, $running);
+                curl_multi_select($mh, 0.01);
+            } while ($running > 0);
+            
+            $results = [];
+            $fastestModel = null;
+            $fastestTime = PHP_FLOAT_MAX;
+            
+            foreach ($curlHandles as $mName => $ch) {
+                $content = curl_multi_getcontent($ch);
                 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $totalTime = curl_getinfo($ch, CURLINFO_TOTAL_TIME);
                 $curlError = curl_error($ch);
+                
+                curl_multi_remove_handle($mh, $ch);
                 curl_close($ch);
                 
-                if ($curlError) {
-                    $responseOutput = "cURL Error (" . $currentModel . "): " . htmlspecialchars($curlError);
-                    break;
-                }
+                $timeMs = round($totalTime * 1000, 2);
                 
-                $jsonDecoded = json_decode($result, true);
-                if ($httpCode === 200 && isset($jsonDecoded['candidates'][0]['content']['parts'][0]['text'])) {
-                    $responseOutput = "[Model used: " . $currentModel . "]\n\n" . $jsonDecoded['candidates'][0]['content']['parts'][0]['text'];
-                    break;
-                } else if ($httpCode === 503 || $httpCode === 404) {
-                    // High demand or invalid model name, continue to fallback model
-                    $responseOutput = "Model '{$currentModel}' returned status {$httpCode}. Trying next model...\n" . print_r($jsonDecoded ?: $result, true);
-                    continue;
+                if ($curlError) {
+                    $results[$mName] = [
+                        'status' => 'error',
+                        'time' => $timeMs,
+                        'message' => "cURL Error: " . $curlError
+                    ];
                 } else {
-                    $responseOutput = "HTTP Status Code (" . $currentModel . "): " . $httpCode . "\n\nResponse:\n" . print_r($jsonDecoded ?: $result, true);
-                    break;
+                    $jsonDecoded = json_decode($content, true);
+                    if ($httpCode === 200 && isset($jsonDecoded['candidates'][0]['content']['parts'][0]['text'])) {
+                        $text = trim($jsonDecoded['candidates'][0]['content']['parts'][0]['text']);
+                        $results[$mName] = [
+                            'status' => 'success',
+                            'time' => $timeMs,
+                            'text' => $text
+                        ];
+                        if ($totalTime < $fastestTime) {
+                            $fastestTime = $totalTime;
+                            $fastestModel = $mName;
+                        }
+                    } else {
+                        $errMessage = $jsonDecoded['error']['message'] ?? "HTTP Status {$httpCode}";
+                        $results[$mName] = [
+                            'status' => 'failed',
+                            'time' => $timeMs,
+                            'message' => $errMessage
+                        ];
+                    }
                 }
             }
+            curl_multi_close($mh);
+            
+            // Build visual benchmark output
+            $out = "⚡ PARALLEL MODEL BENCHMARK RESULTS ⚡\n";
+            $out .= "==================================================\n";
+            if ($fastestModel) {
+                $out .= "🏆 FASTEST MODEL: " . strtoupper($fastestModel) . " (" . round($fastestTime * 1000, 2) . " ms)\n";
+            } else {
+                $out .= "❌ No model succeeded.\n";
+            }
+            $out .= "==================================================\n\n";
+            
+            foreach ($results as $mName => $res) {
+                $isWinner = ($mName === $fastestModel) ? " 🥇 [FASTEST]" : "";
+                $out .= "► Model: " . $mName . $isWinner . "\n";
+                $out .= "  Response Time: " . $res['time'] . " ms\n";
+                if ($res['status'] === 'success') {
+                    $out .= "  Status: 200 OK\n";
+                    $out .= "  Response: " . $res['text'] . "\n\n";
+                } else {
+                    $out .= "  Status: " . strtoupper($res['status']) . "\n";
+                    $out .= "  Error: " . $res['message'] . "\n\n";
+                }
+            }
+            
+            $responseOutput = $out;
         } else {
             $responseOutput = "Please enter a prompt.";
         }

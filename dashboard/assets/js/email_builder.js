@@ -689,12 +689,16 @@
                     <i data-lucide="sparkles" class="h-4 w-4 text-white" style="color:#ffffff !important;"></i>
                     <span>Generate AI Content</span>
                 </button>
-                <div id="ai-builder-response-box" class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl hidden space-y-2">
+                <div id="ai-builder-response-box" class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl hidden space-y-3">
                     <div class="flex items-center justify-between text-[9px] uppercase tracking-wide text-slate-555 font-bold">
                         <span>AI Suggestion</span>
                         <button onclick="copyAICopilotText()" class="text-[#6D5EF5] hover:text-indigo-800 transition">Copy text</button>
                     </div>
-                    <div id="ai-builder-response-content" class="text-[11px] text-slate-800 leading-relaxed max-h-48 overflow-y-auto whitespace-pre-line select-text"></div>
+                    <div id="ai-builder-response-content" class="text-[11px] text-slate-800 leading-relaxed max-h-48 overflow-y-auto whitespace-pre-line select-text font-medium bg-white p-2.5 rounded-lg border border-slate-200"></div>
+                    <button onclick="applyAICopilotToSelected()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs shadow-md transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                        <i data-lucide="sparkles" class="h-3.5 w-3.5 text-white"></i>
+                        <span>✨ Apply to Selected Block</span>
+                    </button>
                 </div>
             </div>
         `;
@@ -733,6 +737,68 @@
             btn.innerHTML = `<i data-lucide="sparkles" class="h-4 w-4 text-white"></i> <span class="text-white">Generate AI Content</span>`;
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
+    };
+
+    // Apply AI generated content directly into selected canvas block
+    window.applyAICopilotToSelected = function() {
+        const text = document.getElementById('ai-builder-response-content')?.innerText.trim();
+        if (!text) {
+            showNotification('warning', 'No AI text to apply.');
+            return;
+        }
+
+        if (!selectedElementId) {
+            showNotification('warning', 'Please click and select a block inside the canvas first.');
+            return;
+        }
+
+        let selectedEl = null;
+        for (const sec of canvasData) {
+            const el = sec.elements.find(e => e.id === selectedElementId);
+            if (el) {
+                selectedEl = el;
+                break;
+            }
+        }
+
+        if (!selectedEl) {
+            showNotification('warning', 'Selected element not found.');
+            return;
+        }
+
+        recordState();
+
+        // Apply text to the primary content setting depending on block type
+        switch (selectedEl.type) {
+            case 'heading':
+            case 'text':
+                selectedEl.settings.content = text;
+                break;
+            case 'button':
+                selectedEl.settings.text = text;
+                break;
+            case 'coupon':
+                selectedEl.settings.desc = text;
+                break;
+            case 'product':
+                selectedEl.settings.productDesc = text;
+                break;
+            case 'faq':
+                selectedEl.settings.answer = text;
+                break;
+            case 'testimonial':
+                selectedEl.settings.quote = text;
+                break;
+            case 'columns':
+                selectedEl.settings.col1Content = text;
+                break;
+            default:
+                selectedEl.settings.content = text;
+        }
+
+        renderCanvas();
+        renderPropertiesPanel();
+        showNotification('success', '✓ Content applied to ' + selectedEl.type.toUpperCase() + ' block!');
     };
 
     // Copy Copilot text output helper

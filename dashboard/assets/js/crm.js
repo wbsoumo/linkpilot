@@ -15689,6 +15689,23 @@ async function renderSettings(container) {
         }
 
         let initialTab = 'profile';
+
+        // Read URL query parameters from location.search or hash string (e.g. #/settings?tab=whatsapp)
+        try {
+            const searchParams = new URLSearchParams(window.location.search);
+            let tabParam = searchParams.get('tab');
+            if (!tabParam && window.location.hash.includes('?')) {
+                const hashQuery = window.location.hash.split('?')[1];
+                const hashParams = new URLSearchParams(hashQuery);
+                tabParam = hashParams.get('tab');
+            }
+            if (tabParam) {
+                initialTab = tabParam.trim().toLowerCase();
+            }
+        } catch (e) {
+            console.error("Error reading URL parameters in settings:", e);
+        }
+
         if (window.activeSettingsTabOverride) {
             initialTab = window.activeSettingsTabOverride;
             window.activeSettingsTabOverride = null;

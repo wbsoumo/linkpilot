@@ -10128,7 +10128,7 @@ window.disconnectZoomMeetings = async function(container) {
 };
 
 function formatMeetingTime(startStr, endStr) {
-    if (!startStr) return 'N/A';
+    if (!startStr) return '<span class="text-slate-400 font-bold">-</span>';
     const start = new Date(startStr.replace(' ', 'T'));
     const end = endStr ? new Date(endStr.replace(' ', 'T')) : null;
     
@@ -10142,7 +10142,7 @@ function formatMeetingTime(startStr, endStr) {
     } else if (start.toDateString() === tomorrow.toDateString()) {
         dayStr = 'Tomorrow';
     } else {
-        dayStr = start.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+        dayStr = start.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
     }
     
     const formatTime = (date) => {
@@ -10154,21 +10154,28 @@ function formatMeetingTime(startStr, endStr) {
         const diffMins = Math.round(diffMs / 60000);
         let durationStr = '';
         if (diffMins < 60) {
-            durationStr = `(${diffMins}m)`;
+            durationStr = `${diffMins}m`;
         } else {
             const hrs = (diffMins / 60).toFixed(1).replace('.0', '');
-            durationStr = `(${hrs}h)`;
+            durationStr = `${hrs}h`;
         }
         return `
-            <div class="font-bold text-slate-800">${dayStr}</div>
-            <div class="text-[10px] text-slate-400 font-semibold mt-0.5">${formatTime(start)} -</div>
-            <div class="text-[10px] text-slate-400 font-semibold">${formatTime(end)}</div>
-            <div class="text-[9px] text-blue-600 font-bold mt-1">${durationStr}</div>
+            <div class="flex flex-col space-y-0.5 text-xs select-none">
+                <div class="flex items-center space-x-1.5 whitespace-nowrap">
+                    <span class="font-black text-slate-900 tracking-tight">${dayStr}</span>
+                    <span class="px-1.5 py-0.2 bg-blue-50 text-blue-700 border border-blue-200/80 rounded-md text-[9.5px] font-black">${durationStr}</span>
+                </div>
+                <div class="text-[11px] text-slate-500 font-bold whitespace-nowrap">
+                    ${formatTime(start)} – ${formatTime(end)}
+                </div>
+            </div>
         `;
     }
     return `
-        <div class="font-bold text-slate-800">${dayStr}</div>
-        <div class="text-[10px] text-slate-400 font-semibold mt-0.5">${formatTime(start)}</div>
+        <div class="flex flex-col space-y-0.5 text-xs select-none">
+            <span class="font-black text-slate-900 tracking-tight whitespace-nowrap">${dayStr}</span>
+            <span class="text-[11px] text-slate-500 font-bold whitespace-nowrap">${formatTime(start)}</span>
+        </div>
     `;
 }
 

@@ -5185,43 +5185,62 @@ function renderWhatsAppCampaigns(container) {
                             </div>
 
                             <!-- Right: Mobile Preview (2 cols) -->
-                            <div class="md:col-span-2 p-5 flex flex-col justify-between bg-slate-100/70 overflow-hidden relative">
-                                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">WhatsApp Preview</div>
+                            <div class="md:col-span-2 p-4 flex flex-col justify-between bg-slate-100/70 overflow-hidden relative items-center">
+                                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 self-start">WhatsApp Preview</div>
                                 
-                                <!-- WhatsApp Mobile Shell -->
-                                <div class="flex-grow flex flex-col rounded-3xl border-4 border-slate-800 bg-[#efeae2] shadow-lg max-h-[360px] overflow-hidden relative">
-                                    <!-- Mobile Top Header Bar -->
-                                    <div class="bg-[#075e54] text-white p-3 flex items-center space-x-2 shrink-0">
-                                        <div class="h-7 w-7 rounded-full bg-emerald-500 border border-emerald-400 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
-                                            LP
-                                        </div>
-                                        <div class="truncate">
-                                            <div class="text-[11px] font-extrabold leading-none">LinkPilot Outbox</div>
-                                            <span class="text-[9px] font-semibold opacity-85 leading-none">Active Outreach</span>
-                                        </div>
+                                <!-- Mobile Phone Frame Simulator -->
+                                <div class="phone-simulator relative w-full max-w-[240px] h-[380px] bg-[#1e293b] rounded-[36px] p-1.5 shadow-xl border-2 border-[#0f172a] overflow-hidden">
+                                    <!-- Dynamic Island Pill Notch -->
+                                    <div class="absolute top-1 left-1/2 -translate-x-1/2 w-16 h-2.5 bg-[#1e293b] rounded-full z-30 flex items-center justify-center pointer-events-none">
+                                        <div class="w-0.5 h-0.5 rounded-full bg-[#334155] mr-1.5"></div>
+                                        <div class="w-0.5 h-0.5 rounded-full bg-[#0f172a]"></div>
                                     </div>
-
-                                    <!-- Chat Area with WhatsApp background -->
-                                    <div class="flex-grow p-3 overflow-y-auto space-y-3 flex flex-col justify-end" id="wa-preview-chat-area" style="background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-size: cover;">
-                                        <!-- WhatsApp message bubble -->
-                                        <div class="bg-[#dcf8c6] text-slate-805 p-3 rounded-2xl rounded-tr-none max-w-[90%] self-end text-xs leading-relaxed shadow-sm relative border border-emerald-100/50">
-                                            <div id="wa-preview-message-body" class="font-medium whitespace-pre-line text-slate-700">
-                                                <!-- body text populated dynamically -->
+                                    <div class="phone-screen w-full h-full bg-[#efeae2] rounded-[30px] overflow-hidden flex flex-col relative" style="background-image: radial-gradient(#d1d5db 1px, transparent 1px); background-size: 16px 16px;">
+                                        <!-- Phone Header -->
+                                        <div class="phone-header flex items-center justify-between p-2 bg-white/95 backdrop-blur-sm border-b border-slate-200">
+                                            <div class="flex items-center space-x-1.5 flex-grow">
+                                                <i data-lucide="chevron-left" class="h-3.5 w-3.5 text-[#54656f] cursor-pointer -ml-0.5 shrink-0"></i>
+                                                <div class="h-6 w-6 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center shrink-0 border border-slate-300">
+                                                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=LinkPilot" class="h-full w-full object-cover">
+                                                </div>
+                                                <div class="text-left truncate">
+                                                    <h4 class="font-extrabold text-slate-800 text-[9.5px] leading-tight truncate">LinkPilot AI Agent</h4>
+                                                    <p class="text-[8px] text-[#54656f] font-semibold leading-none mt-0.5">online</p>
+                                                </div>
                                             </div>
-                                            <div class="flex items-center justify-end space-x-1 mt-1 text-[8px] text-slate-400 font-bold">
-                                                <span>20:10</span>
-                                                <!-- double blue checks -->
-                                                <svg class="h-3.5 w-3.5 text-blue-500 fill-current" viewBox="0 0 24 24">
-                                                    <path d="m19.14 7.66-8.59 8.58-3.86-3.86-1.41 1.41 5.27 5.27L20.55 9.07l-1.41-1.41ZM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2Zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8Z"/>
-                                                </svg>
+                                            <div class="flex items-center space-x-1.5 text-[#54656f] shrink-0">
+                                                <i data-lucide="video" class="h-3.5 w-3.5"></i>
+                                                <i data-lucide="phone" class="h-3 w-3"></i>
+                                                <i data-lucide="more-vertical" class="h-3 w-3"></i>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Messages Body -->
+                                        <div class="chat-messages flex-grow overflow-y-auto p-2.5 flex flex-col gap-1.5">
+                                            <div class="bubble incoming bg-white p-2.5 rounded-xl rounded-tl-none shadow-xs border border-slate-200" style="max-width: 92%;">
+                                                <div class="bubble-text w-full text-[9px] text-slate-800" id="wa-preview-message-body">
+                                                    <!-- body text populated dynamically -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Chat Input Footer -->
+                                        <div class="p-1.5 bg-[#f0f2f5] flex items-center space-x-1.5 shrink-0 border-t border-slate-200">
+                                            <div class="flex-grow bg-white rounded-full px-2.5 py-1 flex items-center space-x-1.5 shadow-2xs border border-slate-100">
+                                                <i data-lucide="smile" class="h-3.5 w-3.5 text-[#54656f]"></i>
+                                                <span class="flex-grow text-[8.5px] text-slate-400 select-none truncate">Type a message</span>
+                                                <i data-lucide="paperclip" class="h-3.5 w-3.5 text-[#54656f] rotate-45"></i>
+                                            </div>
+                                            <div class="h-5.5 w-5.5 bg-[#00a884] text-white rounded-full flex items-center justify-center shrink-0 shadow-2xs">
+                                                <i data-lucide="mic" class="h-3 w-3"></i>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Footer Action -->
-                                <div class="pt-4 shrink-0">
-                                    <button onclick="confirmSelectedTemplate()" id="confirm-modal-tpl-btn" ${!activeTpl ? 'disabled' : ''} class="w-full py-2.5 bg-[#00a884] hover:bg-[#008f6f] disabled:opacity-50 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-md shadow-emerald-500/10" style="color: white !important;">
+                                <div class="pt-2 shrink-0 w-full">
+                                    <button onclick="confirmSelectedTemplate()" id="confirm-modal-tpl-btn" ${!activeTpl ? 'disabled' : ''} class="w-full py-2 bg-[#00a884] hover:bg-[#008f6f] disabled:opacity-50 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-md shadow-emerald-500/10" style="color: white !important;">
                                         <i data-lucide="check-circle-2" class="h-4 w-4 text-white"></i>
                                         <span>Confirm Template Selection</span>
                                     </button>

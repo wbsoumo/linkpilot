@@ -255,14 +255,17 @@ try {
                         $stmtQueueIn->execute([$userId, $phoneNumberId, $fromWaId, $queuePayload, 'inbound_ai_reply']);
                     }
                     
+                    // Always commit transaction first to ensure message is persisted to DB
                     $db->commit();
 
-                    // Immediately process WhatsApp AI queue synchronously for instant auto-reply response
-                    try {
-                        require_once __DIR__ . '/../../queue_worker.php';
-                        QueueWorker::processWhatsAppQueue();
-                    } catch (Throwable $qEx) {
-                        WhatsAppMetaService::logDebug("Synchronous queue worker error: " . $qEx->getMessage());
+                    // Immediately process WhatsApp AI queue synchronously in isolated scope
+                    if ($settings['ai_enabled'] && $msgType === 'text' && !empty($bodyText)) {
+                        try {
+                            require_once __DIR__ . '/../../queue_worker.php';
+                            QueueWorker::processWhatsAppQueue();
+                        } catch (Throwable $qEx) {
+                            WhatsAppMetaService::logDebug("Synchronous queue worker error: " . $qEx->getMessage());
+                        }
                     }
 
                     // Trigger active visual workflows for whatsapp_received
@@ -295,9 +298,11 @@ try {
                     } catch (Throwable $wfEx) {
                         WhatsAppMetaService::logDebug("WhatsApp visual workflow execution error: " . $wfEx->getMessage());
                     }
-                } catch (Exception $trxEx) {
-                    $db->rollBack();
-                    throw $trxEx;
+                } catch (Throwable $trxEx) {
+                    if ($db->inTransaction()) {
+                        $db->rollBack();
+                    }
+                    WhatsAppMetaService::logDebug("WhatsApp message processing error: " . $trxEx->getMessage());
                 }
             }
             

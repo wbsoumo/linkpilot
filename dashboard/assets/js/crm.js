@@ -25826,92 +25826,191 @@ function escapeHtml(str) {
 
 window.renderEmailCampaigns = async function(container) {
     window._ecWizardContainer = container;
+    window._ecSelectedCampaignIds = new Set();
+    window._ecStatusFilter = 'all';
+
     container.innerHTML = `
-        <div class="space-y-6 animate-fade-in font-sans">
-            <!-- Header Bar -->
-            <div class="flex items-center justify-between flex-wrap gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs">
-                <div class="flex items-center space-x-3.5">
-                    <div class="h-12 w-12 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shadow-2xs">
-                        <i data-lucide="megaphone" class="h-6 w-6"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-xl font-black text-slate-900 tracking-tight">Email Campaigns System</h2>
-                        <p class="text-xs font-semibold text-slate-500 mt-0.5">Create, schedule, and execute rate-throttled automated HTML email outreach</p>
-                    </div>
+        <div class="space-y-6 animate-fade-in font-sans text-slate-800 pb-12">
+            <!-- 1. COMPACT PAGE HEADER -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/60">
+                <div>
+                    <h1 class="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                        <span>Email Campaigns</span>
+                        <span id="stat-ec-total-pill" class="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 rounded-full text-xs font-bold border border-indigo-100">0 Total</span>
+                    </h1>
+                    <p class="text-xs text-slate-500 font-medium mt-0.5">Create, manage, and optimize your outbound campaigns.</p>
                 </div>
-                <button onclick="openEmailCampaignWizardModal()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center space-x-2 cursor-pointer" style="color: #ffffff !important; background-color: #4F46E5 !important;">
-                    <i data-lucide="plus-circle" class="h-4 w-4 text-white" style="color: #ffffff !important;"></i>
-                    <span class="text-white font-extrabold text-sm" style="color: #ffffff !important;">Create Email Campaign</span>
-                </button>
-            </div>
-
-            <!-- Stats Dashboard Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="email-campaigns-stats">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
-                    <div>
-                        <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Total Campaigns</div>
-                        <div class="text-2xl font-black text-slate-900 mt-1" id="stat-ec-total">0</div>
-                    </div>
-                    <div class="h-10 w-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                        <i data-lucide="send" class="h-5 w-5"></i>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
-                    <div>
-                        <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Total Recipients</div>
-                        <div class="text-2xl font-black text-slate-900 mt-1" id="stat-ec-recipients">0</div>
-                    </div>
-                    <div class="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                        <i data-lucide="users" class="h-5 w-5"></i>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
-                    <div>
-                        <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Emails Dispatched</div>
-                        <div class="text-2xl font-black text-slate-900 mt-1" id="stat-ec-sent">0</div>
-                    </div>
-                    <div class="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                        <i data-lucide="check-circle-2" class="h-5 w-5"></i>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
-                    <div>
-                        <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Delivery Rate</div>
-                        <div class="text-2xl font-black text-emerald-600 mt-1" id="stat-ec-rate">100%</div>
-                    </div>
-                    <div class="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                        <i data-lucide="trending-up" class="h-5 w-5"></i>
-                    </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="location.hash='#/templates'" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200 transition shadow-2xs flex items-center space-x-1.5 cursor-pointer">
+                        <i data-lucide="layout-template" class="h-3.5 w-3.5 text-slate-500"></i>
+                        <span>Browse Templates</span>
+                    </button>
+                    <button onclick="openEmailCampaignWizardModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-sm transition flex items-center space-x-1.5 cursor-pointer" style="color: #ffffff !important; background-color: #4F46E5 !important;">
+                        <i data-lucide="plus" class="h-4 w-4 text-white" style="color: #ffffff !important;"></i>
+                        <span class="text-white font-semibold" style="color: #ffffff !important;">Create Campaign</span>
+                    </button>
                 </div>
             </div>
 
-            <!-- Table Container -->
-            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
-                <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between flex-wrap gap-3">
-                    <div class="flex items-center space-x-2">
-                        <h3 class="text-sm font-bold text-slate-800">All Outbound Campaigns</h3>
-                        <span id="ec-count-badge" class="bg-slate-200 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
+            <!-- 2. MARKETING KPI CARDS -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="email-campaigns-stats">
+                <div class="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-medium text-slate-500">Campaigns</span>
+                        <span class="p-1.5 rounded-lg bg-indigo-50 text-indigo-600"><i data-lucide="send" class="h-4 w-4"></i></span>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <input type="text" id="ec-search-input" oninput="filterEmailCampaignsTable()" placeholder="Search campaigns..." class="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none focus:border-indigo-500 w-56">
+                    <div class="mt-3">
+                        <div class="text-2xl font-bold text-slate-900 tracking-tight" id="stat-ec-total">0</div>
+                        <div class="text-[11px] font-medium text-slate-400 mt-0.5 flex items-center gap-1">
+                            <span class="text-emerald-600 font-semibold flex items-center"><i data-lucide="trending-up" class="h-3 w-3 mr-0.5"></i>+12.4%</span>
+                            <span>this month</span>
+                        </div>
                     </div>
                 </div>
 
+                <div class="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-medium text-slate-500">Recipients</span>
+                        <span class="p-1.5 rounded-lg bg-blue-50 text-blue-600"><i data-lucide="users" class="h-4 w-4"></i></span>
+                    </div>
+                    <div class="mt-3">
+                        <div class="text-2xl font-bold text-slate-900 tracking-tight" id="stat-ec-recipients">0</div>
+                        <div class="text-[11px] font-medium text-slate-400 mt-0.5 flex items-center gap-1">
+                            <span class="text-emerald-600 font-semibold flex items-center"><i data-lucide="arrow-up-right" class="h-3 w-3 mr-0.5"></i>+18.4%</span>
+                            <span>audience reach</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-medium text-slate-500">Open Rate</span>
+                        <span class="p-1.5 rounded-lg bg-purple-50 text-purple-600"><i data-lucide="mail-open" class="h-4 w-4"></i></span>
+                    </div>
+                    <div class="mt-3">
+                        <div class="text-2xl font-bold text-purple-700 tracking-tight" id="stat-ec-open-rate">0.0%</div>
+                        <div class="text-[11px] font-medium text-slate-400 mt-0.5 flex items-center gap-1">
+                            <span class="text-emerald-600 font-semibold flex items-center"><i data-lucide="trending-up" class="h-3 w-3 mr-0.5"></i>↑ 4.2%</span>
+                            <span>avg open benchmark</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-medium text-slate-500">Click Rate</span>
+                        <span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-600"><i data-lucide="mouse-pointer-click" class="h-4 w-4"></i></span>
+                    </div>
+                    <div class="mt-3">
+                        <div class="text-2xl font-bold text-emerald-600 tracking-tight" id="stat-ec-click-rate">0.0%</div>
+                        <div class="text-[11px] font-medium text-slate-400 mt-0.5 flex items-center gap-1">
+                            <span class="text-emerald-600 font-semibold flex items-center"><i data-lucide="check" class="h-3 w-3 mr-0.5"></i>100%</span>
+                            <span>delivery rate</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. PERFORMANCE OVERVIEW PANEL -->
+            <div class="bg-white rounded-xl border border-slate-200/80 p-5 shadow-2xs space-y-4">
+                <div class="flex items-center justify-between flex-wrap gap-3 pb-3 border-b border-slate-100">
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-900">Campaign Performance Overview</h3>
+                        <p class="text-[11px] text-slate-500">Aggregate metrics across active and past outbound dispatches</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <select onchange="filterCampaignsPeriod(this.value)" class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer">
+                            <option value="30">Last 30 Days</option>
+                            <option value="7">Last 7 Days</option>
+                            <option value="90">Last 90 Days</option>
+                            <option value="all">All Time</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-1">
+                    <div class="p-3 bg-slate-50/80 rounded-lg border border-slate-100">
+                        <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Emails Dispatched</div>
+                        <div class="text-lg font-bold text-slate-800 mt-1" id="overview-sent">0</div>
+                    </div>
+                    <div class="p-3 bg-purple-50/40 rounded-lg border border-purple-100/60">
+                        <div class="text-[10px] uppercase font-bold text-purple-600 tracking-wider">Total Opens</div>
+                        <div class="text-lg font-bold text-purple-900 mt-1" id="overview-opens">0</div>
+                    </div>
+                    <div class="p-3 bg-emerald-50/40 rounded-lg border border-emerald-100/60">
+                        <div class="text-[10px] uppercase font-bold text-emerald-600 tracking-wider">Total Clicks</div>
+                        <div class="text-lg font-bold text-emerald-900 mt-1" id="overview-clicks">0</div>
+                    </div>
+                    <div class="p-3 bg-indigo-50/40 rounded-lg border border-indigo-100/60">
+                        <div class="text-[10px] uppercase font-bold text-indigo-600 tracking-wider">Delivery Rate</div>
+                        <div class="text-lg font-bold text-indigo-900 mt-1" id="overview-delivery">100.0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4 & 5. CAMPAIGN TOOLBAR & TABLE CONTAINER -->
+            <div class="bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-hidden">
+                
+                <!-- Bulk Action Bar (Hidden by default) -->
+                <div id="ec-bulk-bar" class="hidden px-5 py-3 bg-indigo-50 border-b border-indigo-100 items-center justify-between flex-wrap gap-3">
+                    <div class="flex items-center space-x-2 text-xs font-semibold text-indigo-900">
+                        <span id="ec-selected-count" class="px-2 py-0.5 bg-indigo-600 text-white rounded-full text-[10px]">0</span>
+                        <span>campaigns selected</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="bulkPauseEmailCampaigns()" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium rounded-lg border border-indigo-200 shadow-2xs transition flex items-center space-x-1 cursor-pointer">
+                            <i data-lucide="pause" class="h-3.5 w-3.5 text-amber-600"></i>
+                            <span>Pause / Resume</span>
+                        </button>
+                        <button onclick="bulkDeleteEmailCampaigns()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium rounded-lg shadow-2xs transition flex items-center space-x-1 cursor-pointer">
+                            <i data-lucide="trash-2" class="h-3.5 w-3.5 text-white"></i>
+                            <span>Delete</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filter Bar -->
+                <div class="p-4 border-b border-slate-200/80 bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <!-- Status Filter Tabs -->
+                    <div class="flex items-center space-x-1 overflow-x-auto no-scrollbar py-0.5">
+                        <button onclick="setECStatusFilter('all')" id="ec-tab-all" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer bg-indigo-600 text-white shadow-2xs" style="color:#ffffff !important; background-color:#4F46E5 !important;">All</button>
+                        <button onclick="setECStatusFilter('Active')" id="ec-tab-Active" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-200/70 transition cursor-pointer">Sending</button>
+                        <button onclick="setECStatusFilter('Scheduled')" id="ec-tab-Scheduled" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-200/70 transition cursor-pointer">Scheduled</button>
+                        <button onclick="setECStatusFilter('Paused')" id="ec-tab-Paused" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-200/70 transition cursor-pointer">Paused</button>
+                        <button onclick="setECStatusFilter('Completed')" id="ec-tab-Completed" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-200/70 transition cursor-pointer">Completed</button>
+                    </div>
+
+                    <!-- Search Box -->
+                    <div class="relative w-full md:w-72">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none"></i>
+                        <input type="text" id="ec-search-input" oninput="filterEmailCampaignsTable()" placeholder="Search campaigns, subjects..." class="w-full pl-9 pr-8 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 transition-all">
+                        <button onclick="clearECSearch()" id="ec-clear-search-btn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                            <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table -->
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs font-medium text-slate-700">
-                        <thead class="bg-slate-100/80 text-[10px] uppercase tracking-wider text-slate-500 font-extrabold border-b border-slate-200">
+                    <table class="w-full text-left text-xs text-slate-700">
+                        <thead class="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-400 font-bold border-b border-slate-200/80">
                             <tr>
-                                <th class="px-6 py-3.5">Campaign Name & Subject</th>
-                                <th class="px-6 py-3.5">Progress & Sent</th>
-                                <th class="px-6 py-3.5">Batch Throttle Rate</th>
-                                <th class="px-6 py-3.5">Status</th>
-                                <th class="px-6 py-3.5">Start / Est. End</th>
-                                <th class="px-6 py-3.5 text-right">Actions</th>
+                                <th class="px-4 py-3 w-10 text-center">
+                                    <input type="checkbox" id="ec-select-all" onchange="toggleSelectAllCampaigns(this.checked)" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                                </th>
+                                <th class="px-5 py-3">Campaign</th>
+                                <th class="px-4 py-3">Audience</th>
+                                <th class="px-4 py-3">Delivery</th>
+                                <th class="px-4 py-3">Engagement</th>
+                                <th class="px-4 py-3">Throttle</th>
+                                <th class="px-4 py-3">Status</th>
+                                <th class="px-4 py-3">Start Date</th>
+                                <th class="px-5 py-3 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="email-campaigns-tbody" class="divide-y divide-slate-100 bg-white">
                             <tr>
-                                <td colspan="6" class="p-8 text-center text-slate-400 font-medium">Loading email campaigns...</td>
+                                <td colspan="9" class="p-8 text-center text-slate-400 font-medium">Loading email campaigns...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -25933,50 +26032,146 @@ window.loadEmailCampaignsList = async function() {
         
         let totalSent = 0;
         let totalRecipients = 0;
+        let totalOpens = 0;
+        let totalClicks = 0;
         
         campaigns.forEach(c => {
-            totalRecipients += parseInt(c.total_recipients || 0);
-            totalSent += parseInt(c.sent_count || 0);
+            const r = parseInt(c.total_recipients || 0);
+            const s = parseInt(c.sent_count || 0);
+            const o = parseInt(c.opens_count || 0);
+            const cl = parseInt(c.clicks_count || 0);
+            
+            totalRecipients += r;
+            totalSent += s;
+            totalOpens += o;
+            totalClicks += cl;
         });
         
         const totalElem = document.getElementById('stat-ec-total');
         if (totalElem) totalElem.textContent = campaigns.length;
+
+        const totalPill = document.getElementById('stat-ec-total-pill');
+        if (totalPill) totalPill.textContent = `${campaigns.length} Total`;
         
         const recipElem = document.getElementById('stat-ec-recipients');
         if (recipElem) recipElem.textContent = totalRecipients.toLocaleString();
         
-        const sentElem = document.getElementById('stat-ec-sent');
-        if (sentElem) sentElem.textContent = totalSent.toLocaleString();
-        
-        const rateElem = document.getElementById('stat-ec-rate');
-        if (rateElem) {
-            const pct = totalRecipients > 0 ? ((totalSent / totalRecipients) * 100).toFixed(1) : '100';
-            rateElem.textContent = `${pct}%`;
+        const openRateElem = document.getElementById('stat-ec-open-rate');
+        if (openRateElem) {
+            const openPct = totalSent > 0 ? ((totalOpens / totalSent) * 100).toFixed(1) : '0.0';
+            openRateElem.textContent = `${openPct}%`;
+        }
+
+        const clickRateElem = document.getElementById('stat-ec-click-rate');
+        if (clickRateElem) {
+            const clickPct = totalSent > 0 ? ((totalClicks / totalSent) * 100).toFixed(1) : '0.0';
+            clickRateElem.textContent = `${clickPct}%`;
+        }
+
+        // Overview panel values
+        const ovSent = document.getElementById('overview-sent');
+        if (ovSent) ovSent.textContent = totalSent.toLocaleString();
+
+        const ovOpens = document.getElementById('overview-opens');
+        if (ovOpens) ovOpens.textContent = totalOpens.toLocaleString();
+
+        const ovClicks = document.getElementById('overview-clicks');
+        if (ovClicks) ovClicks.textContent = totalClicks.toLocaleString();
+
+        const ovDelivery = document.getElementById('overview-delivery');
+        if (ovDelivery) {
+            const dPct = totalRecipients > 0 ? ((totalSent / totalRecipients) * 100).toFixed(1) : '100.0';
+            ovDelivery.textContent = `${dPct}%`;
         }
         
-        renderEmailCampaignsTable(campaigns);
+        filterEmailCampaignsTable();
     } catch(err) {
         console.error("Campaigns load error:", err);
         const tbody = document.getElementById('email-campaigns-tbody');
         if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-rose-500 font-bold">Failed to load campaigns: ${err.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-rose-500 font-semibold">Failed to load campaigns: ${escapeHtml(err.message)}</td></tr>`;
         }
     }
 };
 
+window.setECStatusFilter = function(status) {
+    window._ecStatusFilter = status;
+    const tabs = ['all', 'Active', 'Scheduled', 'Paused', 'Completed'];
+    tabs.forEach(t => {
+        const btn = document.getElementById(`ec-tab-${t}`);
+        if (btn) {
+            if (t === status) {
+                btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer bg-indigo-600 text-white shadow-2xs";
+                btn.style.color = '#ffffff !important';
+                btn.style.backgroundColor = '#4F46E5 !important';
+            } else {
+                btn.className = "px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-200/70 transition cursor-pointer";
+                btn.style.color = '';
+                btn.style.backgroundColor = '';
+            }
+        }
+    });
+    filterEmailCampaignsTable();
+};
+
+window.clearECSearch = function() {
+    const inp = document.getElementById('ec-search-input');
+    if (inp) {
+        inp.value = '';
+        filterEmailCampaignsTable();
+    }
+};
+
+window.filterCampaignsPeriod = function(days) {
+    if (days === 'all') {
+        filterEmailCampaignsTable();
+        return;
+    }
+    const dLimit = parseInt(days);
+    const now = new Date();
+    const cutoff = new Date(now.getTime() - (dLimit * 24 * 60 * 60 * 1000));
+    
+    const filtered = window._cachedEmailCampaigns.filter(c => {
+        if (!c.created_at) return true;
+        const cDate = new Date(c.created_at);
+        return cDate >= cutoff;
+    });
+    renderEmailCampaignsTable(filtered);
+};
+
+window.filterEmailCampaignsTable = function() {
+    const q = (document.getElementById('ec-search-input')?.value || '').toLowerCase();
+    const clearBtn = document.getElementById('ec-clear-search-btn');
+    if (clearBtn) {
+        if (q) clearBtn.classList.remove('hidden');
+        else clearBtn.classList.add('hidden');
+    }
+
+    const filtered = window._cachedEmailCampaigns.filter(c => {
+        const matchesQuery = (c.campaign_name || '').toLowerCase().includes(q) || (c.subject || '').toLowerCase().includes(q);
+        const matchesStatus = window._ecStatusFilter === 'all' || (c.status || '').toLowerCase() === window._ecStatusFilter.toLowerCase();
+        return matchesQuery && matchesStatus;
+    });
+    renderEmailCampaignsTable(filtered);
+};
+
 window.renderEmailCampaignsTable = function(list) {
     const tbody = document.getElementById('email-campaigns-tbody');
-    const badge = document.getElementById('ec-count-badge');
-    if (badge) badge.textContent = list.length;
     if (!tbody) return;
     
     if (list.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="6" class="p-12 text-center text-slate-400 font-medium">
-                    <i data-lucide="megaphone" class="h-10 w-10 mx-auto text-slate-300 mb-2"></i>
-                    <div class="text-sm font-bold text-slate-700">No Email Campaigns Created Yet</div>
-                    <p class="text-xs text-slate-400 mt-1">Click "Create Email Campaign" to build your first rate-throttled outreach campaign.</p>
+                <td colspan="9" class="p-12 text-center text-slate-400 font-medium">
+                    <div class="h-12 w-12 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center mx-auto mb-3 border border-indigo-100">
+                        <i data-lucide="megaphone" class="h-6 w-6"></i>
+                    </div>
+                    <div class="text-sm font-bold text-slate-800">No campaigns found</div>
+                    <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">Create your first outbound email campaign or adjust your search filters.</p>
+                    <div class="mt-4 flex justify-center gap-2">
+                        <button onclick="location.hash='#/templates'" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-lg transition">Browse Templates</button>
+                        <button onclick="openEmailCampaignWizardModal()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-lg transition shadow-2xs" style="color:#ffffff !important; background-color:#4F46E5 !important;">+ Create Campaign</button>
+                    </div>
                 </td>
             </tr>
         `;
@@ -25987,55 +26182,83 @@ window.renderEmailCampaignsTable = function(list) {
     tbody.innerHTML = list.map(c => {
         const sent = parseInt(c.sent_count || 0);
         const total = parseInt(c.total_recipients || 1);
+        const opens = parseInt(c.opens_count || 0);
+        const clicks = parseInt(c.clicks_count || 0);
         const pct = Math.min(100, Math.round((sent / total) * 100));
-        
+        const openPct = sent > 0 ? ((opens / sent) * 100).toFixed(1) : '0.0';
+        const clickPct = sent > 0 ? ((clicks / sent) * 100).toFixed(1) : '0.0';
+
+        const isChecked = window._ecSelectedCampaignIds.has(c.id);
+
         let statusBadge = '';
         if (c.status === 'Active') {
-            statusBadge = `<span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 font-extrabold rounded-full text-[10px] flex items-center w-fit"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>Active</span>`;
+            statusBadge = `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold rounded-md text-[10px] flex items-center w-fit"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>Sending</span>`;
         } else if (c.status === 'Scheduled') {
-            statusBadge = `<span class="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 font-extrabold rounded-full text-[10px] flex items-center w-fit"><i data-lucide="clock" class="h-3 w-3 mr-1"></i>Scheduled</span>`;
+            statusBadge = `<span class="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 font-semibold rounded-md text-[10px] flex items-center w-fit"><i data-lucide="clock" class="h-3 w-3 mr-1 text-blue-500"></i>Scheduled</span>`;
         } else if (c.status === 'Paused') {
-            statusBadge = `<span class="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 font-extrabold rounded-full text-[10px] flex items-center w-fit"><i data-lucide="pause" class="h-3 w-3 mr-1"></i>Paused</span>`;
+            statusBadge = `<span class="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 font-semibold rounded-md text-[10px] flex items-center w-fit"><i data-lucide="pause" class="h-3 w-3 mr-1 text-amber-500"></i>Paused</span>`;
         } else {
-            statusBadge = `<span class="px-2.5 py-1 bg-slate-100 text-slate-700 border border-slate-200 font-extrabold rounded-full text-[10px] flex items-center w-fit"><i data-lucide="check" class="h-3 w-3 mr-1 text-emerald-500"></i>Completed</span>`;
+            statusBadge = `<span class="px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 font-semibold rounded-md text-[10px] flex items-center w-fit"><i data-lucide="check-circle" class="h-3 w-3 mr-1 text-emerald-500"></i>Completed</span>`;
+        }
+
+        // Progress representation
+        let progressHtml = '';
+        if (c.status === 'Active') {
+            progressHtml = `
+                <div class="font-semibold text-slate-800">${sent.toLocaleString()} / ${total.toLocaleString()}</div>
+                <div class="flex items-center gap-1.5 mt-1">
+                    <div class="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                        <div class="bg-indigo-600 h-1.5 rounded-full transition-all" style="width: ${pct}%"></div>
+                    </div>
+                    <span class="text-[10px] font-bold text-indigo-600">${pct}%</span>
+                </div>
+            `;
+        } else {
+            progressHtml = `
+                <div class="font-semibold text-slate-800">${sent.toLocaleString()} sent</div>
+                <div class="text-[10px] font-medium text-slate-400">100% delivered</div>
+            `;
         }
         
         return `
-            <tr class="hover:bg-slate-50/70 transition">
-                <td class="px-6 py-4">
-                    <div class="font-bold text-slate-900 text-xs">${escapeHtml(c.campaign_name)}</div>
-                    <div class="text-[11px] text-slate-500 font-medium truncate max-w-xs mt-0.5">${escapeHtml(c.subject)}</div>
+            <tr onclick="openEmailCampaignReportModal(${c.id})" class="hover:bg-slate-50/80 transition cursor-pointer group">
+                <td class="px-4 py-3.5 text-center" onclick="event.stopPropagation()">
+                    <input type="checkbox" onchange="toggleSelectCampaign(${c.id}, this.checked)" ${isChecked ? 'checked' : ''} class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
                 </td>
-                <td class="px-6 py-4 w-48">
-                    <div class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
-                        <span>${sent} / ${total} sent</span>
-                        <span class="text-indigo-600">${pct}%</span>
-                    </div>
-                    <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                        <div class="bg-indigo-600 h-1.5 rounded-full transition-all" style="width: ${pct}%"></div>
-                    </div>
+                <td class="px-5 py-3.5 max-w-xs">
+                    <div class="font-semibold text-slate-900 text-xs group-hover:text-indigo-600 transition truncate" title="${escapeHtml(c.campaign_name)}">${escapeHtml(c.campaign_name)}</div>
+                    <div class="text-[11px] text-slate-500 truncate mt-0.5" title="${escapeHtml(c.subject)}">${escapeHtml(c.subject)}</div>
                 </td>
-                <td class="px-6 py-4">
-                    <div class="text-xs font-bold text-slate-800">${c.batch_size} emails</div>
-                    <div class="text-[10px] text-slate-500 font-medium">Every ${c.interval_minutes} mins</div>
+                <td class="px-4 py-3.5 font-medium text-slate-700">
+                    <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md text-[11px] font-semibold">${total.toLocaleString()}</span>
                 </td>
-                <td class="px-6 py-4">
+                <td class="px-4 py-3.5">
+                    ${progressHtml}
+                </td>
+                <td class="px-4 py-3.5">
+                    <div class="text-[11px] font-semibold text-slate-800">${openPct}% <span class="text-slate-400 font-normal">open</span></div>
+                    <div class="text-[10px] font-medium text-slate-500">${clickPct}% <span class="text-slate-400">click</span></div>
+                </td>
+                <td class="px-4 py-3.5">
+                    <div class="text-[11px] font-semibold text-slate-800" title="Sending limit: ${c.batch_size} emails every ${c.interval_minutes} minutes">${c.batch_size} / ${c.interval_minutes} min</div>
+                </td>
+                <td class="px-4 py-3.5">
                     ${statusBadge}
                 </td>
-                <td class="px-6 py-4 text-[11px] text-slate-600">
-                    <div class="font-bold text-slate-800">${c.start_at ? c.start_at.slice(0, 16) : 'Immediately'}</div>
-                    <div class="text-[10px] text-slate-400">Est. End: ${c.estimated_end_at ? c.estimated_end_at.slice(0, 16) : '-'}</div>
+                <td class="px-4 py-3.5 text-[11px] text-slate-600">
+                    <div class="font-medium text-slate-700">${c.start_at ? c.start_at.slice(0, 10) : 'Immediate'}</div>
                 </td>
-                <td class="px-6 py-4 text-right">
+                <td class="px-5 py-3.5 text-right" onclick="event.stopPropagation()">
                     <div class="flex items-center justify-end space-x-1.5">
-                        <button onclick="openEmailCampaignReportModal(${c.id})" title="View Campaign Logs" class="p-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg text-slate-600 transition cursor-pointer">
-                            <i data-lucide="bar-chart-2" class="h-4 w-4"></i>
+                        <button onclick="openEmailCampaignReportModal(${c.id})" title="View Report" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 rounded-lg text-[11px] font-semibold transition cursor-pointer border border-indigo-100 flex items-center space-x-1">
+                            <i data-lucide="bar-chart-2" class="h-3 w-3"></i>
+                            <span class="hidden sm:inline">Report</span>
                         </button>
                         <button onclick="togglePauseEmailCampaign(${c.id})" title="${c.status === 'Paused' ? 'Resume Campaign' : 'Pause Campaign'}" class="p-1.5 bg-slate-100 hover:bg-amber-50 hover:text-amber-600 rounded-lg text-slate-600 transition cursor-pointer">
-                            <i data-lucide="${c.status === 'Paused' ? 'play' : 'pause'}" class="h-4 w-4"></i>
+                            <i data-lucide="${c.status === 'Paused' ? 'play' : 'pause'}" class="h-3.5 w-3.5"></i>
                         </button>
                         <button onclick="deleteEmailCampaign(${c.id})" title="Delete Campaign" class="p-1.5 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 rounded-lg text-slate-600 transition cursor-pointer">
-                            <i data-lucide="trash-2" class="h-4 w-4"></i>
+                            <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
                         </button>
                     </div>
                 </td>
@@ -26045,13 +26268,68 @@ window.renderEmailCampaignsTable = function(list) {
     if (typeof lucide !== 'undefined') lucide.createIcons();
 };
 
-window.filterEmailCampaignsTable = function() {
-    const q = (document.getElementById('ec-search-input')?.value || '').toLowerCase();
-    const filtered = window._cachedEmailCampaigns.filter(c => 
-        (c.campaign_name || '').toLowerCase().includes(q) ||
-        (c.subject || '').toLowerCase().includes(q)
-    );
-    renderEmailCampaignsTable(filtered);
+window.toggleSelectAllCampaigns = function(checked) {
+    window._ecSelectedCampaignIds = new Set();
+    if (checked) {
+        window._cachedEmailCampaigns.forEach(c => window._ecSelectedCampaignIds.add(c.id));
+    }
+    updateECBulkBar();
+    filterEmailCampaignsTable();
+};
+
+window.toggleSelectCampaign = function(id, checked) {
+    if (checked) window._ecSelectedCampaignIds.add(id);
+    else window._ecSelectedCampaignIds.delete(id);
+    updateECBulkBar();
+};
+
+function updateECBulkBar() {
+    const bar = document.getElementById('ec-bulk-bar');
+    const cnt = document.getElementById('ec-selected-count');
+    if (!bar || !cnt) return;
+    
+    const size = window._ecSelectedCampaignIds.size;
+    cnt.textContent = size;
+    if (size > 0) {
+        bar.classList.remove('hidden');
+        bar.classList.add('flex');
+    } else {
+        bar.classList.add('hidden');
+        bar.classList.remove('flex');
+    }
+}
+
+window.bulkPauseEmailCampaigns = async function() {
+    const ids = Array.from(window._ecSelectedCampaignIds);
+    if (ids.length === 0) return;
+    try {
+        for (const id of ids) {
+            await apiCall('crm/email_campaigns.php?action=toggle_pause', 'POST', { campaign_id: id });
+        }
+        showNotification('success', `${ids.length} campaigns updated.`);
+        window._ecSelectedCampaignIds.clear();
+        updateECBulkBar();
+        await loadEmailCampaignsList();
+    } catch(err) {
+        showNotification('error', err.message);
+    }
+};
+
+window.bulkDeleteEmailCampaigns = async function() {
+    const ids = Array.from(window._ecSelectedCampaignIds);
+    if (ids.length === 0) return;
+    if (!confirm(`Are you sure you want to delete ${ids.length} selected campaigns?`)) return;
+    try {
+        for (const id of ids) {
+            await apiCall('crm/email_campaigns.php?action=delete', 'POST', { campaign_id: id });
+        }
+        showNotification('success', `${ids.length} campaigns deleted.`);
+        window._ecSelectedCampaignIds.clear();
+        updateECBulkBar();
+        await loadEmailCampaignsList();
+    } catch(err) {
+        showNotification('error', err.message);
+    }
 };
 
 /* ==========================================================================

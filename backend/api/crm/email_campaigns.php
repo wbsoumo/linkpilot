@@ -140,7 +140,23 @@ try {
             
             sendJsonResponse('success', 'Campaign details loaded.', ['campaign' => $campaign]);
         } else {
-            $stmt = $db->prepare("SELECT * FROM email_campaigns WHERE user_id = ? ORDER BY id DESC");
+            $stmt = $db->prepare("
+                SELECT 
+                    c.*,
+                    COALESCE(SUM(CASE WHEN t.open_count > 0 THEN 1 ELSE 0 END), 0) AS opens_count,
+                    COALESCE(SUM(CASE WHEN cl.id IS NOT NULL THEN 1 ELSE 0 END), 0) AS clicks_count,
+                    COALESCE(SUM(CASE WHEN l.is_replied = 1 THEN 1 ELSE 0 END), 0) AS replies_count,
+                    COALESCE(SUM(CASE WHEN l.is_bounced = 1 OR l.status = 'Failed' THEN 1 ELSE 0 END), 0) AS bounces_count
+                FROM email_campaigns c
+                LEFT JOIN email_campaign_logs l ON c.id = l.campaign_id
+                LEFT JOIN email_tracking t ON l.id = t.campaign_log_id
+                LEFT JOIN (
+                    SELECT DISTINCT campaign_log_id FROM email_click_tracking
+                ) cl ON l.id = cl.campaign_log_id
+                WHERE c.user_id = ?
+                GROUP BY c.id
+                ORDER BY c.id DESC
+            ");
             $stmt->execute([$userId]);
             $campaigns = $stmt->fetchAll(PDO::FETCH_ASSOC);
             sendJsonResponse('success', 'Email campaigns list loaded.', ['campaigns' => $campaigns]);

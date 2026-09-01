@@ -9501,6 +9501,7 @@ async function submitTaskRemarks(btn, taskId) {
         
         if (res.status === 'success') {
             showNotification('success', 'Remarks updated successfully!');
+            try { updateGlobalTaskBadges(); } catch (e) {}
             document.getElementById('task-add-remarks-modal').remove();
             const viewport = document.getElementById('main-content-viewport');
             if (viewport) {

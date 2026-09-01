@@ -19367,13 +19367,13 @@ window.openEmailComposerModal = function(templateId) {
                 </div>
 
                 <!-- BOTTOM BUTTONS ROW -->
-                <div class="flex items-center justify-between pt-2">
-                    <button type="button" onclick="previewTemplateModal(${t.id})" class="px-5 py-2.5 bg-white border-2 border-cyan-500 hover:bg-cyan-50 text-cyan-700 text-xs font-extrabold rounded-xl transition flex items-center space-x-2 cursor-pointer shadow-2xs">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100 bg-white sticky bottom-0 z-20">
+                    <button type="button" onclick="previewTemplateModal(${t.id})" class="w-full sm:w-auto px-5 py-2.5 bg-white border border-cyan-500 hover:bg-cyan-50 text-cyan-700 text-xs font-extrabold rounded-xl transition flex items-center justify-center space-x-2 cursor-pointer shadow-2xs">
                         <i data-lucide="eye" class="h-4 w-4 text-cyan-600"></i>
                         <span class="text-cyan-700 font-extrabold">Live Preview Render</span>
                     </button>
 
-                    <button type="button" onclick="sendComposerEmailModal(${t.id})" id="composer-send-btn" class="px-7 py-2.5 bg-[#0084FF] hover:bg-[#0073E6] text-white text-xs font-extrabold rounded-xl shadow-lg hover:scale-102 transition flex items-center space-x-2 cursor-pointer" style="color: #ffffff !important; background-color: #0084FF !important;">
+                    <button type="button" onclick="sendComposerEmailModal(${t.id})" id="composer-send-btn" class="w-full sm:w-auto px-7 py-2.5 bg-[#0084FF] hover:bg-[#0073E6] text-white text-xs font-extrabold rounded-xl shadow-lg hover:scale-102 transition flex items-center justify-center space-x-2 cursor-pointer" style="color: #ffffff !important; background-color: #0084FF !important;">
                         <i data-lucide="send" class="h-4 w-4 text-white" style="color: #ffffff !important;"></i>
                         <span class="text-white font-extrabold text-sm" style="color: #ffffff !important;">Send Outbound Email</span>
                     </button>
@@ -19586,13 +19586,22 @@ window.sendComposerEmailModal = async function(templateId) {
     
     let htmlBody = '';
     if (rawEditor && !rawEditor.classList.contains('hidden')) {
-        htmlBody = rawEditor.value;
+        htmlBody = rawEditor.value || '';
     } else if (editor) {
-        htmlBody = editor.innerHTML;
+        htmlBody = editor.innerHTML || '';
+    }
+    
+    // Fallback: If htmlBody is empty, check rawEditor or editor textContent
+    if (!htmlBody.trim()) {
+        if (rawEditor && rawEditor.value.trim()) {
+            htmlBody = rawEditor.value.trim();
+        } else if (editor && (editor.textContent || editor.innerText || '').trim()) {
+            htmlBody = editor.innerHTML.trim();
+        }
     }
     
     if (!htmlBody || !htmlBody.trim()) {
-        showNotification('error', 'Email content body cannot be empty.');
+        showNotification('error', 'Email content body cannot be empty. Please enter content or select a template.');
         return;
     }
     

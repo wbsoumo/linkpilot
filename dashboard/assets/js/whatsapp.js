@@ -2024,8 +2024,8 @@ function renderWhatsAppInbox(container) {
         // Initial thread load
         loadWaThreads();
 
-        // Set Thread poll timer
-        waThreadsInterval = setInterval(loadWaThreads, 7000);
+        // Set Thread poll timer (3s for snappy real-time message arrival)
+        waThreadsInterval = setInterval(loadWaThreads, 3000);
     });
 }
 
@@ -2084,6 +2084,10 @@ async function loadWaThreads(search = '') {
         if (threads.length === 0) {
             container.innerHTML = `<div class="p-6 text-center text-slate-400">No active chats found.</div>`;
             return;
+        }
+
+        if (threads.length > 0 && !activeWaThreadId) {
+            selectWaThread(threads[0].id);
         }
 
         container.innerHTML = threads.map(t => {
@@ -2149,10 +2153,10 @@ window.selectWaThread = function (threadId) {
     // Highlight list selection
     loadWaThreads();
 
-    // Start Message Poll
+    // Start Message Poll (2.5s for real-time chat feel)
     clearInterval(waMessagesInterval);
     loadWaThreadMessages();
-    waMessagesInterval = setInterval(loadWaThreadMessages, 4000);
+    waMessagesInterval = setInterval(loadWaThreadMessages, 2500);
 };
 
 // Fetch conversation thread messages and CRM profiles

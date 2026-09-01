@@ -8146,6 +8146,8 @@ window.submitStep0 = async function() {
     } catch (e) {
         showNotification('error', 'Failed to save config: ' + e.message);
     }
+};
+
 window.uploadKnowledgeBasePDF = function(input) {
     const file = input.files[0];
     if (!file) return;

@@ -85,19 +85,17 @@ try {
         $changes = $entry['changes'] ?? [];
         foreach ($changes as $change) {
             $value = $change['value'] ?? [];
+            // 1. Locate the connected account by phone_number_id (or fallback to latest connected account)
             $metadata = $value['metadata'] ?? [];
             $phoneNumberId = $metadata['phone_number_id'] ?? '';
-            
-            if (empty($phoneNumberId)) {
-                continue; // Skip if no phone ID to route to user account
+            $accRow = null;
+            if (!empty($phoneNumberId)) {
+                $stmtAcc = $db->prepare("SELECT user_id, access_token, business_name FROM whatsapp_accounts WHERE phone_number_id = ? AND status = 'connected' LIMIT 1");
+                $stmtAcc->execute([$phoneNumberId]);
+                $accRow = $stmtAcc->fetch();
             }
-            
-            // 1. Locate the connected account by phone_number_id (or fallback to latest connected account)
-            $stmtAcc = $db->prepare("SELECT user_id, access_token, business_name FROM whatsapp_accounts WHERE phone_number_id = ? AND status = 'connected' LIMIT 1");
-            $stmtAcc->execute([$phoneNumberId]);
-            $accRow = $stmtAcc->fetch();
             if (!$accRow) {
-                // Fallback to any connected account if phone_number_id differs slightly in Meta payload
+                // Fallback to any connected account if phone_number_id differs slightly or is absent in Meta payload
                 $stmtAccFallback = $db->query("SELECT user_id, access_token, business_name FROM whatsapp_accounts WHERE status = 'connected' ORDER BY updated_at DESC LIMIT 1");
                 $accRow = $stmtAccFallback->fetch();
             }

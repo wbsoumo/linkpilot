@@ -2465,23 +2465,23 @@ function renderEmailSettingsLayout(container) {
             <!-- Main Layout Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <!-- Sidebar Tabs Navigation -->
-                <div class="lg:col-span-5 xl:col-span-4 space-y-2 bg-white p-4 rounded-3xl border border-slate-200/80 shadow-xs h-fit">
+                <div class="lg:col-span-4 xl:col-span-4 space-y-2 bg-white p-3.5 sm:p-4 rounded-3xl border border-slate-200/80 shadow-xs h-fit">
                     <div class="px-2 py-1 text-[11px] font-black uppercase tracking-wider text-slate-400">EMAIL SETTINGS</div>
                     <div class="space-y-1">
                         ${tabs.map(tab => `
-                            <button type="button" data-tab="${tab.id}" onclick="window.switchEmailSettingsTab('${tab.id}')" class="email-settings-tab-btn w-full flex items-center justify-between gap-2 px-3.5 py-3 rounded-xl text-xs font-bold transition text-left cursor-pointer ${activeTab === tab.id ? 'bg-blue-50/80 border border-blue-200/80 text-blue-600 shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}">
-                                <div class="flex items-center space-x-2.5 min-w-0">
+                            <button type="button" data-tab="${tab.id}" onclick="window.switchEmailSettingsTab('${tab.id}')" class="email-settings-tab-btn w-full flex items-center justify-between gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold transition text-left cursor-pointer ${activeTab === tab.id ? 'bg-blue-50/80 border border-blue-200/80 text-blue-600 shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}">
+                                <div class="flex items-center space-x-2 min-w-0 flex-1">
                                     <i data-lucide="${tab.icon}" class="h-4 w-4 shrink-0 ${activeTab === tab.id ? 'text-blue-600' : 'text-slate-400'}"></i>
-                                    <span class="whitespace-nowrap font-bold text-xs">${tab.label}</span>
+                                    <span class="truncate font-bold text-xs">${tab.label}</span>
                                 </div>
-                                <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0 ${tab.badgeColor === 'emerald' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200/60' : tab.badgeColor === 'amber' ? 'bg-amber-50 text-amber-600 border border-amber-200/60' : tab.badgeColor === 'blue' ? 'bg-blue-50 text-blue-600 border border-blue-200/60' : tab.badgeColor === 'purple' ? 'bg-purple-50 text-purple-600 border border-purple-200/60' : tab.badgeColor === 'indigo' ? 'bg-indigo-50 text-indigo-600 border border-indigo-200/60' : tab.badgeColor === 'rose' ? 'bg-rose-50 text-rose-600 border border-rose-200/60' : 'bg-slate-100 text-slate-500'}">${tab.badge}</span>
+                                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full shrink-0 ${tab.badgeColor === 'emerald' ? 'bg-emerald-100 text-emerald-950 border border-emerald-300/80' : tab.badgeColor === 'amber' ? 'bg-amber-100 text-amber-950 border border-amber-300/80' : tab.badgeColor === 'blue' ? 'bg-blue-100 text-blue-950 border border-blue-300/80' : tab.badgeColor === 'purple' ? 'bg-purple-100 text-purple-950 border border-purple-300/80' : tab.badgeColor === 'indigo' ? 'bg-indigo-100 text-indigo-950 border border-indigo-300/80' : tab.badgeColor === 'rose' ? 'bg-rose-100 text-rose-950 border border-rose-300/80' : 'bg-slate-100 text-slate-700 border border-slate-200'}">${tab.badge}</span>
                             </button>
                         `).join('')}
                     </div>
                 </div>
 
                 <!-- Main Content Display -->
-                <div class="lg:col-span-7 xl:col-span-8 space-y-6">
+                <div class="lg:col-span-8 xl:col-span-8 space-y-6">
                     <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-xs">
                         <div id="email-settings-tab-panel">
                             ${renderEmailSettingsTabContent(activeTab, showPassword)}
@@ -3080,9 +3080,9 @@ window.switchEmailSettingsTab = function(tabId) {
     document.querySelectorAll('.email-settings-tab-btn').forEach(btn => {
         const bTab = btn.getAttribute('data-tab');
         if (bTab === tabId) {
-            btn.className = 'email-settings-tab-btn w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition text-left cursor-pointer bg-blue-50/80 border border-blue-200/80 text-blue-600 shadow-2xs';
+            btn.className = 'email-settings-tab-btn w-full flex items-center justify-between gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold transition text-left cursor-pointer bg-blue-50/80 border border-blue-200/80 text-blue-600 shadow-2xs';
         } else {
-            btn.className = 'email-settings-tab-btn w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition text-left cursor-pointer text-slate-600 hover:text-slate-900 hover:bg-slate-50';
+            btn.className = 'email-settings-tab-btn w-full flex items-center justify-between gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold transition text-left cursor-pointer text-slate-600 hover:text-slate-900 hover:bg-slate-50';
         }
     });
 };

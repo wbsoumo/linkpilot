@@ -18645,24 +18645,33 @@ function getNetworkingCategoryHtml(t) {
 
 // Interleave templates round-robin for the "All" tab so every category is mixed nicely
 function getMixedUpTemplates(list) {
-    const cats = ["Sales", "Meetings", "Onboarding", "Follow-ups", "Support", "Invoices", "Feedback", "Networking"];
+    const cats = ["Custom", "Sales", "Meetings", "Onboarding", "Follow-ups", "Support", "Invoices", "Feedback", "Networking"];
     const grouped = {};
     cats.forEach(c => grouped[c] = []);
     list.forEach(t => {
-        const cat = t.category || "Sales";
+        let cat = t.category || "Sales";
+        if (t.isCustom || cat.toLowerCase() === 'custom') cat = "Custom";
         if (!grouped[cat]) grouped[cat] = [];
         grouped[cat].push(t);
     });
     
     const result = [];
+    const addedIds = new Set();
     let maxLen = Math.max(...Object.values(grouped).map(arr => arr.length), 0);
     for (let i = 0; i < maxLen; i++) {
-        for (const cat of cats) {
+        for (const cat of Object.keys(grouped)) {
             if (grouped[cat] && grouped[cat][i]) {
                 result.push(grouped[cat][i]);
+                addedIds.add(String(grouped[cat][i].id));
             }
         }
     }
+    // Append any template not added by grouped loop
+    list.forEach(t => {
+        if (!addedIds.has(String(t.id))) {
+            result.push(t);
+        }
+    });
     return result;
 }
 
@@ -18817,11 +18826,14 @@ async function renderEmailTemplates(container) {
                                             <h4 class="text-xs font-bold text-white text-center line-clamp-1 px-2">${t.title}</h4>
                                             
                                             ${t.isCustom ? `
-                                                <button onclick="location.hash = '#/email-builder?id=${t.id}'" class="w-full max-w-[210px] py-2.5 bg-indigo-600 hover:bg-indigo-750 text-white text-xs font-extrabold rounded-xl shadow-lg hover:scale-105 transition flex items-center justify-center space-x-2 cursor-pointer" style="color: #ffffff !important; background-color: #4F46E5 !important;">
+                                                <button onclick="location.hash = '#/email-builder?id=${t.id}'" class="w-full max-w-[210px] py-2 bg-indigo-600 hover:bg-indigo-750 text-white text-xs font-extrabold rounded-xl shadow-lg hover:scale-105 transition flex items-center justify-center space-x-2 cursor-pointer" style="color: #ffffff !important; background-color: #4F46E5 !important;">
                                                     <i data-lucide="edit-3" class="h-3.5 w-3.5 text-white" style="color: #ffffff !important;"></i>
                                                     <span class="text-white font-extrabold" style="color: #ffffff !important;">Open Builder Editor</span>
                                                 </button>
-                                                <button onclick="deleteCustomTemplate(${t.id}, event)" class="w-full max-w-[210px] py-2 bg-red-650 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition flex items-center justify-center space-x-1.5 cursor-pointer" style="color: #ffffff !important; background-color: #E11D48 !important;">
+                                                <button onclick="previewTemplateModal('${t.id}')" class="w-full max-w-[210px] py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-lg transition cursor-pointer" style="color: #ffffff !important;">
+                                                    Preview HTML Modal
+                                                </button>
+                                                <button onclick="deleteCustomTemplate('${t.id}', event)" class="w-full max-w-[210px] py-1.5 bg-red-650 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition flex items-center justify-center space-x-1.5 cursor-pointer" style="color: #ffffff !important; background-color: #E11D48 !important;">
                                                     <i data-lucide="trash-2" class="h-3.5 w-3.5 text-white" style="color: #ffffff !important;"></i>
                                                     <span class="text-white font-bold" style="color: #ffffff !important;">Delete Template</span>
                                                 </button>
@@ -18845,6 +18857,17 @@ async function renderEmailTemplates(container) {
             </div>
         `;
         if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        // Restore focus to search input if active
+        if (window._templateSearchInputFocused) {
+            const inputEl = document.getElementById('template-search-input');
+            if (inputEl) {
+                inputEl.focus();
+                const len = inputEl.value.length;
+                inputEl.setSelectionRange(len, len);
+            }
+            window._templateSearchInputFocused = false;
+        }
     } catch(err) {
         container.innerHTML = `<div class="p-6 text-center text-rose-500 text-xs font-bold">Failed to render email templates: ${err.message}</div>`;
     }
@@ -18877,16 +18900,26 @@ window.filterTemplatesCategory = function(cat) {
 
 let templatesSearchTimeout = null;
 function handleTemplatesSearch(val) {
+    window._templateSearchInputFocused = true;
+    window.emailTemplateFilters.search = val;
     if (templatesSearchTimeout) clearTimeout(templatesSearchTimeout);
     templatesSearchTimeout = setTimeout(() => {
-        window.emailTemplateFilters.search = val.trim();
         const contentArea = document.getElementById('main-content-area');
         if (contentArea) renderEmailTemplates(contentArea);
-    }, 300);
+    }, 250);
 }
 
-window.previewTemplateModal = function(templateId) {
-    const t = EMAIL_TEMPLATES_DATA.find(x => String(x.id) === String(templateId));
+window.previewTemplateModal = async function(templateId) {
+    let t = [...EMAIL_TEMPLATES_DATA, ...window.customTemplates || []].find(x => String(x.id) === String(templateId));
+    if (!t) {
+        try {
+            const res = await apiCall(`crm/get_custom_templates.php?id=${templateId}`);
+            if (res.status === 'success' && res.data && res.data.template) {
+                const ct = res.data.template;
+                t = { id: ct.id, title: ct.name, subject: ct.subject || '', category: ct.category || 'Custom', tag: ct.tag || 'Saved', isCustom: true, html_content: ct.html_content || '' };
+            }
+        } catch (e) {}
+    }
     if (!t) return;
     
     let modal = document.getElementById('template-preview-modal');
@@ -18897,6 +18930,7 @@ window.previewTemplateModal = function(templateId) {
         document.body.appendChild(modal);
     }
     
+    const previewContent = t.isCustom ? t.html_content : getTemplateHtmlPreview(t);
     modal.innerHTML = `
         <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-3xl overflow-hidden animate-scale-up font-sans">
             <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
@@ -18911,7 +18945,7 @@ window.previewTemplateModal = function(templateId) {
                     <span class="text-slate-400 font-normal">Subject:</span> ${t.subject}
                 </div>
                 <div class="p-4 bg-white border border-slate-200 rounded-xl">
-                    ${getTemplateHtmlPreview(t)}
+                    ${previewContent}
                 </div>
             </div>
             <div class="px-6 py-3 border-t border-slate-200 bg-slate-50 flex justify-end space-x-2">

@@ -24,7 +24,7 @@ try {
             'template' => $template
         ]);
     } else {
-        $stmt = $db->prepare("SELECT id, name, subject, category, tag, created_at, updated_at FROM custom_email_templates WHERE user_id = ? ORDER BY updated_at DESC");
+        $stmt = $db->prepare("SELECT id, name, subject, category, tag, html_content, created_at, updated_at FROM custom_email_templates WHERE user_id = ? ORDER BY updated_at DESC");
         $stmt->execute([$userId]);
         $templates = $stmt->fetchAll(PDO::FETCH_ASSOC);
         

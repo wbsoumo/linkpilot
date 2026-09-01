@@ -72,13 +72,27 @@ try {
             $unifiedTimeline = [];
 
             foreach ($rawTimeline as $t) {
+                $actType = strtolower($t['activity_type'] ?? '');
+                $bColor = 'bg-slate-100 text-slate-800 border-slate-300';
+                if (strpos($actType, 'email') !== false) {
+                    $bColor = 'bg-blue-100 text-blue-900 border-blue-300 font-extrabold';
+                } elseif (strpos($actType, 'lead') !== false) {
+                    $bColor = 'bg-emerald-100 text-emerald-900 border-emerald-300 font-extrabold';
+                } elseif (strpos($actType, 'company') !== false) {
+                    $bColor = 'bg-purple-100 text-purple-900 border-purple-300 font-extrabold';
+                } elseif (strpos($actType, 'whatsapp') !== false) {
+                    $bColor = 'bg-green-100 text-green-900 border-green-300 font-extrabold';
+                } elseif (strpos($actType, 'meeting') !== false || strpos($actType, 'task') !== false) {
+                    $bColor = 'bg-amber-100 text-amber-900 border-amber-300 font-extrabold';
+                }
+
                 $unifiedTimeline[] = [
                     'id' => 'crm_' . $t['id'],
                     'type' => 'crm_event',
                     'activity_type' => $t['activity_type'] ?: 'Activity Logged',
                     'description' => $t['description'],
                     'created_at' => $t['created_at'],
-                    'badge_color' => 'bg-indigo-50 text-indigo-700 border-indigo-100'
+                    'badge_color' => $bColor
                 ];
             }
 
@@ -105,7 +119,7 @@ try {
                             'activity_type' => 'Email ' . ucfirst($e['status'] ?: 'sent'),
                             'description' => 'Subject: "' . ($e['subject'] ?: 'No Subject') . '" (' . $e['recipient'] . ')',
                             'created_at' => $e['created_at'],
-                            'badge_color' => 'bg-blue-50 text-blue-700 border-blue-100'
+                            'badge_color' => 'bg-blue-100 text-blue-900 border-blue-300 font-extrabold'
                         ];
                     }
                 } catch (Exception $emailEx) {
@@ -133,7 +147,7 @@ try {
                             'activity_type' => 'WhatsApp ' . ucfirst($w['direction'] ?: 'message'),
                             'description' => ($w['direction'] === 'inbound' ? 'Received: ' : 'Sent: ') . '"' . substr($w['body'] ?: 'Media Message', 0, 80) . '"',
                             'created_at' => $w['created_at'],
-                            'badge_color' => 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                            'badge_color' => 'bg-emerald-100 text-emerald-900 border-emerald-300 font-extrabold'
                         ];
                     }
                 }

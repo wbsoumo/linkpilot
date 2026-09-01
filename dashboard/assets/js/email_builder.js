@@ -2982,7 +2982,7 @@
                             if (count === '1') {
                                 inner = `
                                     <tr>
-                                        <td style="padding: 15px 0;">
+                                        <td style="padding: 12px 0;">
                                             <table border="0" cellpadding="0" cellspacing="0" width="100%">
                                                 <tr>
                                                     <td width="100%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 14px; color: #334155; line-height: 1.6;">
@@ -2996,40 +2996,94 @@
                             } else if (count === '3') {
                                 inner = `
                                     <tr>
-                                        <td style="padding: 15px 0;">
+                                        <td style="padding: 12px 0; text-align: center; font-size: 0;">
+                                            <!--[if mso]>
                                             <table border="0" cellpadding="0" cellspacing="0" width="100%">
-                                                <tr>
-                                                    <td width="31%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 13px; color: #334155; line-height: 1.5;">
-                                                        ${compileColumnElements(el.settings.col1Elements, el.settings.col1Content)}
-                                                    </td>
-                                                    <td width="3.5%">&nbsp;</td>
-                                                    <td width="31%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 13px; color: #334155; line-height: 1.5;">
-                                                        ${compileColumnElements(el.settings.col2Elements, el.settings.col2Content)}
-                                                    </td>
-                                                    <td width="3.5%">&nbsp;</td>
-                                                    <td width="31%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 13px; color: #334155; line-height: 1.5;">
-                                                        ${compileColumnElements(el.settings.col3Elements, el.settings.col3Content)}
-                                                    </td>
-                                                </tr>
+                                            <tr>
+                                            <td width="180" valign="top">
+                                            <![endif]-->
+                                            <div class="responsive-column" style="width: 100%; max-width: 180px; display: inline-block; vertical-align: top; text-align: left;">
+                                                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                                    <tr>
+                                                        <td style="padding: 10px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 13px; color: #334155;">
+                                                            ${compileColumnElements(el.settings.col1Elements, el.settings.col1Content)}
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                            <!--[if mso]>
+                                            </td>
+                                            <td width="10" valign="top">&nbsp;</td>
+                                            <td width="180" valign="top">
+                                            <![endif]-->
+                                            <div class="responsive-column" style="width: 100%; max-width: 180px; display: inline-block; vertical-align: top; text-align: left;">
+                                                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                                    <tr>
+                                                        <td style="padding: 10px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 13px; color: #334155;">
+                                                            ${compileColumnElements(el.settings.col2Elements, el.settings.col2Content)}
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                            <!--[if mso]>
+                                            </td>
+                                            <td width="10" valign="top">&nbsp;</td>
+                                            <td width="180" valign="top">
+                                            <![endif]-->
+                                            <div class="responsive-column" style="width: 100%; max-width: 180px; display: inline-block; vertical-align: top; text-align: left;">
+                                                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                                    <tr>
+                                                        <td style="padding: 10px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 13px; color: #334155;">
+                                                            ${compileColumnElements(el.settings.col3Elements, el.settings.col3Content)}
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                            <!--[if mso]>
+                                            </td>
+                                            </tr>
                                             </table>
+                                            <![endif]-->
                                         </td>
                                     </tr>
                                 `;
                             } else {
                                 inner = `
                                     <tr>
-                                        <td style="padding: 15px 0;">
+                                        <td style="padding: 12px 0; text-align: center; font-size: 0;">
+                                            <!--[if mso]>
                                             <table border="0" cellpadding="0" cellspacing="0" width="100%">
-                                                <tr>
-                                                    <td width="48%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 14px; color: #334155; line-height: 1.6;">
-                                                        ${compileColumnElements(el.settings.col1Elements, el.settings.col1Content)}
-                                                    </td>
-                                                    <td width="4%">&nbsp;</td>
-                                                    <td width="48%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 14px; color: #334155; line-height: 1.6;">
-                                                        ${compileColumnElements(el.settings.col2Elements, el.settings.col2Content)}
-                                                    </td>
-                                                </tr>
+                                            <tr>
+                                            <td width="270" valign="top">
+                                            <![endif]-->
+                                            <div class="responsive-column" style="width: 100%; max-width: 270px; display: inline-block; vertical-align: top; text-align: left;">
+                                                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                                    <tr>
+                                                        <td style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 14px; color: #334155;">
+                                                            ${compileColumnElements(el.settings.col1Elements, el.settings.col1Content)}
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                            <!--[if mso]>
+                                            </td>
+                                            <td width="20" valign="top">&nbsp;</td>
+                                            <td width="270" valign="top">
+                                            <![endif]-->
+                                            <div class="responsive-column" style="width: 100%; max-width: 270px; display: inline-block; vertical-align: top; text-align: left;">
+                                                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                                    <tr>
+                                                        <td style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 14px; color: #334155;">
+                                                            ${compileColumnElements(el.settings.col2Elements, el.settings.col2Content)}
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                            <!--[if mso]>
+                                            </td>
+                                            </tr>
                                             </table>
+                                            <![endif]-->
                                         </td>
                                     </tr>
                                 `;
@@ -3220,6 +3274,7 @@
                 p { display: block; margin: 13px 0; }
                 @media only screen and (max-width: 600px) {
                     .email-container { width: 100% !important; padding: 10px !important; }
+                    .responsive-column { display: block !important; width: 100% !important; max-width: 100% !important; margin-bottom: 12px !important; }
                 }
             </style>
         </head>

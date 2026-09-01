@@ -92,11 +92,17 @@ try {
                 continue; // Skip if no phone ID to route to user account
             }
             
-            // 1. Locate the connected account by phone_number_id
+            // 1. Locate the connected account by phone_number_id (or fallback to latest connected account)
             $stmtAcc = $db->prepare("SELECT user_id, access_token, business_name FROM whatsapp_accounts WHERE phone_number_id = ? AND status = 'connected' LIMIT 1");
             $stmtAcc->execute([$phoneNumberId]);
             $accRow = $stmtAcc->fetch();
             if (!$accRow) {
+                // Fallback to any connected account if phone_number_id differs slightly in Meta payload
+                $stmtAccFallback = $db->query("SELECT user_id, access_token, business_name FROM whatsapp_accounts WHERE status = 'connected' ORDER BY updated_at DESC LIMIT 1");
+                $accRow = $stmtAccFallback->fetch();
+            }
+            if (!$accRow) {
+                WhatsAppMetaService::logDebug("WhatsApp Webhook skipped: No connected account found for phone_number_id '$phoneNumberId'");
                 continue; // WhatsApp Account not linked to any user inside LinkPilot
             }
             $userId = (int)$accRow['user_id'];

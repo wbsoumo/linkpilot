@@ -38,16 +38,16 @@ try {
                 sendJsonResponse('error', 'Conversation thread not found.', [], 404);
             }
 
-            // 2. Load message history (latest 100 messages chronologically from all threads matching the same last 10 digits)
+            // 2. Load message history (latest 100 messages chronologically from all threads matching the same last 10 digits or contact ID)
             $stmtMsgs = $db->prepare("
                 SELECT m.* 
                 FROM whatsapp_messages m
                 JOIN whatsapp_contacts c ON m.wa_contact_id = c.id
-                WHERE c.user_id = ? AND RIGHT(c.wa_id, 10) = RIGHT(?, 10)
+                WHERE m.user_id = ? AND (m.wa_contact_id = ? OR RIGHT(c.wa_id, 10) = RIGHT(?, 10))
                 ORDER BY m.created_at DESC 
                 LIMIT 100
             ");
-            $stmtMsgs->execute([$userId, $thread['wa_id']]);
+            $stmtMsgs->execute([$userId, $waContactId, $thread['wa_id']]);
             $messages = array_reverse($stmtMsgs->fetchAll());
 
             // 3. Clear unread badge for all duplicate threads of this number

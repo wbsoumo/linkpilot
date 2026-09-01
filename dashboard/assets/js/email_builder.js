@@ -3265,20 +3265,42 @@
                         }
                         break;
                     case 'testimonial':
-                        inner = `
-                            <tr>
-                                <td style="padding: 15px 0;">
-                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#EEF2FF" style="border: 1px solid #C7D2FE; border-radius: 12px; text-align: center;">
-                                        <tr>
-                                            <td style="padding: 20px; font-family: ${brandStyles.fontFamily}; font-size: 13px; font-style: italic; color: #334155;">
-                                                "${el.settings.quote || 'This platform transformed our email marketing performance completely!'}"
-                                                <span style="display: block; margin-top: 10px; font-size: 11px; font-style: normal; font-weight: bold; color: #0F172A;">— ${el.settings.author || 'Customer Reviewer'}</span>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                        `;
+                        {
+                            const stars = el.settings.rating || 5;
+                            let starSymbols = "★".repeat(Math.min(5, Math.max(1, parseInt(stars) || 5)));
+                            
+                            inner = `
+                                <tr>
+                                    <td style="padding: 15px 0;">
+                                        <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#EEF2FF" style="border: 1px solid #C7D2FE; border-radius: 12px; text-align: center;">
+                                            <tr>
+                                                <td style="padding: 24px; font-family: ${brandStyles.fontFamily};">
+                                                    <div style="color: #F59E0B; font-size: 16px; margin-bottom: 10px; letter-spacing: 2px;">${starSymbols}</div>
+                                                    <p style="margin: 0 0 16px 0; font-size: 14px; font-style: italic; color: #334155; line-height: 1.6;">
+                                                        "${escapeHtml(el.settings.quote || 'This email builder transformed our marketing performance completely. 10/10 recommendation!')}"
+                                                    </p>
+                                                    <table border="0" cellpadding="0" cellspacing="0" align="center" style="display: inline-block;">
+                                                        <tr>
+                                                            ${el.settings.avatarUrl ? `
+                                                            <td width="40" style="padding-right: 10px;">
+                                                                <img src="${sanitizeUrl(el.settings.avatarUrl)}" width="36" height="36" style="border-radius: 50%; display: block; object-fit: cover;" alt="${escapeAttr(el.settings.author || 'Author')}">
+                                                            </td>
+                                                            ` : ''}
+                                                            <td align="left" style="font-family: ${brandStyles.fontFamily};">
+                                                                <span style="font-size: 13px; font-weight: bold; color: #0F172A; display: block;">— ${escapeHtml(el.settings.author || 'Alex Rivera')}</span>
+                                                                ${el.settings.company || el.settings.title ? `
+                                                                <span style="font-size: 11px; color: #64748B; display: block; margin-top: 2px;">${escapeHtml(el.settings.title || '')}${el.settings.title && el.settings.company ? ', ' : ''}${escapeHtml(el.settings.company || '')}</span>
+                                                                ` : ''}
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            `;
+                        }
                         break;
                     default:
                         inner = `

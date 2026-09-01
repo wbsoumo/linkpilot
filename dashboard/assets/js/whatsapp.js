@@ -1463,7 +1463,7 @@ function renderWhatsAppDashboard(container) {
                                     <i data-lucide="send" class="h-3.5 w-3.5"></i>
                                 </div>
                                 <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Sent Today</div>
-                                <div class="text-2xl font-extrabold text-slate-800">${cards.sent_today}</div>
+                                <div class="text-2xl font-extrabold text-slate-800" id="wa-stat-sent-today">${cards.sent_today}</div>
                                 <div class="text-[9px] text-slate-400 font-medium">~ 0% vs yesterday</div>
                             </div>
                             <!-- Received -->
@@ -1472,7 +1472,7 @@ function renderWhatsAppDashboard(container) {
                                     <i data-lucide="message-square" class="h-3.5 w-3.5"></i>
                                 </div>
                                 <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Received</div>
-                                <div class="text-2xl font-extrabold text-slate-800">${cards.received_today}</div>
+                                <div class="text-2xl font-extrabold text-slate-800" id="wa-stat-received-today">${cards.received_today}</div>
                                 <div class="text-[9px] text-emerald-500 font-bold flex items-center space-x-0.5">
                                     <span>▲ +50%</span>
                                     <span class="text-slate-400 font-medium">vs yesterday</span>
@@ -1484,7 +1484,7 @@ function renderWhatsAppDashboard(container) {
                                     <i data-lucide="check-check" class="h-3.5 w-3.5"></i>
                                 </div>
                                 <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Delivered</div>
-                                <div class="text-2xl font-extrabold text-slate-800">${cards.delivered_total || cards.sent_today}</div>
+                                <div class="text-2xl font-extrabold text-slate-800" id="wa-stat-delivered-total">${cards.delivered_total || cards.sent_today}</div>
                                 <div class="text-[9px] text-slate-400 font-medium">~ 0% vs yesterday</div>
                             </div>
                             <!-- Read Rate -->
@@ -1493,7 +1493,7 @@ function renderWhatsAppDashboard(container) {
                                     <i data-lucide="eye" class="h-3.5 w-3.5"></i>
                                 </div>
                                 <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Read Rate</div>
-                                <div class="text-2xl font-extrabold text-slate-800">${cards.sent_today > 0 ? Math.round((cards.read_total / cards.sent_today) * 100) : 100}%</div>
+                                <div class="text-2xl font-extrabold text-slate-800" id="wa-stat-read-rate">${cards.sent_today > 0 ? Math.round((cards.read_total / cards.sent_today) * 100) : 100}%</div>
                                 <div class="text-[9px] text-emerald-500 font-bold flex items-center space-x-0.5">
                                     <span>▲ +100%</span>
                                     <span class="text-slate-400 font-medium">vs yesterday</span>
@@ -1834,6 +1834,34 @@ function renderWhatsAppDashboard(container) {
                     }
                 }
             });
+
+            // Setup 15-second real-time polling interval for live message counts & stats
+            if (window._waDashboardInterval) clearInterval(window._waDashboardInterval);
+            window._waDashboardInterval = setInterval(async () => {
+                // Stop polling if user navigated away from whatsapp-dashboard
+                if (window.location.hash !== '#/whatsapp-dashboard') {
+                    clearInterval(window._waDashboardInterval);
+                    window._waDashboardInterval = null;
+                    return;
+                }
+                try {
+                    const freshData = await apiCall('whatsapp/dashboard.php');
+                    if (freshData && freshData.cards) {
+                        const freshCards = freshData.cards;
+                        const sentEl = document.getElementById('wa-stat-sent-today');
+                        const recvEl = document.getElementById('wa-stat-received-today');
+                        const delivEl = document.getElementById('wa-stat-delivered-total');
+                        const rateEl = document.getElementById('wa-stat-read-rate');
+
+                        if (sentEl) sentEl.textContent = freshCards.sent_today;
+                        if (recvEl) recvEl.textContent = freshCards.received_today;
+                        if (delivEl) delivEl.textContent = freshCards.delivered_total || freshCards.sent_today;
+                        if (rateEl) rateEl.textContent = `${freshCards.sent_today > 0 ? Math.round((freshCards.read_total / freshCards.sent_today) * 100) : 100}%`;
+                    }
+                } catch(e) {
+                    console.log('WhatsApp dashboard real-time poll error:', e);
+                }
+            }, 15000);
 
         } catch (err) {
             showNotification('error', err.message);
@@ -2247,23 +2275,59 @@ async function loadWaThreadMessages() {
                     const isInbound = (m.direction === 'inbound');
                     const time = new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-                    let bubbleHtml = m.body;
-                    if (m.media_url) {
-                        if (m.media_mime_type.includes('image')) {
-                            bubbleHtml = `
-                                <div class="space-y-1.5">
-                                    <img src="../${m.media_url}" class="max-w-[200px] rounded-lg shadow-sm cursor-pointer object-cover">
-                                    <p>${m.body}</p>
-                                </div>
-                            `;
-                        } else {
-                            bubbleHtml = `
-                                <a href="../${m.media_url}" target="_blank" class="flex items-center space-x-2 p-2 bg-slate-900/10 hover:bg-slate-900/20 rounded-lg text-slate-800 font-bold border border-slate-300">
-                                    <i data-lucide="file-text" class="h-4 w-4 text-slate-500"></i>
-                                    <span>Download Attachment</span>
+                    let bubbleHtml = escapeHtml(m.body || '');
+                    
+                    const mediaUrl = m.media_url || (m.body && (m.body.startsWith('http://') || m.body.startsWith('https://')) ? m.body : '');
+                    const mimeType = (m.media_mime_type || '').toLowerCase();
+                    const msgType = (m.message_type || m.type || '').toLowerCase();
+
+                    const isAudio = mimeType.includes('audio') || msgType.includes('audio') || msgType.includes('voice') || (mediaUrl && (mediaUrl.endsWith('.mp3') || mediaUrl.endsWith('.ogg') || mediaUrl.endsWith('.wav') || mediaUrl.endsWith('.m4a') || mediaUrl.includes('/audio/')));
+                    const isImage = mimeType.includes('image') || msgType.includes('image') || (mediaUrl && (mediaUrl.endsWith('.jpg') || mediaUrl.endsWith('.jpeg') || mediaUrl.endsWith('.png') || mediaUrl.endsWith('.webp') || mediaUrl.endsWith('.gif') || mediaUrl.includes('/image/')));
+                    const isDoc = mimeType.includes('pdf') || mimeType.includes('document') || msgType.includes('document') || (mediaUrl && (mediaUrl.endsWith('.pdf') || mediaUrl.endsWith('.doc') || mediaUrl.endsWith('.docx') || mediaUrl.endsWith('.xlsx')));
+
+                    if (isImage) {
+                        const imgSrc = mediaUrl.startsWith('http') ? mediaUrl : `../${mediaUrl.replace(/^\.\//, '')}`;
+                        bubbleHtml = `
+                            <div class="space-y-1.5">
+                                <a href="${imgSrc}" target="_blank" class="block overflow-hidden rounded-xl border border-slate-200/60 shadow-sm hover:opacity-95 transition">
+                                    <img src="${imgSrc}" class="max-w-[260px] max-h-[300px] w-full object-cover rounded-xl" alt="WhatsApp Image Preview" onerror="this.onerror=null; this.src='assets/img/placeholder.png';">
                                 </a>
-                            `;
-                        }
+                                ${m.body && m.body !== mediaUrl ? `<p class="text-xs leading-relaxed text-slate-800">${escapeHtml(m.body)}</p>` : ''}
+                            </div>
+                        `;
+                    } else if (isAudio) {
+                        const audioSrc = mediaUrl.startsWith('http') ? mediaUrl : `../${mediaUrl.replace(/^\.\//, '')}`;
+                        bubbleHtml = `
+                            <div class="space-y-1.5 min-w-[220px]">
+                                <div class="flex items-center space-x-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                    <i data-lucide="mic" class="h-3.5 w-3.5 text-emerald-600"></i>
+                                    <span>Voice Message / Audio Note</span>
+                                </div>
+                                <audio controls class="w-full h-8 rounded-lg outline-none">
+                                    <source src="${audioSrc}">
+                                    Your browser does not support HTML5 audio player.
+                                </audio>
+                                ${m.body && m.body !== mediaUrl ? `<p class="text-xs leading-relaxed text-slate-800">${escapeHtml(m.body)}</p>` : ''}
+                            </div>
+                        `;
+                    } else if (isDoc || (mediaUrl && mediaUrl !== m.body)) {
+                        const docSrc = mediaUrl.startsWith('http') ? mediaUrl : `../${mediaUrl.replace(/^\.\//, '')}`;
+                        const fileName = mediaUrl.split('/').pop() || 'Attachment Document';
+                        bubbleHtml = `
+                            <div class="space-y-1.5">
+                                <a href="${docSrc}" target="_blank" download class="flex items-center space-x-3 p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-800 font-bold border border-slate-200/80 shadow-2xs transition">
+                                    <div class="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center shrink-0">
+                                        <i data-lucide="file-text" class="h-4 w-4"></i>
+                                    </div>
+                                    <div class="min-w-0 flex-grow">
+                                        <div class="text-xs font-bold text-slate-800 truncate">${escapeHtml(fileName)}</div>
+                                        <div class="text-[9px] text-indigo-600 font-extrabold uppercase">Click to Download Document</div>
+                                    </div>
+                                    <i data-lucide="download" class="h-4 w-4 text-slate-400 shrink-0"></i>
+                                </a>
+                                ${m.body && m.body !== mediaUrl ? `<p class="text-xs leading-relaxed text-slate-800">${escapeHtml(m.body)}</p>` : ''}
+                            </div>
+                        `;
                     }
 
                     const timeHtml = isInbound ?

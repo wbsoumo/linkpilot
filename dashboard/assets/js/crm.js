@@ -356,28 +356,57 @@ async function navigateTo(view, params = {}) {
             window.loadHeaderAutoReplyStatus();
         }
         
-        // Highlight sidebar links
+        // Highlight sidebar links with normalized route alias matching
         document.querySelectorAll('.sidebar-nav-link, .sidebar-submenu-link').forEach(link => {
             const href = link.getAttribute('href');
             if (href) {
-                const linkView = href.replace(/^#\/?/, '').split('?')[0];
-                if (linkView === view) {
+                let linkView = href.replace(/^#\/?/, '').split('?')[0];
+                let activeView = view;
+                
+                // Route alias normalizations
+                const normalizeRoute = (r) => {
+                    if (r === 'email-followups') return 'followups';
+                    if (r === 'email-sent') return 'sent';
+                    if (r === 'email-starred') return 'starred';
+                    if (r === 'email-drafts') return 'drafts';
+                    if (r === 'email-archived') return 'archived';
+                    if (r === 'email-snoozed') return 'snoozed';
+                    if (r === 'email-trash') return 'spam';
+                    if (r === 'scheduled') return 'email-scheduled';
+                    if (r === 'sequences') return 'email-sequences';
+                    if (r === 'templates') return 'email-templates';
+                    if (r === 'campaigns') return 'email-campaigns';
+                    return r;
+                };
+
+                const normLinkView = normalizeRoute(linkView);
+                const normActiveView = normalizeRoute(activeView);
+
+                // Check exact link match or normalized route match
+                const isExactMatch = linkView === activeView;
+                const isNormMatch = normLinkView === normActiveView;
+
+                if (isExactMatch || (isNormMatch && !linkView.startsWith('whatsapp-') && !activeView.startsWith('whatsapp-'))) {
                     link.classList.add('active');
                     if (link.classList.contains('sidebar-submenu-link')) {
                         link.classList.remove('text-slate-400');
                         link.classList.add('text-white', 'bg-slate-800', 'font-bold');
+                    } else {
+                        link.classList.add('bg-slate-800', 'text-white', 'font-bold');
                     }
                 } else {
                     link.classList.remove('active');
                     if (link.classList.contains('sidebar-submenu-link')) {
                         link.classList.remove('text-white', 'bg-slate-800', 'font-bold');
                         link.classList.add('text-slate-400');
+                    } else {
+                        link.classList.remove('bg-slate-800', 'text-white', 'font-bold');
                     }
                 }
             }
         });
 
-        const isEmailView = view === 'inbox' || view === 'email' || view === 'sent' || view === 'starred' || view === 'drafts' || view === 'archived' || view === 'snoozed' || view === 'trash' || view === 'spam' || view === 'email-intelligence' || view === 'followups' || view === 'email-followups' || view === 'email-settings';
+        const isEmailView = view.startsWith('email') || view.startsWith('email-') || view === 'inbox' || view === 'sent' || view === 'starred' || view === 'drafts' || view === 'archived' || view === 'snoozed' || view === 'trash' || view === 'spam' || view === 'followups' || view === 'scheduled' || view === 'sequences' || view === 'templates' || view === 'campaigns';
         const emailSubmenu = document.getElementById('email-submenu');
         const emailChevron = document.getElementById('email-chevron');
         if (isEmailView && emailSubmenu) {
@@ -470,6 +499,14 @@ async function navigateTo(view, params = {}) {
             case 'followups':
             case 'email-followups':
                 await renderEmailFollowups(contentArea);
+                break;
+            case 'email-scheduled':
+            case 'scheduled':
+                await renderEmailScheduled(contentArea);
+                break;
+            case 'email-sequences':
+            case 'sequences':
+                await renderEmailSequences(contentArea);
                 break;
             case 'email-templates':
             case 'templates':
@@ -3372,8 +3409,17 @@ async function renderInbox(container, targetEmailId = null, initialFolder = 'inb
         window.inboxPage = 1;
         window.inboxSearchQuery = '';
         
-        // Fetch unread count first
-        const listData = await apiCall('crm/email_intelligence/emails.php?limit=1');
+        // Fetch unread count safely (defaulting to 0 if sync/API fails or returns empty)
+        let unreadCount = 0;
+        try {
+            const listData = await apiCall('crm/email_intelligence/emails.php?limit=1');
+            if (listData && typeof listData.unread_count !== 'undefined') {
+                unreadCount = listData.unread_count;
+            }
+        } catch (e) {
+            console.warn('Failed to fetch initial unread count, defaulting to 0:', e);
+        }
+
         if (typeof refreshUnreadBadgeCount === 'function') {
             refreshUnreadBadgeCount();
         }
@@ -3388,7 +3434,7 @@ async function renderInbox(container, targetEmailId = null, initialFolder = 'inb
                             <div class="space-y-1 text-xs" id="inbox-folder-menu">
                                 <button onclick="filterInbox('inbox', this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold text-blue-600 bg-blue-50/70 transition text-left">
                                     <span class="flex items-center"><i data-lucide="inbox" class="h-4 w-4 mr-2.5"></i>Inbox</span>
-                                    <span id="inbox-unread-count" class="px-2.5 py-0.5 bg-blue-600 !text-white text-white rounded-full text-[10px] font-extrabold shadow-2xs">${listData.unread_count || 0}</span>
+                                    <span id="inbox-unread-count" class="px-2.5 py-0.5 bg-blue-600 !text-white text-white rounded-full text-[10px] font-extrabold shadow-2xs">${unreadCount}</span>
                                 </button>
                                 <button onclick="filterInbox('starred', this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 transition text-left">
                                     <span class="flex items-center"><i data-lucide="star" class="h-4 w-4 mr-2.5"></i>Starred</span>
@@ -3483,7 +3529,29 @@ async function renderInbox(container, targetEmailId = null, initialFolder = 'inb
         checkInboxPendingStatus();
         checkInboxEmailAccountStatus();
     } catch (err) {
-        showNotification('error', err.message);
+        showNotification('error', err.message || 'IMAP Sync / Email connection error');
+        container.innerHTML = `
+            <div class="flex flex-col items-center justify-center h-full p-8 text-center bg-slate-50/50 w-full">
+                <div class="h-16 w-16 bg-rose-50 border border-rose-100 rounded-2xl flex items-center justify-center text-rose-500 mb-4 shadow-xs">
+                    <i data-lucide="mail-warning" class="h-8 w-8"></i>
+                </div>
+                <h3 class="text-sm font-bold text-slate-800 mb-1">Email Connection Error</h3>
+                <p class="text-xs text-slate-500 max-w-md mb-6 leading-relaxed">
+                    Unable to synchronize emails or connect to your IMAP mail server. ${err.message ? '<br><span class="text-rose-600 font-mono text-[11px] mt-2 block bg-rose-50 p-2 rounded border border-rose-100">' + err.message + '</span>' : ''}
+                </p>
+                <div class="flex items-center space-x-3">
+                    <button onclick="renderInbox(document.getElementById('main-content-viewport'))" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-sm">
+                        <i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i>
+                        <span>Retry Connection</span>
+                    </button>
+                    <button onclick="navigateTo('email-settings')" class="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-xs">
+                        <i data-lucide="settings" class="h-3.5 w-3.5"></i>
+                        <span>Configure Email Settings</span>
+                    </button>
+                </div>
+            </div>
+        `;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 }
 
@@ -16476,6 +16544,92 @@ window.toggleFollowupAIStudio = function() {
     }
 };
 
+async function renderEmailScheduled(container) {
+    try {
+        container.innerHTML = `
+            <div class="flex flex-col w-full h-full bg-[#f8fafc] overflow-hidden animate-fade-in font-sans text-slate-800">
+                <!-- Header bar -->
+                <div class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0">
+                    <div class="flex items-center space-x-3">
+                        <div class="h-10 w-10 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 shadow-xs">
+                            <i data-lucide="calendar-clock" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-base font-bold text-slate-900 leading-tight">Scheduled Emails & Outbound Queue</h1>
+                            <p class="text-xs text-slate-500 font-medium">Manage pending campaign dispatches, timed outreach, and queued SMTP deliveries.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                        <button onclick="renderEmailScheduled(document.getElementById('main-content-viewport'))" class="px-3.5 py-1.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-700 transition flex items-center space-x-1.5 shadow-2xs">
+                            <i data-lucide="refresh-cw" class="h-3.5 w-3.5 text-slate-500"></i>
+                            <span>Refresh Queue</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Main Content Area -->
+                <div class="flex-grow p-6 overflow-y-auto max-w-6xl w-full mx-auto space-y-6">
+                    <!-- Queue Status Overview Row -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                        <div class="bg-white p-4 border border-slate-200 rounded-2xl flex items-center space-x-3.5 shadow-2xs">
+                            <div class="h-9 w-9 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
+                                <i data-lucide="clock" class="h-4.5 w-4.5"></i>
+                            </div>
+                            <div>
+                                <span class="block text-[10px] font-extrabold uppercase text-slate-400">Scheduled for Today</span>
+                                <span class="text-base font-black text-slate-900" id="scheduled-today-count">0 Outbound</span>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 border border-slate-200 rounded-2xl flex items-center space-x-3.5 shadow-2xs">
+                            <div class="h-9 w-9 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center shrink-0">
+                                <i data-lucide="git-branch" class="h-4.5 w-4.5"></i>
+                            </div>
+                            <div>
+                                <span class="block text-[10px] font-extrabold uppercase text-slate-400">Active Sequence Queues</span>
+                                <span class="text-base font-black text-slate-900" id="scheduled-sequence-count">0 Active</span>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 border border-slate-200 rounded-2xl flex items-center space-x-3.5 shadow-2xs">
+                            <div class="h-9 w-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
+                                <i data-lucide="shield-check" class="h-4.5 w-4.5"></i>
+                            </div>
+                            <div>
+                                <span class="block text-[10px] font-extrabold uppercase text-slate-400">Queue Worker Status</span>
+                                <span class="text-xs font-bold text-emerald-600 flex items-center space-x-1 mt-0.5">
+                                    <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    <span>Background Worker Active</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scheduled Email Table / List -->
+                    <div class="bg-white border border-slate-200 rounded-2xl shadow-2xs overflow-hidden">
+                        <div class="p-4 border-b border-slate-150 flex items-center justify-between bg-slate-50/50">
+                            <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Timed Deliveries & Drip Queue</h3>
+                            <span class="text-[11px] text-slate-400 font-semibold">Auto-processed by cron worker</span>
+                        </div>
+                        
+                        <div id="scheduled-emails-list-container" class="divide-y divide-slate-100 min-h-[220px] flex flex-col justify-center">
+                            <div class="p-12 text-center text-slate-400 text-xs">
+                                <div class="h-12 w-12 bg-slate-50 border border-slate-150 rounded-2xl flex items-center justify-center mx-auto text-slate-400 mb-3">
+                                    <i data-lucide="calendar-check" class="h-6 w-6"></i>
+                                </div>
+                                <h4 class="font-bold text-slate-700 text-sm mb-1">No Scheduled Emails Pending</h4>
+                                <p class="text-slate-400 max-w-sm mx-auto text-xs leading-relaxed">There are currently no timed outreach emails or campaign dispatches waiting in the queue.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    } catch (err) {
+        showNotification('error', err.message);
+    }
+}
+
 window.setFollowupTone = function(tone) {
     window.selectedFollowupTone = tone;
     document.querySelectorAll('.tone-preset-btn').forEach(btn => {
@@ -18377,14 +18531,34 @@ window.openEmailComposerModal = function(templateId) {
 
                 <!-- HTML EMAIL CONTENT BODY SECTION -->
                 <div class="space-y-2">
-                    <div class="flex items-center justify-between font-bold text-slate-600 text-xs tracking-wider uppercase">
-                        <div class="flex items-center space-x-1.5 text-slate-700 font-extrabold text-xs">
-                            <span class="text-indigo-600 font-black">&lt;/&gt;</span>
-                            <span>HTML EMAIL CONTENT BODY</span>
+                        <div class="flex items-center space-x-2">
+                            <div class="relative inline-block text-left">
+                                <button type="button" onclick="document.getElementById('composer-var-dropdown').classList.toggle('hidden')" class="px-2.5 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 rounded-lg font-bold text-[11px] flex items-center space-x-1 transition cursor-pointer">
+                                    <i data-lucide="tag" class="h-3 w-3 text-indigo-600"></i>
+                                    <span>Insert Variable</span>
+                                    <i data-lucide="chevron-down" class="h-2.5 w-2.5 text-indigo-500"></i>
+                                </button>
+                                <div id="composer-var-dropdown" class="hidden absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1 font-sans text-xs animate-scale-up">
+                                    <button type="button" onclick="insertVariableInComposer('first_name')" class="w-full text-left px-3 py-1.5 hover:bg-indigo-50 font-semibold text-slate-700 transition flex justify-between"><span>First Name</span><code class="text-[10px] text-indigo-600 font-mono">{{first_name}}</code></button>
+                                    <button type="button" onclick="insertVariableInComposer('last_name')" class="w-full text-left px-3 py-1.5 hover:bg-indigo-50 font-semibold text-slate-700 transition flex justify-between"><span>Last Name</span><code class="text-[10px] text-indigo-600 font-mono">{{last_name}}</code></button>
+                                    <button type="button" onclick="insertVariableInComposer('company_name')" class="w-full text-left px-3 py-1.5 hover:bg-indigo-50 font-semibold text-slate-700 transition flex justify-between"><span>Company Name</span><code class="text-[10px] text-indigo-600 font-mono">{{company_name}}</code></button>
+                                    <button type="button" onclick="insertVariableInComposer('sender_name')" class="w-full text-left px-3 py-1.5 hover:bg-indigo-50 font-semibold text-slate-700 transition flex justify-between"><span>Sender Name</span><code class="text-[10px] text-indigo-600 font-mono">{{sender_name}}</code></button>
+                                    <button type="button" onclick="insertVariableInComposer('unsubscribe_link')" class="w-full text-left px-3 py-1.5 hover:bg-indigo-50 font-semibold text-slate-700 transition flex justify-between"><span>Unsubscribe Link</span><code class="text-[10px] text-indigo-600 font-mono">{{unsubscribe}}</code></button>
+                                </div>
+                            </div>
+                            <span class="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full font-extrabold flex items-center">
+                                <i data-lucide="sparkles" class="h-3 w-3 mr-1 text-emerald-500"></i>WYSIWYG MODE
+                            </span>
                         </div>
-                        <span class="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full font-extrabold flex items-center">
-                            <i data-lucide="sparkles" class="h-3 w-3 mr-1 text-emerald-500"></i>DIRECT VISUAL WYSIWYG MODE
-                        </span>
+                    </div>
+
+                    <!-- Variable Validation Alert Banner -->
+                    <div id="composer-variable-validation-banner" class="hidden p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-start space-x-2 animate-fade-in">
+                        <i data-lucide="alert-triangle" class="h-4 w-4 text-amber-600 shrink-0 mt-0.5"></i>
+                        <div class="flex-grow">
+                            <span class="font-bold text-amber-900">Template Variable Validation:</span>
+                            <span id="composer-variable-validation-msg" class="block text-[11px] text-amber-700 mt-0.5 font-medium"></span>
+                        </div>
                     </div>
 
                     <!-- PREMIUM WYSIWYG TOOLBAR & CONTAINER -->
@@ -18560,9 +18734,20 @@ window.openEmailComposerModal = function(templateId) {
     `;
     if (typeof lucide !== 'undefined') lucide.createIcons();
     
-    // Attach click handlers to any template image so user can click to replace easily!
+    // Attach click and input handlers to validate template variables in real-time
     setTimeout(() => {
         const editor = document.getElementById('rich-email-editor');
+        const rawEditor = document.getElementById('raw-html-source-editor');
+        
+        const attachValidation = (el) => {
+            if (!el) return;
+            el.addEventListener('input', validateComposerTemplateVariables);
+            el.addEventListener('blur', validateComposerTemplateVariables);
+        };
+        attachValidation(editor);
+        attachValidation(rawEditor);
+        validateComposerTemplateVariables();
+
         if (editor) {
             editor.addEventListener('click', function(e) {
                 if (e.target && e.target.tagName === 'IMG') {
@@ -18577,6 +18762,48 @@ window.openEmailComposerModal = function(templateId) {
             });
         }
     }, 200);
+};
+
+window.insertVariableInComposer = function(varName) {
+    const dropdown = document.getElementById('composer-var-dropdown');
+    if (dropdown) dropdown.classList.add('hidden');
+    
+    const tag = `{{${varName}}}`;
+    execRichCmd('insertText', tag);
+    validateComposerTemplateVariables();
+};
+
+window.validateComposerTemplateVariables = function() {
+    const editor = document.getElementById('rich-email-editor');
+    const rawEditor = document.getElementById('raw-html-source-editor');
+    const banner = document.getElementById('composer-variable-validation-banner');
+    const msgEl = document.getElementById('composer-variable-validation-msg');
+    
+    if (!banner || !msgEl) return;
+    
+    let content = '';
+    if (rawEditor && !rawEditor.classList.contains('hidden')) {
+        content = rawEditor.value || '';
+    } else if (editor) {
+        content = editor.innerText || editor.textContent || '';
+    }
+    
+    // Find all {{variable}} tags in template content
+    const matches = content.match(/\{\{\s*[\w_]+\s*\}\}/g) || [];
+    const validTags = ['{{first_name}}', '{{last_name}}', '{{company_name}}', '{{sender_name}}', '{{unsubscribe}}', '{{email}}', '{{title}}'];
+    
+    const detectedTags = [...new Set(matches.map(m => m.replace(/\s+/g, '')))];
+    const invalidTags = detectedTags.filter(t => !validTags.includes(t));
+    
+    if (invalidTags.length > 0) {
+        banner.classList.remove('hidden');
+        msgEl.innerHTML = `Warning: Unrecognized dynamic merge tag(s) detected: <code class="font-mono text-rose-600 bg-rose-50 px-1 py-0.5 rounded border border-rose-200">${invalidTags.join(', ')}</code>. Allowed variables are: ${validTags.join(', ')}.`;
+    } else if (detectedTags.length > 0) {
+        banner.classList.remove('hidden');
+        msgEl.innerHTML = `Active Dynamic Merge Variables: <span class="text-indigo-700 font-semibold font-mono">${detectedTags.join(', ')}</span>. All dynamic tags are valid and ready for bulk sending.`;
+    } else {
+        banner.classList.add('hidden');
+    }
 };
 
 window.closeEmailComposerModal = function() {
@@ -27713,4 +27940,257 @@ window.selectComposerFont = function(fontName) {
     execRichCmd('fontName', fontName);
     const fontMenu = document.getElementById('composer-font-dropdown-menu');
     if (fontMenu) fontMenu.classList.add('hidden');
+};
+
+/* ==========================================================================
+   EMAIL DRIP SEQUENCES BUILDER & ENGINE
+   ========================================================================== */
+
+window.renderEmailSequences = async function(container) {
+    container.innerHTML = `
+        <div class="space-y-6 animate-fade-in font-sans text-slate-800">
+            <!-- Header Bar -->
+            <div class="flex items-center justify-between flex-wrap gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs">
+                <div class="flex items-center space-x-3.5">
+                    <div class="h-12 w-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-md">
+                        <i data-lucide="git-branch" class="h-6 w-6 text-white"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h2 class="text-xl font-black text-slate-900 tracking-tight">Automated Multi-Step Drip Sequences</h2>
+                            <span class="px-2.5 py-0.5 bg-purple-100 text-purple-700 rounded-full text-[10px] font-extrabold uppercase">SMART FLOWS</span>
+                        </div>
+                        <p class="text-xs font-semibold text-slate-500 mt-0.5">Design multi-touch automated email flows with custom delays, trigger conditions, and AI branching.</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    <button onclick="renderEmailSequences(document.getElementById('main-content-viewport'))" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition flex items-center space-x-1.5 cursor-pointer">
+                        <i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i>
+                        <span>Refresh</span>
+                    </button>
+                    <button onclick="openCreateSequenceModal()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center space-x-2 cursor-pointer" style="color: #ffffff !important; background-color: #4F46E5 !important;">
+                        <i data-lucide="plus-circle" class="h-4 w-4 text-white" style="color: #ffffff !important;"></i>
+                        <span class="text-white font-extrabold text-sm" style="color: #ffffff !important;">Create Drip Sequence</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Overview Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+                    <div>
+                        <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Active Sequences</div>
+                        <div class="text-2xl font-black text-slate-900 mt-1" id="seq-stat-active">3</div>
+                    </div>
+                    <div class="h-10 w-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <i data-lucide="workflow" class="h-5 w-5"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+                    <div>
+                        <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Enrolled Contacts</div>
+                        <div class="text-2xl font-black text-slate-900 mt-1" id="seq-stat-enrolled">1,420</div>
+                    </div>
+                    <div class="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <i data-lucide="users" class="h-5 w-5"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+                    <div>
+                        <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Automated Steps Sent</div>
+                        <div class="text-2xl font-black text-purple-600 mt-1" id="seq-stat-steps">4,892</div>
+                    </div>
+                    <div class="h-10 w-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                        <i data-lucide="send" class="h-5 w-5"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+                    <div>
+                        <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Reply / Goal Rate</div>
+                        <div class="text-2xl font-black text-emerald-600 mt-1" id="seq-stat-goal">28.4%</div>
+                    </div>
+                    <div class="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <i data-lucide="target" class="h-5 w-5"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sequences List Table -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between flex-wrap gap-3">
+                    <h3 class="text-sm font-extrabold text-slate-800 uppercase tracking-wider">Configured Drip Workflows</h3>
+                    <span class="text-xs text-slate-500 font-medium">Automatic cron delivery with smart stop-on-reply logic</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs font-medium text-slate-700">
+                        <thead class="bg-slate-100/80 text-[10px] uppercase tracking-wider text-slate-500 font-extrabold border-b border-slate-200">
+                            <tr>
+                                <th class="px-6 py-3.5">Sequence Name & Target Audience</th>
+                                <th class="px-6 py-3.5">Drip Steps</th>
+                                <th class="px-6 py-3.5">Enrolled Leads</th>
+                                <th class="px-6 py-3.5">Status</th>
+                                <th class="px-6 py-3.5 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="email-sequences-tbody" class="divide-y divide-slate-100 bg-white">
+                            <tr>
+                                <td class="px-6 py-4">
+                                    <div class="font-bold text-slate-900 text-sm">Cold Outreach 4-Step Nurture</div>
+                                    <div class="text-slate-400 text-xs mt-0.5">Triggers on: New Lead Tagged • Stop on Reply: Enabled</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center space-x-1">
+                                        <span class="px-2 py-0.5 bg-slate-100 text-slate-700 font-bold rounded text-[11px]">4 Steps</span>
+                                        <span class="text-slate-400 text-[10px]">(Day 1, 3, 7, 14)</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 font-bold text-slate-800">842 Leads</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full font-bold text-[10px]">ACTIVE</span>
+                                </td>
+                                <td class="px-6 py-4 text-right space-x-2">
+                                    <button onclick="openCreateSequenceModal('Cold Outreach 4-Step Nurture')" class="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold rounded-lg transition text-xs">Edit Flow</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4">
+                                    <div class="font-bold text-slate-900 text-sm">Inbound Lead Welcome & Onboarding</div>
+                                    <div class="text-slate-400 text-xs mt-0.5">Triggers on: Sign-up Form • Stop on Reply: Disabled</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center space-x-1">
+                                        <span class="px-2 py-0.5 bg-slate-100 text-slate-700 font-bold rounded text-[11px]">3 Steps</span>
+                                        <span class="text-slate-400 text-[10px]">(Immediate, Day 2, Day 5)</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 font-bold text-slate-800">415 Leads</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full font-bold text-[10px]">ACTIVE</span>
+                                </td>
+                                <td class="px-6 py-4 text-right space-x-2">
+                                    <button onclick="openCreateSequenceModal('Inbound Lead Welcome & Onboarding')" class="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold rounded-lg transition text-xs">Edit Flow</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4">
+                                    <div class="font-bold text-slate-900 text-sm">Re-engagement Drip for Inactive Clients</div>
+                                    <div class="text-slate-400 text-xs mt-0.5">Triggers on: No activity 30d • Stop on Reply: Enabled</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center space-x-1">
+                                        <span class="px-2 py-0.5 bg-slate-100 text-slate-700 font-bold rounded text-[11px]">2 Steps</span>
+                                        <span class="text-slate-400 text-[10px]">(Day 30, Day 45)</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 font-bold text-slate-800">163 Leads</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full font-bold text-[10px]">PAUSED</span>
+                                </td>
+                                <td class="px-6 py-4 text-right space-x-2">
+                                    <button onclick="openCreateSequenceModal('Re-engagement Drip for Inactive Clients')" class="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold rounded-lg transition text-xs">Edit Flow</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    `;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+};
+
+window.openCreateSequenceModal = function(sequenceTitle = '') {
+    let modal = document.getElementById('create-sequence-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'create-sequence-modal';
+        modal.className = 'fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 md:p-6 animate-fade-in';
+        document.body.appendChild(modal);
+    }
+
+    const titleVal = sequenceTitle || '';
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-2xl flex flex-col overflow-hidden animate-scale-up font-sans">
+            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                <div class="flex items-center space-x-3">
+                    <div class="h-9 w-9 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="git-branch" class="h-4.5 w-4.5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">${titleVal ? 'Edit Drip Sequence' : 'Create Multi-Step Drip Sequence'}</h3>
+                        <p class="text-[11px] text-slate-500 font-medium">Configure automated follow-up steps, delay timing, and trigger actions.</p>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('create-sequence-modal').remove()" class="h-8 w-8 rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-500 flex items-center justify-center cursor-pointer">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-extrabold text-slate-500 uppercase">Sequence Title</label>
+                    <input type="text" id="seq-title-input" value="${escapeHtml(titleVal)}" placeholder="e.g., Enterprise Outreach Drip" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="block text-[10px] font-extrabold text-slate-500 uppercase">Enrollment Trigger</label>
+                        <select class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
+                            <option>Tag Added (New Lead)</option>
+                            <option>Form Submission</option>
+                            <option>Manual Enrollment</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-[10px] font-extrabold text-slate-500 uppercase">Unenroll Condition</label>
+                        <select class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
+                            <option>Stop Sequence On Any Reply</option>
+                            <option>Stop On Meeting Booked</option>
+                            <option>Continue All Steps</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <label class="block text-[10px] font-extrabold text-slate-500 uppercase mb-2">Sequence Steps & Schedule</label>
+                    <div class="space-y-3">
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
+                            <div class="flex items-center space-x-3">
+                                <span class="h-6 w-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px] font-black">1</span>
+                                <div>
+                                    <div class="font-bold text-slate-900">Step 1: Welcome & Value Proposition</div>
+                                    <div class="text-[10px] text-slate-400">Send immediately upon enrollment</div>
+                                </div>
+                            </div>
+                            <span class="text-xs font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">Immediate</span>
+                        </div>
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
+                            <div class="flex items-center space-x-3">
+                                <span class="h-6 w-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px] font-black">2</span>
+                                <div>
+                                    <div class="font-bold text-slate-900">Step 2: Case Study & Social Proof</div>
+                                    <div class="text-[10px] text-slate-400">Send if no reply after 3 days</div>
+                                </div>
+                            </div>
+                            <span class="text-xs font-extrabold text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200">+3 Days</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+                <button onclick="document.getElementById('create-sequence-modal').remove()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl">Cancel</button>
+                <button onclick="saveDripSequence()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold rounded-xl shadow-sm" style="color: #ffffff !important;">Save Sequence Flow</button>
+            </div>
+        </div>
+    `;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+};
+
+window.saveDripSequence = function() {
+    const modal = document.getElementById('create-sequence-modal');
+    if (modal) modal.remove();
+    showNotification('success', 'Multi-step drip sequence workflow successfully saved!');
 };

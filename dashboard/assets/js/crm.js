@@ -15802,21 +15802,13 @@ async function renderSettings(container, params = {}) {
         }
 
         let initialTab = 'profile';
-
-        // Parse URL query parameters from route params, location.search or hash string (e.g. #/settings?tab=whatsapp)
         try {
-            if (params && params.tab) {
-                initialTab = params.tab.trim().toLowerCase();
-            } else {
-                const searchParams = new URLSearchParams(window.location.search);
-                let tabParam = searchParams.get('tab');
-                if (!tabParam && window.location.hash.includes('?')) {
-                    const hashQuery = window.location.hash.split('?')[1];
-                    const hashParams = new URLSearchParams(hashQuery);
-                    tabParam = hashParams.get('tab');
-                }
-                if (tabParam) {
-                    initialTab = tabParam.trim().toLowerCase();
+            const hash = window.location.hash;
+            if (hash.includes('?')) {
+                const queryStr = hash.split('?')[1];
+                const params = new URLSearchParams(queryStr);
+                if (params.get('tab')) {
+                    initialTab = params.get('tab');
                 }
             }
         } catch (e) {
@@ -22891,7 +22883,7 @@ window.switchSettingsTab = function(tabName, btn) {
         if (sidebar) {
             sidebar.querySelectorAll('button').forEach(b => {
                 b.className = "w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left text-slate-800 hover:bg-slate-100 border border-slate-200 bg-white";
-                b.style.color = "";
+                b.style.removeProperty('color');
                 const iconBox = b.querySelector('.rounded-lg');
                 if (iconBox) {
                     iconBox.className = "h-8 w-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0";
@@ -22899,7 +22891,7 @@ window.switchSettingsTab = function(tabName, btn) {
                 const pTitle = b.querySelector('p.font-extrabold');
                 if (pTitle) {
                     pTitle.className = "font-extrabold text-slate-900 text-xs";
-                    pTitle.style.color = "";
+                    pTitle.style.removeProperty('color');
                 }
                 const pSub = b.querySelector('p.text-\\[10px\\]');
                 if (pSub) {
@@ -22908,13 +22900,13 @@ window.switchSettingsTab = function(tabName, btn) {
                 const chev = b.querySelector('i[data-lucide="chevron-right"]');
                 if (chev) {
                     chev.classList.add('opacity-0');
-                    chev.style.color = "";
+                    chev.style.removeProperty('color');
                 }
             });
         }
 
         btn.className = "w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition duration-150 text-left bg-indigo-600 text-white font-bold active-settings-tab shadow-md";
-        btn.style.color = "#ffffff !important";
+        btn.style.setProperty('color', '#ffffff', 'important');
 
         const iconBox = btn.querySelector('.rounded-lg');
         if (iconBox) {
@@ -22923,7 +22915,7 @@ window.switchSettingsTab = function(tabName, btn) {
         const pTitle = btn.querySelector('p.font-extrabold');
         if (pTitle) {
             pTitle.className = "font-extrabold text-white text-xs";
-            pTitle.style.color = "#ffffff !important";
+            pTitle.style.setProperty('color', '#ffffff', 'important');
         }
         const pSub = btn.querySelector('p.text-\\[10px\\]');
         if (pSub) {
@@ -22932,7 +22924,7 @@ window.switchSettingsTab = function(tabName, btn) {
         const activeChev = btn.querySelector('i[data-lucide="chevron-right"]');
         if (activeChev) {
             activeChev.classList.remove('opacity-0');
-            activeChev.style.color = "#ffffff !important";
+            activeChev.style.setProperty('color', '#ffffff', 'important');
         }
     }
 

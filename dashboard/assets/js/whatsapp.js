@@ -5382,7 +5382,24 @@ function renderWhatsAppTemplates(container) {
                         <button onclick="triggerTemplatesSync()" id="sync-tpl-btn" class="flex items-center space-x-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition shadow-sm">
                             <i data-lucide="refresh-cw" class="h-4 w-4"></i>
                             <span>Sync Templates</span>
-                        </button>
+                    <!-- Error Alert Banner for WABA Token Expiration -->
+                    <div id="wa-tpl-token-err-banner" class="hidden p-4 bg-rose-50 border border-rose-200/80 rounded-2xl animate-fade-in shadow-2xs">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-start space-x-3">
+                                <div class="h-8 w-8 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">
+                                    <i data-lucide="key-round" class="h-4 w-4"></i>
+                                </div>
+                                <div class="space-y-1">
+                                    <h4 class="text-xs font-black text-rose-900 uppercase tracking-wider">Meta API Token Authentication Failed</h4>
+                                    <p class="text-xs text-rose-700 font-medium leading-relaxed" id="wa-tpl-token-err-msg">
+                                        Your Meta WABA System User Access Token has expired or is invalid. Template sync cannot proceed until you provide a fresh token.
+                                    </p>
+                                </div>
+                            </div>
+                            <a href="#/whatsapp-settings" class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition shrink-0 ml-3 shadow-2xs" style="color:#ffffff !important;">
+                                Update Token in Settings →
+                            </a>
+                        </div>
                     </div>
 
                     <!-- Three Columns Layout -->
@@ -5783,22 +5800,43 @@ function renderWhatsAppTemplates(container) {
             // Global Trigger Sync Function
             window.triggerTemplatesSync = function () {
                 const btn = document.getElementById('sync-tpl-btn');
+                const errBanner = document.getElementById('wa-tpl-token-err-banner');
+                if (errBanner) errBanner.classList.add('hidden');
+
                 if (btn) {
                     btn.disabled = true;
-                    btn.innerHTML = '<span class="loader-spinner mr-1"></span> Syncing...';
+                    btn.innerHTML = '<span class="loader-spinner mr-1"></span> Syncing Meta Cloud API...';
                 }
 
                 apiCall('whatsapp/templates.php?action=sync', 'POST')
                     .then(res => {
-                        showNotification('success', res.message);
+                        showNotification('success', res.message || 'Meta templates successfully synchronized!');
                         renderWhatsAppTemplates(container);
                     })
                     .catch(err => {
-                        showNotification('error', err.message);
+                        const errMsg = err.message || 'Failed to sync with Meta Cloud API.';
+                        showNotification('error', errMsg);
+                        
+                        const isAuthError = errMsg.toLowerCase().includes('token') || 
+                                            errMsg.toLowerCase().includes('auth') || 
+                                            errMsg.toLowerCase().includes('expire') || 
+                                            errMsg.toLowerCase().includes('session') || 
+                                            errMsg.toLowerCase().includes('waba') || 
+                                            errMsg.toLowerCase().includes('401') || 
+                                            errMsg.toLowerCase().includes('190');
+
+                        if (isAuthError && errBanner) {
+                            errBanner.classList.remove('hidden');
+                            const msgEl = document.getElementById('wa-tpl-token-err-msg');
+                            if (msgEl) {
+                                msgEl.innerHTML = `Meta Authentication Error: ${escapeHtml(errMsg)}. Your WhatsApp Business System Token has expired or lost permissions. Please refresh your token in WhatsApp Settings.`;
+                            }
+                        }
+
                         if (btn) {
                             btn.disabled = false;
                             btn.innerHTML = '<i data-lucide="refresh-cw" class="h-4 w-4"></i><span>Sync Templates</span>';
-                            lucide.createIcons();
+                            if (typeof lucide !== 'undefined') lucide.createIcons();
                         }
                     });
             };

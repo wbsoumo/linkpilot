@@ -664,25 +664,42 @@
 
     // Sidebar AI Copy Assistant Tab
     function renderAISidebar(container) {
+        let activeElType = null;
+        if (selectedElementId) {
+            for (const sec of canvasData) {
+                const el = sec.elements.find(e => e.id === selectedElementId);
+                if (el) {
+                    activeElType = el.type;
+                    break;
+                }
+            }
+        }
+
+        const typeLabel = activeElType ? activeElType.toUpperCase() : "GENERAL EMAIL";
+
         container.innerHTML = `
             <div class="space-y-4">
                 <div class="p-3 bg-indigo-50 border border-indigo-100 rounded-xl space-y-1">
-                    <span class="font-bold text-xs text-[#6D5EF5] flex items-center">
-                        <i data-lucide="sparkles" class="h-3.5 w-3.5 mr-1.5"></i>LinkPilot Copilot AI
-                    </span>
-                    <p class="text-[10px] text-slate-500 leading-relaxed">Let Gemini design compelling copy for your headlines, paragraphs, or call to actions directly inside your templates.</p>
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-xs text-[#6D5EF5] flex items-center">
+                            <i data-lucide="sparkles" class="h-3.5 w-3.5 mr-1.5"></i>LinkPilot Copilot AI
+                        </span>
+                        <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-indigo-100 text-[#6D5EF5]">${typeLabel}</span>
+                    </div>
+                    <p class="text-[10px] text-slate-500 leading-relaxed">Let Gemini design compelling copy specifically optimized for your selected <strong>${activeElType || 'email'}</strong> block.</p>
                 </div>
                 <div class="space-y-1">
                     <label class="font-bold text-slate-600 text-[10px] uppercase">Goal Description</label>
-                    <textarea id="ai-builder-prompt" rows="4" placeholder="e.g. Write a premium newsletter headline for black friday discount offer..." class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500"></textarea>
+                    <textarea id="ai-builder-prompt" rows="3" placeholder="${activeElType === 'button' ? 'e.g. Action button text for 50% discount launch...' : activeElType === 'heading' ? 'e.g. Catchy title headline for outreach email...' : 'e.g. Write a premium outreach email message...'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500"></textarea>
                 </div>
                 <div class="space-y-1">
                     <label class="font-bold text-slate-600 text-[10px] uppercase">Action Intent</label>
                     <select id="ai-builder-action" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-850 focus:outline-none focus:border-indigo-500">
-                        <option value="subject">Generate Subject lines</option>
-                        <option value="rewrite">Rewrite Text Block</option>
-                        <option value="hero">Generate Headline & Subtitle</option>
-                        <option value="cta">Persuasive CTA suggestions</option>
+                        <option value="auto" ${!activeElType ? 'selected' : ''}>✨ Smart Auto-Detect for Selected Block</option>
+                        <option value="heading" ${activeElType === 'heading' ? 'selected' : ''}>Short Punchy Headline</option>
+                        <option value="rewrite" ${activeElType === 'text' ? 'selected' : ''}>Paragraph Body Content</option>
+                        <option value="cta" ${activeElType === 'button' ? 'selected' : ''}>Persuasive Action CTA</option>
+                        <option value="subject">Subject Line & Preview Text</option>
                     </select>
                 </div>
                 <button onclick="triggerAIBuilderGenerate()" id="btn-ai-generate" class="w-full py-2.5 bg-[#6D5EF5] hover:bg-indigo-750 text-white rounded-xl font-black text-xs shadow-lg transition flex items-center justify-center space-x-1.5" style="color:#ffffff !important;background-color:#6D5EF5 !important;">
@@ -708,7 +725,7 @@
     // Trigger AI Generation Action
     window.triggerAIBuilderGenerate = async function() {
         const prompt = document.getElementById('ai-builder-prompt').value.trim();
-        const action = document.getElementById('ai-builder-action').value;
+        let action = document.getElementById('ai-builder-action').value;
         const btn = document.getElementById('btn-ai-generate');
         const respBox = document.getElementById('ai-builder-response-box');
         const respContent = document.getElementById('ai-builder-response-content');
@@ -716,6 +733,19 @@
         if (!prompt) {
             showNotification('warning', 'Please write a prompt first.');
             return;
+        }
+
+        // Auto-detect element type if 'auto' is chosen
+        if (action === 'auto' && selectedElementId) {
+            for (const sec of canvasData) {
+                const el = sec.elements.find(e => e.id === selectedElementId);
+                if (el) {
+                    if (el.type === 'heading') action = 'heading';
+                    else if (el.type === 'button') action = 'cta';
+                    else action = 'rewrite';
+                    break;
+                }
+            }
         }
 
         btn.disabled = true;

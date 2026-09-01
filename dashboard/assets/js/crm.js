@@ -386,7 +386,18 @@ async function navigateTo(view, params = {}) {
                 const isExactMatch = linkView === activeView;
                 const isNormMatch = normLinkView === normActiveView;
 
-                if (isExactMatch || (isNormMatch && !linkView.startsWith('whatsapp-') && !activeView.startsWith('whatsapp-'))) {
+                let shouldHighlight = false;
+                if (isExactMatch) {
+                    shouldHighlight = true;
+                } else if (isNormMatch) {
+                    if (activeView.startsWith('whatsapp-') && linkView.startsWith('whatsapp-')) {
+                        shouldHighlight = true;
+                    } else if (!activeView.startsWith('whatsapp-') && !linkView.startsWith('whatsapp-')) {
+                        shouldHighlight = true;
+                    }
+                }
+
+                if (shouldHighlight) {
                     link.classList.add('active');
                     if (link.classList.contains('sidebar-submenu-link')) {
                         link.classList.remove('text-slate-400');

@@ -18612,6 +18612,33 @@ async function renderEmailTemplates(container) {
                     }).join('')}
                 </div>
 
+                <!-- Clickable Variable Insertion Buttons Bar -->
+                <div class="bg-slate-50 border-b border-slate-200 px-6 py-2 flex items-center justify-between text-xs font-bold text-slate-700 shrink-0">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center">
+                            <i data-lucide="tag" class="h-3.5 w-3.5 mr-1 text-indigo-500"></i> Insert Tag:
+                        </span>
+                        <div class="flex items-center space-x-1.5 overflow-x-auto no-scrollbar">
+                            <button onclick="copyTemplateVariable('{{first_name}}')" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-indigo-600 rounded-lg text-[11px] font-extrabold transition shadow-2xs cursor-pointer" title="Click to copy {{first_name}}">
+                                [ First Name ]
+                            </button>
+                            <button onclick="copyTemplateVariable('{{company}}')" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-indigo-600 rounded-lg text-[11px] font-extrabold transition shadow-2xs cursor-pointer" title="Click to copy {{company}}">
+                                [ Company ]
+                            </button>
+                            <button onclick="copyTemplateVariable('{{job_title}}')" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-indigo-600 rounded-lg text-[11px] font-extrabold transition shadow-2xs cursor-pointer" title="Click to copy {{job_title}}">
+                                [ Job Title ]
+                            </button>
+                            <button onclick="copyTemplateVariable('{{email}}')" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-indigo-600 rounded-lg text-[11px] font-extrabold transition shadow-2xs cursor-pointer" title="Click to copy {{email}}">
+                                [ Email ]
+                            </button>
+                            <button onclick="copyTemplateVariable('{{meeting_link}}')" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-indigo-600 rounded-lg text-[11px] font-extrabold transition shadow-2xs cursor-pointer" title="Click to copy {{meeting_link}}">
+                                [ Meeting Link ]
+                            </button>
+                        </div>
+                    </div>
+                    <span class="text-[10px] text-slate-400 font-medium hidden md:inline-block">Click any pill to copy merge tag to clipboard</span>
+                </div>
+
                 <!-- Templates Grid Container -->
                 <div class="flex-grow p-6 overflow-y-auto min-h-0">
                     ${filteredTemplates.length === 0 ? `
@@ -29037,4 +29064,16 @@ window.switchScheduledViewMode = function(mode) {
         `;
     }
     if (typeof lucide !== 'undefined') lucide.createIcons();
+};
+
+window.copyTemplateVariable = function(tag) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(tag).then(() => {
+            showNotification('success', `Copied merge tag ${tag} to clipboard!`);
+        }).catch(() => {
+            showNotification('info', `Merge tag: ${tag}`);
+        });
+    } else {
+        showNotification('info', `Merge tag: ${tag}`);
+    }
 };

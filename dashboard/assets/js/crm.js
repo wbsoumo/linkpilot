@@ -749,36 +749,23 @@ async function renderDashboard(container) {
             `;
         } else {
             warningBannerHtml = `
-                <div class="bg-gradient-to-br from-emerald-50/80 to-emerald-100/30 border border-emerald-200/80 rounded-[20px] p-6 sm:p-8 shadow-soft text-slate-800 space-y-5 max-w-5xl">
-                    <div class="flex items-center space-x-3 text-left">
-                        <div class="h-12 w-12 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                            <i data-lucide="party-popper" class="h-6 w-6"></i>
+                <div class="bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 max-w-5xl shadow-sm">
+                    <div class="flex items-center space-x-3.5">
+                        <div class="h-9 w-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                            <i data-lucide="sparkles" class="h-4.5 w-4.5"></i>
                         </div>
                         <div>
-                            <h2 class="text-xl font-black text-slate-900 tracking-tight">Workspace Ready</h2>
-                            <p class="text-xs text-slate-500 font-semibold mt-1">Your workspace is fully configured. All AI communication features are now active.</p>
+                            <div class="flex items-center space-x-2">
+                                <h4 class="text-xs font-bold text-white tracking-wide">AI Workspace Live</h4>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Auto-Pilot Active</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Email intelligence, WhatsApp AI dispatch, and CRM sync are fully operational.</p>
                         </div>
                     </div>
-                    
-                    <div class="flex flex-wrap gap-4 pt-2">
-                        <div class="flex items-center space-x-2 text-xs font-bold text-slate-700 bg-white/80 border border-emerald-200 px-3.5 py-2 rounded-xl">
-                            <span class="text-emerald-500 font-extrabold">✓</span>
-                            <span>Email Connected</span>
-                        </div>
-                        <div class="flex items-center space-x-2 text-xs font-bold text-slate-700 bg-white/80 border border-emerald-200 px-3.5 py-2 rounded-xl">
-                            <span class="text-emerald-500 font-extrabold">✓</span>
-                            <span>WhatsApp Connected</span>
-                        </div>
-                        <div class="flex items-center space-x-2 text-xs font-bold text-slate-700 bg-white/80 border border-emerald-200 px-3.5 py-2 rounded-xl">
-                            <span class="text-emerald-500 font-extrabold">✓</span>
-                            <span>AI Activated</span>
-                        </div>
-                    </div>
-
-                    <div class="pt-4 border-t border-emerald-200/60 flex justify-end">
-                        <button onclick="window.location.hash = '#/inbox';" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-md shadow-emerald-500/20 cursor-pointer flex items-center space-x-2 animate-bounce" style="color: #ffffff !important;">
-                            <span style="color: #ffffff !important;">Open AI Workspace</span>
-                            <i data-lucide="arrow-right" class="h-4 w-4 text-white"></i>
+                    <div class="flex items-center space-x-2 shrink-0 w-full sm:w-auto justify-end">
+                        <button onclick="window.location.hash = '#/inbox';" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-sm" style="color: #ffffff !important;">
+                            <span style="color: #ffffff !important;">Open AI Inbox</span>
+                            <i data-lucide="arrow-right" class="h-3.5 w-3.5" style="color: #ffffff !important;"></i>
                         </button>
                     </div>
                 </div>

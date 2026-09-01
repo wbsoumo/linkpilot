@@ -4190,127 +4190,56 @@ async function renderLeads(container) {
         const res = await apiCall('crm/leads.php');
         const leads = res.leads || [];
         
-        // Read persisted view preference from localStorage
-        let currentViewMode = localStorage.getItem('pipeline_view') || 'kanban';
-
-        // Build Kanban Stage Columns
-        const stages = ['New Lead', 'Contacted', 'Qualified', 'Proposal Sent', 'Won', 'Lost'];
-        const stageThemes = {
-            'New Lead': { bg: 'bg-indigo-50 border-indigo-200 text-indigo-700', badge: 'bg-indigo-100 text-indigo-700' },
-            'Contacted': { bg: 'bg-blue-50 border-blue-200 text-blue-700', badge: 'bg-blue-100 text-blue-700' },
-            'Qualified': { bg: 'bg-amber-50 border-amber-200 text-amber-700', badge: 'bg-amber-100 text-amber-700' },
-            'Proposal Sent': { bg: 'bg-purple-50 border-purple-200 text-purple-700', badge: 'bg-purple-100 text-purple-700' },
-            'Won': { bg: 'bg-emerald-50 border-emerald-200 text-emerald-700', badge: 'bg-emerald-100 text-emerald-700' },
-            'Lost': { bg: 'bg-rose-50 border-rose-200 text-rose-700', badge: 'bg-rose-100 text-rose-700' }
-        };
-
-        const kanbanColsHtml = stages.map(st => {
-            const stageLeads = leads.filter(l => (l.stage || 'New Lead').toLowerCase() === st.toLowerCase());
-            const theme = stageThemes[st] || { bg: 'bg-slate-50 border-slate-200 text-slate-700', badge: 'bg-slate-100 text-slate-700' };
-
-            const cardsHtml = stageLeads.length > 0 ? stageLeads.map(l => `
-                <div onclick="editCrmLead(${l.id})" class="bg-white border border-slate-200 p-3.5 rounded-xl shadow-2xs hover:shadow-md hover:border-indigo-300 transition cursor-pointer space-y-2">
-                    <div class="flex items-center justify-between">
-                        <span class="font-bold text-slate-900 text-xs truncate max-w-[130px]">${escapeHtml(l.name)}</span>
-                        <span class="text-[10px] font-black text-indigo-600">${window.formatCurrency(l.budget)}</span>
-                    </div>
-                    <div class="text-[11px] text-slate-500 truncate">${escapeHtml(l.company || l.email || 'No company')}</div>
-                    <div class="flex items-center justify-between pt-1 border-t border-slate-100 text-[10px]">
-                        <span class="px-2 py-0.5 rounded font-extrabold ${theme.badge}">${st}</span>
-                        <span class="text-slate-400 font-medium">${l.priority || 'Normal'}</span>
-                    </div>
-                </div>
-            `).join('') : `
-                <div class="p-6 text-center text-slate-400 border border-dashed border-slate-200 rounded-xl text-[11px] font-medium">
-                    No leads in stage
-                </div>
-            `;
-
-            return `
-                <div class="w-72 shrink-0 bg-slate-50/80 border border-slate-200/80 rounded-2xl p-3 flex flex-col space-y-3">
-                    <div class="flex items-center justify-between px-1">
-                        <span class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center">
-                            <span class="h-2 w-2 rounded-full mr-2 ${theme.badge}"></span>
-                            ${st}
-                        </span>
-                        <span class="px-2 py-0.5 bg-white border border-slate-200 rounded-full text-[10px] font-bold text-slate-600 shadow-2xs">${stageLeads.length}</span>
-                    </div>
-                    <div class="space-y-2.5 overflow-y-auto max-h-[520px] pr-1">
-                        ${cardsHtml}
-                    </div>
-                </div>
-            `;
-        }).join('');
-
         let leadRows = leads.length > 0 ? leads.map(l => {
             const date = new Date(l.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
             return `
-                <tr class="hover:bg-slate-50 transition border-b border-slate-100">
-                    <td class="py-3 px-4 font-bold text-slate-900">${escapeHtml(l.name)}</td>
-                    <td class="py-3 px-4 text-slate-600 font-medium">${escapeHtml(l.company || '-')}</td>
-                    <td class="py-3 px-4 text-slate-500 font-mono text-[11px]">${escapeHtml(l.email)}</td>
-                    <td class="py-3 px-4 text-indigo-600 font-bold">${window.formatCurrency(l.budget)}</td>
+                <tr class="hover:bg-slate-900/40">
+                    <td class="py-3 px-4 font-bold text-white">${l.name}</td>
+                    <td class="py-3 px-4 text-slate-300 font-medium">${l.company || '-'}</td>
+                    <td class="py-3 px-4 text-slate-400 font-mono text-[11px]">${l.email}</td>
+                    <td class="py-3 px-4 text-indigo-400 font-bold">${window.formatCurrency(l.budget)}</td>
                     <td class="py-3 px-4">
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-teal-50 text-teal-700 border border-teal-200">${escapeHtml(l.stage)}</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-teal-500/10 text-teal-400 border border-teal-500/20">${l.stage}</span>
                     </td>
-                    <td class="py-3 px-4 text-slate-500 font-semibold">${escapeHtml(l.priority || 'Normal')}</td>
-                    <td class="py-3 px-4 text-slate-400 font-medium">${date}</td>
+                    <td class="py-3 px-4 text-slate-400">${l.priority}</td>
+                    <td class="py-3 px-4 text-slate-500">${date}</td>
                     <td class="py-3 px-4 text-right">
-                        <button onclick="editCrmLead(${l.id})" class="text-xs px-3 py-1 bg-indigo-50 text-indigo-600 font-bold rounded-lg hover:bg-indigo-100 transition cursor-pointer">View Details</button>
+                        <button onclick="editCrmLead(${l.id})" class="text-xs px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-md hover:border-teal-400 hover:text-teal-400 transition">View Details</button>
                     </td>
                 </tr>
             `;
-        }).join('') : `<tr><td colspan="8" class="text-center py-10 text-slate-400 font-medium">No leads added to pipeline yet.</td></tr>`;
+        }).join('') : `<tr><td colspan="8" class="text-center py-10 text-slate-500">No leads added to pipeline yet.</td></tr>`;
 
         container.innerHTML = `
-            <div class="space-y-6 animate-fade-in font-sans text-slate-800">
-                <!-- Header & View Switcher Bar -->
-                <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs flex-wrap gap-4">
+            <div class="space-y-6 animate-fade-in pt-4">
+                <div class="flex justify-between items-center border-b border-slate-850 pb-4">
                     <div>
-                        <h1 class="text-xl font-black text-slate-900 tracking-tight">Lead Vault & Sales Pipeline</h1>
-                        <p class="text-xs text-slate-500 font-semibold mt-0.5">All inbound client leads captured automatically from Email sync and Scraping.</p>
+                        <h1 class="text-2xl font-extrabold text-white">Lead Vault</h1>
+                        <p class="text-slate-400 text-xs mt-1">All inbound client leads captured automatically from Email sync and Scraping.</p>
                     </div>
-                    <div class="flex items-center space-x-3">
-                        <!-- Kanban / Table Toggle Pills -->
-                        <div class="bg-slate-100 p-1 rounded-xl flex items-center space-x-1 border border-slate-200 text-xs font-bold">
-                            <button onclick="switchLeadsViewMode('kanban')" id="leads-view-kanban-btn" class="px-3.5 py-1.5 rounded-lg transition flex items-center space-x-1.5 cursor-pointer ${currentViewMode === 'kanban' ? 'bg-white shadow-2xs text-indigo-600 font-extrabold' : 'text-slate-600 hover:text-slate-900'}">
-                                <i data-lucide="kanban" class="h-3.5 w-3.5"></i>
-                                <span>Kanban View</span>
-                            </button>
-                            <button onclick="switchLeadsViewMode('table')" id="leads-view-table-btn" class="px-3.5 py-1.5 rounded-lg transition flex items-center space-x-1.5 cursor-pointer ${currentViewMode === 'table' ? 'bg-white shadow-2xs text-indigo-600 font-extrabold' : 'text-slate-600 hover:text-slate-900'}">
-                                <i data-lucide="table" class="h-3.5 w-3.5"></i>
-                                <span>Table View</span>
-                            </button>
-                        </div>
-                        <button onclick="createNewLeadModal()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-extrabold shadow-md transition flex items-center space-x-1.5 cursor-pointer" style="color: #ffffff !important; background-color: #4F46E5 !important;">
-                            <i data-lucide="plus" class="h-4 w-4 text-white" style="color: #ffffff !important;"></i>
-                            <span class="text-white font-extrabold" style="color: #ffffff !important;">Add New Lead</span>
-                        </button>
-                    </div>
+                    <button onclick="createNewLeadModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center space-x-1.5">
+                        <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                        <span>Add New Lead</span>
+                    </button>
                 </div>
 
-                <!-- Kanban Board View -->
-                <div id="leads-kanban-container" class="${currentViewMode === 'kanban' ? 'flex' : 'hidden'} space-x-4 overflow-x-auto pb-4">
-                    ${kanbanColsHtml}
-                </div>
-
-                <!-- Table View Panel -->
-                <div id="leads-table-container" class="${currentViewMode === 'table' ? 'block' : 'hidden'} bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+                <!-- Table panel -->
+                <div class="glass-panel p-5 bg-slate-900/40">
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-xs font-medium text-slate-700">
-                            <thead class="bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500 font-extrabold border-b border-slate-200">
-                                <tr>
-                                    <th class="py-3.5 px-4">Lead Name</th>
-                                    <th class="py-3.5 px-4">Company</th>
-                                    <th class="py-3.5 px-4">Email</th>
-                                    <th class="py-3.5 px-4">Budget</th>
-                                    <th class="py-3.5 px-4">Stage</th>
-                                    <th class="py-3.5 px-4">Priority</th>
-                                    <th class="py-3.5 px-4">Created Date</th>
-                                    <th class="py-3.5 px-4 text-right">Actions</th>
+                        <table class="w-full text-left border-collapse custom-table text-xs">
+                            <thead>
+                                <tr class="border-b border-slate-800">
+                                    <th class="py-3 px-4">Lead Name</th>
+                                    <th class="py-3 px-4">Company</th>
+                                    <th class="py-3 px-4">Email</th>
+                                    <th class="py-3 px-4">Budget</th>
+                                    <th class="py-3 px-4">Stage</th>
+                                    <th class="py-3 px-4">Priority</th>
+                                    <th class="py-3 px-4">Created Date</th>
+                                    <th class="py-3 px-4 text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="leads-table-body" class="divide-y divide-slate-100 bg-white">
+                            <tbody id="leads-table-body">
                                 ${leadRows}
                             </tbody>
                         </table>
@@ -4318,38 +4247,11 @@ async function renderLeads(container) {
                 </div>
             </div>
         `;
-        if (typeof lucide !== 'undefined') lucide.createIcons();
+        lucide.createIcons();
     } catch (err) {
         showNotification('error', err.message);
     }
 }
-
-window.switchLeadsViewMode = function(mode) {
-    localStorage.setItem('pipeline_view', mode);
-    const kanbanBtn = document.getElementById('leads-view-kanban-btn');
-    const tableBtn = document.getElementById('leads-view-table-btn');
-    const kanbanBox = document.getElementById('leads-kanban-container');
-    const tableBox = document.getElementById('leads-table-container');
-
-    if (!kanbanBox || !tableBox || !kanbanBtn || !tableBtn) return;
-
-    if (mode === 'kanban') {
-        kanbanBox.classList.remove('hidden');
-        kanbanBox.classList.add('flex');
-        tableBox.classList.add('hidden');
-        tableBox.classList.remove('block');
-        kanbanBtn.className = "px-3.5 py-1.5 bg-white shadow-2xs text-indigo-600 rounded-lg text-xs font-extrabold transition flex items-center space-x-1.5 cursor-pointer";
-        tableBtn.className = "px-3.5 py-1.5 text-slate-600 hover:text-slate-900 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer";
-    } else {
-        tableBox.classList.remove('hidden');
-        tableBox.classList.add('block');
-        kanbanBox.classList.add('hidden');
-        kanbanBox.classList.remove('flex');
-        tableBtn.className = "px-3.5 py-1.5 bg-white shadow-2xs text-indigo-600 rounded-lg text-xs font-extrabold transition flex items-center space-x-1.5 cursor-pointer";
-        kanbanBtn.className = "px-3.5 py-1.5 text-slate-600 hover:text-slate-900 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer";
-    }
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-};
 
 function createNewLeadModal(prefills = {}) {
     // Remove existing modal if any
@@ -4910,7 +4812,7 @@ async function renderDeals(container) {
                 }
 
                 return `
-                    <div data-deal-id="${c.id}" data-deal-amount="${c.expected_revenue || 0}" class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3 card-hover relative group cursor-grab active:cursor-grabbing select-none" draggable="true" ondragstart="handleDealDragStart(event, ${c.id})" ontouchstart="handleDealTouchStart(event, ${c.id})" ontouchmove="handleDealTouchMove(event)" ontouchend="handleDealTouchEnd(event)" oncontextmenu="openDealContextMenu(event, ${c.id})" ondblclick="openDealLogsModal(${c.id})">
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3 card-hover relative group cursor-grab active:cursor-grabbing select-none" draggable="true" ondragstart="handleDealDragStart(event, ${c.id})" ontouchstart="handleDealTouchStart(event, ${c.id})" ontouchmove="handleDealTouchMove(event)" ontouchend="handleDealTouchEnd(event)" oncontextmenu="openDealContextMenu(event, ${c.id})" ondblclick="openDealLogsModal(${c.id})">
                         <!-- Action Menu Button -->
                         <div class="absolute top-3.5 right-3.5 z-10">
                             <button onclick="openDealMenu(event, ${c.id})" class="h-6 w-6 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-50 flex items-center justify-center transition">
@@ -4949,9 +4851,9 @@ async function renderDeals(container) {
                     <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                         <div class="flex items-center space-x-2">
                             <span class="text-xs font-extrabold ${theme.text.split(' ')[0]} tracking-wider uppercase">${theme.name}</span>
-                            <span data-stage-count="${st}" class="px-2 py-0.5 rounded-full text-[9px] font-black ${theme.bg} ${theme.text.split(' ')[0]}">${stages[st].length}</span>
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black ${theme.bg} ${theme.text.split(' ')[0]}">${stages[st].length}</span>
                         </div>
-                        <span data-stage-total="${st}" class="text-[10px] font-black text-slate-800">${window.formatCurrency(data.totals[st] || 0)}</span>
+                        <span class="text-[10px] font-black text-slate-800">${window.formatCurrency(data.totals[st] || 0)}</span>
                     </div>
                     
                     <!-- Cards Container -->
@@ -5636,59 +5538,20 @@ window.handleDealTouchEnd = function(e) {
 async function handleDealDrop(e, targetStage) {
     if (e && e.preventDefault) e.preventDefault();
     if (!draggedDealId) return;
-
-    const currentDealId = draggedDealId;
-    draggedDealId = null;
-
-    // Immediately move DOM card node to target stage container and recalculate totals
-    const cardNode = document.querySelector(`[data-deal-id="${currentDealId}"]`);
-    const targetStageCol = document.querySelector(`[data-kanban-stage="${targetStage}"]`);
-    
-    if (cardNode && targetStageCol) {
-        const cardsContainer = targetStageCol.querySelector('.flex-1.space-y-3');
-        if (cardsContainer) {
-            // Remove empty placeholder text if present
-            const placeholder = cardsContainer.querySelector('p');
-            if (placeholder) placeholder.remove();
-            cardsContainer.appendChild(cardNode);
-        }
-        recalculateKanbanStageTotals();
-    }
     
     try {
         await apiCall('crm/deals.php?action=update', 'POST', {
-            id: currentDealId,
+            id: draggedDealId,
             stage: targetStage
         });
         showNotification('success', `Deal stage updated to ${targetStage}!`);
+        navigateTo('deals');
     } catch (err) {
         showNotification('error', err.message);
-        navigateTo('deals');
+    } finally {
+        draggedDealId = null;
     }
 }
-
-window.recalculateKanbanStageTotals = function() {
-    const columns = document.querySelectorAll('[data-kanban-stage]');
-    columns.forEach(col => {
-        const stageName = col.getAttribute('data-kanban-stage');
-        const cards = col.querySelectorAll('[data-deal-id]');
-        let totalVal = 0;
-        cards.forEach(card => {
-            const amt = parseFloat(card.getAttribute('data-deal-amount') || 0);
-            if (!isNaN(amt)) totalVal += amt;
-        });
-
-        const totalElem = col.querySelector(`[data-stage-total="${stageName}"]`);
-        if (totalElem) {
-            totalElem.textContent = window.formatCurrency(totalVal);
-        }
-
-        const countElem = col.querySelector(`[data-stage-count="${stageName}"]`);
-        if (countElem) {
-            countElem.textContent = cards.length;
-        }
-    });
-};
 
 window.openDealContextMenu = function(event, dealId) {
     event.preventDefault();
@@ -8039,33 +7902,6 @@ async function openInspectCompanyModal(companyId) {
             </div>
         `;
         lucide.createIcons();
-
-        // Attach Keyboard Navigation (Esc -> Close, Tab / Shift+Tab -> Section Navigation)
-        const modalElement = document.getElementById('crm-company-inspect-modal');
-        if (modalElement) {
-            const handleCompanyModalKeyDown = function(e) {
-                if (e.key === 'Escape') {
-                    modalElement.remove();
-                    window.removeEventListener('keydown', handleCompanyModalKeyDown);
-                    e.preventDefault();
-                } else if (e.key === 'Tab') {
-                    // Navigate focusable sections within the modal
-                    const focusables = modalElement.querySelectorAll('button, a, input, select, textarea, [tabindex="0"]');
-                    if (focusables.length > 0) {
-                        const first = focusables[0];
-                        const last = focusables[focusables.length - 1];
-                        if (e.shiftKey && document.activeElement === first) {
-                            last.focus();
-                            e.preventDefault();
-                        } else if (!e.shiftKey && document.activeElement === last) {
-                            first.focus();
-                            e.preventDefault();
-                        }
-                    }
-                }
-            };
-            window.addEventListener('keydown', handleCompanyModalKeyDown);
-        }
     } catch (e) {
         showNotification('error', 'Failed to retrieve company details: ' + e.message);
         document.getElementById('crm-company-inspect-modal').remove();
@@ -8293,47 +8129,6 @@ window.getTasksForTab = function(tasks, tab) {
         if (tab === 'general') return !isComm && !isCrm && !isMarketing;
         return true;
     });
-window.formatHumanRelativeTaskDate = function(dueDateStr, dueTimeStr) {
-    if (!dueDateStr) return 'No due date';
-
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
-    // Parse target due date
-    const parts = dueDateStr.split('-');
-    if (parts.length < 3) return dueDateStr;
-    const targetDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-    
-    const diffTime = targetDate.getTime() - today.getTime();
-    const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
-
-    // Time formatting
-    let formattedTime = '';
-    if (dueTimeStr) {
-        const timeParts = dueTimeStr.split(':');
-        if (timeParts.length >= 2) {
-            let hours = parseInt(timeParts[0]);
-            const minutes = timeParts[1];
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12;
-            hours = hours ? hours : 12;
-            formattedTime = ` at ${hours}:${minutes} ${ampm}`;
-        }
-    }
-
-    if (diffDays === 0) {
-        return `<span class="text-indigo-600 font-extrabold">Due Today${formattedTime}</span>`;
-    } else if (diffDays === 1) {
-        return `<span class="text-blue-600 font-bold">Due Tomorrow${formattedTime}</span>`;
-    } else if (diffDays > 1 && diffDays <= 7) {
-        return `<span class="text-slate-700 font-bold">Due in ${diffDays} Days${formattedTime}</span>`;
-    } else if (diffDays > 7) {
-        return `<span class="text-slate-600 font-medium">${targetDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}${formattedTime}</span>`;
-    } else if (diffDays === -1) {
-        return `<span class="text-rose-600 font-extrabold">1 Day Overdue${formattedTime}</span>`;
-    } else {
-        return `<span class="text-rose-600 font-extrabold">${Math.abs(diffDays)} Days Overdue${formattedTime}</span>`;
-    }
 };
 
 async function renderTasks(container) {
@@ -8391,7 +8186,8 @@ async function renderTasks(container) {
                     borderAccent = 'border-l-4 border-l-slate-350';
                 }
 
-                const dateStr = formatHumanRelativeTaskDate(t.due_date, t.due_time);
+                const timeStr = t.due_time ? ` @ ${t.due_time.substring(0, 5)}` : '';
+                const dateStr = t.due_date ? new Date(t.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + timeStr : 'No date';
                 
                 let meetLinkHTML = '';
                 if (t.meet_link) {
@@ -10487,17 +10283,12 @@ window.renderMeetingsList = async function(container, activeTab = null, searchQu
                                                         </span>
                                                     </td>
                                                     <td class="py-3.5 px-4 text-right shrink-0">
-                                                        ${m.meet_link || m.location?.includes('meet.google.com') ? `
-                                                            <a href="${m.meet_link || (m.location.startsWith('http') ? m.location : `https://${m.location}`)}" target="_blank" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black inline-flex items-center space-x-1.5 transition shadow-md hover:shadow-lg hover:scale-105 active:scale-95" style="color: #ffffff !important; background-color: #059669 !important;">
-                                                                <span class="text-sm">🎥</span>
-                                                                <span style="color: #ffffff !important;" class="font-extrabold tracking-wide">Join Google Meet</span>
+                                                        ${m.meet_link ? `
+                                                            <a href="${m.meet_link}" target="_blank" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-extrabold inline-flex items-center space-x-1 transition shadow-sm" style="color: #ffffff !important;">
+                                                                <i data-lucide="video" class="h-3.5 w-3.5 text-white"></i>
+                                                                <span style="color: #ffffff !important;">Join</span>
                                                             </a>
-                                                        ` : m.location?.includes('zoom') ? `
-                                                            <a href="${m.location.startsWith('http') ? m.location : `https://${m.location}`}" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black inline-flex items-center space-x-1.5 transition shadow-md hover:shadow-lg hover:scale-105 active:scale-95" style="color: #ffffff !important;">
-                                                                <i data-lucide="video" class="h-4 w-4 text-white"></i>
-                                                                <span style="color: #ffffff !important;" class="font-extrabold tracking-wide">Join Zoom</span>
-                                                            </a>
-                                                        ` : '<span class="text-slate-350 font-bold text-xs">-</span>'}
+                                                        ` : '<span class="text-slate-350 font-bold">-</span>'}
                                                     </td>
                                                 </tr>
                                             `;
@@ -12168,15 +11959,14 @@ window.renderBookingSetup = async function(container) {
                                     </button>
                                 </div>
                                 
-                                <button id="copy-public-booking-btn" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl transition flex items-center justify-center space-x-2 text-xs shadow-md focus:outline-none active:scale-98" style="color: #ffffff !important;">
-                                    <i data-lucide="copy" class="h-4 w-4"></i>
-                                    <span style="color: #ffffff !important;">Copy Public Booking Link</span>
-                                </button>
-                                
-                                <div class="space-y-2 pt-1">
-                                    <a href="${bookingUrl}" target="_blank" class="w-full py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-800 font-bold rounded-xl transition flex items-center justify-center space-x-1.5 text-xs focus:outline-none bg-white shadow-xs">
+                                <div class="space-y-2 pt-2">
+                                    <a href="${bookingUrl}" target="_blank" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl transition flex items-center justify-center space-x-1.5 text-xs shadow-md focus:outline-none" style="color: #ffffff !important;">
                                         <i data-lucide="external-link" class="h-3.5 w-3.5"></i>
                                         <span>Open Booking Page</span>
+                                    </a>
+                                    <a href="${bookingUrl}" target="_blank" class="w-full py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-800 font-bold rounded-xl transition flex items-center justify-center space-x-1.5 text-xs focus:outline-none bg-white shadow-xs">
+                                        <i data-lucide="globe" class="h-3.5 w-3.5"></i>
+                                        <span>Test Booking Page</span>
                                     </a>
                                 </div>
                             </div>
@@ -12441,31 +12231,13 @@ window.renderBookingSetup = async function(container) {
             }
 
             // Copy booking link to clipboard
-            const handleCopyAction = (btnElement) => {
-                navigator.clipboard.writeText(bookingUrl)
-                    .then(() => {
-                        showNotification('success', '✓ Link copied to clipboard!');
-                        if (btnElement) {
-                            const origHTML = btnElement.innerHTML;
-                            btnElement.innerHTML = `<i data-lucide="check" class="h-4 w-4 text-emerald-400"></i><span style="color: #ffffff !important;" class="font-black">✓ Link copied</span>`;
-                            lucide.createIcons();
-                            setTimeout(() => {
-                                btnElement.innerHTML = origHTML;
-                                lucide.createIcons();
-                            }, 2200);
-                        }
-                    })
-                    .catch(() => showNotification('error', 'Failed to copy link.'));
-            };
-
             const copyBtn = document.getElementById('copy-booking-link-btn');
             if (copyBtn) {
-                copyBtn.onclick = () => handleCopyAction(copyBtn);
-            }
-
-            const copyPublicBtn = document.getElementById('copy-public-booking-btn');
-            if (copyPublicBtn) {
-                copyPublicBtn.onclick = () => handleCopyAction(copyPublicBtn);
+                copyBtn.onclick = () => {
+                    navigator.clipboard.writeText(bookingUrl)
+                        .then(() => showNotification('success', 'Booking link copied to clipboard!'))
+                        .catch(() => showNotification('error', 'Failed to copy link.'));
+                };
             }
         }
 
@@ -13741,42 +13513,37 @@ function renderVisualCanvas(container) {
                     </div>
 
                     <!-- Center Canvas -->
-                    <div class="flex-grow flex flex-col h-full relative overflow-hidden wf-canvas-container touch-none" id="wf-canvas-container" onwheel="handleCanvasScroll(event)" onmousedown="handleCanvasMouseDown(event)" ontouchstart="handleCanvasTouchStart(event)" ontouchmove="handleCanvasTouchMove(event)" ontouchend="handleCanvasTouchEnd(event)" ondragover="event.preventDefault()" ondrop="handleNodeDrop(event)">
-                        <!-- Canvas Responsive Toolbar -->
-                        <div class="absolute top-3 left-1/2 transform -translate-x-1/2 z-20 bg-white/95 backdrop-blur-sm border border-slate-200 rounded-2xl p-1.5 flex items-center space-x-1 shadow-lg text-[9px] font-bold text-slate-600 select-none max-w-[92vw] overflow-x-auto no-scrollbar">
-                            <button onclick="undoWorkflowChange()" class="flex items-center space-x-1 px-2 py-1 rounded-xl hover:bg-slate-100 transition shrink-0" title="Undo">
+                    <div class="flex-grow flex flex-col h-full relative overflow-hidden wf-canvas-container" id="wf-canvas-container" onwheel="handleCanvasScroll(event)" onmousedown="handleCanvasMouseDown(event)" ondragover="event.preventDefault()" ondrop="handleNodeDrop(event)">
+                        <!-- Canvas Floating Toolbar -->
+                        <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 bg-white/95 border border-slate-200 rounded-xl p-1.5 flex items-center space-x-1.5 shadow-md text-[9px] font-bold text-slate-550 select-none">
+                            <button onclick="undoWorkflowChange()" class="flex items-center space-x-1 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">
                                 <i data-lucide="undo" class="h-3.5 w-3.5 text-slate-500"></i>
-                                <span class="hidden sm:inline">Undo</span>
+                                <span>Undo</span>
                             </button>
-                            <button onclick="redoWorkflowChange()" class="flex items-center space-x-1 px-2 py-1 rounded-xl hover:bg-slate-100 transition shrink-0" title="Redo">
+                            <button onclick="redoWorkflowChange()" class="flex items-center space-x-1 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">
                                 <i data-lucide="redo" class="h-3.5 w-3.5 text-slate-500"></i>
-                                <span class="hidden sm:inline">Redo</span>
+                                <span>Redo</span>
                             </button>
-                            <div class="h-5 w-px bg-slate-200 mx-0.5 shrink-0"></div>
-                            <button onclick="zoomWorkflow(-0.1)" class="p-1.5 rounded-xl hover:bg-slate-100 transition shrink-0" title="Zoom Out">
-                                <i data-lucide="zoom-out" class="h-3.5 w-3.5 text-slate-600"></i>
+                            <div class="h-6 w-px bg-slate-200 mx-1"></div>
+                            <button onclick="zoomWorkflow(-0.1)" class="flex items-center space-x-1 px-2 py-1 rounded-lg hover:bg-slate-100 transition">
+                                <i data-lucide="zoom-out" class="h-3.5 w-3.5 text-slate-500"></i>
+                                <span>Zoom Out</span>
                             </button>
-                            <div class="flex items-center px-1.5 shrink-0">
-                                <span id="wf-zoom-percentage-label" class="text-indigo-650 font-black text-[10px]">${Math.round(window.wfState.zoom * 100)}%</span>
+                            <div class="flex items-center px-2">
+                                <span class="text-slate-800 font-bold">${Math.round(window.wfState.zoom * 100)}%</span>
                             </div>
-                            <button onclick="zoomWorkflow(0.1)" class="p-1.5 rounded-xl hover:bg-slate-100 transition shrink-0" title="Zoom In">
-                                <i data-lucide="zoom-in" class="h-3.5 w-3.5 text-slate-600"></i>
+                            <button onclick="zoomWorkflow(0.1)" class="flex items-center space-x-1 px-2 py-1 rounded-lg hover:bg-slate-100 transition">
+                                <i data-lucide="zoom-in" class="h-3.5 w-3.5 text-slate-500"></i>
+                                <span>Zoom In</span>
                             </button>
-                            <div class="h-5 w-px bg-slate-200 mx-0.5 shrink-0"></div>
-                            <button onclick="zoomToFit()" class="flex items-center space-x-1 px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl transition shrink-0 border border-indigo-100" title="Auto-Fit Canvas">
-                                <i data-lucide="maximize" class="h-3.5 w-3.5 text-indigo-600"></i>
-                                <span class="font-extrabold">Auto-Fit</span>
+                            <div class="h-6 w-px bg-slate-200 mx-1"></div>
+                            <button onclick="zoomToFit()" class="flex items-center space-x-1 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">
+                                <i data-lucide="maximize" class="h-3.5 w-3.5 text-slate-500"></i>
+                                <span>Fit</span>
                             </button>
-                            <button onclick="autoArrangeCanvas()" class="flex items-center space-x-1 px-2 py-1 rounded-xl hover:bg-slate-100 transition shrink-0" title="Auto Arrange">
-                                <i data-lucide="layout-grid" class="h-3.5 w-3.5 text-slate-600"></i>
-                                <span class="hidden md:inline">Arrange</span>
-                            </button>
-                            <div class="h-5 w-px bg-slate-200 mx-0.5 shrink-0"></div>
-                            <button onclick="navigateCanvasNode(-1)" class="p-1.5 rounded-xl hover:bg-slate-100 transition shrink-0" title="Previous Node">
-                                <i data-lucide="chevron-left" class="h-3.5 w-3.5 text-slate-600"></i>
-                            </button>
-                            <button onclick="navigateCanvasNode(1)" class="p-1.5 rounded-xl hover:bg-slate-100 transition shrink-0" title="Next Node">
-                                <i data-lucide="chevron-right" class="h-3.5 w-3.5 text-slate-600"></i>
+                            <button onclick="autoArrangeCanvas()" class="flex items-center space-x-1 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">
+                                <i data-lucide="layout-grid" class="h-3.5 w-3.5 text-slate-500"></i>
+                                <span>Auto Arrange</span>
                             </button>
                         </div>
 
@@ -14630,9 +14397,8 @@ async function renderAIInsights(container) {
             apiCall('profile/get_credits.php').catch(() => ({ wallet: { remaining: 0 } }))
         ]);
 
-        const remainingCredits = creditData.wallet ? parseInt(creditData.wallet.remaining || 0) : 0;
+        const remainingCredits = creditData.wallet ? creditData.wallet.remaining : 0;
         const isExhausted = remainingCredits <= 0 || (res.message && (res.message.toLowerCase().includes('credit') || res.message.toLowerCase().includes('openrouter') || res.message.toLowerCase().includes('quota') || res.message.toLowerCase().includes('balance')));
-        const isLowCredits = !isExhausted && remainingCredits <= 20;
 
         if (res.status !== 'success' && !isExhausted) {
             container.innerHTML = `<div class="p-8 text-center text-rose-400 font-bold">Failed to load AI Insights: ${res.message}</div>`;
@@ -14666,28 +14432,6 @@ async function renderAIInsights(container) {
                             <a href="#/recharge" class="px-4 py-2.5 bg-gradient-to-r from-rose-600 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 text-white font-extrabold rounded-xl text-xs transition shadow-md flex items-center space-x-2" style="color: #ffffff !important;">
                                 <i data-lucide="zap" class="h-4 w-4" style="color: #ffffff !important;"></i>
                                 <span style="color: #ffffff !important;">Recharge Wallet Now</span>
-                            </a>
-                        </div>
-                    </div>
-                ` : isLowCredits ? `
-                    <!-- AI Credits Low Alert Banner -->
-                    <div class="p-5 bg-amber-950/40 border border-amber-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
-                        <div class="flex items-center space-x-3.5">
-                            <div class="h-11 w-11 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 font-extrabold text-lg">
-                                ⚠️
-                            </div>
-                            <div>
-                                <h3 class="text-sm font-black text-amber-200 flex items-center space-x-2">
-                                    <span>AI Credits Low</span>
-                                    <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-extrabold">${remainingCredits} Credits Left</span>
-                                </h3>
-                                <p class="text-amber-300/80 text-[11px] mt-0.5">Your AI credit wallet is running low. Top up now to prevent AI automated summaries and insights from pausing.</p>
-                            </div>
-                        </div>
-                        <div class="shrink-0 flex items-center space-x-3">
-                            <a href="#/recharge" class="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-black rounded-xl text-xs transition shadow-md hover:scale-105 active:scale-95 flex items-center space-x-2" style="color: #ffffff !important;">
-                                <i data-lucide="wallet" class="h-4 w-4" style="color: #ffffff !important;"></i>
-                                <span style="color: #ffffff !important;">Recharge Wallet</span>
                             </a>
                         </div>
                     </div>
@@ -15484,9 +15228,8 @@ async function renderReports(container) {
 
 window.handleReportsDateRangeChange = function(newRange) {
     sessionStorage.setItem('reports_date_range', newRange);
-    showNotification('info', `Date range filter updated to ${newRange.toUpperCase()}`);
     const viewport = document.getElementById('main-content-viewport');
-    if (viewport) {
+    if (viewport && currentView === 'reports') {
         renderReports(viewport);
     }
 };
@@ -15778,104 +15521,47 @@ async function renderIntegrations(container) {
                 <!-- Integrations bottom listing -->
                 <div class="space-y-4">
                     <div>
-                        <h2 class="text-lg font-extrabold text-slate-800">Available Integrations</h2>
-                        <p class="text-slate-500 text-xs mt-0.5">Click any integration to inspect setup requirements, required permissions, credentials, and connection status.</p>
+                        <h2 class="text-lg font-extrabold text-slate-800">Integrations</h2>
+                        <p class="text-slate-500 text-xs mt-0.5">Manage third-party services and API connections</p>
                     </div>
 
-                    <!-- Grid of Integration Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Grid of 2 Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- SMTP Card -->
-                        <div onclick="openIntegrationSetupModal('smtp')" class="glass-panel p-4 bg-white shadow-sm border border-slate-200 hover:border-indigo-500 hover:shadow-md transition duration-200 rounded-2xl flex items-center justify-between cursor-pointer group">
+                        <div onclick="toggleMailForm()" class="glass-panel p-4 bg-white shadow-sm border border-slate-200 hover:border-indigo-400 hover:shadow transition duration-200 rounded-2xl flex items-center justify-between cursor-pointer">
                             <div class="flex items-center space-x-3.5">
-                                <div class="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition">
-                                    <i data-lucide="send" class="h-5 w-5"></i>
+                                <div class="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0">
+                                    <i data-lucide="mail" class="h-5 w-5"></i>
                                 </div>
                                 <div>
-                                    <span class="block font-extrabold text-slate-800 text-sm">SMTP Email Dispatch</span>
-                                    <span class="text-slate-400 text-[10px] block mt-0.5">Outbound transaction emails</span>
+                                    <span class="block font-extrabold text-slate-800 text-sm">SMTP Service</span>
+                                    <span class="text-slate-400 text-[10px] block mt-0.5">Send emails through your SMTP server.</span>
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="px-2 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider ${connection.smtp_host ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'}">
-                                    ${connection.smtp_host ? 'Connected' : 'Setup Required'}
+                            <div class="flex items-center space-x-3">
+                                <span class="px-2 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider ${connection.smtp_host ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-slate-400 border border-slate-200'}">
+                                    ${connection.smtp_host ? 'Connected' : 'Not Configured'}
                                 </span>
-                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 group-hover:text-indigo-600 transition"></i>
+                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400"></i>
                             </div>
                         </div>
 
                         <!-- IMAP Card -->
-                        <div onclick="openIntegrationSetupModal('imap')" class="glass-panel p-4 bg-white shadow-sm border border-slate-200 hover:border-indigo-500 hover:shadow-md transition duration-200 rounded-2xl flex items-center justify-between cursor-pointer group">
+                        <div onclick="toggleMailForm()" class="glass-panel p-4 bg-white shadow-sm border border-slate-200 hover:border-indigo-400 hover:shadow transition duration-200 rounded-2xl flex items-center justify-between cursor-pointer">
                             <div class="flex items-center space-x-3.5">
-                                <div class="h-10 w-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition">
-                                    <i data-lucide="inbox" class="h-5 w-5"></i>
+                                <div class="h-10 w-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
+                                    <i data-lucide="mail" class="h-5 w-5"></i>
                                 </div>
                                 <div>
-                                    <span class="block font-extrabold text-slate-800 text-sm">IMAP Mail Sync</span>
-                                    <span class="text-slate-400 text-[10px] block mt-0.5">Inbound lead extraction pipeline</span>
+                                    <span class="block font-extrabold text-slate-800 text-sm">IMAP Service</span>
+                                    <span class="text-slate-400 text-[10px] block mt-0.5">Sync and fetch emails from IMAP server.</span>
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="px-2 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider ${connection.imap_host ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'}">
-                                    ${connection.imap_host ? 'Connected' : 'Setup Required'}
+                            <div class="flex items-center space-x-3">
+                                <span class="px-2 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider ${connection.imap_host ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-slate-400 border border-slate-200'}">
+                                    ${connection.imap_host ? 'Connected' : 'Not Configured'}
                                 </span>
-                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 group-hover:text-amber-600 transition"></i>
-                            </div>
-                        </div>
-
-                        <!-- OpenRouter AI Card -->
-                        <div onclick="openIntegrationSetupModal('openrouter')" class="glass-panel p-4 bg-white shadow-sm border border-slate-200 hover:border-indigo-500 hover:shadow-md transition duration-200 rounded-2xl flex items-center justify-between cursor-pointer group">
-                            <div class="flex items-center space-x-3.5">
-                                <div class="h-10 w-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition">
-                                    <i data-lucide="sparkles" class="h-5 w-5"></i>
-                                </div>
-                                <div>
-                                    <span class="block font-extrabold text-slate-800 text-sm">OpenRouter AI</span>
-                                    <span class="text-slate-400 text-[10px] block mt-0.5">LLM intelligence & summary engine</span>
-                                </div>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="px-2 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200">
-                                    Connected
-                                </span>
-                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 group-hover:text-purple-600 transition"></i>
-                            </div>
-                        </div>
-
-                        <!-- Google Calendar Card -->
-                        <div onclick="openIntegrationSetupModal('gcal')" class="glass-panel p-4 bg-white shadow-sm border border-slate-200 hover:border-indigo-500 hover:shadow-md transition duration-200 rounded-2xl flex items-center justify-between cursor-pointer group">
-                            <div class="flex items-center space-x-3.5">
-                                <div class="h-10 w-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition">
-                                    <i data-lucide="calendar" class="h-5 w-5"></i>
-                                </div>
-                                <div>
-                                    <span class="block font-extrabold text-slate-800 text-sm">Google Calendar & Meet</span>
-                                    <span class="text-slate-400 text-[10px] block mt-0.5">Automated meeting scheduling</span>
-                                </div>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="px-2 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-200">
-                                    Connected
-                                </span>
-                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 group-hover:text-blue-600 transition"></i>
-                            </div>
-                        </div>
-
-                        <!-- WhatsApp Webhook Card -->
-                        <div onclick="openIntegrationSetupModal('whatsapp')" class="glass-panel p-4 bg-white shadow-sm border border-slate-200 hover:border-indigo-500 hover:shadow-md transition duration-200 rounded-2xl flex items-center justify-between cursor-pointer group">
-                            <div class="flex items-center space-x-3.5">
-                                <div class="h-10 w-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition">
-                                    <i data-lucide="message-square" class="h-5 w-5"></i>
-                                </div>
-                                <div>
-                                    <span class="block font-extrabold text-slate-800 text-sm">WhatsApp Business API</span>
-                                    <span class="text-slate-400 text-[10px] block mt-0.5">Outbound chat automation</span>
-                                </div>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="px-2 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200">
-                                    Connected
-                                </span>
-                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 group-hover:text-emerald-600 transition"></i>
+                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400"></i>
                             </div>
                         </div>
                     </div>
@@ -15896,269 +15582,6 @@ async function renderIntegrations(container) {
         `;
     }
 }
-
-window.openIntegrationSetupModal = function(type) {
-    const existing = document.getElementById('integration-setup-drawer');
-    if (existing) existing.remove();
-
-    const configs = {
-        smtp: {
-            title: 'SMTP Email Outbound Setup',
-            icon: 'send',
-            iconColor: 'text-indigo-600',
-            iconBg: 'bg-indigo-50',
-            status: 'Requires Configuration',
-            statusClass: 'bg-amber-50 text-amber-700 border-amber-200',
-            purpose: 'Allows LinkPilot AI to send transactional email replies, meeting invitations, and automated follow-ups directly through your domain email server.',
-            credentials: [
-                { name: 'SMTP Host', detail: 'e.g., smtp.gmail.com or smtp.office365.com' },
-                { name: 'SMTP Port', detail: '587 (TLS/STARTTLS) or 465 (SSL)' },
-                { name: 'Username & Password', detail: 'Your mailbox email address and App Password / Secret' }
-            ],
-            permissions: [
-                'Mail Send (`SMTP AUTH`) permission',
-                'TLS 1.2+ secure connection handshake'
-            ],
-            steps: [
-                'Click "Edit Connection" at the top of the Integrations Control panel.',
-                'Select your Email Provider Type (Gmail, Outlook, or Custom Server).',
-                'Enter your SMTP host, port, username, and password.',
-                'Click "Test SMTP Connection" to perform an automated handshake test.',
-                'Save Mailbox Credentials to persist settings.'
-            ],
-            troubleshooting: [
-                'Google Gmail Users: You must generate a 16-character App Password under Google Account > Security > 2-Step Verification.',
-                'Connection Timeout: Verify your firewall permits outbound traffic on port 587 or 465.'
-            ],
-            actionBtnText: 'Configure SMTP Now',
-            actionFn: () => { toggleMailForm(); }
-        },
-        imap: {
-            title: 'IMAP Mail Sync Setup',
-            icon: 'inbox',
-            iconColor: 'text-amber-600',
-            iconBg: 'bg-amber-50',
-            status: 'Requires Configuration',
-            statusClass: 'bg-amber-50 text-amber-700 border-amber-200',
-            purpose: 'Continuously monitors your inbox to automatically download inbound emails, extract prospective leads, and categorize intent with AI.',
-            credentials: [
-                { name: 'IMAP Host', detail: 'e.g., imap.gmail.com or outlook.office365.com' },
-                { name: 'IMAP Port', detail: '993 (SSL Encryption required)' },
-                { name: 'Username & App Password', detail: 'Mailbox account credentials' }
-            ],
-            permissions: [
-                'Read Mailbox (`IMAP SEARCH / FETCH`) permission',
-                'Background worker polling access'
-            ],
-            steps: [
-                'Open "Edit Connection" in the Integrations panel.',
-                'Fill in IMAP Host (e.g. imap.gmail.com) and Port (993).',
-                'Input your IMAP Username and App Password.',
-                'Select your preferred background sync frequency (15, 30, or 60 minutes).',
-                'Check "Enable background mail downloader worker pipeline" and save.'
-            ],
-            troubleshooting: [
-                'IMAP Disabled Error: Check mailbox settings in Gmail/Outlook to confirm IMAP access is enabled.',
-                'Authentication Failed: Verify 2FA App Passwords are used instead of master account passwords.'
-            ],
-            actionBtnText: 'Configure IMAP Now',
-            actionFn: () => { toggleMailForm(); }
-        },
-        openrouter: {
-            title: 'OpenRouter AI Intelligence Setup',
-            icon: 'sparkles',
-            iconColor: 'text-purple-600',
-            iconBg: 'bg-purple-50',
-            status: 'Active & Connected',
-            statusClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-            purpose: 'Powers autonomous email categorization, sentiment scoring, automated AI meeting summaries, and natural language analytics.',
-            credentials: [
-                { name: 'API Key', detail: 'OpenRouter API Key (`sk-or-v1-...`) configured in environment' },
-                { name: 'Credit Wallet', detail: 'Live token wallet balance managed via profile API' }
-            ],
-            permissions: [
-                'LLM Model Inference (`anthropic/claude-3-5-sonnet`, `openai/gpt-4o-mini`)'
-            ],
-            steps: [
-                'OpenRouter API is pre-configured with default system fallback keys.',
-                'Token wallet balance is monitored automatically.',
-                'To top up credits, navigate to the AI Insights tab or click Recharge.'
-            ],
-            troubleshooting: [
-                'Credit Exhaustion Alert: If wallet balance reaches 0, AI features temporarily pause until recharged.'
-            ],
-            actionBtnText: 'Check AI Wallet',
-            actionFn: () => { window.location.hash = '#/ai-insights'; }
-        },
-        gcal: {
-            title: 'Google Calendar & Meet Setup',
-            icon: 'calendar',
-            iconColor: 'text-blue-600',
-            iconBg: 'bg-blue-50',
-            status: 'Active & Connected',
-            statusClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-            purpose: 'Syncs your weekly availability, generates Google Meet video links for booked appointments, and prevents double-booking.',
-            credentials: [
-                { name: 'OAuth 2.0 Token', detail: 'Authenticated Google User Session' }
-            ],
-            permissions: [
-                'Read/Write Calendar Events (`https://www.googleapis.com/auth/calendar.events`)',
-                'Create Google Meet Conference Data'
-            ],
-            steps: [
-                'Navigate to Booking Setup (`#/booking-setup`).',
-                'Select "Google Meet" as your primary meeting provider.',
-                'Configure your weekly operating hours and default meeting duration.'
-            ],
-            troubleshooting: [
-                'Missing Meet Links: Ensure Google Meet provider is toggled under Booking Settings.'
-            ],
-            actionBtnText: 'Go to Booking Setup',
-            actionFn: () => { window.location.hash = '#/booking-setup'; }
-        },
-        whatsapp: {
-            title: 'WhatsApp Business API Setup',
-            icon: 'message-square',
-            iconColor: 'text-emerald-600',
-            iconBg: 'bg-emerald-50',
-            status: 'Active & Connected',
-            statusClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-            purpose: 'Triggers automated WhatsApp message follow-ups and meeting reminders directly to prospect phones.',
-            credentials: [
-                { name: 'Webhook Secret Token', detail: 'Configured in backend/api/whatsapp/webhook.php' },
-                { name: 'Phone Number ID', detail: 'Meta WhatsApp Business Account ID' }
-            ],
-            permissions: [
-                'Outbound Template Message Dispatch',
-                'Inbound Webhook Listener'
-            ],
-            steps: [
-                'Set your Meta WhatsApp Access Token in environment settings.',
-                'Define workflow automation rules using the Workflow Builder (`#/automation`).',
-                'Test message delivery using the simulator.'
-            ],
-            troubleshooting: [
-                'Webhook Handshake Failure: Verify public HTTPS endpoint accessibility.'
-            ],
-            actionBtnText: 'Open Workflow Automation',
-            actionFn: () => { window.location.hash = '#/automation'; }
-        }
-    };
-
-    const cfg = configs[type] || configs.smtp;
-
-    const modalHTML = `
-        <div id="integration-setup-drawer" class="fixed inset-0 z-50 flex items-center justify-end bg-slate-900/60 backdrop-blur-xs animate-fade-in p-4 sm:p-6 select-none">
-            <div class="bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-xl h-full max-h-[90vh] flex flex-col overflow-hidden text-left animate-slide-left">
-                <!-- Drawer Header -->
-                <div class="p-6 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/50">
-                    <div class="flex items-center space-x-3.5">
-                        <div class="h-11 w-11 ${cfg.iconBg} ${cfg.iconColor} rounded-2xl flex items-center justify-center border border-slate-200/60 shadow-2xs">
-                            <i data-lucide="${cfg.icon}" class="h-5.5 w-5.5"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-black text-slate-850">${cfg.title}</h3>
-                            <span class="inline-block mt-0.5 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded-md border ${cfg.statusClass}">
-                                ${cfg.status}
-                            </span>
-                        </div>
-                    </div>
-                    <button onclick="document.getElementById('integration-setup-drawer').remove()" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition focus:outline-none">
-                        <i data-lucide="x" class="h-5 w-5"></i>
-                    </button>
-                </div>
-
-                <!-- Drawer Content -->
-                <div class="flex-grow overflow-y-auto p-6 space-y-6 text-xs text-slate-700">
-                    <!-- Purpose -->
-                    <div class="space-y-1.5">
-                        <h4 class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Integration Purpose</h4>
-                        <p class="text-slate-650 leading-relaxed font-semibold bg-slate-50 border border-slate-100 p-3.5 rounded-2xl">${cfg.purpose}</p>
-                    </div>
-
-                    <!-- Required Credentials -->
-                    <div class="space-y-2">
-                        <h4 class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Required Credentials</h4>
-                        <div class="space-y-2">
-                            ${cfg.credentials.map(c => `
-                                <div class="p-3 bg-white border border-slate-200/80 rounded-xl flex items-start space-x-3 shadow-2xs">
-                                    <div class="h-6 w-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 mt-0.5">
-                                        <i data-lucide="key" class="h-3.5 w-3.5"></i>
-                                    </div>
-                                    <div>
-                                        <span class="block font-extrabold text-slate-800 text-xs">${c.name}</span>
-                                        <span class="text-[11px] text-slate-500 font-semibold">${c.detail}</span>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-
-                    <!-- Required Permissions -->
-                    <div class="space-y-2">
-                        <h4 class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Required Permissions</h4>
-                        <ul class="space-y-1.5 bg-slate-50 border border-slate-100 p-3.5 rounded-2xl">
-                            ${cfg.permissions.map(p => `
-                                <li class="flex items-center space-x-2 text-slate-650 font-semibold">
-                                    <i data-lucide="shield-check" class="h-4 w-4 text-emerald-500 shrink-0"></i>
-                                    <span>${p}</span>
-                                </li>
-                            `).join('')}
-                        </ul>
-                    </div>
-
-                    <!-- Setup Steps -->
-                    <div class="space-y-2">
-                        <h4 class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Step-by-Step Configuration</h4>
-                        <div class="space-y-2">
-                            ${cfg.steps.map((step, idx) => `
-                                <div class="flex items-start space-x-3 p-2.5 bg-white border border-slate-200/60 rounded-xl">
-                                    <div class="h-5 w-5 rounded-full bg-indigo-600 text-white font-black text-[10px] flex items-center justify-center shrink-0 mt-0.5" style="color: #ffffff !important;">${idx + 1}</div>
-                                    <span class="text-slate-700 font-bold leading-normal text-xs">${step}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-
-                    <!-- Troubleshooting -->
-                    <div class="space-y-2">
-                        <h4 class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Troubleshooting Guide</h4>
-                        <div class="space-y-2 bg-amber-50/50 border border-amber-200/60 p-3.5 rounded-2xl text-amber-900">
-                            ${cfg.troubleshooting.map(t => `
-                                <div class="flex items-start space-x-2 text-[11px] font-semibold">
-                                    <i data-lucide="help-circle" class="h-4 w-4 text-amber-600 shrink-0 mt-0.5"></i>
-                                    <span>${t}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Footer Action -->
-                <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end space-x-3 shrink-0">
-                    <button onclick="document.getElementById('integration-setup-drawer').remove()" class="px-4 py-2.5 border border-slate-200 hover:bg-slate-100 text-slate-600 font-bold rounded-xl text-xs transition">
-                        Close
-                    </button>
-                    <button id="integration-drawer-action-btn" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl text-xs transition shadow-md flex items-center space-x-1.5" style="color: #ffffff !important;">
-                        <span>${cfg.actionBtnText}</span>
-                        <i data-lucide="arrow-right" class="h-4 w-4" style="color: #ffffff !important;"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    lucide.createIcons();
-
-    const actionBtn = document.getElementById('integration-drawer-action-btn');
-    if (actionBtn) {
-        actionBtn.onclick = () => {
-            document.getElementById('integration-setup-drawer').remove();
-            cfg.actionFn();
-        };
-    }
-};
 
 async function triggerIntegrationsManualSync(btn) {
     const origText = btn.innerHTML;
@@ -17542,24 +16965,13 @@ async function refreshFollowupsList() {
             const dateStr = formatInboxDate(m.received_date);
             const ageDays = Math.floor((now - new Date(m.received_date)) / (1000 * 60 * 60 * 24));
             const isOverdue = ageDays >= 2;
-            const isDueToday = ageDays === 0;
             const isActive = m.id === window.activeFollowupEmailId;
             
-            const prioLower = (m.priority || 'high').toLowerCase();
+            const prioUpper = (m.priority || 'HIGH').toUpperCase();
             const categoryUpper = (m.category || 'MEETING REQUEST').toUpperCase();
+
             const domain = getEmailDomain(m.sender_email);
             
-            let urgencyBadge = '';
-            if (isOverdue) {
-                urgencyBadge = `<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 flex items-center shadow-2xs"><span class="mr-1">⚠️</span> ${ageDays} Days Overdue</span>`;
-            } else if (isDueToday) {
-                urgencyBadge = `<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200 flex items-center shadow-2xs"><span class="mr-1">🟡</span> Due Today</span>`;
-            } else if (prioLower === 'high') {
-                urgencyBadge = `<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-red-50 text-red-700 border border-red-200 flex items-center shadow-2xs"><span class="mr-1">🔴</span> High Priority</span>`;
-            } else {
-                urgencyBadge = `<span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs">Normal Priority</span>`;
-            }
-
             return `
                 <div onclick="selectFollowupEmail(${m.id})" id="followup-card-${m.id}" class="p-3.5 rounded-2xl cursor-pointer transition flex flex-col justify-between relative ${isActive ? 'bg-[#EEF2FF] border-2 border-indigo-500 shadow-2xs' : 'bg-white border border-slate-200 hover:border-slate-300'}">
                     <div class="flex items-start space-x-3">
@@ -17575,9 +16987,10 @@ async function refreshFollowupsList() {
                             <div class="text-xs font-bold text-slate-800 truncate mt-0.5 leading-snug" title="${m.subject}">${m.subject}</div>
                             <p class="text-[10px] text-slate-500 font-normal truncate mt-0.5 leading-relaxed">${m.ai_summary || m.body_text || 'Invitation to register for Cloud Technical Series...'}</p>
                             
-                            <div class="flex flex-wrap items-center gap-1.5 mt-2.5">
-                                ${urgencyBadge}
-                                <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold tracking-wider uppercase bg-slate-100 text-slate-600 border border-slate-200">${categoryUpper}</span>
+                            <div class="flex flex-wrap items-center gap-1.5 mt-2">
+                                <span class="px-2 py-0.5 rounded text-[8px] font-bold tracking-wider uppercase bg-white text-red-600 border border-red-200">${prioUpper}</span>
+                                <span class="px-2 py-0.5 rounded text-[8px] font-bold tracking-wider uppercase bg-white text-purple-600 border border-purple-200">${categoryUpper}</span>
+                                ${isOverdue ? `<span class="px-2 py-0.5 rounded text-[8px] font-bold tracking-wider uppercase bg-white text-amber-700 border border-amber-300 flex items-center"><i data-lucide="clock" class="h-2.5 w-2.5 mr-1 text-amber-600"></i>${ageDays}D OVERDUE</span>` : ''}
                             </div>
                         </div>
                     </div>
@@ -17619,19 +17032,7 @@ async function renderEmailScheduled(container) {
                         </div>
                     </div>
                     
-                    <div class="flex items-center space-x-3">
-                        <!-- Mode View Toggle (List View / Calendar View) -->
-                        <div class="bg-slate-100 p-1 rounded-xl border border-slate-200 flex items-center space-x-1">
-                            <button onclick="switchScheduledViewMode('list')" id="scheduled-mode-list-btn" class="px-3 py-1 bg-white shadow-2xs text-indigo-600 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer">
-                                <i data-lucide="list" class="h-3.5 w-3.5"></i>
-                                <span>List View</span>
-                            </button>
-                            <button onclick="switchScheduledViewMode('calendar')" id="scheduled-mode-calendar-btn" class="px-3 py-1 text-slate-600 hover:text-slate-900 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer">
-                                <i data-lucide="calendar" class="h-3.5 w-3.5"></i>
-                                <span>Calendar View</span>
-                            </button>
-                        </div>
-
+                    <div class="flex items-center space-x-2">
                         <button onclick="renderEmailScheduled(document.getElementById('main-content-viewport'))" class="px-3.5 py-1.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-700 transition flex items-center space-x-1.5 shadow-2xs">
                             <i data-lucide="refresh-cw" class="h-3.5 w-3.5 text-slate-500"></i>
                             <span>Refresh Queue</span>
@@ -19187,33 +18588,6 @@ async function renderEmailTemplates(container) {
                             </button>
                         `;
                     }).join('')}
-                </div>
-
-                <!-- Clickable Variable Insertion Buttons Bar -->
-                <div class="bg-slate-50 border-b border-slate-200 px-6 py-2 flex items-center justify-between text-xs font-bold text-slate-700 shrink-0">
-                    <div class="flex items-center space-x-2">
-                        <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center">
-                            <i data-lucide="tag" class="h-3.5 w-3.5 mr-1 text-indigo-500"></i> Insert Tag:
-                        </span>
-                        <div class="flex items-center space-x-1.5 overflow-x-auto no-scrollbar">
-                            <button onclick="copyTemplateVariable('{{first_name}}')" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-indigo-600 rounded-lg text-[11px] font-extrabold transition shadow-2xs cursor-pointer" title="Click to copy {{first_name}}">
-                                [ First Name ]
-                            </button>
-                            <button onclick="copyTemplateVariable('{{company}}')" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-indigo-600 rounded-lg text-[11px] font-extrabold transition shadow-2xs cursor-pointer" title="Click to copy {{company}}">
-                                [ Company ]
-                            </button>
-                            <button onclick="copyTemplateVariable('{{job_title}}')" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-indigo-600 rounded-lg text-[11px] font-extrabold transition shadow-2xs cursor-pointer" title="Click to copy {{job_title}}">
-                                [ Job Title ]
-                            </button>
-                            <button onclick="copyTemplateVariable('{{email}}')" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-indigo-600 rounded-lg text-[11px] font-extrabold transition shadow-2xs cursor-pointer" title="Click to copy {{email}}">
-                                [ Email ]
-                            </button>
-                            <button onclick="copyTemplateVariable('{{meeting_link}}')" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-indigo-600 rounded-lg text-[11px] font-extrabold transition shadow-2xs cursor-pointer" title="Click to copy {{meeting_link}}">
-                                [ Meeting Link ]
-                            </button>
-                        </div>
-                    </div>
-                    <span class="text-[10px] text-slate-400 font-medium hidden md:inline-block">Click any pill to copy merge tag to clipboard</span>
                 </div>
 
                 <!-- Templates Grid Container -->
@@ -21762,154 +21136,8 @@ function zoomWorkflow(delta) {
         canvas.style.transform = `translate(${window.wfState.panX}px, ${window.wfState.panY}px) scale(${window.wfState.zoom})`;
     }
     
-    const zoomText = document.getElementById('wf-zoom-percentage-label');
+    const zoomText = document.querySelector('.wf-canvas-container button + span');
     if (zoomText) zoomText.textContent = `${Math.round(window.wfState.zoom * 100)}%`;
-}
-
-function zoomToFit() {
-    const wf = window.wfState.activeWorkflow;
-    if (!wf || !wf.nodes || wf.nodes.length === 0) return;
-
-    const container = document.getElementById('wf-canvas-container');
-    if (!container) return;
-
-    const cRect = container.getBoundingClientRect();
-    const xs = wf.nodes.map(n => n.x);
-    const ys = wf.nodes.map(n => n.y);
-
-    const minX = Math.min(...xs);
-    const maxX = Math.max(...xs) + 200; // include node width
-    const minY = Math.min(...ys);
-    const maxY = Math.max(...ys) + 120; // include node height
-
-    const contentWidth = Math.max(maxX - minX, 300);
-    const contentHeight = Math.max(maxY - minY, 200);
-
-    const scaleX = (cRect.width - 80) / contentWidth;
-    const scaleY = (cRect.height - 100) / contentHeight;
-    let targetZoom = Math.min(Math.max(0.4, Math.min(scaleX, scaleY)), 1.2);
-
-    window.wfState.zoom = parseFloat(targetZoom.toFixed(2));
-    window.wfState.panX = Math.round((cRect.width - contentWidth * window.wfState.zoom) / 2 - minX * window.wfState.zoom);
-    window.wfState.panY = Math.round((cRect.height - contentHeight * window.wfState.zoom) / 2 - minY * window.wfState.zoom);
-
-    const canvas = document.getElementById('workflow-canvas');
-    if (canvas) {
-        canvas.style.transform = `translate(${window.wfState.panX}px, ${window.wfState.panY}px) scale(${window.wfState.zoom})`;
-    }
-
-    const zoomText = document.getElementById('wf-zoom-percentage-label');
-    if (zoomText) zoomText.textContent = `${Math.round(window.wfState.zoom * 100)}%`;
-    drawMiniMap();
-}
-
-function navigateCanvasNode(direction) {
-    const wf = window.wfState.activeWorkflow;
-    if (!wf || !wf.nodes || wf.nodes.length === 0) return;
-
-    let currentIndex = wf.nodes.findIndex(n => n.id === window.wfState.selectedNodeId);
-    if (currentIndex === -1) {
-        currentIndex = 0;
-    } else {
-        currentIndex = (currentIndex + direction + wf.nodes.length) % wf.nodes.length;
-    }
-
-    const targetNode = wf.nodes[currentIndex];
-    if (!targetNode) return;
-
-    window.wfState.selectedNodeId = targetNode.id;
-
-    // Center canvas view around target node
-    const container = document.getElementById('wf-canvas-container');
-    if (container) {
-        const cRect = container.getBoundingClientRect();
-        window.wfState.panX = Math.round((cRect.width / 2) - (targetNode.x + 100) * window.wfState.zoom);
-        window.wfState.panY = Math.round((cRect.height / 2) - (targetNode.y + 40) * window.wfState.zoom);
-
-        const canvas = document.getElementById('workflow-canvas');
-        if (canvas) {
-            canvas.style.transform = `translate(${window.wfState.panX}px, ${window.wfState.panY}px) scale(${window.wfState.zoom})`;
-        }
-    }
-
-    // Highlight selected node
-    document.querySelectorAll('.wf-node').forEach(el => el.classList.remove('selected'));
-    const el = document.getElementById(targetNode.id);
-    if (el) el.classList.add('selected');
-
-    // Refresh config sidebar
-    const sidebar = document.getElementById('wf-config-sidebar');
-    if (sidebar) sidebar.innerHTML = renderConfigSidebarHTML();
-    lucide.createIcons();
-    drawMiniMap();
-}
-
-// Touch & Pinch-to-Zoom Event Handlers
-window.touchState = {
-    initialPinchDist: 0,
-    initialZoom: 1,
-    isTouchPanning: false,
-    startX: 0,
-    startY: 0
-};
-
-function handleCanvasTouchStart(e) {
-    if (e.touches.length === 1) {
-        const touch = e.touches[0];
-        if (touch.target.closest('.wf-node') || touch.target.closest('.wf-node-handle')) return;
-        window.touchState.isTouchPanning = true;
-        window.touchState.startX = touch.clientX - window.wfState.panX;
-        window.touchState.startY = touch.clientY - window.wfState.panY;
-    } else if (e.touches.length === 2) {
-        window.touchState.isTouchPanning = false;
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        window.touchState.initialPinchDist = Math.hypot(dx, dy);
-        window.touchState.initialZoom = window.wfState.zoom;
-    }
-}
-
-function handleCanvasTouchMove(e) {
-    if (window.touchState.isTouchPanning && e.touches.length === 1) {
-        e.preventDefault();
-        const touch = e.touches[0];
-        window.wfState.panX = touch.clientX - window.touchState.startX;
-        window.wfState.panY = touch.clientY - window.touchState.startY;
-
-        const canvas = document.getElementById('workflow-canvas');
-        if (canvas) {
-            canvas.style.transform = `translate(${window.wfState.panX}px, ${window.wfState.panY}px) scale(${window.wfState.zoom})`;
-        }
-    } else if (e.touches.length === 2) {
-        e.preventDefault();
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        const currentDist = Math.hypot(dx, dy);
-
-        if (window.touchState.initialPinchDist > 0) {
-            const pinchRatio = currentDist / window.touchState.initialPinchDist;
-            const newZoom = window.touchState.initialZoom * pinchRatio;
-            window.wfState.zoom = Math.min(Math.max(0.3, newZoom), 2.0);
-
-            const canvas = document.getElementById('workflow-canvas');
-            if (canvas) {
-                canvas.style.transform = `translate(${window.wfState.panX}px, ${window.wfState.panY}px) scale(${window.wfState.zoom})`;
-            }
-
-            const zoomText = document.getElementById('wf-zoom-percentage-label');
-            if (zoomText) zoomText.textContent = `${Math.round(window.wfState.zoom * 100)}%`;
-        }
-    }
-}
-
-function handleCanvasTouchEnd(e) {
-    if (e.touches.length < 2) {
-        window.touchState.initialPinchDist = 0;
-    }
-    if (e.touches.length === 0) {
-        window.touchState.isTouchPanning = false;
-        drawMiniMap();
-    }
 }
 
 function autoArrangeCanvas() {
@@ -26404,15 +25632,6 @@ window.renderEmailCampaigns = async function(container) {
             </div>
         </div>
     `;
-    if (window._campaignsPollInterval) clearInterval(window._campaignsPollInterval);
-    window._campaignsPollInterval = setInterval(() => {
-        if (location.hash === '#/email-campaigns' || location.hash === '#/campaigns') {
-            loadEmailCampaignsList().catch(() => {});
-        } else {
-            clearInterval(window._campaignsPollInterval);
-        }
-    }, 5000);
-
     if (typeof lucide !== 'undefined') lucide.createIcons();
     await loadEmailCampaignsList();
 };
@@ -26500,35 +25719,13 @@ window.renderEmailCampaignsTable = function(list) {
                     <div class="font-bold text-slate-900 text-xs">${escapeHtml(c.campaign_name)}</div>
                     <div class="text-[11px] text-slate-500 font-medium truncate max-w-xs mt-0.5">${escapeHtml(c.subject)}</div>
                 </td>
-                <td class="px-6 py-4 w-60">
-                    <!-- Real-Time Progress Bar & Metrics -->
-                    <div class="flex items-center justify-between text-[11px] font-extrabold text-slate-700 mb-1">
-                        <span class="flex items-center">
-                            <span class="h-2 w-2 rounded-full bg-indigo-500 mr-1.5 ${c.status === 'Active' ? 'animate-ping' : ''}"></span>
-                            <span>Progress</span>
-                        </span>
-                        <span class="text-indigo-600 font-black text-xs">${pct}%</span>
+                <td class="px-6 py-4 w-48">
+                    <div class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
+                        <span>${sent} / ${total} sent</span>
+                        <span class="text-indigo-600">${pct}%</span>
                     </div>
-                    <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/60 shadow-2xs">
-                        <div class="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
-                    </div>
-                    <div class="grid grid-cols-4 gap-1 mt-2 text-[9px] font-black tracking-tight text-center">
-                        <div class="bg-emerald-50 text-emerald-700 p-1 rounded-md border border-emerald-200/60" title="Sent">
-                            <div class="text-emerald-500 font-normal uppercase text-[8px]">Sent</div>
-                            <div>${sent}</div>
-                        </div>
-                        <div class="bg-amber-50 text-amber-700 p-1 rounded-md border border-amber-200/60" title="Pending">
-                            <div class="text-amber-500 font-normal uppercase text-[8px]">Pending</div>
-                            <div>${Math.max(0, total - sent)}</div>
-                        </div>
-                        <div class="bg-rose-50 text-rose-700 p-1 rounded-md border border-rose-200/60" title="Failed">
-                            <div class="text-rose-500 font-normal uppercase text-[8px]">Failed</div>
-                            <div>${parseInt(c.failed_count || 0)}</div>
-                        </div>
-                        <div class="bg-slate-100 text-slate-700 p-1 rounded-md border border-slate-200/60" title="Remaining">
-                            <div class="text-slate-400 font-normal uppercase text-[8px]">Remain</div>
-                            <div>${Math.max(0, total - sent - parseInt(c.failed_count || 0))}</div>
-                        </div>
+                    <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                        <div class="bg-indigo-600 h-1.5 rounded-full transition-all" style="width: ${pct}%"></div>
                     </div>
                 </td>
                 <td class="px-6 py-4">
@@ -29395,81 +28592,6 @@ window.renderEmailSequences = async function(container) {
                 </div>
             </div>
 
-            <!-- Visual Sequence Timeline Card -->
-            <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <div>
-                        <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center">
-                            <i data-lucide="git-commit" class="h-4 w-4 mr-2 text-indigo-600"></i>
-                            Visual Sequence Automation Timeline
-                        </h3>
-                        <p class="text-xs text-slate-500 font-medium">Interactive timeline preview of email steps, delays, and stop conditions</p>
-                    </div>
-                    <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">Cold Outreach 4-Step Nurture</span>
-                </div>
-
-                <!-- Step-by-Step Flowchart Timeline -->
-                <div class="flex items-center justify-between overflow-x-auto no-scrollbar py-4 px-2 space-x-3 text-xs">
-                    <!-- Step 1 -->
-                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl shrink-0 w-48 shadow-2xs space-y-1.5">
-                        <div class="flex items-center justify-between">
-                            <span class="h-5 w-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px] font-black">1</span>
-                            <span class="text-[9px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">Immediate</span>
-                        </div>
-                        <div class="font-bold text-slate-900 truncate">Email 1: Welcome & Intro</div>
-                        <div class="text-[10px] text-slate-500 leading-snug">Initial value prop & demo invite link</div>
-                    </div>
-
-                    <!-- Connector 1 -->
-                    <div class="flex flex-col items-center shrink-0 space-y-1 text-slate-400">
-                        <span class="text-[10px] font-extrabold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full">Wait 2 Days</span>
-                        <i data-lucide="arrow-right" class="h-4 w-4 text-indigo-500"></i>
-                    </div>
-
-                    <!-- Step 2 -->
-                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl shrink-0 w-48 shadow-2xs space-y-1.5">
-                        <div class="flex items-center justify-between">
-                            <span class="h-5 w-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px] font-black">2</span>
-                            <span class="text-[9px] font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">+2 Days</span>
-                        </div>
-                        <div class="font-bold text-slate-900 truncate">Email 2: Case Study & Proof</div>
-                        <div class="text-[10px] text-slate-500 leading-snug">Customer success metric & ROI factsheet</div>
-                    </div>
-
-                    <!-- Connector 2 -->
-                    <div class="flex flex-col items-center shrink-0 space-y-1 text-slate-400">
-                        <span class="text-[10px] font-extrabold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full">Wait 3 Days</span>
-                        <i data-lucide="arrow-right" class="h-4 w-4 text-indigo-500"></i>
-                    </div>
-
-                    <!-- Step 3 -->
-                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl shrink-0 w-48 shadow-2xs space-y-1.5">
-                        <div class="flex items-center justify-between">
-                            <span class="h-5 w-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px] font-black">3</span>
-                            <span class="text-[9px] font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">+5 Days Total</span>
-                        </div>
-                        <div class="font-bold text-slate-900 truncate">Email 3: Objection Handling</div>
-                        <div class="text-[10px] text-slate-500 leading-snug">Addressing WhatsApp Cloud API & CRM concerns</div>
-                    </div>
-
-                    <!-- Connector 3 -->
-                    <div class="flex flex-col items-center shrink-0 space-y-1 text-slate-400">
-                        <span class="text-[10px] font-extrabold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full">Wait 4 Days</span>
-                        <i data-lucide="arrow-right" class="h-4 w-4 text-indigo-500"></i>
-                    </div>
-
-                    <!-- Step 4 -->
-                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl shrink-0 w-48 shadow-2xs space-y-1.5">
-                        <div class="flex items-center justify-between">
-                            <span class="h-5 w-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px] font-black">4</span>
-                            <span class="text-[9px] font-extrabold text-purple-600 bg-purple-50 px-2 py-0.5 rounded border border-purple-100">Final Break-Up</span>
-                        </div>
-                        <div class="font-bold text-slate-900 truncate">Email 4: Closing the Loop</div>
-                        <div class="text-[10px] text-slate-500 leading-snug">Final check-in before sequence unenrollment</div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Sequences List Table -->
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
                 <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between flex-wrap gap-3">
@@ -29751,83 +28873,5 @@ window.executeBulkInboxAction = async function(action) {
         if (mainViewport) renderInbox(mainViewport);
     } catch (err) {
         showNotification('error', err.message || 'Failed executing bulk inbox action.');
-    }
-};
-
-window.switchScheduledViewMode = function(mode) {
-    const listBtn = document.getElementById('scheduled-mode-list-btn');
-    const calBtn = document.getElementById('scheduled-mode-calendar-btn');
-    const container = document.getElementById('scheduled-emails-list-container');
-    if (!container || !listBtn || !calBtn) return;
-
-    if (mode === 'calendar') {
-        calBtn.className = "px-3 py-1 bg-white shadow-2xs text-indigo-600 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer";
-        listBtn.className = "px-3 py-1 text-slate-600 hover:text-slate-900 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer";
-
-        container.innerHTML = `
-            <div class="p-6 space-y-4 animate-fade-in">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <span class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Scheduled Calendar View (September 2026)</span>
-                    <span class="text-[11px] text-indigo-600 font-bold bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-100">Live Delivery Queue</span>
-                </div>
-                
-                <!-- 7-Day Calendar Grid -->
-                <div class="grid grid-cols-7 gap-2 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
-                </div>
-                <div class="grid grid-cols-7 gap-2">
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[90px] text-xs space-y-1">
-                        <div class="font-bold text-slate-400 text-[10px]">Sep 1</div>
-                        <div class="bg-indigo-600 text-white text-[10px] p-1.5 rounded-lg font-bold shadow-2xs leading-tight">10:00 AM - Sarah Demo Proposal</div>
-                    </div>
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[90px] text-xs space-y-1">
-                        <div class="font-bold text-slate-400 text-[10px]">Sep 2</div>
-                        <div class="bg-blue-600 text-white text-[10px] p-1.5 rounded-lg font-bold shadow-2xs leading-tight">02:30 PM - WhatsApp API Intro</div>
-                    </div>
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[90px] text-xs space-y-1">
-                        <div class="font-bold text-slate-400 text-[10px]">Sep 3</div>
-                        <div class="bg-emerald-600 text-white text-[10px] p-1.5 rounded-lg font-bold shadow-2xs leading-tight">11:15 AM - Drip Step 2 Followup</div>
-                    </div>
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[90px] text-xs space-y-1">
-                        <div class="font-bold text-slate-400 text-[10px]">Sep 4</div>
-                    </div>
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[90px] text-xs space-y-1">
-                        <div class="font-bold text-slate-400 text-[10px]">Sep 5</div>
-                    </div>
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[90px] text-xs space-y-1">
-                        <div class="font-bold text-slate-400 text-[10px]">Sep 6</div>
-                    </div>
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[90px] text-xs space-y-1">
-                        <div class="font-bold text-slate-400 text-[10px]">Sep 7</div>
-                    </div>
-                </div>
-            </div>
-        `;
-    } else {
-        listBtn.className = "px-3 py-1 bg-white shadow-2xs text-indigo-600 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer";
-        calBtn.className = "px-3 py-1 text-slate-600 hover:text-slate-900 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer";
-
-        container.innerHTML = `
-            <div class="p-12 text-center text-slate-400 text-xs">
-                <div class="h-12 w-12 bg-slate-50 border border-slate-150 rounded-2xl flex items-center justify-center mx-auto text-slate-400 mb-3">
-                    <i data-lucide="calendar-check" class="h-6 w-6"></i>
-                </div>
-                <h4 class="font-bold text-slate-700 text-sm mb-1">No Scheduled Emails Pending</h4>
-                <p class="text-slate-400 max-w-sm mx-auto text-xs leading-relaxed">There are currently no timed outreach emails or campaign dispatches waiting in the queue.</p>
-            </div>
-        `;
-    }
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-};
-
-window.copyTemplateVariable = function(tag) {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(tag).then(() => {
-            showNotification('success', `Copied merge tag ${tag} to clipboard!`);
-        }).catch(() => {
-            showNotification('info', `Merge tag: ${tag}`);
-        });
-    } else {
-        showNotification('info', `Merge tag: ${tag}`);
     }
 };

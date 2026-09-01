@@ -27028,12 +27028,14 @@ window.openWizardTemplatesGallery = function() {
 };
 
 window.renderWizardGalleryContent = function(modal) {
-    const categories = ['All', 'Sales', 'Meetings', 'Onboarding', 'Follow-ups', 'Support', 'Invoices', 'Feedback', 'Networking'];
+    const categories = ['All', 'Custom', 'Sales', 'Meetings', 'Onboarding', 'Follow-ups', 'Support', 'Invoices', 'Feedback', 'Networking'];
     const activeCat = window._wizardGalleryActiveCategory || 'All';
     
     let filtered = EMAIL_TEMPLATES_DATA;
-    if (activeCat !== 'All') {
-        filtered = EMAIL_TEMPLATES_DATA.filter(t => t.category.toLowerCase() === activeCat.toLowerCase());
+    if (activeCat === 'Custom') {
+        filtered = EMAIL_TEMPLATES_DATA.filter(t => t.isCustom);
+    } else if (activeCat !== 'All') {
+        filtered = EMAIL_TEMPLATES_DATA.filter(t => t.category && t.category.toLowerCase() === activeCat.toLowerCase());
     } else {
         filtered = getMixedUpTemplates(EMAIL_TEMPLATES_DATA);
     }
@@ -27054,7 +27056,10 @@ window.renderWizardGalleryContent = function(modal) {
             
             <div class="px-6 py-3 border-b border-slate-100 flex items-center space-x-2 overflow-x-auto bg-white">
                 ${categories.map(cat => {
-                    const count = cat === 'All' ? EMAIL_TEMPLATES_DATA.length : EMAIL_TEMPLATES_DATA.filter(x => x.category.toLowerCase() === cat.toLowerCase()).length;
+                    let count = 0;
+                    if (cat === 'All') count = EMAIL_TEMPLATES_DATA.length;
+                    else if (cat === 'Custom') count = EMAIL_TEMPLATES_DATA.filter(x => x.isCustom).length;
+                    else count = EMAIL_TEMPLATES_DATA.filter(x => x.category && x.category.toLowerCase() === cat.toLowerCase()).length;
                     const isActive = activeCat === cat;
                     return `
                         <button onclick="switchWizardGalleryCategory('${cat}')" class="px-3 py-1.5 rounded-full text-xs font-bold transition shrink-0 cursor-pointer ${isActive ? 'bg-indigo-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}">

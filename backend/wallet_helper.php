@@ -254,6 +254,7 @@ if (!function_exists('callAIProvider')) {
                 } elseif ($provider === 'groq') {
                     $groqModelsToTry = array_unique([
                         $model,
+                        'openai/gpt-oss-120b',
                         'llama-3.3-70b-versatile',
                         'llama-3.1-8b-instant',
                         'mixtral-8x7b-32768',
@@ -551,6 +552,7 @@ if (!function_exists('testAIKeyConnection')) {
 
         if ($provider === 'groq') {
             $modelsToTry = [
+                'openai/gpt-oss-120b',
                 'llama-3.3-70b-versatile',
                 'llama-3.1-8b-instant',
                 'deepseek-r1-distill-llama-70b',

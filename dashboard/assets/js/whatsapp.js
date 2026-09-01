@@ -5872,32 +5872,83 @@ function renderWhatsAppBroadcast(container) {
                     </div>
 
                     <div class="max-w-xl bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+                        <!-- Rate Limit & Anti-Ban Security Warning Banner -->
+                        <div class="p-4 bg-amber-50/80 border border-amber-200/80 rounded-xl space-y-1.5 text-xs">
+                            <div class="flex items-center space-x-2 text-amber-800 font-bold uppercase tracking-wider text-[10px]">
+                                <i data-lucide="shield-alert" class="h-4 w-4 text-amber-600"></i>
+                                <span>Meta Rate-Limit & Anti-Ban Protection</span>
+                            </div>
+                            <p class="text-slate-600 text-[11px] leading-relaxed">
+                                Sending bulk WhatsApp messages too quickly can trigger Meta Cloud API rate limits or result in phone number restrictions. All broadcasts are dispatched via controlled drip batching.
+                            </p>
+                        </div>
+
                         <form onsubmit="triggerQuickBroadcast(event)" class="space-y-4 text-xs">
                             <div>
-                                <label class="block text-slate-600 font-semibold mb-1">Select Template</label>
-                                <select id="bcast-tpl" required class="w-full px-3 py-2 border border-slate-200 rounded-lg">
+                                <label class="block text-slate-600 font-semibold mb-1">Select Approved Template</label>
+                                <select id="bcast-tpl" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 font-medium">
                                     ${templates.map(t => `<option value="${t.name}">${t.name} (${t.language})</option>`).join('')}
                                 </select>
                             </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-slate-600 font-semibold mb-1">Drip Rate Limit</label>
+                                    <select id="bcast-rate-limit" required onchange="calculateBcastEstimate()" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 font-bold">
+                                        <option value="25">25 msgs / minute (Ultra Safe)</option>
+                                        <option value="50" selected>50 msgs / minute (Recommended)</option>
+                                        <option value="100">100 msgs / minute (Fast)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-slate-600 font-semibold mb-1">Estimated Duration</label>
+                                    <div id="bcast-est-time" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 font-bold text-xs">
+                                        ~ 0 mins
+                                    </div>
+                                </div>
+                            </div>
                             
                             <div>
-                                <label class="block text-slate-600 font-semibold mb-1">Recipient Numbers (comma separated)</label>
-                                <textarea id="bcast-numbers" required rows="4" placeholder="e.g. 919999999999, 918888888888" class="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-[11px]"></textarea>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="block text-slate-600 font-semibold">Recipient Numbers (comma separated)</label>
+                                    <span id="bcast-recipient-count" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">0 Recipients</span>
+                                </div>
+                                <textarea id="bcast-numbers" required rows="4" oninput="calculateBcastEstimate()" placeholder="e.g. 919999999999, 918888888888" class="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-[11px] focus:outline-none focus:border-indigo-500"></textarea>
                                 <span class="text-[10px] text-slate-400 mt-1 block">Ensure numbers include the country code and exclude spaces or symbols.</span>
                             </div>
                             
-                            <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition shadow">
-                                Queue Broadcast Send
+                            <button type="submit" id="bcast-submit-btn" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-extrabold transition shadow-sm flex items-center justify-center space-x-2" style="color:#ffffff !important;">
+                                <i data-lucide="send" class="h-4 w-4"></i>
+                                <span>Start Rate-Throttled Drip Broadcast</span>
                             </button>
                         </form>
                     </div>
                 </div>
             `;
-            lucide.createIcons();
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+
+            window.calculateBcastEstimate = function() {
+                const numbers = (document.getElementById('bcast-numbers').value || '').split(',').map(n => n.trim()).filter(n => n.length > 0);
+                const rate = parseInt(document.getElementById('bcast-rate-limit').value || 50);
+                
+                const countEl = document.getElementById('bcast-recipient-count');
+                if (countEl) countEl.textContent = `${numbers.length} Recipients`;
+                
+                const estEl = document.getElementById('bcast-est-time');
+                if (estEl) {
+                    if (numbers.length === 0) {
+                        estEl.textContent = '~ 0 mins';
+                    } else {
+                        const mins = Math.ceil(numbers.length / rate);
+                        estEl.textContent = `~ ${mins} min${mins > 1 ? 's' : ''} (${rate}/min)`;
+                    }
+                }
+            };
 
             window.triggerQuickBroadcast = function (e) {
                 e.preventDefault();
                 const template = document.getElementById('bcast-tpl').value;
+                const rate = parseInt(document.getElementById('bcast-rate-limit').value || 50);
                 const numbers = document.getElementById('bcast-numbers').value.split(',').map(n => n.trim()).filter(n => n.length > 0);
 
                 if (numbers.length === 0) {
@@ -5905,21 +5956,29 @@ function renderWhatsAppBroadcast(container) {
                     return;
                 }
 
-                // Create Campaign draft for quick broadcast
+                const btn = document.getElementById('bcast-submit-btn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="loader-spinner mr-1"></span> Queueing Controlled Drip Broadcast...';
+                }
+
+                // Create Campaign with rate throttle configured
                 apiCall('whatsapp/campaigns.php?action=create', 'POST', {
-                    name: 'Quick Broadcast - ' + template + ' - ' + new Date().toLocaleDateString(),
+                    name: 'Drip Broadcast - ' + template + ' (' + rate + '/min)',
                     template_name: template,
+                    rate_limit: rate,
+                    recipient_list: numbers,
                     filters: {}
                 }).then(res => {
-                    const campId = res.campaign_id;
-
-                    // Hook custom logs manually for quick numbers list
-                    // In a production setup, we can write a specific quick broadcast API,
-                    // but linking it directly to campaigns makes it immediately visual in the campaigns tab!
-                    showNotification('success', 'Broadcast campaign queued successfully!');
+                    showNotification('success', `Controlled Drip Broadcast queued successfully! Dispatched at ${rate} msgs/min.`);
                     window.location.hash = '#/whatsapp-campaigns';
                 }).catch(err => {
-                    showNotification('error', err.message);
+                    showNotification('error', err.message || 'Failed to queue broadcast campaign.');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i data-lucide="send" class="h-4 w-4"></i><span>Start Rate-Throttled Drip Broadcast</span>';
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    }
                 });
             };
 

@@ -14272,8 +14272,15 @@ async function renderAIInsights(container) {
     `;
     
     try {
-        const res = await apiCall('crm/ai_insights.php');
-        if (res.status !== 'success') {
+        const [res, creditData] = await Promise.all([
+            apiCall('crm/ai_insights.php').catch(err => ({ status: 'error', message: err.message })),
+            apiCall('profile/get_credits.php').catch(() => ({ wallet: { remaining: 0 } }))
+        ]);
+
+        const remainingCredits = creditData.wallet ? creditData.wallet.remaining : 0;
+        const isExhausted = remainingCredits <= 0 || (res.message && (res.message.toLowerCase().includes('credit') || res.message.toLowerCase().includes('openrouter') || res.message.toLowerCase().includes('quota') || res.message.toLowerCase().includes('balance')));
+
+        if (res.status !== 'success' && !isExhausted) {
             container.innerHTML = `<div class="p-8 text-center text-rose-400 font-bold">Failed to load AI Insights: ${res.message}</div>`;
             return;
         }
@@ -14289,6 +14296,27 @@ async function renderAIInsights(container) {
         // Build HTML
         let html = `
             <div class="space-y-8 pt-4 animate-fade-in text-xs max-w-7xl mx-auto text-left">
+                ${isExhausted ? `
+                    <!-- OpenRouter AI Credit Exhausted Alert Banner -->
+                    <div class="p-5 bg-rose-950/40 border border-rose-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
+                        <div class="flex items-center space-x-3.5">
+                            <div class="h-11 w-11 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+                                <i data-lucide="alert-triangle" class="h-6 w-6 animate-bounce"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-extrabold text-white">AI Credits Exhausted</h3>
+                                <p class="text-rose-300 text-[11px] mt-0.5">Your OpenRouter / AI Intelligence wallet balance is 0 credits. AI summary, data extractions, and natural language analytics are currently paused.</p>
+                            </div>
+                        </div>
+                        <div class="shrink-0 flex items-center space-x-3">
+                            <a href="#/recharge" class="px-4 py-2.5 bg-gradient-to-r from-rose-600 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 text-white font-extrabold rounded-xl text-xs transition shadow-md flex items-center space-x-2" style="color: #ffffff !important;">
+                                <i data-lucide="zap" class="h-4 w-4" style="color: #ffffff !important;"></i>
+                                <span style="color: #ffffff !important;">Recharge Wallet Now</span>
+                            </a>
+                        </div>
+                    </div>
+                ` : ''}
+
                 <!-- Header with Natural Language Search -->
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between border-b border-slate-850 pb-4 gap-4">
                     <div>

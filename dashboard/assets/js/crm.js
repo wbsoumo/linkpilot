@@ -3615,6 +3615,31 @@ async function renderInbox(container, targetEmailId = null, initialFolder = 'inb
                         </button>
                     </div>
 
+                    <!-- Batch Action Toolbar -->
+                    <div id="inbox-batch-toolbar" class="px-3.5 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs font-semibold text-slate-600">
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" id="inbox-select-all" onclick="toggleSelectAllInboxEmails(this)" class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
+                            <span id="inbox-selected-count-label" class="text-[11px] font-bold text-slate-500">Select All</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <button onclick="executeBulkInboxAction('ai_summarize')" class="p-1.5 hover:bg-indigo-100 text-indigo-700 rounded-lg transition" title="Bulk AI Summarize">
+                                <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
+                            </button>
+                            <button onclick="executeBulkInboxAction('archive')" class="p-1.5 hover:bg-slate-200 text-slate-700 rounded-lg transition" title="Archive Selected">
+                                <i data-lucide="archive" class="h-3.5 w-3.5"></i>
+                            </button>
+                            <button onclick="executeBulkInboxAction('assign_lead')" class="p-1.5 hover:bg-blue-100 text-blue-700 rounded-lg transition" title="Assign to Lead">
+                                <i data-lucide="user-plus" class="h-3.5 w-3.5"></i>
+                            </button>
+                            <button onclick="executeBulkInboxAction('mark_read')" class="p-1.5 hover:bg-emerald-100 text-emerald-700 rounded-lg transition" title="Mark Read">
+                                <i data-lucide="mail-open" class="h-3.5 w-3.5"></i>
+                            </button>
+                            <button onclick="executeBulkInboxAction('delete')" class="p-1.5 hover:bg-rose-100 text-rose-700 rounded-lg transition" title="Delete Selected">
+                                <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Disconnected / Paused Warning Banner -->
                     <div id="inbox-status-warning-banner" class="hidden"></div>
 
@@ -28789,4 +28814,64 @@ window.runEmailIntelligenceDemo = function() {
         btn.innerHTML = `<i data-lucide="cpu" class="h-4 w-4 text-white"></i><span>Re-run Sample Analysis</span>`;
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }, 1200);
+};
+
+window.toggleSelectAllInboxEmails = function(mainCb) {
+    const isChecked = mainCb.checked;
+    const checkboxes = document.querySelectorAll('.inbox-email-select-cb');
+    checkboxes.forEach(cb => cb.checked = isChecked);
+    updateSelectedInboxCountLabel();
+};
+
+window.updateSelectedInboxCountLabel = function() {
+    const selected = document.querySelectorAll('.inbox-email-select-cb:checked');
+    const label = document.getElementById('inbox-selected-count-label');
+    if (label) {
+        label.textContent = selected.length > 0 ? `${selected.length} Selected` : 'Select All';
+    }
+};
+
+window.executeBulkInboxAction = async function(action) {
+    const selectedCbs = document.querySelectorAll('.inbox-email-select-cb:checked');
+    const selectedIds = Array.from(selectedCbs).map(cb => cb.value);
+    
+    if (selectedIds.length === 0) {
+        showNotification('warning', 'Please select at least one email from the inbox list.');
+        return;
+    }
+
+    try {
+        if (action === 'ai_summarize') {
+            showNotification('info', `Running AI Summarizer on ${selectedIds.length} emails...`);
+            for (const id of selectedIds) {
+                await apiCall('crm/email_intelligence/ai_action.php', 'POST', { action: 'summarize', email_id: id }).catch(() => {});
+            }
+            showNotification('success', `AI Summarization completed for ${selectedIds.length} emails.`);
+        } else if (action === 'archive') {
+            for (const id of selectedIds) {
+                await apiCall('crm/email_intelligence/ai_action.php', 'POST', { action: 'archive', email_id: id }).catch(() => {});
+            }
+            showNotification('success', `Archived ${selectedIds.length} emails.`);
+        } else if (action === 'assign_lead') {
+            for (const id of selectedIds) {
+                await apiCall('crm/email_intelligence/ai_action.php', 'POST', { action: 'auto_create_lead', email_id: id }).catch(() => {});
+            }
+            showNotification('success', `Extracted & assigned ${selectedIds.length} emails to CRM Leads.`);
+        } else if (action === 'mark_read') {
+            for (const id of selectedIds) {
+                await apiCall('crm/email_intelligence/ai_action.php', 'POST', { action: 'mark_read', email_id: id }).catch(() => {});
+            }
+            showNotification('success', `Marked ${selectedIds.length} emails as read.`);
+        } else if (action === 'delete') {
+            for (const id of selectedIds) {
+                await apiCall('crm/email_intelligence/ai_action.php', 'POST', { action: 'delete', email_id: id }).catch(() => {});
+            }
+            showNotification('success', `Deleted ${selectedIds.length} emails.`);
+        }
+
+        const mainViewport = document.getElementById('main-content-viewport');
+        if (mainViewport) renderInbox(mainViewport);
+    } catch (err) {
+        showNotification('error', err.message || 'Failed executing bulk inbox action.');
+    }
 };

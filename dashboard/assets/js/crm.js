@@ -16228,7 +16228,7 @@ async function testIMAPCredentials(btn) {
 async function saveProfileSettings(btn) {
     const origText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = `<i data-lucide="refresh-cw" class="h-3 w-3 animate-spin mr-1.5 inline"></i> Saving...`;
+    btn.innerHTML = `<i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin mr-1.5 inline"></i> Saving...`;
     lucide.createIcons();
     
     const name = document.getElementById('profile-name-input').value.trim();
@@ -16252,16 +16252,22 @@ async function saveProfileSettings(btn) {
     try {
         const data = await apiCall('profile/update.php', 'POST', payload);
         if (data.status === 'success') {
+            btn.innerHTML = `<i data-lucide="check" class="h-3.5 w-3.5 mr-1.5 inline"></i> Saved`;
+            lucide.createIcons();
             showNotification('success', 'Profile details updated successfully.');
             // Sync initials/name on dashboard topbar
             document.querySelectorAll('.user-name-display').forEach(el => el.textContent = name);
-            renderSettings(document.getElementById('main-content-viewport'));
+            setTimeout(() => {
+                renderSettings(document.getElementById('main-content-viewport'));
+            }, 600);
         } else {
             showNotification('error', data.message);
+            btn.disabled = false;
+            btn.innerHTML = origText;
+            lucide.createIcons();
         }
     } catch (e) {
         showNotification('error', e.message);
-    } finally {
         btn.disabled = false;
         btn.innerHTML = origText;
         lucide.createIcons();

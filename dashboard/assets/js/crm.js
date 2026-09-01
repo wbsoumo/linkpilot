@@ -7851,7 +7851,7 @@ async function openInspectCompanyModal(companyId) {
                                 <div class="relative pl-4 border-l border-slate-200 space-y-3 text-left ml-2">
                                     ${timeline.map(t => {
                                         const date = new Date(t.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-                                        const badgeClass = t.badge_color || 'bg-indigo-50 text-indigo-700 border-indigo-100';
+                                        const badgeClass = t.badge_color || 'bg-indigo-100 text-indigo-950 border border-indigo-300/80 font-extrabold';
                                         let iconName = 'activity';
                                         if (t.type === 'email') iconName = 'mail';
                                         if (t.type === 'whatsapp') iconName = 'message-square';
@@ -8174,7 +8174,7 @@ async function renderTasks(container) {
             });
             const activeBtn = document.getElementById(`task-tab-${tabName}`);
             if (activeBtn) {
-                activeBtn.className = 'task-filter-tab px-3 py-1.5 rounded-lg font-bold text-xs bg-indigo-50 text-indigo-700 border border-indigo-200/70 shadow-2xs transition duration-150';
+                activeBtn.className = 'task-filter-tab px-3 py-1.5 rounded-lg font-extrabold text-xs bg-indigo-100 text-indigo-950 border border-indigo-300/80 shadow-2xs transition duration-150';
             }
             
             updateTasksGrid();
@@ -8202,7 +8202,7 @@ async function renderTasks(container) {
                     priorityBadge = `<span class="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-rose-50 text-rose-700 border border-rose-200/70 tracking-tight">HIGH</span>`;
                     borderTopAccent = 'border-t-2 border-t-rose-500';
                 } else if (priority === 'medium') {
-                    priorityBadge = `<span class="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200/70 tracking-tight">MED</span>`;
+                    priorityBadge = `<span class="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-indigo-100 text-indigo-950 border border-indigo-300/80 tracking-tight">MED</span>`;
                     borderTopAccent = 'border-t-2 border-t-indigo-500';
                 } else {
                     priorityBadge = `<span class="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-slate-100 text-slate-600 border border-slate-200 tracking-tight">LOW</span>`;
@@ -8393,10 +8393,10 @@ async function renderTasks(container) {
 
             return `
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 w-full">
-                    ${getCategoryHTML('Follow-ups', cats['Follow-up'], 'phone-call', 'bg-indigo-50 text-indigo-600', 'bg-indigo-50 text-indigo-700')}
-                    ${getCategoryHTML('Replies / Email', cats['Reply'], 'mail', 'bg-emerald-50 text-emerald-600', 'bg-emerald-50 text-emerald-700')}
-                    ${getCategoryHTML('Meetings Set', cats['Meeting'], 'calendar', 'bg-blue-50 text-blue-600', 'bg-blue-50 text-blue-700')}
-                    ${getCategoryHTML('Need to Arrange', cats['Arrange'], 'sliders', 'bg-amber-50 text-amber-600', 'bg-amber-50 text-amber-700')}
+                    ${getCategoryHTML('Follow-ups', cats['Follow-up'], 'phone-call', 'bg-indigo-50 text-indigo-600', 'bg-indigo-100 text-indigo-950')}
+                    ${getCategoryHTML('Replies / Email', cats['Reply'], 'mail', 'bg-emerald-50 text-emerald-600', 'bg-emerald-100 text-emerald-950')}
+                    ${getCategoryHTML('Meetings Set', cats['Meeting'], 'calendar', 'bg-blue-50 text-blue-600', 'bg-blue-100 text-blue-950')}
+                    ${getCategoryHTML('Need to Arrange', cats['Arrange'], 'sliders', 'bg-amber-50 text-amber-600', 'bg-amber-100 text-amber-950')}
                 </div>
                 
                 ${cats['General'].length > 0 ? `
@@ -8423,7 +8423,7 @@ async function renderTasks(container) {
                                     priorityBadge = `<span class="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-rose-50 text-rose-700 border border-rose-200/70 tracking-tight">HIGH</span>`;
                                     borderTopAccent = 'border-t-2 border-t-rose-500';
                                 } else if (priority === 'medium') {
-                                    priorityBadge = `<span class="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200/70 tracking-tight">MED</span>`;
+                                    priorityBadge = `<span class="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-indigo-100 text-indigo-950 border border-indigo-300/80 tracking-tight">MED</span>`;
                                     borderTopAccent = 'border-t-2 border-t-indigo-500';
                                 } else {
                                     priorityBadge = `<span class="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-slate-100 text-slate-600 border border-slate-200 tracking-tight">LOW</span>`;
@@ -8517,7 +8517,7 @@ async function renderTasks(container) {
                 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200/90 shadow-2xs">
                     <!-- Left Category Pills -->
                     <div class="flex items-center space-x-1 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
-                        <button onclick="filterTasksView('all')" id="task-tab-all" class="task-filter-tab px-3 py-1.5 rounded-lg font-bold text-xs bg-indigo-50 text-indigo-700 border border-indigo-200/70 shadow-2xs transition duration-150">All Tasks</button>
+                        <button onclick="filterTasksView('all')" id="task-tab-all" class="task-filter-tab px-3 py-1.5 rounded-lg font-extrabold text-xs bg-indigo-100 text-indigo-950 border border-indigo-300/80 shadow-2xs transition duration-150">All Tasks</button>
                         <button onclick="filterTasksView('communications')" id="task-tab-communications" class="task-filter-tab px-3 py-1.5 rounded-lg font-bold text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition duration-150">Communications</button>
                         <button onclick="filterTasksView('crm')" id="task-tab-crm" class="task-filter-tab px-3 py-1.5 rounded-lg font-bold text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition duration-150">CRM Tasks</button>
                         <button onclick="filterTasksView('marketing')" id="task-tab-marketing" class="task-filter-tab px-3 py-1.5 rounded-lg font-bold text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition duration-150">Marketing</button>
@@ -8864,7 +8864,7 @@ window.selectQuickCategory = function(cat) {
     document.getElementById('quick-task-category-val').value = cat;
     
     const pills = {
-        'Follow-up': { active: 'border-indigo-250 bg-indigo-50 text-indigo-700 shadow-sm' },
+        'Follow-up': { active: 'border-indigo-300 bg-indigo-100 text-indigo-950 font-extrabold shadow-sm' },
         'Reply': { active: 'border-emerald-250 bg-emerald-50 text-emerald-700 shadow-sm' },
         'Meeting': { active: 'border-blue-250 bg-blue-50 text-blue-700 shadow-sm' },
         'Arrange': { active: 'border-amber-250 bg-amber-50 text-amber-700 shadow-sm' },
@@ -15260,7 +15260,7 @@ async function renderReports(container) {
                     <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                             <div class="font-bold text-xs text-slate-800">Lead Source Channels</div>
-                            <span class="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full uppercase">Breakdown</span>
+                            <span class="text-[10px] font-black bg-indigo-100 text-indigo-950 border border-indigo-300/80 px-2 py-0.5 rounded-full uppercase">Breakdown</span>
                         </div>
                         <div class="h-60 relative flex items-center justify-center">
                             <canvas id="crm-reports-source-chart"></canvas>
@@ -18725,7 +18725,7 @@ async function renderEmailTemplates(container) {
                                         <!-- Card Content -->
                                         <div class="space-y-2.5 min-w-0">
                                             <div class="flex justify-between items-center">
-                                                <span class="px-2.5 py-0.5 rounded-md text-[9px] font-extrabold tracking-wider uppercase bg-indigo-50 text-indigo-700 border border-indigo-100">${t.category} • ${t.tag}</span>
+                                                <span class="px-2.5 py-0.5 rounded-md text-[9px] font-extrabold tracking-wider uppercase bg-indigo-100 text-indigo-950 border border-indigo-300/80">${t.category} • ${t.tag}</span>
                                                 ${t.isCustom ? `
                                                     <span class="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase bg-amber-50 text-amber-700 border border-amber-200 flex items-center">
                                                         <i data-lucide="pen-tool" class="h-2.5 w-2.5 mr-1 text-amber-600"></i>BUILDER
@@ -22932,7 +22932,7 @@ function getSettingsBaseLayout(user) {
                             </button>
                         </div>
                         <h3 class="text-base font-black text-slate-900" id="settings-sidebar-name">...</h3>
-                        <span class="mt-1 px-3 py-0.5 rounded-full text-[10px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200/80 tracking-wider uppercase" id="settings-sidebar-role">USER</span>
+                        <span class="mt-1 px-3 py-0.5 rounded-full text-[10px] font-black bg-indigo-100 text-indigo-950 border border-indigo-300/80 tracking-wider uppercase" id="settings-sidebar-role">USER</span>
 
                         <div class="w-full mt-5 space-y-3.5 pt-4 border-t border-slate-100 text-slate-650 text-xs">
                             <div class="flex items-center space-x-3">
@@ -27774,7 +27774,7 @@ function renderAnalyticsDashboardUI(c, logs, linkAnalytics, container) {
                     <div>
                         <div class="flex items-center space-x-2">
                             <h2 class="text-lg font-black text-slate-900">${escapeHtml(c.campaign_name || 'Campaign Analytics')}</h2>
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold capitalize ${c.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'}">${c.status || 'Active'}</span>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold capitalize ${c.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-indigo-100 text-indigo-950 border border-indigo-300/80'}">${c.status || 'Active'}</span>
                         </div>
                         <p class="text-xs text-slate-400 mt-0.5">Subject: "${escapeHtml(c.subject || '')}" • Dispatched: ${c.start_at || 'Recently'}</p>
                     </div>
@@ -28167,7 +28167,7 @@ function renderRecipientRowsHTML(logsList) {
             </td>
             <td class="px-4 py-3">
                 ${hasOpened ? `
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">Opened (${l.open_count || 1}x)</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-black bg-indigo-100 text-indigo-950 border border-indigo-300/80">Opened (${l.open_count || 1}x)</span>
                     ${parseInt(l.is_apple_privacy || 0) === 1 ? '<span class="ml-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200" title="Apple Mail Privacy">Apple Proxy</span>' : ''}
                     ${parseInt(l.is_google_proxy || 0) === 1 ? '<span class="ml-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200" title="Google Image Proxy">Google Proxy</span>' : ''}
                 ` : `
@@ -28223,7 +28223,7 @@ function renderRecipientRowsHTML(logsList) {
                             let badgeClass = 'bg-slate-100 text-slate-600';
                             if (evt.event_type === 'Sent') { icon = 'send'; badgeClass = 'bg-slate-100 text-slate-700'; }
                             else if (evt.event_type === 'Delivered') { icon = 'check'; badgeClass = 'bg-emerald-50 text-emerald-700 border border-emerald-200'; }
-                            else if (evt.event_type === 'Opened' || evt.event_type === 'OpenedAgain') { icon = 'eye'; badgeClass = 'bg-indigo-50 text-indigo-700 border border-indigo-200'; }
+                            else if (evt.event_type === 'Opened' || evt.event_type === 'OpenedAgain') { icon = 'eye'; badgeClass = 'bg-indigo-100 text-indigo-950 border border-indigo-300/80 font-extrabold'; }
                             else if (evt.event_type === 'LinkClicked') { icon = 'mouse-pointer'; badgeClass = 'bg-purple-50 text-purple-700 border border-purple-200'; }
                             else if (evt.event_type === 'Replied') { icon = 'message-square'; badgeClass = 'bg-blue-50 text-blue-700 border border-blue-200'; }
                             else if (evt.event_type === 'MeetingBooked') { icon = 'calendar'; badgeClass = 'bg-amber-50 text-amber-700 border border-amber-200'; }

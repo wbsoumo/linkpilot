@@ -35,15 +35,25 @@ class SMTPHelper {
         if ($trackingEnabled) {
             $trackingId = bin2hex(random_bytes(16));
             
-            // Rewrite <a href="..."> links for click tracking
+            // Standardized Link Tracking Pipeline: Original URL -> Validate -> Decode Entity -> Add Tracking -> Escape for HTML
             $body = preg_replace_callback('/<a\s+(?:[^>]*?\s+)?href=(["\'])(.*?)\1/i', function($matches) use ($trackingId) {
                 $quote = $matches[1];
-                $originalUrl = $matches[2];
-                if (preg_match('/^(mailto:|tel:|#|javascript:)/i', $originalUrl) || strpos($originalUrl, '/c/') !== false || strpos($originalUrl, '/u/') !== false || strpos($originalUrl, '/o/') !== false) {
+                $rawUrl = html_entity_decode($matches[2], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                
+                // Exclude non-http links, anchor links, or already tracked URLs
+                if (preg_match('/^(mailto:|tel:|#|javascript:|vbscript:)/i', $rawUrl) || strpos($rawUrl, '/c/') !== false || strpos($rawUrl, '/u/') !== false || strpos($rawUrl, '/o/') !== false) {
                     return $matches[0];
                 }
-                $trackedUrl = 'https://linkpilot.work/c/' . $trackingId . '?url=' . urlencode($originalUrl);
-                return str_replace($originalUrl, $trackedUrl, $matches[0]);
+
+                // Ensure valid protocol
+                if (!preg_match('/^https?:\/\//i', $rawUrl)) {
+                    $rawUrl = 'https://' . ltrim($rawUrl, '/');
+                }
+
+                $trackedUrl = 'https://linkpilot.work/c/' . $trackingId . '?url=' . urlencode($rawUrl);
+                $escapedTrackedUrl = htmlspecialchars($trackedUrl, ENT_QUOTES, 'UTF-8');
+
+                return str_replace($matches[1] . $matches[2] . $matches[1], $matches[1] . $escapedTrackedUrl . $matches[1], $matches[0]);
             }, $body);
 
             // Append unsubscribe link if not already present

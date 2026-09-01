@@ -3,14 +3,15 @@
 
 require_once __DIR__ . '/../../config.php';
 
-$trackingId = $_GET['id'] ?? '';
-$targetUrl = $_GET['url'] ?? $_GET['target'] ?? '';
+$trackingId = trim($_GET['id'] ?? '');
+$targetUrl = trim($_GET['url'] ?? $_GET['target'] ?? '');
+$targetUrl = html_entity_decode($targetUrl, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
-if (!empty($targetUrl) && (strpos($targetUrl, 'http://') !== 0 && strpos($targetUrl, 'https://') !== 0)) {
-    $targetUrl = 'https://' . $targetUrl;
+if (!empty($targetUrl) && !preg_match('/^https?:\/\//i', $targetUrl)) {
+    $targetUrl = 'https://' . ltrim($targetUrl, '/');
 }
 
-if (empty($targetUrl)) {
+if (empty($targetUrl) || preg_match('/^(javascript|vbscript|data):/i', $targetUrl)) {
     $targetUrl = 'https://linkpilot.work';
 }
 

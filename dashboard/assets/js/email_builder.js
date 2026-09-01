@@ -603,6 +603,26 @@
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
+    // Delete nested element inside column helper
+    window.deleteColumnElement = function(columnElId, colKey, nestedElId, ev) {
+        if (ev) ev.stopPropagation();
+        recordState();
+        for (const sec of canvasData) {
+            const colEl = sec.elements.find(e => e.id === columnElId);
+            if (colEl && colEl.settings && colEl.settings[colKey]) {
+                const idx = colEl.settings[colKey].findIndex(e => e.id === nestedElId);
+                if (idx !== -1) {
+                    colEl.settings[colKey].splice(idx, 1);
+                    if (selectedElementId === nestedElId) selectedElementId = null;
+                    renderCanvas();
+                    renderPropertiesPanel();
+                    showNotification('info', 'Element removed from column.');
+                    break;
+                }
+            }
+        }
+    };
+
     // Direct section injection helper
     window.insertSectionDirectly = function(sectionIndex) {
         recordState();
@@ -1322,14 +1342,76 @@
                             break;
                         case 'columns':
                             {
+                                if (!el.settings.col1Elements) el.settings.col1Elements = [];
+                                if (!el.settings.col2Elements) el.settings.col2Elements = [];
+                                if (!el.settings.col3Elements) el.settings.col3Elements = [];
+
                                 const count = el.settings.colCount || '2';
+
+                                const renderColumnDropZone = (colKey, colElements, colWidth) => {
+                                    let colInnerHtml = "";
+                                    if (colElements.length === 0) {
+                                        colInnerHtml = `
+                                            <div class="py-4 px-2 border-2 border-dashed border-slate-300 rounded-lg text-center text-slate-400 text-[10px] bg-white/60 hover:bg-white hover:border-[#6D5EF5] transition"
+                                                 ondragover="onCanvasDragOver(event)"
+                                                 ondragleave="onCanvasDragLeave(event)"
+                                                 ondrop="onCanvasDrop(event, '${sec.id}', null, '${el.id}', '${colKey}', 0)">
+                                                 Drop element in ${colKey.replace('col', 'Column ').replace('Elements', '')}
+                                            </div>
+                                        `;
+                                    } else {
+                                        colElements.forEach((nestedEl, nIdx) => {
+                                            if (!nestedEl.settings) nestedEl.settings = {};
+                                            let isNestedSelected = (selectedElementId === nestedEl.id);
+                                            let nestedContentHtml = "";
+                                            
+                                            if (nestedEl.type === 'heading') {
+                                                nestedContentHtml = `<h3 style="margin:0; font-size:${nestedEl.settings.fontSize || '18px'}; color:${nestedEl.settings.color || '#0F172A'}; font-weight:bold;">${nestedEl.settings.content || 'Heading'}</h3>`;
+                                            } else if (nestedEl.type === 'text') {
+                                                nestedContentHtml = `<p style="margin:0; font-size:${nestedEl.settings.fontSize || '13px'}; color:${nestedEl.settings.color || '#334155'}; line-height:1.5;">${nestedEl.settings.content || 'Paragraph text details...'}</p>`;
+                                            } else if (nestedEl.type === 'image') {
+                                                nestedContentHtml = `<img src="${nestedEl.settings.imageUrl || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&auto=format&fit=crop'}" style="width:100%; border-radius:6px; display:block;" alt="Column Image">`;
+                                            } else if (nestedEl.type === 'button') {
+                                                nestedContentHtml = `<a href="${nestedEl.settings.link || '#'}" onclick="event.preventDefault();" style="display:inline-block; font-size:12px; font-weight:bold; color:${nestedEl.settings.textColor || '#ffffff'}; background-color:${nestedEl.settings.backgroundColor || '#6D5EF5'}; padding:8px 16px; border-radius:6px; text-decoration:none;">${nestedEl.settings.text || 'Click Here'}</a>`;
+                                            } else {
+                                                nestedContentHtml = `<div class="text-xs font-bold text-slate-600">${nestedEl.type.toUpperCase()} block</div>`;
+                                            }
+
+                                            colInnerHtml += `
+                                                <div class="canvas-element group/nested relative p-2 my-1.5 border-2 rounded-lg transition duration-150 cursor-pointer ${isNestedSelected ? 'border-[#6D5EF5] bg-indigo-50/50 shadow-sm' : 'border-transparent hover:border-slate-300 hover:bg-slate-50'}"
+                                                     onclick="selectCanvasElement('${nestedEl.id}', event)"
+                                                     draggable="true"
+                                                     ondragstart="onCanvasElementDragStart(event, '${sec.id}', '${nestedEl.id}')"
+                                                     ondragend="onCanvasDragEnd(event)"
+                                                     ondragover="onCanvasDragOver(event)"
+                                                     ondragleave="onCanvasDragLeave(event)"
+                                                     ondrop="onCanvasDrop(event, '${sec.id}', null, '${el.id}', '${colKey}', ${nIdx})">
+                                                    ${nestedContentHtml}
+                                                    ${isNestedSelected ? `
+                                                    <div class="absolute -top-7 right-2 flex items-center space-x-1 bg-[#6D5EF5] text-white shadow-md rounded p-1 select-none z-50">
+                                                        <button onclick="deleteColumnElement('${el.id}', '${colKey}', '${nestedEl.id}', event)" class="p-0.5 hover:bg-rose-700 rounded" title="Delete"><i data-lucide="trash-2" class="h-3 w-3"></i></button>
+                                                    </div>
+                                                    ` : ''}
+                                                </div>
+                                            `;
+                                        });
+                                    }
+
+                                    return `
+                                        <td width="${colWidth}" valign="top" style="padding: 10px; background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px;"
+                                            ondragover="onCanvasDragOver(event)"
+                                            ondragleave="onCanvasDragLeave(event)"
+                                            ondrop="onCanvasDrop(event, '${sec.id}', null, '${el.id}', '${colKey}', ${colElements.length})">
+                                            ${colInnerHtml}
+                                        </td>
+                                    `;
+                                };
+
                                 if (count === '1') {
                                     elementInner = `
                                         <table border="0" cellpadding="0" cellspacing="0" width="100%" class="rounded-xl overflow-hidden">
                                             <tr>
-                                                <td width="100%" valign="top" style="padding: 14px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; color: #334155; line-height: 1.6;">
-                                                    ${el.settings.col1Content || 'Column 1 text details and messaging goes here...'}
-                                                </td>
+                                                ${renderColumnDropZone('col1Elements', el.settings.col1Elements, '100%')}
                                             </tr>
                                         </table>
                                     `;
@@ -1337,17 +1419,11 @@
                                     elementInner = `
                                         <table border="0" cellpadding="0" cellspacing="0" width="100%" class="rounded-xl overflow-hidden">
                                             <tr>
-                                                <td width="31%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 12px; color: #334155; line-height: 1.5;">
-                                                    ${el.settings.col1Content || 'Column 1 details...'}
-                                                </td>
+                                                ${renderColumnDropZone('col1Elements', el.settings.col1Elements, '31%')}
                                                 <td width="3.5%">&nbsp;</td>
-                                                <td width="31%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 12px; color: #334155; line-height: 1.5;">
-                                                    ${el.settings.col2Content || 'Column 2 details...'}
-                                                </td>
+                                                ${renderColumnDropZone('col2Elements', el.settings.col2Elements, '31%')}
                                                 <td width="3.5%">&nbsp;</td>
-                                                <td width="31%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 12px; color: #334155; line-height: 1.5;">
-                                                    ${el.settings.col3Content || 'Column 3 details...'}
-                                                </td>
+                                                ${renderColumnDropZone('col3Elements', el.settings.col3Elements, '31%')}
                                             </tr>
                                         </table>
                                     `;
@@ -1355,13 +1431,9 @@
                                     elementInner = `
                                         <table border="0" cellpadding="0" cellspacing="0" width="100%" class="rounded-xl overflow-hidden">
                                             <tr>
-                                                <td width="48%" valign="top" style="padding: 14px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; color: #334155; line-height: 1.6;">
-                                                    ${el.settings.col1Content || 'Column 1 text details and messaging goes here...'}
-                                                </td>
+                                                ${renderColumnDropZone('col1Elements', el.settings.col1Elements, '48%')}
                                                 <td width="4%">&nbsp;</td>
-                                                <td width="48%" valign="top" style="padding: 14px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; color: #334155; line-height: 1.6;">
-                                                    ${el.settings.col2Content || 'Column 2 text details and messaging goes here...'}
-                                                </td>
+                                                ${renderColumnDropZone('col2Elements', el.settings.col2Elements, '48%')}
                                             </tr>
                                         </table>
                                     `;
@@ -1560,7 +1632,7 @@
     };
 
     // Canvas Dropping logic helper
-    window.onCanvasDrop = function(ev, targetSectionId = null, insertIndex = null) {
+    window.onCanvasDrop = function(ev, targetSectionId = null, insertIndex = null, targetColumnElementId = null, targetColKey = null, colInsertIndex = null) {
         ev.preventDefault();
         ev.stopPropagation(); // Prevent drag event from bubbling up to parent drop zones!
 
@@ -1619,7 +1691,7 @@
                     newEl.settings = { code: "LPNEW50", discount: "50% OFF", desc: "Start building and save half off first plan invoice.", backgroundColor: "#FAF9FF", borderColor: "#6D5EF5" };
                     break;
                 case 'columns':
-                    newEl.settings = { col1Content: "Column 1 text details and messaging goes here...", col2Content: "Column 2 text details and messaging goes here...", gap: "20px" };
+                    newEl.settings = { col1Elements: [], col2Elements: [], col3Elements: [], colCount: '2' };
                     break;
                 case 'html':
                     newEl.settings = { htmlCode: '<div style="padding:15px; background-color:#e0e7ff; color:#3730a3; font-family:sans-serif; text-align:center; font-weight:bold; border-radius:8px;">Custom HTML Snippet Banner</div>' };
@@ -1656,7 +1728,23 @@
             const elType = dragData.elType;
             const newEl = createDefaultElement(elType);
 
-            if (targetSectionId === 'bottom') {
+            if (targetColumnElementId && targetColKey) {
+                // Drop element into a specific nested column array
+                for (const sec of canvasData) {
+                    const parentEl = sec.elements.find(e => e.id === targetColumnElementId);
+                    if (parentEl && parentEl.settings) {
+                        if (!parentEl.settings[targetColKey]) parentEl.settings[targetColKey] = [];
+                        if (colInsertIndex !== null && colInsertIndex !== undefined) {
+                            parentEl.settings[targetColKey].splice(colInsertIndex, 0, newEl);
+                        } else {
+                            parentEl.settings[targetColKey].push(newEl);
+                        }
+                        selectedElementId = newEl.id;
+                        selectedSectionId = sec.id;
+                        break;
+                    }
+                }
+            } else if (targetSectionId === 'bottom') {
                 const newSec = {
                     id: "sec_" + Date.now(),
                     type: "section",
@@ -1690,7 +1778,7 @@
                 selectedSectionId = newSec.id;
             }
         } else if (dragData.type === 'move_element') {
-            // Find element in original section and remove it
+            // Find element in original section or nested column and remove it
             let foundEl = null;
             for (const sec of canvasData) {
                 const idx = sec.elements.findIndex(e => e.id === dragData.elId);
@@ -1699,11 +1787,42 @@
                     sec.elements.splice(idx, 1);
                     break;
                 }
+                // Also search nested column arrays
+                for (const el of sec.elements) {
+                    if (el.type === 'columns' && el.settings) {
+                        ['col1Elements', 'col2Elements', 'col3Elements'].forEach(colKey => {
+                            if (el.settings[colKey]) {
+                                const cIdx = el.settings[colKey].findIndex(e => e.id === dragData.elId);
+                                if (cIdx !== -1) {
+                                    foundEl = el.settings[colKey][cIdx];
+                                    el.settings[colKey].splice(cIdx, 1);
+                                }
+                            }
+                        });
+                        if (foundEl) break;
+                    }
+                }
+                if (foundEl) break;
             }
 
             if (!foundEl) return;
 
-            if (targetSectionId === 'bottom') {
+            if (targetColumnElementId && targetColKey) {
+                for (const sec of canvasData) {
+                    const parentEl = sec.elements.find(e => e.id === targetColumnElementId);
+                    if (parentEl && parentEl.settings) {
+                        if (!parentEl.settings[targetColKey]) parentEl.settings[targetColKey] = [];
+                        if (colInsertIndex !== null && colInsertIndex !== undefined) {
+                            parentEl.settings[targetColKey].splice(colInsertIndex, 0, foundEl);
+                        } else {
+                            parentEl.settings[targetColKey].push(foundEl);
+                        }
+                        selectedElementId = foundEl.id;
+                        selectedSectionId = sec.id;
+                        break;
+                    }
+                }
+            } else if (targetSectionId === 'bottom') {
                 const newSec = {
                     id: "sec_" + Date.now(),
                     type: "section",
@@ -2839,6 +2958,27 @@
                     case 'columns':
                         {
                             const count = el.settings.colCount || '2';
+                            const compileColumnElements = (colElements, fallbackText) => {
+                                if (Array.isArray(colElements) && colElements.length > 0) {
+                                    let colHtml = "";
+                                    colElements.forEach(nEl => {
+                                        if (nEl.type === 'heading') {
+                                            colHtml += `<h3 style="margin:0 0 8px 0; font-family:${brandStyles.fontFamily}; font-size:${nEl.settings.fontSize || '18px'}; color:${nEl.settings.color || '#0F172A'}; font-weight:bold;">${escapeHtml(nEl.settings.content || 'Heading')}</h3>`;
+                                        } else if (nEl.type === 'text') {
+                                            colHtml += `<p style="margin:0 0 8px 0; font-family:${brandStyles.fontFamily}; font-size:${nEl.settings.fontSize || '13px'}; color:${nEl.settings.color || '#334155'}; line-height:1.5;">${escapeHtml(nEl.settings.content || 'Paragraph text details...')}</p>`;
+                                        } else if (nEl.type === 'image') {
+                                            colHtml += `<img src="${sanitizeUrl(nEl.settings.imageUrl || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&auto=format&fit=crop')}" style="width:100%; border-radius:6px; display:block; margin-bottom:8px;" alt="Column Image">`;
+                                        } else if (nEl.type === 'button') {
+                                            colHtml += `<a href="${sanitizeUrl(nEl.settings.link)}" target="_blank" style="display:inline-block; font-family:${brandStyles.fontFamily}; font-size:12px; font-weight:bold; color:${escapeAttr(nEl.settings.textColor || '#ffffff')}; background-color:${escapeAttr(nEl.settings.backgroundColor || '#6D5EF5')}; padding:8px 16px; border-radius:6px; text-decoration:none; margin-bottom:8px;">${escapeHtml(nEl.settings.text || 'Click Here')}</a>`;
+                                        } else {
+                                            colHtml += `<div style="font-family:${brandStyles.fontFamily}; font-size:12px; color:#475569;">${nEl.type.toUpperCase()}</div>`;
+                                        }
+                                    });
+                                    return colHtml;
+                                }
+                                return fallbackText || 'Column details...';
+                            };
+
                             if (count === '1') {
                                 inner = `
                                     <tr>
@@ -2846,7 +2986,7 @@
                                             <table border="0" cellpadding="0" cellspacing="0" width="100%">
                                                 <tr>
                                                     <td width="100%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 14px; color: #334155; line-height: 1.6;">
-                                                        ${el.settings.col1Content || 'Column 1 details and text messaging...'}
+                                                        ${compileColumnElements(el.settings.col1Elements, el.settings.col1Content)}
                                                     </td>
                                                 </tr>
                                             </table>
@@ -2860,15 +3000,15 @@
                                             <table border="0" cellpadding="0" cellspacing="0" width="100%">
                                                 <tr>
                                                     <td width="31%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 13px; color: #334155; line-height: 1.5;">
-                                                        ${el.settings.col1Content || 'Column 1 details...'}
+                                                        ${compileColumnElements(el.settings.col1Elements, el.settings.col1Content)}
                                                     </td>
                                                     <td width="3.5%">&nbsp;</td>
                                                     <td width="31%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 13px; color: #334155; line-height: 1.5;">
-                                                        ${el.settings.col2Content || 'Column 2 details...'}
+                                                        ${compileColumnElements(el.settings.col2Elements, el.settings.col2Content)}
                                                     </td>
                                                     <td width="3.5%">&nbsp;</td>
                                                     <td width="31%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 13px; color: #334155; line-height: 1.5;">
-                                                        ${el.settings.col3Content || 'Column 3 details...'}
+                                                        ${compileColumnElements(el.settings.col3Elements, el.settings.col3Content)}
                                                     </td>
                                                 </tr>
                                             </table>
@@ -2882,11 +3022,11 @@
                                             <table border="0" cellpadding="0" cellspacing="0" width="100%">
                                                 <tr>
                                                     <td width="48%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 14px; color: #334155; line-height: 1.6;">
-                                                        ${el.settings.col1Content || 'Column 1 details and text messaging...'}
+                                                        ${compileColumnElements(el.settings.col1Elements, el.settings.col1Content)}
                                                     </td>
                                                     <td width="4%">&nbsp;</td>
                                                     <td width="48%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 14px; color: #334155; line-height: 1.6;">
-                                                        ${el.settings.col2Content || 'Column 2 details and text messaging...'}
+                                                        ${compileColumnElements(el.settings.col2Elements, el.settings.col2Content)}
                                                     </td>
                                                 </tr>
                                             </table>

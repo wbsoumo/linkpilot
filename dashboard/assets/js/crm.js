@@ -1160,6 +1160,30 @@ async function renderDashboard(container) {
         // Initialize Charts
         try { renderDashboardCharts(data); } catch (e) { console.warn(e); }
         
+        // Render Quick Action Floating Action Button (FAB) for Dashboard
+        let fabContainer = document.getElementById('dashboard-quick-fab');
+        if (!fabContainer) {
+            fabContainer = document.createElement('div');
+            fabContainer.id = 'dashboard-quick-fab';
+            fabContainer.className = 'fixed bottom-6 right-6 z-[9999] flex flex-col items-end space-y-2';
+            fabContainer.innerHTML = `
+                <div id="fab-options" class="hidden flex flex-col items-end space-y-2.5 mb-2 transition-all duration-300 transform scale-95 origin-bottom-right">
+                    <button onclick="openNewLeadModal(); toggleFabMenu();" class="flex items-center space-x-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg text-xs font-bold transition transform hover:scale-105" style="color: #ffffff !important;">
+                        <i data-lucide="user-plus" class="h-4 w-4" style="color: #ffffff !important;"></i>
+                        <span>Fast Lead Entry</span>
+                    </button>
+                    <button onclick="openNewMeetingModal(); toggleFabMenu();" class="flex items-center space-x-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg text-xs font-bold transition transform hover:scale-105" style="color: #ffffff !important;">
+                        <i data-lucide="calendar-plus" class="h-4 w-4" style="color: #ffffff !important;"></i>
+                        <span>Fast Meeting Entry</span>
+                    </button>
+                </div>
+                <button id="fab-main-btn" onclick="toggleFabMenu()" class="h-14 w-14 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white flex items-center justify-center shadow-2xl shadow-indigo-500/50 transition-all duration-300 transform hover:scale-110 active:scale-95 cursor-pointer">
+                    <i id="fab-icon" data-lucide="plus" class="h-6 w-6 text-white transition-transform duration-300"></i>
+                </button>
+            `;
+            document.body.appendChild(fabContainer);
+        }
+
         if (typeof lucide !== 'undefined' && lucide.createIcons) {
             lucide.createIcons();
         }
@@ -28675,4 +28699,17 @@ window.saveDripSequence = function() {
     const modal = document.getElementById('create-sequence-modal');
     if (modal) modal.remove();
     showNotification('success', 'Multi-step drip sequence workflow successfully saved!');
+};
+
+window.toggleFabMenu = function() {
+    const options = document.getElementById('fab-options');
+    const icon = document.getElementById('fab-icon');
+    if (!options || !icon) return;
+    if (options.classList.contains('hidden')) {
+        options.classList.remove('hidden');
+        icon.classList.add('rotate-45');
+    } else {
+        options.classList.add('hidden');
+        icon.classList.remove('rotate-45');
+    }
 };

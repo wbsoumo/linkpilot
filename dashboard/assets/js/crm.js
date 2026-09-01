@@ -21003,16 +21003,26 @@ function showTestDetailsModal(onConfirm) {
     
     document.getElementById('wf-confirm-test-btn').onclick = () => {
         const details = {};
-        if (document.getElementById('test-sender-email')) details.sender = document.getElementById('test-sender-email').value;
-        if (document.getElementById('test-sender-subject')) details.subject = document.getElementById('test-sender-subject').value;
-        if (document.getElementById('test-sender-body')) details.body = document.getElementById('test-sender-body').value;
+        if (document.getElementById('test-sender-email')) details.sender = document.getElementById('test-sender-email').value.trim();
+        if (document.getElementById('test-sender-subject')) details.subject = document.getElementById('test-sender-subject').value.trim();
+        if (document.getElementById('test-sender-body')) details.body = document.getElementById('test-sender-body').value.trim();
         if (document.getElementById('test-recipient-email')) {
-            details.recipient = document.getElementById('test-recipient-email').value;
+            details.recipient = document.getElementById('test-recipient-email').value.trim();
+            if (!details.recipient) {
+                showNotification('error', 'Validation Error: Recipient Email parameter cannot be empty.');
+                return;
+            }
             window.wfState.testRecipientEmail = details.recipient; // Save to session
         }
-        if (document.getElementById('test-lead-name')) details.leadName = document.getElementById('test-lead-name').value;
-        if (document.getElementById('test-lead-company')) details.leadCompany = document.getElementById('test-lead-company').value;
-        if (document.getElementById('test-whatsapp-phone')) details.phone = document.getElementById('test-whatsapp-phone').value;
+        if (document.getElementById('test-lead-name')) details.leadName = document.getElementById('test-lead-name').value.trim();
+        if (document.getElementById('test-lead-company')) details.leadCompany = document.getElementById('test-lead-company').value.trim();
+        if (document.getElementById('test-whatsapp-phone')) {
+            details.phone = document.getElementById('test-whatsapp-phone').value.trim();
+            if (!details.phone) {
+                showNotification('error', 'Validation Error: WhatsApp Phone parameter cannot be empty.');
+                return;
+            }
+        }
         
         modal.remove();
         onConfirm(details);
@@ -21162,6 +21172,21 @@ window.triggerAutoSaveAnimation = function(status) {
 async function saveActiveWorkflow(isAutoSave = false) {
     const wf = window.wfState.activeWorkflow;
     if (!wf) return;
+
+    // Validate workflow nodes before saving
+    if (wf.nodes && wf.nodes.length > 0) {
+        for (const n of wf.nodes) {
+            const config = n.config || {};
+            if (n.type === 'send_email' && (!config.subject || !config.subject.trim())) {
+                if (!isAutoSave) showNotification('error', `Validation Error: Send Email node "${n.title || n.id}" missing Email Subject.`);
+                return;
+            }
+            if ((n.type === 'send_whatsapp' || n.type === 'whatsapp_outbound') && (!config.message || !config.message.trim())) {
+                if (!isAutoSave) showNotification('error', `Validation Error: Send WhatsApp node "${n.title || n.id}" missing Message Body.`);
+                return;
+            }
+        }
+    }
     
     if (isAutoSave) {
         window.triggerAutoSaveAnimation('saving');

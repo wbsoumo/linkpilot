@@ -7851,13 +7851,46 @@ function getStepHTML(step) {
         return `
             <div class="space-y-4 text-left">
                 <div>
-                    <h3 class="text-sm font-black text-slate-900 tracking-tight">Anything special it should know?</h3>
-                    <p class="text-slate-500 text-[10px] font-semibold">Optional. Add a ground rule or two. Skip it and your agent still works.</p>
+                    <h3 class="text-sm font-black text-slate-900 tracking-tight">Knowledge Base & Ground Rules</h3>
+                    <p class="text-slate-500 text-[10px] font-semibold">Upload product documentation PDFs or add ground rules to train your WhatsApp AI Agent.</p>
                 </div>
                 
+                <!-- PDF Upload Zone with Progress Bar -->
+                <div class="space-y-2">
+                    <label class="block text-slate-650 font-bold uppercase text-[9px] tracking-wider">Upload Knowledge Base (PDF / Docs)</label>
+                    <div id="wa-pdf-dropzone" class="border-2 border-dashed border-slate-200 hover:border-teal-500 bg-slate-50 hover:bg-teal-50/30 rounded-2xl p-4 text-center cursor-pointer transition">
+                        <input type="file" id="wa-pdf-file-input" accept=".pdf,.doc,.docx,.txt" onchange="uploadKnowledgeBasePDF(this)" class="hidden">
+                        <label for="wa-pdf-file-input" class="cursor-pointer space-y-1 block">
+                            <div class="h-9 w-9 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center mx-auto">
+                                <i data-lucide="file-up" class="h-5 w-5"></i>
+                            </div>
+                            <div class="text-xs font-bold text-slate-800">Click to upload training PDF document</div>
+                            <div class="text-[9px] text-slate-400 font-medium">Supports PDF, DOCX, TXT (Up to 50MB)</div>
+                        </label>
+                    </div>
+
+                    <!-- Progress Bar (Initially Hidden) -->
+                    <div id="wa-pdf-progress-container" class="hidden p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 animate-fade-in">
+                        <div class="flex items-center justify-between text-xs font-bold">
+                            <div class="flex items-center space-x-2">
+                                <i data-lucide="file-text" class="h-4 w-4 text-teal-600"></i>
+                                <span id="wa-pdf-filename" class="text-slate-800 truncate max-w-[200px]">Document.pdf</span>
+                            </div>
+                            <span id="wa-pdf-percentage" class="text-teal-600 font-black">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                            <div id="wa-pdf-progress-bar" class="bg-gradient-to-r from-teal-500 to-emerald-500 h-full rounded-full transition-all duration-200" style="width: 0%;"></div>
+                        </div>
+                        <div class="flex items-center justify-between text-[9px] text-slate-400 font-semibold">
+                            <span id="wa-pdf-bytes">0 KB / 0 KB</span>
+                            <span id="wa-pdf-status-text" class="text-teal-600 font-bold">Uploading & Vectorizing Knowledge...</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="space-y-1">
                     <label class="block text-slate-650 font-bold mb-1 uppercase text-[9px] tracking-wider">Ground rules (optional)</label>
-                    <textarea id="agent-ground-rules" rows="5" placeholder="e.g. Never promise same-day delivery. Always mention the festive 15% off above ₹1,000." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 font-semibold text-slate-800 shadow-sm resize-none">${agent.ground_rules || ''}</textarea>
+                    <textarea id="agent-ground-rules" rows="3" placeholder="e.g. Never promise same-day delivery. Always mention the festive 15% off above ₹1,000." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 font-semibold text-slate-800 shadow-sm resize-none">${agent.ground_rules || ''}</textarea>
                 </div>
             </div>
         `;
@@ -8016,6 +8049,75 @@ window.submitStep0 = async function() {
     } catch (e) {
         showNotification('error', 'Failed to save config: ' + e.message);
     }
+window.uploadKnowledgeBasePDF = function(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const container = document.getElementById('wa-pdf-progress-container');
+    const filenameEl = document.getElementById('wa-pdf-filename');
+    const pctEl = document.getElementById('wa-pdf-percentage');
+    const barEl = document.getElementById('wa-pdf-progress-bar');
+    const bytesEl = document.getElementById('wa-pdf-bytes');
+    const statusEl = document.getElementById('wa-pdf-status-text');
+
+    if (container) container.classList.remove('hidden');
+    if (filenameEl) filenameEl.textContent = file.name;
+
+    const formData = new FormData();
+    formData.append('document', file);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '../backend/api/whatsapp/agent.php?action=upload_pdf', true);
+
+    // Live XHR progress event listener
+    xhr.upload.onprogress = function(e) {
+        if (e.lengthComputable) {
+            const pct = Math.round((e.loaded / e.total) * 100);
+            if (pctEl) pctEl.textContent = `${pct}%`;
+            if (barEl) barEl.style.width = `${pct}%`;
+            if (bytesEl) {
+                const loadedKb = (e.loaded / 1024).toFixed(1);
+                const totalKb = (e.total / 1024).toFixed(1);
+                bytesEl.textContent = `${loadedKb} KB / ${totalKb} KB`;
+            }
+            if (statusEl && pct < 100) {
+                statusEl.textContent = 'Uploading Knowledge Base PDF...';
+            } else if (statusEl && pct >= 100) {
+                statusEl.textContent = 'Parsing & Vectorizing PDF into AI Knowledge Base...';
+            }
+        }
+    };
+
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            let res = {};
+            try { res = JSON.parse(xhr.responseText); } catch(err) {}
+            showNotification('success', res.message || 'PDF knowledge base uploaded and vectorized!');
+            if (statusEl) {
+                statusEl.textContent = 'Completed Successfully! Knowledge Base Updated.';
+                statusEl.className = 'text-emerald-600 font-extrabold';
+            }
+            if (res.text_excerpt) {
+                window.activeWaAgent.knowledge_base = (window.activeWaAgent.knowledge_base || '') + '\n\n' + res.text_excerpt;
+            }
+        } else {
+            showNotification('error', 'Upload failed with status ' + xhr.status);
+            if (statusEl) {
+                statusEl.textContent = 'Upload Failed!';
+                statusEl.className = 'text-rose-600 font-bold';
+            }
+        }
+    };
+
+    xhr.onerror = function() {
+        showNotification('error', 'Network error uploading knowledge base document.');
+        if (statusEl) {
+            statusEl.textContent = 'Network Error!';
+            statusEl.className = 'text-rose-600 font-bold';
+        }
+    };
+
+    xhr.send(formData);
 };
 
 window.submitStep2 = function() {

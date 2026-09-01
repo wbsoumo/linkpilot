@@ -480,30 +480,35 @@
             </div>
 
             <!-- SMTP Test delivery modal -->
-            <div id="test-email-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center hidden z-100">
-                <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
-                    <button onclick="closeTestEmailModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-800 transition">
+            <div id="test-email-modal" onclick="if(event.target===this) closeTestEmailModal()" class="fixed inset-0 bg-[#0F172A]/70 backdrop-blur-md flex items-center justify-center hidden z-[9999] p-4 transition-all duration-200" aria-modal="true" role="dialog" aria-labelledby="test-modal-title">
+                <div class="bg-white border border-slate-200/80 rounded-2xl w-full max-w-md p-6 shadow-2xl relative transform transition-all scale-100 animate-in fade-in zoom-in-95 duration-150">
+                    <button onclick="closeTestEmailModal()" aria-label="Close modal" class="absolute right-4 top-4 text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1.5 rounded-lg transition">
                         <i data-lucide="x" class="h-4.5 w-4.5"></i>
                     </button>
-                    <div class="flex items-center space-x-2.5 mb-4">
-                        <div class="h-8 w-8 rounded-lg bg-indigo-50 text-[#6D5EF5] flex items-center justify-center">
-                            <i data-lucide="send" class="h-4.5 w-4.5"></i>
+                    <div class="flex items-center space-x-3 mb-5">
+                        <div class="h-10 w-10 rounded-xl bg-indigo-50 text-[#6D5EF5] flex items-center justify-center shadow-2xs">
+                            <i data-lucide="send" class="h-5 w-5"></i>
                         </div>
-                        <h3 class="text-sm font-black text-slate-900 uppercase tracking-wide">Send Test Email</h3>
+                        <div>
+                            <h3 id="test-modal-title" class="text-base font-bold text-slate-900 tracking-tight">Send Test Email</h3>
+                            <p class="text-xs text-slate-500 font-medium">Verify your email design with an immediate outbound test.</p>
+                        </div>
                     </div>
                     <div class="space-y-4">
-                        <div class="space-y-1">
-                            <label class="font-bold text-slate-600 text-[10px] uppercase">Recipient Email</label>
-                            <input type="email" id="test-recipient-email" placeholder="e.g. wbsoumo@gmail.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800">
+                        <div class="space-y-1.5">
+                            <label for="test-recipient-email" class="block font-bold text-slate-700 text-xs tracking-wide">Recipient Email <span class="text-rose-500">*</span></label>
+                            <input type="email" id="test-recipient-email" placeholder="e.g. name@company.com" class="w-full bg-slate-50/80 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6D5EF5] focus:bg-white transition shadow-2xs">
                         </div>
-                        <div class="space-y-1">
-                            <label class="font-bold text-slate-600 text-[10px] uppercase">Subject Line Override</label>
-                            <input type="text" id="test-subject" placeholder="e.g. LinkPilot Visual Builder Delivery Test" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800">
+                        <div class="space-y-1.5">
+                            <label for="test-subject" class="block font-bold text-slate-700 text-xs tracking-wide">Subject Line Override</label>
+                            <input type="text" id="test-subject" placeholder="e.g. LinkPilot Campaign Outbound Test" class="w-full bg-slate-50/80 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6D5EF5] focus:bg-white transition shadow-2xs">
                         </div>
                     </div>
-                    <div class="flex items-center justify-end space-x-3 mt-6">
-                        <button onclick="closeTestEmailModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg transition">Cancel</button>
-                        <button onclick="submitSendTestEmail()" class="px-4 py-2 bg-[#6D5EF5] hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition shadow-md">Send Test Outbound</button>
+                    <div class="flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-slate-100">
+                        <button onclick="closeTestEmailModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition">Cancel</button>
+                        <button id="btn-submit-test-email" onclick="submitSendTestEmail()" class="px-5 py-2.5 bg-[#6D5EF5] hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-bold rounded-xl transition shadow-md shadow-indigo-500/20 flex items-center space-x-1.5">
+                            <span id="btn-submit-test-text">Send Test Outbound</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -2780,12 +2785,30 @@
         }
     };
 
-    // SMTP Test modal helpers
+    // SMTP Test modal helpers & accessibility focus control
+    let testModalKeyHandler = null;
+    let previousActiveElement = null;
+
     window.openTestEmailModal = function() {
         const modal = document.getElementById('test-email-modal');
         if (modal) {
+            previousActiveElement = document.activeElement;
+            document.body.style.overflow = 'hidden';
             modal.classList.remove('hidden');
             if (typeof lucide !== 'undefined') lucide.createIcons();
+            
+            const emailInput = document.getElementById('test-recipient-email');
+            if (emailInput) setTimeout(() => emailInput.focus(), 50);
+
+            // Escape key dismiss handler
+            if (!testModalKeyHandler) {
+                testModalKeyHandler = function(ev) {
+                    if (ev.key === 'Escape' || ev.key === 'Esc') {
+                        closeTestEmailModal();
+                    }
+                };
+            }
+            window.addEventListener('keydown', testModalKeyHandler);
         }
     };
 
@@ -2793,23 +2816,41 @@
         const modal = document.getElementById('test-email-modal');
         if (modal) {
             modal.classList.add('hidden');
+            document.body.style.overflow = '';
+            if (testModalKeyHandler) {
+                window.removeEventListener('keydown', testModalKeyHandler);
+            }
+            if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
+                previousActiveElement.focus();
+            }
         }
     };
 
     window.submitSendTestEmail = async function() {
-        const recipient = document.getElementById('test-recipient-email').value.trim();
-        const subject = document.getElementById('test-subject').value.trim();
+        const recipientInput = document.getElementById('test-recipient-email');
+        const subjectInput = document.getElementById('test-subject');
+        const submitBtn = document.getElementById('btn-submit-test-email');
+        const submitBtnText = document.getElementById('btn-submit-test-text');
+
+        const recipient = recipientInput ? recipientInput.value.trim() : '';
+        const subject = subjectInput ? subjectInput.value.trim() : '';
 
         if (!recipient) {
             showNotification('warning', 'Please enter recipient email.');
+            if (recipientInput) recipientInput.focus();
             return;
         }
 
         const compiledHtml = compileResponsiveHtml(canvasData);
 
         try {
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+            }
+            if (submitBtnText) submitBtnText.innerText = 'Sending...';
+
             showNotification('info', 'Sending test email...');
-            closeTestEmailModal();
 
             const res = await apiCall('crm/email_intelligence/emails.php', 'POST', {
                 action: 'send_outbound',
@@ -2818,13 +2859,22 @@
                 body: compiledHtml
             });
 
+            closeTestEmailModal();
+
             if (res.status === 'success') {
                 showNotification('success', 'Test email sent successfully.');
             } else {
                 showNotification('error', res.message || 'Failed to send test email.');
             }
         } catch (err) {
+            closeTestEmailModal();
             showNotification('error', err.message || 'An error occurred during send.');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+            if (submitBtnText) submitBtnText.innerText = 'Send Test Outbound';
         }
     };
 

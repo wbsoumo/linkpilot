@@ -142,5 +142,19 @@ try {
     if ($db->inTransaction()) {
         $db->rollBack();
     }
-    sendJsonResponse('error', 'Server error updating profile: ' . $e->getMessage(), [], 500);
+    $msg = $e->getMessage();
+    if ($e instanceof PDOException || strpos($msg, 'SQLSTATE') !== false) {
+        if (strpos($msg, '1062 Duplicate entry') !== false) {
+            if (strpos($msg, 'phone_number') !== false) {
+                $msg = 'This phone number is already associated with another account.';
+            } else if (strpos($msg, 'email') !== false) {
+                $msg = 'This email address is already associated with another account.';
+            } else {
+                $msg = 'A profile record with this unique detail already exists.';
+            }
+        } else {
+            $msg = 'A database error occurred while updating profile.';
+        }
+    }
+    sendJsonResponse('error', 'Server error updating profile: ' . $msg, [], 500);
 }

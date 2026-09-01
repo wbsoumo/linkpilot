@@ -6175,46 +6175,116 @@ function renderWhatsAppReports(container) {
                         </div>
                     </div>
 
-                    <!-- Graph container -->
-                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                        <div class="text-xs font-bold text-slate-700 mb-4">Daily Volume Logs (30-day History)</div>
-                        <div class="h-64 relative">
-                            <canvas id="wa-chart-history"></canvas>
+                    <!-- Graphs Grid Row -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Daily Volume History Line/Bar Chart (2/3 width) -->
+                        <div class="lg:col-span-2 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
+                            <div class="text-xs font-bold text-slate-700">Daily Volume Logs (30-day History)</div>
+                            <div class="h-64 relative" id="wa-reports-history-container">
+                                ${history.length === 0 ? `
+                                    <div class="h-full flex flex-col items-center justify-center text-center p-6 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                                        <i data-lucide="bar-chart-2" class="h-8 w-8 text-slate-300 mb-2"></i>
+                                        <div class="text-xs font-bold text-slate-600">No Volume History Available</div>
+                                        <div class="text-[10px] text-slate-400 mt-0.5">Logs will automatically populate as WhatsApp dispatches occur.</div>
+                                    </div>
+                                ` : `<canvas id="wa-chart-history"></canvas>`}
+                            </div>
+                        </div>
+
+                        <!-- Sentiment Analytics Chart (1/3 width) -->
+                        <div class="lg:col-span-1 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="text-xs font-bold text-slate-700">Inbound Sentiment Breakdown</div>
+                                <span class="text-[9px] bg-indigo-50 text-indigo-700 font-extrabold px-2 py-0.5 rounded-full border border-indigo-100 uppercase">AI ANALYZED</span>
+                            </div>
+                            <div class="h-48 relative flex items-center justify-center" id="wa-reports-sentiment-container">
+                                ${!res.sentiments || res.sentiments.length === 0 ? `
+                                    <div class="h-full w-full flex flex-col items-center justify-center text-center p-4 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                                        <i data-lucide="pie-chart" class="h-8 w-8 text-slate-300 mb-2"></i>
+                                        <div class="text-xs font-bold text-slate-600">No Sentiment Data Yet</div>
+                                        <div class="text-[10px] text-slate-400 mt-0.5">AI sentiment metrics populate as inbound messages arrive.</div>
+                                    </div>
+                                ` : `<canvas id="wa-chart-sentiment"></canvas>`}
+                            </div>
+                            <div class="flex justify-around text-[10px] font-bold text-slate-600 border-t border-slate-100 pt-2 shrink-0">
+                                <div class="flex items-center space-x-1">
+                                    <span class="h-2.5 w-2.5 rounded-full bg-emerald-500 inline-block"></span>
+                                    <span>Positive: ${res.sentiment_summary ? res.sentiment_summary.positive : 0}</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="h-2.5 w-2.5 rounded-full bg-slate-400 inline-block"></span>
+                                    <span>Neutral: ${res.sentiment_summary ? res.sentiment_summary.neutral : 0}</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="h-2.5 w-2.5 rounded-full bg-rose-500 inline-block"></span>
+                                    <span>Negative: ${res.sentiment_summary ? res.sentiment_summary.negative : 0}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             `;
 
-            lucide.createIcons();
+            if (typeof lucide !== 'undefined') lucide.createIcons();
 
-            // Render Chart
-            const ctx = document.getElementById('wa-chart-history').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: history.map(h => h.date),
-                    datasets: [
-                        {
-                            label: 'Messages Dispatched',
-                            data: history.map(h => h.sent),
-                            backgroundColor: '#3b82f6'
-                        },
-                        {
-                            label: 'Messages Received',
-                            data: history.map(h => h.received),
-                            backgroundColor: '#10b981'
+            // Render History Chart if data present
+            const historyCanvas = document.getElementById('wa-chart-history');
+            if (historyCanvas && history.length > 0) {
+                const ctx = historyCanvas.getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: history.map(h => h.date),
+                        datasets: [
+                            {
+                                label: 'Messages Dispatched',
+                                data: history.map(h => h.sent),
+                                backgroundColor: '#3b82f6'
+                            },
+                            {
+                                label: 'Messages Received',
+                                data: history.map(h => h.received),
+                                backgroundColor: '#10b981'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.03)' }, ticks: { font: { size: 9 } } },
+                            x: { grid: { display: false }, ticks: { font: { size: 9 } } }
                         }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.03)' }, ticks: { font: { size: 9 } } },
-                        x: { grid: { display: false }, ticks: { font: { size: 9 } } }
                     }
-                }
-            });
+                });
+            }
+
+            // Render Sentiment Chart safely if data present
+            const sentimentCanvas = document.getElementById('wa-chart-sentiment');
+            if (sentimentCanvas && res.sentiments && res.sentiments.length > 0) {
+                const sCtx = sentimentCanvas.getContext('2d');
+                new Chart(sCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Positive', 'Neutral', 'Negative'],
+                        datasets: [{
+                            data: [
+                                res.sentiment_summary ? res.sentiment_summary.positive : 0,
+                                res.sentiment_summary ? res.sentiment_summary.neutral : 0,
+                                res.sentiment_summary ? res.sentiment_summary.negative : 0
+                            ],
+                            backgroundColor: ['#10b981', '#94a3b8', '#f43f5e'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
 
         } catch (err) {
             showNotification('error', err.message);

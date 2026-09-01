@@ -537,7 +537,7 @@
                             <!-- Provider Card Selector Row -->
                             <div class="space-y-1.5">
                                 <label class="block text-[9px] font-bold text-slate-400 uppercase">Select AI Provider</label>
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
                                     <!-- OpenRouter Card -->
                                     <div onclick="selectAdminNewKeyProvider('openrouter')" id="admin-provider-card-openrouter" class="border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition flex items-center space-x-3 bg-white border-indigo-600 shadow-sm">
                                         <img src="https://openrouter.ai/favicon.ico" class="h-6 w-6 rounded-md object-contain shrink-0" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2103/2103633.png'">
@@ -562,6 +562,15 @@
                                         <div>
                                             <span class="block font-bold text-slate-800 text-[11px]">Gemini Studio</span>
                                             <span class="text-[9px] text-slate-400 font-semibold">Google Gemini API</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Groq Card -->
+                                    <div onclick="selectAdminNewKeyProvider('groq')" id="admin-provider-card-groq" class="border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition flex items-center space-x-3 bg-white border-slate-200">
+                                        <img src="https://groq.com/wp-content/uploads/2024/03/groq-favicon.png" class="h-6 w-6 rounded-md object-contain shrink-0" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2103/2103633.png'">
+                                        <div>
+                                            <span class="block font-bold text-slate-800 text-[11px]">Groq Cloud</span>
+                                            <span class="text-[9px] text-slate-400 font-semibold">Ultra Fast Llama 3.3</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1501,7 +1510,8 @@
                         }
                         
                         let providerLabel = k.provider === 'openrouter' ? 'OpenRouter' : 
-                                            k.provider === 'github_models' ? 'GitHub Models' : 'Google Gemini';
+                                            k.provider === 'github_models' ? 'GitHub Models' : 
+                                            k.provider === 'groq' ? 'Groq Cloud' : 'Google Gemini';
 
                         let pausePlayIcon = k.status === 'paused' ? 'play' : 'pause';
                         let pausePlayTitle = k.status === 'paused' ? 'Resume Key' : 'Pause Key';
@@ -1550,7 +1560,7 @@
         window.selectAdminNewKeyProvider = function(provider) {
             document.getElementById('admin-new-key-provider-hidden').value = provider;
             
-            const cards = ['openrouter', 'github_models', 'google_ai_studio'];
+            const cards = ['openrouter', 'github_models', 'google_ai_studio', 'groq'];
             cards.forEach(c => {
                 const cardEl = document.getElementById(`admin-provider-card-${c}`);
                 if (cardEl) {

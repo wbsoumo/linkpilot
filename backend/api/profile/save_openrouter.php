@@ -64,7 +64,7 @@ try {
     
     // Process Active Provider
     if ($activeProvider !== null) {
-        if (in_array($activeProvider, ['openrouter', 'github_models', 'google_ai_studio'])) {
+        if (in_array($activeProvider, ['openrouter', 'github_models', 'google_ai_studio', 'groq'])) {
             $updates[] = "active_ai_provider = ?";
             $params[] = $activeProvider;
         } else {

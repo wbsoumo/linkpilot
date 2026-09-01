@@ -18725,12 +18725,12 @@ async function renderEmailTemplates(container) {
         }
 
         container.innerHTML = `
-            <div class="flex flex-col w-full h-full bg-slate-50 overflow-hidden font-sans text-slate-800">
+            <div class="flex flex-col w-full h-full bg-slate-50 overflow-hidden font-sans text-slate-800 -m-6 md:-m-8">
                 <!-- Header Bar -->
-                <div class="bg-white border-b border-slate-200 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0 shadow-2xs">
+                <div class="bg-white border-b border-slate-200 px-6 py-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 shadow-2xs">
                     <div class="flex items-center space-x-3 min-w-0">
-                        <div class="h-10 w-10 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 shadow-2xs">
-                            <i data-lucide="file-text" class="h-5 w-5"></i>
+                        <div class="h-9 w-9 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 shadow-2xs">
+                            <i data-lucide="file-text" class="h-4.5 w-4.5"></i>
                         </div>
                         <div class="min-w-0">
                             <div class="flex items-center space-x-2">
@@ -18743,10 +18743,9 @@ async function renderEmailTemplates(container) {
 
                     <!-- Search & Create Bar -->
                     <div class="flex items-center space-x-3 shrink-0 w-full md:w-auto">
-                        <!-- Search Box -->
-                        <div class="relative w-full md:w-64">
-                            <i data-lucide="search" class="absolute left-3.5 top-2.5 h-3.5 w-3.5 text-slate-400 pointer-events-none z-10"></i>
-                            <input type="text" id="template-search-input" oninput="handleTemplatesSearch(this.value)" value="${window.emailTemplateFilters.search || ''}" placeholder="Search templates..." class="w-full pr-3.5 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white transition" style="padding-left: 36px !important;">
+                        <div class="relative flex-grow md:w-64">
+                            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400"></i>
+                            <input type="text" id="template-search-input" value="${window.emailTemplateFilters.search || ''}" oninput="handleTemplatesSearch(this.value)" placeholder="Search templates..." class="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all">
                         </div>
                         <button onclick="location.hash = '#/email-builder'" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold rounded-full shadow-md flex items-center space-x-1.5 transition shrink-0 cursor-pointer" style="color: #ffffff !important; background-color: #4F46E5 !important;">
                             <i data-lucide="plus" class="h-3.5 w-3.5 text-white" style="color: #ffffff !important;"></i>
@@ -18756,7 +18755,7 @@ async function renderEmailTemplates(container) {
                 </div>
 
                 <!-- Category Filter Pills Bar -->
-                <div class="bg-white border-b border-slate-200 px-6 py-2.5 flex items-center space-x-2 overflow-x-auto no-scrollbar shrink-0 text-xs font-bold shadow-2xs">
+                <div class="bg-white border-b border-slate-200 px-6 py-2 flex items-center space-x-2 overflow-x-auto no-scrollbar shrink-0 text-xs font-bold shadow-2xs">
                     ${categories.map(cat => {
                         const isActive = currentCat.toLowerCase() === cat.toLowerCase();
                         let count = 0;
@@ -18777,7 +18776,7 @@ async function renderEmailTemplates(container) {
                 </div>
 
                 <!-- Templates Grid Container -->
-                <div class="flex-grow p-6 overflow-y-auto min-h-0">
+                <div class="flex-grow p-5 md:p-6 overflow-y-auto min-h-0">
                     ${filteredTemplates.length === 0 ? `
                         <div class="p-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200 max-w-md mx-auto my-12">
                             <i data-lucide="file-question" class="h-10 w-10 mx-auto mb-2 text-indigo-400"></i>
@@ -18894,7 +18893,7 @@ window.deleteCustomTemplate = async function(id, event) {
 
 window.filterTemplatesCategory = function(cat) {
     window.emailTemplateFilters.category = cat;
-    const contentArea = document.getElementById('main-content-area');
+    const contentArea = document.getElementById('main-content-viewport') || document.getElementById('main-content-area');
     if (contentArea) renderEmailTemplates(contentArea);
 };
 
@@ -18904,7 +18903,7 @@ function handleTemplatesSearch(val) {
     window.emailTemplateFilters.search = val;
     if (templatesSearchTimeout) clearTimeout(templatesSearchTimeout);
     templatesSearchTimeout = setTimeout(() => {
-        const contentArea = document.getElementById('main-content-area');
+        const contentArea = document.getElementById('main-content-viewport') || document.getElementById('main-content-area');
         if (contentArea) renderEmailTemplates(contentArea);
     }, 250);
 }

@@ -23427,8 +23427,8 @@ function renderSettingsTabContent(tab, container) {
                             <input type="text" id="profile-job-input" value="${profile.job_title || ''}" class="w-full px-3.5 py-2.5 bg-slate-50/50 border border-slate-300 focus:bg-white focus:border-indigo-600 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none transition shadow-2xs">
                         </div>
                         <div>
-                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">Phone Number</label>
-                            <input type="text" id="profile-phone-input" value="${user.phone_number || ''}" placeholder="+91 XXXXX XXXXX" class="w-full px-3.5 py-2.5 bg-slate-50/50 border border-slate-300 focus:bg-white focus:border-indigo-600 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none transition shadow-2xs">
+                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">Phone Number (10 Digits)</label>
+                            <input type="text" id="profile-phone-input" value="${user.phone_number || ''}" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="10-digit mobile number" class="w-full px-3.5 py-2.5 bg-slate-50/50 border border-slate-300 focus:bg-white focus:border-indigo-600 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none transition shadow-2xs">
                         </div>
                     </div>
 
@@ -23886,6 +23886,11 @@ window.saveProfileSettings = async function(btn) {
     const phone = document.getElementById('profile-phone-input').value.trim();
     const userType = document.getElementById('profile-usertype-select').value;
     const about = document.getElementById('profile-about-input').value.trim();
+
+    if (phone.length > 0 && !/^[0-9]{10}$/.test(phone)) {
+        showNotification('error', 'Phone number must contain exactly 10 digits with no letters or special characters.');
+        return;
+    }
     
     const payload = {
         name,

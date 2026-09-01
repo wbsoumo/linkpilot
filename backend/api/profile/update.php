@@ -63,6 +63,12 @@ try {
         sendJsonResponse('error', 'Name and user type are required.', [], 400);
     }
 
+    if (!empty($phoneNumber)) {
+        if (!preg_match('/^[0-9]{10}$/', $phoneNumber)) {
+            sendJsonResponse('error', 'Phone number must contain exactly 10 digits with no characters or special symbols.', [], 400);
+        }
+    }
+
     // Begin transaction
     $db->beginTransaction();
     

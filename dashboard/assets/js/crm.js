@@ -16965,13 +16965,24 @@ async function refreshFollowupsList() {
             const dateStr = formatInboxDate(m.received_date);
             const ageDays = Math.floor((now - new Date(m.received_date)) / (1000 * 60 * 60 * 24));
             const isOverdue = ageDays >= 2;
+            const isDueToday = ageDays === 0;
             const isActive = m.id === window.activeFollowupEmailId;
             
-            const prioUpper = (m.priority || 'HIGH').toUpperCase();
+            const prioLower = (m.priority || 'high').toLowerCase();
             const categoryUpper = (m.category || 'MEETING REQUEST').toUpperCase();
-
             const domain = getEmailDomain(m.sender_email);
             
+            let urgencyBadge = '';
+            if (isOverdue) {
+                urgencyBadge = `<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 flex items-center shadow-2xs"><span class="mr-1">⚠️</span> ${ageDays} Days Overdue</span>`;
+            } else if (isDueToday) {
+                urgencyBadge = `<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200 flex items-center shadow-2xs"><span class="mr-1">🟡</span> Due Today</span>`;
+            } else if (prioLower === 'high') {
+                urgencyBadge = `<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-red-50 text-red-700 border border-red-200 flex items-center shadow-2xs"><span class="mr-1">🔴</span> High Priority</span>`;
+            } else {
+                urgencyBadge = `<span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs">Normal Priority</span>`;
+            }
+
             return `
                 <div onclick="selectFollowupEmail(${m.id})" id="followup-card-${m.id}" class="p-3.5 rounded-2xl cursor-pointer transition flex flex-col justify-between relative ${isActive ? 'bg-[#EEF2FF] border-2 border-indigo-500 shadow-2xs' : 'bg-white border border-slate-200 hover:border-slate-300'}">
                     <div class="flex items-start space-x-3">
@@ -16987,10 +16998,9 @@ async function refreshFollowupsList() {
                             <div class="text-xs font-bold text-slate-800 truncate mt-0.5 leading-snug" title="${m.subject}">${m.subject}</div>
                             <p class="text-[10px] text-slate-500 font-normal truncate mt-0.5 leading-relaxed">${m.ai_summary || m.body_text || 'Invitation to register for Cloud Technical Series...'}</p>
                             
-                            <div class="flex flex-wrap items-center gap-1.5 mt-2">
-                                <span class="px-2 py-0.5 rounded text-[8px] font-bold tracking-wider uppercase bg-white text-red-600 border border-red-200">${prioUpper}</span>
-                                <span class="px-2 py-0.5 rounded text-[8px] font-bold tracking-wider uppercase bg-white text-purple-600 border border-purple-200">${categoryUpper}</span>
-                                ${isOverdue ? `<span class="px-2 py-0.5 rounded text-[8px] font-bold tracking-wider uppercase bg-white text-amber-700 border border-amber-300 flex items-center"><i data-lucide="clock" class="h-2.5 w-2.5 mr-1 text-amber-600"></i>${ageDays}D OVERDUE</span>` : ''}
+                            <div class="flex flex-wrap items-center gap-1.5 mt-2.5">
+                                ${urgencyBadge}
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold tracking-wider uppercase bg-slate-100 text-slate-600 border border-slate-200">${categoryUpper}</span>
                             </div>
                         </div>
                     </div>

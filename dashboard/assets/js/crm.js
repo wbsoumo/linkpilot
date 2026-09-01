@@ -5820,7 +5820,7 @@ async function renderCompanies(container) {
                         <span class="font-bold text-slate-800 text-[11px]">${c.name}</span>
                     </td>
                     <td class="py-2.5 px-4">
-                        <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-600">${c.industry || '-'}</span>
+                        <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200/80">${c.industry || 'Technology'}</span>
                     </td>
                     <td class="py-2.5 px-4">
                         ${c.website ? `
@@ -7670,8 +7670,8 @@ async function openInspectCompanyModal(companyId) {
     if (existing) existing.remove();
 
     let modalHTML = `
-        <div id="crm-company-inspect-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm animate-fade-in">
-            <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl p-6 text-slate-800 text-xs space-y-4 shadow-2xl relative">
+        <div id="crm-company-inspect-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/25 backdrop-blur-md animate-fade-in p-4 sm:p-6">
+            <div class="bg-white border border-slate-200/90 rounded-2xl w-full max-w-2xl p-6 text-slate-800 text-xs space-y-4 shadow-2xl relative">
                 <button onclick="document.getElementById('crm-company-inspect-modal').remove()" class="absolute top-4 right-4 h-7 w-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
                     <i data-lucide="x" class="h-4 w-4"></i>
                 </button>

@@ -5244,19 +5244,19 @@ function renderWhatsAppCampaigns(container) {
                             </div>
 
                             <!-- Right: Mobile Preview (2 cols) -->
-                            <div class="md:col-span-2 p-3.5 flex flex-col justify-between bg-slate-100/70 overflow-hidden relative items-center">
-                                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 self-start">WhatsApp Preview</div>
+                            <div class="md:col-span-2 p-3 flex flex-col justify-between bg-slate-100/70 overflow-hidden relative items-center">
+                                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 self-start">WhatsApp Preview</div>
                                 
                                 <!-- Mobile Phone Frame Simulator -->
-                                <div class="phone-simulator relative w-[250px] h-[390px] border-[10px] border-[#1e293b] rounded-[36px] bg-[#efeae2] shadow-xl overflow-hidden flex flex-col">
+                                <div class="phone-simulator" style="width: 230px; height: 380px; border-width: 10px; border-radius: 36px;">
                                     <!-- Dynamic Island Pill Notch -->
                                     <div class="absolute top-1 left-1/2 -translate-x-1/2 w-16 h-2.5 bg-[#1e293b] rounded-full z-30 flex items-center justify-center pointer-events-none">
                                         <div class="w-0.5 h-0.5 rounded-full bg-[#334155] mr-1.5"></div>
                                         <div class="w-0.5 h-0.5 rounded-full bg-[#0f172a]"></div>
                                     </div>
-                                    <div class="phone-screen flex-grow w-full h-full bg-[#efeae2] overflow-hidden flex flex-col relative" style="background-image: radial-gradient(#d1d5db 1px, transparent 1px); background-size: 16px 16px;">
+                                    <div class="phone-screen">
                                         <!-- Phone Header -->
-                                        <div class="phone-header flex items-center justify-between px-2.5 py-2 bg-white/95 backdrop-blur-sm border-b border-slate-200 shrink-0">
+                                        <div class="phone-header" style="height: 46px; padding: 6px 8px;">
                                             <div class="flex items-center space-x-1.5 flex-grow truncate">
                                                 <i data-lucide="chevron-left" class="h-3.5 w-3.5 text-[#54656f] cursor-pointer -ml-0.5 shrink-0"></i>
                                                 <div class="h-6 w-6 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center shrink-0 border border-slate-300">
@@ -5276,8 +5276,8 @@ function renderWhatsAppCampaigns(container) {
                                         
                                         <!-- Messages Body -->
                                         <div class="chat-messages flex-grow overflow-y-auto p-2.5 flex flex-col gap-1.5">
-                                            <div class="bubble incoming bg-white p-2.5 rounded-xl rounded-tl-none shadow-xs border border-slate-200" style="max-width: 92%;">
-                                                <div class="bubble-text w-full text-[9px] text-slate-800" id="wa-preview-message-body">
+                                            <div class="bubble incoming" style="max-width: 92%;">
+                                                <div class="bubble-text w-full text-[9px]" id="wa-preview-message-body">
                                                     <!-- body text populated dynamically -->
                                                 </div>
                                             </div>

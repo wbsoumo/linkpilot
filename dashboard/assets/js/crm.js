@@ -664,59 +664,85 @@ async function renderDashboard(container) {
         const whatsappConfigured = !!waRes.connected;
         const showWarningBanner = !smtpConfigured || !whatsappConfigured;
         
-        let warningBannerHtml = '';
+        const isProfileComplete = !!(window.activeUserProfileSettings && window.activeUserProfileSettings.company_name);
         let progress = 10;
-        if (smtpConfigured) progress += 45;
-        if (whatsappConfigured) progress += 45;
+        if (isProfileComplete) progress += 30;
+        if (smtpConfigured) progress += 30;
+        if (whatsappConfigured) progress += 30;
 
         const isBannerHidden = sessionStorage.getItem('linkpilot_hide_setup_banner') === 'true';
-         if (showWarningBanner) {
+        if (showWarningBanner || progress < 100) {
             warningBannerHtml = `
-                <div id="workspace-setup-progress-card" onclick="window.location.href='setup.html';" class="${isBannerHidden ? 'hidden ' : ''}group cursor-pointer bg-white border border-slate-200/80 rounded-[20px] p-4 sm:p-5 shadow-soft text-slate-800 hover:border-indigo-500/50 hover:shadow-md transition-all duration-300 max-w-5xl text-left relative overflow-hidden flex flex-col justify-between" style="height: 120px;">
-                    <!-- Title & Percentage Row -->
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2">
-                            <span class="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                                <i data-lucide="rocket" class="h-4.5 w-4.5 text-indigo-600 shrink-0"></i>
-                                <span>Workspace Setup</span>
-                            </span>
-                        </div>
+                <!-- Interactive Onboarding Checklist Card -->
+                <div id="workspace-setup-progress-card" class="${isBannerHidden ? 'hidden ' : ''}bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm text-slate-800 space-y-4 max-w-5xl text-left">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div class="flex items-center space-x-2.5">
-                            <span class="text-[10px] font-black text-indigo-700 bg-indigo-50 border border-indigo-150 px-2.5 py-0.5 rounded-full">${progress}% Complete</span>
-                            <button type="button" onclick="event.stopPropagation(); window.toggleWorkspaceSetupBanner();" class="text-[10px] font-bold text-slate-500 hover:text-slate-850 transition flex items-center space-x-1 cursor-pointer py-1 px-2 rounded-lg hover:bg-slate-100 border-0 bg-transparent">
-                                <span>Hide Setup</span>
-                                <i data-lucide="chevron-up" class="h-3.5 w-3.5 text-slate-450"></i>
-                            </button>
+                            <div class="h-8 w-8 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-650 flex items-center justify-center font-bold">
+                                <i data-lucide="check-square" class="h-4 w-4"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-extrabold text-slate-850">Activate AI Auto-Pilot</h3>
+                                <p class="text-[11px] text-slate-500">Complete 3 quick steps to unlock autonomous lead management and auto-replies.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xs font-black text-indigo-700 bg-indigo-50 border border-indigo-150 px-3 py-1 rounded-full">${progress}% Complete</span>
+                            <button type="button" onclick="window.toggleWorkspaceSetupBanner();" class="text-[10px] font-bold text-slate-400 hover:text-slate-700 transition">Hide Checklist</button>
                         </div>
                     </div>
 
-                    <!-- Short Description -->
-                    <div class="flex items-center justify-between">
-                        <p class="text-xs text-slate-500 font-medium leading-relaxed">
-                            Complete Email & WhatsApp integrations to unlock AI features.
-                        </p>
-                        <span class="text-[10px] font-bold text-indigo-500 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
-                            <span>Configure</span>
-                            <i data-lucide="arrow-right" class="h-3 w-3"></i>
-                        </span>
-                    </div>
-
-                    <!-- Progress Bar (8px height) -->
+                    <!-- Progress Bar -->
                     <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/40">
                         <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-500 h-full rounded-full transition-all duration-500" style="width: ${progress}%;"></div>
+                    </div>
+
+                    <!-- 3-Step Interactive Checklist Items -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                        <!-- Step 1: Business Profile -->
+                        <div onclick="navigateTo('settings')" class="p-3 bg-slate-50 border ${isProfileComplete ? 'border-emerald-200/80 bg-emerald-50/30' : 'border-slate-200/80 hover:border-indigo-400'} rounded-xl cursor-pointer transition flex items-center space-x-3">
+                            <div class="h-6 w-6 rounded-full ${isProfileComplete ? 'bg-emerald-500 text-white' : 'border-2 border-slate-300 text-transparent'} flex items-center justify-center text-[10px] font-bold shrink-0">
+                                <i data-lucide="${isProfileComplete ? 'check' : 'circle'}" class="h-3.5 w-3.5"></i>
+                            </div>
+                            <div class="truncate">
+                                <h4 class="text-xs font-extrabold ${isProfileComplete ? 'text-slate-800 line-through opacity-70' : 'text-slate-800'}">1. Business Profile</h4>
+                                <p class="text-[10px] text-slate-500 truncate">${isProfileComplete ? 'Company setup complete' : 'Configure company details & URL'}</p>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Email & WhatsApp -->
+                        <div onclick="window.location.href='setup.html';" class="p-3 bg-slate-50 border ${smtpConfigured && whatsappConfigured ? 'border-emerald-200/80 bg-emerald-50/30' : 'border-slate-200/80 hover:border-indigo-400'} rounded-xl cursor-pointer transition flex items-center space-x-3">
+                            <div class="h-6 w-6 rounded-full ${smtpConfigured && whatsappConfigured ? 'bg-emerald-500 text-white' : 'border-2 border-slate-300 text-transparent'} flex items-center justify-center text-[10px] font-bold shrink-0">
+                                <i data-lucide="${smtpConfigured && whatsappConfigured ? 'check' : 'circle'}" class="h-3.5 w-3.5"></i>
+                            </div>
+                            <div class="truncate">
+                                <h4 class="text-xs font-extrabold ${smtpConfigured && whatsappConfigured ? 'text-slate-800 line-through opacity-70' : 'text-slate-800'}">2. Email & WhatsApp</h4>
+                                <p class="text-[10px] text-slate-500 truncate">${smtpConfigured && whatsappConfigured ? 'Channels connected' : 'Connect Google, SMTP & Meta API'}</p>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Train & Activate AI -->
+                        <div onclick="navigateTo('whatsapp-dashboard')" class="p-3 bg-slate-50 border ${whatsappConfigured ? 'border-emerald-200/80 bg-emerald-50/30' : 'border-slate-200/80 hover:border-indigo-400'} rounded-xl cursor-pointer transition flex items-center space-x-3">
+                            <div class="h-6 w-6 rounded-full ${whatsappConfigured ? 'bg-emerald-500 text-white' : 'border-2 border-slate-300 text-transparent'} flex items-center justify-center text-[10px] font-bold shrink-0">
+                                <i data-lucide="${whatsappConfigured ? 'check' : 'circle'}" class="h-3.5 w-3.5"></i>
+                            </div>
+                            <div class="truncate">
+                                <h4 class="text-xs font-extrabold ${whatsappConfigured ? 'text-slate-800 line-through opacity-70' : 'text-slate-800'}">3. Train & Activate AI</h4>
+                                <p class="text-[10px] text-slate-500 truncate">${whatsappConfigured ? 'AI Agent Live' : 'Scrape KB & set ground rules'}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div id="workspace-setup-collapsed-bar" class="${isBannerHidden ? '' : 'hidden '}bg-white border border-slate-200/80 rounded-xl px-4 py-2.5 flex items-center justify-between max-w-5xl shadow-2xs">
                     <div class="flex items-center space-x-2">
                         <span class="text-xs font-bold text-slate-800 flex items-center gap-2">
-                            <i data-lucide="rocket" class="h-3.5 w-3.5 text-indigo-600 shrink-0"></i>
-                            <span>Workspace Setup</span>
+                            <i data-lucide="check-square" class="h-3.5 w-3.5 text-indigo-600 shrink-0"></i>
+                            <span>Activate AI Auto-Pilot</span>
                             <span class="text-[10px] text-indigo-700 font-black bg-indigo-50 border border-indigo-150 px-2 py-0.5 rounded-full">${progress}% Complete</span>
                         </span>
                     </div>
                     <button type="button" onclick="window.toggleWorkspaceSetupBanner();" class="text-[10px] font-bold text-slate-500 hover:text-slate-850 transition flex items-center space-x-1 cursor-pointer py-1 px-2.5 rounded-lg hover:bg-slate-100 border-0 bg-transparent">
-                        <span>Show Setup</span>
+                        <span>Show Checklist</span>
                         <i data-lucide="chevron-down" class="h-3.5 w-3.5 text-slate-450"></i>
                     </button>
                 </div>

@@ -7693,10 +7693,10 @@ async function openInspectCompanyModal(companyId) {
         const meetings = c.meetings || [];
         const timeline = c.timeline || [];
 
-        const modal = document.getElementById('crm-company-inspect-modal');
-        if (!modal) return;
+        const modalContainer = document.getElementById('crm-company-inspect-modal');
+        if (!modalContainer) return;
 
-        modal.innerHTML = `
+        modalContainer.innerHTML = `
             <div class="bg-white border border-slate-100 rounded-[24px] w-full max-w-4xl text-slate-700 text-xs shadow-2xl relative flex flex-col max-h-[90vh] p-6 space-y-5 animate-scale-up">
                 
                 <!-- Header -->

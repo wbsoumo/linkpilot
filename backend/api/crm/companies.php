@@ -89,23 +89,27 @@ try {
                 array_column($company['contacts'], 'whatsapp')
             ));
 
-            // Fetch Email History
+            // Fetch Email History (from sent_emails if table exists)
             if (!empty($contactEmails)) {
-                $inEmails = implode(',', array_fill(0, count($contactEmails), '?'));
-                $paramsEmail = array_merge($contactEmails, $contactEmails, [$userId]);
-                $stmtEmails = $db->prepare("SELECT * FROM email_logs WHERE (recipient IN ($inEmails) OR sender IN ($inEmails)) AND user_id = ? ORDER BY created_at DESC LIMIT 20");
-                $stmtEmails->execute($paramsEmail);
-                $emailLogs = $stmtEmails->fetchAll() ?: [];
+                try {
+                    $inEmails = implode(',', array_fill(0, count($contactEmails), '?'));
+                    $paramsEmail = array_merge(array_values($contactEmails), [$userId]);
+                    $stmtEmails = $db->prepare("SELECT id, recipient_email AS recipient, 'system' AS sender, subject, status, created_at FROM sent_emails WHERE recipient_email IN ($inEmails) AND user_id = ? ORDER BY created_at DESC LIMIT 20");
+                    $stmtEmails->execute($paramsEmail);
+                    $emailLogs = $stmtEmails->fetchAll() ?: [];
 
-                foreach ($emailLogs as $e) {
-                    $unifiedTimeline[] = [
-                        'id' => 'email_' . $e['id'],
-                        'type' => 'email',
-                        'activity_type' => 'Email ' . ucfirst($e['status'] ?: 'sent'),
-                        'description' => 'Subject: "' . ($e['subject'] ?: 'No Subject') . '" (' . $e['recipient'] . ')',
-                        'created_at' => $e['created_at'],
-                        'badge_color' => 'bg-blue-50 text-blue-700 border-blue-100'
-                    ];
+                    foreach ($emailLogs as $e) {
+                        $unifiedTimeline[] = [
+                            'id' => 'email_' . $e['id'],
+                            'type' => 'email',
+                            'activity_type' => 'Email ' . ucfirst($e['status'] ?: 'sent'),
+                            'description' => 'Subject: "' . ($e['subject'] ?: 'No Subject') . '" (' . $e['recipient'] . ')',
+                            'created_at' => $e['created_at'],
+                            'badge_color' => 'bg-blue-50 text-blue-700 border-blue-100'
+                        ];
+                    }
+                } catch (Exception $emailEx) {
+                    // Ignore missing email logs table or fallback gracefully
                 }
             }
 

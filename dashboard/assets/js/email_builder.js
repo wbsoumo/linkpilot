@@ -3051,6 +3051,27 @@
 
     // Generate responsive HTML table matching all mail clients
     function compileResponsiveHtml(data) {
+        // If template has a custom full-page HTML override, return it directly
+        if (customHtmlOverride !== null) {
+            return sanitizeCustomHtml(customHtmlOverride);
+        }
+
+        // Check if any element inside canvas contains a full standalone HTML document
+        if (Array.isArray(data)) {
+            for (const sec of data) {
+                if (sec && Array.isArray(sec.elements)) {
+                    for (const el of sec.elements) {
+                        if (el.type === 'html' && el.settings && el.settings.htmlCode) {
+                            const code = el.settings.htmlCode.trim();
+                            if (code.toLowerCase().includes('<!doctype') || code.toLowerCase().includes('<html')) {
+                                return sanitizeCustomHtml(code);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         let rowsHtml = "";
 
         data.forEach(sec => {

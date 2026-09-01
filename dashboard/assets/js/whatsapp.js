@@ -5185,20 +5185,20 @@ function renderWhatsAppCampaigns(container) {
                             </div>
 
                             <!-- Right: Mobile Preview (2 cols) -->
-                            <div class="md:col-span-2 p-4 flex flex-col justify-between bg-slate-100/70 overflow-hidden relative items-center">
+                            <div class="md:col-span-2 p-3.5 flex flex-col justify-between bg-slate-100/70 overflow-hidden relative items-center">
                                 <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 self-start">WhatsApp Preview</div>
                                 
                                 <!-- Mobile Phone Frame Simulator -->
-                                <div class="phone-simulator relative w-full max-w-[240px] h-[380px] bg-[#1e293b] rounded-[36px] p-1.5 shadow-xl border-2 border-[#0f172a] overflow-hidden">
+                                <div class="phone-simulator relative w-[250px] h-[390px] border-[10px] border-[#1e293b] rounded-[36px] bg-[#efeae2] shadow-xl overflow-hidden flex flex-col">
                                     <!-- Dynamic Island Pill Notch -->
                                     <div class="absolute top-1 left-1/2 -translate-x-1/2 w-16 h-2.5 bg-[#1e293b] rounded-full z-30 flex items-center justify-center pointer-events-none">
                                         <div class="w-0.5 h-0.5 rounded-full bg-[#334155] mr-1.5"></div>
                                         <div class="w-0.5 h-0.5 rounded-full bg-[#0f172a]"></div>
                                     </div>
-                                    <div class="phone-screen w-full h-full bg-[#efeae2] rounded-[30px] overflow-hidden flex flex-col relative" style="background-image: radial-gradient(#d1d5db 1px, transparent 1px); background-size: 16px 16px;">
+                                    <div class="phone-screen flex-grow w-full h-full bg-[#efeae2] overflow-hidden flex flex-col relative" style="background-image: radial-gradient(#d1d5db 1px, transparent 1px); background-size: 16px 16px;">
                                         <!-- Phone Header -->
-                                        <div class="phone-header flex items-center justify-between p-2 bg-white/95 backdrop-blur-sm border-b border-slate-200">
-                                            <div class="flex items-center space-x-1.5 flex-grow">
+                                        <div class="phone-header flex items-center justify-between px-2.5 py-2 bg-white/95 backdrop-blur-sm border-b border-slate-200 shrink-0">
+                                            <div class="flex items-center space-x-1.5 flex-grow truncate">
                                                 <i data-lucide="chevron-left" class="h-3.5 w-3.5 text-[#54656f] cursor-pointer -ml-0.5 shrink-0"></i>
                                                 <div class="h-6 w-6 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center shrink-0 border border-slate-300">
                                                     <img src="https://api.dicebear.com/7.x/bottts/svg?seed=LinkPilot" class="h-full w-full object-cover">
@@ -5226,13 +5226,13 @@ function renderWhatsAppCampaigns(container) {
                                         
                                         <!-- Chat Input Footer -->
                                         <div class="p-1.5 bg-[#f0f2f5] flex items-center space-x-1.5 shrink-0 border-t border-slate-200">
-                                            <div class="flex-grow bg-white rounded-full px-2.5 py-1 flex items-center space-x-1.5 shadow-2xs border border-slate-100">
+                                            <div class="flex-grow bg-white rounded-full px-2 py-1 flex items-center space-x-1 shadow-2xs border border-slate-100">
                                                 <i data-lucide="smile" class="h-3.5 w-3.5 text-[#54656f]"></i>
-                                                <span class="flex-grow text-[8.5px] text-slate-400 select-none truncate">Type a message</span>
+                                                <span class="flex-grow text-[8px] text-slate-400 select-none truncate">Type a message</span>
                                                 <i data-lucide="paperclip" class="h-3.5 w-3.5 text-[#54656f] rotate-45"></i>
                                             </div>
-                                            <div class="h-5.5 w-5.5 bg-[#00a884] text-white rounded-full flex items-center justify-center shrink-0 shadow-2xs">
-                                                <i data-lucide="mic" class="h-3 w-3"></i>
+                                            <div class="h-5 w-5 bg-[#00a884] text-white rounded-full flex items-center justify-center shrink-0 shadow-2xs">
+                                                <i data-lucide="mic" class="h-2.5 w-2.5"></i>
                                             </div>
                                         </div>
                                     </div>

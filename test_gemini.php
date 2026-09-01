@@ -130,9 +130,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="md:col-span-2">
                     <label for="model" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Target Model</label>
                     <select id="model" name="model" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-slate-100 font-semibold focus:outline-none focus:border-indigo-500 transition">
-                        <option value="gemini-2.5-flash" <?php echo $selectedModel === 'gemini-2.5-flash' ? 'selected' : ''; ?>>gemini-2.5-flash (Recommended)</option>
+                        <option value="gemini-2.5-flash" <?php echo $selectedModel === 'gemini-2.5-flash' ? 'selected' : ''; ?>>gemini-2.5-flash (Active Production Model)</option>
                         <option value="gemini-1.5-flash-8b" <?php echo $selectedModel === 'gemini-1.5-flash-8b' ? 'selected' : ''; ?>>gemini-1.5-flash-8b (Ultra Fast)</option>
-                        <option value="gemini-2.0-flash-exp" <?php echo $selectedModel === 'gemini-2.0-flash-exp' ? 'selected' : ''; ?>>gemini-2.0-flash-exp (Experimental)</option>
                         <option value="gemini-flash-latest" <?php echo $selectedModel === 'gemini-flash-latest' ? 'selected' : ''; ?>>gemini-flash-latest (Alias)</option>
                     </select>
                 </div>

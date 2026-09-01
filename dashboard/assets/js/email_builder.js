@@ -418,16 +418,26 @@
                         </div>
 
                         <!-- Scrollable Center Canvas Body -->
-                        <div class="flex-grow overflow-y-auto p-4 select-text relative flex flex-col bg-[#F1F5F9]">
+                        <div class="flex-grow overflow-y-auto p-4 md:p-8 select-text relative flex flex-col bg-[#F1F5F9]" id="canvas-scroll-container">
                             <!-- Canvas Responsive Resizable Frame -->
-                            <div id="canvas-device-frame" class="w-full max-w-[760px] bg-[#f1f5f9] rounded-2xl transition-all duration-300 flex flex-col min-h-[600px] mt-4 mb-20 mx-auto select-none relative">
+                            <div id="canvas-device-frame" class="w-full max-w-[640px] bg-white rounded-2xl transition-all duration-300 flex flex-col min-h-[600px] my-6 mx-auto select-none relative shadow-xl border border-slate-200/90 overflow-hidden">
                                 
+                                <!-- Frame Device Bar Indicator -->
+                                <div class="w-full bg-slate-100 border-b border-slate-200 px-4 py-2 flex items-center justify-between text-[11px] font-bold text-slate-500 select-none shrink-0">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+                                        <span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+                                        <span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+                                    </div>
+                                    <span id="canvas-device-label" class="font-mono text-[10px] text-slate-600 tracking-tight">Desktop View (600px Email Container)</span>
+                                </div>
+
                                 <!-- Main canvas dropping container -->
                                 <div id="email-builder-canvas" 
                                      ondragover="onCanvasDragOver(event)"
                                      ondragleave="onCanvasDragLeave(event)"
                                      ondrop="onCanvasDrop(event)"
-                                     class="flex-grow p-8 overflow-y-auto select-none bg-[#f1f5f9] min-h-[500px]" style="background-color: ${brandStyles.backgroundColor};">
+                                     class="flex-grow p-4 md:p-6 overflow-y-auto select-none min-h-[500px]" style="background-color: ${brandStyles.backgroundColor};">
                                     <!-- Injected dynamically by renderCanvas() -->
                                 </div>
                             </div>
@@ -1085,15 +1095,20 @@
         }
 
         if (device === 'desktop') {
-            frame.style.maxWidth = "760px";
-            label.innerText = "Desktop Preview (760px)";
+            frame.style.maxWidth = "640px";
+            frame.style.transform = "none";
+            if (label) label.innerText = "Desktop Preview (600px Email Width)";
         } else if (device === 'tablet') {
-            frame.style.maxWidth = "580px";
-            label.innerText = "Tablet View (580px)";
+            frame.style.maxWidth = "768px";
+            frame.style.transform = "none";
+            if (label) label.innerText = "Tablet View (768px Viewport)";
         } else if (device === 'mobile') {
-            frame.style.maxWidth = "380px";
-            label.innerText = "Mobile View (380px)";
+            frame.style.maxWidth = "375px";
+            frame.style.transform = "none";
+            if (label) label.innerText = "Mobile View (375px Viewport)";
         }
+
+        renderCanvas();
     };
 
     window.updateImageWidth = function(val) {
@@ -1412,7 +1427,15 @@
                                     `;
                                 };
 
-                                if (count === '1') {
+                                if (activeDevice === 'mobile') {
+                                    elementInner = `
+                                        <div class="space-y-3">
+                                            <div class="w-full">${renderColumnDropZone('col1Elements', el.settings.col1Elements, '100%')}</div>
+                                            ${(count !== '1') ? `<div class="w-full">${renderColumnDropZone('col2Elements', el.settings.col2Elements, '100%')}</div>` : ''}
+                                            ${(count === '3') ? `<div class="w-full">${renderColumnDropZone('col3Elements', el.settings.col3Elements, '100%')}</div>` : ''}
+                                        </div>
+                                    `;
+                                } else if (count === '1') {
                                     elementInner = `
                                         <table border="0" cellpadding="0" cellspacing="0" width="100%" class="rounded-xl overflow-hidden">
                                             <tr>

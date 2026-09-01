@@ -14630,8 +14630,9 @@ async function renderAIInsights(container) {
             apiCall('profile/get_credits.php').catch(() => ({ wallet: { remaining: 0 } }))
         ]);
 
-        const remainingCredits = creditData.wallet ? creditData.wallet.remaining : 0;
+        const remainingCredits = creditData.wallet ? parseInt(creditData.wallet.remaining || 0) : 0;
         const isExhausted = remainingCredits <= 0 || (res.message && (res.message.toLowerCase().includes('credit') || res.message.toLowerCase().includes('openrouter') || res.message.toLowerCase().includes('quota') || res.message.toLowerCase().includes('balance')));
+        const isLowCredits = !isExhausted && remainingCredits <= 20;
 
         if (res.status !== 'success' && !isExhausted) {
             container.innerHTML = `<div class="p-8 text-center text-rose-400 font-bold">Failed to load AI Insights: ${res.message}</div>`;
@@ -14665,6 +14666,28 @@ async function renderAIInsights(container) {
                             <a href="#/recharge" class="px-4 py-2.5 bg-gradient-to-r from-rose-600 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 text-white font-extrabold rounded-xl text-xs transition shadow-md flex items-center space-x-2" style="color: #ffffff !important;">
                                 <i data-lucide="zap" class="h-4 w-4" style="color: #ffffff !important;"></i>
                                 <span style="color: #ffffff !important;">Recharge Wallet Now</span>
+                            </a>
+                        </div>
+                    </div>
+                ` : isLowCredits ? `
+                    <!-- AI Credits Low Alert Banner -->
+                    <div class="p-5 bg-amber-950/40 border border-amber-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
+                        <div class="flex items-center space-x-3.5">
+                            <div class="h-11 w-11 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 font-extrabold text-lg">
+                                ⚠️
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-black text-amber-200 flex items-center space-x-2">
+                                    <span>AI Credits Low</span>
+                                    <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-extrabold">${remainingCredits} Credits Left</span>
+                                </h3>
+                                <p class="text-amber-300/80 text-[11px] mt-0.5">Your AI credit wallet is running low. Top up now to prevent AI automated summaries and insights from pausing.</p>
+                            </div>
+                        </div>
+                        <div class="shrink-0 flex items-center space-x-3">
+                            <a href="#/recharge" class="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-black rounded-xl text-xs transition shadow-md hover:scale-105 active:scale-95 flex items-center space-x-2" style="color: #ffffff !important;">
+                                <i data-lucide="wallet" class="h-4 w-4" style="color: #ffffff !important;"></i>
+                                <span style="color: #ffffff !important;">Recharge Wallet</span>
                             </a>
                         </div>
                     </div>

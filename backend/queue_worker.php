@@ -836,7 +836,9 @@ TODAY'S DATE AND TIME: $currentDate $currentTime.
 
         // Transmit AI reply if generated
         if (!empty($aiSuggestedReply)) {
-            // Verify credit balance
+            // Verify credit balance (and self-heal monthly free credits if needed)
+            checkAndResetMonthlyCredits($userId);
+
             $stmtWallet = $db->prepare("SELECT remaining_credits, free_credits, purchased_credits FROM user_email_credits WHERE user_id = ?");
             $stmtWallet->execute([$userId]);
             $wallet = $stmtWallet->fetch();

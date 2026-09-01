@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if (!empty($promptInput)) {
             // List of models to try if the primary encounters 503 high demand or 404
-            $modelsToTry = array_unique([$model, 'gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-1.5-flash-8b', 'gemini-flash-latest']);
+            $modelsToTry = array_unique([$model, 'gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-flash-latest']);
             
             foreach ($modelsToTry as $currentModel) {
                 // Support both X-goog-api-key header and ?key= query parameter
@@ -145,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <select id="model" name="model" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-slate-100 font-semibold focus:outline-none focus:border-indigo-500 transition">
                         <option value="gemini-3.6-flash" <?php echo $selectedModel === 'gemini-3.6-flash' ? 'selected' : ''; ?>>gemini-3.6-flash (Recommended Latest)</option>
                         <option value="gemini-2.5-flash" <?php echo $selectedModel === 'gemini-2.5-flash' ? 'selected' : ''; ?>>gemini-2.5-flash (Stable Production)</option>
-                        <option value="gemini-1.5-flash-8b" <?php echo $selectedModel === 'gemini-1.5-flash-8b' ? 'selected' : ''; ?>>gemini-1.5-flash-8b (Ultra Fast)</option>
+                        <option value="gemini-2.5-pro" <?php echo $selectedModel === 'gemini-2.5-pro' ? 'selected' : ''; ?>>gemini-2.5-pro (High Reasoning)</option>
                         <option value="gemini-flash-latest" <?php echo $selectedModel === 'gemini-flash-latest' ? 'selected' : ''; ?>>gemini-flash-latest (Alias)</option>
                     </select>
                 </div>

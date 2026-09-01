@@ -7199,7 +7199,7 @@ window.renderWhatsAppSendTemplate = function (container, params = {}) {
                                     </div>
                                 </div>
 
-                                <!-- Dynamic Variables Inputs -->
+                                 <!-- Dynamic Variables Inputs -->
                                 ${varsFound.length > 0 ? `
                                 <div class="space-y-3.5 border-t border-slate-100 pt-4">
                                     <h4 class="text-slate-600 font-bold uppercase tracking-wider text-[10px] mb-2">Template Parameter Variables</h4>
@@ -7243,92 +7243,58 @@ window.renderWhatsAppSendTemplate = function (container, params = {}) {
                         <div class="lg:col-span-4 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col items-center">
                             <h3 class="font-bold text-slate-800 text-xs self-start mb-4">Live Preview</h3>
                             
-                            <!-- Mobile Phone Frame Mockup -->
-                            <div class="w-full max-w-[290px] bg-slate-100 rounded-[40px] p-3 shadow-2xl border border-slate-200/80 relative">
-                                <!-- Screen Container -->
-                                <div class="w-full bg-[#efeae2] rounded-[32px] overflow-hidden flex flex-col aspect-[9/16] relative border border-slate-200 select-none shadow-inner">
+                            <!-- Mobile Phone Frame Simulator -->
+                            <div class="phone-simulator relative w-full max-w-[280px] h-[550px] bg-[#1e293b] rounded-[45px] p-2 shadow-2xl border-4 border-[#0f172a] overflow-hidden">
+                                <!-- Dynamic Island Pill Notch -->
+                                <div class="absolute top-1.5 left-1/2 -translate-x-1/2 w-20 h-3.5 bg-[#1e293b] rounded-full z-30 flex items-center justify-center pointer-events-none">
+                                    <div class="w-1 h-1 rounded-full bg-[#334155] mr-2"></div>
+                                    <div class="w-1 h-1 rounded-full bg-[#0f172a]"></div>
+                                </div>
+                                <div class="phone-screen w-full h-full bg-[#efeae2] rounded-[38px] overflow-hidden flex flex-col relative" style="background-image: radial-gradient(#d1d5db 1px, transparent 1px); background-size: 20px 20px;">
+                                    <!-- Phone Header -->
+                                    <div class="phone-header flex items-center justify-between p-3 bg-white/95 backdrop-blur-sm border-b border-slate-200">
+                                        <div class="flex items-center space-x-2 flex-grow">
+                                            <i data-lucide="chevron-left" class="h-4.5 w-4.5 text-[#54656f] cursor-pointer -ml-1 shrink-0"></i>
+                                            <div class="h-8 w-8 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center shrink-0 border border-slate-300">
+                                                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=LinkPilot" class="h-full w-full object-cover">
+                                            </div>
+                                            <div class="text-left">
+                                                <h4 class="font-extrabold text-slate-800 text-[11px] leading-tight">LinkPilot AI Agent</h4>
+                                                <p class="text-[9px] text-[#54656f] font-semibold leading-none mt-0.5">online</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-2.5 text-[#54656f] shrink-0">
+                                            <i data-lucide="video" class="h-4 w-4 cursor-pointer hover:text-slate-800"></i>
+                                            <i data-lucide="phone" class="h-3.5 w-3.5 cursor-pointer hover:text-slate-800"></i>
+                                            <i data-lucide="more-vertical" class="h-3.5 w-3.5 cursor-pointer hover:text-slate-800"></i>
+                                        </div>
+                                    </div>
                                     
-                                    <!-- Status Bar -->
-                                    <div class="bg-[#054c44] text-white/90 px-5 pt-2 pb-1.5 flex justify-between items-center text-[9px] font-semibold tracking-wide shrink-0">
-                                        <span>9:41</span>
-                                        <div class="flex items-center space-x-1.5">
-                                            <svg class="h-2.5 w-2.5 fill-current" viewBox="0 0 24 24">
-                                                <path d="M2 22h20V2z"/>
-                                            </svg>
-                                            <svg class="h-2.5 w-2.5 fill-current" viewBox="0 0 24 24">
-                                                <path d="M12 21c-1.2 0-2.4-.3-3.5-.8L2.3 14c-.4-.4-.4-1 0-1.4.4-.4 1-.4 1.4 0l6.2 6.2c1.2.6 2.6.6 3.8 0l6.2-6.2c.4-.4 1-.4 1.4 0 .4.4.4 1 0 1.4l-6.2 6.2c-1.1.5-2.3.8-3.5.8z"/>
-                                            </svg>
-                                            <div class="w-4 h-2.25 border border-white/80 rounded-sm p-[1px] flex items-center">
-                                                <div class="bg-white h-full w-full rounded-2xs"></div>
+                                    <!-- Messages Body -->
+                                    <div class="chat-messages flex-grow overflow-y-auto p-3.5 flex flex-col gap-2">
+                                        <div class="bubble incoming bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-200" style="max-width: 90%;">
+                                            <div class="bubble-text w-full text-[10px] text-slate-800" id="mock-send-bubble-text">
+                                                <!-- Filled live template body text -->
                                             </div>
                                         </div>
                                     </div>
-
-                                    <!-- WhatsApp Header -->
-                                    <div class="bg-[#075e54] text-white px-3 py-2 flex items-center justify-between shadow-md shrink-0">
-                                        <div class="flex items-center space-x-1.5">
-                                            <i data-lucide="arrow-left" class="h-4 w-4 text-white hover:opacity-80 cursor-pointer"></i>
-                                            <div class="h-8 w-8 rounded-full bg-white flex items-center justify-center overflow-hidden shrink-0 border border-white/20 p-1">
-                                                <img src="assets/img/logo.png" class="h-full w-full object-contain rounded-[22%] overflow-hidden" alt="">
-                                            </div>
-                                            <div>
-                                                <div class="text-[11px] font-bold flex items-center">
-                                                    <span>Taskbazi</span>
-                                                    <span class="inline-flex items-center justify-center h-3.5 w-3.5 rounded-full bg-emerald-500 text-white shrink-0 ml-1 scale-[0.8] origin-left">
-                                                        <svg class="h-2.25 w-2.25 stroke-[4.5] text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                                                        </svg>
-                                                    </span>
-                                                </div>
-                                                <div class="text-[8px] text-white/70 leading-none mt-0.5">Business Account</div>
-                                            </div>
+                                    
+                                    <!-- Chat Input Footer -->
+                                    <div class="p-2 bg-[#f0f2f5] flex items-center space-x-2 shrink-0 border-t border-slate-200">
+                                        <div class="flex-grow bg-white rounded-full px-3 py-1.5 flex items-center space-x-2 shadow-2xs border border-slate-100">
+                                            <i data-lucide="smile" class="h-4.5 w-4.5 text-[#54656f] cursor-pointer hover:text-slate-800"></i>
+                                            <span class="flex-grow text-[10px] text-slate-400 select-none">Type a message</span>
+                                            <i data-lucide="paperclip" class="h-4 w-4 text-[#54656f] cursor-pointer hover:text-slate-800 rotate-45"></i>
+                                            <i data-lucide="camera" class="h-4 w-4 text-[#54656f] cursor-pointer hover:text-slate-800"></i>
                                         </div>
-                                        <div class="flex items-center space-x-2.5 text-white/95">
-                                            <i data-lucide="video" class="h-4 w-4"></i>
-                                            <i data-lucide="phone" class="h-3.5 w-3.5"></i>
-                                            <i data-lucide="more-vertical" class="h-3.5 w-3.5"></i>
+                                        <div class="h-7 w-7 bg-[#00a884] text-white rounded-full flex items-center justify-center shrink-0 transition shadow-sm">
+                                            <i data-lucide="mic" class="h-4 w-4"></i>
                                         </div>
                                     </div>
-
-                                    <!-- Mock Chat Feed Wallpaper area -->
-                                    <div class="flex-grow p-4 flex flex-col justify-between overflow-hidden relative" style="background-image: url('../backend/api/whatsapp/chatbg.jpg'), url('/backend/api/whatsapp/chatbg.jpg'); background-size: cover; background-blend-mode: overlay; background-color: rgba(239, 234, 226, 0.94);">
-                                        <div class="flex flex-col space-y-3.5 overflow-y-auto pr-1 flex-grow">
-                                            <div class="self-center bg-white/90 text-slate-500 font-bold px-3 py-1 rounded-lg text-[9px] uppercase tracking-wider shadow-sm select-none border border-slate-200/30">
-                                                Today
-                                            </div>
-
-                                            <div class="self-start max-w-[90%] bg-white rounded-2xl rounded-tl-none p-3 shadow-md border border-slate-200/50 flex flex-col relative animate-fade-in">
-                                                <!-- Bubble Tail -->
-                                                <div class="absolute -left-[7px] top-0 w-2 h-3 text-white fill-current overflow-hidden">
-                                                    <svg class="h-full w-full" viewBox="0 0 8 12" fill="white">
-                                                        <path d="M8 0H0v12l8-12z"/>
-                                                    </svg>
-                                                </div>
-                                                <div class="text-[10px] text-slate-800 leading-relaxed font-sans whitespace-pre-wrap" id="mock-send-bubble-text">
-                                                    <!-- Filled live template body text -->
-                                                </div>
-                                                <span class="text-[7.5px] text-slate-400 self-end mt-1.5 flex items-center space-x-0.5">
-                                                    <span>11:30 AM</span>
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <div class="pt-3 flex items-center space-x-2 shrink-0 select-none">
-                                            <div class="flex-grow bg-white rounded-full px-3 py-2 flex items-center space-x-2 shadow-md border border-slate-200/20">
-                                                <i data-lucide="smile" class="h-4 w-4 text-slate-400"></i>
-                                                <span class="text-[10px] text-slate-400 flex-grow">Type a message</span>
-                                                <i data-lucide="paperclip" class="h-4 w-4 text-slate-400"></i>
-                                                <i data-lucide="camera" class="h-4 w-4 text-slate-400"></i>
-                                            </div>
-                                            <div class="h-8.5 w-8.5 rounded-full bg-[#00a884] text-white flex items-center justify-center shadow-lg shrink-0">
-                                                <i data-lucide="mic" class="h-4.5 w-4.5 text-white"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-
                                 </div>
                             </div>
                         </div>
+
                     </div>
                 </div>
             `;

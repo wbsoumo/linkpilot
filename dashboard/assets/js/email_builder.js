@@ -1182,35 +1182,40 @@
                             break;
                         case 'columns':
                             elementInner = `
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-2 bg-slate-50 border border-slate-200/80 rounded-xl">
-                                    <div class="p-3 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700">${el.settings.col1Content || 'Column 1 text details and messaging goes here...'}</div>
-                                    <div class="p-3 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700">${el.settings.col2Content || 'Column 2 text details and messaging goes here...'}</div>
-                                </div>
+                                <table border="0" cellpadding="0" cellspacing="0" width="100%" class="rounded-xl overflow-hidden">
+                                    <tr>
+                                        <td width="48%" valign="top" style="padding: 14px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; color: #334155; line-height: 1.6;">
+                                            ${el.settings.col1Content || 'Column 1 text details and messaging goes here...'}
+                                        </td>
+                                        <td width="4%">&nbsp;</td>
+                                        <td width="48%" valign="top" style="padding: 14px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; color: #334155; line-height: 1.6;">
+                                            ${el.settings.col2Content || 'Column 2 text details and messaging goes here...'}
+                                        </td>
+                                    </tr>
+                                </table>
                             `;
                             break;
                         case 'html':
                             elementInner = `
-                                <div class="p-3 bg-slate-900 text-emerald-400 font-mono text-xs rounded-xl border border-slate-800 overflow-x-auto">
-                                    <div class="text-[9px] text-slate-400 font-bold uppercase mb-1 flex items-center"><i data-lucide="code" class="h-3 w-3 mr-1 text-indigo-400"></i>Custom HTML Embed</div>
-                                    <code>${escapeHtml(el.settings.htmlCode || '<!-- Add custom HTML code here -->')}</code>
+                                <div style="padding: 12px; background-color: #0F172A; color: #34D399; font-family: monospace; font-size: 12px; border-radius: 8px; border: 1px solid #1E293B;">
+                                    <div style="font-size: 10px; text-transform: uppercase; color: #94A3B8; margin-bottom: 4px; font-weight: bold;">Custom HTML Code Preview</div>
+                                    <div style="white-space: pre-wrap; word-break: break-all;">${escapeHtml(el.settings.htmlCode || '<!-- Add custom HTML code here -->')}</div>
                                 </div>
                             `;
                             break;
                         case 'menu':
                             elementInner = `
-                                <div style="text-align:${el.settings.align || 'center'};" class="flex justify-center items-center space-x-6 text-xs font-bold text-slate-700 py-1">
-                                    <a href="${el.settings.link1Url || '#'}" onclick="event.preventDefault();" class="hover:text-[#6D5EF5] transition">${el.settings.link1Text || 'Home'}</a>
-                                    <span class="text-slate-300">•</span>
-                                    <a href="${el.settings.link2Url || '#'}" onclick="event.preventDefault();" class="hover:text-[#6D5EF5] transition">${el.settings.link2Text || 'Shop'}</a>
-                                    <span class="text-slate-300">•</span>
-                                    <a href="${el.settings.link3Url || '#'}" onclick="event.preventDefault();" class="hover:text-[#6D5EF5] transition">${el.settings.link3Text || 'Contact'}</a>
+                                <div style="text-align:${el.settings.align || 'center'}; padding: 8px 0; font-size: 13px; font-weight: bold; color: #475569;">
+                                    <a href="${el.settings.link1Url || '#'}" onclick="event.preventDefault();" style="color: #475569; text-decoration: none; margin: 0 10px;">${el.settings.link1Text || 'Home'}</a> &nbsp;&bull;&nbsp;
+                                    <a href="${el.settings.link2Url || '#'}" onclick="event.preventDefault();" style="color: #475569; text-decoration: none; margin: 0 10px;">${el.settings.link2Text || 'Shop'}</a> &nbsp;&bull;&nbsp;
+                                    <a href="${el.settings.link3Url || '#'}" onclick="event.preventDefault();" style="color: #475569; text-decoration: none; margin: 0 10px;">${el.settings.link3Text || 'Contact'}</a>
                                 </div>
                             `;
                             break;
                         case 'icon':
                             elementInner = `
-                                <div style="text-align:${el.settings.align || 'center'};" class="py-1">
-                                    <i data-lucide="${el.settings.iconName || 'star'}" class="inline-block" style="width:${el.settings.size || '36px'}; height:${el.settings.size || '36px'}; color:${el.settings.color || '#6D5EF5'};"></i>
+                                <div style="text-align:${el.settings.align || 'center'}; padding: 6px 0;">
+                                    <img src="https://img.icons8.com/color/96/000000/${el.settings.iconName || 'star'}.png" style="width:${el.settings.size || '36px'}; height:${el.settings.size || '36px'}; display: inline-block;" alt="Icon">
                                 </div>
                             `;
                             break;
@@ -1218,7 +1223,7 @@
                             elementInner = `
                                 <div style="text-align:${el.settings.align || 'center'};" class="relative group cursor-pointer">
                                     <img src="${el.settings.thumbnailUrl || 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&auto=format&fit=crop'}" style="width:100%; max-width:540px; height:auto; border-radius:12px; display:inline-block;" alt="Video Thumbnail">
-                                    <div class="absolute inset-0 flex items-center justify-center">
+                                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
                                         <div class="w-14 h-14 bg-[#6D5EF5] text-white rounded-full flex items-center justify-center shadow-xl group-hover:scale-110 transition duration-200">
                                             <i data-lucide="play" class="h-6 w-6 ml-1 fill-current"></i>
                                         </div>
@@ -1228,66 +1233,62 @@
                             break;
                         case 'countdown':
                             elementInner = `
-                                <div style="background-color:${el.settings.backgroundColor || '#0F172A'}; color:${el.settings.textColor || '#ffffff'}; text-align:${el.settings.align || 'center'};" class="p-4 rounded-2xl shadow-sm">
-                                    <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-2">LIMITED TIME OFFER</span>
-                                    <div class="flex items-center justify-center space-x-3 text-center">
-                                        <div class="bg-white/10 px-3 py-1.5 rounded-xl min-w-[50px]"><span class="text-xl font-extrabold block">02</span><span class="text-[9px] uppercase text-slate-300">Days</span></div>
-                                        <span class="text-lg font-bold text-slate-400">:</span>
-                                        <div class="bg-white/10 px-3 py-1.5 rounded-xl min-w-[50px]"><span class="text-xl font-extrabold block">14</span><span class="text-[9px] uppercase text-slate-300">Hours</span></div>
-                                        <span class="text-lg font-bold text-slate-400">:</span>
-                                        <div class="bg-white/10 px-3 py-1.5 rounded-xl min-w-[50px]"><span class="text-xl font-extrabold block">35</span><span class="text-[9px] uppercase text-slate-300">Mins</span></div>
-                                        <span class="text-lg font-bold text-slate-400">:</span>
-                                        <div class="bg-white/10 px-3 py-1.5 rounded-xl min-w-[50px]"><span class="text-xl font-extrabold block">48</span><span class="text-[9px] uppercase text-slate-300">Secs</span></div>
+                                <div style="background-color:${el.settings.backgroundColor || '#0F172A'}; color:${el.settings.textColor || '#ffffff'}; text-align:${el.settings.align || 'center'}; padding: 18px; border-radius: 12px;">
+                                    <span style="font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #94A3B8; display: block; margin-bottom: 8px;">LIMITED TIME OFFER</span>
+                                    <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                        <div style="background: rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 8px; font-size: 20px; font-weight: bold;">02d</div>
+                                        <span style="font-size: 18px; font-weight: bold; color: #94A3B8;">:</span>
+                                        <div style="background: rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 8px; font-size: 20px; font-weight: bold;">14h</div>
+                                        <span style="font-size: 18px; font-weight: bold; color: #94A3B8;">:</span>
+                                        <div style="background: rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 8px; font-size: 20px; font-weight: bold;">35m</div>
                                     </div>
                                 </div>
                             `;
                             break;
                         case 'product':
                             elementInner = `
-                                <div class="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col md:flex-row items-center gap-4 text-left shadow-2xs">
-                                    <img src="${el.settings.productImage || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&auto=format&fit=crop'}" class="w-28 h-28 object-cover rounded-xl shrink-0" alt="Product">
-                                    <div class="flex-1 min-w-0">
-                                        <h4 class="font-bold text-sm text-slate-900">${el.settings.productName || 'Premium Athletic Sneaker'}</h4>
-                                        <p class="text-xs text-slate-500 mt-1 line-clamp-2">${el.settings.productDesc || 'Ultra comfortable performance footwear designed for everyday activities.'}</p>
-                                        <div class="flex items-center justify-between mt-3">
-                                            <span class="text-base font-extrabold text-slate-900">${el.settings.productPrice || '$89.00'}</span>
-                                            <a href="${el.settings.productLink || '#'}" onclick="event.preventDefault();" class="px-4 py-1.5 bg-[#6D5EF5] text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition">Buy Now</a>
-                                        </div>
-                                    </div>
-                                </div>
+                                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 12px;">
+                                    <tr>
+                                        <td width="120" style="padding: 14px;" valign="top">
+                                            <img src="${el.settings.productImage || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&auto=format&fit=crop'}" width="100" height="100" style="border-radius: 8px; display: block; object-fit: cover;" alt="Product">
+                                        </td>
+                                        <td style="padding: 14px 14px 14px 0;" valign="top">
+                                            <h4 style="margin: 0 0 4px 0; font-size: 15px; font-weight: bold; color: #0F172A;">${el.settings.productName || 'Premium Product'}</h4>
+                                            <p style="margin: 0 0 10px 0; font-size: 12px; color: #64748B; line-height: 1.5;">${el.settings.productDesc || 'Ultra comfortable performance footwear designed for everyday activities.'}</p>
+                                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                                <span style="font-size: 16px; font-weight: 850; color: #0F172A;">${el.settings.productPrice || '$89.00'}</span>
+                                                <a href="${el.settings.productLink || '#'}" onclick="event.preventDefault();" style="display: inline-block; padding: 6px 16px; background-color: #6D5EF5; color: #ffffff; font-size: 12px; font-weight: bold; text-decoration: none; border-radius: 6px;">Buy Now</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
                             `;
                             break;
                         case 'signature':
                             elementInner = `
-                                <div class="p-3 bg-slate-50/50 border border-slate-200/60 rounded-xl flex items-center space-x-3 text-left">
-                                    <img src="${el.settings.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop'}" class="w-12 h-12 rounded-full object-cover border border-slate-200" alt="Sender Avatar">
+                                <div style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; display: flex; align-items: center; gap: 12px;">
+                                    <img src="${el.settings.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop'}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;" alt="Avatar">
                                     <div>
-                                        <h5 class="font-bold text-xs text-slate-900">${el.settings.senderName || 'Sarah Jenkins'}</h5>
-                                        <p class="text-[11px] text-slate-500 font-medium">${el.settings.senderTitle || 'VP of Customer Outreach, LinkPilot'}</p>
-                                        <p class="text-[10px] text-[#6D5EF5] font-semibold mt-0.5">${el.settings.senderEmail || 'sarah@linkpilot.work'}</p>
+                                        <h5 style="margin: 0; font-size: 13px; font-weight: bold; color: #0F172A;">${el.settings.senderName || 'Sarah Jenkins'}</h5>
+                                        <p style="margin: 2px 0 0 0; font-size: 11px; color: #64748B;">${el.settings.senderTitle || 'VP of Customer Outreach, LinkPilot'}</p>
+                                        <p style="margin: 2px 0 0 0; font-size: 10px; color: #6D5EF5; font-weight: bold;">${el.settings.senderEmail || 'sarah@linkpilot.work'}</p>
                                     </div>
                                 </div>
                             `;
                             break;
                         case 'faq':
                             elementInner = `
-                                <div class="space-y-2">
-                                    <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl">
-                                        <h5 class="font-bold text-xs text-slate-800 flex items-center justify-between">
-                                            <span>Q: ${el.settings.question || 'How quickly will my campaign be delivered?'}</span>
-                                            <i data-lucide="chevron-down" class="h-3.5 w-3.5 text-slate-400"></i>
-                                        </h5>
-                                        <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">${el.settings.answer || 'Our high-performance SMTP helper processes and dispatches outreach emails instantly with zero queue delays.'}</p>
-                                    </div>
+                                <div style="padding: 14px; background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px;">
+                                    <h5 style="margin: 0 0 6px 0; font-size: 13px; font-weight: bold; color: #0F172A;">Q: ${el.settings.question || 'How quickly will my campaign be delivered?'}</h5>
+                                    <p style="margin: 0; font-size: 12px; color: #475569; line-height: 1.5;">${el.settings.answer || 'Our high-performance SMTP helper processes and dispatches outreach emails instantly with zero queue delays.'}</p>
                                 </div>
                             `;
                             break;
                         case 'testimonial':
                             elementInner = `
-                                <div class="p-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl text-center space-y-2">
-                                    <i data-lucide="quote" class="h-5 w-5 mx-auto text-[#6D5EF5]/60"></i>
-                                    <p class="text-xs italic text-slate-700 font-medium">"${el.settings.quote || 'This email builder transformed our marketing performance completely. 10/10 recommendation!'}"</p>
-                                    <span class="text-[11px] font-bold text-slate-900 block">— ${el.settings.author || 'Alex Rivera, CEO of GrowthScale'}</span>
+                                <div style="padding: 20px; background-color: #EEF2FF; border: 1px solid #C7D2FE; border-radius: 12px; text-align: center;">
+                                    <p style="margin: 0; font-size: 13px; font-style: italic; color: #334155;">"${el.settings.quote || 'This email builder transformed our marketing performance completely. 10/10 recommendation!'}"</p>
+                                    <span style="display: block; margin-top: 8px; font-size: 11px; font-style: normal; font-weight: bold; color: #0F172A;">— ${el.settings.author || 'Alex Rivera, CEO of GrowthScale'}</span>
                                 </div>
                             `;
                             break;

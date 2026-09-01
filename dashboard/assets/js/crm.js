@@ -12168,14 +12168,15 @@ window.renderBookingSetup = async function(container) {
                                     </button>
                                 </div>
                                 
-                                <div class="space-y-2 pt-2">
-                                    <a href="${bookingUrl}" target="_blank" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl transition flex items-center justify-center space-x-1.5 text-xs shadow-md focus:outline-none" style="color: #ffffff !important;">
+                                <button id="copy-public-booking-btn" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl transition flex items-center justify-center space-x-2 text-xs shadow-md focus:outline-none active:scale-98" style="color: #ffffff !important;">
+                                    <i data-lucide="copy" class="h-4 w-4"></i>
+                                    <span style="color: #ffffff !important;">Copy Public Booking Link</span>
+                                </button>
+                                
+                                <div class="space-y-2 pt-1">
+                                    <a href="${bookingUrl}" target="_blank" class="w-full py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-800 font-bold rounded-xl transition flex items-center justify-center space-x-1.5 text-xs focus:outline-none bg-white shadow-xs">
                                         <i data-lucide="external-link" class="h-3.5 w-3.5"></i>
                                         <span>Open Booking Page</span>
-                                    </a>
-                                    <a href="${bookingUrl}" target="_blank" class="w-full py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-800 font-bold rounded-xl transition flex items-center justify-center space-x-1.5 text-xs focus:outline-none bg-white shadow-xs">
-                                        <i data-lucide="globe" class="h-3.5 w-3.5"></i>
-                                        <span>Test Booking Page</span>
                                     </a>
                                 </div>
                             </div>
@@ -12440,13 +12441,31 @@ window.renderBookingSetup = async function(container) {
             }
 
             // Copy booking link to clipboard
+            const handleCopyAction = (btnElement) => {
+                navigator.clipboard.writeText(bookingUrl)
+                    .then(() => {
+                        showNotification('success', '✓ Link copied to clipboard!');
+                        if (btnElement) {
+                            const origHTML = btnElement.innerHTML;
+                            btnElement.innerHTML = `<i data-lucide="check" class="h-4 w-4 text-emerald-400"></i><span style="color: #ffffff !important;" class="font-black">✓ Link copied</span>`;
+                            lucide.createIcons();
+                            setTimeout(() => {
+                                btnElement.innerHTML = origHTML;
+                                lucide.createIcons();
+                            }, 2200);
+                        }
+                    })
+                    .catch(() => showNotification('error', 'Failed to copy link.'));
+            };
+
             const copyBtn = document.getElementById('copy-booking-link-btn');
             if (copyBtn) {
-                copyBtn.onclick = () => {
-                    navigator.clipboard.writeText(bookingUrl)
-                        .then(() => showNotification('success', 'Booking link copied to clipboard!'))
-                        .catch(() => showNotification('error', 'Failed to copy link.'));
-                };
+                copyBtn.onclick = () => handleCopyAction(copyBtn);
+            }
+
+            const copyPublicBtn = document.getElementById('copy-public-booking-btn');
+            if (copyPublicBtn) {
+                copyPublicBtn.onclick = () => handleCopyAction(copyPublicBtn);
             }
         }
 

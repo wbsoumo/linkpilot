@@ -5994,41 +5994,147 @@ function renderWhatsAppBroadcast(container) {
 function renderWhatsAppAutomation(container) {
     checkWaConnectionAndRender('automation', container, async (contentArea) => {
         contentArea.innerHTML = `
-            <div class="space-y-6">
-                <div class="border-b border-slate-200 pb-4 bg-white p-5 rounded-2xl shadow-sm flex items-center justify-between">
+            <div class="space-y-6 font-sans">
+                <div class="border-b border-slate-200 pb-4 bg-white p-5 rounded-2xl shadow-sm flex items-center justify-between flex-wrap gap-4">
                     <div>
-                        <h2 class="text-sm font-bold text-slate-800">WhatsApp Automation Workflows</h2>
-                        <p class="text-[11px] text-slate-400 mt-0.5">Integrate automated triggers and send template messages inside CRM campaigns.</p>
+                        <div class="flex items-center space-x-2">
+                            <h2 class="text-sm font-bold text-slate-800">WhatsApp Visual Automation Workflows</h2>
+                            <span class="bg-purple-100 text-purple-700 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase">Visual Canvas</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Build automated trigger-and-action rules with live connecting nodes and condition branches.</p>
                     </div>
-                    <button class="px-3.5 py-1.5 bg-blue-600 text-white font-bold rounded-lg text-xs hover:bg-blue-500 transition">Create Rule</button>
+                    <button onclick="showNotification('info', 'Visual Builder Modal initialized')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow-sm transition flex items-center space-x-1.5" style="color:#ffffff !important;">
+                        <i data-lucide="plus-circle" class="h-4 w-4 text-white"></i>
+                        <span>Create Automation Flow</span>
+                    </button>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
-                        <div class="flex justify-between items-center font-bold text-slate-700">
-                            <span>Welcome Autoreply</span>
-                            <span class="text-[9px] bg-green-50 text-green-600 px-2 py-0.5 border border-green-100 rounded-full">ACTIVE</span>
+                <!-- Visual Workflow Canvas Area -->
+                <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm relative overflow-hidden min-h-[420px]" id="wa-automation-canvas-container">
+                    <!-- SVG Overlay for Connecting Lines -->
+                    <svg id="wa-automation-svg-overlay" class="absolute inset-0 w-full h-full pointer-events-none z-10">
+                        <defs>
+                            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="#6366f1" />
+                            </marker>
+                        </defs>
+                        <path id="wa-flow-line-1" stroke="#6366f1" stroke-width="2.5" fill="none" stroke-dasharray="6,4" class="animate-pulse" marker-end="url(#arrow)" />
+                        <path id="wa-flow-line-2" stroke="#10b981" stroke-width="2.5" fill="none" stroke-dasharray="6,4" marker-end="url(#arrow)" />
+                    </svg>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-20 items-center py-6">
+                        <!-- Node 1: Trigger -->
+                        <div id="wa-node-trigger" class="bg-slate-50 border-2 border-indigo-200 rounded-2xl p-5 shadow-xs space-y-3 relative">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <div class="h-8 w-8 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                                        <i data-lucide="zap" class="h-4 w-4"></i>
+                                    </div>
+                                    <span class="text-xs font-black text-slate-800 uppercase tracking-wider">Trigger Event</span>
+                                </div>
+                                <span class="text-[9px] bg-indigo-100 text-indigo-700 font-extrabold px-2 py-0.5 rounded-full">INBOUND</span>
+                            </div>
+                            <p class="text-xs text-slate-600 font-medium">Customer sends WhatsApp message matching keyword <span class="font-bold text-indigo-600">"PRICING"</span> or <span class="font-bold text-indigo-600">"DEMO"</span>.</p>
+                            <!-- Connection anchor right -->
+                            <div id="anchor-node-1-out" class="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-indigo-600 rounded-full border-2 border-white shadow-sm"></div>
                         </div>
-                        <div class="text-[11px] text-slate-500 leading-relaxed">
-                            <p><strong>Trigger:</strong> WhatsApp Message Received</p>
-                            <p class="mt-1"><strong>Action:</strong> Send Welcome Template + Assign Lead to Sales</p>
+
+                        <!-- Node 2: AI Condition Filter -->
+                        <div id="wa-node-condition" class="bg-slate-50 border-2 border-purple-200 rounded-2xl p-5 shadow-xs space-y-3 relative">
+                            <!-- Connection anchor left -->
+                            <div id="anchor-node-2-in" class="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-purple-600 rounded-full border-2 border-white shadow-sm"></div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <div class="h-8 w-8 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                                        <i data-lucide="bot" class="h-4 w-4"></i>
+                                    </div>
+                                    <span class="text-xs font-black text-slate-800 uppercase tracking-wider">AI Qualifier</span>
+                                </div>
+                                <span class="text-[9px] bg-purple-100 text-purple-700 font-extrabold px-2 py-0.5 rounded-full">SMART FILTER</span>
+                            </div>
+                            <p class="text-xs text-slate-600 font-medium">AI evaluates sentiment & qualifies lead score > 60 points.</p>
+                            <!-- Connection anchor right -->
+                            <div id="anchor-node-2-out" class="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-purple-600 rounded-full border-2 border-white shadow-sm"></div>
                         </div>
-                    </div>
-                    
-                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
-                        <div class="flex justify-between items-center font-bold text-slate-700 opacity-60">
-                            <span>Lead Recovery Followup</span>
-                            <span class="text-[9px] bg-slate-100 text-slate-400 px-2 py-0.5 border border-slate-200 rounded-full">PAUSED</span>
-                        </div>
-                        <div class="text-[11px] text-slate-400 leading-relaxed">
-                            <p><strong>Trigger:</strong> Lead Score Updates below 30</p>
-                            <p class="mt-1"><strong>Action:</strong> Send WhatsApp Template "Nurture Lead" after 2 days</p>
+
+                        <!-- Node 3: Action -->
+                        <div id="wa-node-action" class="bg-slate-50 border-2 border-emerald-200 rounded-2xl p-5 shadow-xs space-y-3 relative">
+                            <!-- Connection anchor left -->
+                            <div id="anchor-node-3-in" class="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-emerald-600 rounded-full border-2 border-white shadow-sm"></div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <div class="h-8 w-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                                        <i data-lucide="send" class="h-4 w-4"></i>
+                                    </div>
+                                    <span class="text-xs font-black text-slate-800 uppercase tracking-wider">Action Dispatched</span>
+                                </div>
+                                <span class="text-[9px] bg-emerald-100 text-emerald-700 font-extrabold px-2 py-0.5 rounded-full">SUCCESS</span>
+                            </div>
+                            <p class="text-xs text-slate-600 font-medium">Auto-send Interactive Pricing Template + Assign account owner in CRM.</p>
                         </div>
                     </div>
                 </div>
             </div>
         `;
-        lucide.createIcons();
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        // Function to recalculate and redraw SVG connector lines
+        const drawWorkflowConnections = () => {
+            const containerEl = document.getElementById('wa-automation-canvas-container');
+            const anchor1Out = document.getElementById('anchor-node-1-out');
+            const anchor2In = document.getElementById('anchor-node-2-in');
+            const anchor2Out = document.getElementById('anchor-node-2-out');
+            const anchor3In = document.getElementById('anchor-node-3-in');
+            const line1 = document.getElementById('wa-flow-line-1');
+            const line2 = document.getElementById('wa-flow-line-2');
+
+            if (!containerEl || !anchor1Out || !anchor2In || !anchor2Out || !anchor3In || !line1 || !line2) return;
+
+            const cRect = containerEl.getBoundingClientRect();
+            const r1Out = anchor1Out.getBoundingClientRect();
+            const r2In = anchor2In.getBoundingClientRect();
+            const r2Out = anchor2Out.getBoundingClientRect();
+            const r3In = anchor3In.getBoundingClientRect();
+
+            // Calculate SVG relative coordinates
+            const x1 = r1Out.left + r1Out.width / 2 - cRect.left;
+            const y1 = r1Out.top + r1Out.height / 2 - cRect.top;
+            const x2 = r2In.left + r2In.width / 2 - cRect.left;
+            const y2 = r2In.top + r2In.height / 2 - cRect.top;
+
+            const x3 = r2Out.left + r2Out.width / 2 - cRect.left;
+            const y3 = r2Out.top + r2Out.height / 2 - cRect.top;
+            const x4 = r3In.left + r3In.width / 2 - cRect.left;
+            const y4 = r3In.top + r3In.height / 2 - cRect.top;
+
+            // Draw smooth cubic bezier curve for line 1
+            const dx1 = Math.abs(x2 - x1) * 0.5;
+            line1.setAttribute('d', `M ${x1} ${y1} C ${x1 + dx1} ${y1}, ${x2 - dx1} ${y2}, ${x2} ${y2}`);
+
+            // Draw smooth cubic bezier curve for line 2
+            const dx2 = Math.abs(x4 - x3) * 0.5;
+            line2.setAttribute('d', `M ${x3} ${y3} C ${x3 + dx2} ${y3}, ${x4 - dx2} ${y4}, ${x4} ${y4}`);
+        };
+
+        // Initial connection draw after layout paints
+        setTimeout(drawWorkflowConnections, 100);
+
+        // Remove previous listener if registered
+        if (window._waAutomationResizeHandler) {
+            window.removeEventListener('resize', window._waAutomationResizeHandler);
+        }
+
+        // Window Resize Listener to automatically re-render workflow connection lines
+        window._waAutomationResizeHandler = () => {
+            if (window.location.hash === '#/whatsapp-automation') {
+                drawWorkflowConnections();
+            } else {
+                window.removeEventListener('resize', window._waAutomationResizeHandler);
+                window._waAutomationResizeHandler = null;
+            }
+        };
+
+        window.addEventListener('resize', window._waAutomationResizeHandler);
     });
 }
 

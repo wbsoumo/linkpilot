@@ -297,6 +297,29 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
     $messages[] = "Table 'crm_timeline' checked/created.";
 
+    // 11.1 CRM Activity Timeline Table (Omnichannel Communication History)
+    $db->exec("CREATE TABLE IF NOT EXISTS `crm_activity_timeline` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `contact_id` INT DEFAULT NULL,
+        `lead_id` INT DEFAULT NULL,
+        `company_id` INT DEFAULT NULL,
+        `channel` ENUM('email', 'whatsapp', 'call') NOT NULL,
+        `direction` ENUM('inbound', 'outbound') NOT NULL,
+        `subject_or_title` VARCHAR(255) DEFAULT NULL,
+        `content` LONGTEXT DEFAULT NULL,
+        `summary` TEXT DEFAULT NULL,
+        `status` VARCHAR(50) DEFAULT 'completed',
+        `external_ref_id` VARCHAR(100) DEFAULT NULL,
+        `meta_data_json` LONGTEXT DEFAULT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT `fk_act_timeline_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+        CONSTRAINT `fk_act_timeline_contact` FOREIGN KEY (`contact_id`) REFERENCES `crm_contacts` (`id`) ON DELETE SET NULL,
+        CONSTRAINT `fk_act_timeline_lead` FOREIGN KEY (`lead_id`) REFERENCES `crm_leads` (`id`) ON DELETE SET NULL,
+        CONSTRAINT `fk_act_timeline_company` FOREIGN KEY (`company_id`) REFERENCES `crm_companies` (`id`) ON DELETE SET NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+    $messages[] = "Table 'crm_activity_timeline' checked/created.";
+
     // 12. CRM Notes Table
     $db->exec("CREATE TABLE IF NOT EXISTS `crm_notes` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,

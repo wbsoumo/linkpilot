@@ -3,7 +3,7 @@
 require_once __DIR__ . '/backend/config.php';
 
 // Get API Key from POST parameter, environment variable, defined constant, or fallback input box
-$selectedModel = $_POST['model'] ?? 'gemini-3.6-flash';
+$selectedModel = $_POST['model'] ?? 'gemini-3.1-flash-lite';
 $apiKeyInput = $_POST['api_key'] ?? (getenv('GEMINI_API_KEY') ?: (defined('GEMINI_API_KEY') ? GEMINI_API_KEY : ''));
 $promptInput = $_POST['prompt'] ?? 'Explain how AI works in a few words';
 $responseOutput = '';
@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if (!empty($promptInput)) {
             // Models to benchmark in parallel simultaneously
-            $modelsToTest = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-flash-latest'];
+            $modelsToTest = ['gemini-3.1-flash-lite', 'gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-flash-latest'];
             
             $mh = curl_multi_init();
             $curlHandles = [];
@@ -196,7 +196,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="md:col-span-2">
                     <label for="model" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Target Model</label>
                     <select id="model" name="model" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-slate-100 font-semibold focus:outline-none focus:border-indigo-500 transition">
-                        <option value="gemini-3.6-flash" <?php echo $selectedModel === 'gemini-3.6-flash' ? 'selected' : ''; ?>>gemini-3.6-flash (Recommended Latest)</option>
+                        <option value="gemini-3.1-flash-lite" <?php echo $selectedModel === 'gemini-3.1-flash-lite' ? 'selected' : ''; ?>>gemini-3.1-flash-lite (Ultra Fast & Lightweight - Recommended)</option>
+                        <option value="gemini-3.6-flash" <?php echo $selectedModel === 'gemini-3.6-flash' ? 'selected' : ''; ?>>gemini-3.6-flash (Latest Standard)</option>
                         <option value="gemini-2.5-flash" <?php echo $selectedModel === 'gemini-2.5-flash' ? 'selected' : ''; ?>>gemini-2.5-flash (Stable Production)</option>
                         <option value="gemini-2.5-pro" <?php echo $selectedModel === 'gemini-2.5-pro' ? 'selected' : ''; ?>>gemini-2.5-pro (High Reasoning)</option>
                         <option value="gemini-flash-latest" <?php echo $selectedModel === 'gemini-flash-latest' ? 'selected' : ''; ?>>gemini-flash-latest (Alias)</option>

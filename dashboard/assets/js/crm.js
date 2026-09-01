@@ -749,23 +749,23 @@ async function renderDashboard(container) {
             `;
         } else {
             warningBannerHtml = `
-                <div class="bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 max-w-5xl shadow-sm">
+                <div class="bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/90 border border-slate-800 shadow-md rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 max-w-5xl">
                     <div class="flex items-center space-x-3.5">
-                        <div class="h-9 w-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-                            <i data-lucide="sparkles" class="h-4.5 w-4.5"></i>
+                        <div class="h-10 w-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shrink-0 shadow-inner">
+                            <i data-lucide="sparkles" class="h-5 w-5 text-emerald-400"></i>
                         </div>
                         <div>
-                            <div class="flex items-center space-x-2">
-                                <h4 class="text-xs font-bold text-white tracking-wide">AI Workspace Live</h4>
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Auto-Pilot Active</span>
+                            <div class="flex items-center space-x-2.5">
+                                <h4 class="text-xs font-black text-white tracking-wide">AI Workspace Live</h4>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500 text-slate-950 shadow-xs">Auto-Pilot Active</span>
                             </div>
-                            <p class="text-[11px] text-slate-400 mt-0.5">Email intelligence, WhatsApp AI dispatch, and CRM sync are fully operational.</p>
+                            <p class="text-[11px] text-slate-300 font-medium mt-1">Email intelligence, WhatsApp AI dispatch, and CRM sync are fully operational.</p>
                         </div>
                     </div>
                     <div class="flex items-center space-x-2 shrink-0 w-full sm:w-auto justify-end">
-                        <button onclick="window.location.hash = '#/inbox';" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-sm" style="color: #ffffff !important;">
-                            <span style="color: #ffffff !important;">Open AI Inbox</span>
-                            <i data-lucide="arrow-right" class="h-3.5 w-3.5" style="color: #ffffff !important;"></i>
+                        <button onclick="window.location.hash = '#/inbox';" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-2 shadow-sm shadow-indigo-500/30">
+                            <span class="text-white font-bold">Open AI Inbox</span>
+                            <i data-lucide="arrow-right" class="h-3.5 w-3.5 text-white"></i>
                         </button>
                     </div>
                 </div>

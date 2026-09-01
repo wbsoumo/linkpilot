@@ -10487,12 +10487,17 @@ window.renderMeetingsList = async function(container, activeTab = null, searchQu
                                                         </span>
                                                     </td>
                                                     <td class="py-3.5 px-4 text-right shrink-0">
-                                                        ${m.meet_link ? `
-                                                            <a href="${m.meet_link}" target="_blank" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-extrabold inline-flex items-center space-x-1 transition shadow-sm" style="color: #ffffff !important;">
-                                                                <i data-lucide="video" class="h-3.5 w-3.5 text-white"></i>
-                                                                <span style="color: #ffffff !important;">Join</span>
+                                                        ${m.meet_link || m.location?.includes('meet.google.com') ? `
+                                                            <a href="${m.meet_link || (m.location.startsWith('http') ? m.location : `https://${m.location}`)}" target="_blank" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black inline-flex items-center space-x-1.5 transition shadow-md hover:shadow-lg hover:scale-105 active:scale-95" style="color: #ffffff !important; background-color: #059669 !important;">
+                                                                <span class="text-sm">🎥</span>
+                                                                <span style="color: #ffffff !important;" class="font-extrabold tracking-wide">Join Google Meet</span>
                                                             </a>
-                                                        ` : '<span class="text-slate-350 font-bold">-</span>'}
+                                                        ` : m.location?.includes('zoom') ? `
+                                                            <a href="${m.location.startsWith('http') ? m.location : `https://${m.location}`}" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black inline-flex items-center space-x-1.5 transition shadow-md hover:shadow-lg hover:scale-105 active:scale-95" style="color: #ffffff !important;">
+                                                                <i data-lucide="video" class="h-4 w-4 text-white"></i>
+                                                                <span style="color: #ffffff !important;" class="font-extrabold tracking-wide">Join Zoom</span>
+                                                            </a>
+                                                        ` : '<span class="text-slate-350 font-bold text-xs">-</span>'}
                                                     </td>
                                                 </tr>
                                             `;

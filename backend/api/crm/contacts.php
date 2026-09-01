@@ -79,7 +79,13 @@ try {
             $params = ['user_id' => $userId];
             
             if ($search !== '') {
-                $query .= " AND (c.name LIKE :search_name OR c.email LIKE :search_email OR c.phone LIKE :search_phone OR c.designation LIKE :search_desig OR co.name LIKE :search_comp)";
+                $cleanSearchDigits = preg_replace('/[^0-9]/', '', $search);
+                if (!empty($cleanSearchDigits) && strlen($cleanSearchDigits) >= 3) {
+                    $query .= " AND (c.name LIKE :search_name OR c.email LIKE :search_email OR c.phone LIKE :search_phone OR REPLACE(REPLACE(REPLACE(REPLACE(c.phone, '+', ''), ' ', ''), '-', ''), '(', '') LIKE :search_clean_phone OR c.designation LIKE :search_desig OR co.name LIKE :search_comp)";
+                    $params['search_clean_phone'] = '%' . $cleanSearchDigits . '%';
+                } else {
+                    $query .= " AND (c.name LIKE :search_name OR c.email LIKE :search_email OR c.phone LIKE :search_phone OR c.designation LIKE :search_desig OR co.name LIKE :search_comp)";
+                }
                 $params['search_name'] = '%' . $search . '%';
                 $params['search_email'] = '%' . $search . '%';
                 $params['search_phone'] = '%' . $search . '%';

@@ -3202,20 +3202,33 @@
                         `;
                         break;
                     case 'faq':
-                        inner = `
-                            <tr>
-                                <td style="padding: 10px 0;">
-                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#F8FAFC" style="border: 1px solid #E2E8F0; border-radius: 10px;">
-                                        <tr>
-                                            <td style="padding: 14px; font-family: ${brandStyles.fontFamily};">
-                                                <h5 style="margin: 0 0 6px 0; font-size: 13px; font-weight: bold; color: #0F172A;">Q: ${el.settings.question || 'Frequently Asked Question'}</h5>
-                                                <p style="margin: 0; font-size: 12px; color: #475569; line-height: 1.5;">${el.settings.answer || 'Answer details...'}</p>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                        `;
+                        {
+                            const faqList = Array.isArray(el.settings.items) && el.settings.items.length > 0 
+                                ? el.settings.items 
+                                : [{ question: el.settings.question || 'How quickly will my campaign be delivered?', answer: el.settings.answer || 'Our high-performance SMTP helper processes and dispatches outreach emails instantly with zero queue delays.' }];
+                            
+                            let faqRowsHtml = "";
+                            faqList.forEach((item, idx) => {
+                                faqRowsHtml += `
+                                    <tr>
+                                        <td style="padding: 14px; ${idx > 0 ? 'border-top: 1px solid #E2E8F0;' : ''} font-family: ${brandStyles.fontFamily};">
+                                            <h5 style="margin: 0 0 6px 0; font-size: 14px; font-weight: bold; color: #0F172A;">${escapeHtml(item.question || 'Frequently Asked Question')}</h5>
+                                            <p style="margin: 0; font-size: 13px; color: #475569; line-height: 1.6;">${escapeHtml(item.answer || 'Answer details...')}</p>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+
+                            inner = `
+                                <tr>
+                                    <td style="padding: 10px 0;">
+                                        <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#F8FAFC" style="border: 1px solid #E2E8F0; border-radius: 12px;">
+                                            ${faqRowsHtml}
+                                        </table>
+                                    </td>
+                                </tr>
+                            `;
+                        }
                         break;
                     case 'testimonial':
                         inner = `

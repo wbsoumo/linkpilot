@@ -18800,8 +18800,8 @@ async function renderEmailTemplates(container) {
                                             <h3 class="text-xs font-bold text-slate-900 leading-snug line-clamp-1 group-hover:text-indigo-600 transition" title="${t.title}">${t.title}</h3>
                                             
                                             <!-- FULL WIDE VIEW HTML PREVIEW CONTAINER -->
-                                            <div class="relative w-full h-52 bg-slate-100 rounded-xl border border-slate-200/80 overflow-hidden shadow-xs pointer-events-none select-none flex items-center justify-center">
-                                                <iframe srcdoc="${previewHtml.replace(/"/g, '&quot;')}" class="w-[300%] h-[300%] border-0 pointer-events-none select-none" style="transform: scale(0.333); transform-origin: top left;"></iframe>
+                                            <div class="relative w-full h-52 bg-slate-100 rounded-xl border border-slate-200/80 overflow-hidden shadow-xs pointer-events-none select-none">
+                                                <iframe srcdoc="${previewHtml.replace(/"/g, '&quot;')}" class="absolute top-0 left-0 border-0 pointer-events-none select-none" style="width: 720px; height: 580px; transform: scale(0.42); transform-origin: top left;"></iframe>
                                             </div>
                                         </div>
 

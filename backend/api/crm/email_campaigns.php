@@ -140,21 +140,36 @@ try {
             
             sendJsonResponse('success', 'Campaign details loaded.', ['campaign' => $campaign]);
         } else {
+            // Ensure columns exist on email_campaign_logs
+            try {
+                $cols = ['is_replied' => 'TINYINT(1) DEFAULT 0', 'is_bounced' => 'TINYINT(1) DEFAULT 0'];
+                foreach ($cols as $col => $def) {
+                    $chk = $db->query("SHOW COLUMNS FROM `email_campaign_logs` LIKE '{$col}'");
+                    if (!$chk || !$chk->fetch()) {
+                        $db->exec("ALTER TABLE `email_campaign_logs` ADD COLUMN `{$col}` {$def}");
+                    }
+                }
+            } catch (Exception $e) {}
+
             $stmt = $db->prepare("
                 SELECT 
                     c.*,
-                    COALESCE(SUM(CASE WHEN t.open_count > 0 THEN 1 ELSE 0 END), 0) AS opens_count,
-                    COALESCE(SUM(CASE WHEN cl.campaign_log_id IS NOT NULL THEN 1 ELSE 0 END), 0) AS clicks_count,
-                    COALESCE(SUM(CASE WHEN l.is_replied = 1 THEN 1 ELSE 0 END), 0) AS replies_count,
-                    COALESCE(SUM(CASE WHEN l.is_bounced = 1 OR l.status = 'Failed' THEN 1 ELSE 0 END), 0) AS bounces_count
+                    (SELECT COUNT(DISTINCT t.campaign_log_id) 
+                     FROM email_campaign_logs l2 
+                     JOIN email_tracking t ON l2.id = t.campaign_log_id 
+                     WHERE l2.campaign_id = c.id AND t.open_count > 0) AS opens_count,
+                    (SELECT COUNT(DISTINCT cl.campaign_log_id) 
+                     FROM email_campaign_logs l3 
+                     JOIN email_click_tracking cl ON l3.id = cl.campaign_log_id 
+                     WHERE l3.campaign_id = c.id) AS clicks_count,
+                    (SELECT COUNT(*) 
+                     FROM email_campaign_logs l4 
+                     WHERE l4.campaign_id = c.id AND l4.is_replied = 1) AS replies_count,
+                    (SELECT COUNT(*) 
+                     FROM email_campaign_logs l5 
+                     WHERE l5.campaign_id = c.id AND (l5.is_bounced = 1 OR l5.status = 'Failed')) AS bounces_count
                 FROM email_campaigns c
-                LEFT JOIN email_campaign_logs l ON c.id = l.campaign_id
-                LEFT JOIN email_tracking t ON l.id = t.campaign_log_id
-                LEFT JOIN (
-                    SELECT DISTINCT campaign_log_id FROM email_click_tracking
-                ) cl ON l.id = cl.campaign_log_id
                 WHERE c.user_id = ?
-                GROUP BY c.id
                 ORDER BY c.id DESC
             ");
             $stmt->execute([$userId]);

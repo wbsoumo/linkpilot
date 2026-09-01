@@ -25832,79 +25832,79 @@ window.renderEmailCampaigns = async function(container) {
     container.innerHTML = `
         <div class="space-y-6 animate-fade-in font-sans text-slate-800 pb-12">
             <!-- 1. COMPACT PAGE HEADER -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/60">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-200">
                 <div>
-                    <h1 class="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                    <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
                         <span>Email Campaigns</span>
-                        <span id="stat-ec-total-pill" class="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 rounded-full text-xs font-bold border border-indigo-100">0 Total</span>
+                        <span id="stat-ec-total-pill" class="px-3 py-0.5 bg-indigo-50 text-indigo-700 rounded-full text-xs font-black border border-indigo-200/80 shadow-2xs">0 Total</span>
                     </h1>
-                    <p class="text-xs text-slate-500 font-medium mt-0.5">Create, manage, and optimize your outbound campaigns.</p>
+                    <p class="text-xs text-slate-600 font-semibold mt-1">Create, manage, and optimize your outbound marketing & cold outreach campaigns.</p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="location.hash='#/templates'" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200 transition shadow-2xs flex items-center space-x-1.5 cursor-pointer">
-                        <i data-lucide="layout-template" class="h-3.5 w-3.5 text-slate-500"></i>
+                <div class="flex items-center gap-3">
+                    <button onclick="location.hash='#/templates'" class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs rounded-xl border border-slate-300 transition shadow-2xs flex items-center space-x-2 cursor-pointer">
+                        <i data-lucide="layout-template" class="h-4 w-4 text-slate-600"></i>
                         <span>Browse Templates</span>
                     </button>
-                    <button onclick="openEmailCampaignWizardModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-sm transition flex items-center space-x-1.5 cursor-pointer" style="color: #ffffff !important; background-color: #4F46E5 !important;">
+                    <button onclick="openEmailCampaignWizardModal()" class="px-4.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center space-x-2 cursor-pointer" style="color: #ffffff !important; background-color: #4F46E5 !important;">
                         <i data-lucide="plus" class="h-4 w-4 text-white" style="color: #ffffff !important;"></i>
-                        <span class="text-white font-semibold" style="color: #ffffff !important;">Create Campaign</span>
+                        <span class="text-white font-extrabold" style="color: #ffffff !important;">Create Campaign</span>
                     </button>
                 </div>
             </div>
 
             <!-- 2. MARKETING KPI CARDS -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="email-campaigns-stats">
-                <div class="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4.5" id="email-campaigns-stats">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col justify-between hover:border-indigo-200 transition">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs font-medium text-slate-500">Campaigns</span>
-                        <span class="p-1.5 rounded-lg bg-indigo-50 text-indigo-600"><i data-lucide="send" class="h-4 w-4"></i></span>
+                        <span class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Campaigns</span>
+                        <span class="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100/80"><i data-lucide="send" class="h-4.5 w-4.5"></i></span>
                     </div>
                     <div class="mt-3">
-                        <div class="text-2xl font-bold text-slate-900 tracking-tight" id="stat-ec-total">0</div>
-                        <div class="text-[11px] font-medium text-slate-400 mt-0.5 flex items-center gap-1">
-                            <span class="text-emerald-600 font-semibold flex items-center"><i data-lucide="trending-up" class="h-3 w-3 mr-0.5"></i>+12.4%</span>
+                        <div class="text-2xl font-black text-slate-900 tracking-tight" id="stat-ec-total">0</div>
+                        <div class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-1">
+                            <span class="text-emerald-600 font-extrabold flex items-center"><i data-lucide="trending-up" class="h-3.5 w-3.5 mr-0.5"></i>+12.4%</span>
                             <span>this month</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col justify-between hover:border-blue-200 transition">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs font-medium text-slate-500">Recipients</span>
-                        <span class="p-1.5 rounded-lg bg-blue-50 text-blue-600"><i data-lucide="users" class="h-4 w-4"></i></span>
+                        <span class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Recipients</span>
+                        <span class="p-2 rounded-xl bg-blue-50 text-blue-600 border border-blue-100/80"><i data-lucide="users" class="h-4.5 w-4.5"></i></span>
                     </div>
                     <div class="mt-3">
-                        <div class="text-2xl font-bold text-slate-900 tracking-tight" id="stat-ec-recipients">0</div>
-                        <div class="text-[11px] font-medium text-slate-400 mt-0.5 flex items-center gap-1">
-                            <span class="text-emerald-600 font-semibold flex items-center"><i data-lucide="arrow-up-right" class="h-3 w-3 mr-0.5"></i>+18.4%</span>
+                        <div class="text-2xl font-black text-slate-900 tracking-tight" id="stat-ec-recipients">0</div>
+                        <div class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-1">
+                            <span class="text-emerald-600 font-extrabold flex items-center"><i data-lucide="arrow-up-right" class="h-3.5 w-3.5 mr-0.5"></i>+18.4%</span>
                             <span>audience reach</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col justify-between hover:border-purple-200 transition">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs font-medium text-slate-500">Open Rate</span>
-                        <span class="p-1.5 rounded-lg bg-purple-50 text-purple-600"><i data-lucide="mail-open" class="h-4 w-4"></i></span>
+                        <span class="text-xs font-extrabold text-purple-700 uppercase tracking-wider">Open Rate</span>
+                        <span class="p-2 rounded-xl bg-purple-50 text-purple-600 border border-purple-100/80"><i data-lucide="mail-open" class="h-4.5 w-4.5"></i></span>
                     </div>
                     <div class="mt-3">
-                        <div class="text-2xl font-bold text-purple-700 tracking-tight" id="stat-ec-open-rate">0.0%</div>
-                        <div class="text-[11px] font-medium text-slate-400 mt-0.5 flex items-center gap-1">
-                            <span class="text-emerald-600 font-semibold flex items-center"><i data-lucide="trending-up" class="h-3 w-3 mr-0.5"></i>↑ 4.2%</span>
+                        <div class="text-2xl font-black text-purple-800 tracking-tight" id="stat-ec-open-rate">0.0%</div>
+                        <div class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-1">
+                            <span class="text-emerald-600 font-extrabold flex items-center"><i data-lucide="trending-up" class="h-3.5 w-3.5 mr-0.5"></i>↑ 4.2%</span>
                             <span>avg open benchmark</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col justify-between hover:border-emerald-200 transition">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs font-medium text-slate-500">Click Rate</span>
-                        <span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-600"><i data-lucide="mouse-pointer-click" class="h-4 w-4"></i></span>
+                        <span class="text-xs font-extrabold text-emerald-700 uppercase tracking-wider">Click Rate</span>
+                        <span class="p-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100/80"><i data-lucide="mouse-pointer-click" class="h-4.5 w-4.5"></i></span>
                     </div>
                     <div class="mt-3">
-                        <div class="text-2xl font-bold text-emerald-600 tracking-tight" id="stat-ec-click-rate">0.0%</div>
-                        <div class="text-[11px] font-medium text-slate-400 mt-0.5 flex items-center gap-1">
-                            <span class="text-emerald-600 font-semibold flex items-center"><i data-lucide="check" class="h-3 w-3 mr-0.5"></i>100%</span>
+                        <div class="text-2xl font-black text-emerald-700 tracking-tight" id="stat-ec-click-rate">0.0%</div>
+                        <div class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-1">
+                            <span class="text-emerald-600 font-extrabold flex items-center"><i data-lucide="check-circle" class="h-3.5 w-3.5 mr-0.5"></i>100%</span>
                             <span>delivery rate</span>
                         </div>
                     </div>
@@ -25912,14 +25912,14 @@ window.renderEmailCampaigns = async function(container) {
             </div>
 
             <!-- 3. PERFORMANCE OVERVIEW PANEL -->
-            <div class="bg-white rounded-xl border border-slate-200/80 p-5 shadow-2xs space-y-4">
-                <div class="flex items-center justify-between flex-wrap gap-3 pb-3 border-b border-slate-100">
+            <div class="bg-white rounded-2xl border border-slate-200/90 p-5.5 shadow-2xs space-y-4">
+                <div class="flex items-center justify-between flex-wrap gap-3 pb-3.5 border-b border-slate-200/80">
                     <div>
-                        <h3 class="text-sm font-semibold text-slate-900">Campaign Performance Overview</h3>
-                        <p class="text-[11px] text-slate-500">Aggregate metrics across active and past outbound dispatches</p>
+                        <h3 class="text-base font-black text-slate-900">Campaign Performance Overview</h3>
+                        <p class="text-xs font-medium text-slate-500 mt-0.5">Aggregate metrics across active and past outbound dispatches</p>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <select onchange="filterCampaignsPeriod(this.value)" class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer">
+                        <select onchange="filterCampaignsPeriod(this.value)" class="px-3.5 py-1.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500 cursor-pointer shadow-2xs">
                             <option value="30">Last 30 Days</option>
                             <option value="7">Last 7 Days</option>
                             <option value="90">Last 90 Days</option>
@@ -25929,83 +25929,83 @@ window.renderEmailCampaigns = async function(container) {
                 </div>
 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-1">
-                    <div class="p-3 bg-slate-50/80 rounded-lg border border-slate-100">
-                        <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Emails Dispatched</div>
-                        <div class="text-lg font-bold text-slate-800 mt-1" id="overview-sent">0</div>
+                    <div class="p-3.5 bg-slate-50/90 rounded-xl border border-slate-200/70">
+                        <div class="text-[11px] uppercase font-black text-slate-500 tracking-wider">Emails Dispatched</div>
+                        <div class="text-xl font-black text-slate-900 mt-1" id="overview-sent">0</div>
                     </div>
-                    <div class="p-3 bg-purple-50/40 rounded-lg border border-purple-100/60">
-                        <div class="text-[10px] uppercase font-bold text-purple-600 tracking-wider">Total Opens</div>
-                        <div class="text-lg font-bold text-purple-900 mt-1" id="overview-opens">0</div>
+                    <div class="p-3.5 bg-purple-50/60 rounded-xl border border-purple-200/60">
+                        <div class="text-[11px] uppercase font-black text-purple-700 tracking-wider">Total Opens</div>
+                        <div class="text-xl font-black text-purple-950 mt-1" id="overview-opens">0</div>
                     </div>
-                    <div class="p-3 bg-emerald-50/40 rounded-lg border border-emerald-100/60">
-                        <div class="text-[10px] uppercase font-bold text-emerald-600 tracking-wider">Total Clicks</div>
-                        <div class="text-lg font-bold text-emerald-900 mt-1" id="overview-clicks">0</div>
+                    <div class="p-3.5 bg-emerald-50/60 rounded-xl border border-emerald-200/60">
+                        <div class="text-[11px] uppercase font-black text-emerald-700 tracking-wider">Total Clicks</div>
+                        <div class="text-xl font-black text-emerald-950 mt-1" id="overview-clicks">0</div>
                     </div>
-                    <div class="p-3 bg-indigo-50/40 rounded-lg border border-indigo-100/60">
-                        <div class="text-[10px] uppercase font-bold text-indigo-600 tracking-wider">Delivery Rate</div>
-                        <div class="text-lg font-bold text-indigo-900 mt-1" id="overview-delivery">100.0%</div>
+                    <div class="p-3.5 bg-indigo-50/60 rounded-xl border border-indigo-200/60">
+                        <div class="text-[11px] uppercase font-black text-indigo-700 tracking-wider">Delivery Rate</div>
+                        <div class="text-xl font-black text-indigo-950 mt-1" id="overview-delivery">100.0%</div>
                     </div>
                 </div>
             </div>
 
             <!-- 4 & 5. CAMPAIGN TOOLBAR & TABLE CONTAINER -->
-            <div class="bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-hidden">
+            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
                 
                 <!-- Bulk Action Bar (Hidden by default) -->
                 <div id="ec-bulk-bar" class="hidden px-5 py-3 bg-indigo-50 border-b border-indigo-100 items-center justify-between flex-wrap gap-3">
-                    <div class="flex items-center space-x-2 text-xs font-semibold text-indigo-900">
-                        <span id="ec-selected-count" class="px-2 py-0.5 bg-indigo-600 text-white rounded-full text-[10px]">0</span>
+                    <div class="flex items-center space-x-2 text-xs font-bold text-indigo-900">
+                        <span id="ec-selected-count" class="px-2.5 py-0.5 bg-indigo-600 text-white rounded-full text-[11px] font-black">0</span>
                         <span>campaigns selected</span>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <button onclick="bulkPauseEmailCampaigns()" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium rounded-lg border border-indigo-200 shadow-2xs transition flex items-center space-x-1 cursor-pointer">
-                            <i data-lucide="pause" class="h-3.5 w-3.5 text-amber-600"></i>
+                        <button onclick="bulkPauseEmailCampaigns()" class="px-3.5 py-1.5 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl border border-indigo-200 shadow-2xs transition flex items-center space-x-1.5 cursor-pointer">
+                            <i data-lucide="pause" class="h-4 w-4 text-amber-600"></i>
                             <span>Pause / Resume</span>
                         </button>
-                        <button onclick="bulkDeleteEmailCampaigns()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium rounded-lg shadow-2xs transition flex items-center space-x-1 cursor-pointer">
-                            <i data-lucide="trash-2" class="h-3.5 w-3.5 text-white"></i>
+                        <button onclick="bulkDeleteEmailCampaigns()" class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-2xs transition flex items-center space-x-1.5 cursor-pointer">
+                            <i data-lucide="trash-2" class="h-4 w-4 text-white"></i>
                             <span>Delete</span>
                         </button>
                     </div>
                 </div>
 
                 <!-- Filter Bar -->
-                <div class="p-4 border-b border-slate-200/80 bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div class="p-4 border-b border-slate-200/90 bg-slate-50/60 flex flex-col md:flex-row md:items-center justify-between gap-3">
                     <!-- Status Filter Tabs -->
-                    <div class="flex items-center space-x-1 overflow-x-auto no-scrollbar py-0.5">
-                        <button onclick="setECStatusFilter('all')" id="ec-tab-all" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer bg-indigo-600 text-white shadow-2xs" style="color:#ffffff !important; background-color:#4F46E5 !important;">All</button>
-                        <button onclick="setECStatusFilter('Active')" id="ec-tab-Active" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-200/70 transition cursor-pointer">Sending</button>
-                        <button onclick="setECStatusFilter('Scheduled')" id="ec-tab-Scheduled" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-200/70 transition cursor-pointer">Scheduled</button>
-                        <button onclick="setECStatusFilter('Paused')" id="ec-tab-Paused" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-200/70 transition cursor-pointer">Paused</button>
-                        <button onclick="setECStatusFilter('Completed')" id="ec-tab-Completed" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-200/70 transition cursor-pointer">Completed</button>
+                    <div class="flex items-center space-x-1.5 overflow-x-auto no-scrollbar py-0.5">
+                        <button onclick="setECStatusFilter('all')" id="ec-tab-all" class="px-3.5 py-1.5 rounded-xl text-xs font-black transition cursor-pointer bg-indigo-600 text-white shadow-2xs" style="color:#ffffff !important; background-color:#4F46E5 !important;">All</button>
+                        <button onclick="setECStatusFilter('Active')" id="ec-tab-Active" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-200/80 transition cursor-pointer">Sending</button>
+                        <button onclick="setECStatusFilter('Scheduled')" id="ec-tab-Scheduled" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-200/80 transition cursor-pointer">Scheduled</button>
+                        <button onclick="setECStatusFilter('Paused')" id="ec-tab-Paused" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-200/80 transition cursor-pointer">Paused</button>
+                        <button onclick="setECStatusFilter('Completed')" id="ec-tab-Completed" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-200/80 transition cursor-pointer">Completed</button>
                     </div>
 
                     <!-- Search Box -->
-                    <div class="relative w-full md:w-72">
-                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none"></i>
-                        <input type="text" id="ec-search-input" oninput="filterEmailCampaignsTable()" placeholder="Search campaigns, subjects..." class="w-full pl-9 pr-8 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 transition-all">
-                        <button onclick="clearECSearch()" id="ec-clear-search-btn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                            <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                    <div class="relative w-full md:w-80">
+                        <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none"></i>
+                        <input type="text" id="ec-search-input" oninput="filterEmailCampaignsTable()" placeholder="Search campaigns, subjects..." class="w-full pl-9.5 pr-8 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 transition-all shadow-2xs">
+                        <button onclick="clearECSearch()" id="ec-clear-search-btn" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                            <i data-lucide="x" class="h-4 w-4"></i>
                         </button>
                     </div>
                 </div>
 
                 <!-- Table -->
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs text-slate-700">
-                        <thead class="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-400 font-bold border-b border-slate-200/80">
+                    <table class="w-full text-left text-xs text-slate-800">
+                        <thead class="bg-slate-100/80 text-[11px] uppercase tracking-wider text-slate-600 font-black border-b border-slate-200">
                             <tr>
-                                <th class="px-4 py-3 w-10 text-center">
-                                    <input type="checkbox" id="ec-select-all" onchange="toggleSelectAllCampaigns(this.checked)" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                                <th class="px-4 py-3.5 w-12 text-center">
+                                    <input type="checkbox" id="ec-select-all" onchange="toggleSelectAllCampaigns(this.checked)" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer h-4 w-4">
                                 </th>
-                                <th class="px-5 py-3">Campaign</th>
-                                <th class="px-4 py-3">Audience</th>
-                                <th class="px-4 py-3">Delivery</th>
-                                <th class="px-4 py-3">Engagement</th>
-                                <th class="px-4 py-3">Throttle</th>
-                                <th class="px-4 py-3">Status</th>
-                                <th class="px-4 py-3">Start Date</th>
-                                <th class="px-5 py-3 text-right">Actions</th>
+                                <th class="px-5 py-3.5">Campaign Name & Subject</th>
+                                <th class="px-4 py-3.5">Audience</th>
+                                <th class="px-4 py-3.5">Delivery Progress</th>
+                                <th class="px-4 py-3.5">Engagement</th>
+                                <th class="px-4 py-3.5">Throttle</th>
+                                <th class="px-4 py-3.5">Status</th>
+                                <th class="px-4 py-3.5">Start Date</th>
+                                <th class="px-5 py-3.5 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="email-campaigns-tbody" class="divide-y divide-slate-100 bg-white">
@@ -26192,73 +26192,73 @@ window.renderEmailCampaignsTable = function(list) {
 
         let statusBadge = '';
         if (c.status === 'Active') {
-            statusBadge = `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold rounded-md text-[10px] flex items-center w-fit"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>Sending</span>`;
+            statusBadge = `<span class="px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-300/80 font-black rounded-lg text-xs flex items-center w-fit shadow-2xs"><span class="h-2 w-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>Sending</span>`;
         } else if (c.status === 'Scheduled') {
-            statusBadge = `<span class="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 font-semibold rounded-md text-[10px] flex items-center w-fit"><i data-lucide="clock" class="h-3 w-3 mr-1 text-blue-500"></i>Scheduled</span>`;
+            statusBadge = `<span class="px-2.5 py-1 bg-blue-50 text-blue-800 border border-blue-300/80 font-black rounded-lg text-xs flex items-center w-fit shadow-2xs"><i data-lucide="clock" class="h-3.5 w-3.5 mr-1.5 text-blue-600"></i>Scheduled</span>`;
         } else if (c.status === 'Paused') {
-            statusBadge = `<span class="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 font-semibold rounded-md text-[10px] flex items-center w-fit"><i data-lucide="pause" class="h-3 w-3 mr-1 text-amber-500"></i>Paused</span>`;
+            statusBadge = `<span class="px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-300/80 font-black rounded-lg text-xs flex items-center w-fit shadow-2xs"><i data-lucide="pause" class="h-3.5 w-3.5 mr-1.5 text-amber-600"></i>Paused</span>`;
         } else {
-            statusBadge = `<span class="px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 font-semibold rounded-md text-[10px] flex items-center w-fit"><i data-lucide="check-circle" class="h-3 w-3 mr-1 text-emerald-500"></i>Completed</span>`;
+            statusBadge = `<span class="px-2.5 py-1 bg-slate-100 text-slate-800 border border-slate-300/80 font-black rounded-lg text-xs flex items-center w-fit shadow-2xs"><i data-lucide="check-circle" class="h-3.5 w-3.5 mr-1.5 text-emerald-600"></i>Completed</span>`;
         }
 
         // Progress representation
         let progressHtml = '';
         if (c.status === 'Active') {
             progressHtml = `
-                <div class="font-semibold text-slate-800">${sent.toLocaleString()} / ${total.toLocaleString()}</div>
-                <div class="flex items-center gap-1.5 mt-1">
-                    <div class="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                        <div class="bg-indigo-600 h-1.5 rounded-full transition-all" style="width: ${pct}%"></div>
+                <div class="font-bold text-slate-900 text-xs">${sent.toLocaleString()} / ${total.toLocaleString()}</div>
+                <div class="flex items-center gap-2 mt-1">
+                    <div class="w-24 bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/60">
+                        <div class="bg-indigo-600 h-2 rounded-full transition-all" style="width: ${pct}%"></div>
                     </div>
-                    <span class="text-[10px] font-bold text-indigo-600">${pct}%</span>
+                    <span class="text-xs font-black text-indigo-700">${pct}%</span>
                 </div>
             `;
         } else {
             progressHtml = `
-                <div class="font-semibold text-slate-800">${sent.toLocaleString()} sent</div>
-                <div class="text-[10px] font-medium text-slate-400">100% delivered</div>
+                <div class="font-black text-slate-900 text-xs">${sent.toLocaleString()} sent</div>
+                <div class="text-[11px] font-bold text-slate-500">100% delivered</div>
             `;
         }
         
         return `
-            <tr onclick="openEmailCampaignReportModal(${c.id})" class="hover:bg-slate-50/80 transition cursor-pointer group">
-                <td class="px-4 py-3.5 text-center" onclick="event.stopPropagation()">
-                    <input type="checkbox" onchange="toggleSelectCampaign(${c.id}, this.checked)" ${isChecked ? 'checked' : ''} class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+            <tr onclick="openEmailCampaignReportModal(${c.id})" class="hover:bg-indigo-50/30 transition cursor-pointer group border-b border-slate-100">
+                <td class="px-4 py-4 text-center" onclick="event.stopPropagation()">
+                    <input type="checkbox" onchange="toggleSelectCampaign(${c.id}, this.checked)" ${isChecked ? 'checked' : ''} class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer h-4 w-4">
                 </td>
-                <td class="px-5 py-3.5 max-w-xs">
-                    <div class="font-semibold text-slate-900 text-xs group-hover:text-indigo-600 transition truncate" title="${escapeHtml(c.campaign_name)}">${escapeHtml(c.campaign_name)}</div>
-                    <div class="text-[11px] text-slate-500 truncate mt-0.5" title="${escapeHtml(c.subject)}">${escapeHtml(c.subject)}</div>
+                <td class="px-5 py-4 max-w-xs">
+                    <div class="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-indigo-600 transition truncate" title="${escapeHtml(c.campaign_name)}">${escapeHtml(c.campaign_name)}</div>
+                    <div class="text-xs text-slate-500 font-semibold truncate mt-0.5" title="${escapeHtml(c.subject)}">${escapeHtml(c.subject)}</div>
                 </td>
-                <td class="px-4 py-3.5 font-medium text-slate-700">
-                    <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md text-[11px] font-semibold">${total.toLocaleString()}</span>
+                <td class="px-4 py-4 font-bold text-slate-800">
+                    <span class="px-2.5 py-1 bg-slate-100 text-slate-800 rounded-lg text-xs font-extrabold border border-slate-200">${total.toLocaleString()}</span>
                 </td>
-                <td class="px-4 py-3.5">
+                <td class="px-4 py-4">
                     ${progressHtml}
                 </td>
-                <td class="px-4 py-3.5">
-                    <div class="text-[11px] font-semibold text-slate-800">${openPct}% <span class="text-slate-400 font-normal">open</span></div>
-                    <div class="text-[10px] font-medium text-slate-500">${clickPct}% <span class="text-slate-400">click</span></div>
+                <td class="px-4 py-4">
+                    <div class="text-xs font-black text-slate-900">${openPct}% <span class="text-slate-500 font-bold">open</span></div>
+                    <div class="text-[11px] font-bold text-slate-600 mt-0.5">${clickPct}% <span class="text-slate-500">click</span></div>
                 </td>
-                <td class="px-4 py-3.5">
-                    <div class="text-[11px] font-semibold text-slate-800" title="Sending limit: ${c.batch_size} emails every ${c.interval_minutes} minutes">${c.batch_size} / ${c.interval_minutes} min</div>
+                <td class="px-4 py-4">
+                    <div class="text-xs font-bold text-slate-800" title="Sending limit: ${c.batch_size} emails every ${c.interval_minutes} minutes">${c.batch_size} / ${c.interval_minutes} min</div>
                 </td>
-                <td class="px-4 py-3.5">
+                <td class="px-4 py-4">
                     ${statusBadge}
                 </td>
-                <td class="px-4 py-3.5 text-[11px] text-slate-600">
-                    <div class="font-medium text-slate-700">${c.start_at ? c.start_at.slice(0, 10) : 'Immediate'}</div>
+                <td class="px-4 py-4 text-xs text-slate-700">
+                    <div class="font-bold text-slate-800">${c.start_at ? c.start_at.slice(0, 10) : 'Immediate'}</div>
                 </td>
-                <td class="px-5 py-3.5 text-right" onclick="event.stopPropagation()">
-                    <div class="flex items-center justify-end space-x-1.5">
-                        <button onclick="openEmailCampaignReportModal(${c.id})" title="View Report" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 rounded-lg text-[11px] font-semibold transition cursor-pointer border border-indigo-100 flex items-center space-x-1">
-                            <i data-lucide="bar-chart-2" class="h-3 w-3"></i>
+                <td class="px-5 py-4 text-right" onclick="event.stopPropagation()">
+                    <div class="flex items-center justify-end space-x-2">
+                        <button onclick="openEmailCampaignReportModal(${c.id})" title="View Report" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 rounded-xl text-xs font-bold transition cursor-pointer border border-indigo-200/80 flex items-center space-x-1.5 shadow-2xs">
+                            <i data-lucide="bar-chart-2" class="h-4 w-4"></i>
                             <span class="hidden sm:inline">Report</span>
                         </button>
-                        <button onclick="togglePauseEmailCampaign(${c.id})" title="${c.status === 'Paused' ? 'Resume Campaign' : 'Pause Campaign'}" class="p-1.5 bg-slate-100 hover:bg-amber-50 hover:text-amber-600 rounded-lg text-slate-600 transition cursor-pointer">
-                            <i data-lucide="${c.status === 'Paused' ? 'play' : 'pause'}" class="h-3.5 w-3.5"></i>
+                        <button onclick="togglePauseEmailCampaign(${c.id})" title="${c.status === 'Paused' ? 'Resume Campaign' : 'Pause Campaign'}" class="p-2 bg-slate-100 hover:bg-amber-50 hover:text-amber-600 rounded-xl text-slate-700 transition cursor-pointer border border-slate-200 shadow-2xs">
+                            <i data-lucide="${c.status === 'Paused' ? 'play' : 'pause'}" class="h-4 w-4"></i>
                         </button>
-                        <button onclick="deleteEmailCampaign(${c.id})" title="Delete Campaign" class="p-1.5 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 rounded-lg text-slate-600 transition cursor-pointer">
-                            <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                        <button onclick="deleteEmailCampaign(${c.id})" title="Delete Campaign" class="p-2 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 rounded-xl text-slate-700 transition cursor-pointer border border-slate-200 shadow-2xs">
+                            <i data-lucide="trash-2" class="h-4 w-4"></i>
                         </button>
                     </div>
                 </td>

@@ -13741,37 +13741,42 @@ function renderVisualCanvas(container) {
                     </div>
 
                     <!-- Center Canvas -->
-                    <div class="flex-grow flex flex-col h-full relative overflow-hidden wf-canvas-container" id="wf-canvas-container" onwheel="handleCanvasScroll(event)" onmousedown="handleCanvasMouseDown(event)" ondragover="event.preventDefault()" ondrop="handleNodeDrop(event)">
-                        <!-- Canvas Floating Toolbar -->
-                        <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 bg-white/95 border border-slate-200 rounded-xl p-1.5 flex items-center space-x-1.5 shadow-md text-[9px] font-bold text-slate-550 select-none">
-                            <button onclick="undoWorkflowChange()" class="flex items-center space-x-1 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">
+                    <div class="flex-grow flex flex-col h-full relative overflow-hidden wf-canvas-container touch-none" id="wf-canvas-container" onwheel="handleCanvasScroll(event)" onmousedown="handleCanvasMouseDown(event)" ontouchstart="handleCanvasTouchStart(event)" ontouchmove="handleCanvasTouchMove(event)" ontouchend="handleCanvasTouchEnd(event)" ondragover="event.preventDefault()" ondrop="handleNodeDrop(event)">
+                        <!-- Canvas Responsive Toolbar -->
+                        <div class="absolute top-3 left-1/2 transform -translate-x-1/2 z-20 bg-white/95 backdrop-blur-sm border border-slate-200 rounded-2xl p-1.5 flex items-center space-x-1 shadow-lg text-[9px] font-bold text-slate-600 select-none max-w-[92vw] overflow-x-auto no-scrollbar">
+                            <button onclick="undoWorkflowChange()" class="flex items-center space-x-1 px-2 py-1 rounded-xl hover:bg-slate-100 transition shrink-0" title="Undo">
                                 <i data-lucide="undo" class="h-3.5 w-3.5 text-slate-500"></i>
-                                <span>Undo</span>
+                                <span class="hidden sm:inline">Undo</span>
                             </button>
-                            <button onclick="redoWorkflowChange()" class="flex items-center space-x-1 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">
+                            <button onclick="redoWorkflowChange()" class="flex items-center space-x-1 px-2 py-1 rounded-xl hover:bg-slate-100 transition shrink-0" title="Redo">
                                 <i data-lucide="redo" class="h-3.5 w-3.5 text-slate-500"></i>
-                                <span>Redo</span>
+                                <span class="hidden sm:inline">Redo</span>
                             </button>
-                            <div class="h-6 w-px bg-slate-200 mx-1"></div>
-                            <button onclick="zoomWorkflow(-0.1)" class="flex items-center space-x-1 px-2 py-1 rounded-lg hover:bg-slate-100 transition">
-                                <i data-lucide="zoom-out" class="h-3.5 w-3.5 text-slate-500"></i>
-                                <span>Zoom Out</span>
+                            <div class="h-5 w-px bg-slate-200 mx-0.5 shrink-0"></div>
+                            <button onclick="zoomWorkflow(-0.1)" class="p-1.5 rounded-xl hover:bg-slate-100 transition shrink-0" title="Zoom Out">
+                                <i data-lucide="zoom-out" class="h-3.5 w-3.5 text-slate-600"></i>
                             </button>
-                            <div class="flex items-center px-2">
-                                <span class="text-slate-800 font-bold">${Math.round(window.wfState.zoom * 100)}%</span>
+                            <div class="flex items-center px-1.5 shrink-0">
+                                <span id="wf-zoom-percentage-label" class="text-indigo-650 font-black text-[10px]">${Math.round(window.wfState.zoom * 100)}%</span>
                             </div>
-                            <button onclick="zoomWorkflow(0.1)" class="flex items-center space-x-1 px-2 py-1 rounded-lg hover:bg-slate-100 transition">
-                                <i data-lucide="zoom-in" class="h-3.5 w-3.5 text-slate-500"></i>
-                                <span>Zoom In</span>
+                            <button onclick="zoomWorkflow(0.1)" class="p-1.5 rounded-xl hover:bg-slate-100 transition shrink-0" title="Zoom In">
+                                <i data-lucide="zoom-in" class="h-3.5 w-3.5 text-slate-600"></i>
                             </button>
-                            <div class="h-6 w-px bg-slate-200 mx-1"></div>
-                            <button onclick="zoomToFit()" class="flex items-center space-x-1 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">
-                                <i data-lucide="maximize" class="h-3.5 w-3.5 text-slate-500"></i>
-                                <span>Fit</span>
+                            <div class="h-5 w-px bg-slate-200 mx-0.5 shrink-0"></div>
+                            <button onclick="zoomToFit()" class="flex items-center space-x-1 px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl transition shrink-0 border border-indigo-100" title="Auto-Fit Canvas">
+                                <i data-lucide="maximize" class="h-3.5 w-3.5 text-indigo-600"></i>
+                                <span class="font-extrabold">Auto-Fit</span>
                             </button>
-                            <button onclick="autoArrangeCanvas()" class="flex items-center space-x-1 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition">
-                                <i data-lucide="layout-grid" class="h-3.5 w-3.5 text-slate-500"></i>
-                                <span>Auto Arrange</span>
+                            <button onclick="autoArrangeCanvas()" class="flex items-center space-x-1 px-2 py-1 rounded-xl hover:bg-slate-100 transition shrink-0" title="Auto Arrange">
+                                <i data-lucide="layout-grid" class="h-3.5 w-3.5 text-slate-600"></i>
+                                <span class="hidden md:inline">Arrange</span>
+                            </button>
+                            <div class="h-5 w-px bg-slate-200 mx-0.5 shrink-0"></div>
+                            <button onclick="navigateCanvasNode(-1)" class="p-1.5 rounded-xl hover:bg-slate-100 transition shrink-0" title="Previous Node">
+                                <i data-lucide="chevron-left" class="h-3.5 w-3.5 text-slate-600"></i>
+                            </button>
+                            <button onclick="navigateCanvasNode(1)" class="p-1.5 rounded-xl hover:bg-slate-100 transition shrink-0" title="Next Node">
+                                <i data-lucide="chevron-right" class="h-3.5 w-3.5 text-slate-600"></i>
                             </button>
                         </div>
 
@@ -21413,8 +21418,154 @@ function zoomWorkflow(delta) {
         canvas.style.transform = `translate(${window.wfState.panX}px, ${window.wfState.panY}px) scale(${window.wfState.zoom})`;
     }
     
-    const zoomText = document.querySelector('.wf-canvas-container button + span');
+    const zoomText = document.getElementById('wf-zoom-percentage-label');
     if (zoomText) zoomText.textContent = `${Math.round(window.wfState.zoom * 100)}%`;
+}
+
+function zoomToFit() {
+    const wf = window.wfState.activeWorkflow;
+    if (!wf || !wf.nodes || wf.nodes.length === 0) return;
+
+    const container = document.getElementById('wf-canvas-container');
+    if (!container) return;
+
+    const cRect = container.getBoundingClientRect();
+    const xs = wf.nodes.map(n => n.x);
+    const ys = wf.nodes.map(n => n.y);
+
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs) + 200; // include node width
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys) + 120; // include node height
+
+    const contentWidth = Math.max(maxX - minX, 300);
+    const contentHeight = Math.max(maxY - minY, 200);
+
+    const scaleX = (cRect.width - 80) / contentWidth;
+    const scaleY = (cRect.height - 100) / contentHeight;
+    let targetZoom = Math.min(Math.max(0.4, Math.min(scaleX, scaleY)), 1.2);
+
+    window.wfState.zoom = parseFloat(targetZoom.toFixed(2));
+    window.wfState.panX = Math.round((cRect.width - contentWidth * window.wfState.zoom) / 2 - minX * window.wfState.zoom);
+    window.wfState.panY = Math.round((cRect.height - contentHeight * window.wfState.zoom) / 2 - minY * window.wfState.zoom);
+
+    const canvas = document.getElementById('workflow-canvas');
+    if (canvas) {
+        canvas.style.transform = `translate(${window.wfState.panX}px, ${window.wfState.panY}px) scale(${window.wfState.zoom})`;
+    }
+
+    const zoomText = document.getElementById('wf-zoom-percentage-label');
+    if (zoomText) zoomText.textContent = `${Math.round(window.wfState.zoom * 100)}%`;
+    drawMiniMap();
+}
+
+function navigateCanvasNode(direction) {
+    const wf = window.wfState.activeWorkflow;
+    if (!wf || !wf.nodes || wf.nodes.length === 0) return;
+
+    let currentIndex = wf.nodes.findIndex(n => n.id === window.wfState.selectedNodeId);
+    if (currentIndex === -1) {
+        currentIndex = 0;
+    } else {
+        currentIndex = (currentIndex + direction + wf.nodes.length) % wf.nodes.length;
+    }
+
+    const targetNode = wf.nodes[currentIndex];
+    if (!targetNode) return;
+
+    window.wfState.selectedNodeId = targetNode.id;
+
+    // Center canvas view around target node
+    const container = document.getElementById('wf-canvas-container');
+    if (container) {
+        const cRect = container.getBoundingClientRect();
+        window.wfState.panX = Math.round((cRect.width / 2) - (targetNode.x + 100) * window.wfState.zoom);
+        window.wfState.panY = Math.round((cRect.height / 2) - (targetNode.y + 40) * window.wfState.zoom);
+
+        const canvas = document.getElementById('workflow-canvas');
+        if (canvas) {
+            canvas.style.transform = `translate(${window.wfState.panX}px, ${window.wfState.panY}px) scale(${window.wfState.zoom})`;
+        }
+    }
+
+    // Highlight selected node
+    document.querySelectorAll('.wf-node').forEach(el => el.classList.remove('selected'));
+    const el = document.getElementById(targetNode.id);
+    if (el) el.classList.add('selected');
+
+    // Refresh config sidebar
+    const sidebar = document.getElementById('wf-config-sidebar');
+    if (sidebar) sidebar.innerHTML = renderConfigSidebarHTML();
+    lucide.createIcons();
+    drawMiniMap();
+}
+
+// Touch & Pinch-to-Zoom Event Handlers
+window.touchState = {
+    initialPinchDist: 0,
+    initialZoom: 1,
+    isTouchPanning: false,
+    startX: 0,
+    startY: 0
+};
+
+function handleCanvasTouchStart(e) {
+    if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        if (touch.target.closest('.wf-node') || touch.target.closest('.wf-node-handle')) return;
+        window.touchState.isTouchPanning = true;
+        window.touchState.startX = touch.clientX - window.wfState.panX;
+        window.touchState.startY = touch.clientY - window.wfState.panY;
+    } else if (e.touches.length === 2) {
+        window.touchState.isTouchPanning = false;
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        window.touchState.initialPinchDist = Math.hypot(dx, dy);
+        window.touchState.initialZoom = window.wfState.zoom;
+    }
+}
+
+function handleCanvasTouchMove(e) {
+    if (window.touchState.isTouchPanning && e.touches.length === 1) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        window.wfState.panX = touch.clientX - window.touchState.startX;
+        window.wfState.panY = touch.clientY - window.touchState.startY;
+
+        const canvas = document.getElementById('workflow-canvas');
+        if (canvas) {
+            canvas.style.transform = `translate(${window.wfState.panX}px, ${window.wfState.panY}px) scale(${window.wfState.zoom})`;
+        }
+    } else if (e.touches.length === 2) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const currentDist = Math.hypot(dx, dy);
+
+        if (window.touchState.initialPinchDist > 0) {
+            const pinchRatio = currentDist / window.touchState.initialPinchDist;
+            const newZoom = window.touchState.initialZoom * pinchRatio;
+            window.wfState.zoom = Math.min(Math.max(0.3, newZoom), 2.0);
+
+            const canvas = document.getElementById('workflow-canvas');
+            if (canvas) {
+                canvas.style.transform = `translate(${window.wfState.panX}px, ${window.wfState.panY}px) scale(${window.wfState.zoom})`;
+            }
+
+            const zoomText = document.getElementById('wf-zoom-percentage-label');
+            if (zoomText) zoomText.textContent = `${Math.round(window.wfState.zoom * 100)}%`;
+        }
+    }
+}
+
+function handleCanvasTouchEnd(e) {
+    if (e.touches.length < 2) {
+        window.touchState.initialPinchDist = 0;
+    }
+    if (e.touches.length === 0) {
+        window.touchState.isTouchPanning = false;
+        drawMiniMap();
+    }
 }
 
 function autoArrangeCanvas() {

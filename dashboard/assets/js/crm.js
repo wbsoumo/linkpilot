@@ -585,37 +585,48 @@ async function navigateTo(view, params = {}) {
                 await renderInstallExtensions(contentArea);
                 break;
             case 'whatsapp-dashboard':
-                await renderWhatsAppDashboard(contentArea);
+                if (typeof renderWhatsAppDashboard === 'function') await renderWhatsAppDashboard(contentArea);
+                else showNotification('warning', 'WhatsApp Module is loading, please try again in a moment.');
                 break;
             case 'whatsapp-inbox':
-                await renderWhatsAppInbox(contentArea);
+                if (typeof renderWhatsAppInbox === 'function') await renderWhatsAppInbox(contentArea);
+                else showNotification('warning', 'WhatsApp Module is loading...');
                 break;
             case 'whatsapp-contacts':
-                await renderWhatsAppContacts(contentArea);
+                if (typeof renderWhatsAppContacts === 'function') await renderWhatsAppContacts(contentArea);
+                else showNotification('warning', 'WhatsApp Module is loading...');
                 break;
             case 'whatsapp-campaigns':
-                await renderWhatsAppCampaigns(contentArea);
+                if (typeof renderWhatsAppCampaigns === 'function') await renderWhatsAppCampaigns(contentArea);
+                else showNotification('warning', 'WhatsApp Module is loading...');
                 break;
             case 'whatsapp-templates':
-                await renderWhatsAppTemplates(contentArea);
+                if (typeof renderWhatsAppTemplates === 'function') await renderWhatsAppTemplates(contentArea);
+                else showNotification('warning', 'WhatsApp Module is loading...');
                 break;
             case 'whatsapp-send-template':
-                await renderWhatsAppSendTemplate(contentArea, params);
+                if (typeof renderWhatsAppSendTemplate === 'function') await renderWhatsAppSendTemplate(contentArea, params);
+                else showNotification('warning', 'WhatsApp Module is loading...');
                 break;
             case 'whatsapp-broadcast':
-                await renderWhatsAppBroadcast(contentArea);
+                if (typeof renderWhatsAppBroadcast === 'function') await renderWhatsAppBroadcast(contentArea);
+                else showNotification('warning', 'WhatsApp Module is loading...');
                 break;
             case 'whatsapp-automation':
-                await renderWhatsAppAutomation(contentArea);
+                if (typeof renderWhatsAppAutomation === 'function') await renderWhatsAppAutomation(contentArea);
+                else showNotification('warning', 'WhatsApp Module is loading...');
                 break;
             case 'whatsapp-train':
-                await renderWhatsAppTrain(contentArea);
+                if (typeof renderWhatsAppTrain === 'function') await renderWhatsAppTrain(contentArea);
+                else showNotification('warning', 'WhatsApp Module is loading...');
                 break;
             case 'whatsapp-reports':
-                await renderWhatsAppReports(contentArea);
+                if (typeof renderWhatsAppReports === 'function') await renderWhatsAppReports(contentArea);
+                else showNotification('warning', 'WhatsApp Module is loading...');
                 break;
             case 'whatsapp-settings':
-                await renderWhatsAppSettings(contentArea);
+                if (typeof renderWhatsAppSettings === 'function') await renderWhatsAppSettings(contentArea);
+                else showNotification('warning', 'WhatsApp Module is loading...');
                 break;
             default:
                 await renderDashboard(contentArea);

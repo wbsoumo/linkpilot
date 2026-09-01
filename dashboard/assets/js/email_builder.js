@@ -270,8 +270,10 @@
                 <!-- TOP HEADER ACTION BAR -->
                 <div class="h-14 border-b border-slate-200 bg-white px-6 flex items-center justify-between shrink-0 z-45 shadow-sm">
                     <div class="flex items-center space-x-3">
-                        <button onclick="exitEmailBuilder()" style="background-color: #ffffff !important; color: #475569 !important; border: 1px solid #cbd5e1 !important;" class="p-2 hover:text-slate-900 rounded-lg transition" title="Exit Builder">
-                            <i data-lucide="x" class="h-4 w-4"></i>
+                        <!-- Top-Left Navigation Control: Back to CRM -->
+                        <button onclick="exitEmailBuilder()" style="background-color: #EEF2FF !important; color: #4F46E5 !important; border: 1px solid #C7D2FE !important;" class="px-3 py-1.5 hover:bg-indigo-100 text-indigo-600 rounded-xl font-extrabold text-xs transition flex items-center space-x-1.5 shadow-2xs cursor-pointer" title="Return to LinkPilot CRM">
+                            <i data-lucide="arrow-left" class="h-3.5 w-3.5 text-indigo-600"></i>
+                            <span>← Back to CRM</span>
                         </button>
                         <div class="border-l border-slate-200 h-6 mx-1"></div>
                         <div class="flex items-center space-x-2">

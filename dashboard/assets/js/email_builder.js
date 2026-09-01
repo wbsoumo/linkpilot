@@ -1321,19 +1321,52 @@
                             `;
                             break;
                         case 'columns':
-                            elementInner = `
-                                <table border="0" cellpadding="0" cellspacing="0" width="100%" class="rounded-xl overflow-hidden">
-                                    <tr>
-                                        <td width="48%" valign="top" style="padding: 14px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; color: #334155; line-height: 1.6;">
-                                            ${el.settings.col1Content || 'Column 1 text details and messaging goes here...'}
-                                        </td>
-                                        <td width="4%">&nbsp;</td>
-                                        <td width="48%" valign="top" style="padding: 14px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; color: #334155; line-height: 1.6;">
-                                            ${el.settings.col2Content || 'Column 2 text details and messaging goes here...'}
-                                        </td>
-                                    </tr>
-                                </table>
-                            `;
+                            {
+                                const count = el.settings.colCount || '2';
+                                if (count === '1') {
+                                    elementInner = `
+                                        <table border="0" cellpadding="0" cellspacing="0" width="100%" class="rounded-xl overflow-hidden">
+                                            <tr>
+                                                <td width="100%" valign="top" style="padding: 14px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; color: #334155; line-height: 1.6;">
+                                                    ${el.settings.col1Content || 'Column 1 text details and messaging goes here...'}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    `;
+                                } else if (count === '3') {
+                                    elementInner = `
+                                        <table border="0" cellpadding="0" cellspacing="0" width="100%" class="rounded-xl overflow-hidden">
+                                            <tr>
+                                                <td width="31%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 12px; color: #334155; line-height: 1.5;">
+                                                    ${el.settings.col1Content || 'Column 1 details...'}
+                                                </td>
+                                                <td width="3.5%">&nbsp;</td>
+                                                <td width="31%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 12px; color: #334155; line-height: 1.5;">
+                                                    ${el.settings.col2Content || 'Column 2 details...'}
+                                                </td>
+                                                <td width="3.5%">&nbsp;</td>
+                                                <td width="31%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 12px; color: #334155; line-height: 1.5;">
+                                                    ${el.settings.col3Content || 'Column 3 details...'}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    `;
+                                } else {
+                                    elementInner = `
+                                        <table border="0" cellpadding="0" cellspacing="0" width="100%" class="rounded-xl overflow-hidden">
+                                            <tr>
+                                                <td width="48%" valign="top" style="padding: 14px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; color: #334155; line-height: 1.6;">
+                                                    ${el.settings.col1Content || 'Column 1 text details and messaging goes here...'}
+                                                </td>
+                                                <td width="4%">&nbsp;</td>
+                                                <td width="48%" valign="top" style="padding: 14px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; color: #334155; line-height: 1.6;">
+                                                    ${el.settings.col2Content || 'Column 2 text details and messaging goes here...'}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    `;
+                                }
+                            }
                             break;
                         case 'html':
                             elementInner = `
@@ -2053,13 +2086,29 @@
                         controlsHtml = `
                             <div class="space-y-4">
                                 <div class="space-y-1">
-                                    <label class="font-bold text-slate-300">Column 1 Content</label>
-                                    <textarea oninput="updateElementSetting('col1Content', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">${selectedEl.settings.col1Content || ''}</textarea>
+                                    <label class="font-bold text-slate-300">Layout Preset</label>
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <button onclick="updateElementSetting('colCount', '1')" class="py-2 px-1 text-[11px] font-bold border rounded-lg transition ${selectedEl.settings.colCount === '1' ? 'border-[#6D5EF5] bg-indigo-50 text-[#6D5EF5]' : 'border-slate-200 bg-white text-slate-600'}">1 Column</button>
+                                        <button onclick="updateElementSetting('colCount', '2')" class="py-2 px-1 text-[11px] font-bold border rounded-lg transition ${(!selectedEl.settings.colCount || selectedEl.settings.colCount === '2') ? 'border-[#6D5EF5] bg-indigo-50 text-[#6D5EF5]' : 'border-slate-200 bg-white text-slate-600'}">2 Columns</button>
+                                        <button onclick="updateElementSetting('colCount', '3')" class="py-2 px-1 text-[11px] font-bold border rounded-lg transition ${selectedEl.settings.colCount === '3' ? 'border-[#6D5EF5] bg-indigo-50 text-[#6D5EF5]' : 'border-slate-200 bg-white text-slate-600'}">3 Columns</button>
+                                    </div>
                                 </div>
                                 <div class="space-y-1">
-                                    <label class="font-bold text-slate-300">Column 2 Content</label>
-                                    <textarea oninput="updateElementSetting('col2Content', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">${selectedEl.settings.col2Content || ''}</textarea>
+                                    <label class="font-bold text-slate-300">Column 1 Text</label>
+                                    <textarea oninput="updateElementSetting('col1Content', this.value)" rows="3" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">${selectedEl.settings.col1Content || ''}</textarea>
                                 </div>
+                                ${(selectedEl.settings.colCount !== '1') ? `
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Column 2 Text</label>
+                                    <textarea oninput="updateElementSetting('col2Content', this.value)" rows="3" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">${selectedEl.settings.col2Content || ''}</textarea>
+                                </div>
+                                ` : ''}
+                                ${(selectedEl.settings.colCount === '3') ? `
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-300">Column 3 Text</label>
+                                    <textarea oninput="updateElementSetting('col3Content', this.value)" rows="3" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800">${selectedEl.settings.col3Content || ''}</textarea>
+                                </div>
+                                ` : ''}
                                 <div class="space-y-1">
                                     <label class="font-bold text-slate-300">Column Gap (px)</label>
                                     <input type="text" oninput="updateElementSetting('gap', this.value)" value="${selectedEl.settings.gap || '20px'}" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800">
@@ -2788,23 +2837,64 @@
                         `;
                         break;
                     case 'columns':
-                        inner = `
-                            <tr>
-                                <td style="padding: 15px 0;">
-                                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
-                                        <tr>
-                                            <td width="48%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 14px; color: #334155; line-height: 1.6;">
-                                                ${el.settings.col1Content || 'Column 1 details and text messaging...'}
-                                            </td>
-                                            <td width="4%">&nbsp;</td>
-                                            <td width="48%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 14px; color: #334155; line-height: 1.6;">
-                                                ${el.settings.col2Content || 'Column 2 details and text messaging...'}
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                        `;
+                        {
+                            const count = el.settings.colCount || '2';
+                            if (count === '1') {
+                                inner = `
+                                    <tr>
+                                        <td style="padding: 15px 0;">
+                                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                                <tr>
+                                                    <td width="100%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 14px; color: #334155; line-height: 1.6;">
+                                                        ${el.settings.col1Content || 'Column 1 details and text messaging...'}
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                `;
+                            } else if (count === '3') {
+                                inner = `
+                                    <tr>
+                                        <td style="padding: 15px 0;">
+                                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                                <tr>
+                                                    <td width="31%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 13px; color: #334155; line-height: 1.5;">
+                                                        ${el.settings.col1Content || 'Column 1 details...'}
+                                                    </td>
+                                                    <td width="3.5%">&nbsp;</td>
+                                                    <td width="31%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 13px; color: #334155; line-height: 1.5;">
+                                                        ${el.settings.col2Content || 'Column 2 details...'}
+                                                    </td>
+                                                    <td width="3.5%">&nbsp;</td>
+                                                    <td width="31%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 13px; color: #334155; line-height: 1.5;">
+                                                        ${el.settings.col3Content || 'Column 3 details...'}
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                `;
+                            } else {
+                                inner = `
+                                    <tr>
+                                        <td style="padding: 15px 0;">
+                                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                                <tr>
+                                                    <td width="48%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 14px; color: #334155; line-height: 1.6;">
+                                                        ${el.settings.col1Content || 'Column 1 details and text messaging...'}
+                                                    </td>
+                                                    <td width="4%">&nbsp;</td>
+                                                    <td width="48%" valign="top" style="padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: ${brandStyles.fontFamily}; font-size: 14px; color: #334155; line-height: 1.6;">
+                                                        ${el.settings.col2Content || 'Column 2 details and text messaging...'}
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                `;
+                            }
+                        }
                         break;
                     case 'html':
                         inner = `

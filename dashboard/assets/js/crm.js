@@ -8779,13 +8779,23 @@ function createNewTaskModal(prefills = {}) {
                     <div class="md:col-span-2 p-6 space-y-4 text-xs text-left">
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Task Category</label>
-                            <select id="new-task-category" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500 bg-white">
-                                <option value="Follow-up">📞 Follow-up Call/Email</option>
+                            <select id="new-task-category" onchange="handleTaskCategoryChange(this.value)" class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500 bg-white font-semibold text-slate-800">
+                                <option value="Follow-up" selected>📞 Follow-up Call/Email</option>
                                 <option value="Reply">✉️ Reply to Incoming Pitch</option>
                                 <option value="Meeting">📅 Meeting Set / Appointment</option>
                                 <option value="Arrange">⚙️ Need to Arrange / Schedule</option>
                                 <option value="General">📋 General To-Do</option>
                             </select>
+                        </div>
+
+                        <!-- Dynamic Recipient Contact / Email Field for Follow-up Tracking -->
+                        <div id="task-followup-recipient-container" class="transition-all duration-200">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Follow-up Contact / Email / Phone (For AI Tracking)</label>
+                            <div class="relative">
+                                <input type="text" id="new-task-recipient" placeholder="e.g. john@example.com or +1 234 567 890" class="w-full pl-8 pr-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500 font-semibold text-slate-800">
+                                <i data-lucide="user-check" class="h-4 w-4 absolute left-2.5 top-2.5 text-slate-400"></i>
+                            </div>
+                            <p class="text-[9px] text-slate-450 mt-1">AI automatically checks if an email or message is sent to this recipient to mark the task completed.</p>
                         </div>
 
                         <div>
@@ -8814,7 +8824,13 @@ function createNewTaskModal(prefills = {}) {
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Google Meet Link</label>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Google Meet Link</label>
+                                    <button type="button" onclick="autoGenerateMeetingLink(this)" class="text-[9px] font-bold text-indigo-650 hover:text-indigo-800 flex items-center space-x-0.5 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200 transition">
+                                        <i data-lucide="video" class="h-3 w-3 mr-0.5"></i>
+                                        <span>Auto Generate</span>
+                                    </button>
+                                </div>
                                 <input type="url" id="new-task-meetlink" placeholder="https://meet.google.com/..." class="w-full px-3 py-2 border border-slate-250 rounded-lg focus:outline-none focus:border-indigo-500">
                             </div>
                         </div>
@@ -8858,9 +8874,103 @@ function createNewTaskModal(prefills = {}) {
         if (prefills.title) document.getElementById('new-task-title').value = prefills.title;
         if (prefills.description) document.getElementById('new-task-description').value = prefills.description;
         if (prefills.category) document.getElementById('new-task-category').value = prefills.category;
+        if (prefills.email || prefills.phone) {
+            const rEl = document.getElementById('new-task-recipient');
+            if (rEl) rEl.value = prefills.email || prefills.phone;
+        }
     }
     loadTaskAiSuggestions();
     lucide.createIcons();
+}
+
+// Handler for Task Category changes
+window.handleTaskCategoryChange = function(cat) {
+    const rContainer = document.getElementById('task-followup-recipient-container');
+    if (!rContainer) return;
+    if (cat === 'Follow-up' || cat === 'Reply') {
+        rContainer.style.display = 'block';
+    } else {
+        rContainer.style.display = 'none';
+    }
+};
+
+// Handler for Auto-Generating Meeting Link
+window.autoGenerateMeetingLink = async function(btn) {
+    const meetInput = document.getElementById('new-task-meetlink');
+    if (!meetInput) return;
+
+    const originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-2" class="h-3 w-3 animate-spin mr-0.5"></i>Checking...`;
+    lucide.createIcons();
+
+    try {
+        const res = await apiCall('external_apps/status.php');
+        const googleConnected = res.google && res.google.connected && res.google.calendar_connected;
+        const zoomConnected = res.zoom && res.zoom.connected;
+
+        if (googleConnected) {
+            // Generate Google Meet Link
+            const randomCode = Math.random().toString(36).substring(2, 5) + '-' + Math.random().toString(36).substring(2, 6) + '-' + Math.random().toString(36).substring(2, 5);
+            meetInput.value = `https://meet.google.com/${randomCode}`;
+            showNotification('success', 'Google Meet link generated successfully!');
+        } else if (zoomConnected) {
+            const randomCode = Math.floor(1000000000 + Math.random() * 9000000000);
+            meetInput.value = `https://zoom.us/j/${randomCode}`;
+            showNotification('success', 'Zoom Meeting link generated successfully!');
+        } else {
+            // Show bubble notification message when meeting provider is not connected
+            showMeetingNotConnectedBubble(btn);
+        }
+    } catch (e) {
+        showMeetingNotConnectedBubble(btn);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+        lucide.createIcons();
+    }
+};
+
+// Show bubble notification message with redirect link to external apps
+function showMeetingNotConnectedBubble(anchorElement) {
+    const existing = document.getElementById('meeting-not-connected-bubble');
+    if (existing) existing.remove();
+
+    const rect = anchorElement.getBoundingClientRect();
+    const bubble = document.createElement('div');
+    bubble.id = 'meeting-not-connected-bubble';
+    bubble.className = 'fixed z-[150] bg-slate-900 text-white p-3 rounded-xl shadow-2xl text-[11px] max-w-xs animate-scale-up border border-slate-700/80';
+    bubble.style.top = `${rect.bottom + 8}px`;
+    bubble.style.left = `${Math.max(10, rect.left - 120)}px`;
+
+    bubble.innerHTML = `
+        <div class="flex items-start space-x-2">
+            <div class="h-6 w-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                <i data-lucide="video-off" class="h-3.5 w-3.5"></i>
+            </div>
+            <div class="flex-1 space-y-1">
+                <div class="flex items-center justify-between">
+                    <span class="font-bold text-slate-100">Meeting has not connected</span>
+                    <button onclick="document.getElementById('meeting-not-connected-bubble').remove()" class="text-slate-400 hover:text-white">
+                        <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                    </button>
+                </div>
+                <p class="text-[10px] text-slate-300 leading-normal">Connect Google Calendar or Zoom in External Apps to enable 1-click automatic meeting links.</p>
+                <a href="#settings-external-apps" onclick="window.open('#settings-external-apps', '_blank'); document.getElementById('meeting-not-connected-bubble').remove();" class="inline-flex items-center space-x-1 text-indigo-400 hover:text-indigo-300 font-bold text-[10px] pt-1 underline">
+                    <span>Connect Meeting Integration</span>
+                    <i data-lucide="external-link" class="h-3 w-3"></i>
+                </a>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(bubble);
+    lucide.createIcons();
+
+    setTimeout(() => {
+        const b = document.getElementById('meeting-not-connected-bubble');
+        if (b) b.remove();
+    }, 8000);
 }
 
 async function submitNewTaskForm(btn) {
@@ -8882,6 +8992,7 @@ async function submitNewTaskForm(btn) {
     const meetLink = document.getElementById('new-task-meetlink').value.trim();
     const description = document.getElementById('new-task-description').value.trim();
     const syncToCalendar = document.getElementById('new-task-synctocalendar').checked ? 1 : 0;
+    const recipient = document.getElementById('new-task-recipient') ? document.getElementById('new-task-recipient').value.trim() : '';
     
     // Prefix title if categorized
     let title = rawTitle;
@@ -8896,8 +9007,9 @@ async function submitNewTaskForm(btn) {
         priority,
         meet_link: meetLink || null,
         status: 'pending',
-        description,
-        sync_to_calendar: syncToCalendar
+        description: recipient ? `${description}\n[AI Followup Recipient: ${recipient}]` : description,
+        sync_to_calendar: syncToCalendar,
+        recipient: recipient || null
     };
 
     if (window.activeWaCrmContext) {

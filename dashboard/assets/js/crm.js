@@ -8000,6 +8000,33 @@ async function openInspectCompanyModal(companyId) {
             </div>
         `;
         lucide.createIcons();
+
+        // Attach Keyboard Navigation (Esc -> Close, Tab / Shift+Tab -> Section Navigation)
+        const modalElement = document.getElementById('crm-company-inspect-modal');
+        if (modalElement) {
+            const handleCompanyModalKeyDown = function(e) {
+                if (e.key === 'Escape') {
+                    modalElement.remove();
+                    window.removeEventListener('keydown', handleCompanyModalKeyDown);
+                    e.preventDefault();
+                } else if (e.key === 'Tab') {
+                    // Navigate focusable sections within the modal
+                    const focusables = modalElement.querySelectorAll('button, a, input, select, textarea, [tabindex="0"]');
+                    if (focusables.length > 0) {
+                        const first = focusables[0];
+                        const last = focusables[focusables.length - 1];
+                        if (e.shiftKey && document.activeElement === first) {
+                            last.focus();
+                            e.preventDefault();
+                        } else if (!e.shiftKey && document.activeElement === last) {
+                            first.focus();
+                            e.preventDefault();
+                        }
+                    }
+                }
+            };
+            window.addEventListener('keydown', handleCompanyModalKeyDown);
+        }
     } catch (e) {
         showNotification('error', 'Failed to retrieve company details: ' + e.message);
         document.getElementById('crm-company-inspect-modal').remove();

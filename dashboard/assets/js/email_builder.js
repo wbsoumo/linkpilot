@@ -2995,9 +2995,8 @@
 
             showNotification('info', 'Sending test email...');
 
-            const res = await apiCall('crm/email_intelligence/emails.php', 'POST', {
-                action: 'send_outbound',
-                to: recipient,
+            const res = await apiCall('generate/send_email.php', 'POST', {
+                recipient_email: recipient,
                 subject: subject || templateSubject || 'LinkPilot Test Email',
                 body: compiledHtml
             });

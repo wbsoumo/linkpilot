@@ -682,7 +682,8 @@
                         if (redirectUrl) {
                             window.location.href = decodeURIComponent(redirectUrl);
                         } else {
-                            window.location.href = 'index.html';
+                            // Check setup status via profile call or redirect to setup wizard if unconfigured
+                            window.location.href = 'setup.html';
                         }
                     }, 1200);
                 } else if (res.action === 'register') {
@@ -815,7 +816,7 @@
                     } else if (data.user && data.user.role === 'admin') {
                         window.location.href = 'admin.html';
                     } else {
-                        window.location.href = 'index.html';
+                        window.location.href = 'setup.html';
                     }
                 }, 1000);
             } catch (err) {

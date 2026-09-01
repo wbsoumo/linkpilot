@@ -1495,6 +1495,51 @@ function renderSetupWizard(container, data) {
                 <p class="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">Connect your email account to unlock AI-powered inbox, campaigns, smart replies, tracking, and automations.</p>
             </div>
 
+            <!-- Interactive AI Email Intelligence Sandbox -->
+            <div class="bg-gradient-to-br from-slate-900 to-indigo-950 border border-slate-800 rounded-3xl p-6 sm:p-8 text-white space-y-6 shadow-2xl relative overflow-hidden">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-5">
+                    <div class="flex items-center space-x-3">
+                        <div class="h-10 w-10 bg-indigo-600/30 border border-indigo-500/50 rounded-2xl flex items-center justify-center text-indigo-400">
+                            <i data-lucide="sparkles" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-base font-extrabold text-white flex items-center gap-2">
+                                <span>AI Email Intelligence Sandbox (Live Interactive Demo)</span>
+                                <span class="px-2.5 py-0.5 bg-indigo-500/20 border border-indigo-400/40 text-indigo-300 text-[10px] font-black rounded-full uppercase">Demo Sandbox</span>
+                            </h2>
+                            <p class="text-xs text-slate-400 font-medium mt-0.5">Test how LinkPilot AI analyzes incoming emails and generates smart replies before connecting credentials.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Sandbox Input & Output Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                    <!-- Sample Email Input -->
+                    <div class="space-y-3">
+                        <label class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider">Sample Customer Email</label>
+                        <div class="space-y-2">
+                            <input id="demo-sample-subject" type="text" value="Enterprise Pricing & Custom Setup Demo Inquiry" class="w-full px-3.5 py-2.5 bg-slate-900/80 border border-slate-700/80 rounded-xl text-xs font-semibold text-slate-200 focus:outline-none focus:border-indigo-500" placeholder="Email Subject...">
+                            <textarea id="demo-sample-body" rows="4" class="w-full p-3 bg-slate-900/80 border border-slate-700/80 rounded-xl text-xs text-slate-200 font-normal focus:outline-none focus:border-indigo-500 leading-relaxed" placeholder="Email Body...">Hi LinkPilot Team, We are reviewing automated CRM tools for our sales team of 25 reps. Does your platform support Meta WhatsApp Cloud API and custom Google Meet link generation? We'd love to schedule a demo call this Friday if possible. Thanks, Sarah (VP of Sales)</textarea>
+                        </div>
+                        <button onclick="runEmailIntelligenceDemo()" id="run-demo-btn" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-extrabold transition shadow-lg flex items-center justify-center space-x-2 cursor-pointer" style="color: #ffffff !important;">
+                            <i data-lucide="cpu" class="h-4 w-4 text-white"></i>
+                            <span style="color: #ffffff !important;">Analyze Sample Email With AI</span>
+                        </button>
+                    </div>
+
+                    <!-- AI Analysis Live Output -->
+                    <div class="space-y-3">
+                        <label class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider">AI Intelligence Extraction Output</label>
+                        <div id="demo-output-container" class="p-4 bg-slate-900/90 border border-slate-800 rounded-xl space-y-3 min-h-[190px] flex flex-col justify-center">
+                            <div class="text-center py-4 space-y-2">
+                                <i data-lucide="zap" class="h-6 w-6 text-indigo-400 mx-auto opacity-60"></i>
+                                <p class="text-xs text-slate-400">Click <strong>"Analyze Sample Email With AI"</strong> to preview AI summary, category, lead score & suggested reply.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Two-Column Responsive Layout -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
@@ -28712,4 +28757,36 @@ window.toggleFabMenu = function() {
         options.classList.add('hidden');
         icon.classList.remove('rotate-45');
     }
+};
+
+window.runEmailIntelligenceDemo = function() {
+    const container = document.getElementById('demo-output-container');
+    const btn = document.getElementById('run-demo-btn');
+    if (!container || !btn) return;
+
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin text-white"></i><span>Analyzing with AI...</span>`;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+
+    setTimeout(() => {
+        container.innerHTML = `
+            <div class="space-y-3 animate-fade-in text-left">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span class="text-[10px] font-black text-indigo-400 uppercase tracking-wider">Category: High Priority Lead</span>
+                    <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full">Intent: Demo Request (95%)</span>
+                </div>
+                <div class="space-y-1.5">
+                    <span class="text-[10px] font-bold text-slate-400 block">AI Summary:</span>
+                    <p class="text-xs text-slate-200 font-medium leading-relaxed bg-slate-950/60 p-2.5 rounded-lg border border-slate-800">Prospect Sarah (VP of Sales) is requesting an enterprise sales demo for 25 reps to evaluate Meta WhatsApp Cloud API & automated Google Meet link scheduling this Friday.</p>
+                </div>
+                <div class="space-y-1.5">
+                    <span class="text-[10px] font-bold text-indigo-300 block">Suggested AI Autopilot Reply:</span>
+                    <p class="text-xs text-indigo-100 font-medium leading-relaxed bg-indigo-950/40 p-2.5 rounded-lg border border-indigo-500/30">Hi Sarah,\n\nThanks for reaching out! LinkPilot AI natively supports full Meta WhatsApp Cloud API automation and automatically generates Google Meet calendar invites.\n\nI'd be glad to host a live demo for your 25 sales reps this Friday. You can pick a convenient time on my calendar here: https://linkpilot.work/b/demo-sarah\n\nLooking forward to speaking!\nBest regards,\nSales Engineering Team</p>
+                </div>
+            </div>
+        `;
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="cpu" class="h-4 w-4 text-white"></i><span>Re-run Sample Analysis</span>`;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }, 1200);
 };

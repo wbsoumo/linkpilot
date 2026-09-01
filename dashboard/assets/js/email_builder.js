@@ -2368,7 +2368,7 @@
                                             <i data-lucide="eye" class="h-3 w-3"></i><span>Preview HTML</span>
                                         </button>
                                     </div>
-                                    <textarea oninput="updateElementSetting('htmlCode', this.value)" rows="10" placeholder="Paste your HTML code here..." class="w-full bg-slate-900 text-emerald-400 border border-slate-700 rounded-xl p-3 font-mono text-[11px] leading-normal focus:border-[#6D5EF5] focus:outline-none">${selectedEl.settings.htmlCode || ''}</textarea>
+                                    <textarea oninput="updateElementSetting('htmlCode', this.value, true)" rows="10" placeholder="Paste your HTML code here..." class="w-full bg-slate-900 text-emerald-400 border border-slate-700 rounded-xl p-3 font-mono text-[11px] leading-normal focus:border-[#6D5EF5] focus:outline-none">${selectedEl.settings.htmlCode || ''}</textarea>
                                 </div>
                                 <button onclick="openLivePreviewTab()" class="w-full py-2 bg-indigo-50 hover:bg-indigo-100 text-[#6D5EF5] border border-indigo-200 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer">
                                     <i data-lucide="external-link" class="h-3.5 w-3.5"></i><span>Open Full Preview in Browser</span>
@@ -2865,7 +2865,7 @@
     }
 
     // Update individual properties details settings
-    window.updateElementSetting = function(prop, val) {
+    window.updateElementSetting = function(prop, val, skipReRenderProps = false) {
         if (!selectedElementId) return;
         for (const sec of canvasData) {
             const el = sec.elements.find(e => e.id === selectedElementId);
@@ -2875,7 +2875,9 @@
             }
         }
         renderCanvas();
-        renderPropertiesPanel();
+        if (!skipReRenderProps) {
+            renderPropertiesPanel();
+        }
     };
 
     window.updateSectionSetting = function(prop, val) {

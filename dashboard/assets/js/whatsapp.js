@@ -2150,9 +2150,6 @@ window.selectWaThread = function (threadId) {
     const badge = document.getElementById(`wa-unread-badge-${threadId}`);
     if (badge) badge.classList.add('hidden');
 
-    // Highlight list selection
-    loadWaThreads();
-
     // Start Message Poll (2.5s for real-time chat feel)
     clearInterval(waMessagesInterval);
     loadWaThreadMessages();

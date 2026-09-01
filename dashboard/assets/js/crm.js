@@ -8293,6 +8293,47 @@ window.getTasksForTab = function(tasks, tab) {
         if (tab === 'general') return !isComm && !isCrm && !isMarketing;
         return true;
     });
+window.formatHumanRelativeTaskDate = function(dueDateStr, dueTimeStr) {
+    if (!dueDateStr) return 'No due date';
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    // Parse target due date
+    const parts = dueDateStr.split('-');
+    if (parts.length < 3) return dueDateStr;
+    const targetDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    
+    const diffTime = targetDate.getTime() - today.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
+
+    // Time formatting
+    let formattedTime = '';
+    if (dueTimeStr) {
+        const timeParts = dueTimeStr.split(':');
+        if (timeParts.length >= 2) {
+            let hours = parseInt(timeParts[0]);
+            const minutes = timeParts[1];
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            formattedTime = ` at ${hours}:${minutes} ${ampm}`;
+        }
+    }
+
+    if (diffDays === 0) {
+        return `<span class="text-indigo-600 font-extrabold">Due Today${formattedTime}</span>`;
+    } else if (diffDays === 1) {
+        return `<span class="text-blue-600 font-bold">Due Tomorrow${formattedTime}</span>`;
+    } else if (diffDays > 1 && diffDays <= 7) {
+        return `<span class="text-slate-700 font-bold">Due in ${diffDays} Days${formattedTime}</span>`;
+    } else if (diffDays > 7) {
+        return `<span class="text-slate-600 font-medium">${targetDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}${formattedTime}</span>`;
+    } else if (diffDays === -1) {
+        return `<span class="text-rose-600 font-extrabold">1 Day Overdue${formattedTime}</span>`;
+    } else {
+        return `<span class="text-rose-600 font-extrabold">${Math.abs(diffDays)} Days Overdue${formattedTime}</span>`;
+    }
 };
 
 async function renderTasks(container) {
@@ -8350,8 +8391,7 @@ async function renderTasks(container) {
                     borderAccent = 'border-l-4 border-l-slate-350';
                 }
 
-                const timeStr = t.due_time ? ` @ ${t.due_time.substring(0, 5)}` : '';
-                const dateStr = t.due_date ? new Date(t.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + timeStr : 'No date';
+                const dateStr = formatHumanRelativeTaskDate(t.due_date, t.due_time);
                 
                 let meetLinkHTML = '';
                 if (t.meet_link) {

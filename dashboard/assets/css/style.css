@@ -385,10 +385,7 @@ h1, h2, h3, h4, h5 {
     color: #0f172a !important;
 }
 
-/* Force dark text for Tailwind's text-white and light text classes on everything except aside */
-:not(aside) .text-white, :not(aside) .text-slate-100 {
-    color: #1e293b !important;
-}
+/* Maintain clean text color defaults */
 
 :not(aside) .text-slate-350, :not(aside) .text-slate-300 {
     color: #475569 !important; /* text-slate-600 */

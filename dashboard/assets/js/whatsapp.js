@@ -2566,6 +2566,18 @@ window.sendWaMessage = function (e) {
     const msg = input.value.trim();
     if (!msg) return;
 
+    const submitBtn = e.target ? e.target.querySelector('button[type="submit"]') : null;
+    let origHtml = '';
+    if (submitBtn) {
+        origHtml = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+            <i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin" style="color: #ffffff !important;"></i>
+            <span style="color: #ffffff !important;">Sending...</span>
+        `;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
     input.value = '';
 
     apiCall('whatsapp/inbox.php', 'POST', {
@@ -2573,8 +2585,25 @@ window.sendWaMessage = function (e) {
         body: msg,
         type: 'text'
     }).then(res => {
+        if (submitBtn) {
+            submitBtn.innerHTML = `
+                <i data-lucide="check" class="h-3.5 w-3.5" style="color: #ffffff !important;"></i>
+                <span style="color: #ffffff !important;">Sent</span>
+            `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            setTimeout(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = origHtml;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }, 1200);
+        }
         loadWaThreadMessages();
     }).catch(err => {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = origHtml;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
         showNotification('error', 'Failed to send message: ' + err.message);
     });
 };

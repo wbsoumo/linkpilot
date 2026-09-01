@@ -4062,7 +4062,8 @@ async function generateToneDraft(emailId, tone) {
 async function dispatchSmtpReply(emailId, btn, originalSubject) {
     const origText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = `<div class="loader-spinner !w-3.5 !h-3.5 !border-2 mr-1"></div> Sending...`;
+    btn.innerHTML = `<i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin mr-1 inline"></i> Sending...`;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
     
     const replyBody = document.getElementById('inbox-reply-textarea').value;
     
@@ -4105,15 +4106,20 @@ async function dispatchSmtpReply(emailId, btn, originalSubject) {
         const res = await response.json();
         
         if (res.status === 'success') {
+            btn.innerHTML = `<i data-lucide="check" class="h-3.5 w-3.5 mr-1 inline"></i> Sent`;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
             showNotification('success', 'Reply sent successfully!');
             selectedReplyAttachments = []; // reset attachments array
-            navigateTo('inbox');
+            setTimeout(() => {
+                navigateTo('inbox');
+            }, 600);
         } else {
             showNotification('error', res.message);
+            btn.disabled = false;
+            btn.innerHTML = origText;
         }
     } catch (err) {
         showNotification('error', 'Transmission failed: ' + err.message);
-    } finally {
         btn.disabled = false;
         btn.innerHTML = origText;
     }

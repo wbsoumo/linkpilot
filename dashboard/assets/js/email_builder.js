@@ -3134,17 +3134,31 @@
                         inner = `
                             <tr>
                                 <td style="padding: 15px 0;">
-                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="${el.settings.backgroundColor || '#0F172A'}" style="border-radius: 12px; text-align: center;">
+                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="${escapeAttr(el.settings.backgroundColor || '#0F172A')}" style="border-radius: 12px; text-align: center;">
                                         <tr>
-                                            <td style="padding: 20px; color: ${el.settings.textColor || '#ffffff'}; font-family: ${brandStyles.fontFamily};">
-                                                <span style="font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #94A3B8; display: block; margin-bottom: 8px;">LIMITED TIME OFFER</span>
-                                                <table border="0" cellpadding="0" cellspacing="0" style="display: inline-block;">
+                                            <td style="padding: 20px; color: ${escapeAttr(el.settings.textColor || '#ffffff')}; font-family: ${brandStyles.fontFamily};">
+                                                <span style="font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #94A3B8; display: block; margin-bottom: 12px;">LIMITED TIME OFFER</span>
+                                                <table border="0" cellpadding="0" cellspacing="0" align="center" style="display: inline-block;">
                                                     <tr>
-                                                        <td bgcolor="rgba(255,255,255,0.1)" style="padding: 8px 14px; border-radius: 8px; font-size: 20px; font-weight: bold; color: ${el.settings.textColor || '#ffffff'}; font-family: ${brandStyles.fontFamily};">02d</td>
-                                                        <td style="padding: 0 6px; font-size: 18px; font-weight: bold; color: #94A3B8;">:</td>
-                                                        <td bgcolor="rgba(255,255,255,0.1)" style="padding: 8px 14px; border-radius: 8px; font-size: 20px; font-weight: bold; color: ${el.settings.textColor || '#ffffff'}; font-family: ${brandStyles.fontFamily};">14h</td>
-                                                        <td style="padding: 0 6px; font-size: 18px; font-weight: bold; color: #94A3B8;">:</td>
-                                                        <td bgcolor="rgba(255,255,255,0.1)" style="padding: 8px 14px; border-radius: 8px; font-size: 20px; font-weight: bold; color: ${el.settings.textColor || '#ffffff'}; font-family: ${brandStyles.fontFamily};">35m</td>
+                                                        <td align="center" bgcolor="rgba(255,255,255,0.1)" style="padding: 8px 12px; border-radius: 8px; font-family: ${brandStyles.fontFamily}; min-width: 48px;">
+                                                            <span style="font-size: 20px; font-weight: 850; color: ${escapeAttr(el.settings.textColor || '#ffffff')}; display: block; line-height: 1;">02</span>
+                                                            <span style="font-size: 8px; font-weight: bold; text-transform: uppercase; color: #94A3B8; display: block; margin-top: 4px;">DAYS</span>
+                                                        </td>
+                                                        <td style="padding: 0 4px; font-size: 16px; font-weight: bold; color: #94A3B8; vertical-align: middle;">:</td>
+                                                        <td align="center" bgcolor="rgba(255,255,255,0.1)" style="padding: 8px 12px; border-radius: 8px; font-family: ${brandStyles.fontFamily}; min-width: 48px;">
+                                                            <span style="font-size: 20px; font-weight: 850; color: ${escapeAttr(el.settings.textColor || '#ffffff')}; display: block; line-height: 1;">14</span>
+                                                            <span style="font-size: 8px; font-weight: bold; text-transform: uppercase; color: #94A3B8; display: block; margin-top: 4px;">HRS</span>
+                                                        </td>
+                                                        <td style="padding: 0 4px; font-size: 16px; font-weight: bold; color: #94A3B8; vertical-align: middle;">:</td>
+                                                        <td align="center" bgcolor="rgba(255,255,255,0.1)" style="padding: 8px 12px; border-radius: 8px; font-family: ${brandStyles.fontFamily}; min-width: 48px;">
+                                                            <span style="font-size: 20px; font-weight: 850; color: ${escapeAttr(el.settings.textColor || '#ffffff')}; display: block; line-height: 1;">32</span>
+                                                            <span style="font-size: 8px; font-weight: bold; text-transform: uppercase; color: #94A3B8; display: block; margin-top: 4px;">MINS</span>
+                                                        </td>
+                                                        <td style="padding: 0 4px; font-size: 16px; font-weight: bold; color: #94A3B8; vertical-align: middle;">:</td>
+                                                        <td align="center" bgcolor="rgba(255,255,255,0.1)" style="padding: 8px 12px; border-radius: 8px; font-family: ${brandStyles.fontFamily}; min-width: 48px;">
+                                                            <span style="font-size: 20px; font-weight: 850; color: ${escapeAttr(el.settings.textColor || '#ffffff')}; display: block; line-height: 1;">18</span>
+                                                            <span style="font-size: 8px; font-weight: bold; text-transform: uppercase; color: #94A3B8; display: block; margin-top: 4px;">SECS</span>
+                                                        </td>
                                                     </tr>
                                                 </table>
                                             </td>

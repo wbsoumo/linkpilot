@@ -5543,13 +5543,9 @@ function renderWhatsAppTemplates(container) {
                                                     </svg>
                                                 </div>
                                                 <!-- Bubble Content -->
-                                                <div class="text-[10px] text-slate-800 leading-relaxed font-sans whitespace-pre-wrap" id="mock-bubble-text">
+                                                <div class="text-[10px] text-slate-800 leading-relaxed font-sans whitespace-pre-wrap w-full" id="mock-bubble-text">
                                                     <!-- Body template text will be filled here dynamically -->
                                                 </div>
-                                                <!-- Message time indicator -->
-                                                <span class="text-[7.5px] text-slate-400 self-end mt-1.5 flex items-center space-x-0.5">
-                                                    <span>11:30 AM</span>
-                                                </span>
                                             </div>
                                         </div>
 

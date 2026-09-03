@@ -12870,7 +12870,439 @@
       }
     });
   </script>
-  
+
+  <!-- LinkPilot Ecosystem Waitlist Popup Modal -->
+  <style>
+    .waitlist-modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 999999;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+
+    .waitlist-modal-backdrop.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .waitlist-modal-card {
+      position: relative;
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+      padding: 32px 28px;
+      transform: translateY(30px) scale(0.95);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      box-sizing: border-box;
+      font-family: inherit;
+    }
+
+    .waitlist-modal-backdrop.active .waitlist-modal-card {
+      transform: translateY(0) scale(1);
+    }
+
+    .waitlist-close-btn {
+      position: absolute;
+      top: 18px;
+      right: 20px;
+      background: #f1f5f9;
+      border: none;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      font-size: 20px;
+      color: #64748b;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, color 0.2s, transform 0.2s;
+      line-height: 1;
+      z-index: 10;
+    }
+    .waitlist-close-btn:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+      transform: rotate(90deg);
+    }
+
+    .waitlist-header {
+      margin-bottom: 22px;
+      text-align: left;
+    }
+
+    .waitlist-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: rgba(79, 70, 229, 0.1);
+      color: #4f46e5;
+      border-radius: 9999px;
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+
+    .waitlist-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0 0 10px 0;
+      line-height: 1.25;
+    }
+
+    .waitlist-subtitle {
+      font-size: 13.5px;
+      color: #475569;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .waitlist-subtitle strong {
+      color: #1e293b;
+    }
+
+    .waitlist-form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .waitlist-form-row {
+      display: flex;
+      gap: 12px;
+    }
+    @media (max-width: 520px) {
+      .waitlist-form-row {
+        flex-direction: column;
+        gap: 14px;
+      }
+    }
+
+    .waitlist-form-group {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      text-align: left;
+    }
+
+    .waitlist-form-group label {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .waitlist-form-group input,
+    .waitlist-form-group select {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 13.5px;
+      color: #0f172a;
+      background: #f8fafc;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      box-sizing: border-box;
+    }
+
+    .waitlist-form-group input:focus,
+    .waitlist-form-group select:focus {
+      border-color: #4f46e5;
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    }
+
+    .waitlist-alert {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .waitlist-alert-error {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .waitlist-submit-btn {
+      width: 100%;
+      padding: 13px 20px;
+      background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+      margin-top: 4px;
+    }
+
+    .waitlist-submit-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 24px -5px rgba(79, 70, 229, 0.5);
+    }
+
+    .waitlist-submit-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .waitlist-arrow-icon {
+      width: 18px;
+      height: 18px;
+    }
+
+    .waitlist-success {
+      text-align: center;
+      padding: 24px 12px;
+    }
+
+    .waitlist-success-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .waitlist-success-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0 0 8px 0;
+    }
+
+    .waitlist-success-desc {
+      font-size: 14px;
+      color: #475569;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+
+  <div id="ecosystem-waitlist-modal" class="waitlist-modal-backdrop hidden">
+    <div class="waitlist-modal-card">
+      <button type="button" id="waitlist-modal-close" class="waitlist-close-btn" aria-label="Close modal">&times;</button>
+      
+      <div class="waitlist-header">
+        <div class="waitlist-badge">✨ Exclusive Ecosystem Access</div>
+        <h2 class="waitlist-title">All-in-One Sales & Support Ecosystem</h2>
+        <p class="waitlist-subtitle">
+          LinkPilot unifies your <strong>Sync Calls, Email Intelligence, and WhatsApp Automation</strong> into one powerful centralized platform. Streamline your workflow and manage all your communications seamlessly.
+        </p>
+      </div>
+
+      <div id="waitlist-form-wrapper">
+        <form id="ecosystem-waitlist-form" class="waitlist-form">
+          <div class="waitlist-form-group">
+            <label for="waitlist-name">Full Name *</label>
+            <input type="text" id="waitlist-name" name="name" placeholder="e.g. Rahul Sharma" required />
+          </div>
+
+          <div class="waitlist-form-row">
+            <div class="waitlist-form-group">
+              <label for="waitlist-phone">Mobile Number *</label>
+              <input type="tel" id="waitlist-phone" name="phone" placeholder="e.g. +91 98765 43210" required />
+            </div>
+
+            <div class="waitlist-form-group">
+              <label for="waitlist-email">Email ID *</label>
+              <input type="email" id="waitlist-email" name="email" placeholder="e.g. rahul@company.com" required />
+            </div>
+          </div>
+
+          <div class="waitlist-form-group">
+            <label for="waitlist-industry">Your Industry *</label>
+            <select id="waitlist-industry" name="industry" required>
+              <option value="" disabled selected>Select Your Industry</option>
+              <option value="Real Estate & Construction">Real Estate & Construction</option>
+              <option value="E-Commerce & Retail">E-Commerce & Retail</option>
+              <option value="Software & SaaS">Software & SaaS</option>
+              <option value="Healthcare & Clinics">Healthcare & Clinics</option>
+              <option value="Education & Coaching">Education & Coaching</option>
+              <option value="Financial Services & Advisory">Financial Services & Advisory</option>
+              <option value="Travel & Hospitality">Travel & Hospitality</option>
+              <option value="Professional Services & Consulting">Professional Services & Consulting</option>
+              <option value="Logistics & Supply Chain">Logistics & Supply Chain</option>
+              <option value="Other Industry">Other Industry</option>
+            </select>
+          </div>
+
+          <div class="waitlist-form-group">
+            <label for="waitlist-pricing">How would you prefer to pay to be a part of the ecosystem? *</label>
+            <select id="waitlist-pricing" name="pricing_preference" required>
+              <option value="" disabled selected>Select Payment Preference</option>
+              <option value="Fixed Subscriptions">Fixed Subscriptions (Monthly / Yearly Plan)</option>
+              <option value="Pay As You Go">Pay As You Go (Usage-based pricing)</option>
+            </select>
+          </div>
+
+          <div id="waitlist-error-msg" class="waitlist-alert waitlist-alert-error hidden"></div>
+
+          <button type="submit" id="waitlist-submit-btn" class="waitlist-submit-btn">
+            <span>Join Waiting List</span>
+            <svg class="waitlist-arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+          </button>
+        </form>
+      </div>
+
+      <div id="waitlist-success-wrapper" class="waitlist-success hidden">
+        <div class="waitlist-success-icon">🎉</div>
+        <h3 class="waitlist-success-title">You're on the Waiting List!</h3>
+        <p class="waitlist-success-desc">Thank you for your interest in the LinkPilot Ecosystem. We've reserved your spot and will reach out with your early access key shortly.</p>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function () {
+      const modal = document.getElementById("ecosystem-waitlist-modal");
+      const closeBtn = document.getElementById("waitlist-modal-close");
+      const form = document.getElementById("ecosystem-waitlist-form");
+      const submitBtn = document.getElementById("waitlist-submit-btn");
+      const errorMsg = document.getElementById("waitlist-error-msg");
+      const formWrapper = document.getElementById("waitlist-form-wrapper");
+      const successWrapper = document.getElementById("waitlist-success-wrapper");
+
+      if (!modal) return;
+
+      // Check if client local storage indicates already submitted
+      if (localStorage.getItem("linkpilot_waitlist_submitted") === "true") {
+        return;
+      }
+
+      // Check with backend API if IP has already submitted
+      fetch("backend/api/waitlist.php")
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.submitted) {
+            localStorage.setItem("linkpilot_waitlist_submitted", "true");
+            return; // Do not show modal if IP already submitted
+          }
+
+          // IP has not submitted - show popup smoothly after 1.5 seconds delay
+          setTimeout(() => {
+            modal.classList.remove("hidden");
+            requestAnimationFrame(() => {
+              modal.classList.add("active");
+            });
+          }, 1500);
+        })
+        .catch(err => {
+          // Fallback: if fetch fails, show popup unless localStorage flag set
+          setTimeout(() => {
+            modal.classList.remove("hidden");
+            requestAnimationFrame(() => {
+              modal.classList.add("active");
+            });
+          }, 1500);
+        });
+
+      function closeModal() {
+        modal.classList.remove("active");
+        setTimeout(() => {
+          modal.classList.add("hidden");
+        }, 400);
+      }
+
+      if (closeBtn) {
+        closeBtn.addEventListener("click", closeModal);
+      }
+
+      modal.addEventListener("click", function (e) {
+        if (e.target === modal) {
+          closeModal();
+        }
+      });
+
+      if (form) {
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          errorMsg.classList.add("hidden");
+          errorMsg.textContent = "";
+
+          const name = document.getElementById("waitlist-name").value.trim();
+          const phone = document.getElementById("waitlist-phone").value.trim();
+          const email = document.getElementById("waitlist-email").value.trim();
+          const industry = document.getElementById("waitlist-industry").value;
+          const pricing = document.getElementById("waitlist-pricing").value;
+
+          if (!name || !phone || !email || !industry || !pricing) {
+            errorMsg.textContent = "Please fill in all fields.";
+            errorMsg.classList.remove("hidden");
+            return;
+          }
+
+          submitBtn.disabled = true;
+          submitBtn.querySelector("span").textContent = "Submitting...";
+
+          fetch("backend/api/waitlist.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              name: name,
+              phone: phone,
+              email: email,
+              industry: industry,
+              pricing_preference: pricing
+            })
+          })
+          .then(res => res.json())
+          .then(data => {
+            submitBtn.disabled = false;
+            submitBtn.querySelector("span").textContent = "Join Waiting List";
+
+            if (data && data.status === "success") {
+              localStorage.setItem("linkpilot_waitlist_submitted", "true");
+              formWrapper.classList.add("hidden");
+              successWrapper.classList.remove("hidden");
+              
+              setTimeout(closeModal, 4000);
+            } else {
+              errorMsg.textContent = data.message || "Failed to submit. Please try again.";
+              errorMsg.classList.remove("hidden");
+            }
+          })
+          .catch(err => {
+            submitBtn.disabled = false;
+            submitBtn.querySelector("span").textContent = "Join Waiting List";
+            errorMsg.textContent = "Network error. Please try again.";
+            errorMsg.classList.remove("hidden");
+          });
+        });
+      }
+    });
+  </script>
 </body>
 
 </html>

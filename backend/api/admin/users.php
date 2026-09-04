@@ -27,8 +27,8 @@ try {
             // Fetch user info
             $stmtUser = $db->prepare("
                 SELECT u.id, u.name, u.email, u.phone_number, u.role, u.is_verified, COALESCE(u.status, 'active') as status, u.created_at,
-                       p.user_type, p.job_title, p.company_name, p.website, p.linkedin_url, p.about_me,
-                       p.active_ai_provider, p.active_ai_model
+                       u.active_ai_provider, u.active_ai_model,
+                       p.user_type, p.job_title, p.company_name, p.website, p.linkedin_url, p.about_me
                 FROM users u
                 LEFT JOIN user_profiles p ON u.id = p.user_id
                 WHERE u.id = ?

@@ -2399,10 +2399,10 @@
         };
 
         window.loadAdminAISettingsData = async function() {
+            // 1. Fetch User Profile Settings safely
             try {
-                // Fetch User Profile Settings
                 const profileRes = await apiCall('profile/get.php');
-                if (profileRes.user) {
+                if (profileRes && profileRes.user) {
                     const u = profileRes.user;
                     const activeP = u.active_ai_provider || 'google_ai_studio';
                     const activeM = u.active_ai_model || 'gemini-3.1-flash-lite';
@@ -2411,8 +2411,8 @@
                                     activeP === 'github_models' ? 'GitHub Models' :
                                     activeP === 'groq' ? 'Groq Cloud' : 'Google Gemini';
                                     
-                    document.getElementById('admin-active-provider-name-display').innerText = formatP;
-                    document.getElementById('admin-active-model-name-display').innerText = activeM;
+                    if (document.getElementById('admin-active-provider-name-display')) document.getElementById('admin-active-provider-name-display').innerText = formatP;
+                    if (document.getElementById('admin-active-model-name-display')) document.getElementById('admin-active-model-name-display').innerText = activeM;
                     
                     selectAdminUserProvider(activeP);
                     
@@ -2423,28 +2423,34 @@
 
                     // Render mini provider summary grid
                     const gridContainer = document.getElementById('admin-user-configured-list-container');
-                    const allProviders = [
-                        { id: 'google_ai_studio', name: 'Google Gemini', hasKey: u.has_google_key, icon: 'https://aistudio.google.com/static/images/favicon.png' },
-                        { id: 'openrouter', name: 'OpenRouter', hasKey: u.has_openrouter_key, icon: 'https://openrouter.ai/favicon.ico' },
-                        { id: 'github_models', name: 'GitHub Models', hasKey: u.has_github_key, icon: 'https://github.githubassets.com/favicons/favicon.svg' },
-                        { id: 'groq', name: 'Groq Cloud', hasKey: u.has_groq_key, icon: 'https://groq.com/wp-content/uploads/2024/03/groq-favicon.png' }
-                    ];
+                    if (gridContainer) {
+                        const allProviders = [
+                            { id: 'google_ai_studio', name: 'Google Gemini', hasKey: u.has_google_key, icon: 'https://aistudio.google.com/static/images/favicon.png' },
+                            { id: 'openrouter', name: 'OpenRouter', hasKey: u.has_openrouter_key, icon: 'https://openrouter.ai/favicon.ico' },
+                            { id: 'github_models', name: 'GitHub Models', hasKey: u.has_github_key, icon: 'https://github.githubassets.com/favicons/favicon.svg' },
+                            { id: 'groq', name: 'Groq Cloud', hasKey: u.has_groq_key, icon: 'https://groq.com/wp-content/uploads/2024/03/groq-favicon.png' }
+                        ];
 
-                    gridContainer.innerHTML = allProviders.map(p => `
-                        <div class="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between">
-                            <div class="flex items-center space-x-2.5">
-                                <img src="${p.icon}" class="h-5 w-5 rounded object-contain" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2103/2103633.png'">
-                                <div>
-                                    <span class="block font-bold text-slate-800 text-xs">${p.name}</span>
-                                    <span class="text-[10px] ${p.hasKey ? 'text-emerald-600 font-semibold' : 'text-slate-400'}">${p.hasKey ? 'Key Available' : 'No Key'}</span>
+                        gridContainer.innerHTML = allProviders.map(p => `
+                            <div class="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between">
+                                <div class="flex items-center space-x-2.5">
+                                    <img src="${p.icon}" class="h-5 w-5 rounded object-contain" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2103/2103633.png'">
+                                    <div>
+                                        <span class="block font-bold text-slate-800 text-xs">${p.name}</span>
+                                        <span class="text-[10px] ${p.hasKey ? 'text-emerald-600 font-semibold' : 'text-slate-400'}">${p.hasKey ? 'Key Available' : 'No Key'}</span>
+                                    </div>
                                 </div>
+                                ${activeP === p.id ? '<span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 border border-indigo-200 rounded-full font-bold text-[9px]">ACTIVE</span>' : ''}
                             </div>
-                            ${activeP === p.id ? '<span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 border border-indigo-200 rounded-full font-bold text-[9px]">ACTIVE</span>' : ''}
-                        </div>
-                    `).join('');
+                        `).join('');
+                    }
                 }
+            } catch (errProfile) {
+                console.warn('Profile load warning:', errProfile);
+            }
 
-                // Fetch Global Settings (to fill in interval, overrides, and fallback chain)
+            // 2. Fetch Global Settings safely
+            try {
                 const resSettings = await apiCall('admin/crm_settings.php');
                 const settings = resSettings.settings || {};
                 if (document.getElementById('global_sync_interval')) document.getElementById('global_sync_interval').value = settings.global_sync_interval || 60;
@@ -2453,72 +2459,80 @@
 
                 // Render Fallback Chain Order List
                 renderFallbackChainList(settings.ai_fallback_chain || 'google_ai_studio,groq,openrouter,github_models');
+            } catch (errSettings) {
+                console.warn('Settings load warning:', errSettings);
+                renderFallbackChainList('google_ai_studio,groq,openrouter,github_models');
+            }
 
-                // Fetch central AI API Keys with Quotas
+            // 3. Fetch central AI API Keys with Quotas safely
+            try {
                 const keysData = await apiCall('profile/manage_ai_keys.php');
                 const keysList = keysData.keys || [];
 
                 const tbody = document.getElementById('admin-ai-keys-tbody');
-                if (keysList.length > 0) {
-                    tbody.innerHTML = keysList.map(k => {
-                        let badgeColor = 'bg-emerald-50 text-emerald-600 border border-emerald-200';
-                        if (k.status === 'limit_exceeded') {
-                            badgeColor = 'bg-amber-50 text-amber-600 border border-amber-200';
-                        } else if (k.status === 'invalid') {
-                            badgeColor = 'bg-red-50 text-red-600 border border-red-200';
-                        } else if (k.status === 'paused') {
-                            badgeColor = 'bg-slate-100 text-slate-500 border border-slate-200';
-                        }
-                        
-                        let providerLabel = k.provider === 'openrouter' ? 'OpenRouter' : 
-                                            k.provider === 'github_models' ? 'GitHub Models' : 
-                                            k.provider === 'groq' ? 'Groq Cloud' : 'Google Gemini';
+                if (tbody) {
+                    if (keysList.length > 0) {
+                        tbody.innerHTML = keysList.map(k => {
+                            let badgeColor = 'bg-emerald-50 text-emerald-600 border border-emerald-200';
+                            if (k.status === 'limit_exceeded') {
+                                badgeColor = 'bg-amber-50 text-amber-600 border border-amber-200';
+                            } else if (k.status === 'invalid') {
+                                badgeColor = 'bg-red-50 text-red-600 border border-red-200';
+                            } else if (k.status === 'paused') {
+                                badgeColor = 'bg-slate-100 text-slate-500 border border-slate-200';
+                            }
+                            
+                            let providerLabel = k.provider === 'openrouter' ? 'OpenRouter' : 
+                                                k.provider === 'github_models' ? 'GitHub Models' : 
+                                                k.provider === 'groq' ? 'Groq Cloud' : 'Google Gemini';
 
-                        let pausePlayTitle = k.status === 'paused' ? 'Resume Key' : 'Pause Key';
+                            let pausePlayTitle = k.status === 'paused' ? 'Resume Key' : 'Pause Key';
 
-                        // Calculate Quota Percentage (e.g. Daily limit estimated at 1000 requests per key)
-                        const dailyLimit = k.daily_quota || 1000;
-                        const callsToday = k.calls_24h || 0;
-                        const quotaPercent = Math.min(100, Math.round((callsToday / dailyLimit) * 100));
-                        let barColor = 'bg-emerald-500';
-                        if (quotaPercent > 80) barColor = 'bg-amber-500';
-                        if (quotaPercent >= 95) barColor = 'bg-rose-500';
+                            const dailyLimit = k.daily_quota || 1000;
+                            const callsToday = k.calls_24h || 0;
+                            const quotaPercent = Math.min(100, Math.round((callsToday / dailyLimit) * 100));
+                            let barColor = 'bg-emerald-500';
+                            if (quotaPercent > 80) barColor = 'bg-amber-500';
+                            if (quotaPercent >= 95) barColor = 'bg-rose-500';
 
-                        return `
-                            <tr>
-                                <td class="py-2.5 px-4 font-bold text-slate-800">${providerLabel}</td>
-                                <td class="py-2.5 px-4 font-mono text-slate-500">${k.masked_key}</td>
-                                <td class="py-2.5 px-4">
-                                    <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${badgeColor}" title="${k.error_message ? k.error_message.replace(/"/g, '&quot;') : 'Key is active and working'}">${k.status.replace('_', ' ')}</span>
-                                </td>
-                                <td class="py-2.5 px-4">
-                                    <div class="space-y-1">
-                                        <div class="flex justify-between items-center text-[10px]">
-                                            <span class="font-bold text-slate-700">${callsToday.toLocaleString()} reqs</span>
-                                            <span class="text-slate-400 font-semibold">${quotaPercent}%</span>
+                            return `
+                                <tr>
+                                    <td class="py-2.5 px-4 font-bold text-slate-800">${providerLabel}</td>
+                                    <td class="py-2.5 px-4 font-mono text-slate-500">${k.masked_key}</td>
+                                    <td class="py-2.5 px-4">
+                                        <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${badgeColor}" title="${k.error_message ? k.error_message.replace(/"/g, '&quot;') : 'Key is active and working'}">${k.status.replace('_', ' ')}</span>
+                                    </td>
+                                    <td class="py-2.5 px-4">
+                                        <div class="space-y-1">
+                                            <div class="flex justify-between items-center text-[10px]">
+                                                <span class="font-bold text-slate-700">${callsToday.toLocaleString()} reqs</span>
+                                                <span class="text-slate-400 font-semibold">${quotaPercent}%</span>
+                                            </div>
+                                            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                                <div class="${barColor} h-full transition-all duration-500" style="width: ${quotaPercent}%"></div>
+                                            </div>
                                         </div>
-                                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                                            <div class="${barColor} h-full transition-all duration-500" style="width: ${quotaPercent}%"></div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="py-2.5 px-4 text-right">
-                                    <button onclick="testAdminAIKey(${k.id}, this)" class="text-[10px] px-2 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded hover:bg-indigo-100 transition mr-1.5">
-                                        Test
-                                    </button>
-                                    <button onclick="toggleAdminAIKeyStatus(${k.id}, '${k.status}')" class="text-[10px] px-2 py-1 bg-white border border-slate-200 rounded text-slate-600 hover:border-indigo-600 hover:text-indigo-600 transition mr-1.5">
-                                        ${k.status === 'paused' ? 'Resume' : 'Pause'}
-                                    </button>
-                                    <button onclick="deleteAdminAIKey(${k.id})" class="text-[10px] px-2 py-1 bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 transition">Delete</button>
-                                </td>
-                            </tr>
-                        `;
-                    }).join('');
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-500">No Central AI API Keys configured. Click "Add API Key" above to connect one!</td></tr>';
+                                    </td>
+                                    <td class="py-2.5 px-4 text-right">
+                                        <button onclick="testAdminAIKey(${k.id}, this)" class="text-[10px] px-2 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded hover:bg-indigo-100 transition mr-1.5">
+                                            Test
+                                        </button>
+                                        <button onclick="toggleAdminAIKeyStatus(${k.id}, '${k.status}')" class="text-[10px] px-2 py-1 bg-white border border-slate-200 rounded text-slate-600 hover:border-indigo-600 hover:text-indigo-600 transition mr-1.5">
+                                            ${k.status === 'paused' ? 'Resume' : 'Pause'}
+                                        </button>
+                                        <button onclick="deleteAdminAIKey(${k.id})" class="text-[10px] px-2 py-1 bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 transition">Delete</button>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('');
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-500">No Central AI API Keys configured. Click "Add API Key" above to connect one!</td></tr>';
+                    }
                 }
-            } catch (err) {
-                showNotification('error', 'Failed to load AI Settings: ' + err.message);
+            } catch (errKeys) {
+                console.warn('Keys load warning:', errKeys);
+                const tbody = document.getElementById('admin-ai-keys-tbody');
+                if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-slate-400">No API keys found.</td></tr>';
             }
         };
 

@@ -3372,12 +3372,20 @@
             }
         };
 
-        // Manual Invoice Generator Modal Handler
-        window.openManualInvoiceModal = function() {
+        // Manual Invoice Generator Modal Handler with Searchable Dropdown
+        window.openManualInvoiceModal = async function() {
             const existing = document.getElementById('manual-invoice-modal');
             if (existing) existing.remove();
 
-            const userOptions = (window.allAdminUsers || []).map(u => `<option value="${u.id}">${u.name} (${u.email}) - ID: #${u.id}</option>`).join('');
+            // Fetch users list dynamically if not already cached
+            let usersList = window.loadedAdminUsersList || [];
+            if (usersList.length === 0) {
+                try {
+                    const res = await apiCall('admin/users.php');
+                    usersList = res.users || [];
+                    window.loadedAdminUsersList = usersList;
+                } catch(e) {}
+            }
 
             const modalHTML = `
                 <div id="manual-invoice-modal" class="fixed inset-0 z-[160] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in p-4">
@@ -3395,12 +3403,28 @@
                             </button>
                         </div>
                         <form id="manual-invoice-form" onsubmit="submitManualInvoice(event)" class="p-6 space-y-4 text-xs">
+                            <!-- Searchable User Dropdown System -->
                             <div>
                                 <label class="block font-bold text-slate-700 mb-1">Select Target User Account</label>
-                                <select id="invoice-user-id" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                                    <option value="">-- Choose User --</option>
-                                    ${userOptions}
-                                </select>
+                                <input type="hidden" id="invoice-user-id" required>
+                                
+                                <div class="relative" id="invoice-user-dropdown-container">
+                                    <div id="invoice-user-select-trigger" onclick="toggleUserDropdownMenu()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-medium flex items-center justify-between cursor-pointer hover:bg-slate-100 transition">
+                                        <span id="selected-user-label" class="text-slate-400">Search or select user account...</span>
+                                        <i data-lucide="chevron-down" class="h-4 w-4 text-slate-400"></i>
+                                    </div>
+
+                                    <!-- Dropdown menu panel -->
+                                    <div id="invoice-user-dropdown-menu" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-[180] overflow-hidden">
+                                        <div class="p-2 border-b border-slate-100 bg-slate-50 relative">
+                                            <i data-lucide="search" class="h-3.5 w-3.5 absolute left-4 top-3 text-slate-400"></i>
+                                            <input type="text" id="invoice-user-search-input" oninput="filterUserDropdownOptions()" placeholder="Type to search name, email, or ID..." class="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                        </div>
+                                        <div id="invoice-user-options-list" class="max-h-48 overflow-y-auto divide-y divide-slate-100 text-xs">
+                                            <!-- Options rendered dynamically -->
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="grid grid-cols-2 gap-4">
@@ -3432,6 +3456,70 @@
             `;
             document.body.insertAdjacentHTML('beforeend', modalHTML);
             lucide.createIcons();
+
+            // Populate options list
+            window.renderUserDropdownOptions(usersList);
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function closeDropdownHandler(evt) {
+                const container = document.getElementById('invoice-user-dropdown-container');
+                if (container && !container.contains(evt.target)) {
+                    const menu = document.getElementById('invoice-user-dropdown-menu');
+                    if (menu) menu.classList.add('hidden');
+                }
+            });
+        };
+
+        window.toggleUserDropdownMenu = function() {
+            const menu = document.getElementById('invoice-user-dropdown-menu');
+            if (menu) {
+                menu.classList.toggle('hidden');
+                if (!menu.classList.contains('hidden')) {
+                    const input = document.getElementById('invoice-user-search-input');
+                    if (input) input.focus();
+                }
+            }
+        };
+
+        window.renderUserDropdownOptions = function(users) {
+            const listEl = document.getElementById('invoice-user-options-list');
+            if (!listEl) return;
+
+            if (users.length === 0) {
+                listEl.innerHTML = `<div class="p-3 text-center text-slate-400">No users found.</div>`;
+                return;
+            }
+
+            listEl.innerHTML = users.map(u => `
+                <div onclick="selectUserForInvoice(${u.id}, '${u.name.replace(/'/g, "\\'")}', '${u.email}')" class="p-2.5 hover:bg-emerald-50 cursor-pointer transition flex items-center justify-between text-slate-800">
+                    <div>
+                        <div class="font-bold">${u.name}</div>
+                        <div class="text-[10px] text-slate-400 font-medium">${u.email}</div>
+                    </div>
+                    <span class="text-[10px] font-mono font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">#${u.id}</span>
+                </div>
+            `).join('');
+        };
+
+        window.filterUserDropdownOptions = function() {
+            const query = (document.getElementById('invoice-user-search-input')?.value || '').toLowerCase();
+            const allUsers = window.loadedAdminUsersList || [];
+            const filtered = allUsers.filter(u => 
+                (u.name && u.name.toLowerCase().includes(query)) ||
+                (u.email && u.email.toLowerCase().includes(query)) ||
+                (u.id && u.id.toString().includes(query))
+            );
+            window.renderUserDropdownOptions(filtered);
+        };
+
+        window.selectUserForInvoice = function(userId, name, email) {
+            document.getElementById('invoice-user-id').value = userId;
+            const labelEl = document.getElementById('selected-user-label');
+            labelEl.textContent = `${name} (${email}) - #${userId}`;
+            labelEl.classList.remove('text-slate-400');
+            labelEl.classList.add('text-slate-900', 'font-bold');
+
+            document.getElementById('invoice-user-dropdown-menu').classList.add('hidden');
         };
 
         window.submitManualInvoice = async function(e) {

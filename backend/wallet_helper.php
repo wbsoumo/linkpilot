@@ -132,8 +132,8 @@ if (!function_exists('callAIProvider')) {
                 $stmtKeys = $db->prepare("
                     SELECT k.id, k.api_key, k.status 
                     FROM user_ai_keys k 
-                    WHERE k.user_id = ? AND k.provider = ? AND k.status NOT IN ('invalid', 'paused') 
-                    ORDER BY FIELD(k.status, 'active', 'limit_exceeded') ASC, k.id ASC
+                    WHERE k.user_id = ? AND k.provider = ? AND k.status = 'active'
+                    ORDER BY k.id ASC
                 ");
                 $stmtKeys->execute([$userId, $provider]);
                 $apiKeysList = $stmtKeys->fetchAll();
@@ -144,8 +144,8 @@ if (!function_exists('callAIProvider')) {
                     SELECT k.id, k.api_key, k.status 
                     FROM user_ai_keys k 
                     JOIN users u ON k.user_id = u.id 
-                    WHERE u.role = 'admin' AND k.provider = ? AND k.status NOT IN ('invalid', 'paused') 
-                    ORDER BY FIELD(k.status, 'active', 'limit_exceeded') ASC, k.id ASC
+                    WHERE u.role = 'admin' AND k.provider = ? AND k.status = 'active'
+                    ORDER BY k.id ASC
                 ");
                 $stmtKeys->execute([$provider]);
                 $apiKeysList = $stmtKeys->fetchAll();
@@ -489,9 +489,6 @@ if (!function_exists('callAIProvider')) {
                             ];
                         } catch (Exception $ex) {
                             $lastError = $ex->getMessage();
-                            if (strpos($lastError, '401:') !== false || strpos($lastError, '429:') !== false) {
-                                throw $ex;
-                            }
                         }
                     }
 

@@ -28,7 +28,7 @@ if ($fileSize === 0) {
     exit;
 }
 
-define('LOG_VIEWER_VERSION', 'v1.1.4');
+define('LOG_VIEWER_VERSION', 'v1.1.5');
 
 // Read last 16MB chunk to guarantee we reach actual event lines across large JSON entries
 $readLen = min($fileSize, 16777216); // 16 MB
@@ -63,5 +63,20 @@ if (empty($finalLines)) {
     echo "No matching non-system log entries found.\n";
 } else {
     echo implode("\n\n", $finalLines);
+}
+
+// Check AI Debug Log
+$aiLog = __DIR__ . '/../../ai_debug.log';
+if (file_exists($aiLog)) {
+    echo "\n\n=== RECENT AI ENGINE DEBUGLOG (ai_debug.log) ===\n";
+    $aiFp = fopen($aiLog, 'rb');
+    fseek($aiFp, 0, SEEK_END);
+    $aiSz = ftell($aiFp);
+    $aiRead = min($aiSz, 65536);
+    if ($aiRead > 0) {
+        fseek($aiFp, -$aiRead, SEEK_END);
+        echo fread($aiFp, $aiRead);
+    }
+    fclose($aiFp);
 }
 exit;

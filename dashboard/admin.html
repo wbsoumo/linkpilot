@@ -3473,59 +3473,75 @@
         window.viewSessionClickstream = async function(sessionId) {
             try {
                 const res = await apiCall(`admin/user_tracker.php?session_id=${sessionId}`);
-                const session = res.session;
+                const session = res.session || {};
                 const activities = res.timeline || [];
 
                 const existing = document.getElementById('admin-session-activities-modal');
                 if (existing) existing.remove();
 
-                const activityRows = activities.map(act => {
-                    const timeStr = new Date(act.created_at).toLocaleTimeString();
-                    if (act.entry_type === 'event') {
-                        const metaString = act.metadata_json ? `<pre class="bg-slate-50 p-1.5 rounded text-[9px] font-mono text-slate-500 mt-1 border border-slate-100 overflow-x-auto whitespace-pre-wrap">${JSON.stringify(JSON.parse(act.metadata_json), null, 2)}</pre>` : '';
-                        return `
-                            <div class="flex items-start space-x-3 text-slate-650">
-                                <div class="h-6 w-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 text-[10px] font-bold border border-emerald-200">EV</div>
-                                <div class="flex-grow">
-                                    <span class="font-bold text-slate-800">Event: <span class="text-emerald-700">${act.event_name}</span></span> at <span class="font-mono text-slate-400">${timeStr}</span>
-                                    <div class="text-[10px] text-slate-500 font-semibold bg-slate-50 p-2 rounded border border-slate-100 mt-1">
-                                        <div><strong>Category:</strong> ${act.event_category}</div>
-                                        ${act.page_title ? `<div><strong>Page:</strong> ${act.page_title}</div>` : ''}
-                                        ${metaString}
+                const browserStr = session.browser || 'Browser';
+                const osStr = session.os || 'OS';
+                const ipStr = session.ip_address || '0.0.0.0';
+
+                let activityRows = '';
+                if (activities.length === 0) {
+                    activityRows = '<p class="text-slate-400 text-center py-6 font-semibold">No activities logged in this session.</p>';
+                } else {
+                    activityRows = activities.map(act => {
+                        const timeStr = act.created_at ? new Date(act.created_at).toLocaleTimeString() : '';
+                        if (act.entry_type === 'event') {
+                            let metaString = '';
+                            if (act.metadata_json) {
+                                try {
+                                    metaString = `<pre class="bg-slate-50 p-1.5 rounded text-[9px] font-mono text-slate-500 mt-1 border border-slate-100 overflow-x-auto whitespace-pre-wrap">${JSON.stringify(JSON.parse(act.metadata_json), null, 2)}</pre>`;
+                                } catch(e) {
+                                    metaString = `<pre class="bg-slate-50 p-1.5 rounded text-[9px] font-mono text-slate-500 mt-1 border border-slate-100 overflow-x-auto whitespace-pre-wrap">${act.metadata_json}</pre>`;
+                                }
+                            }
+                            return `
+                                <div class="flex items-start space-x-3 text-slate-600 mb-3">
+                                    <div class="h-6 w-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 text-[10px] font-bold border border-emerald-200">EV</div>
+                                    <div class="flex-grow">
+                                        <span class="font-bold text-slate-800">Event: <span class="text-emerald-700">${act.event_name}</span></span> at <span class="font-mono text-slate-400">${timeStr}</span>
+                                        <div class="text-[10px] text-slate-500 font-semibold bg-slate-50 p-2 rounded border border-slate-100 mt-1">
+                                            <div><strong>Category:</strong> ${act.event_category || ''}</div>
+                                            ${act.page_title ? `<div><strong>Page:</strong> ${act.page_title}</div>` : ''}
+                                            ${metaString}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        `;
-                    } else if (act.activity_type === 'page_view') {
-                        return `
-                            <div class="flex items-start space-x-3 text-slate-650">
-                                <div class="h-6 w-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 text-[10px] font-bold border border-blue-200">PV</div>
-                                <div class="flex-grow">
-                                    <span class="font-bold text-slate-800">Page View</span> at <span class="font-mono text-slate-400">${timeStr}</span>
-                                    <div class="text-[10px] text-slate-500 font-semibold truncate bg-slate-50 p-1.5 rounded border border-slate-100 mt-1" title="${act.page_url}">
-                                        <strong>Page Title:</strong> ${act.page_title || 'Workspace'}<br/>
-                                        <strong>URL:</strong> ${act.page_url}
+                            `;
+                        } else if (act.activity_type === 'page_view') {
+                            return `
+                                <div class="flex items-start space-x-3 text-slate-600 mb-3">
+                                    <div class="h-6 w-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 text-[10px] font-bold border border-blue-200">PV</div>
+                                    <div class="flex-grow">
+                                        <span class="font-bold text-slate-800">Page View</span> at <span class="font-mono text-slate-400">${timeStr}</span>
+                                        <div class="text-[10px] text-slate-500 font-semibold truncate bg-slate-50 p-1.5 rounded border border-slate-100 mt-1" title="${act.page_url}">
+                                            <strong>Page Title:</strong> ${act.page_title || 'Workspace'}<br/>
+                                            <strong>URL:</strong> ${act.page_url}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        `;
-                    } else {
-                        return `
-                            <div class="flex items-start space-x-3 text-slate-650">
-                                <div class="h-6 w-6 rounded-full bg-indigo-50 text-indigo-650 flex items-center justify-center shrink-0 text-[10px] font-bold border border-indigo-200">CL</div>
-                                <div class="flex-grow">
-                                    <span class="font-bold text-slate-800">Clicked Element</span> at <span class="font-mono text-slate-450">${timeStr}</span>
-                                    <div class="text-[10px] text-slate-500 font-semibold bg-slate-50 p-2 rounded border border-slate-100 mt-1 space-y-1">
-                                        <div><strong>Tag Name:</strong> &lt;${act.element_tag || 'element'}&gt;</div>
-                                        ${act.element_text ? `<div><strong>Inner Text:</strong> <span class="text-indigo-600 font-extrabold">"${act.element_text}"</span></div>` : ''}
-                                        ${act.element_id ? `<div><strong>ID:</strong> <code>#${act.element_id}</code></div>` : ''}
-                                        ${act.element_class ? `<div><strong>Classes:</strong> <code>.${act.element_class.split(' ').slice(0, 3).join('.')}</code></div>` : ''}
+                            `;
+                        } else {
+                            return `
+                                <div class="flex items-start space-x-3 text-slate-600 mb-3">
+                                    <div class="h-6 w-6 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 text-[10px] font-bold border border-indigo-200">CL</div>
+                                    <div class="flex-grow">
+                                        <span class="font-bold text-slate-800">Clicked Element</span> at <span class="font-mono text-slate-400">${timeStr}</span>
+                                        <div class="text-[10px] text-slate-500 font-semibold bg-slate-50 p-2 rounded border border-slate-100 mt-1 space-y-1">
+                                            <div><strong>Tag Name:</strong> &lt;${act.element_tag || 'element'}&gt;</div>
+                                            ${act.element_text ? `<div><strong>Inner Text:</strong> <span class="text-indigo-600 font-extrabold">"${act.element_text}"</span></div>` : ''}
+                                            ${act.element_id ? `<div><strong>ID:</strong> <code>#${act.element_id}</code></div>` : ''}
+                                            ${act.element_class ? `<div><strong>Classes:</strong> <code>.${act.element_class.split(' ').slice(0, 3).join('.')}</code></div>` : ''}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        `;
-                    }
-                }).join('<hr class="border-slate-150 my-3" />') || '<p class="text-slate-455 text-center py-6 font-semibold">No activities logged in this session.</p>';
+                            `;
+                        }
+                    }).join('');
+                }
 
                 const modalHTML = `
                     <div id="admin-session-activities-modal" class="fixed inset-0 z-[160] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in">
@@ -3533,7 +3549,7 @@
                             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                                 <div class="text-left">
                                     <h3 class="text-xs font-bold text-slate-800">Visitor Clickstream Logs</h3>
-                                    <p class="text-[9px] text-slate-400 mt-0.5">${session.browser} on ${session.os} (${session.ip_address})</p>
+                                    <p class="text-[9px] text-slate-400 mt-0.5">${browserStr} on ${osStr} (${ipStr})</p>
                                 </div>
                                 <button onclick="document.getElementById('admin-session-activities-modal').remove()" class="h-7 w-7 rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition">
                                     <i data-lucide="x" class="h-4 w-4"></i>

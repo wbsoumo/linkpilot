@@ -505,16 +505,19 @@ if (!function_exists('callAI')) {
         $db = Database::getConnection();
 
         try {
-            $stmtAdmin = $db->query("SELECT active_ai_provider FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1");
-            $adminRes = $stmtAdmin->fetch();
-            if ($adminRes && !empty($adminRes['active_ai_provider'])) {
-                $primaryProvider = $adminRes['active_ai_provider'];
-            } elseif ($userId !== null) {
-                $stmtUser = $db->prepare("SELECT active_ai_model, active_ai_provider FROM users WHERE id = ?");
+            if ($userId !== null) {
+                $stmtUser = $db->prepare("SELECT active_ai_provider FROM users WHERE id = ?");
                 $stmtUser->execute([$userId]);
                 $res = $stmtUser->fetch();
                 if ($res && !empty($res['active_ai_provider'])) {
                     $primaryProvider = $res['active_ai_provider'];
+                }
+            }
+            if (empty($primaryProvider) || $primaryProvider === 'google_ai_studio') {
+                $stmtAdmin = $db->query("SELECT active_ai_provider FROM users WHERE role = 'admin' AND active_ai_provider IS NOT NULL AND active_ai_provider != '' ORDER BY id ASC LIMIT 1");
+                $adminRes = $stmtAdmin->fetch();
+                if ($adminRes && !empty($adminRes['active_ai_provider'])) {
+                    $primaryProvider = $adminRes['active_ai_provider'];
                 }
             }
         } catch (Exception $e) {}

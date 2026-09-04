@@ -549,8 +549,10 @@ if (!function_exists('callAI')) {
         $providerErrors = [];
         foreach ($failoverChain as $currentProvider) {
             try {
+                WhatsAppMetaService::logDebug("callAI trying provider '$currentProvider' for userId=" . ($userId ?? 'null'));
                 return callAIProvider($currentProvider, $systemPrompt, $userPrompt, $userId);
             } catch (Exception $pEx) {
+                WhatsAppMetaService::logDebug("callAI provider '$currentProvider' failed: " . $pEx->getMessage());
                 $providerErrors[] = "[{$currentProvider}]: " . $pEx->getMessage();
             }
         }

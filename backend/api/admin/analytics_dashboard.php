@@ -146,7 +146,7 @@ try {
         FROM sent_emails e
         JOIN users u ON e.user_id = u.id
         UNION ALL
-        SELECT 'ai' as type, u.name as user_name, CONCAT(g.provider, ' (', g.tokens_used, ' tokens)') as detail, g.created_at, 'AI Reply Generated' as title
+        SELECT 'ai' as type, u.name as user_name, CONCAT(g.type, ' (', g.tokens_used, ' tokens)') as detail, g.created_at, 'AI Reply Generated' as title
         FROM ai_generations g
         JOIN users u ON g.user_id = u.id
         ORDER BY created_at DESC

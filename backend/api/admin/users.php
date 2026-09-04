@@ -51,8 +51,8 @@ try {
                 'used_credits' => 0
             ];
 
-            // Fetch WhatsApp connection status
-            $stmtWa = $db->prepare("SELECT id, phone_number_id, display_phone_number, is_active, created_at FROM whatsapp_accounts WHERE user_id = ? LIMIT 1");
+            // Fetch WhatsApp connection status (using status column)
+            $stmtWa = $db->prepare("SELECT id, phone_number_id, display_phone_number, status, created_at FROM whatsapp_accounts WHERE user_id = ? LIMIT 1");
             $stmtWa->execute([$targetUserId]);
             $waData = $stmtWa->fetch(PDO::FETCH_ASSOC);
 
@@ -61,8 +61,8 @@ try {
             $stmtAiKeys->execute([$targetUserId]);
             $aiKeys = $stmtAiKeys->fetchAll(PDO::FETCH_ASSOC);
 
-            // Fetch SMTP config
-            $stmtSmtp = $db->prepare("SELECT id, smtp_host, smtp_port, sender_email, created_at FROM smtp_settings WHERE user_id = ? LIMIT 1");
+            // Fetch SMTP config (using smtp_accounts table)
+            $stmtSmtp = $db->prepare("SELECT id, host as smtp_host, port as smtp_port, sender_email, created_at FROM smtp_accounts WHERE user_id = ? LIMIT 1");
             $stmtSmtp->execute([$targetUserId]);
             $smtpData = $stmtSmtp->fetch(PDO::FETCH_ASSOC);
 

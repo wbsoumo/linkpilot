@@ -138,7 +138,7 @@ try {
 
         $logsQuery = "
             SELECT l.id, l.email_subject, l.user_id, u.name as user_name, u.email as user_email, 
-                   l.status, l.log_level, l.message, l.created_at 
+                   l.status, l.message, l.created_at 
             FROM email_processing_logs l
             LEFT JOIN users u ON l.user_id = u.id
             WHERE 1=1
@@ -146,9 +146,9 @@ try {
         $params = [];
 
         if (!empty($logLevel)) {
-            $logsQuery .= " AND (l.log_level = ? OR l.status = ?)";
-            $params[] = strtoupper($logLevel);
+            $logsQuery .= " AND (l.status = ? OR l.status = ?)";
             $params[] = strtolower($logLevel);
+            $params[] = strtoupper($logLevel);
         }
 
         if (!empty($search)) {

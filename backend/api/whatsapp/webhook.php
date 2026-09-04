@@ -99,6 +99,8 @@ try {
                 $stmtAccFallback = $db->query("SELECT user_id, access_token, business_name FROM whatsapp_accounts WHERE status = 'connected' ORDER BY updated_at DESC LIMIT 1");
                 $accRow = $stmtAccFallback->fetch();
             }
+            WhatsAppMetaService::logDebug("WhatsApp Webhook POST payload received for phone_number_id '$phoneNumberId'. Entries count: " . count($entries));
+
             if (!$accRow) {
                 WhatsAppMetaService::logDebug("WhatsApp Webhook skipped: No connected account found for phone_number_id '$phoneNumberId'");
                 continue; // WhatsApp Account not linked to any user inside LinkPilot
@@ -109,6 +111,8 @@ try {
             $accessToken = ($decrypted !== false) ? $decrypted : $encryptedToken;
             $isMock = (strpos($accessToken, 'Mock') !== false || $accessToken === 'EAAGemini' || $accessToken === 'EAAGeminiTest');
             
+            WhatsAppMetaService::logDebug("WhatsApp Webhook resolved account: userId=$userId, phone_number_id=$phoneNumberId, isMock=" . ($isMock ? 'true' : 'false'));
+
             // Check and Reset Monthly Credits lazily
             checkAndResetMonthlyCredits($userId);
             
@@ -125,6 +129,8 @@ try {
                 'auto_summarize_history' => 1
             ];
             
+            WhatsAppMetaService::logDebug("WhatsApp User Settings fetched for userId=$userId: ai_enabled=" . ($settings['ai_enabled'] ?? 0));
+
             // 3. Process Inbound Messages
             $messages = $value['messages'] ?? [];
             foreach ($messages as $msg) {
@@ -134,12 +140,15 @@ try {
                 $timestamp = (int)($msg['timestamp'] ?? time());
                 
                 if (empty($fromWaId) || empty($messageId)) {
+                    WhatsAppMetaService::logDebug("WhatsApp message skipped: empty fromWaId or messageId.");
                     continue;
                 }
                 
                 // Get Contact Profile Name
                 $profileName = $value['contacts'][0]['profile']['name'] ?? 'WhatsApp Contact';
                 
+                WhatsAppMetaService::logDebug("WhatsApp Inbound Message: type=$msgType, from=$fromWaId, profileName=$profileName, msgId=$messageId");
+
                 $db->beginTransaction();
                 try {
                     // a. Locate or create whatsapp_contacts record
@@ -253,6 +262,10 @@ try {
 
                         $stmtQueueIn = $db->prepare("INSERT INTO whatsapp_queue (user_id, phone_number_id, recipient_number, payload_json, type, status) VALUES (?, ?, ?, ?, 'inbound_ai_reply', 'pending')");
                         $stmtQueueIn->execute([$userId, $phoneNumberId, $fromWaId, $queuePayload]);
+                        
+                        WhatsAppMetaService::logDebug("Enqueued inbound_ai_reply into whatsapp_queue for userId=$userId, msgId=$messageId");
+                    } else {
+                        WhatsAppMetaService::logDebug("Skipped enqueuing inbound_ai_reply: ai_enabled=" . ($settings['ai_enabled'] ?? 0) . ", bodyTextEmpty=" . (empty($bodyText) ? 'true' : 'false') . ", msgType=$msgType");
                     }
                     
                     // Always commit transaction first to ensure message is persisted to DB
@@ -261,10 +274,11 @@ try {
                     // Immediately process WhatsApp AI queue synchronously in isolated scope
                     if (!empty($settings['ai_enabled']) && !empty($bodyText) && !in_array($msgType, ['status', 'system', 'reaction', 'unknown'])) {
                         try {
+                            WhatsAppMetaService::logDebug("Executing QueueWorker::processWhatsAppQueue() synchronously...");
                             require_once __DIR__ . '/../../queue_worker.php';
                             QueueWorker::processWhatsAppQueue();
                         } catch (Throwable $qEx) {
-                            WhatsAppMetaService::logDebug("Synchronous queue worker error: " . $qEx->getMessage());
+                            WhatsAppMetaService::logDebug("Synchronous queue worker error: " . $qEx->getMessage() . "\n" . $qEx->getTraceAsString());
                         }
                     }
 

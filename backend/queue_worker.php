@@ -359,6 +359,7 @@ You MUST return your response as a valid, parsable JSON block with the following
         $pendingItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         $count = count($pendingItems);
+        WhatsAppMetaService::logDebug("QueueWorker::processWhatsAppQueue() found {$count} pending queue item(s).");
         if ($count === 0) {
             return 0;
         }
@@ -371,6 +372,8 @@ You MUST return your response as a valid, parsable JSON block with the following
             $recipient = $item['recipient_number'];
             $type = $item['type'];
             $attempts = (int)$item['attempts'];
+            
+            WhatsAppMetaService::logDebug("QueueWorker processing item ID={$queueId}, type={$type}, recipient={$recipient}, attempts={$attempts}");
             
             // Mark as processing
             $db->prepare("UPDATE whatsapp_queue SET status = 'processing', attempts = attempts + 1 WHERE id = ?")->execute([$queueId]);
@@ -711,8 +714,16 @@ TODAY'S DATE AND TIME: $currentDate $currentTime.
 
         $userPrompt = "Sender Name: $profileName\nMessage: $bodyText";
 
-        $ai = callAI($systemPrompt, $userPrompt, $userId);
-        $aiRes = json_decode($ai['text'], true);
+        WhatsAppMetaService::logDebug("processInboundAiReply: Calling callAI(...) for userId={$userId}, profileName='{$profileName}', bodyText='{$bodyText}'");
+
+        try {
+            $ai = callAI($systemPrompt, $userPrompt, $userId);
+            $aiRes = json_decode($ai['text'], true);
+            WhatsAppMetaService::logDebug("callAI completed. Raw AI response length: " . strlen($ai['text'] ?? '') . " | Text snippet: " . substr($ai['text'] ?? '', 0, 150));
+        } catch (Throwable $aiEx) {
+            WhatsAppMetaService::logDebug("callAI Exception for userId={$userId}: " . $aiEx->getMessage());
+            throw $aiEx;
+        }
         
         $aiSummary = null;
         $aiSuggestedReply = null;
@@ -723,6 +734,8 @@ TODAY'S DATE AND TIME: $currentDate $currentTime.
             $aiSummary = $aiRes['summary'] ?? null;
             $aiSuggestedReply = $aiRes['suggested_reply'] ?? null;
             $sentiment = $aiRes['sentiment'] ?? 'neutral';
+
+            WhatsAppMetaService::logDebug("AI suggested_reply extracted: " . ($aiSuggestedReply ?: '[EMPTY]'));
 
             // Update inbound message with AI summary & sentiment
             if ($messageDbId > 0) {
@@ -844,13 +857,23 @@ TODAY'S DATE AND TIME: $currentDate $currentTime.
             $wallet = $stmtWallet->fetch();
             $creditsAvailable = $wallet ? (int)$wallet['remaining_credits'] : 0;
 
+            WhatsAppMetaService::logDebug("processInboundAiReply: Credits available for userId={$userId}: {$creditsAvailable}");
+
             if ($creditsAvailable >= 1) {
                 $replyMsgId = '';
                 if (!$isMock) {
-                    $sendRes = WhatsAppMetaService::sendTextMessage($userId, $phoneNumberId, $fromWaId, $aiSuggestedReply, $accessToken);
-                    $replyMsgId = $sendRes['messages'][0]['id'] ?? 'wamid.auto.' . uniqid();
+                    WhatsAppMetaService::logDebug("Sending outbound text message to {$fromWaId} via WhatsAppMetaService::sendTextMessage...");
+                    try {
+                        $sendRes = WhatsAppMetaService::sendTextMessage($userId, $phoneNumberId, $fromWaId, $aiSuggestedReply, $accessToken);
+                        WhatsAppMetaService::logDebug("sendTextMessage response: " . json_encode($sendRes));
+                        $replyMsgId = $sendRes['messages'][0]['id'] ?? 'wamid.auto.' . uniqid();
+                    } catch (Throwable $sendEx) {
+                        WhatsAppMetaService::logDebug("sendTextMessage failed with error: " . $sendEx->getMessage());
+                        throw $sendEx;
+                    }
                 } else {
                     $replyMsgId = 'wamid.MockAuto.' . uniqid();
+                    WhatsAppMetaService::logDebug("Mock account - generated mock replyMsgId: {$replyMsgId}");
                 }
 
                 $stmtInsAutoMsg = $db->prepare("INSERT INTO whatsapp_messages (user_id, wa_contact_id, message_id, direction, type, body, status) VALUES (?, ?, ?, 'outbound', 'text', ?, 'sent')");

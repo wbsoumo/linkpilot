@@ -1228,24 +1228,113 @@
             </div>
             
             <div id="admin-credits-pane" class="hidden space-y-6">
-                <!-- Credits adjustment forms & transaction lists -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
-                        <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2">Adjust User Balance</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- 1. Quick & Manual Credit Adjustments Card -->
+                    <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-5 shadow-xs lg:col-span-1">
+                        <div class="border-b border-slate-100 pb-3">
+                            <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+                                <span>💳 Manual Credit Adjustments</span>
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Directly grant or deduct user wallet credits.</p>
+                        </div>
+
                         <form onsubmit="applyManualCreditAdjustment(event)" class="space-y-4 text-xs">
                             <div>
-                                <label class="block text-slate-500 font-semibold mb-1">Target User ID</label>
-                                <input type="number" id="adj_user_id" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
+                                <label class="block text-slate-600 font-semibold mb-1">Target User ID</label>
+                                <input type="number" id="adj_user_id" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 font-mono" placeholder="Enter User ID (e.g. 101)">
                             </div>
+
                             <div>
-                                <label class="block text-slate-500 font-semibold mb-1">Adjust Value</label>
-                                <input type="number" id="adj_credits" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800" placeholder="Positive to add, negative to subtract">
+                                <label class="block text-slate-600 font-semibold mb-1">Credit Adjustment Amount</label>
+                                <input type="number" id="adj_credits" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 font-bold" placeholder="Positive to add, negative to subtract">
                             </div>
+
+                            <!-- Quick Preset Adjustment Buttons -->
                             <div>
-                                <label class="block text-slate-500 font-semibold mb-1">Deduction Reason</label>
-                                <input type="text" id="adj_reason" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Quick Adjust Shortcuts</label>
+                                <div class="grid grid-cols-4 gap-2">
+                                    <button type="button" onclick="setQuickCreditAmount(100)" class="py-1.5 px-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg font-bold hover:bg-emerald-100 transition text-center">+100</button>
+                                    <button type="button" onclick="setQuickCreditAmount(500)" class="py-1.5 px-2 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg font-bold hover:bg-indigo-100 transition text-center">+500</button>
+                                    <button type="button" onclick="setQuickCreditAmount(1000)" class="py-1.5 px-2 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg font-bold hover:bg-purple-100 transition text-center">+1,000</button>
+                                    <button type="button" onclick="setQuickCreditAmount(-50)" class="py-1.5 px-2 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg font-bold hover:bg-rose-100 transition text-center">-50</button>
+                                </div>
                             </div>
-                            <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-bold transition">Update User Credits</button>
+
+                            <div>
+                                <label class="block text-slate-600 font-semibold mb-1">Reason / Note</label>
+                                <input type="text" id="adj_reason" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800" placeholder="e.g. Compensation for campaign pause">
+                            </div>
+
+                            <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition shadow-xs">
+                                Execute Credit Adjustment
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- 2. Credit Pricing Tier Manager -->
+                    <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-5 shadow-xs lg:col-span-1">
+                        <div class="border-b border-slate-100 pb-3">
+                            <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+                                <span>🏷️ Credit Pricing Tier Manager</span>
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Configure per-credit prices & INR conversion rates.</p>
+                        </div>
+
+                        <form onsubmit="saveCreditPricingTiers(event)" class="space-y-4 text-xs">
+                            <div>
+                                <label class="block text-slate-600 font-semibold mb-1">Base Price Per Credit (INR ₹)</label>
+                                <input type="number" step="0.01" id="base_credit_price_inr" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 font-bold" placeholder="1.00">
+                            </div>
+
+                            <div>
+                                <label class="block text-slate-600 font-semibold mb-1">INR-to-Credit Conversion Rate</label>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-slate-500 font-bold">₹1 INR =</span>
+                                    <input type="number" step="0.1" id="inr_to_credit_rate" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 font-bold" placeholder="1.0">
+                                    <span class="text-slate-500 font-semibold">Credits</span>
+                                </div>
+                            </div>
+
+                            <!-- Custom Pricing Tiers -->
+                            <div class="space-y-2">
+                                <label class="block text-slate-600 font-semibold">Custom Pricing Tiers Config (JSON)</label>
+                                <textarea id="custom_credit_tiers_json" rows="4" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 font-mono text-[11px]" placeholder='[{"credits": 500, "price_inr": 450}, {"credits": 2000, "price_inr": 1600}]'></textarea>
+                            </div>
+
+                            <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition shadow-xs">
+                                Save Pricing Tiers
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- 3. Automatic Credit Allocation Rules -->
+                    <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-5 shadow-xs lg:col-span-1">
+                        <div class="border-b border-slate-100 pb-3">
+                            <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+                                <span>⚙️ Monthly Plan Allocation Rules</span>
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Automated monthly credit top-ups by plan tier.</p>
+                        </div>
+
+                        <form onsubmit="saveCreditAllocationRules(event)" class="space-y-4 text-xs">
+                            <div>
+                                <label class="block text-slate-600 font-semibold mb-1">Free Tier Monthly Allocation</label>
+                                <input type="number" id="alloc_free_plan" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 font-bold" placeholder="100">
+                            </div>
+
+                            <div>
+                                <label class="block text-slate-600 font-semibold mb-1">Pro Tier Monthly Allocation</label>
+                                <input type="number" id="alloc_pro_plan" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 font-bold" placeholder="2500">
+                            </div>
+
+                            <div>
+                                <label class="block text-slate-600 font-semibold mb-1">Agency Tier Monthly Allocation</label>
+                                <input type="number" id="alloc_agency_plan" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 font-bold" placeholder="10000">
+                            </div>
+
+                            <button type="submit" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition shadow-xs">
+                                Save Allocation Rules
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -1695,6 +1784,7 @@
             if (tab === 'health') loadAdminHealthData();
             if (tab === 'users') loadAdminUsersData();
             if (tab === 'ai-settings') loadAdminAISettingsData();
+            if (tab === 'credits') loadAdminCreditsData();
             if (tab === 'logs') loadAdminLogsData();
             if (tab === 'whatsapp') loadAdminWhatsAppDetails();
             if (tab === 'external-apps') loadAdminExternalAppsDetails();
@@ -2049,6 +2139,67 @@
                 }
             } catch (err) {
                 showNotification('error', err.message);
+            }
+        }
+
+        async function setQuickCreditAmount(amount) {
+            document.getElementById('adj_credits').value = amount;
+        }
+
+        async function loadAdminCreditsData() {
+            try {
+                const res = await apiCall('admin/crm_settings.php');
+                const s = res.settings || {};
+
+                if (document.getElementById('base_credit_price_inr')) document.getElementById('base_credit_price_inr').value = s.base_credit_price_inr || '1.00';
+                if (document.getElementById('inr_to_credit_rate')) document.getElementById('inr_to_credit_rate').value = s.inr_to_credit_rate || '1.0';
+                if (document.getElementById('custom_credit_tiers_json')) document.getElementById('custom_credit_tiers_json').value = s.custom_credit_tiers_json || '[{"credits": 500, "price_inr": 450}, {"credits": 2000, "price_inr": 1600}]';
+
+                if (document.getElementById('alloc_free_plan')) document.getElementById('alloc_free_plan').value = s.alloc_free_plan || '100';
+                if (document.getElementById('alloc_pro_plan')) document.getElementById('alloc_pro_plan').value = s.alloc_pro_plan || '2500';
+                if (document.getElementById('alloc_agency_plan')) document.getElementById('alloc_agency_plan').value = s.alloc_agency_plan || '10000';
+            } catch (err) {
+                console.warn('Credits settings load warning:', err);
+            }
+        }
+
+        async function saveCreditPricingTiers(e) {
+            e.preventDefault();
+            const basePrice = document.getElementById('base_credit_price_inr').value;
+            const inrRate = document.getElementById('inr_to_credit_rate').value;
+            const tiersJson = document.getElementById('custom_credit_tiers_json').value;
+
+            try {
+                // Validate JSON formatting if entered
+                if (tiersJson.trim()) {
+                    JSON.parse(tiersJson);
+                }
+                const res = await apiCall('admin/crm_settings.php', 'POST', {
+                    base_credit_price_inr: basePrice,
+                    inr_to_credit_rate: inrRate,
+                    custom_credit_tiers_json: tiersJson
+                });
+                showNotification('success', 'Credit pricing tiers saved successfully!');
+            } catch (err) {
+                showNotification('error', 'Failed to save pricing tiers: ' + err.message);
+            }
+        }
+
+        async function saveCreditAllocationRules(e) {
+            e.preventDefault();
+            const freeAlloc = document.getElementById('alloc_free_plan').value;
+            const proAlloc = document.getElementById('alloc_pro_plan').value;
+            const agencyAlloc = document.getElementById('alloc_agency_plan').value;
+
+            try {
+                const res = await apiCall('admin/crm_settings.php', 'POST', {
+                    alloc_free_plan: freeAlloc,
+                    alloc_pro_plan: proAlloc,
+                    alloc_agency_plan: agencyAlloc
+                });
+                showNotification('success', 'Monthly plan credit allocation rules updated!');
+            } catch (err) {
+                showNotification('error', 'Failed to save allocation rules: ' + err.message);
             }
         }
 

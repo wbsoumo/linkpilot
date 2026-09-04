@@ -101,6 +101,7 @@ function decryptData($encryptedData) {
 // Database Connection Singleton
 class Database {
     private static $instance = null;
+    private static $migrationsRan = false;
     
     public static function getConnection() {
         if (self::$instance === null) {
@@ -109,6 +110,7 @@ class Database {
                     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                     PDO::ATTR_EMULATE_PREPARES   => false,
+                    PDO::ATTR_PERSISTENT         => false,
                 ];
                 try {
                     $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";port=" . DB_PORT . ";charset=utf8mb4";
@@ -122,8 +124,10 @@ class Database {
                     }
                 }
                 
-                // Self-healing database migrations - each run in isolation
-                try {
+                // Run self-healing database migrations once per process request
+                if (!self::$migrationsRan) {
+                    self::$migrationsRan = true;
+                    try {
                     $stmt = self::$instance->query("SHOW COLUMNS FROM `users` LIKE 'openrouter_key'");
                     if (!$stmt->fetch()) {
                         self::$instance->exec("ALTER TABLE `users` ADD COLUMN `openrouter_key` TEXT DEFAULT NULL");
@@ -709,6 +713,7 @@ class Database {
                         UNIQUE KEY `idx_user_day_slot` (`user_id`, `day_of_week`, `start_time`, `end_time`)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
                 } catch (Exception $e) {}
+                }
             } catch (PDOException $e) {
                 http_response_code(500);
                 echo json_encode([

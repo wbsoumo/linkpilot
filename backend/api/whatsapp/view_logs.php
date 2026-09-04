@@ -28,60 +28,40 @@ if ($fileSize === 0) {
     exit;
 }
 
-define('LOG_VIEWER_VERSION', 'v1.1.1');
+define('LOG_VIEWER_VERSION', 'v1.1.2');
 
-// Read backward up to 2MB to find the most recent 100 entries
-$chunkSize = 65536;
-$maxScan = min($fileSize, 2097152); // Read up to 2 MB
-$pos = $fileSize;
-$startPos = max(0, $fileSize - $maxScan);
-$filteredLines = [];
-$leftover = '';
-
-while ($pos > $startPos && count($filteredLines) < 100) {
-    $readLen = min($chunkSize, $pos - $startPos);
-    $pos -= $readLen;
-    fseek($fp, $pos, SEEK_SET);
-    $chunk = fread($fp, $readLen) . $leftover;
-    
-    $chunkLines = explode("\n", $chunk);
-    $leftover = array_shift($chunkLines); // first element might be incomplete line
-    
-    // Reverse to get newest lines first
-    $chunkLines = array_reverse($chunkLines);
-    
-    foreach ($chunkLines as $line) {
-        $trimmed = trim($line);
-        if ($trimmed === '') continue;
-        if (strpos($trimmed, 'sendJsonResponse output') !== false) continue;
-        if (strpos($trimmed, 'inbox.php') !== false) continue;
-        if (strpos($trimmed, 'found 0 pending queue item') !== false) continue;
-        if (strpos($trimmed, '"threads":[{') !== false) continue;
-        if (strpos($trimmed, '"messages":[{') !== false) continue;
-        
-        $filteredLines[] = $trimmed;
-        if (count($filteredLines) >= 100) break;
-    }
-}
-
-if ($leftover !== '' && count($filteredLines) < 100) {
-    $trimmed = trim($leftover);
-    if ($trimmed !== '' && 
-        strpos($trimmed, 'sendJsonResponse output') === false && 
-        strpos($trimmed, 'inbox.php') === false && 
-        strpos($trimmed, 'found 0 pending queue item') === false && 
-        strpos($trimmed, '"threads":[{') === false && 
-        strpos($trimmed, '"messages":[{') === false) {
-        $filteredLines[] = $trimmed;
-    }
-}
-
+// Read last 1MB chunk to guarantee we get the absolute newest log entries
+$readLen = min($fileSize, 1048576); // 1 MB
+fseek($fp, -$readLen, SEEK_END);
+$buffer = fread($fp, $readLen);
 fclose($fp);
+
+$allLines = explode("\n", $buffer);
+if ($readLen < $fileSize) {
+    array_shift($allLines); // drop potentially incomplete first line
+}
+
+$filteredLines = [];
+// Iterate backwards through lines (newest first)
+for ($i = count($allLines) - 1; $i >= 0; $i--) {
+    $trimmed = trim($allLines[$i]);
+    if ($trimmed === '') continue;
+    if (strpos($trimmed, 'sendJsonResponse output') !== false) continue;
+    if (strpos($trimmed, 'inbox.php') !== false) continue;
+    if (strpos($trimmed, 'found 0 pending queue item') !== false) continue;
+    if (strpos($trimmed, '"threads":[{') !== false) continue;
+    if (strpos($trimmed, '"messages":[{') !== false) continue;
+    
+    $filteredLines[] = $trimmed;
+    if (count($filteredLines) >= 100) break;
+}
+
 $finalLines = array_reverse($filteredLines);
 
 echo "=== LINKPILOT WHATSAPP DEBUG LOGS [" . LOG_VIEWER_VERSION . "] (ENTRIES: " . count($finalLines) . " | FILE SIZE: " . round($fileSize / 1024 / 1024, 2) . " MB) ===\n\n";
 if (empty($finalLines)) {
-    echo "No matching non-system log entries found in the last read chunks.\n";
+    echo "No matching non-system log entries found.\n";
 } else {
     echo implode("\n\n", $finalLines);
 }
+exit;

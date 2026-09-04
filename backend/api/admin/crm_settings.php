@@ -69,21 +69,26 @@ try {
         $mysqlPingMs = round((microtime(true) - $startTime) * 1000, 2);
 
         // Disk / Storage Usage
-        $diskFree = disk_free_space(__DIR__);
-        $diskTotal = disk_total_space(__DIR__);
-        $diskUsed = $diskTotal - $diskFree;
-        $diskPercent = $diskTotal > 0 ? round(($diskUsed / $diskTotal) * 100, 1) : 0;
+        $diskFree = 0; $diskTotal = 0; $diskUsed = 0; $diskPercent = 0;
+        try {
+            $diskFree = @disk_free_space(__DIR__) ?: 0;
+            $diskTotal = @disk_total_space(__DIR__) ?: 0;
+            $diskUsed = max(0, $diskTotal - $diskFree);
+            $diskPercent = $diskTotal > 0 ? round(($diskUsed / $diskTotal) * 100, 1) : 0;
+        } catch (Throwable $ex) {}
 
         // 4. Queue Worker & Cron Status Inspector
         $queueWorkerStatus = 'stopped';
         $workerPid = null;
-        if (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
-            $psOutput = shell_exec("ps aux | grep 'queue_worker.php' | grep -v grep 2>/dev/null");
-            if ($psOutput && trim($psOutput) !== '') {
-                $queueWorkerStatus = 'running';
-                $parts = preg_split('/\s+/', trim($psOutput));
-                $workerPid = $parts[1] ?? null;
-            }
+        if (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN' && function_exists('shell_exec')) {
+            try {
+                $psOutput = @shell_exec("ps aux | grep 'queue_worker.php' | grep -v grep 2>/dev/null");
+                if ($psOutput && trim($psOutput) !== '') {
+                    $queueWorkerStatus = 'running';
+                    $parts = preg_split('/\s+/', trim($psOutput));
+                    $workerPid = $parts[1] ?? null;
+                }
+            } catch (Throwable $ex) {}
         }
         
         // Check for stalled condition (if queue items exist in 'processing' state for > 15 mins)

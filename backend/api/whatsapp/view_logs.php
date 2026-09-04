@@ -40,10 +40,19 @@ $lines = explode("\n", $buffer);
 
 $filteredLines = [];
 foreach ($lines as $line) {
-    if (strpos($line, 'sendJsonResponse output') !== false) continue;
-    if (strpos($line, 'inbox.php') !== false) continue;
-    if (strpos($line, 'found 0 pending queue item') !== false) continue;
-    $filteredLines[] = $line;
+    $trimmed = trim($line);
+    // Ignore massive JSON payloads/responses
+    if (strpos($trimmed, 'sendJsonResponse output') !== false) continue;
+    if (strpos($trimmed, 'inbox.php') !== false) continue;
+    if (strpos($trimmed, 'found 0 pending queue item') !== false) continue;
+    if (strpos($trimmed, '"messages":[{') !== false) continue;
+    if (strpos($trimmed, '{"id":') !== false) continue;
+    if (strpos($trimmed, '"threads":[{') !== false) continue;
+    
+    // Only include timestamped log entries or explicitly debugged lines
+    if (preg_match('/^\[202\d-[0-9]{2}-[0-9]{2}/', $trimmed) || strpos($trimmed, 'WhatsApp') !== false || strpos($trimmed, 'Queue') !== false || strpos($trimmed, 'AI') !== false || strpos($trimmed, 'Error') !== false || strpos($trimmed, 'Exception') !== false) {
+        $filteredLines[] = $trimmed;
+    }
 }
 
 $lastLines = array_slice($filteredLines, -100);

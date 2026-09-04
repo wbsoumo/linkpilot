@@ -595,26 +595,81 @@
 
             <!-- 4. SMTP EMAIL LOGS PANE -->
             <div id="admin-emails-pane" class="hidden space-y-6">
-                <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
-                    <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center">
-                        <i data-lucide="mail" class="h-4 w-4 text-amber-400 mr-2"></i>
-                        <span>System SMTP Email Logs & Delivery Debugger</span>
+                <!-- 1. Email Deliverability Diagnostics Bar Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Successful Emails -->
+                    <div class="glass-panel p-4 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-2">
+                        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
+                            <span>Successful Emails</span>
+                            <div class="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+                                <i data-lucide="check-circle-2" class="h-4 w-4"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-black text-emerald-600 tracking-tight" id="email-diag-successful">0</div>
+                        <p class="text-[10px] text-slate-400 font-medium">Delivered to recipient inbox</p>
+                    </div>
+
+                    <!-- Hard Bounces -->
+                    <div class="glass-panel p-4 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-2">
+                        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
+                            <span>Hard Bounces</span>
+                            <div class="p-2 bg-rose-50 text-rose-600 rounded-xl">
+                                <i data-lucide="alert-octagon" class="h-4 w-4"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-black text-rose-600 tracking-tight" id="email-diag-bounces">0</div>
+                        <p class="text-[10px] text-slate-400 font-medium">Invalid or non-existent recipient addresses</p>
+                    </div>
+
+                    <!-- Spam Complaints -->
+                    <div class="glass-panel p-4 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-2">
+                        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
+                            <span>Spam Complaints</span>
+                            <div class="p-2 bg-amber-50 text-amber-600 rounded-xl">
+                                <i data-lucide="shield-alert" class="h-4 w-4"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-black text-amber-600 tracking-tight" id="email-diag-spam">0</div>
+                        <p class="text-[10px] text-slate-400 font-medium">Flagged by ISP / policy filters</p>
+                    </div>
+
+                    <!-- Overall Success Rate -->
+                    <div class="glass-panel p-4 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-2">
+                        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
+                            <span>Deliverability Rate</span>
+                            <div class="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+                                <i data-lucide="percent" class="h-4 w-4"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-black text-indigo-600 tracking-tight" id="email-diag-rate">100%</div>
+                        <p class="text-[10px] text-slate-400 font-medium" id="email-diag-total-sub">Out of 0 total emails sent</p>
+                    </div>
+                </div>
+
+                <!-- 2. Email Delivery Log Feed Table -->
+                <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4">
+                    <h3 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2 flex items-center justify-between">
+                        <span class="flex items-center">
+                            <i data-lucide="mail" class="h-4 w-4 text-amber-500 mr-2"></i>
+                            <span>System SMTP Email Logs & Delivery Debugger</span>
+                        </span>
+                        <span class="text-[10px] bg-amber-50 text-amber-700 font-bold px-2 py-0.5 rounded-full">Outbox Feed</span>
                     </h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse custom-table text-xs">
                             <thead>
-                                <tr class="border-b border-slate-800">
-                                    <th>Log ID</th>
-                                    <th>User Initiator</th>
-                                    <th>Recipient</th>
-                                    <th>Subject</th>
-                                    <th>Status</th>
-                                    <th>Delivery Time</th>
-                                    <th class="text-right">Actions</th>
+                                <tr class="border-b border-slate-100 text-slate-400 font-semibold uppercase text-[10px]">
+                                    <th class="py-2 px-3">Log ID</th>
+                                    <th class="py-2 px-3">User Initiator</th>
+                                    <th class="py-2 px-3">Recipient</th>
+                                    <th class="py-2 px-3">Subject</th>
+                                    <th class="py-2 px-3">Status</th>
+                                    <th class="py-2 px-3">Delivery Time</th>
+                                    <th class="py-2 px-3 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="emails-logs-tbody">
-                                <tr><td colspan="7" class="text-center py-6 text-slate-500">Loading delivery logs...</td></tr>
+                                <tr><td colspan="7" class="text-center py-6 text-slate-400">Loading delivery logs...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -3545,30 +3600,45 @@
             }
         };
 
-        // 4. SMTP EMAIL DELIVERIES DATA LOADERS
+        // 4. SMTP EMAIL DELIVERIES DATA LOADERS & ACTIONS
         window.loadAdminEmailLogsData = async function() {
             try {
                 const res = await apiCall('admin/email_logs.php');
                 window.loadedEmailLogs = res.emails || [];
 
+                // Render Deliverability Diagnostics Bar
+                if (res.diagnostics) {
+                    const d = res.diagnostics;
+                    document.getElementById('email-diag-successful').textContent = d.successful;
+                    document.getElementById('email-diag-bounces').textContent = d.hard_bounces;
+                    document.getElementById('email-diag-spam').textContent = d.spam_complaints;
+                    document.getElementById('email-diag-rate').textContent = `${d.success_rate}%`;
+                    document.getElementById('email-diag-total-sub').textContent = `Out of ${d.total} total emails sent`;
+                }
+
                 const tbody = document.getElementById('emails-logs-tbody');
                 if (window.loadedEmailLogs.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-500">No outbound system emails logged yet.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400">No outbound system emails logged yet.</td></tr>`;
                 } else {
                     tbody.innerHTML = window.loadedEmailLogs.map(e => `
-                        <tr class="hover:bg-slate-50 border-b border-slate-100">
-                            <td class="py-2.5 px-4 font-mono font-bold text-slate-500">#${e.id}</td>
-                            <td class="py-2.5 px-4 font-bold text-slate-800">${e.user_name || 'System'}<div class="text-[9px] text-slate-500 font-medium">${e.user_email || ''}</div></td>
-                            <td class="py-2.5 px-4 font-semibold text-slate-700">${e.recipient_email}</td>
-                            <td class="py-2.5 px-4 truncate max-w-[200px]" title="${e.subject}">${e.subject}</td>
-                            <td class="py-2.5 px-4">
-                                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${e.status === 'sent' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'}" title="${e.error_message || ''}">
+                        <tr class="hover:bg-slate-50 border-b border-slate-100 text-xs">
+                            <td class="py-2.5 px-3 font-mono font-bold text-slate-500">#${e.id}</td>
+                            <td class="py-2.5 px-3 font-bold text-slate-800">${e.user_name || 'System'}<div class="text-[9px] text-slate-400 font-medium">${e.user_email || ''}</div></td>
+                            <td class="py-2.5 px-3 font-semibold text-slate-700">${e.recipient_email}</td>
+                            <td class="py-2.5 px-3 truncate max-w-[180px] font-medium" title="${e.subject}">${e.subject}</td>
+                            <td class="py-2.5 px-3">
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${e.status === 'sent' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}" title="${e.error_message || ''}">
                                     ${e.status}
                                 </span>
                             </td>
-                            <td class="py-2.5 px-4 text-slate-550 font-semibold font-mono text-[10px]">${new Date(e.created_at).toLocaleString()}</td>
-                            <td class="py-2.5 px-4 text-right">
-                                <button onclick="viewEmailContent(${e.id})" class="text-[10px] px-2 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-650 rounded transition">View body</button>
+                            <td class="py-2.5 px-3 text-slate-500 font-semibold font-mono text-[10px]">${new Date(e.created_at).toLocaleString()}</td>
+                            <td class="py-2.5 px-3 text-right space-x-1">
+                                <button onclick="viewEmailContent(${e.id})" class="text-[10px] px-2 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-200 font-bold text-slate-700 rounded transition">Inspect Payload</button>
+                                ${e.status === 'failed' ? `
+                                    <button onclick="resendFailedEmail(${e.id})" class="text-[10px] px-2 py-1 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 font-bold text-indigo-700 rounded transition flex-inline items-center space-x-1">
+                                        <span>↻ Resend</span>
+                                    </button>
+                                ` : ''}
                             </td>
                         </tr>
                     `).join('');
@@ -3579,7 +3649,7 @@
             }
         };
 
-        // 5. VIEW EMAIL BODY PREVIEW MODAL
+        // 5. PAYLOAD VIEWER MODAL (Subject, Body, SMTP Response, Response Headers)
         window.viewEmailContent = function(emailId) {
             const email = window.loadedEmailLogs.find(e => e.id == emailId);
             if (!email) return;
@@ -3588,28 +3658,88 @@
             if (existing) existing.remove();
 
             const modalHTML = `
-                <div id="admin-email-body-modal" class="fixed inset-0 z-[160] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-                    <div class="bg-white rounded-2xl w-full max-w-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[70vh] text-slate-800 animate-slide-up transform duration-300">
+                <div id="admin-email-body-modal" class="fixed inset-0 z-[160] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in p-4">
+                    <div class="bg-white rounded-2xl w-full max-w-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[80vh] text-slate-800 animate-slide-up">
+                        <!-- Header -->
                         <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                            <div class="text-left">
-                                <h3 class="text-xs font-bold text-slate-800">Email Outbox Viewer</h3>
-                                <p class="text-[9px] text-slate-400 mt-0.5">Recipient: ${email.recipient_email}</p>
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                                    <i data-lucide="file-text" class="h-4 w-4 text-indigo-600"></i>
+                                    <span>SMTP Payload & Handshake Inspector</span>
+                                </h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Recipient: <strong class="text-slate-800">${email.recipient_email}</strong> (Log #${email.id})</p>
                             </div>
-                            <button onclick="document.getElementById('admin-email-body-modal').remove()" class="h-7 w-7 rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition">
-                                <i data-lucide="x" class="h-4 w-4"></i>
-                            </button>
+                            <div class="flex items-center space-x-2">
+                                ${email.status === 'failed' ? `
+                                    <button onclick="resendFailedEmail(${email.id})" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg text-xs transition flex items-center space-x-1">
+                                        <span>↻ Resend Email</span>
+                                    </button>
+                                ` : ''}
+                                <button onclick="document.getElementById('admin-email-body-modal').remove()" class="h-7 w-7 rounded-full hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+                                    <i data-lucide="x" class="h-4 w-4"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div class="p-6 overflow-y-auto flex-grow text-xs text-left bg-slate-50 font-mono space-y-4">
-                            <div><span class="font-bold text-slate-400">Subject:</span> ${email.subject}</div>
-                            ${email.error_message ? `<div class="p-3 bg-rose-50 border border-rose-100 rounded-lg text-rose-600 font-sans"><span class="font-bold">Error Info:</span> ${email.error_message}</div>` : ''}
-                            <hr class="border-slate-200" />
-                            <div class="bg-white p-4 border border-slate-200 rounded-xl overflow-x-auto whitespace-pre-wrap">${email.body}</div>
+
+                        <!-- Modal Body Tab Controls & Content -->
+                        <div class="p-6 overflow-y-auto flex-grow text-xs space-y-4 bg-slate-50/50">
+                            <!-- Subject Line Card -->
+                            <div class="p-3.5 bg-white border border-slate-200 rounded-xl space-y-1">
+                                <span class="text-[10px] font-bold uppercase text-slate-400">Email Subject Line</span>
+                                <div class="font-bold text-slate-900 text-sm">${email.subject}</div>
+                            </div>
+
+                            <!-- Failure Error Alert if applicable -->
+                            ${email.error_message ? `
+                                <div class="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 space-y-1">
+                                    <div class="font-bold flex items-center text-xs">
+                                        <i data-lucide="alert-triangle" class="h-4 w-4 mr-1.5"></i>
+                                        <span>SMTP Delivery Error Notice</span>
+                                    </div>
+                                    <div class="font-mono text-[11px] leading-relaxed">${email.error_message}</div>
+                                </div>
+                            ` : ''}
+
+                            <!-- Grid: SMTP Response & Headers -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="p-3.5 bg-white border border-slate-200 rounded-xl space-y-1.5">
+                                    <span class="text-[10px] font-bold uppercase text-slate-400">SMTP Server Response Code</span>
+                                    <div class="p-2.5 bg-slate-900 text-emerald-400 font-mono text-[11px] rounded-lg border border-slate-800 whitespace-pre-wrap">${email.smtp_response || '250 2.0.0 OK'}</div>
+                                </div>
+                                <div class="p-3.5 bg-white border border-slate-200 rounded-xl space-y-1.5">
+                                    <span class="text-[10px] font-bold uppercase text-slate-400">Response Headers</span>
+                                    <div class="p-2.5 bg-slate-900 text-slate-300 font-mono text-[10px] rounded-lg border border-slate-800 whitespace-pre-wrap max-h-24 overflow-y-auto">${email.response_headers || 'HTTP/1.1 200 OK'}</div>
+                                </div>
+                            </div>
+
+                            <!-- Full Email Render Body -->
+                            <div class="p-3.5 bg-white border border-slate-200 rounded-xl space-y-2">
+                                <span class="text-[10px] font-bold uppercase text-slate-400">Email Body Payload (HTML/Text)</span>
+                                <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-mono text-xs whitespace-pre-wrap max-h-60 overflow-y-auto">${email.body}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
             `;
             document.body.insertAdjacentHTML('beforeend', modalHTML);
             lucide.createIcons();
+        };
+
+        // Resend Email for Failed Deliveries
+        window.resendFailedEmail = async function(emailId) {
+            if (!confirm('Re-attempt transmitting this email via system SMTP?')) return;
+            try {
+                const res = await apiCall('admin/email_logs.php', 'POST', { email_id: emailId });
+                showNotification('success', res.message);
+                
+                // Close modal if open
+                const modal = document.getElementById('admin-email-body-modal');
+                if (modal) modal.remove();
+                
+                window.loadAdminEmailLogsData();
+            } catch (err) {
+                showNotification('error', err.message);
+            }
         };
 
         // 6. VIEW SESSION CLICKSTREAM TIMELINE MODAL

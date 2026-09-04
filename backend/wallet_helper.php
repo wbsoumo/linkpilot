@@ -397,13 +397,11 @@ if (!function_exists('callAIProvider')) {
                 } else {
                     $modelsToTry = [
                         $model,
-                        'google/gemini-2.5-flash:free',
-                        'google/gemini-2.5-flash',
                         'meta-llama/llama-3.3-70b-instruct:free',
-                        'google/gemini-2.0-flash-lite:free',
+                        'google/gemini-2.5-flash',
                         'meta-llama/llama-3.1-8b-instruct:free',
-                        'meta-llama/llama-3-8b-instruct:free',
-                        'google/gemini-2.0-flash-exp'
+                        'google/gemini-2.0-flash-lite:free',
+                        'deepseek/deepseek-r1:free'
                     ];
                     $modelsToTry = array_unique($modelsToTry);
                     $lastError = '';
@@ -512,7 +510,7 @@ if (!function_exists('callAI')) {
             if ($adminRes && !empty($adminRes['active_ai_provider'])) {
                 $primaryProvider = $adminRes['active_ai_provider'];
             } elseif ($userId !== null) {
-                $stmtUser = $db->prepare("SELECT active_ai_provider FROM users WHERE id = ?");
+                $stmtUser = $db->prepare("SELECT active_ai_model, active_ai_provider FROM users WHERE id = ?");
                 $stmtUser->execute([$userId]);
                 $res = $stmtUser->fetch();
                 if ($res && !empty($res['active_ai_provider'])) {

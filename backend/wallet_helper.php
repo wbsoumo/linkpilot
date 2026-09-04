@@ -159,17 +159,17 @@ if (!function_exists('callAIProvider')) {
                     $apiKeysList[] = ['id' => null, 'api_key' => encryptData($apiKey), 'status' => 'active'];
                 }
             } elseif ($provider === 'google_ai_studio') {
-                $apiKey = getenv('GEMINI_API_KEY') ?: '';
+                $apiKey = getenv('GEMINI_API_KEY') ?: (defined('GEMINI_API_KEY') ? GEMINI_API_KEY : '');
                 if (!empty($apiKey) && strpos($apiKey, 'placeholder') === false) {
                     $apiKeysList[] = ['id' => null, 'api_key' => encryptData($apiKey), 'status' => 'active'];
                 }
             } elseif ($provider === 'groq') {
-                $apiKey = getenv('GROQ_API_KEY') ?: '';
+                $apiKey = getenv('GROQ_API_KEY') ?: (defined('GROQ_API_KEY') ? GROQ_API_KEY : '');
                 if (!empty($apiKey) && strpos($apiKey, 'placeholder') === false) {
                     $apiKeysList[] = ['id' => null, 'api_key' => encryptData($apiKey), 'status' => 'active'];
                 }
             } else {
-                $apiKey = getenv('OPENROUTER_API_KEY') ?: '';
+                $apiKey = getenv('OPENROUTER_API_KEY') ?: (defined('OPENROUTER_API_KEY') ? OPENROUTER_API_KEY : '');
                 if (!empty($apiKey) && strpos($apiKey, 'placeholder') === false) {
                     $apiKeysList[] = ['id' => null, 'api_key' => encryptData($apiKey), 'status' => 'active'];
                 }

@@ -234,7 +234,7 @@ try {
                        ->execute([$userId, $crmContactId, "Received WhatsApp message from '$profileName': " . substr($bodyText, 0, 100)]);
 
                     // d. If AI is enabled and message has text, enqueue for async processing via whatsapp_queue
-                    if ($settings['ai_enabled'] && $msgType === 'text' && !empty($bodyText)) {
+                    if (!empty($settings['ai_enabled']) && !empty($bodyText) && !in_array($msgType, ['status', 'system', 'reaction', 'unknown'])) {
                         $queuePayload = json_encode([
                             'user_id' => $userId,
                             'wa_contact_id' => $waContactId,
@@ -259,7 +259,7 @@ try {
                     $db->commit();
 
                     // Immediately process WhatsApp AI queue synchronously in isolated scope
-                    if ($settings['ai_enabled'] && $msgType === 'text' && !empty($bodyText)) {
+                    if (!empty($settings['ai_enabled']) && !empty($bodyText) && !in_array($msgType, ['status', 'system', 'reaction', 'unknown'])) {
                         try {
                             require_once __DIR__ . '/../../queue_worker.php';
                             QueueWorker::processWhatsAppQueue();

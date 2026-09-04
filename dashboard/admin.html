@@ -547,6 +547,13 @@
                                 </tbody>
                             </table>
                         </div>
+                        <!-- Transaction Feed Pagination -->
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-100 text-xs">
+                            <span class="text-slate-400 font-medium" id="tx-pagination-info">Showing 0-0 of 0</span>
+                            <div class="flex items-center space-x-1.5" id="tx-pagination-controls">
+                                <!-- Dynamic pagination buttons -->
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Payment Orders log -->
@@ -574,6 +581,13 @@
                                     <tr><td colspan="6" class="text-center py-6 text-slate-400">Loading order records...</td></tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <!-- Checkout Orders Pagination -->
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-100 text-xs">
+                            <span class="text-slate-400 font-medium" id="orders-pagination-info">Showing 0-0 of 0</span>
+                            <div class="flex items-center space-x-1.5" id="orders-pagination-controls">
+                                <!-- Dynamic pagination buttons -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3171,9 +3185,15 @@
         }
 
         // 3. FINANCIAL LEDGER DATA LOADERS & ACTIONS
-        window.loadAdminLedgerData = async function() {
+        window.currentLedgerTxPage = 1;
+        window.currentLedgerOrdersPage = 1;
+
+        window.loadAdminLedgerData = async function(txPage = null, ordersPage = null) {
+            if (txPage !== null) window.currentLedgerTxPage = txPage;
+            if (ordersPage !== null) window.currentLedgerOrdersPage = ordersPage;
+
             try {
-                const res = await apiCall('admin/financial_ledger.php');
+                const res = await apiCall(`admin/financial_ledger.php?tx_page=${window.currentLedgerTxPage}&orders_page=${window.currentLedgerOrdersPage}`);
                 window.lastLedgerData = res;
 
                 // Update Revenue Analytics Cards
@@ -3212,6 +3232,23 @@
                     `).join('');
                 }
 
+                // Render Transaction Pagination Controls
+                if (res.tx_pagination) {
+                    const p = res.tx_pagination;
+                    const startItem = p.total_count === 0 ? 0 : (p.page - 1) * p.limit + 1;
+                    const endItem = Math.min(p.page * p.limit, p.total_count);
+                    document.getElementById('tx-pagination-info').textContent = `Showing ${startItem}-${endItem} of ${p.total_count}`;
+
+                    const prevDisabled = p.page <= 1 ? 'disabled opacity-40 cursor-not-allowed' : 'hover:bg-slate-100';
+                    const nextDisabled = p.page >= p.total_pages ? 'disabled opacity-40 cursor-not-allowed' : 'hover:bg-slate-100';
+
+                    document.getElementById('tx-pagination-controls').innerHTML = `
+                        <button onclick="loadAdminLedgerData(${p.page - 1}, null)" ${p.page <= 1 ? 'disabled' : ''} class="px-2.5 py-1 bg-white border border-slate-200 rounded text-slate-700 font-bold transition ${prevDisabled}">Prev</button>
+                        <span class="text-[11px] font-bold text-slate-600 px-1">Page ${p.page} / ${p.total_pages}</span>
+                        <button onclick="loadAdminLedgerData(${p.page + 1}, null)" ${p.page >= p.total_pages ? 'disabled' : ''} class="px-2.5 py-1 bg-white border border-slate-200 rounded text-slate-700 font-bold transition ${nextDisabled}">Next</button>
+                    `;
+                }
+
                 // Render Checkout Orders feed
                 const orderBody = document.getElementById('ledger-orders-tbody');
                 if (!res.orders || res.orders.length === 0) {
@@ -3232,6 +3269,24 @@
                         </tr>
                     `).join('');
                 }
+
+                // Render Orders Pagination Controls
+                if (res.orders_pagination) {
+                    const op = res.orders_pagination;
+                    const oStartItem = op.total_count === 0 ? 0 : (op.page - 1) * op.limit + 1;
+                    const oEndItem = Math.min(op.page * op.limit, op.total_count);
+                    document.getElementById('orders-pagination-info').textContent = `Showing ${oStartItem}-${oEndItem} of ${op.total_count}`;
+
+                    const oPrevDisabled = op.page <= 1 ? 'disabled opacity-40 cursor-not-allowed' : 'hover:bg-slate-100';
+                    const oNextDisabled = op.page >= op.total_pages ? 'disabled opacity-40 cursor-not-allowed' : 'hover:bg-slate-100';
+
+                    document.getElementById('orders-pagination-controls').innerHTML = `
+                        <button onclick="loadAdminLedgerData(null, ${op.page - 1})" ${op.page <= 1 ? 'disabled' : ''} class="px-2.5 py-1 bg-white border border-slate-200 rounded text-slate-700 font-bold transition ${oPrevDisabled}">Prev</button>
+                        <span class="text-[11px] font-bold text-slate-600 px-1">Page ${op.page} / ${op.total_pages}</span>
+                        <button onclick="loadAdminLedgerData(null, ${op.page + 1})" ${op.page >= op.total_pages ? 'disabled' : ''} class="px-2.5 py-1 bg-white border border-slate-200 rounded text-slate-700 font-bold transition ${oNextDisabled}">Next</button>
+                    `;
+                }
+
                 lucide.createIcons();
             } catch (err) {
                 showNotification('error', 'Failed to load ledger: ' + err.message);

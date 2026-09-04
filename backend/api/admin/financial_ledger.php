@@ -64,6 +64,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 try {
+    $limit = 20;
+    $txPage = isset($_GET['tx_page']) ? max(1, (int)$_GET['tx_page']) : 1;
+    $ordersPage = isset($_GET['orders_page']) ? max(1, (int)$_GET['orders_page']) : 1;
+    
+    $txOffset = ($txPage - 1) * $limit;
+    $ordersOffset = ($ordersPage - 1) * $limit;
+
     // 1. Calculate Revenue Analytics Metrics
     $totRevStmt = $db->query("SELECT COALESCE(SUM(amount), 0) AS total_rev, COUNT(*) AS count_paid FROM recharge_orders WHERE status IN ('paid', 'completed', 'success')");
     $totRevData = $totRevStmt->fetch(PDO::FETCH_ASSOC);
@@ -81,26 +88,38 @@ try {
     $failedCount = (int)$failedData['count_failed'];
     $failedAmount = (float)$failedData['failed_amt'];
 
-    // 2. Fetch recent transaction logs across the entire system
-    $stmtTx = $db->query("
+    // 2. Transaction logs count & paginated query
+    $totalTxCount = (int)$db->query("SELECT COUNT(*) FROM email_credit_transactions")->fetchColumn();
+    $totalTxPages = max(1, ceil($totalTxCount / $limit));
+
+    $stmtTx = $db->prepare("
         SELECT tx.id, tx.user_id, tx.type, tx.credits, tx.amount, tx.payment_id, tx.status, tx.created_at,
                u.name AS user_name, u.email AS user_email
         FROM email_credit_transactions tx
         LEFT JOIN users u ON tx.user_id = u.id
         ORDER BY tx.id DESC
-        LIMIT 200
+        LIMIT ? OFFSET ?
     ");
+    $stmtTx->bindValue(1, $limit, PDO::PARAM_INT);
+    $stmtTx->bindValue(2, $txOffset, PDO::PARAM_INT);
+    $stmtTx->execute();
     $transactions = $stmtTx->fetchAll(PDO::FETCH_ASSOC);
 
-    // 3. Fetch Razorpay orders feed
-    $stmtOrders = $db->query("
+    // 3. Razorpay orders count & paginated query
+    $totalOrdersCount = (int)$db->query("SELECT COUNT(*) FROM recharge_orders")->fetchColumn();
+    $totalOrdersPages = max(1, ceil($totalOrdersCount / $limit));
+
+    $stmtOrders = $db->prepare("
         SELECT o.id, o.user_id, o.order_id, o.amount, o.currency, o.credits, o.status, o.created_at,
                u.name AS user_name, u.email AS user_email
         FROM recharge_orders o
         LEFT JOIN users u ON o.user_id = u.id
         ORDER BY o.id DESC
-        LIMIT 200
+        LIMIT ? OFFSET ?
     ");
+    $stmtOrders->bindValue(1, $limit, PDO::PARAM_INT);
+    $stmtOrders->bindValue(2, $ordersOffset, PDO::PARAM_INT);
+    $stmtOrders->execute();
     $orders = $stmtOrders->fetchAll(PDO::FETCH_ASSOC);
 
     sendJsonResponse('success', 'Financial records loaded.', [
@@ -114,7 +133,19 @@ try {
             'total_orders' => $paidCount
         ],
         'transactions' => $transactions,
-        'orders' => $orders
+        'tx_pagination' => [
+            'page' => $txPage,
+            'limit' => $limit,
+            'total_count' => $totalTxCount,
+            'total_pages' => $totalTxPages
+        ],
+        'orders' => $orders,
+        'orders_pagination' => [
+            'page' => $ordersPage,
+            'limit' => $limit,
+            'total_count' => $totalOrdersCount,
+            'total_pages' => $totalOrdersPages
+        ]
     ]);
 
 } catch (Exception $e) {

@@ -28,8 +28,8 @@ if ($fileSize === 0) {
     exit;
 }
 
-// Memory-efficient log tail: read only the last 64KB without loading large files into RAM
-$maxRead = 65536; // 64 KB
+// Memory-efficient log tail: read only the last 512KB without loading large files into RAM
+$maxRead = 524288; // 512 KB
 $readSize = min($fileSize, $maxRead);
 
 fseek($fp, -$readSize, SEEK_END);

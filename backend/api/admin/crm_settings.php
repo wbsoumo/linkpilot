@@ -130,15 +130,86 @@ try {
             'php_version' => phpversion()
         ];
 
+        // 6. Fetch Processing Logs with filters
+        $logLevel = $_GET['level'] ?? '';
+        $search = $_GET['search'] ?? '';
+        $dateFrom = $_GET['date_from'] ?? '';
+        $dateTo = $_GET['date_to'] ?? '';
+
+        $logsQuery = "
+            SELECT l.id, l.email_subject, l.user_id, u.name as user_name, u.email as user_email, 
+                   l.status, l.log_level, l.message, l.created_at 
+            FROM email_processing_logs l
+            LEFT JOIN users u ON l.user_id = u.id
+            WHERE 1=1
+        ";
+        $params = [];
+
+        if (!empty($logLevel)) {
+            $logsQuery .= " AND (l.log_level = ? OR l.status = ?)";
+            $params[] = strtoupper($logLevel);
+            $params[] = strtolower($logLevel);
+        }
+
+        if (!empty($search)) {
+            if (is_numeric($search)) {
+                $logsQuery .= " AND (l.id = ? OR l.user_id = ? OR l.message LIKE ? OR l.email_subject LIKE ?)";
+                $params[] = (int)$search;
+                $params[] = (int)$search;
+                $params[] = "%{$search}%";
+                $params[] = "%{$search}%";
+            } else {
+                $logsQuery .= " AND (l.message LIKE ? OR l.email_subject LIKE ? OR u.name LIKE ? OR u.email LIKE ?)";
+                $params[] = "%{$search}%";
+                $params[] = "%{$search}%";
+                $params[] = "%{$search}%";
+                $params[] = "%{$search}%";
+            }
+        }
+
+        if (!empty($dateFrom)) {
+            $logsQuery .= " AND l.created_at >= ?";
+            $params[] = $dateFrom . ' 00:00:00';
+        }
+
+        if (!empty($dateTo)) {
+            $logsQuery .= " AND l.created_at <= ?";
+            $params[] = $dateTo . ' 23:59:59';
+        }
+
+        $logsQuery .= " ORDER BY l.id DESC LIMIT 100";
+
+        $processingLogs = [];
+        try {
+            $stmtLogs = $db->prepare($logsQuery);
+            $stmtLogs->execute($params);
+            $processingLogs = $stmtLogs->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $ex) {}
+
         sendJsonResponse('success', 'Admin health settings loaded', [
             'settings' => $settings,
             'queue_stats' => $queueStats,
-            'health' => $health
+            'health' => $health,
+            'processing_logs' => $processingLogs
         ]);
         
     } elseif ($method === 'POST') {
         $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
         $action = $input['action'] ?? 'save_settings';
+
+        if ($action === 'clear_logs') {
+            $clearType = $input['clear_type'] ?? 'clear_30d';
+            $affected = 0;
+            if ($clearType === 'clear_30d') {
+                $stmtDel = $db->query("DELETE FROM email_processing_logs WHERE created_at < NOW() - INTERVAL 30 DAY");
+                $affected = $stmtDel->rowCount();
+                sendJsonResponse('success', "Archived and purged {$affected} processing logs older than 30 days.");
+            } else {
+                $stmtDel = $db->query("DELETE FROM email_processing_logs");
+                $affected = $stmtDel->rowCount();
+                sendJsonResponse('success', "Purged all {$affected} processing logs from database.");
+            }
+        }
 
         if ($action === 'restart_queue') {
             // Restart Queue Worker process
